@@ -1,6 +1,4 @@
-# TSA bug filing
-
-TSA bug filing file has been configured: tsaoptions.json. Official builds are required to have TSA bug filing enabled by default. [Learn more](https://aka.ms/OBTSA)
+# Operational Agent
 
 # Introduction
 
@@ -15,6 +13,7 @@ TODO: Guide users through getting your code up and running on their own system. 
 3. Latest releases
 4. API references
 
+
 # Build and Test
 
 TODO: Describe and show how to build your code and run the tests.
@@ -28,3 +27,8 @@ If you want to learn more about creating good readme files then refer the follow
 - [ASP.NET Core](https://github.com/aspnet/Home)
 - [Visual Studio Code](https://github.com/Microsoft/vscode)
 - [Chakra Core](https://github.com/Microsoft/ChakraCore)
+
+
+# TSA bug filing
+
+TSA bug filing file has been configured: tsaoptions.json. Official builds are required to have TSA bug filing enabled by default. [Learn more](https://aka.ms/OBTSA)
