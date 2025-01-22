@@ -8,8 +8,9 @@ Update the local.settings.json with the following:
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
     "Environment": "Development",
-    "OpenAIEndpoint": "<your_endpoint>/openai/deployments/gpt-4o/chat/completions?api-version=2024-02-15-preview",
-    "OpenAIAPI_KEY": "<your_openai_key>",
+    "AzureOpenAIEndpoint": "<your_endpoint>", // e.g. https://pbatum-ai-services-sfi2.cognitiveservices.azure.com/,    
+    "AzureOpenAIDeployment": "gpt-4o",
+    "OpenAIAPI_KEY": "<your_openai_key>", // remove this completely to use RBAC with default azure credentials
     "TeamsPostMessageEndpoint": "<logic app http trigger endpoint>",
     "ApprovalUrl": "https://localhost:7268/?action_name={0}"
   }

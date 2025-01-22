@@ -46,7 +46,11 @@ AzureOpenAIClient GetAzureOpenAIClient()
 
 IChatClient GetChatClient(AzureOpenAIClient client)
 {
-    string deployment = Environment.GetEnvironmentVariable("AzureOpenAIDeployment");
+    string? deployment = Environment.GetEnvironmentVariable("AzureOpenAIDeployment");
+
+    if (string.IsNullOrEmpty(deployment))
+        throw new Exception("Please set `AzureOpenAIDeployment`, check the readme for more information.");
+
     return new ChatClientBuilder(client.AsChatClient(deployment))
         .UseFunctionInvocation()
         .Build();
