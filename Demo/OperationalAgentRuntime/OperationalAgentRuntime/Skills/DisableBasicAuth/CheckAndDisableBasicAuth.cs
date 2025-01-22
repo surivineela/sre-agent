@@ -1,0 +1,140 @@
+using Azure;
+using Azure.Messaging;
+using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.Azure.Functions.Worker;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
+using Microsoft.DurableTask.Entities;
+using Microsoft.Extensions.Logging;
+using OperationalAgentRuntime.Helpers;
+using OperationalAgentRuntime.Models;
+using System;
+using System.Text;
+
+namespace OperationalAgentRuntime.Skills
+{
+    public static class CheckAndDisableBasicAuth
+    {
+        [Function(nameof(CheckAndDisableBasicAuth))]
+        public static async Task RunOrchestrator(
+            [OrchestrationTrigger] TaskOrchestrationContext context)
+        {
+            ILogger logger = context.CreateReplaySafeLogger(nameof(CheckAndDisableBasicAuth));
+
+            var resourceMemoryEntity = new EntityInstanceId("ResourceMemory", "SREResourceMemory");
+            var currentResourceList = await context.Entities.CallEntityAsync<List<AzureSubscription>>(resourceMemoryEntity, "Get");
+            List<string> resourceIds = currentResourceList.SelectMany(c => c.Resources).ToList();
+
+            var basicAuthChecks = await context.CallActivityAsync<List<BasicAuthStatus>>(nameof(BasicSkills.CheckBasicAuthForResources), resourceIds);
+            var appsInViolation = basicAuthChecks.Where(p => p.FtpBasicAuthAllowed || p.ScmBasicAuthAllowed).ToList();
+            
+            if(!appsInViolation.Any()) return;
+
+            var messages = new List<OpenAIMessage>
+                {
+                    new()
+                    {
+                        Role = "system",
+                        Content = [
+                            new OpenAIMessageContent()
+                            {
+                                Type = "text",
+                                Text = "You are an AI assistant that helps users generate user friendly messages"
+                            }
+                        ]
+                    },
+                    new()
+                    {
+                        Role = "user",
+                        Content = [
+                            new OpenAIMessageContent()
+                            {
+                                Type = "text",
+                                Text = "Write a user friendly two line message to tell user that you found a list of App services which have basic auth enabled and its not recommended for secure apps. Its fine to say Hi but Do not write Thanks or Best regards. Also dont write feel free to reach out. Also say I not we."
+                            }
+                        ]
+                    }
+                };
+
+            string openAIResponse = await context.CallActivityAsync<string>(nameof(BasicSkills.GetOpenAIResponse), messages);
+            string htmlTable = HtmlHelpers.GenerateHtmlTableForBasicAuth(appsInViolation);
+            string approvalLink = string.Format(Environment.GetEnvironmentVariable("ApprovalUrl"), context.InstanceId);
+
+            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"{openAIResponse} {htmlTable}"));
+            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"I can disable basic authentication for these applications individually. Would you like me to proceed? <a href='{approvalLink}'>Click here to approve</a>"));
+
+            using (var timeoutCts = new CancellationTokenSource())
+            {
+                int approvalTimeoutInSeconds = 3600;
+                DateTime dueTime = context.CurrentUtcDateTime.AddSeconds(approvalTimeoutInSeconds);
+                Task durableTimeout = context.CreateTimer(dueTime, timeoutCts.Token);
+                Task<bool> approvalEvent = context.WaitForExternalEvent<bool>("DiableBasicAuthApprovalEvent");
+
+                if (approvalEvent == await Task.WhenAny(approvalEvent, durableTimeout))
+                {
+                    timeoutCts.Cancel();
+                    var approvalResult = await approvalEvent;
+                    logger.LogInformation($"approvalEvent : {approvalResult}");
+                    if (approvalResult)
+                    {
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received. I'll continue to disable basic authentication for these applications in a safe manner and will notify you once I am done."));
+                        int waitTimeInSeconds = 30;
+
+                        using (var appActionTimeoutCts = new CancellationTokenSource())
+                        {
+                            foreach (var app in appsInViolation)
+                            {
+                                Task durableWaitTimeBetweenApps = context.CreateTimer(TimeSpan.FromSeconds(waitTimeInSeconds), appActionTimeoutCts.Token);
+                                bool result = await context.CallActivityAsync<bool>(nameof(BasicSkills.DisableBasicAuth), app);
+                                logger.LogInformation($"App: {app.Name}, Basic Auth Disablement Result : {result}");
+                                await durableWaitTimeBetweenApps;
+                            }
+                        }
+
+                        var appRechecks = await context.CallActivityAsync<List<BasicAuthStatus>>(nameof(BasicSkills.CheckBasicAuthForResources), appsInViolation.Select(p => p.ResourceId).ToList());
+                        string finalTable = HtmlHelpers.GenerateHtmlTableForBasicAuth(appRechecks);
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"I have successfully disabled basic authentication on the apps. Here is the latest status update. I will continue to monitor for any additional issues and provide further reports. {finalTable}"));
+                    }
+                    else
+                    {
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied. I will continue to monitor for any additional issues."));
+                    }
+                }
+                else
+                {
+                    logger.LogInformation($"No approval received within {approvalTimeoutInSeconds} seconds.");
+                }
+            }
+        }
+
+        [Function("CheckAndDisableBasicAuth_TimerTrigger")]
+        public static async Task TimerStart(
+            [TimerTrigger("*/30 * * * * *")] TimerInfo timer,
+            [DurableClient] DurableTaskClient client,
+            FunctionContext executionContext)
+        {
+            ILogger logger = executionContext.GetLogger("CheckAndDisableBasicAuth_HttpStart");
+
+            string instanceId = "CheckAndDisableBasicAuth_instance";
+
+            var existingInstance = await client.GetInstanceAsync(instanceId);
+            if (existingInstance == null || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed ||
+                existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Failed ||
+                existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Terminated)
+            {
+                StartOrchestrationOptions options = new StartOrchestrationOptions(instanceId);
+
+                instanceId = await client.ScheduleNewOrchestrationInstanceAsync(nameof(CheckAndDisableBasicAuth), options);
+                logger.LogInformation("Started orchestration with ID = '{instanceId}'.", instanceId);
+            }
+            else
+            {
+                logger.LogInformation($"Orchestration with ID = '{instanceId}' is already running.");
+            }
+
+            // Returns an HTTP 202 response with an instance management payload.
+            // See https://learn.microsoft.com/azure/azure-functions/durable/durable-functions-http-api#start-orchestration
+
+        }
+    }
+}
