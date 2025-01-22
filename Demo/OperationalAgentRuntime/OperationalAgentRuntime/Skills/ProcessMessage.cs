@@ -38,7 +38,7 @@ namespace OperationalAgentRuntime.Skills
             string intent = await context.CallActivityAsync<string>(nameof(IntentClassification.ClassifyIntent), messageContent);
 
             var resourceMemoryEntity = new EntityInstanceId("ResourceMemory", "SREResourceMemory");
-            var azureSub = await context.Entities.CallEntityAsync<List<AzureSubscription>>(resourceMemoryEntity, "Get");
+            var azureSubs = await context.Entities.CallEntityAsync<List<AzureSubscription>>(resourceMemoryEntity, "Get");
             
             switch (intent.ToLower())
             {
@@ -49,13 +49,11 @@ namespace OperationalAgentRuntime.Skills
                 case "disablebasicauth":
                 case "rebootapps":
                 default:
-                    var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), new AgentMessageHandlingInput {  Message = messageContent, Subscriptions = azureSub});
+                    var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), new AgentMessageHandlingInput {  Message = messageContent, Subscriptions = azureSubs});
                     Console.WriteLine(res);
+                    await context.CallActivityAsync(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage(res));
                     break;
             }
-
-
-
         }
 
         [Function(nameof(HandleChatMessageAsync))]
