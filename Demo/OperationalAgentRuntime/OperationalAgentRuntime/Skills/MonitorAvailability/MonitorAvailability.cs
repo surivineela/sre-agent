@@ -6,6 +6,7 @@ using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Entities;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
@@ -94,31 +95,12 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                     await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage("Unfortunately, I cannot dertermine the root cause right now. Please investigate the issue using Diagnose and Solve Problems menu item on App services page in azure portal."));
                 }
 
-                var openAICallMessages = new List<OpenAIMessage>
+                var openAICallMessages = new List<ChatMessage>
                 {
-                    new()
-                    {
-                        Role = "system",
-                        Content = [
-                            new OpenAIMessageContent()
-                            {
-                                Type = "text",
-                                Text = "You are an AI assistant that helps users generate user friendly messages"
-                            }
-                        ]
-                    },
-                    new()
-                    {
-                        Role = "user",
-                        Content = [
-                            new OpenAIMessageContent()
-                            {
-                                Type = "text",
-                                Text = $"Rephrase this. {approvalMessage}"
-                            }
-                        ]
-                    }
+                    new ChatMessage(ChatRole.System, "You are an AI assistant that helps users generate user friendly messages"),
+                    new ChatMessage(ChatRole.User, $"Rephrase this. {approvalMessage}"),
                 };
+
                 string openAIResponse = await context.CallActivityAsync<string>(nameof(BasicSkills.GetOpenAIResponse), openAICallMessages);
                 await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"{openAIResponse}. Would you like me to proceed? <a href='{approvalLink}'>Click here to approve</a>"));
 

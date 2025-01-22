@@ -1,7 +1,9 @@
 ﻿using Azure.Core;
 using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.AI;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using OperationalAgentRuntime.Tools;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,8 +12,16 @@ using System.Threading.Tasks;
 
 namespace OperationalAgentRuntime.Skills
 {
-    public static class BasicSkills
+    public class BasicSkills
     {
+        private readonly IChatClient chatClient;
+
+        public BasicSkills(IChatClient chatClient)
+        {
+            this.chatClient = chatClient;
+        }
+
+
         [Function(nameof(GetSubscriptions))]
         public static async Task<List<AzureSubscription>> GetSubscriptions([ActivityTrigger] FunctionContext executionContext)
         {
@@ -43,35 +53,8 @@ namespace OperationalAgentRuntime.Skills
         [Function(nameof(GetAppAvailability))]
         public static async Task<List<TimeSeriesData>> GetAppAvailability([ActivityTrigger] string appResourceId, FunctionContext executionContext)
         {
-            var metrics = new List<Metric>
-        {
-            new Metric { Name = "Requests", Unit = "count", Aggregation = "Total" },
-            new Metric { Name = "Http5xx", Unit = "count", Aggregation = "Total" }
-            };
-
-            var metricsData = await ArmHelper.FetchMetricsAsync(appResourceId, metrics);
-
-            var requestsTimeSeries = metricsData.Where(m => m.Unit == "count" && m.Name == "Requests").ToList();
-            var http5xxTimeSeries = metricsData.Where(m => m.Unit == "count" && m.Name == "Http5xx").ToList();
-
-            var availabilityData = new List<TimeSeriesData>();
-            foreach (var request in requestsTimeSeries)
-            {
-                var timestamp = request.Timestamp;
-                var totalRequests = request.Value;
-
-                var http5xx = http5xxTimeSeries.FirstOrDefault(h => h.Timestamp == timestamp)?.Value ?? 0;
-                var availability = totalRequests == 0 ? 100.0 : (totalRequests - http5xx) / totalRequests * 100;
-
-                availabilityData.Add(new TimeSeriesData
-                {
-                    Timestamp = timestamp,
-                    Value = availability,
-                    Unit = "percent"
-                });
-            }
-
-            return availabilityData;
+            var t = new MetricsFunctionTool();
+            return await t.GetAppAvailability(appResourceId);
         }
 
         [Function(nameof(GetAppPrivateBytes))]
@@ -129,9 +112,10 @@ namespace OperationalAgentRuntime.Skills
         }
 
         [Function(nameof(GetOpenAIResponse))]
-        public static async Task<string> GetOpenAIResponse([ActivityTrigger] List<OpenAIMessage> messages, FunctionContext executionContext)
-        {
-            return await OpenAIHelper.GetOpenAIResponseAsync(messages);
+        public async Task<string> GetOpenAIResponse([ActivityTrigger] List<ChatMessage> messages, FunctionContext executionContext)
+        {            
+            var res = await chatClient.CompleteAsync(messages);
+            return res.Message.Text;
         }
 
         [Function(nameof(PostMessageToTeams))]

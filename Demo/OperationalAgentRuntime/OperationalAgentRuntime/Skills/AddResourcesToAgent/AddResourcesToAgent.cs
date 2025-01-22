@@ -2,6 +2,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Entities;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OperationalAgentRuntime.Helpers;
@@ -15,33 +16,15 @@ namespace OperationalAgentRuntime.Skills
         public static async Task AddSubscriptionsToAgent([OrchestrationTrigger] TaskOrchestrationContext context, string messageContent)
         {
             ILogger logger = context.CreateReplaySafeLogger("AddSubscriptionsToAgent");
+
             try
             {
-                var messages = new List<OpenAIMessage>
-            {
-                new()
+
+                var messages = new List<ChatMessage>
                 {
-                    Role = "system",
-                    Content = [
-                        new OpenAIMessageContent()
-                        {
-                            Type = "text",
-                            Text = await context.CallActivityAsync<string>(nameof(BasicSkills.ReadFileContent), "skills\\AddResourcesToAgent\\subprompt.txt")
-                        }
-                    ]
-                },
-                new()
-                {
-                    Role = "user",
-                    Content = [
-                        new OpenAIMessageContent()
-                        {
-                            Type = "text",
-                            Text = messageContent
-                        }
-                    ]
-                }
-            };
+                    new ChatMessage(ChatRole.System, await context.CallActivityAsync<string>(nameof(BasicSkills.ReadFileContent), "skills\\AddResourcesToAgent\\subprompt.txt")),
+                    new ChatMessage(ChatRole.User, messageContent),
+                };
 
                 string response = await context.CallActivityAsync<string>(nameof(BasicSkills.GetOpenAIResponse), messages);
                 var responseObject = JsonConvert.DeserializeObject<dynamic>(response);

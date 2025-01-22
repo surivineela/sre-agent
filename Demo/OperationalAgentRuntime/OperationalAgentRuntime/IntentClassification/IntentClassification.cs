@@ -1,7 +1,9 @@
 ﻿using Microsoft.Azure.Functions.Worker;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using OperationalAgentRuntime.Skills;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,39 +12,28 @@ using System.Threading.Tasks;
 
 namespace OperationalAgentRuntime
 {
-    public static class IntentClassification
+    public class IntentClassification
     {
-        [Function(nameof(ClassifyIntent))]
-        public static async Task<string> ClassifyIntent([ActivityTrigger] string messageContent, FunctionContext executionContext)
+        private readonly IChatClient chatClient;
+
+        public IntentClassification(IChatClient chatClient)
         {
-            ILogger logger = executionContext.GetLogger("ClassifyIntent");   
-            var messages = new List<OpenAIMessage>();
-            messages.Add(new OpenAIMessage()
-            {
-                Role = "system",
-                Content = new List<OpenAIMessageContent> {
-                    new OpenAIMessageContent()
-                    {
-                        Type = "text",
-                        Text = await GetIntentClassificationPrompt()
-                    }
-                }
-            });
+            this.chatClient = chatClient;
+        }
 
-            messages.Add(new OpenAIMessage()
-            {
-                Role = "user",
-                Content = new List<OpenAIMessageContent> {
-                    new OpenAIMessageContent()
-                    {
-                        Type = "text",
-                        Text = messageContent
-                    }
-                }
-            });
+        [Function(nameof(ClassifyIntent))]
+        public async Task<string> ClassifyIntent([ActivityTrigger] string messageContent, FunctionContext executionContext)
+        {
+            ILogger logger = executionContext.GetLogger("ClassifyIntent");
 
-            string response = await OpenAIHelper.GetOpenAIResponseAsync(messages);
-            return response;
+            var messages = new List<ChatMessage>
+            {
+                new ChatMessage(ChatRole.System, await GetIntentClassificationPrompt()),
+                new ChatMessage(ChatRole.User, messageContent),
+            };
+
+            var res = await chatClient.CompleteAsync(messages);
+            return res.Message.Text;
         }
         private static Task<string> GetIntentClassificationPrompt()
         {

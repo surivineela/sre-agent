@@ -5,7 +5,9 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Entities;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using OpenAI.Assistants;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
 using System;
@@ -30,30 +32,10 @@ namespace OperationalAgentRuntime.Skills
             
             if(!appsInViolation.Any()) return;
 
-            var messages = new List<OpenAIMessage>
+            var messages = new List<ChatMessage>
                 {
-                    new()
-                    {
-                        Role = "system",
-                        Content = [
-                            new OpenAIMessageContent()
-                            {
-                                Type = "text",
-                                Text = "You are an AI assistant that helps users generate user friendly messages"
-                            }
-                        ]
-                    },
-                    new()
-                    {
-                        Role = "user",
-                        Content = [
-                            new OpenAIMessageContent()
-                            {
-                                Type = "text",
-                                Text = "Write a user friendly two line message to tell user that you found a list of App services which have basic auth enabled and its not recommended for secure apps. Its fine to say Hi but Do not write Thanks or Best regards. Also dont write feel free to reach out. Also say I not we."
-                            }
-                        ]
-                    }
+                    new ChatMessage(ChatRole.System, "You are an AI assistant that helps users generate user friendly messages"),
+                    new ChatMessage(ChatRole.User, "Write a user friendly two line message to tell user that you found a list of App services which have basic auth enabled and its not recommended for secure apps. Its fine to say Hi but Do not write Thanks or Best regards. Also dont write feel free to reach out. Also say I not we."),
                 };
 
             string openAIResponse = await context.CallActivityAsync<string>(nameof(BasicSkills.GetOpenAIResponse), messages);

@@ -23,6 +23,10 @@ namespace OperationalAgentRuntime.Helpers
         {
             if (teamsMessage == null || string.IsNullOrWhiteSpace(teamsMessage.Content)) return false;
 
+            Console.WriteLine(teamsMessage.Content);
+            if (string.IsNullOrEmpty(TeamsPostMessageEndpoint))
+                return false;
+
             var payload = new
             {
                 message = teamsMessage

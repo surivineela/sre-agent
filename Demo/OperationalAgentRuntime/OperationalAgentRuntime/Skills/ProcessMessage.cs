@@ -1,16 +1,27 @@
+using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Entities;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using OperationalAgentRuntime.Tools;
 
 namespace OperationalAgentRuntime.Skills
 {
-    public static class ProcessMessage
+    public class ProcessMessage
     {
+        private readonly IChatClient chatClient;
+
+        public ProcessMessage(IChatClient chatClient)
+        {
+            this.chatClient = chatClient;
+        }
+
         [Function(nameof(ProcessMessage))]
         public static async Task RunOrchestrator(
             [OrchestrationTrigger] TaskOrchestrationContext context, InputMessage message)
@@ -27,7 +38,7 @@ namespace OperationalAgentRuntime.Skills
             string intent = await context.CallActivityAsync<string>(nameof(IntentClassification.ClassifyIntent), messageContent);
 
             var resourceMemoryEntity = new EntityInstanceId("ResourceMemory", "SREResourceMemory");
-            var currentValue = await context.Entities.CallEntityAsync<List<AzureSubscription>>(resourceMemoryEntity, "Get");
+            var azureSub = await context.Entities.CallEntityAsync<List<AzureSubscription>>(resourceMemoryEntity, "Get");
             
             switch (intent.ToLower())
             {
@@ -38,9 +49,50 @@ namespace OperationalAgentRuntime.Skills
                 case "disablebasicauth":
                 case "rebootapps":
                 default:
+                    var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), new AgentMessageHandlingInput {  Message = messageContent, Subscriptions = azureSub});
+                    Console.WriteLine(res);
                     break;
             }
+
+
+
         }
+
+        [Function(nameof(HandleChatMessageAsync))]
+        public async Task<string> HandleChatMessageAsync([ActivityTrigger] AgentMessageHandlingInput input, FunctionContext executionContext)
+        {
+            ILogger logger = executionContext.GetLogger("HandleMessage");
+
+
+            var metricsTool = new MetricsFunctionTool();
+            var tools = new List<AIFunction>
+            {
+                AIFunctionFactory.Create(metricsTool.GetAppAvailability),
+                AIFunctionFactory.Create(metricsTool.GetMetricAsync)
+            };
+
+            var chatOptions = new ChatOptions { Tools = new List<AITool>(tools) };
+            
+            var resources = new StringBuilder();
+            foreach (var sub in input.Subscriptions)
+            {
+                foreach (var r in sub.Resources)
+                {
+                    resources.AppendLine(r);
+                }
+            }
+
+            List<ChatMessage> chatMessages = new List<ChatMessage>()
+            {
+                new ChatMessage(ChatRole.System, $"You are a helpful operations agent. You can monitor the following resources. {resources}"),
+                new ChatMessage(ChatRole.User, input.Message)
+            };
+
+            var completion = await chatClient.CompleteAsync(chatMessages, chatOptions);
+            return completion.Message.Text;
+
+        }
+
 
         [Function("ProcessMessageFunction_HttpStart")]
         public static async Task<HttpResponseData> HttpStart(
