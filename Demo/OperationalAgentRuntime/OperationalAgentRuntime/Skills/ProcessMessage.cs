@@ -102,6 +102,8 @@ namespace OperationalAgentRuntime.Skills
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             var data = JsonConvert.DeserializeObject<InputMessage>(requestBody);
 
+            await TrackedActionHelper.TrackAsUser(client, data.Content);
+
             string instanceId = await client.ScheduleNewOrchestrationInstanceAsync(
                 nameof(ProcessMessage), data);
 

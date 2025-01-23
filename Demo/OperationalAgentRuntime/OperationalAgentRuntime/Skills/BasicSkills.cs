@@ -1,14 +1,11 @@
-﻿using Azure.Core;
-using Microsoft.Azure.Functions.Worker;
+﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.Extensions.AI;
+using Microsoft.DurableTask.Client;
+using Microsoft.DurableTask.Entities;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using OperationalAgentRuntime.State;
 using OperationalAgentRuntime.Tools;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace OperationalAgentRuntime.Skills
 {
@@ -113,15 +110,20 @@ namespace OperationalAgentRuntime.Skills
 
         [Function(nameof(GetOpenAIResponse))]
         public async Task<string> GetOpenAIResponse([ActivityTrigger] List<ChatMessage> messages, FunctionContext executionContext)
-        {            
+        {
             var res = await chatClient.CompleteAsync(messages);
             return res.Message.Text;
         }
 
         [Function(nameof(PostMessageToTeams))]
-        public static async Task<bool> PostMessageToTeams([ActivityTrigger] TeamsMessage teamsMessage, FunctionContext executionContext)
+        public static async Task<bool> PostMessageToTeams([ActivityTrigger] TeamsMessage teamsMessage, [DurableClient] DurableTaskClient client, FunctionContext executionContext)
         {
             bool result = await TeamsHelper.PostMessageAsync(teamsMessage);
+
+            if (result) {
+                await TrackedActionHelper.TrackAsAssistant(client, teamsMessage.Content);
+            }
+
             //TODO : Need to figure out a better way to preserve multiple message orderings. Putting an artificial delay for now.
             await Task.Delay(5000);
             return result;
