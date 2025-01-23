@@ -19,65 +19,121 @@ Update the local.settings.json with the following:
 
 
 ## Logic App Teams Integration
-To get the message flow to teams chat, a logic app (standard, preferably) is needed.
+To receive messages from the bot in Teams, create a new Logic App (Standard) workflow that is Stateful.
+
+We first go through UX to authorize the Teams connector, and use JSON for the rest.
 
 1. Add a new workflow
 2. Add a trigger : When a HTTP request is received
-3. Update the Method as POST and Request body json as 
+3. Add a 'List Teams' action and create/authorize the new connection (we called ours 'teams')
+4. Click 'save'
+
+![setting-up-connection.png](./docs/logicapps/setting-up-connection.png)
+
+Now go to 'code view' and replace the full JSON with the real workflow. Replace 'karansin@microsoft.com' with your email so the messages go to you.
+
 ```json
 {
-    "type": "object",
-    "properties": {
-        "message": {
-            "type": "object",
-            "properties": {
-                "content": {
-                    "type": "string"
+    "definition": {
+        "$schema": "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
+        "actions": {
+            "Condition": {
+                "type": "If",
+                "expression": {
+                    "and": [
+                        {
+                            "not": {
+                                "equals": [
+                                    "@empty(triggerBody()?['message']?['image'])",
+                                    true
+                                ]
+                            }
+                        }
+                    ]
                 },
-                "image": {
-                    "type": "string"
+                "actions": {
+                    "Post_card_in_a_chat_or_channel": {
+                        "type": "ApiConnection",
+                        "inputs": {
+                            "host": {
+                                "connection": {
+                                    "referenceName": "teams"
+                                }
+                            },
+                            "method": "post",
+                            "body": {
+                                "recipient": "karansin@microsoft.com",
+                                "messageBody": "{  \n  \"type\": \"AdaptiveCard\",  \n  \"body\": [  \n    {  \n      \"type\": \"TextBlock\",  \n      \"text\": \"@{triggerBody()?['message']?['content']}\",\n      \"wrap\": true\n    },  \n    {  \n      \"type\": \"Image\",  \n      \"url\": \"@{triggerBody()?['message']?['image']}\"\n    }  \n  ],  \n  \"actions\": [  \n    {  \n      \"type\": \"Action.OpenUrl\",  \n      \"title\": \"Open Azure Portal\",  \n      \"url\": \"https://www.example.com\"  \n    }  \n  ],  \n  \"$schema\": \"http://adaptivecards.io/schemas/adaptive-card.json\",  \n  \"version\": \"1.2\"  \n}"
+                            },
+                            "path": "/v1.0/teams/conversation/adaptivecard/poster/Flow bot/location/@{encodeURIComponent('Chat with Flow bot')}"
+                        }
+                    }
+                },
+                "else": {
+                    "actions": {
+                        "Post_message_in_a_chat_or_channel": {
+                            "type": "ApiConnection",
+                            "inputs": {
+                                "host": {
+                                    "connection": {
+                                        "referenceName": "teams"
+                                    }
+                                },
+                                "method": "post",
+                                "body": {
+                                    "recipient": "karansin@microsoft.com",
+                                    "messageBody": "<p class=\"editor-paragraph\">@{triggerBody()?['message']?['content']}</p>"
+                                },
+                                "path": "/beta/teams/conversation/message/poster/Flow bot/location/@{encodeURIComponent('Chat with Flow bot')}"
+                            }
+                        }
+                    }
+                },
+                "runAfter": {}
+            }
+        },
+        "contentVersion": "1.0.0.0",
+        "outputs": {},
+        "triggers": {
+            "When_a_HTTP_request_is_received": {
+                "type": "Request",
+                "kind": "Http",
+                "inputs": {
+                    "method": "POST",
+                    "schema": {
+                        "type": "object",
+                        "properties": {
+                            "message": {
+                                "type": "object",
+                                "properties": {
+                                    "content": {
+                                        "type": "string"
+                                    },
+                                    "image": {
+                                        "type": "string"
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
-    }
+    },
+    "kind": "Stateful"
 }
 ```
 
-4. Add a action as 'Condition'
-5. In the condition, add a Dynamic Content : empty(triggerBody()?['message']?['image']), and 'is not equal to' 'true'
-6. In 'true', add a action 'Post card in a chat or channel'. Post as 'Flow Bot', Post in 'Group Chat' and select the group chat.
-7. In Adaptive card, paste the following:
-```json
-{  
-  "type": "AdaptiveCard",  
-  "body": [  
-    {  
-      "type": "TextBlock",  
-      "text": "@{triggerBody()?['message']?['content']}",
-      "wrap": true
-    },  
-    {  
-      "type": "Image",  
-      "url": "@{triggerBody()?['message']?['image']}"
-    }  
-  ],  
-  "actions": [  
-    {  
-      "type": "Action.OpenUrl",  
-      "title": "Open Azure Portal",  
-      "url": "https://www.example.com"  
-    }  
-  ],  
-  "$schema": "http://adaptivecards.io/schemas/adaptive-card.json",  
-  "version": "1.2"  
-}
-```
+5. Save the workflow and get the HTTP endpoint from the trigger. That becomes 'TeamsPostMessageEndpoint' in the JSON at the beginning of this README.
 
-8. In 'false', add a action 'Post message in a chat or channel', and Message as '@{triggerBody()?['message']?['content']}'
-9. Save the workflow and get the HTTP endpoint from the trigger.
+![get-http-trigger-url.png](./docs/logicapps/get-http-trigger-url.png)
 
 
-## To send a mesage
+
+## To send a mesage to the bot
+In teams, this can be accomplished with a second logic app that reads messages from Teams and proxies them back to the bot, but so far that is just set up for the hosted workflow.
+Locally you can POST:
+
 POST http://localhost:7253/api/ProcessMessageFunction_HttpStart
 Request Body : 
 {
