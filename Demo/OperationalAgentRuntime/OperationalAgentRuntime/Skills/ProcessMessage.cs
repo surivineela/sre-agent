@@ -56,8 +56,6 @@ namespace OperationalAgentRuntime.Skills
 
                     await context.CallSubOrchestratorAsync(nameof(AddResourcesToAgent.AddSubscriptionsToAgent), messageContent);
                     break;
-                case "addappstoagent":
-                case "disablebasicauth":
                 case "rebootapps":
                     var appResourceId = messageContent.Split('@').Last();
                     var appName = appResourceId.Split("/").Last();
@@ -69,6 +67,9 @@ namespace OperationalAgentRuntime.Skills
                     await TrackedAgentOperationActionHelper.ResetAsync(context);
                     await context.Entities.SignalEntityAsync(resourceMemoryEntity, "reset");
                     break;
+                // Unimplemented cases
+                case "addappstoagent":
+                case "disablebasicauth":
                 default:
                     var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations != null ? operations.Values.ToList() : new List<TrackedAgentOperation>() };
                     var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), input);
