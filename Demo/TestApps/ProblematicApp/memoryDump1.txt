@@ -1,0 +1,47 @@
+72c0d9ef77d0  1,621    77,808 Microsoft.Extensions.Logging.LoggerFactoryScopeProvider+Scope
+72c0daee2068  1,619    90,664 System.IO.Pipelines.BufferSegmentStack+SegmentAsValueType[]
+72c0daebe2c8  3,238   103,616 System.IO.Pipelines.Pipe+DefaultPipeReader
+72c0daebebd8  3,238   103,616 System.IO.Pipelines.Pipe+DefaultPipeWriter
+72c0daebca08  3,238   103,616 System.IO.Pipelines.DuplexPipe
+72c0dae806d0  1,619   103,616 System.Action<System.IntPtr, System.Memory<System.Byte>, System.Net.Sockets.SocketError>
+72c0daec0840  1,620   103,680 System.Action<System.Int32, System.Memory<System.Byte>, System.Net.Sockets.SocketFlags, System.Net.Sockets.SocketError>
+72c0dae5e0b8  1,621   103,744 System.Net.Sockets.SafeSocketHandle
+72c0d7368d38    171   107,904 System.Int32[]
+72c0daecaed8  1,619   116,568 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.HttpConnection
+72c0daeee6a0  1,129   117,416 System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Threading.Tasks.VoidTaskResult>+AsyncStateMachineBox<Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.Internal.SocketConnection+<DisposeAsync>d__26>
+72c0d797d5d0  2,010   128,640 System.Threading.CancellationTokenSource+Registrations
+72c0daee3018  1,620   142,496 System.ValueTuple<System.Action<System.Object>, System.Object>[]
+72c0dae8aac8  1,082   147,152 System.Runtime.CompilerServices.AsyncTaskMethodBuilder<Microsoft.AspNetCore.Connections.ConnectionContext>+AsyncStateMachineBox<Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.SocketConnectionListener+<AcceptAsync>d__10>
+72c0daec82f8  3,238   155,424 System.Collections.Concurrent.ConcurrentDictionary<System.Int64, Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.ConnectionReference>+Node
+72c0dae40a10  4,860   155,520 System.Net.IPEndPoint
+72c0daec2ea0  1,620   155,520 System.IO.Pipelines.BufferSegment
+72c0d7978c38  3,264   156,672 System.Threading.CancellationTokenSource
+72c0d797d720  2,020   161,600 System.Threading.CancellationTokenSource+CallbackNode
+72c0dab0c828  5,381   172,192 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.DateHeaderValueManager+DateHeaderValues
+72c0daebf120  3,238   181,328 System.IO.Pipelines.BufferSegmentStack+SegmentAsValueType[]
+72c0d9284fb0  1,621   181,552 System.Net.Sockets.Socket
+72c0daecb380  1,619   194,280 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.HttpConnectionContext
+72c0dae413c0  4,863   194,520 System.Net.IPAddress
+72c0daeef298  1,175   197,400 System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Threading.Tasks.VoidTaskResult>+AsyncStateMachineBox<Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.KestrelConnection<Microsoft.AspNetCore.Connections.ConnectionContext>+<ExecuteAsync>d__8>
+72c0daec6a78  1,619   207,232 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.KestrelConnection<Microsoft.AspNetCore.Connections.ConnectionContext>
+72c0daee1b98  1,619   207,232 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.PipeWriterHelpers.ConcurrentPipeWriter
+72c0daee34b8  1,619   207,232 Microsoft.AspNetCore.Connections.ConnectionAbortedException
+72c0d88878f8  3,240   207,360 System.Threading.Tasks.Task
+72c0daec7690  3,239   233,192 System.Collections.Generic.KeyValuePair<System.Type, System.Object>[]
+72c0daecc130  1,619   246,088 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.TimeoutControl
+72c0dae81e10  1,621   246,392 System.Net.Sockets.SocketAsyncContext
+5a85016a8230  1,692   250,736 Free
+72c0daec3978  1,608   295,872 System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Threading.Tasks.VoidTaskResult>+AsyncStateMachineBox<Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.Internal.SocketConnection+<DoReceive>d__27>
+72c0daed8388  1,619   310,848 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1OutputProducer
+72c0dab11bd0  5,380   344,320 System.Collections.Concurrent.ConcurrentDictionary<System.Int64, Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Infrastructure.ConnectionReference>+Enumerator
+72c0daebc6b0  1,619   401,512 Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.Internal.SocketReceiver
+72c0daec5758  1,619   401,512 System.Runtime.CompilerServices.AsyncTaskMethodBuilder<System.Threading.Tasks.VoidTaskResult>+AsyncStateMachineBox<Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.Internal.SocketConnection+<DoSend>d__28>
+72c0d814a260  7,211   424,258 System.Byte[]
+72c0d63d4910 19,768   474,432 System.Object
+72c0daebc3c0  1,619   556,936 Microsoft.AspNetCore.Server.Kestrel.Transport.Sockets.Internal.SocketConnection
+72c0daee0d00  1,619   660,552 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpResponseHeaders
+72c0d736be30  9,425   730,502 System.String
+72c0daedd850  1,619   790,072 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.HttpRequestHeaders
+72c0daebdda8  3,238   932,544 System.IO.Pipelines.Pipe
+72c0daed7680  1,619 1,359,960 Microsoft.AspNetCore.Server.Kestrel.Core.Internal.Http.Http1Connection<Microsoft.AspNetCore.Hosting.HostingApplication+Context>
+Total 173,437 objects, 14,976,710 bytes
