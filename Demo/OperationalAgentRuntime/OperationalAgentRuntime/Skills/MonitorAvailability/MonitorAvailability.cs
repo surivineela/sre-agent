@@ -140,7 +140,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                                     OperationName = "CaptureMemoryDump",
                                     Annotations = [ $"Capture a memory dump of the degraded web app" ],
                                     Approver = approvalEvent.DecisionMakerName,
-                                    CreatedTime = DateTime.UtcNow,
+                                    CreatedTime = context.CurrentUtcDateTime,
                                 });
                                 memoryDumpLink = await context.CallActivityAsync<string>(nameof(BasicSkills.CaptureMemoryDump), appResourceId);
                             }
@@ -154,7 +154,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                                 OperationName = potentialRootCause.QuickMitigation.ToString(),
                                 Annotations = [ $"Apply {potentialRootCause.QuickMitigation.ToString()} mitigation to degraded web app" ],
                                 Approver = "",
-                                CreatedTime = DateTime.UtcNow,
+                                CreatedTime = context.CurrentUtcDateTime,
                             });
 
                             var mitigationSuccess = potentialRootCause.QuickMitigation switch

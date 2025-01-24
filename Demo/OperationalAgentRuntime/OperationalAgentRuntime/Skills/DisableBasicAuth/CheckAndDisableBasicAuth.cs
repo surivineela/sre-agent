@@ -73,7 +73,7 @@ namespace OperationalAgentRuntime.Skills
                             OperationName = "DisablingBasicAuth",
                             Annotations = [ $"Triggered by approval link", $"Apps tracked for disablement: {string.Join(",", appsInViolation.Select(x => x.Name))}" ],
                             Approver = approvalEvent.DecisionMakerName,
-                            CreatedTime = DateTime.UtcNow,
+                            CreatedTime = context.CurrentUtcDateTime,
                         };
                         await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
 

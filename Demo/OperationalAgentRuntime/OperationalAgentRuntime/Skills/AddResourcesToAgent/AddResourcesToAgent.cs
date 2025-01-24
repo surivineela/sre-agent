@@ -22,7 +22,7 @@ namespace OperationalAgentRuntime.Skills
                 OperationName = "AddSubscriptionsToAgent",
                 Annotations = [$"Triggered by message '{messageContent}'"],
                 Approver = "",
-                CreatedTime = DateTime.UtcNow,
+                CreatedTime = context.CurrentUtcDateTime,
             };
             
             await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
