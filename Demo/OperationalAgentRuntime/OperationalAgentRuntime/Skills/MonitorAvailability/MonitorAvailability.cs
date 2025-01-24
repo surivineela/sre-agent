@@ -139,7 +139,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                                     Id = context.NewGuid(),
                                     OperationName = "CaptureMemoryDump",
                                     Annotations = [ $"Capture a memory dump of the degraded web app" ],
-                                    Approver = "",
+                                    Approver = approvalEvent.DecisionMakerName,
                                     CreatedTime = DateTime.UtcNow,
                                 });
                                 memoryDumpLink = await context.CallActivityAsync<string>(nameof(BasicSkills.CaptureMemoryDump), appResourceId);

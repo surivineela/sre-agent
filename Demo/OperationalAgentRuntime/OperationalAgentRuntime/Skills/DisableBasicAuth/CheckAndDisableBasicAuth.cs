@@ -1,4 +1,3 @@
-using Azure.Core;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
@@ -7,9 +6,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
-using System;
-using System.Text;
-using System.Text.Json;
 
 namespace OperationalAgentRuntime.Skills
 {
@@ -76,7 +72,7 @@ namespace OperationalAgentRuntime.Skills
                             Id = context.NewGuid(),
                             OperationName = "DisablingBasicAuth",
                             Annotations = [ $"Triggered by approval link", $"Apps tracked for disablement: {string.Join(",", appsInViolation.Select(x => x.Name))}" ],
-                            Approver = "",
+                            Approver = approvalEvent.DecisionMakerName,
                             CreatedTime = DateTime.UtcNow,
                         };
                         await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
