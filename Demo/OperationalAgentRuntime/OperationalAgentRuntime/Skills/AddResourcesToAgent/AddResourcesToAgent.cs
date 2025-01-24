@@ -80,9 +80,13 @@ namespace OperationalAgentRuntime.Skills
                         await context.Entities.SignalEntityAsync(resourceMemoryEntity, "Add", new AzureSubscription(sub.Id, sub.Name, appServiceResources));
                     }
                 }
+
+                await TrackedAgentOperationActionHelper.AppendAnnotation(context, currentOperation, $"Operation is finished.");
             }
             catch(Exception ex)
             {
+                await TrackedAgentOperationActionHelper.AppendAnnotation(context, currentOperation, $"Operation has failed because of {ex.Message}.");
+
                 logger.LogError(ex.ToString());
             }
         }
