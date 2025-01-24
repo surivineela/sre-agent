@@ -59,6 +59,10 @@ namespace OperationalAgentRuntime.Skills
                 case "addappstoagent":
                 case "disablebasicauth":
                 case "rebootapps":
+                    var appResourceId = messageContent.Split('@').Last();
+                    var appName = appResourceId.Split("/").Last();
+                    var result = await context.CallActivityAsync<bool>(nameof(BasicSkills.RestartWebApp), appResourceId);
+                    Console.WriteLine($"{(result ? "Successfully" : "Unsuccessfully")} restarted {appName} at {appResourceId}");
                     break;
                 default:
                     var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations.Values.ToList() };

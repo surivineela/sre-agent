@@ -134,5 +134,11 @@ namespace OperationalAgentRuntime.Skills
         {
             return await File.ReadAllTextAsync(filePath);
         }
+
+        [Function(nameof(RestartWebApp))]
+        public static async Task<bool> RestartWebApp([ActivityTrigger] string appResourceId, FunctionContext executionContext)
+        {
+            return await ArmHelper.RestartWebAppAsync(appResourceId);
+        }
     }
 }

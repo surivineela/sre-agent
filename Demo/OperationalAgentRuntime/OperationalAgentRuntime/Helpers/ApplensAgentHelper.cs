@@ -42,8 +42,8 @@ namespace OperationalAgentRuntime.Helpers
             {
                 RootCauseIntent = "memory",
                 RootCauseMessage = "High Memory usage may be the cause of application downtime",
-                QuickMitigation = "scaleup",
-                DataCollection = "memorydump"
+                QuickMitigation = QuickMitigation.Reboot,
+                DataCollection = DataCollection.MemoryDump
             };
         }
 

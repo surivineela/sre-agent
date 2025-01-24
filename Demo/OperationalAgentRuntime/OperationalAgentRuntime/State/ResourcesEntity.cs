@@ -25,8 +25,10 @@ namespace OperationalAgentRuntime.State
                     case "add":
                         List<AzureSubscription> state = operation.State.GetState<List<AzureSubscription>>() ?? new List<AzureSubscription>();
                         var item = operation.GetInput<AzureSubscription>();
-                        if (item != null && !state.Any(p=>p.Id.Equals(item.Id, StringComparison.OrdinalIgnoreCase)))
+                        if (item != null)// && !state.Any(p=>p.Id.Equals(item.Id, StringComparison.OrdinalIgnoreCase)))
                         {
+                            var existing = state.FirstOrDefault(p => p.Id.Equals(item.Id, StringComparison.OrdinalIgnoreCase));
+                            if (existing is not null) { state.Remove(existing); }
                             state.Add(item);
                             operation.State.SetState(state);
                         }

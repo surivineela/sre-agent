@@ -400,6 +400,16 @@ namespace OperationalAgentRuntime.Helpers
             }
         }
 
+        public static async Task<bool> RestartWebAppAsync(string appResourceId)
+        {
+            string accessToken = await GetAccessTokenAsync();
+            string requestUrl = $"https://management.azure.com{appResourceId}/restart?api-version=2024-04-01";
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+            return response.IsSuccessStatusCode;
+        }
+
         #region Private Methods
 
         private static async Task<string> GetAccessTokenAsync()
