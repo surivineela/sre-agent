@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.Text;
 using System.Xml;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
 using OperationalAgent.Approval.Models;
@@ -12,6 +13,7 @@ namespace OperationalAgent.Approval.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private const string EasyAuthUserHeader = "X-MS-CLIENT-PRINCIPAL-NAME";
 
         public HomeController(ILogger<HomeController> logger, IConfiguration configuration, HttpClient httpClient)
         {
@@ -22,6 +24,9 @@ namespace OperationalAgent.Approval.Controllers
 
         public IActionResult Index(string action_name)
         {
+            string userName = Request.Headers[EasyAuthUserHeader].FirstOrDefault();
+            ViewData["UserName"] = string.IsNullOrEmpty(userName) ? "Unknown User" : userName;
+
             ViewData["ActionName"] = action_name;
             return View();
         }
@@ -36,7 +41,7 @@ namespace OperationalAgent.Approval.Controllers
             if (string.Equals(request.ActionName, "CheckAndDisableBasicAuth_instance", StringComparison.OrdinalIgnoreCase))
             {
                 isValid = true;
-                eventName = "DiableBasicAuthApprovalEvent";
+                eventName = "DisableBasicAuthApprovalEvent";
             }
             else if(string.Equals(request.ActionName, "MonitorAvailability_instance", StringComparison.OrdinalIgnoreCase))
             {
@@ -48,8 +53,14 @@ namespace OperationalAgent.Approval.Controllers
             {
                 try
                 {
+                    var payload = new
+                    {
+                        approvalAction = request.IsApproved,
+                        decisionMakerName = request.ApproverName
+                    };
+
                     string approvalEndpoint = string.Format(_config["OperationalRuntimeSendEventEndpoint"], request.ActionName, eventName);
-                    var requestBody = JsonConvert.SerializeObject(request.IsApproved);
+                    var requestBody = JsonConvert.SerializeObject(payload);
                     var response = await _httpClient.PostAsync(approvalEndpoint, new StringContent(requestBody, Encoding.UTF8, "application/json"));
                     approvalSuccess = request.IsApproved && response.IsSuccessStatusCode;
                     nextPageMessage = approvalSuccess ? "Action approved." : "Action Denied.";
@@ -69,12 +80,16 @@ namespace OperationalAgent.Approval.Controllers
 
         public IActionResult Success(string message)
         {
+            string userName = Request.Headers[EasyAuthUserHeader].FirstOrDefault();
+            ViewData["UserName"] = string.IsNullOrEmpty(userName) ? "Unknown User" : userName;
             ViewData["Message"] = message;
             return View();
         }
 
         public IActionResult Failure(string message)
         {
+            string userName = Request.Headers[EasyAuthUserHeader].FirstOrDefault();
+            ViewData["UserName"] = string.IsNullOrEmpty(userName) ? "Unknown User" : userName;
             ViewData["Message"] = message;
             return View();
         }
@@ -84,5 +99,6 @@ namespace OperationalAgent.Approval.Controllers
     {
         public string ActionName { get; set; }
         public bool IsApproved { get; set; }
+        public string ApproverName { get; set; }
     }
 }

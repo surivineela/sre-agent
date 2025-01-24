@@ -2,6 +2,7 @@
     ViewData["Title"] = "Home Page";
     var actionName = ViewData["ActionName"] as string;
     string message = "No specific action requested.";
+    string userName = ViewData["UserName"] as string ?? "Unknown User";
 
     if (string.Equals(actionName, "CheckAndDisableBasicAuth_instance", StringComparison.OrdinalIgnoreCase))
     {
@@ -16,13 +17,14 @@
 <div class="container mt-5">
     <div class="row">
         <div class="col-md-12 text-center">
-            <h1 class="display-6">Welcome</h1>
+            <h1 class="display-6">Welcome @userName</h1>
             <p class="mt-4">@message</p>
+
             @if (!string.IsNullOrEmpty(actionName))
             {
                 <div class="mt-4">
-                            <button onclick="sendApproval(true)" class="btn mx-2" style="background-color: #106EBE;border-color: #106EBE;border-radius: 0 !important;color:white">Yes</button>
-                        <button onclick="sendApproval(false)" class="btn mx-2" style="background-color: white;border-color: #7a7878;color: black;border-radius: 0;">No</button>
+                    <button onclick="sendApproval(true)" class="btn mx-2" style="background-color: #106EBE;border-color: #106EBE;border-radius: 0 !important;color:white">Yes</button>
+                    <button onclick="sendApproval(false)" class="btn mx-2" style="background-color: white;border-color: #7a7878;color: black;border-radius: 0;">No</button>
                 </div>
             }
         </div>
@@ -31,12 +33,14 @@
 
 @section Scripts {
     <script>
-
         function sendApproval(isApproved) {
             var actionName = '@actionName';
+            var userName = '@userName';
+
             var request = {
                 actionName: actionName,
-                isApproved: isApproved
+                isApproved: isApproved,
+                approverName: userName
             };
 
             fetch('/ProcessAction', {
@@ -60,4 +64,4 @@
             });
         }
     </script>
-}  
+}

@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using System.Threading.Tasks;
 
 namespace OperationalAgentRuntime.Skills.MonitorAvailability
 {
@@ -106,21 +107,24 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                     int approvalTimeoutInSeconds = 3600;
                     DateTime dueTime = context.CurrentUtcDateTime.AddSeconds(approvalTimeoutInSeconds);
                     Task durableTimeout = context.CreateTimer(dueTime, timeoutCts.Token);
-                    Task<bool> approvalEvent = context.WaitForExternalEvent<bool>("ApproveMemoryDumpAndScaleUp");
+                    Task<ApprovalEventPayload> approvalEventTask = context.WaitForExternalEvent<ApprovalEventPayload>("ApproveMemoryDumpAndScaleUp");
 
-                    if (approvalEvent == await Task.WhenAny(approvalEvent, durableTimeout))
+                    if (approvalEventTask == await Task.WhenAny(approvalEventTask, durableTimeout))
                     {
                         timeoutCts.Cancel();
-                        var approvalResult = await approvalEvent;
+                        var approvalEvent = await approvalEventTask;
+                        bool approvalResult = approvalEvent.ApprovalAction;
+                        string decisionMaker = approvalEvent.DecisionMakerName;
+
                         logger.LogInformation($"approvalEvent : {approvalResult}");
                         if (!approvalResult)
                         {
                             logger.LogInformation($"Approval denied");
-                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied. I will continue to monitor for any additional issues."));
+                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied by {decisionMaker}. I will continue to monitor for any additional issues."));
                             return;
                         }
 
-                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received. I'll continue with this action in a safe manner and will notify you once I am done."));
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received from {decisionMaker}. I'll continue with this action in a safe manner and will notify you once I am done."));
                         int waitTimeInSeconds = 30;
 
                         using (var appActionTimeoutCts = new CancellationTokenSource())

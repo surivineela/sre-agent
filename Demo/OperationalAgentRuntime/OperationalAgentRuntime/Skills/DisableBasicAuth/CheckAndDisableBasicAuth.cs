@@ -1,3 +1,4 @@
+using Azure.Core;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
@@ -12,6 +13,12 @@ using System.Text.Json;
 
 namespace OperationalAgentRuntime.Skills
 {
+    public class ApprovalEventPayload
+    {
+        public bool ApprovalAction { get; set; }
+        public string DecisionMakerName { get; set; }
+    }
+
     public static class CheckAndDisableBasicAuth
     {
         [Function(nameof(CheckAndDisableBasicAuth))]
@@ -51,12 +58,16 @@ namespace OperationalAgentRuntime.Skills
                 int approvalTimeoutInSeconds = 3600;
                 DateTime dueTime = context.CurrentUtcDateTime.AddSeconds(approvalTimeoutInSeconds);
                 Task durableTimeout = context.CreateTimer(dueTime, timeoutCts.Token);
-                Task<bool> approvalEvent = context.WaitForExternalEvent<bool>("DiableBasicAuthApprovalEvent");
+                Task<ApprovalEventPayload> approvalEventTask = context.WaitForExternalEvent<ApprovalEventPayload>("DisableBasicAuthApprovalEvent");
 
-                if (approvalEvent == await Task.WhenAny(approvalEvent, durableTimeout))
+                if (approvalEventTask == await Task.WhenAny(approvalEventTask, durableTimeout))
                 {
                     timeoutCts.Cancel();
-                    var approvalResult = await approvalEvent;
+                    var approvalEvent = await approvalEventTask;
+
+                    bool approvalResult = approvalEvent.ApprovalAction;
+                    string decisionMaker = approvalEvent.DecisionMakerName;
+
                     logger.LogInformation($"approvalEvent : {approvalResult}");
                     if (approvalResult)
                     {
@@ -70,7 +81,7 @@ namespace OperationalAgentRuntime.Skills
                         };
                         await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
 
-                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received. I'll continue to disable basic authentication for these applications in a safe manner and will notify you once I am done."));
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received by {decisionMaker}. I'll continue to disable basic authentication for these applications in a safe manner and will notify you once I am done."));
                         int waitTimeInSeconds = 30;
 
                         using (var appActionTimeoutCts = new CancellationTokenSource())
@@ -94,7 +105,7 @@ namespace OperationalAgentRuntime.Skills
                     }
                     else
                     {
-                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied. I will continue to monitor for any additional issues."));
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied by {decisionMaker}. I will continue to monitor for any additional issues."));
                     }
                 }
                 else
