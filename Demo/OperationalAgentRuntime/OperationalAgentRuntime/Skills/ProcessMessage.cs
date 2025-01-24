@@ -48,6 +48,25 @@ namespace OperationalAgentRuntime.Skills
                 case "addappstoagent":
                 case "disablebasicauth":
                 case "rebootapps":
+                case "unused-sample-agent-operation-client-code":
+                    // This is not routed from intent classification, and is sample code we will remove once
+                    // the handling-chat-message tool is updated to consume the operation action store
+                    var currentOperation = new TrackedAgentOperation()
+                    {
+                        Id = Guid.NewGuid(),
+                        OperationName = "TestOperationTracking",
+                        Annotations = [""],
+                        Approver = "",
+                        CreatedTime = DateTime.UtcNow,
+                    };
+                    await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
+                    var operations = await TrackedAgentOperationActionHelper.GetAllOperations(context);
+                    foreach (TrackedAgentOperation op in operations.Values)
+                    {
+                        await TrackedAgentOperationActionHelper.AppendAnnotation(context, op, "new annotation");
+                    }
+                    operations = await TrackedAgentOperationActionHelper.GetAllOperations(context);
+                    break;
                 default:
                     var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), new AgentMessageHandlingInput {  Message = messageContent, Subscriptions = azureSubs});
                     Console.WriteLine(res);
@@ -60,7 +79,6 @@ namespace OperationalAgentRuntime.Skills
         public async Task<string> HandleChatMessageAsync([ActivityTrigger] AgentMessageHandlingInput input, FunctionContext executionContext)
         {
             ILogger logger = executionContext.GetLogger("HandleMessage");
-
 
             var metricsTool = new MetricsFunctionTool();
             var tools = new List<AIFunction>

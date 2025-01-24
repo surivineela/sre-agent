@@ -1,17 +1,11 @@
-using Azure;
-using Azure.Messaging;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Entities;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using OpenAI.Assistants;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
-using System;
-using System.Text;
 
 namespace OperationalAgentRuntime.Skills
 {
@@ -59,6 +53,16 @@ namespace OperationalAgentRuntime.Skills
                     logger.LogInformation($"approvalEvent : {approvalResult}");
                     if (approvalResult)
                     {
+                        var currentOperation = new TrackedAgentOperation()
+                        {
+                            Id = Guid.NewGuid(),
+                            OperationName = "DisablingBasicAuth",
+                            Annotations = [ $"Triggered by approval link" ],
+                            Approver = "",
+                            CreatedTime = DateTime.UtcNow,
+                        };
+                        await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
+
                         await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received. I'll continue to disable basic authentication for these applications in a safe manner and will notify you once I am done."));
                         int waitTimeInSeconds = 30;
 

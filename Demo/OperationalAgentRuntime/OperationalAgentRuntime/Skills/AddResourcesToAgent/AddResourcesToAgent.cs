@@ -1,5 +1,4 @@
-﻿using Azure.ResourceManager.Resources;
-using Microsoft.Azure.Functions.Worker;
+﻿using Microsoft.Azure.Functions.Worker;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Entities;
 using Microsoft.Extensions.AI;
@@ -17,9 +16,19 @@ namespace OperationalAgentRuntime.Skills
         {
             ILogger logger = context.CreateReplaySafeLogger("AddSubscriptionsToAgent");
 
+            var currentOperation = new TrackedAgentOperation()
+            {
+                Id = new Guid(),
+                OperationName = "AddSubscriptionsToAgent",
+                Annotations = [$"Triggered by message '{messageContent}'"],
+                Approver = "",
+                CreatedTime = DateTime.UtcNow,
+            };
+            
+            await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
+
             try
             {
-
                 var messages = new List<ChatMessage>
                 {
                     new ChatMessage(ChatRole.System, await context.CallActivityAsync<string>(nameof(BasicSkills.ReadFileContent), "skills\\AddResourcesToAgent\\subprompt.txt")),

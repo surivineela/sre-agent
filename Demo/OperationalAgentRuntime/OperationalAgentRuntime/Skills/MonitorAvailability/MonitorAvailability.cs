@@ -1,6 +1,3 @@
-using Azure.ResourceManager;
-using Google.Protobuf;
-using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
@@ -131,7 +128,15 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                             string memoryDumpLink = string.Empty;
                             bool scaleUpSuccess = false;
                             if (dataCollection == DataCollection.MemoryDump)
-                            {
+                            {;
+                                await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    OperationName = "CaptureMemoryDump",
+                                    Annotations = [ $"Capture a memory dump of the degraded web app" ],
+                                    Approver = "",
+                                    CreatedTime = DateTime.UtcNow,
+                                });
                                 memoryDumpLink = await context.CallActivityAsync<string>(nameof(BasicSkills.CaptureMemoryDump), appResourceId);
                             }
 
@@ -141,6 +146,14 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                             if (quickMitigation == QuickMitigation.ScaleUp)
                             {
                                 nextAppSku = ArmHelper.GetNextSku(currentAppSku);
+                                await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
+                                {
+                                    Id = Guid.NewGuid(),
+                                    OperationName = "ScaleUpAppServicePlan",
+                                    Annotations = [ $"Scale up app service plan of the degraded web app" ],
+                                    Approver = "",
+                                    CreatedTime = DateTime.UtcNow,
+                                });
                                 scaleUpSuccess = await context.CallActivityAsync<bool>(nameof(BasicSkills.ScaleUpAppServicePlan), new Tuple<string, AppPlanSku>(appResourceId, nextAppSku));
                             }
 
