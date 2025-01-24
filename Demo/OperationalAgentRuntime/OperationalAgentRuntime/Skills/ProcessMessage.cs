@@ -65,7 +65,7 @@ namespace OperationalAgentRuntime.Skills
                     Console.WriteLine($"{(result ? "Successfully" : "Unsuccessfully")} restarted {appName} at {appResourceId}");
                     break;
                 default:
-                    var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations.Values.ToList() };
+                    var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations != null ? operations.Values.ToList() : new List<TrackedAgentOperation>() };
                     var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), input);
                     Console.WriteLine(res);
                     await context.CallActivityAsync(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage(res));
