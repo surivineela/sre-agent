@@ -7,7 +7,9 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using System;
 using System.Threading.Tasks;
+using static System.Net.Mime.MediaTypeNames;
 
 namespace OperationalAgentRuntime.Skills.MonitorAvailability
 {
@@ -41,9 +43,9 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
 
                 string resourceName = appResourceId.Split('/').Last();
                 string availabilityGraph = await context.CallActivityAsync<string>(nameof(BasicSkills.GetChartImageForTimeSeries), chartImageInput);
-                string availabilityMessage = $"Hi, I have detected that the app service : **{resourceName}** is facing server errors and the availability in last 30 mins is **{Math.Round(sla, 2)}%**.\n\nHang tight!! I am trying to figure out the potential issue and action to recover your application.";
-
+                string availabilityMessage = $"Hi, I have detected that the app service : **{resourceName}** is facing server errors and the availability in last 30 mins is **{Math.Round(sla, 2)}%**.\n";
                 await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage(availabilityMessage, availabilityGraph));
+                await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage("Hang tight!!I am trying to figure out the potential issue and action to recover your application."));
                 
                 ApplensIssueRootCause potentialRootCause = await context.CallActivityAsync<ApplensIssueRootCause>(nameof(BasicSkills.GetProblemRootCause),  new Tuple<string, string>(appResourceId, "The app is facing server errors. check memory"));
 
@@ -55,6 +57,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                 if (!potentialRootCause.RootCauseIntent.Equals("memory", StringComparison.OrdinalIgnoreCase))
                 {
                     await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage("Unfortunately, I cannot dertermine the root cause right now. Please investigate the issue using Diagnose and Solve Problems menu item on App services page in azure portal."));
+                    return;
                 }
 
                 var privateBytesTimeSeries = await context.CallActivityAsync<List<TimeSeriesData>>(nameof(BasicSkills.GetAppPrivateBytes), appResourceId);
@@ -70,140 +73,143 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
 
                 string approvalLink = string.Format(Environment.GetEnvironmentVariable("ApprovalUrl"), context.InstanceId);
 
-                string approvalMessage = string.Empty;
-                AppPlanSku currentAppSku = null, nextAppSku = null;
-                if (potentialRootCause.DataCollection == DataCollection.MemoryDump)
+                foreach(var mitigation in potentialRootCause.QuickMitigation)
                 {
-                    approvalMessage = "I can collect memory dump to further analyze issue.";
-                }
+                    string approvalMessage = string.Empty;
+                    AppPlanSku currentAppSku = null, nextAppSku = null;
+                    bool rebootSuccessful = false, scaleUpSuccessful = false;
+                    string memoryDumpLink = string.Empty;
 
-                if (potentialRootCause.QuickMitigation == QuickMitigation.ScaleUp)
-                {
-                    approvalMessage = $"{approvalMessage} I can scale up the app service plan to mitigate the issue";
-                    currentAppSku = await context.CallActivityAsync<AppPlanSku>(nameof(BasicSkills.GetAppSku), appResourceId);
-                    nextAppSku = ArmHelper.GetNextSku(currentAppSku);
-                    await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Here is your current App service Plan SKU. {HtmlHelpers.GenerateHtmlTableForAppSku(currentAppSku)}"));
-                }
+                    if (mitigation == QuickMitigation.Reboot)
+                    {
+                        approvalMessage = $"I can restart the app service to mitigate the issue.";
+                    }
+                    else
+                    {
+                        if (potentialRootCause.DataCollection == DataCollection.MemoryDump)
+                        {
+                            approvalMessage = "I can collect memory dump to further analyze issue.";
+                        }
 
-                if (potentialRootCause.QuickMitigation == QuickMitigation.Reboot)
-                {
-                    approvalMessage = $"{approvalMessage} I can restart the app service to mitigate the issue";
-                }
+                        if (mitigation == QuickMitigation.ScaleUp)
+                        {
+                            approvalMessage = $"{approvalMessage} I can scale up the app service plan to mitigate the issue";
+                            currentAppSku = await context.CallActivityAsync<AppPlanSku>(nameof(BasicSkills.GetAppSku), appResourceId);
+                            nextAppSku = ArmHelper.GetNextSku(currentAppSku);
+                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Here is your current App service Plan SKU. {HtmlHelpers.GenerateHtmlTableForAppSku(currentAppSku)}"));
+                        }
+                    }
 
-                if (approvalMessage == string.Empty)
-                {
-                    await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage("Unfortunately, I cannot determine the root cause right now. Please investigate the issue using Diagnose and Solve Problems menu item on App services page in azure portal."));
-                }
+                    if (string.IsNullOrWhiteSpace(approvalMessage))
+                    {
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage("Unfortunately, I cannot dertermine further course of action right now. Please investigate the issue using Diagnose and Solve Problems menu item on App services page in azure portal."));
+                        return;
+                    }
 
-                var openAICallMessages = new List<ChatMessage>
-                {
-                    new ChatMessage(ChatRole.System, "You are an AI assistant that helps users generate user friendly messages"),
-                    new ChatMessage(ChatRole.User, $"Rephrase this. {approvalMessage}"),
-                };
+                    var openAICallMessages = new List<ChatMessage>
+                    {
+                        new ChatMessage(ChatRole.System, "You are an AI assistant that helps users generate user friendly messages"),
+                        new ChatMessage(ChatRole.User, $"Rephrase this. {approvalMessage}"),
+                    };
 
-                string openAIResponse = await context.CallActivityAsync<string>(nameof(BasicSkills.GetOpenAIResponse), openAICallMessages);
-                await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"{openAIResponse}. Would you like me to proceed? <a href='{approvalLink}'>Click here to approve</a>"));
+                    string openAIResponse = await context.CallActivityAsync<string>(nameof(BasicSkills.GetOpenAIResponse), openAICallMessages);
+                    await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"{openAIResponse}. Would you like me to proceed? <a href='{approvalLink}'>Click here to approve</a>"));
 
-                using (var timeoutCts = new CancellationTokenSource())
-                {
+                    var timeoutCts = new CancellationTokenSource();
                     int approvalTimeoutInSeconds = 3600;
                     DateTime dueTime = context.CurrentUtcDateTime.AddSeconds(approvalTimeoutInSeconds);
                     Task durableTimeout = context.CreateTimer(dueTime, timeoutCts.Token);
                     Task<ApprovalEventPayload> approvalEventTask = context.WaitForExternalEvent<ApprovalEventPayload>("ApproveMemoryDumpAndScaleUp");
 
-                    if (approvalEventTask == await Task.WhenAny(approvalEventTask, durableTimeout))
+                    if (approvalEventTask != await Task.WhenAny(approvalEventTask, durableTimeout))
                     {
-                        timeoutCts.Cancel();
-                        var approvalEvent = await approvalEventTask;
-                        bool approvalResult = approvalEvent.ApprovalAction;
-                        string decisionMaker = approvalEvent.DecisionMakerName;
+                        logger.LogInformation($"No approval received within {approvalTimeoutInSeconds} seconds.");
+                        return;
+                    }
 
-                        logger.LogInformation($"approvalEvent : {approvalResult}");
-                        if (!approvalResult)
-                        {
-                            logger.LogInformation($"Approval denied");
-                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied by {decisionMaker}. I will continue to monitor for any additional issues."));
-                            return;
-                        }
+                    timeoutCts.Cancel();
+                    var approvalEvent = await approvalEventTask;
+                    bool approvalResult = approvalEvent.ApprovalAction;
+                    string decisionMaker = approvalEvent.DecisionMakerName;
 
-                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received from {decisionMaker}. I'll continue with this action in a safe manner and will notify you once I am done."));
-                        int waitTimeInSeconds = 30;
+                    if (!approvalResult)
+                    {
+                        logger.LogInformation($"Approval denied");
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Denied by {decisionMaker}. I will continue to monitor for any additional issues."));
+                        return;
+                    }
 
-                        using (var appActionTimeoutCts = new CancellationTokenSource())
-                        {
-                            string memoryDumpLink = string.Empty;
-                            if (potentialRootCause.DataCollection == DataCollection.MemoryDump)
-                            {
-                                await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
-                                {
-                                    Id = context.NewGuid(),
-                                    OperationName = "CaptureMemoryDump",
-                                    Annotations = [ $"Capture a memory dump of the degraded web app" ],
-                                    Approver = approvalEvent.DecisionMakerName,
-                                    CreatedTime = context.CurrentUtcDateTime,
-                                });
-                                memoryDumpLink = await context.CallActivityAsync<string>(nameof(BasicSkills.CaptureMemoryDump), appResourceId);
-                            }
+                    await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received from {decisionMaker}. I'll continue with this action in a safe manner and will notify you once I am done."));
+                    int waitTimeInSeconds = 180;
 
-                            Task durableWaitTime = context.CreateTimer(TimeSpan.FromSeconds(waitTimeInSeconds), appActionTimeoutCts.Token);
-                            await durableWaitTime;
+                    await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
+                    {
+                        Id = context.NewGuid(),
+                        OperationName = mitigation.ToString(),
+                        Annotations = [$"Apply {mitigation.ToString()} mitigation to degraded web app"],
+                        Approver = decisionMaker,
+                        CreatedTime = context.CurrentUtcDateTime,
+                    });
 
-                            await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
-                            {
-                                Id = context.NewGuid(),
-                                OperationName = potentialRootCause.QuickMitigation.ToString(),
-                                Annotations = [ $"Apply {potentialRootCause.QuickMitigation.ToString()} mitigation to degraded web app" ],
-                                Approver = "",
-                                CreatedTime = context.CurrentUtcDateTime,
-                            });
+                    if (mitigation == QuickMitigation.Reboot)
+                    {
+                        rebootSuccessful = await context.CallActivityAsync<bool>(nameof(BasicSkills.RestartWebApp), appResourceId);
+                        string rebootMessage = rebootSuccessful ? "I have successfully restarted the application. I will monitor the availability of the impacted app to confirm mitigation."
+                            : "I was not able to restart the application. Let me try to find more mitigations.";
 
-                            var mitigationSuccess = potentialRootCause.QuickMitigation switch
-                            {
-                                QuickMitigation.Reboot => await context.CallActivityAsync<bool>(nameof(BasicSkills.RestartWebApp), appResourceId),
-                                QuickMitigation.ScaleUp => await context.CallActivityAsync<bool>(nameof(BasicSkills.ScaleUpAppServicePlan), new Tuple<string, AppPlanSku>(appResourceId, nextAppSku)),
-                                _ => false,
-                            };
-
-                            if (!string.IsNullOrWhiteSpace(memoryDumpLink))
-                            {
-                                await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"I have captured a memory dump of the impacted application for your further investigation. <a href='{memoryDumpLink}'>Click here to download</a>"));
-                            }
-                            else
-                            {
-                                await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Unfortunately, I was not able to capture a memory dump."));
-                            }
-
-                            if (mitigationSuccess)
-                            {
-                                var successMessage = potentialRootCause.QuickMitigation switch
-                                {
-                                    QuickMitigation.Reboot => "I have successfully restarted the application.",
-                                    QuickMitigation.ScaleUp => $"I have scaled up the application's app service plan. Here is the new sku : {HtmlHelpers.GenerateHtmlTableForAppSku(nextAppSku)}",
-                                    _ => string.Empty,
-                                };
-                                await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Also, {successMessage}"));
-                            }
-
-                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"I will continue to monitor the Application availability and notify when the issue is mitigated"));
-                            await context.CreateTimer(TimeSpan.FromSeconds(600), appActionTimeoutCts.Token);
-
-                            var updatedAvailabilityTimeSeries = await context.CallActivityAsync<List<TimeSeriesData>>(nameof(BasicSkills.GetAppAvailability), appResourceId);
-                            var updatedChartImageInput = new ChartImageInput()
-                            {
-                                TimeSeries = updatedAvailabilityTimeSeries,
-                                Title = "Availability",
-                                YAxisLabel = "Percent",
-                                YAxisMin = 0.0,
-                                YAxisMax = 105.0
-                            };
-                            var updatedAvailabilityGraph = await context.CallActivityAsync<string>(nameof(BasicSkills.GetChartImageForTimeSeries), updatedChartImageInput);
-
-                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Good news: The application's availability appears to have recovered. I will continue to monitor and report any further issues. ", updatedAvailabilityGraph));
-                        }
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"{rebootMessage}"));
                     }
                     else
                     {
-                        logger.LogInformation($"No approval received within {approvalTimeoutInSeconds} seconds.");
+                        if (potentialRootCause.DataCollection == DataCollection.MemoryDump)
+                        {
+                            await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
+                            {
+                                Id = context.NewGuid(),
+                                OperationName = "CaptureMemoryDump",
+                                Annotations = [$"Capture a memory dump of the degraded web app"],
+                                Approver = decisionMaker,
+                                CreatedTime = context.CurrentUtcDateTime,
+                            });
+                            memoryDumpLink = await context.CallActivityAsync<string>(nameof(BasicSkills.CaptureMemoryDump), appResourceId);
+                            await context.CreateTimer(TimeSpan.FromSeconds(30), (new CancellationTokenSource()).Token);
+                        }
+
+                        if (mitigation == QuickMitigation.ScaleUp)
+                        {
+                            scaleUpSuccessful = await context.CallActivityAsync<bool>(nameof(BasicSkills.ScaleUpAppServicePlan), new Tuple<string, AppPlanSku>(appResourceId, nextAppSku));
+                            await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"I have scaled up the application's app service plan. I will monitor the availability of the impacted app to confirm mitigation. Here is the new app plan sku : {HtmlHelpers.GenerateHtmlTableForAppSku(nextAppSku)}"));
+                        }
+                    }
+                    
+                    Task durableWaitTime = context.CreateTimer(TimeSpan.FromSeconds(waitTimeInSeconds), (new CancellationTokenSource()).Token);
+                    await durableWaitTime;
+
+                    var updatedAvailabilityTimeSeries = await context.CallActivityAsync<List<TimeSeriesData>>(nameof(BasicSkills.GetAppAvailability), appResourceId);
+                    var updatedSLA = updatedAvailabilityTimeSeries.TakeLast(30).Average(ts => ts.Value);
+                    var updatedChartImageInput = new ChartImageInput()
+                    {
+                        TimeSeries = updatedAvailabilityTimeSeries,
+                        Title = "Availability",
+                        YAxisLabel = "Percent",
+                        YAxisMin = 0.0,
+                        YAxisMax = 105.0
+                    };
+                    var updatedAvailabilityGraph = await context.CallActivityAsync<string>(nameof(BasicSkills.GetChartImageForTimeSeries), updatedChartImageInput);
+
+                    if (updatedSLA >= 99.9)
+                    {
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Good news: The application's availability appears to have recovered. I will continue to monitor and report any further issues. ", updatedAvailabilityGraph));
+                        return;
+                    }
+
+                    string continuationMessage = mitigation != potentialRootCause.QuickMitigation.Last() ? "Let me try to find more mitigations." : "";
+                    await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"The application still seems to be facing availability issues. {continuationMessage}", updatedAvailabilityGraph));
+
+                    if (!string.IsNullOrWhiteSpace(memoryDumpLink))
+                    {
+                        await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"This might be related to application code issue. I have captured a memory dump for your further investigation. <a href='{memoryDumpLink}'>Click here to download</a>"));
+                        return;
                     }
                 }
             }

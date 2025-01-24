@@ -113,7 +113,7 @@ namespace OperationalAgentRuntime.Skills
 
         [Function("CheckAndDisableBasicAuth_TimerTrigger")]
         public static async Task TimerStart(
-            [TimerTrigger("*/30 * * * * *")] TimerInfo timer,
+            [TimerTrigger("*/60 * * * * *")] TimerInfo timer,
             [DurableClient] DurableTaskClient client,
             FunctionContext executionContext)
         {

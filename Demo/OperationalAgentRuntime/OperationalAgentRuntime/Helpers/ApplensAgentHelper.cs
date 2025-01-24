@@ -36,13 +36,13 @@ namespace OperationalAgentRuntime.Helpers
 
         public static async Task<ApplensIssueRootCause> GetProblemRootCause(string armResourceId, string problemStatement)
         {
-            await Task.Delay(1);
+            await Task.Delay(10000);
             // TODO : Need tp call into Applens conversational diagnostics agent
             return new ApplensIssueRootCause()
             {
                 RootCauseIntent = "memory",
                 RootCauseMessage = "High Memory usage may be the cause of application downtime",
-                QuickMitigation = QuickMitigation.Reboot,
+                QuickMitigation = new QuickMitigation[] { QuickMitigation.Reboot, QuickMitigation.ScaleUp },
                 DataCollection = DataCollection.MemoryDump
             };
         }

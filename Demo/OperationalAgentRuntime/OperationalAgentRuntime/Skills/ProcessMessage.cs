@@ -64,6 +64,11 @@ namespace OperationalAgentRuntime.Skills
                     var result = await context.CallActivityAsync<bool>(nameof(BasicSkills.RestartWebApp), appResourceId);
                     Console.WriteLine($"{(result ? "Successfully" : "Unsuccessfully")} restarted {appName} at {appResourceId}");
                     break;
+                case "clearstate":
+                    await context.Entities.SignalEntityAsync(trackedActionsEntity, "delete");
+                    await TrackedAgentOperationActionHelper.ResetAsync(context);
+                    await context.Entities.SignalEntityAsync(resourceMemoryEntity, "reset");
+                    break;
                 default:
                     var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations != null ? operations.Values.ToList() : new List<TrackedAgentOperation>() };
                     var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), input);
@@ -89,19 +94,19 @@ namespace OperationalAgentRuntime.Skills
             };
 
             var chatOptions = new ChatOptions { Tools = new List<AITool>(tools) };
-                        
-            //var resources = new StringBuilder();
-            //foreach (var sub in input.Subscriptions)
-            //{
-            //    foreach (var r in sub.Resources)
-            //    {
-            //        resources.AppendLine(r);
-            //    }
-            //}
+
+            var resources = new StringBuilder();
+            foreach (var sub in input.Subscriptions)
+            {
+                foreach (var r in sub.Resources)
+                {
+                    resources.AppendLine(r);
+                }
+            }
 
             List<ChatMessage> chatMessages = new List<ChatMessage>()
             {
-                new ChatMessage(ChatRole.System, $"You are a helpful operations agent."),                
+                new ChatMessage(ChatRole.System, $"You are a helpful operations agent. You are monitoring/managing following azure resources : {resources}. Dont ask user any further questions in your messages."),                
             };
 
             foreach(var action in input.Actions)

@@ -10,7 +10,7 @@ namespace OperationalAgentRuntime.Models
     {
         public string RootCauseIntent { get; set; }
         public string RootCauseMessage { get; set; }
-        public QuickMitigation QuickMitigation { get; set; }
+        public QuickMitigation[] QuickMitigation { get; set; }
         public DataCollection DataCollection { get; set; }
     }
 
