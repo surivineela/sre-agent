@@ -18,7 +18,7 @@ namespace OperationalAgentRuntime.Skills
 
             var currentOperation = new TrackedAgentOperation()
             {
-                Id = new Guid(),
+                Id = context.NewGuid(),
                 OperationName = "AddSubscriptionsToAgent",
                 Annotations = [$"Triggered by message '{messageContent}'"],
                 Approver = "",

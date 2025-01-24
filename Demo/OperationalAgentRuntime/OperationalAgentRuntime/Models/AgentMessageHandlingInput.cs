@@ -9,6 +9,8 @@ namespace OperationalAgentRuntime.Models
     public class AgentMessageHandlingInput
     {
         public string Message { get; set; }
+        public List<TrackedAction> Actions { get; set; }
         public List<AzureSubscription> Subscriptions { get; set; }
+        public List<TrackedAgentOperation> Operations { get; set; }
     }
 }

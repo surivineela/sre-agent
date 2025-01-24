@@ -6,6 +6,9 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using System;
+using System.Text;
+using System.Text.Json;
 
 namespace OperationalAgentRuntime.Skills
 {
@@ -13,6 +16,7 @@ namespace OperationalAgentRuntime.Skills
     {
         [Function(nameof(CheckAndDisableBasicAuth))]
         public static async Task RunOrchestrator(
+            [DurableClient] DurableTaskClient durableClient,
             [OrchestrationTrigger] TaskOrchestrationContext context)
         {
             ILogger logger = context.CreateReplaySafeLogger(nameof(CheckAndDisableBasicAuth));
@@ -22,6 +26,9 @@ namespace OperationalAgentRuntime.Skills
             List<string> resourceIds = currentResourceList.SelectMany(c => c.Resources).ToList();
 
             var basicAuthChecks = await context.CallActivityAsync<List<BasicAuthStatus>>(nameof(BasicSkills.CheckBasicAuthForResources), resourceIds);
+
+            //await TrackedActionHelper.TrackAsAssistant(durableClient, "I checked the following resources and here is what I found:\r\n" + JsonSerializer.Serialize(basicAuthChecks));
+    
             var appsInViolation = basicAuthChecks.Where(p => p.FtpBasicAuthAllowed || p.ScmBasicAuthAllowed).ToList();
             
             if(!appsInViolation.Any()) return;
@@ -55,9 +62,9 @@ namespace OperationalAgentRuntime.Skills
                     {
                         var currentOperation = new TrackedAgentOperation()
                         {
-                            Id = Guid.NewGuid(),
+                            Id = context.NewGuid(),
                             OperationName = "DisablingBasicAuth",
-                            Annotations = [ $"Triggered by approval link" ],
+                            Annotations = [ $"Triggered by approval link", $"Apps tracked for disablement: {string.Join(",", appsInViolation.Select(x => x.Name))}" ],
                             Approver = "",
                             CreatedTime = DateTime.UtcNow,
                         };
@@ -73,6 +80,10 @@ namespace OperationalAgentRuntime.Skills
                                 Task durableWaitTimeBetweenApps = context.CreateTimer(TimeSpan.FromSeconds(waitTimeInSeconds), appActionTimeoutCts.Token);
                                 bool result = await context.CallActivityAsync<bool>(nameof(BasicSkills.DisableBasicAuth), app);
                                 logger.LogInformation($"App: {app.Name}, Basic Auth Disablement Result : {result}");
+                                if (result)
+                                {
+                                    await TrackedAgentOperationActionHelper.AppendAnnotation(context, currentOperation, $"Disabled basic auth for app {app.Name}");
+                                }
                                 await durableWaitTimeBetweenApps;
                             }
                         }

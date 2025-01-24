@@ -131,7 +131,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                             {;
                                 await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
                                 {
-                                    Id = Guid.NewGuid(),
+                                    Id = context.NewGuid(),
                                     OperationName = "CaptureMemoryDump",
                                     Annotations = [ $"Capture a memory dump of the degraded web app" ],
                                     Approver = "",
@@ -148,7 +148,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                                 nextAppSku = ArmHelper.GetNextSku(currentAppSku);
                                 await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
                                 {
-                                    Id = Guid.NewGuid(),
+                                    Id = context.NewGuid(),
                                     OperationName = "ScaleUpAppServicePlan",
                                     Annotations = [ $"Scale up app service plan of the degraded web app" ],
                                     Approver = "",

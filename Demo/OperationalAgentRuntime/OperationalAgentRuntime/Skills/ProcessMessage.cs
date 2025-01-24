@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -39,36 +40,29 @@ namespace OperationalAgentRuntime.Skills
 
             var resourceMemoryEntity = new EntityInstanceId("ResourceMemory", "SREResourceMemory");
             var azureSubs = await context.Entities.CallEntityAsync<List<AzureSubscription>>(resourceMemoryEntity, "Get");
-            
+
+            var trackedActionsEntity = new EntityInstanceId("TrackedActionsMemory", "TrackedActionsMemoryV2");
+
+            // not clear whether it makes sense to have both of these be separate - the former has the chat messages, the latter has the operations
+            var history = await context.Entities.CallEntityAsync<List<TrackedAction>>(trackedActionsEntity, "Get");            
+            var operations = await TrackedAgentOperationActionHelper.GetAllOperations(context);
+
             switch (intent.ToLower())
             {
                 case "addsubscriptionstoagent":
+                    // For now, this action of adding subscriptions is a "reset" of the previous state
+                    await context.Entities.SignalEntityAsync(trackedActionsEntity, "delete");
+                    await TrackedAgentOperationActionHelper.ResetAsync(context);
+
                     await context.CallSubOrchestratorAsync(nameof(AddResourcesToAgent.AddSubscriptionsToAgent), messageContent);
                     break;
                 case "addappstoagent":
                 case "disablebasicauth":
                 case "rebootapps":
-                case "unused-sample-agent-operation-client-code":
-                    // This is not routed from intent classification, and is sample code we will remove once
-                    // the handling-chat-message tool is updated to consume the operation action store
-                    var currentOperation = new TrackedAgentOperation()
-                    {
-                        Id = Guid.NewGuid(),
-                        OperationName = "TestOperationTracking",
-                        Annotations = [""],
-                        Approver = "",
-                        CreatedTime = DateTime.UtcNow,
-                    };
-                    await TrackedAgentOperationActionHelper.AddOperation(context, currentOperation);
-                    var operations = await TrackedAgentOperationActionHelper.GetAllOperations(context);
-                    foreach (TrackedAgentOperation op in operations.Values)
-                    {
-                        await TrackedAgentOperationActionHelper.AppendAnnotation(context, op, "new annotation");
-                    }
-                    operations = await TrackedAgentOperationActionHelper.GetAllOperations(context);
                     break;
                 default:
-                    var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), new AgentMessageHandlingInput {  Message = messageContent, Subscriptions = azureSubs});
+                    var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations.Values.ToList() };
+                    var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), input);
                     Console.WriteLine(res);
                     await context.CallActivityAsync(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage(res));
                     break;
@@ -76,7 +70,10 @@ namespace OperationalAgentRuntime.Skills
         }
 
         [Function(nameof(HandleChatMessageAsync))]
-        public async Task<string> HandleChatMessageAsync([ActivityTrigger] AgentMessageHandlingInput input, FunctionContext executionContext)
+        public async Task<string> HandleChatMessageAsync(
+            [ActivityTrigger] AgentMessageHandlingInput input,
+            [DurableClient] DurableTaskClient client,
+            FunctionContext executionContext)
         {
             ILogger logger = executionContext.GetLogger("HandleMessage");
 
@@ -88,21 +85,31 @@ namespace OperationalAgentRuntime.Skills
             };
 
             var chatOptions = new ChatOptions { Tools = new List<AITool>(tools) };
-            
-            var resources = new StringBuilder();
-            foreach (var sub in input.Subscriptions)
-            {
-                foreach (var r in sub.Resources)
-                {
-                    resources.AppendLine(r);
-                }
-            }
+                        
+            //var resources = new StringBuilder();
+            //foreach (var sub in input.Subscriptions)
+            //{
+            //    foreach (var r in sub.Resources)
+            //    {
+            //        resources.AppendLine(r);
+            //    }
+            //}
 
             List<ChatMessage> chatMessages = new List<ChatMessage>()
             {
-                new ChatMessage(ChatRole.System, $"You are a helpful operations agent. You can monitor the following resources. {resources}"),
-                new ChatMessage(ChatRole.User, input.Message)
+                new ChatMessage(ChatRole.System, $"You are a helpful operations agent."),                
             };
+
+            foreach(var action in input.Actions)
+            {
+                chatMessages.Add(new ChatMessage(action.Role, action.Content));
+            }
+
+            chatMessages.Add(new ChatMessage(ChatRole.System, "Latest status of tracked operations: " + Environment.NewLine + System.Text.Json.JsonSerializer.Serialize(input.Operations)));
+
+            chatMessages.Add(new ChatMessage(ChatRole.User, input.Message));
+
+            Debug.WriteLine(System.Text.Json.JsonSerializer.Serialize(chatMessages));
 
             var completion = await chatClient.CompleteAsync(chatMessages, chatOptions);
             return completion.Message.Text;

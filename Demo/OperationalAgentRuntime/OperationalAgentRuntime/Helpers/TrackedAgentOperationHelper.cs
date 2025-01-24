@@ -1,4 +1,5 @@
-﻿using Microsoft.DurableTask;
+﻿using Azure;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Entities;
 using OperationalAgentRuntime.Models;
 
@@ -13,6 +14,11 @@ namespace OperationalAgentRuntime.Helpers
         static TrackedAgentOperationActionHelper()
         {
             InstanceId = new EntityInstanceId("TrackedAgentOperationsMemory", "SharedTrackedAgentOperationsMemoryEntity");
+        }
+
+        public static async Task ResetAsync(TaskOrchestrationContext context)
+        {
+            await context.Entities.CallEntityAsync(InstanceId, "reset");
         }
 
         public static async Task AddOperation(TaskOrchestrationContext context, TrackedAgentOperation operation)
