@@ -4,54 +4,51 @@ using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using OperationalAgentRuntime;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+using Microsoft.SemanticKernel;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Microsoft.SemanticKernel.Planning;
+using OperationalAgentRuntime.Configuration;
+using OperationalAgentRuntime.Configuration.Settings;
+using OperationalAgentRuntime.Planner;
+using OperationalAgentRuntime.Skills;
 
 FunctionsApplicationBuilder builder = FunctionsApplication.CreateBuilder(args);
 
 builder.ConfigureFunctionsWebApplication();
 
+// Add configuration
+builder.Services.AddApplicationConfiguration(builder.Configuration);
 
-
-// Application Insights isn't enabled by default. See https://aka.ms/AAt8mw4.
-// builder.Services
-//     .AddApplicationInsightsTelemetryWorkerService()
-//     .ConfigureFunctionsApplicationInsights();
-
-builder.Services.AddSingleton<AzureOpenAIClient>(GetAzureOpenAIClient());
-builder.Services.AddSingleton<IChatClient>(serviceProvider => GetChatClient(serviceProvider.GetRequiredService<AzureOpenAIClient>()));
-builder.Build().Run();
-
-
-
-AzureOpenAIClient GetAzureOpenAIClient()
+// Add logging
+builder.Services.AddLogging(logging =>
 {
-    string? aoaiEndpoint = Environment.GetEnvironmentVariable("AzureOpenAIEndpoint");    
-    string key = Environment.GetEnvironmentVariable("OpenAIAPI_KEY");
+    logging.AddConsole();
+    logging.AddDebug();
+});
+builder.Logging.SetMinimumLevel(LogLevel.Trace);
 
-    if (string.IsNullOrEmpty(aoaiEndpoint))
-        throw new Exception("Please set `AzureOpenAIEndpoint`, check the readme for more information.");
-
-    Console.WriteLine($" * Using Azure OpenAI endpoint (AzureOpenAIEndpoint): {aoaiEndpoint}");
-
-    if (string.IsNullOrEmpty(key))
-    {
-        Console.WriteLine("No OpenAIAPI_KEY found, using DefaultAzureCredential");
-        return new AzureOpenAIClient(new Uri(aoaiEndpoint), new DefaultAzureCredential());
-    }
-    else
-    {
-        return new AzureOpenAIClient(new Uri(aoaiEndpoint), new System.ClientModel.ApiKeyCredential(key));
-    }
-}
-
-IChatClient GetChatClient(AzureOpenAIClient client)
+// Configure Semantic Kernel with typed settings
+builder.Services.AddScoped<Kernel>(sp =>
 {
-    string? deployment = Environment.GetEnvironmentVariable("AzureOpenAIDeployment");
+    var azureSettings = sp.GetRequiredService<IOptions<AzureSettings>>().Value;
+    
+    var kernelBuilder = Kernel.CreateBuilder()
+        .AddAzureOpenAIChatCompletion(
+            deploymentName: azureSettings.OpenAI.DeploymentName,
+            endpoint: azureSettings.OpenAI.Endpoint,
+            apiKey: azureSettings.OpenAI.ApiKey);
 
-    if (string.IsNullOrEmpty(deployment))
-        throw new Exception("Please set `AzureOpenAIDeployment`, check the readme for more information.");
+    // Register skills
+    kernelBuilder.Plugins.AddFromType<MetricsSkill>();
+    
+    return kernelBuilder.Build();
+});
 
-    return new ChatClientBuilder(client.AsChatClient(deployment))
-        .UseFunctionInvocation()
-        .Build();
-}
+// Register the planner
+builder.Services.AddScoped<SkillsPlanner>();
+
+var app = builder.Build();
+app.Run();

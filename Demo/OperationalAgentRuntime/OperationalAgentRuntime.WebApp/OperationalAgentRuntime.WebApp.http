@@ -1,0 +1,6 @@
+@OperationalAgentRuntime.WebApp_HostAddress = http://localhost:5239
+
+GET {{OperationalAgentRuntime.WebApp_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

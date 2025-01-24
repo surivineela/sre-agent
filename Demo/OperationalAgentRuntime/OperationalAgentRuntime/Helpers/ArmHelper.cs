@@ -305,7 +305,7 @@ namespace OperationalAgentRuntime.Helpers
             if (currentSku == null) return null;
 
             // Define the SKU progression  
-            var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1v2", "P2v2", "P3v2" };
+            var skuProgression = new[] { "F1", "D1", "B1", "B2", "B3", "S1", "S2", "S3", "P1v2", "P2v2", "P3v2", "P0v3", "P1v3", "P2v3", "P3v3"};
 
             // Find the index of the current SKU  
             int currentIndex = Array.IndexOf(skuProgression, currentSku.Size);
@@ -436,6 +436,10 @@ namespace OperationalAgentRuntime.Helpers
                 "P1v2" => "Pv2",
                 "P2v2" => "Pv2",
                 "P3v2" => "Pv2",
+                "P0v3" => "Pv3",
+                "P1v3" => "Pv3",
+                "P2v3" => "Pv3",
+                "P3v3" => "Pv3",
                 _ => throw new ArgumentException("Unknown SKU")
             };
         }
@@ -457,6 +461,10 @@ namespace OperationalAgentRuntime.Helpers
                 "P1v2" => "PremiumV2",
                 "P2v2" => "PremiumV2",
                 "P3v2" => "PremiumV2",
+                "P0v3" => "PremiumV3",
+                "P1v3" => "PremiumV3",
+                "P2v3" => "PremiumV3",
+                "P3v3" => "PremiumV3",
                 _ => throw new ArgumentException("Unknown SKU")
             };
         }
