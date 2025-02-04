@@ -1,10 +1,16 @@
 {
-    "instanceUrl":  "https://msazure.visualstudio.com",
-    "TSADocumentation": "https://aka.ms/OBTSA",
-    "projectName":  "One",
-    "areaPath":  "One\\<Example>\\<Team>\\<AreaPath>",
-    "notificationAliases": ["shgup"],
-    "ppe":  "false",
-    "template":  "TFSMSAzure",
-    "codebaseName":  "TFSMSAzure_AAPT-Antares-OperationalAgent"
+  "instanceUrl": "https://msazure.visualstudio.com",
+  "TSADocumentation": "https://aka.ms/OBTSA",
+  "projectName": "One",
+  "areaPath": "One\\Antares",
+  "notificationAliases": [
+    "shgup@microsoft.com",
+    "ruslany@microsoft.com",
+    "jennylaw@microsoft.com",
+    "wimoy@microsoft.com",
+    "sanmeht@microsoft.com"
+  ],
+  "ppe": "false",
+  "template": "TFSMSAzure",
+  "codebaseName": "TFSMSAzure_AAPT-Antares-OperationalAgent"
 }
