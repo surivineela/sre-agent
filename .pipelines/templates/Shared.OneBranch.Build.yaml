@@ -163,9 +163,9 @@ extends:
         #
         - task: UseDotNet@2
           continueOnError: false
-          displayName: '🧰 Setup .NET 8'
+          displayName: '🧰 Setup .NET 9'
           inputs:
-            version: 8.x
+            version: 9.x
             packageType: 'sdk'
 
         #
