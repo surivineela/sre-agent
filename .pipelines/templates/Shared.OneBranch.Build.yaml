@@ -1,0 +1,205 @@
+#################################################################################
+#                              Shared Build Pipeline                            #
+#                                                                               #
+#                               OneBranch Pipelines                             #
+# Documentation:  https://aka.ms/onebranchrelease                               #
+# Yaml Schema:    https://aka.ms/obpipelines/yaml/schema                        #
+# Support:        https://aka.ms/onebranchsupport                               #
+#################################################################################
+
+# Please uncomment and provide values for the placeholdes in the << >> notation:
+# 1. The "dependsOn" in the download stage of the test stage example (if applicable)
+# 2. The "ServiceRootPath" and "RolloutSpecPath" in each of the test stage example
+
+parameters:
+- name: 'isOfficialBuild'
+  displayName: 'Enables or Disables an Official build and its configuration (signing and other build steps'
+  type: boolean
+  default: false
+
+resources:
+  repositories:
+  - repository: templates
+    type: git
+    name: OneBranch.Pipelines/GovernedTemplates
+    ref: refs/heads/main
+
+# To learn about the best release strategy for your team, please visit https://aka.ms/ev2/pipeline/strategy
+extends:
+  ${{ if parameters.isOfficialBuild }}:
+    template: v2/OneBranch.Official.CrossPlat.yml@templates  # https://aka.ms/obpipelines/templates
+  ${{ else }}:
+    template: v2/OneBranch.NonOfficial.CrossPlat.yml@templates  # https://aka.ms/obpipelines/templates
+  parameters:
+    # We enable CloudVault for Official builds but as a separate stage.
+    # This limits CloudVault upload to the contents of the very last stage, in which we pack everything for Ev2.
+    # This also side-steps the whole "No CloudVault on linux" issue.
+    # https://eng.ms/docs/products/onebranch/artifactsandsymbols/containerbasedbuildworkflows/cloudvaultupload
+    ${{ if parameters.isOfficialBuild }}:
+      cloudvault: # https://aka.ms/obpipelines/cloudvault
+        enabled: true
+        runmode: stage
+        dependsOn:  # list of stages to run before cloudvault uploads
+        - build
+        artifacts: # list of artifacts to upload to CloudVault
+        - drop_build_main
+    # There is no point in enabling cloudvault and others for NonOfficial builds
+    ${{ else }}:
+      cloudvault:
+        enabled: false
+    globalSdl: # https://aka.ms/obpipelines/sdl
+      # Only enable CodeQL and TSA for Official builds
+      ${{ if parameters.isOfficialBuild }}:
+        codeql:
+          compiled:
+            enabled: true
+        tsa:
+          enabled: true # onebranch publish all sdl results to TSA. If TSA is disabled all SDL tools will forced into 'break' build mode.
+      # ${{ else }}:
+      #   nothing really to do here for NonOfficial builds
+      # credscan:
+      #   suppressionsFile: $(Build.SourcesDirectory)\.config\CredScanSuppressions.json
+      policheck:
+        break: true # always break the build on policheck issues. You can disable it by setting to 'false'
+      # suppression:
+      #   suppressionFile: $(Build.SourcesDirectory)\.gdn\global.gdnsuppress
+
+    git:
+      longpaths: true
+      submodules: false
+      fetchTags: false
+      fetchDepth: 1
+    featureFlags:
+      # Netlock: opt-in into network isolation https://eng.ms/docs/cloud-ai-platform/azure-edge-platform-aep/aep-engineering-systems/productivity-and-experiences/ce-legacy-infrastructure/onebranch/infrastructureandimages/buildinfrastructureandimages/networkisolation#manual-opt-in-to-policies
+      LinuxHostVersion:
+        Network: Netlock
+      WindowsHostVersion:
+        Network: Netlock
+        Version: 2022
+
+    stages:
+    - stage: build
+      ${{ if parameters.isOfficialBuild }}:
+        displayName: "🛠️ Build Official"
+      ${{ else }}:
+        displayName: "🛠️ Build NonOfficial"
+      jobs:
+      - job: main # Super std name for main build step in this stage
+        displayName: "🔨 Build Agent"
+        pool:
+          # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
+          type: windows # RosynAnalyzers are not supported on Linux yet
+        variables:
+          #
+          # Constants (because there is no better way to do it in YAML)
+          #
+          BuildSolution: .\src\Agent\Agent.sln
+          BuildConfiguration: Release
+          BuildNugetConfigPath: .\src\nuget.config
+          #
+          # OneBranch variables
+          #
+          ob_sdl_binskim_enabled: true # you can disable sdl tools in non-official build.
+          ob_sdl_binskim_break: true # always break the build on binskim issues. You can disable it by setting to 'false'
+          ob_sdl_binskim_scanOutputDirectoryOnly: ${{ not(parameters.isOfficialBuild) }} # Scan everything if it is an offical build
+          ob_sdl_roslyn_break: true
+          ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # conditionally enable symbolsPublishing for main branch only
+            ob_symbolsPublishing_enabled: true # https://aka.ms/obpipelines/symbols
+          # Input and source location-related variables
+          #
+          projectSrcPath: '$(Build.SourcesDirectory)\src\Agent'
+          #
+          # Build flags
+          #
+          ${{ if parameters.isOfficialBuild }}:
+            extraBuildFlags: '/p:Version=$(Build.BuildNumber) /p:OfficialBuild=true'
+          ${{ else }}:
+            extraBuildFlags: ''
+          #
+          # Artifact and build output location-related variables
+          #
+          # this directory is uploaded to pipeline artifacts, reddog and cloudvault. More info at https://aka.ms/obpipelines/artifacts
+          ob_outputDirectory: '$(Build.SourcesDirectory)\out'
+
+        steps:
+        # checkout: self step done automatically by OneBranch template. Pagckage source available at root of $(Build.SourcesDirectory)
+        # generates automatic version. For other versioning options check https://aka.ms/obpipelines/versioning
+        - task: onebranch.pipeline.version@1
+          displayName: 'Setup Build Version Number'
+          inputs:
+            system: 'RevisionCounter'
+            major: '0'
+            minor: '1'
+            exclude_commit: true
+        # Collect Build info & make output directories just in case
+        - task: PowerShell@2
+          displayName: "ℹ️ Collect Build info"
+          continueOnError: true # This is not a required step, don't stop the build if it fails
+          inputs:
+            targetType: 'inline'
+            workingDirectory: $(projectSrcPath)
+            script: |
+              echo "Build.Repository.Name is $(Build.Repository.Name)"
+              echo "Build.SourcesDirectory is $(Build.SourcesDirectory)"
+              echo "Build.BuildNumber is $(Build.BuildNumber)"
+              echo "Build.BinariesDirectory is $(Build.BinariesDirectory)"              
+
+              echo "ob_outputDirectory is $(ob_outputDirectory)"
+            
+              echo "Contents of projectSrcPath $(projectSrcPath)"
+              Get-ChildItem -Recurse  $(projectSrcPath) | Foreach-Object { $_.FullName }
+        # Some of our tools create output directores as they go while some others require them to exist
+        # before they can create their ouput. Let's make sure they are all there anyway
+        - task: PowerShell@2
+          displayName: '🔧 Prepare the build environment (make artifact output directories)'
+          inputs:
+            workingDirectory: $(Build.SourcesDirectory)
+            targetType: 'inline'
+            script: |
+              New-Item $(ob_outputDirectory) -ItemType Directory -Force
+        
+        #
+        # Just start the build process
+        #
+        - task: UseDotNet@2
+          continueOnError: false
+          displayName: '🧰 Setup .NET 8'
+          inputs:
+            version: 8.x
+            packageType: 'sdk'
+
+        #
+        # Restore nuget packages
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🔨 Restore Nuget Packages'
+          inputs:
+            command: 'restore'
+            projects: |
+              $(BuildSolution)
+            includeNuGetOrg: false
+            feedsToUse: config
+            nugetConfigPath: $(BuildNugetConfigPath)
+            ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
+
+        #
+        # Build Solution
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🦾 Build Agent Solution'
+          inputs:
+            command: build
+            projects: '$(BuildSolution)'
+            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration)'
+            includeNuGetOrg: false
+
+        #
+        # Run integration tests
+        #
+        - task: DotNetCoreCLI@2
+          displayName: '🧪 Run Integration Tests'
+          inputs:
+            command: 'test'
+            projects: '$(BuildSolution)'
+            arguments: '--no-build --output $(ob_outputDirectory) -c $(BuildConfiguration) --blame --collect "Code coverage"'
+            publishTestResults: true            
