@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Text.Json.Serialization;
 
-namespace OperationalAgentRuntime.Cli.DemoExec.Models
+namespace OperationalAgentCore
 {
     // state store for tracking the operations
     public class TrackedAction
@@ -45,6 +45,7 @@ namespace OperationalAgentRuntime.Cli.DemoExec.Models
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum ActionType
     {
+        AppStateTracking,
         Investigation,
         Monitoring,
         Remediation,

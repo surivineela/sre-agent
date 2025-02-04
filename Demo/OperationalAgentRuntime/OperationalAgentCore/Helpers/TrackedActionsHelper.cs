@@ -1,12 +1,14 @@
 ﻿using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using OperationalAgentRuntime.Cli.DemoExec.Models;
 
-namespace OperationalAgentRuntime.Cli.DemoExec.Helpers;
+namespace OperationalAgentCore;
 
 public static class TrackedActionHelper
 {
-    private static readonly string LogFilePath = Path.Combine(AppContext.BaseDirectory, "agent_actions.json");
+    private static readonly string LogFilePath = Path.Combine(
+        Directory.GetParent(AppContext.BaseDirectory)!.FullName,
+        "agent_actions.json"
+    );
     private static readonly object FileLock = new();
 
     private static List<TrackedAction> LoadActions()
@@ -47,7 +49,7 @@ public static class TrackedActionHelper
             {
                 AgentId = agentId,
                 ResourceId = resourceId,
-                Type = type,
+                Type = (ActionType)type,
                 Status = ActionStatus.Initiated,
                 Description = description,
                 Metadata = metadata ?? new Dictionary<string, string>(),
@@ -156,7 +158,7 @@ public static class TrackedActionHelper
         return actions.Where(a =>
             (agentId == null || a.AgentId == agentId) &&
             (resourceId == null || a.ResourceId == resourceId) &&
-            (type == null || a.Type == type) &&
+            (type == null || a.Type.Equals(type)) &&
             (status == null || a.Status == status)
         ).ToList();
     }

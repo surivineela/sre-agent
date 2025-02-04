@@ -7,15 +7,8 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace OperationalAgentRuntime.Cli
+namespace OperationalAgentCore
 {
-    // Simple container for success/failure messages
-    public sealed record RemediationResult(
-    bool Success,
-    string Action,
-    string Details
-    );
-
 
     public class GrafanaPlugin
     {
@@ -49,7 +42,9 @@ namespace OperationalAgentRuntime.Cli
                     return new RemediationResult(
                         false,
                         "DeployGrafanaDashboard",
-                        "No 'Grafana:Endpoint' found in configuration");
+                        "No 'Grafana:Endpoint' found in configuration",
+                        OperationId: null,
+                        FinishedTime: DateTime.Now);
                 }
 
                 string requestUrl = $"{grafanaEndpoint.TrimEnd('/')}/api/dashboards/db";
@@ -69,19 +64,26 @@ namespace OperationalAgentRuntime.Cli
                     return new RemediationResult(
                         false,
                         "DeployGrafanaDashboard",
-                        $"Failed to deploy dashboard ({response.StatusCode}): {errorBody}"
-                    );
+                        $"Failed to deploy dashboard ({response.StatusCode}): {errorBody}",
+                        OperationId: null,
+                        FinishedTime: DateTime.Now);
                 }
 
                 return new RemediationResult(
                     true,
                     "DeployGrafanaDashboard",
-                    $"Successfully created/updated the '{dashboardName}' dashboard with {metricsArray.Length} metric panels."
-                );
+                    $"Successfully created/updated the '{dashboardName}' dashboard with {metricsArray.Length} metric panels.",
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
             }
             catch (Exception ex)
             {
-                return new RemediationResult(false, "DeployGrafanaDashboard", ex.Message);
+                return new RemediationResult(
+                    false,
+                    "DeployGrafanaDashboard",
+                    ex.Message,
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
             }
         }
 

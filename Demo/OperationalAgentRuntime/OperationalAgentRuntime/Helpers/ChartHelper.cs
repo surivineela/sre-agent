@@ -51,6 +51,51 @@ namespace OperationalAgentRuntime.Helpers
             return base64;
         }
 
+        public static string GeneratePieChartBase64String(List<PieSlice> slices)
+        {
+            if (slices.Count == 0)
+                return string.Empty;
+
+            // Create a new ScottPlot plot  
+            var plt = new ScottPlot.Plot();
+
+            // Add pie slices  
+            var pie = plt.Add.Pie(slices);
+            pie.ExplodeFraction = .1;
+            plt.Add.Pie(slices);
+            pie.ExplodeFraction = .1;
+            pie.SliceLabelDistance = 1.4;
+
+            plt.ShowLegend();
+
+            // hide unnecessary plot components
+            plt.Axes.Frameless();
+            plt.HideGrid();
+
+            // Save to a temporary file  
+            var imageFile = $"{Guid.NewGuid()}.png";
+            if (File.Exists(imageFile))
+                File.Delete(imageFile);
+
+            var palette = ScottPlot.Palette.Default;
+            var colors = palette.GetColors(slices.Count);
+
+            for (int i = 0; i < slices.Count; i++)
+            {
+                slices[i].FillColor = colors[i];
+            }
+
+            plt.SavePng(imageFile, 600, 400);
+
+            // Convert to Base64  
+            string base64 = ConvertImageToBase64String(imageFile);
+
+            // Clean up  
+            File.Delete(imageFile);
+
+            return base64;
+        }
+
         private static string ConvertImageToBase64String(string imagePath)
         {
             try

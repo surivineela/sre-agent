@@ -2,7 +2,7 @@
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 
-namespace OperationalAgentRuntime.Cli;
+namespace OperationalAgentCore;
 
 public static class DemoExec2
 {
@@ -14,7 +14,7 @@ public static class DemoExec2
     {
         var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
         var history = new ChatHistory();
-        history.AddSystemMessage(Prompts.SystemMessage);
+        history.AddSystemMessage(IssueFinderAgent.SystemMessage);
 
         while (true)
         {

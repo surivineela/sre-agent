@@ -1,11 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using OperationalAgentRuntime.Cli.DemoExec.Helpers;
-using OperationalAgentRuntime.Cli.DemoExec.Models;
-using OperationalAgentRuntime.Cli.DemoExec.Tasks;
 using System.ComponentModel;
 
-namespace OperationalAgentRuntime.Cli
+namespace OperationalAgentCore
 {
     public class CurrentStatePlugin
     {
@@ -20,36 +17,68 @@ namespace OperationalAgentRuntime.Cli
 
         [KernelFunction("app_service_current_state")]
         [Description("Returns current state of a specific app service including recent actions and health status")]
-        public async Task<string> GetCurrentAppState(
+        public string GetCurrentAppState(
             [Description("Name of the app service to check")]
-        string appName)
+            string appName)
         {
-            var actions = TrackedActionHelper.GetActions(resourceId: appName);
-            if (!actions.Any())
-                return $"No tracked actions found for {appName}";
+            // First check tracked app state
+            var trackedActions = TrackedActionHelper.GetActions(type: ActionType.AppStateTracking)
+                .Where(a => a.Metadata["name"] == appName)
+                .OrderByDescending(a => a.Timestamp)
+                .ToList();
 
-            var latestAction = actions.OrderByDescending(a => a.Timestamp).First();
-            var recentDiagnostics = latestAction.DiagnosticEvents
-                .OrderByDescending(d => d.Timestamp)
+            var appStateInfo = trackedActions.FirstOrDefault();
+            
+            if (appStateInfo == null)
+                return $"No tracked state found for app service {appName}";
+
+            var stateDescription = $"App: {appName}\n" +
+                                 $"Current State: {appStateInfo.Metadata["state"]}\n" +
+                                 $"Location: {appStateInfo.Metadata["location"]}\n" +
+                                 $"SKU: {appStateInfo.Metadata["sku"]}\n" +
+                                 $"Kind: {appStateInfo.Metadata["kind"]}";
+
+            // Also get remediation actions
+            var remediationActions = TrackedActionHelper.GetActions(resourceId: appStateInfo.ResourceId)
+                .Where(a => !a.Type.Equals(ActionType.AppStateTracking))
+                .OrderByDescending(a => a.Timestamp)
                 .Take(3);
 
-            return $"App: {appName}\n" +
-                   $"Latest Action: {latestAction.Type} ({latestAction.Status})\n" +
-                   $"Description: {latestAction.Description}\n" +
-                   "Recent Events: " + string.Join(", ", recentDiagnostics.Select(d => d.Message));
+            if (remediationActions.Any())
+            {
+                stateDescription += "\n\nRecent Actions:";
+                foreach (var action in remediationActions)
+                {
+                    stateDescription += $"\n- {action.Type}: {action.Description} ({action.Status})";
+                    if (action.DiagnosticEvents.Any())
+                    {
+                        var latestEvent = action.DiagnosticEvents.OrderByDescending(e => e.Timestamp).First();
+                        stateDescription += $"\n  Latest Update: {latestEvent.Message}";
+                    }
+                }
+            }
+
+            return stateDescription;
         }
 
         [KernelFunction("current_state_bot")]
-        [Description("Returns current state of the AI agent including active tasks and monitoring status")]
+        [Description("Returns current state of the AI agent including active tasks and monitoring status. If no apps are being monitored, we should ask user to give a subscription to start monitoring")]
         public async Task<string> GetCurrentBotState()
         {
-            var actions = TrackedActionHelper.GetActions();
-            var activeActions = actions.Where(a => a.Status == ActionStatus.InProgress);
+            var allActions = TrackedActionHelper.GetActions();
+            var activeActions = allActions.Where(a => a.Status == ActionStatus.InProgress);
             var pendingRemediations = await _taskClient.GetPendingRemediationsAsync();
+
+            var monitoredApps = allActions
+                .Where(a => a.Type.Equals(ActionType.AppStateTracking))
+                .OrderByDescending(a => a.Timestamp)
+                .DistinctBy(a => a.Metadata["name"])
+                .ToList();
 
             return $"Active Monitoring: {activeActions.Count()} tasks\n" +
                    $"Pending Remediations: {pendingRemediations.Count}\n" +
-                   $"Last Action: {actions.OrderByDescending(a => a.Timestamp).FirstOrDefault()?.Description ?? "None"}";
+                   $"Monitored Apps: {monitoredApps.Count}\n" +
+                   $"Last Action: {allActions.OrderByDescending(a => a.Timestamp).FirstOrDefault()?.Description ?? "None"}";
         }
     }
 }

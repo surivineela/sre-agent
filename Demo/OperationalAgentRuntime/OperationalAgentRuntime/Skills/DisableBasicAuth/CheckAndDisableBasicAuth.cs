@@ -17,6 +17,9 @@ namespace OperationalAgentRuntime.Skills
 
     public static class CheckAndDisableBasicAuth
     {
+        public const string CheckAndDisableBasicAuthAction = "CheckAndDisableBasicAuth_instance";
+        public const string CheckAndDisableBasicAuthKey = "DisableBasicAuthApprovalEvent";
+
         [Function(nameof(CheckAndDisableBasicAuth))]
         public static async Task RunOrchestrator(
             [DurableClient] DurableTaskClient durableClient,
@@ -111,15 +114,15 @@ namespace OperationalAgentRuntime.Skills
             }
         }
 
-        [Function("CheckAndDisableBasicAuth_TimerTrigger")]
+        //[Function("CheckAndDisableBasicAuth_TimerTrigger")]
         public static async Task TimerStart(
-            [TimerTrigger("*/60 * * * * *")] TimerInfo timer,
+            [TimerTrigger("*/30 * * * * *")] TimerInfo timer,
             [DurableClient] DurableTaskClient client,
             FunctionContext executionContext)
         {
             ILogger logger = executionContext.GetLogger("CheckAndDisableBasicAuth_HttpStart");
 
-            string instanceId = "CheckAndDisableBasicAuth_instance";
+            string instanceId = CheckAndDisableBasicAuthAction;
 
             var existingInstance = await client.GetInstanceAsync(instanceId);
             if (existingInstance == null || existingInstance.RuntimeStatus == OrchestrationRuntimeStatus.Completed ||

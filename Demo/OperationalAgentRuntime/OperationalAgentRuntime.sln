@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OperationalAgentRuntime", "OperationalAgentRuntime\OperationalAgentRuntime.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7558}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "OperationalAgentRuntime.Cli", "OperationalAgentRuntime.Cli\OperationalAgentRuntime.Cli.csproj", "{9A19103F-16F7-4668-BE54-9A1E7A4F7577}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgentRuntime.WebApp", "OperationalAgentRuntime.WebApp\OperationalAgentRuntime.WebApp.csproj", "{BED71F1E-1A89-49A8-90AB-467A5E98317E}"
@@ -13,16 +11,16 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgentCore", "Ope
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgent.Tests.End2End", "OperationalAgent.Tests.End2End\OperationalAgent.Tests.End2End.csproj", "{0B2C1C75-80FD-47E6-B063-E8034565F66A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgentRuntimeSK", "OperationalAgentRuntimeSK\OperationalAgentRuntimeSK.csproj", "{BD9A2C42-5110-4048-A03C-F62A33195AF8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgentRuntime", "OperationalAgentRuntime\OperationalAgentRuntime.csproj", "{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{9A19103F-16F7-4668-BE54-9A1E7A4F7558}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{9A19103F-16F7-4668-BE54-9A1E7A4F7558}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{9A19103F-16F7-4668-BE54-9A1E7A4F7558}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{9A19103F-16F7-4668-BE54-9A1E7A4F7558}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9A19103F-16F7-4668-BE54-9A1E7A4F7577}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9A19103F-16F7-4668-BE54-9A1E7A4F7577}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9A19103F-16F7-4668-BE54-9A1E7A4F7577}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +37,14 @@ Global
 		{0B2C1C75-80FD-47E6-B063-E8034565F66A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0B2C1C75-80FD-47E6-B063-E8034565F66A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0B2C1C75-80FD-47E6-B063-E8034565F66A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BD9A2C42-5110-4048-A03C-F62A33195AF8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BD9A2C42-5110-4048-A03C-F62A33195AF8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BD9A2C42-5110-4048-A03C-F62A33195AF8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BD9A2C42-5110-4048-A03C-F62A33195AF8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

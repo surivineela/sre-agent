@@ -23,8 +23,10 @@ app.UseRouting();
 
 app.UseAuthorization();
 
+// We keep both controller routes described in the README.
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    //pattern: "{controller=Home}/{action=Index}/{id?}"); // This uses original flow (we post event to waiting durable function)
+    pattern: "{controller=Home}/{action=RequestApproval}/{id?}"); // This uses second flow (we store approvals in memory that can be polled at /GetApprovals)
 
 app.Run();

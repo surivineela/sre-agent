@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Numerics;
+using System.Reactive.Joins;
 using System.Text;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
@@ -10,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
+using OperationalAgentRuntime.Skills.DisableBasicAuth;
 using OperationalAgentRuntime.Tools;
 
 namespace OperationalAgentRuntime.Skills
@@ -25,7 +28,9 @@ namespace OperationalAgentRuntime.Skills
 
         [Function(nameof(ProcessMessage))]
         public static async Task RunOrchestrator(
-            [OrchestrationTrigger] TaskOrchestrationContext context, InputMessage message)
+            [OrchestrationTrigger] TaskOrchestrationContext context,
+            [DurableClient] DurableTaskClient durableClient,
+            InputMessage message)
         {
             ILogger logger = context.CreateReplaySafeLogger("ProcessMessage");
             var outputs = new List<string>();
@@ -55,6 +60,10 @@ namespace OperationalAgentRuntime.Skills
                     await TrackedAgentOperationActionHelper.ResetAsync(context);
 
                     await context.CallSubOrchestratorAsync(nameof(AddResourcesToAgent.AddSubscriptionsToAgent), messageContent);
+
+                    //await context.CallSubOrchestratorAsync(nameof(BestPracticesScanner.RunBestPracticesScanner));
+                    await durableClient.ScheduleNewOrchestrationInstanceAsync(nameof(BestPracticesScanner.RunBestPracticesScanner));
+
                     break;
                 case "rebootapps":
                     var appResourceId = messageContent.Split('@').Last();
@@ -74,6 +83,7 @@ namespace OperationalAgentRuntime.Skills
                     var input = new AgentMessageHandlingInput { Message = messageContent, Subscriptions = azureSubs, Actions = history, Operations = operations != null ? operations.Values.ToList() : new List<TrackedAgentOperation>() };
                     var res = await context.CallActivityAsync<string>(nameof(HandleChatMessageAsync), input);
                     Console.WriteLine(res);
+                    //durableClient.RaiseEventAsync()
                     await context.CallActivityAsync(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage(res));
                     break;
             }
@@ -88,10 +98,12 @@ namespace OperationalAgentRuntime.Skills
             ILogger logger = executionContext.GetLogger("HandleMessage");
 
             var metricsTool = new MetricsFunctionTool();
+            var planUpdateTool = new PlanFunctionTool(client);
             var tools = new List<AIFunction>
             {
                 AIFunctionFactory.Create(metricsTool.GetAppAvailability),
-                AIFunctionFactory.Create(metricsTool.GetMetricAsync)
+                AIFunctionFactory.Create(metricsTool.GetMetricAsync),
+                AIFunctionFactory.Create(planUpdateTool.SendPlanUpdate)
             };
 
             var chatOptions = new ChatOptions { Tools = new List<AITool>(tools) };
@@ -121,7 +133,9 @@ namespace OperationalAgentRuntime.Skills
 
             Debug.WriteLine(System.Text.Json.JsonSerializer.Serialize(chatMessages));
 
-            var completion = await chatClient.CompleteAsync(chatMessages, chatOptions);
+            var functionCallingClient = new FunctionInvokingChatClient(chatClient, logger);
+
+            var completion = await functionCallingClient.CompleteAsync(chatMessages, chatOptions);
             return completion.Message.Text;
 
         }

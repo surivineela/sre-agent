@@ -3,18 +3,35 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
-using Azure.ResourceManager.Support;
+using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
-using HarfBuzzSharp;
-using Microsoft.SemanticKernel;
-using System.ComponentModel;
+using Azure.ResourceManager.Support;
 using Azure.ResourceManager.Support.Models;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using Octokit;
+using System.ComponentModel;
 
-namespace OperationalAgentRuntime.Cli
+namespace OperationalAgentCore
 {
     public class SubscriptionPlugin
     {
+        private const string AGENT_ID = "SubscriptionPlugin";
+        private readonly ILogger<SubscriptionPlugin> _logger;
+        private AzureSettings _azureSettings;
+
+        public SubscriptionPlugin(ILogger<SubscriptionPlugin> logger, IConfiguration configuration)
+        {
+            _logger = logger;
+
+            _azureSettings = configuration.GetSection("Azure").Get<AzureSettings>();
+            if (_azureSettings == null)
+            {
+                throw new NullReferenceException("Azure settings are required.");
+            }
+        }
+
         /// <summary>
         /// Descriptor for App Service instances.
         /// </summary>
@@ -48,19 +65,32 @@ namespace OperationalAgentRuntime.Cli
             string CreatedAt,
             string UpdatedAt);
 
+        public sealed record GithubIntegrationInfo(
+            string RepoUrl,
+            string Branch,
+            string Details,
+            bool IsConnected);
+
+        public sealed record AppIdentityInfo(
+            string PrincipalId,
+            string TenantId,
+            string Type,
+            bool SystemAssigned,
+            List<string> UserAssignedIdentities);
+
         /// <summary>
         /// Lists all App Services within a specified subscription.
         /// </summary>
         /// <param name="subscriptionId">The Azure subscription ID.</param>
         /// <returns>A list of AppServiceDescriptor objects.</returns>
         [KernelFunction("list_azure_subscriptions")]
-        [Description("Gets a list of Azure subscriptions that a user has access to")]
+        [Description("Gets a list of Azure subscriptions that a user has access to. If not tracking any resource, use this plugin to suggest user subscriptions they have access to. Use this plugin to infer subscription guid from user provide Subscription Name")]
         public async Task<IReadOnlyList<SubscriptionDescriptor>> ListSubscriptions()
         {
             Console.WriteLine($"[list_azure_subscriptions] Invoked");
 
             // TODO: This is to limit the output of subscriptions. Update this values as needed. Will need to read it from appsettings.development.json
-            string[] displayNameFilter = ["Container Apps Test Resources", "ruslany", "sanmeht", "yanche"];
+            string[] displayNameFilter = ["Container Apps Test Resources", "ruslany", "sanmeht", "yanche", "shgup", "pbatum"];
 
             var ret = new List<SubscriptionDescriptor>();
             // Authenticate using DefaultAzureCredential
@@ -85,9 +115,25 @@ namespace OperationalAgentRuntime.Cli
 
         [KernelFunction("open_support_ticket")]
         [Description("Opens a support ticket that describes a problem with an app service")]
-        public async Task<SupportTicketDescriptor> OpenSupportTicket(string resourceId, string description)
+        public async Task<SupportTicketDescriptor> OpenSupportTicket(
+            string resourceId,
+            [Description("Details about why support case is being opened")]
+            string description)
         {
             Console.WriteLine($"[open_support_ticket] Invoked");
+
+            if (!_azureSettings.OpenSupportTickets)
+            {
+                var result = new SupportTicketDescriptor(
+                    TicketId: Guid.NewGuid().ToString(),
+                    Title: description,
+                    Status: "Created",
+                    Severity: "Medium",
+                    CreatedAt: DateTime.UtcNow.ToString("O"),
+                    UpdatedAt: DateTime.UtcNow.ToString("O"));
+
+                return result;
+            }
 
             // Authenticate using DefaultAzureCredential
             var credential = new DefaultAzureCredential();
@@ -109,13 +155,13 @@ namespace OperationalAgentRuntime.Cli
                 var supportTicketName = Guid.NewGuid().ToString();
 
                 var supportTicketData = new SupportTicketData(
-                    description: "IGNORE: This is a test support ticket opened by Azure Operation Agent",
+                    description: "IGNORE: This is a test support ticket opened by Azure Operation Agent. "+description,
                     problemClassificationId: "/providers/Microsoft.Support/services/b452a42b-3779-64de-532c-8a32738357a6/problemClassifications/4d30ceba-cf43-f582-9906-ea17b33df58d",
                     severity: SupportSeverityLevel.Minimal,
                     advancedDiagnosticConsent: AdvancedDiagnosticConsent.No,
                     contactDetails: new SupportContactProfile(
-                        firstName: "Ruslan",
-                        lastName: "Yakushev",
+                        firstName: "AppService SRE",
+                        lastName: "Agent",
                         preferredContactMethod: PreferredContactMethod.Email,
                         primaryEmailAddress: "ruslany@microsoft.com",
                         preferredTimeZone: "UTC",
@@ -153,8 +199,8 @@ namespace OperationalAgentRuntime.Cli
             Console.WriteLine($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
 
             var appServices = new List<AppServiceDescriptor>();
-
-            string[] rgFilter = ["opagent-poc", "aks-resources"];
+            string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg"];
+            
 
             try
             {
@@ -181,24 +227,41 @@ namespace OperationalAgentRuntime.Cli
                 // Get all resource groups in the subscription
                 await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
                 {
-                    // filter out resource groups that do not match the rgFilter
                     if (rgFilter != null && rgFilter.Length > 0 &&
                         !rgFilter.Any(filter => resourceGroup.Data.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
                     {
                         continue;
                     }
 
-                    // Get App Services within the resource group
                     await foreach (var appService in resourceGroup.GetWebSites().GetAllAsync())
                     {
-                        appServices.Add(new AppServiceDescriptor(
+                        var appDescriptor = new AppServiceDescriptor(
                             ResourceId: appService.Id.ToString(),
                             Name: appService.Data.Name,
                             Kind: appService.Data.Kind,
                             Location: appService.Data.Location,
                             Sku: appService.Data.Sku ?? "N/A",
                             State: appService.Data.State,
-                            ResourceGroup: appService.Data.ResourceGroup));
+                            ResourceGroup: appService.Data.ResourceGroup);
+
+                        appServices.Add(appDescriptor);
+
+                        // Track the app service state
+                        TrackedActionHelper.TrackAction(
+                            agentId: AGENT_ID,
+                            resourceId: appService.Id.ToString(),
+                            type: ActionType.AppStateTracking,
+                            description: $"Tracked state for {appService.Data.Name}",
+                            metadata: new Dictionary<string, string>
+                            {
+                                ["name"] = appService.Data.Name,
+                                ["kind"] = appService.Data.Kind,
+                                ["state"] = appService.Data.State,
+                                ["sku"] = appService.Data.Sku ?? "N/A",
+                                ["location"] = appService.Data.Location,
+                                ["resourceGroup"] = appService.Data.ResourceGroup
+                            },
+                            logger: _logger);
                     }
                 }
             }
@@ -210,15 +273,13 @@ namespace OperationalAgentRuntime.Cli
             }
             catch (Exception ex)
             {
-                // Implement proper logging here
-                Console.Error.WriteLine($"Error in ListAppServicesAsync: {ex.Message}");
-                // Depending on requirements, rethrow or handle the exception accordingly
+                _logger.LogError(ex, "Error in ListAppServicesAsync");
                 throw;
             }
 
             return appServices;
         }
-        
+
         /// <summary>
         /// Checks if a specific App Service exists within a given subscription and resource group.
         /// </summary>
@@ -294,6 +355,94 @@ namespace OperationalAgentRuntime.Cli
                 // Implement proper logging here
                 Console.Error.WriteLine($"Error in CheckIfAppExistsAsync: {ex.Message}");
                 // Depending on requirements, rethrow or handle the exception accordingly
+                throw;
+            }
+        }
+
+        [KernelFunction("check_github_integration")]
+        [Description("Analyzes an App Service's deployment configuration to detect GitHub integration. " +
+                "Returns the connected repository URL and active branch if present. " +
+                "<purpose>Enables automated Managed Identity and Memory Leak fixes by identifying source code location without manual input</purpose> " +
+                "<use_cases>Identity SFI validation, Memory leak detection, Code security scanning</use_cases> " +
+                "<returns>GitHub repository URL and branch name if connected, otherwise indicates no GitHub integration found</returns>")]
+        public async Task<GithubIntegrationInfo> CheckGithubIntegrationAsync(
+            [Description("The resource ID of the App Service")]
+            string resourceId)
+        {
+            var credential = new DefaultAzureCredential();
+            var armClient = new ArmClient(credential);
+            var armResourceId = new ResourceIdentifier(resourceId);
+
+            try
+            {
+                var webApp = armClient.GetWebSiteResource(armResourceId);
+                var sourceControl = await webApp.GetWebSiteSourceControl().GetAsync();
+
+                if (sourceControl.Value.Data.IsGitHubAction != null &&
+                    sourceControl.Value.Data.IsGitHubAction == true)
+                {
+                    return new GithubIntegrationInfo(
+                        RepoUrl: sourceControl.Value.Data.RepoUri.AbsolutePath,
+                        Branch: sourceControl.Value.Data.Branch ?? "main",
+                        IsConnected: true,
+                        Details: "Found this webapp is connected to Github using github actions");
+                }
+
+                return new GithubIntegrationInfo(
+                    RepoUrl: string.Empty,
+                    Branch: string.Empty,
+                    IsConnected: false,
+                    Details: "Found this webapp is NOT connected to Github using github actions, hence no repo is associated");
+            }
+            catch (Exception ex)
+            {
+                return new GithubIntegrationInfo(
+                    RepoUrl: string.Empty,
+                    Branch: string.Empty,
+                    IsConnected: false,
+                    Details: $"Error retieving info due to exception {ex.Message}");
+
+            }
+        }
+
+        [KernelFunction("get_app_identity")]
+        [Description("Gets the identity information associated with an app service")]
+        public async Task<AppIdentityInfo> GetAppIdentityAsync(
+            [Description("The resource ID of the App Service")]
+            string resourceId)
+        {
+            var credential = new DefaultAzureCredential();
+            var armClient = new ArmClient(credential);
+            var armResourceId = new ResourceIdentifier(resourceId);
+
+            try
+            {
+                // Get the subscription from the resource ID
+                var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{armResourceId.SubscriptionId}");
+
+                // Get the SubscriptionResource
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(subscriptionResourceId);
+                // Get the resource group using the name from the resource ID
+                var rg = await subscription.GetResourceGroupAsync(armResourceId.ResourceGroupName);
+                if (rg == null)
+                {
+                    throw new Exception($"Resource group '{armResourceId.ResourceGroupName}' not found.");
+                }
+
+                // Get the web app using the name from the resource ID
+                var webApp =  await rg.Value.GetWebSites().GetAsync(armResourceId.Name);
+                var identity = webApp.Value.Data.Identity;
+
+                return new AppIdentityInfo(
+                    PrincipalId: identity?.PrincipalId.ToString() ?? string.Empty,
+                    TenantId: identity?.TenantId.ToString() ?? string.Empty,
+                    Type: identity?.ManagedServiceIdentityType.ToString(),
+                    SystemAssigned: identity?.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned,
+                    UserAssignedIdentities: identity?.UserAssignedIdentities?.Keys.Select(k => k.ToString()).ToList() ?? new List<string>());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting app identity");
                 throw;
             }
         }

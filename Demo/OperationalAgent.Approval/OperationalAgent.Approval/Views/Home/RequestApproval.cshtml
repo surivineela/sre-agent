@@ -1,0 +1,207 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+    var actionName = ViewData["ActionName"] as string;
+    string message = "No specific action requested.";
+    string userName = ViewData["UserName"] as string ?? "Unknown User";
+    string operationDescription = ViewData["description"] as string ?? "";
+    string initiatedBy = ViewData["InitiatedBy"] as string ?? "";
+    message = $"Do you approve operation: {actionName}?";
+    var timestamp = DateTime.Now.ToString("MMM dd, yyyy HH:mm:ss");
+}
+
+<div class="container mt-5">
+    <div class="row">
+        <div class="col-md-12 text-center">
+            <h1 class="display-6">Welcome @userName</h1>
+
+            @if (!string.IsNullOrEmpty(actionName))
+            {
+                <div class="mt-5 mb-4">
+                    <div class="operation-box mx-auto p-4">
+                        <div class="timestamp mb-3">
+                            <i class="bi bi-clock"></i> @timestamp
+                        </div>
+                        <h2 class="operation-title mb-3">🔐 @actionName</h2>
+                        @if (!string.IsNullOrEmpty(initiatedBy) || !string.IsNullOrEmpty(operationDescription))
+                        {
+                            <div class="operation-info mb-4">
+                                @if (!string.IsNullOrEmpty(initiatedBy))
+                                {
+                                    <div class="info-item">
+                                        <span class="info-label"><i class="bi bi-person"></i> Initiated by:</span>
+                                        <span class="info-value">@initiatedBy</span>
+                                    </div>
+                                }
+                                @if (!string.IsNullOrEmpty(operationDescription))
+                                {
+                                    <div class="info-item @(!string.IsNullOrEmpty(operationDescription) ? "mt-2" : "")">
+                                        <span class="info-label"><i class="bi bi-info-circle"></i> Description:</span>
+                                        <span class="info-value">@operationDescription</span>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        <p class="operation-description mb-4">
+                            This operation requires your approval. Please review carefully before proceeding.
+                        </p>
+                        <div class="mt-4">
+                            <button onclick="sendApproval(true)" class="btn mx-2 approval-btn">
+                                <i class="bi bi-check-lg"></i> Approve
+                            </button>
+                            <button onclick="sendApproval(false)" class="btn mx-2 decline-btn">
+                                <i class="bi bi-x-lg"></i> Decline
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div id="approvalSpinner" class="mt-3" style="display: none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <p class="mt-4">@message</p>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .operation-box {
+        max-width: 600px;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        background-color: #f9f9f9;
+    }
+
+    .operation-title {
+        font-size: 1.8rem;
+        color: #106EBE;
+        font-weight: 600;
+        padding: 10px 20px;
+        border-radius: 4px;
+        background-color: #f8f9fa;
+    }
+
+    .operation-info {
+        text-align: left;
+        padding: 15px 15px 5px 15px; /* Adjusted padding */
+    }
+
+    .info-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 8px;
+    }
+
+    .info-label {
+        color: #666;
+        font-weight: 500;
+        font-size: 0.9rem;
+        min-width: 100px;
+    }
+
+    .info-value {
+        color: #333;
+        font-size: 1rem;
+    }
+
+    .operation-description {
+        color: #666;
+        font-size: 1.1rem;
+    }
+
+    .timestamp {
+        color: #666;
+        font-size: 0.9rem;
+        font-weight: 600;
+    }
+
+    .approval-btn {
+        background-color: #5bb98c;
+        border: none;
+        border-radius: 0 !important;
+        color: white;
+        min-width: 120px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .approval-btn:hover {
+            background-color: #4ca67d;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .decline-btn {
+        background-color: #e57373;
+        border: none;
+        color: white;
+        border-radius: 0;
+        min-width: 120px;
+        font-weight: 500;
+        transition: all 0.2s ease;
+    }
+
+        .decline-btn:hover {
+            background-color: #d66060;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn {
+        padding: 8px 16px;
+        transition: all 0.2s ease;
+    }
+
+        .btn:hover {
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+</style>
+
+@section Scripts {
+    <script>
+        function sendApproval(isApproved) {
+            var actionName = '@actionName';
+            var userName = '@userName';
+            var request = {
+                actionName: actionName,
+                isApproved: isApproved,
+                approverName: userName,
+                operationDescription: '@operationDescription',
+                initiatedBy: '@initiatedBy'
+            };
+            
+            var url = (actionName === "CheckAndDisableBasicAuth_instance" || actionName === "ApproveTLSUpdate_instance") ? '/ProcessAction' : '/ProcessApprovalDecision';
+
+            document.getElementById('approvalSpinner').style.display = 'block';
+
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(request)
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('approvalSpinner').style.display = 'none';
+                if (data.redirectUrl) {
+                    window.location.href = data.redirectUrl;
+                } else {
+                    alert('An error occurred.');
+                }
+            })
+            .catch(error => {
+                document.getElementById('approvalSpinner').style.display = 'none';
+                console.error('Error:', error);
+                alert('An error occurred while processing your request.');
+            });
+        }
+    </script>
+}

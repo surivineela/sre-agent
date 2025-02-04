@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Diagnostics;
 using System.Text.Json;
+using Microsoft.SemanticKernel;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
 
@@ -8,7 +9,7 @@ namespace OperationalAgentRuntime.Tools
 {
     internal class MetricsFunctionTool
     {
-        [Description("Get the availability of an app.")]
+        [KernelFunction, Description("Get the availability of an app.")]
         public async Task<List<TimeSeriesData>> GetAppAvailability(
             [Description("The resource ID of the app.")]
             string appResourceId
@@ -47,7 +48,7 @@ namespace OperationalAgentRuntime.Tools
             return availabilityData;
         }
 
-        [Description(
+            [KernelFunction, Description(
 """
 Get the specified metric for an app.
 
@@ -63,7 +64,7 @@ Get the specified metric for an app.
         public async Task<List<TimeSeriesData>> GetMetricAsync(
             [Description("The resource ID of the app.")]
             string appResourceId,
-            [Description("The name of the metric. Some valid options include: ")]
+            [Description("The name of the metric. ")]
             string metricName,
             [Description("The unit of the metric.")]
             string unit,

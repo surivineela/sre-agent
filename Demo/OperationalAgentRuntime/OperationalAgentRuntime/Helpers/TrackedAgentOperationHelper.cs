@@ -1,5 +1,6 @@
 ﻿using Azure;
 using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Entities;
 using OperationalAgentRuntime.Models;
 
@@ -30,6 +31,12 @@ namespace OperationalAgentRuntime.Helpers
         {
             await context.Entities.CallEntityAsync(InstanceId, "addAnnotation", Tuple.Create(operation.Id, annotation));
         }
+
+        public static async Task AppendAnnotation(DurableTaskClient durableClient, Guid operationId, string annotation)
+        {
+            await durableClient.Entities.SignalEntityAsync(InstanceId, "addAnnotation", Tuple.Create(operationId, annotation));
+        }
+
         public static async Task<Dictionary<Guid, TrackedAgentOperation>> GetAllOperations(TaskOrchestrationContext context)
         {
             return await context.Entities.CallEntityAsync<Dictionary<Guid, TrackedAgentOperation>>(InstanceId, "get");

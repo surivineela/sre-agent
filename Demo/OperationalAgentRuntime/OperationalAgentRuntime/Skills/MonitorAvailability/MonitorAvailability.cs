@@ -1,5 +1,4 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Entities;
@@ -7,9 +6,6 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using OperationalAgentRuntime.Helpers;
 using OperationalAgentRuntime.Models;
-using System;
-using System.Threading.Tasks;
-using static System.Net.Mime.MediaTypeNames;
 
 namespace OperationalAgentRuntime.Skills.MonitorAvailability
 {
@@ -27,6 +23,10 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
 
             foreach (var appResourceId in resourceIds)
             {
+                // TODO: Remove post-demo
+                var whitelist = Environment.GetEnvironmentVariable("MonitorAppList");
+                if (!string.IsNullOrWhiteSpace(whitelist) && !whitelist.Contains(appResourceId)) continue;
+
                 var availabilityTimeSeries = await context.CallActivityAsync<List<TimeSeriesData>>(nameof(BasicSkills.GetAppAvailability), appResourceId);
                 var sla = availabilityTimeSeries.TakeLast(30).Average(ts => ts.Value);
 
@@ -142,14 +142,16 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                     await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Approval Received from {decisionMaker}. I'll continue with this action in a safe manner and will notify you once I am done."));
                     int waitTimeInSeconds = 180;
 
-                    await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
+                    var mitigationOperationTrackedOperation = new TrackedAgentOperation()
                     {
                         Id = context.NewGuid(),
                         OperationName = mitigation.ToString(),
-                        Annotations = [$"Apply {mitigation.ToString()} mitigation to degraded web app"],
+                        Annotations = [$"Apply {mitigation} mitigation to degraded web app"],
                         Approver = decisionMaker,
                         CreatedTime = context.CurrentUtcDateTime,
-                    });
+                    };
+
+                    await TrackedAgentOperationActionHelper.AddOperation(context, mitigationOperationTrackedOperation);
 
                     if (mitigation == QuickMitigation.Reboot)
                     {
@@ -163,15 +165,18 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                     {
                         if (potentialRootCause.DataCollection == DataCollection.MemoryDump)
                         {
-                            await TrackedAgentOperationActionHelper.AddOperation(context, new TrackedAgentOperation()
+                            var memoryDumpTrackedObject = new TrackedAgentOperation()
                             {
                                 Id = context.NewGuid(),
                                 OperationName = "CaptureMemoryDump",
                                 Annotations = [$"Capture a memory dump of the degraded web app"],
                                 Approver = decisionMaker,
                                 CreatedTime = context.CurrentUtcDateTime,
-                            });
+                            };
+                            await TrackedAgentOperationActionHelper.AddOperation(context, memoryDumpTrackedObject);
                             memoryDumpLink = await context.CallActivityAsync<string>(nameof(BasicSkills.CaptureMemoryDump), appResourceId);
+                            string memoryDumpOperationMessage = string.IsNullOrWhiteSpace(memoryDumpLink) ? "Operation failed" : "Operation is finished.";
+                            await TrackedAgentOperationActionHelper.AppendAnnotation(context, memoryDumpTrackedObject, memoryDumpOperationMessage);
                             await context.CreateTimer(TimeSpan.FromSeconds(30), (new CancellationTokenSource()).Token);
                         }
 
@@ -181,7 +186,9 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
                             await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"I have scaled up the application's app service plan. I will monitor the availability of the impacted app to confirm mitigation. Here is the new app plan sku : {HtmlHelpers.GenerateHtmlTableForAppSku(nextAppSku)}"));
                         }
                     }
-                    
+
+                    await TrackedAgentOperationActionHelper.AppendAnnotation(context, mitigationOperationTrackedOperation, "Operation is finished.");
+
                     Task durableWaitTime = context.CreateTimer(TimeSpan.FromSeconds(waitTimeInSeconds), (new CancellationTokenSource()).Token);
                     await durableWaitTime;
 
@@ -215,13 +222,13 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
             }
         }
 
-        [Function("MonitorAvailability_HttpStart")]
-        public static async Task<HttpResponseData> HttpStart(
-            [HttpTrigger(AuthorizationLevel.Function, "get", "post")] HttpRequestData req,
+        [Function("MonitorAvailability_TimerStart")]
+        public static async Task TimerStart(
+            [TimerTrigger("*/30 * * * * *")] TimerInfo timer,
             [DurableClient] DurableTaskClient client,
             FunctionContext executionContext)
         {
-            ILogger logger = executionContext.GetLogger("MonitorAvailability_HttpStart");
+            ILogger logger = executionContext.GetLogger("MonitorAvailability_TimerStart");
             string instanceId = "MonitorAvailability_instance";
 
             // Check if an instance with the specified ID is already running  
@@ -240,7 +247,7 @@ namespace OperationalAgentRuntime.Skills.MonitorAvailability
             }
 
             // Returns an HTTP 202 response with an instance management payload  
-            return await client.CreateCheckStatusResponseAsync(req, instanceId);
+            // return await client.CreateCheckStatusResponseAsync(req, instanceId);
         }
     }
 }

@@ -2,10 +2,8 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using OperationalAgentRuntime.Cli.DemoExec;
-using OperationalAgentRuntime.Cli.DemoExec.Helpers;
-using OperationalAgentRuntime.Cli.DemoExec.Models;
-using OperationalAgentRuntime.Cli.DemoExec.Tasks;
+
+namespace OperationalAgentCore;
 
 public class RemediationWorker : BackgroundService
 {

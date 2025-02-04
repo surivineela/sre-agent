@@ -14,7 +14,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\OperationalAgentCore\OperationalAgentCore.csproj" />
-    <ProjectReference Include="..\OperationalAgentRuntime\OperationalAgentRuntime.csproj" />
   </ItemGroup>
 
   <ItemGroup>

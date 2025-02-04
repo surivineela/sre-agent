@@ -3,6 +3,7 @@ using System.Text;
 using System.Xml;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Memory;
 using Newtonsoft.Json;
 using OperationalAgent.Approval.Models;
 
@@ -13,24 +14,80 @@ namespace OperationalAgent.Approval.Controllers
         private readonly ILogger<HomeController> _logger;
         private readonly HttpClient _httpClient;
         private readonly IConfiguration _config;
+        private readonly IMemoryCache _memoryCache;
         private const string EasyAuthUserHeader = "X-MS-CLIENT-PRINCIPAL-NAME";
+        private const string ApprovalsCacheKey = "Approvals";
 
-        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, HttpClient httpClient)
+        public HomeController(ILogger<HomeController> logger, IConfiguration configuration, HttpClient httpClient, IMemoryCache memoryCache)
         {
             _logger = logger;
             _httpClient = httpClient;
             _config = configuration;
+            _memoryCache = memoryCache;
         }
 
+        // See Program.cs and README for the difference between these two routes
         public IActionResult Index(string action_name)
         {
             string userName = Request.Headers[EasyAuthUserHeader].FirstOrDefault();
             ViewData["UserName"] = string.IsNullOrEmpty(userName) ? "Unknown User" : userName;
-
             ViewData["ActionName"] = action_name;
             return View();
         }
 
+        public IActionResult RequestApproval(string action_name, string description)
+        {
+            string userName = Request.Headers[EasyAuthUserHeader].FirstOrDefault();
+            ViewData["UserName"] = string.IsNullOrEmpty(userName) ? "Unknown User" : userName;
+            ViewData["ActionName"] = action_name;
+            ViewData["Description"] = description;
+            return View();
+        }
+
+        // This method is used in the second flow that invokes an SK function.
+        // It also stores approvals in memory that can be polled at /GetApprovals (unused)
+        // The ?action_name query param should be any arbitrary ID to identify your approval request
+        [HttpPost("ProcessApprovalDecision")]
+        public async Task<IActionResult> ProcessApprovalDecision([FromBody] ActionRequest request)
+        {
+            string nextPageMessage = string.Empty;
+            string eventName = string.Empty;
+
+            var payload = new ApprovalPayload
+            {
+                Id = request.ActionName,
+                IsApproved = request.IsApproved,
+                ApproverName = request.ApproverName
+            };
+
+            try
+            {
+                // This posts to the SK function for durable function entrypoint
+                await this._httpClient.PostAsJsonAsync($"https://sreagentruntimesk.azurewebsites.net/api/approve/{payload.Id}", payload);
+
+                // Store approval payload in memory cache
+                var approvals = _memoryCache.GetOrCreate(ApprovalsCacheKey, entry => new List<ApprovalPayload>());
+                approvals.Add(payload);
+                _memoryCache.Set(ApprovalsCacheKey, approvals);
+            }
+            catch
+            {
+                return BadRequest(new { redirectUrl = Url.Action("failure", new { message = "Failed to store approval decision." }) });
+            }
+
+            var summaryMessage = $"Processed decision by {payload.ApproverName} for operation {payload.Id}";
+            return Ok(new { redirectUrl = Url.Action(payload.IsApproved ? "success" : "failure", new { message = summaryMessage }) });
+        }
+
+        [HttpGet("GetApprovals")]
+        public IActionResult GetApprovals()
+        {
+            var approvals = _memoryCache.GetOrCreate(ApprovalsCacheKey, entry => new List<ApprovalPayload>());
+            return Ok(approvals);
+        }
+
+        // This method is used in the original flow (we post event to waiting durable function)
+        // The ?action_name parameter should be one of the explicit action names below
         [HttpPost("ProcessAction")]
         public async Task<IActionResult> ProcessAction([FromBody] ActionRequest request)
         {
@@ -47,6 +104,11 @@ namespace OperationalAgent.Approval.Controllers
             {
                 isValid = true;
                 eventName = "ApproveMemoryDumpAndScaleUp";
+            }
+            else if (string.Equals(request.ActionName, "ApproveTLSUpdate_instance", StringComparison.OrdinalIgnoreCase))
+            {
+                isValid = true;
+                eventName = "ApproveUpdateMinimumTLSEvent";
             }
 
             if (isValid)
@@ -95,10 +157,18 @@ namespace OperationalAgent.Approval.Controllers
         }
     }
 
+    public class ApprovalPayload
+    {
+        public string Id { get; set; }
+        public bool IsApproved { get; set; }
+        public string ApproverName { get; set; }
+    }
+
     public class ActionRequest
     {
         public string ActionName { get; set; }
         public bool IsApproved { get; set; }
         public string ApproverName { get; set; }
+        public string Description { get; set; }
     }
 }

@@ -11,6 +11,9 @@ public class AzureSettings
 {
     [Required]
     public OpenAISettings OpenAI { get; set; } = new();
+
+    [Required]
+    public string TeamsEndpoint { get; set; } = string.Empty;
 }
 
 public class OpenAISettings

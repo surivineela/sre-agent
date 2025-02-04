@@ -1,4 +1,4 @@
-﻿namespace OperationalAgentRuntime.Cli.DemoExec
+﻿namespace OperationalAgentCore
 {
     public class RemediationAgent
     {

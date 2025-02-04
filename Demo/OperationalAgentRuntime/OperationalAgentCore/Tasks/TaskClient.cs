@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
-using OperationalAgentRuntime.Cli.DemoExec.Tasks;
 using System.Text.Json;
+
+namespace OperationalAgentCore;
 
 public class TaskClient : ITaskClient
 {

@@ -1,7 +1,8 @@
 ﻿using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using OperationalAgentRuntime.Cli.DemoExec.Tasks;
 using System.ComponentModel;
+
+namespace OperationalAgentCore;
 
 public class PeriodicRemediationPlugin
 {

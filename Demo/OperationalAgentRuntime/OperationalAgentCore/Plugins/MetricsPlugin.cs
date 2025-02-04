@@ -1,18 +1,13 @@
-﻿using Azure.Core;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.SemanticKernel;
-using OperationalAgentRuntime.Helpers;
-using OperationalAgentRuntime.Models;
+﻿using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using System.Diagnostics;
 
-namespace OperationalAgentRuntime.Cli
+namespace OperationalAgentCore
 {
     public class MetricsPlugin
     {
         [KernelFunction("get_webapp_cpu_metrics")]
         [Description("Get the average CPU utilization metrics of a specific WebApp instance at per minute granularity" +
-            " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% CPU utilization")]
+            " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% CPU utilization, zero metric value doesn't indicate the app is unhealthy")]
         public async Task<IReadOnlyList<CpuTimeSeriesData>> GetWebAppCpuMetrics(
             [Description("The resource ID of the WebApp resource.")]
             string resourceId)
@@ -34,6 +29,46 @@ namespace OperationalAgentRuntime.Cli
                     TimeStamp: m.Timestamp,
                     // m.Value is cpu time in seconds in a minute
                     AverageCpuUtilizationPercentage: (m.Value / 60) * 100))
+                .ToArray();
+        }
+
+
+        [KernelFunction("get_success_request_volume")]
+        [Description("Get the 2XX request volume of a specific resource at per minute granularity")]
+        public async Task<IReadOnlyList<SuccessfulRequestVolumeTimeSeriesData>> GetSuccessfulRequestVolumeAsync(
+            [Description("The resource ID of the WebApp resource.")]
+            string resourceId)
+        {
+            Console.WriteLine($"[get_success_request_volume] Invoked with resourceId: {resourceId}");
+
+            if(resourceId.EndsWith("pbatum-flex-eus2-demo2"))
+            {
+                // demo fakery mode activated
+                var now = DateTime.UtcNow;
+                var start = new DateTime(now.Year, now.Month, now.Day, now.Hour, now.Minute, 0);
+                var fakeResults = new List<SuccessfulRequestVolumeTimeSeriesData>
+                {
+                    new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(-90), 847),
+                    new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(-60), 954),
+                    new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(-30), 1025),
+                    new SuccessfulRequestVolumeTimeSeriesData(start.AddSeconds(0), 7),
+                };
+                return fakeResults.ToArray();
+            }
+
+            var metrics = new List<Metric>
+            {
+                new Metric { Name = "Http2xx", Unit = "Count", Aggregation = "Total" },
+            };
+
+            var metricsData = await ArmHelper.FetchMetricsAsync(
+                resourceId.ToString(),
+                metrics);
+
+            return metricsData
+                .Select(m => new SuccessfulRequestVolumeTimeSeriesData(
+                    TimeStamp: m.Timestamp,
+                    SuccessfulRequestCount: (int)m.Value))
                 .ToArray();
         }
 
@@ -78,7 +113,7 @@ namespace OperationalAgentRuntime.Cli
 
         [KernelFunction("get_webapp_and_functionapp_memory_metrics")]
         [Description("Get the average memory utilization metrics of a specific WebApp or FunctionApp instance at per minute granularity" +
-            " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 1GB memory utilization")]
+            " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% memory utilization.")]
         public async Task<IReadOnlyList<MemoryTimeSeriesData>> GetMemoryMetrics(
             [Description("The resource ID of the WebApp or FunctionApp resource.")]
             string resourceId)
@@ -114,3 +149,7 @@ public sealed record MemoryTimeSeriesData(
 public sealed record RequestAvailabilitySeriesData(
     DateTime TimeStamp,
     double AvailabilityPercentage);
+
+public sealed record SuccessfulRequestVolumeTimeSeriesData(
+    DateTime TimeStamp,
+    int SuccessfulRequestCount);

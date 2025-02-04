@@ -70,7 +70,18 @@ namespace OperationalAgentRuntime.Skills
                 if (subsToAdd != null && subsToAdd.Any())
                 {
                     string partMessage = subsToAdd.Count == 1 ? "subscription " : $"{subsToAdd.Count()} subscriptions including ";
-                    await context.CallActivityAsync<bool>(nameof(BasicSkills.PostMessageToTeams), new TeamsMessage($"Ok.. I have verified my access to {partMessage} <b>{subsToAdd.First().Name} ({subsToAdd.First().Id})</b> and started ingesting resource information."));
+                    await context.CallActivityAsync<bool>(
+                        nameof(BasicSkills.PostMessageToTeams),
+                        new TeamsMessage(
+                            string.Format(
+                                Consts.Format.VerifiedAccess,
+                                Consts.Verified,
+                                partMessage,
+                                subsToAdd.First().Name,
+                                subsToAdd.First().Id
+                            )
+                        )
+                    );
                     var resourceMemoryEntity = new EntityInstanceId("ResourceMemory", "SREResourceMemory");
 
                     foreach (var sub in subsToAdd)

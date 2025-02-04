@@ -1,0 +1,15 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml 
+
+trigger:
+- feature/demo-scenarios-with-sk
+
+pool:
+  vmImage: windows-latest
+
+steps:
+- checkout: self
+- script: dotnet build .\Demo\OperationalAgentRuntime\
+  displayName: dotnet build .\Demo\OperationalAgentRuntime\
