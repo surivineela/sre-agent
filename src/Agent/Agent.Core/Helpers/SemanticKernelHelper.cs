@@ -7,6 +7,7 @@ using Agent.Core.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
+using Octokit;
 
 namespace Agent.Core.Helpers;
 
@@ -17,16 +18,15 @@ public static class SemanticKernelHelper
     {
         serviceCollection.AddScoped<AppIdentityUpdatePlugin>();
         serviceCollection.AddScoped<ChartPlugin>();
-        serviceCollection.AddScoped<CodeAnalyzerPlugin>();
-        serviceCollection.AddScoped<Models.GitHubClient>();
+        serviceCollection.AddSingleton<Models.GitHubClient>();
         serviceCollection.AddScoped<GithubIssuePlugin>();
         serviceCollection.AddScoped<MemoryAnalysisPlugin>();
         serviceCollection.AddScoped<SubscriptionPlugin>();
         serviceCollection.AddScoped<TlsPlugin>();
 
-        serviceCollection.AddSingleton<CodeAnalyzerService>();
+        //serviceCollection.AddScoped<CodeAnalyzerPlugin>();
+        //serviceCollection.AddSingleton<CodeAnalyzerService>();
         serviceCollection.AddSingleton<TeamsConnector>();
-
 
         // Configure Semantic Kernel
         serviceCollection.AddScoped<Kernel>(sp =>
@@ -64,11 +64,8 @@ public static class SemanticKernelHelper
             var subscriptionPlugin = sp.GetRequiredService<SubscriptionPlugin>();
             kernelBuilder.Plugins.AddFromObject(subscriptionPlugin, "SubscriptionPlugin");
 
-            var repoPlugin = sp.GetRequiredService<CodeAnalyzerPlugin>();
-            kernelBuilder.Plugins.AddFromObject(repoPlugin, "CodeAnalyzerPlugin");
-
-            var memAnalysisPlugin = sp.GetRequiredService<MemoryAnalysisPlugin>();
-            kernelBuilder.Plugins.AddFromObject(memAnalysisPlugin, "MemoryAnalysisPlugin");
+            // var repoPlugin = sp.GetRequiredService<CodeAnalyzerPlugin>();
+            // kernelBuilder.Plugins.AddFromObject(repoPlugin, "CodeAnalyzerPlugin");
 
             var appIdentityUpdatePlugin = sp.GetRequiredService<AppIdentityUpdatePlugin>();
             kernelBuilder.Plugins.AddFromObject(appIdentityUpdatePlugin, "AppIdentityUpdatePlugin");

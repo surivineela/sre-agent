@@ -12,19 +12,24 @@
         {
             <div class="message @(message.IsUser ? "user-message" : "assistant-message")">
                 <div class="message-content">
-                    @message.Message
-                    @if (message == messages.Last() && !message.IsUser && isTyping)
-                    {
-                        <span class="typing-animation">
-                            <span class="typing-dot"></span>
-                            <span class="typing-dot"></span>
-                            <span class="typing-dot"></span>
-                        </span>
-                    }
+                    @((MarkupString)message.Message)
                 </div>
                 <div class="message-timestamp">
                     @message.Timestamp.ToString("HH:mm")
                 </div>
+            </div>
+        }
+        @if (isTyping)
+        {
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <span class="typing-animation">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </span>
+                </div>
+                <div class="message-timestamp">@DateTime.Now.ToString("HH:mm")</div>
             </div>
         }
     </div>
