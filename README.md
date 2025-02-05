@@ -13,7 +13,7 @@ Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting
    {
      "Azure": {
        "OpenAI": {
-         "DeploymentName": "gpt-4",
+         "DeploymentName": "gpt-4o",
          "Endpoint": "<open-ai-endpoint>",
          "ApiKey": "<azure-openai-key>"
        }
