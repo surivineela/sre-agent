@@ -122,7 +122,6 @@ extends:
           ob_outputDirectory: '$(Build.SourcesDirectory)\out'
 
         steps:
-        # checkout: self step done automatically by OneBranch template. Pagckage source available at root of $(Build.SourcesDirectory)
         # generates automatic version. For other versioning options check https://aka.ms/obpipelines/versioning
         - task: onebranch.pipeline.version@1
           displayName: 'Setup Build Version Number'
@@ -131,14 +130,16 @@ extends:
             major: '0'
             minor: '1'
             exclude_commit: true
+
         # Collect Build info & make output directories just in case
         - task: PowerShell@2
-          displayName: "ℹ️ Collect Build info"
+          displayName: "ℹ️ Collect build info"
           continueOnError: true # This is not a required step, don't stop the build if it fails
           inputs:
             targetType: 'inline'
             workingDirectory: $(projectSrcPath)
             script: |
+              echo "Build.BuildNumber is $(Build.BuildNumber)"
               echo "Build.Repository.Name is $(Build.Repository.Name)"
               echo "Build.SourcesDirectory is $(Build.SourcesDirectory)"
               echo "Build.BuildNumber is $(Build.BuildNumber)"
@@ -172,7 +173,7 @@ extends:
         # Restore nuget packages
         #
         - task: DotNetCoreCLI@2
-          displayName: '🔨 Restore Nuget Packages'
+          displayName: '🔨 Restore Nuget packages'
           inputs:
             command: 'restore'
             projects: |
@@ -186,18 +187,24 @@ extends:
         # Build Solution
         #
         - task: DotNetCoreCLI@2
-          displayName: '🦾 Build Agent Solution'
+          displayName: '🦾 Build Agent solution'
           inputs:
             command: build
             projects: '$(BuildSolution)'
-            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration)'
+            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
+
+        # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
+        - task: RoslynAnalyzers@3
+          displayName: '🔨 RoslynAnalyzers'
+          inputs:
+            copyLogsOnly: true
 
         #
         # Run integration tests
         #
         - task: DotNetCoreCLI@2
-          displayName: '🧪 Run Integration Tests'
+          displayName: '🧪 Run integration tests'
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
@@ -213,3 +220,15 @@ extends:
             testResultsFormat: VSTest
             testResultsFiles: '$(Build.SourcesDirectory)\TestResults\**\*.trx'
             failTaskOnFailedTests: true
+
+        #
+        # Sign output binaries if it is an official build
+        #
+        - ${{ if parameters.isOfficialBuild }}:
+          - task: onebranch.pipeline.signing@1
+            displayName: '✒️ Sign output binaries'
+            inputs:
+              command: 'sign'
+              signing_profile: 'internal_azure_service'
+              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1'
+              search_root: '$(ob_outputDirectory)'

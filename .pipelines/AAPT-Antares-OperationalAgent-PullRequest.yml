@@ -6,6 +6,8 @@
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
 
+name: $(Date:yyyyMMdd)$(Rev:.r)
+
 trigger: none  # https://aka.ms/obpipelines/triggers
 
 # global parameteres are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.

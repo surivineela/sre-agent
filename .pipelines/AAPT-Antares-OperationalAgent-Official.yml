@@ -6,6 +6,8 @@
 # Support:        https://aka.ms/onebranchsup                                   #
 #################################################################################
 
+name: $(MAJOR).$(MINOR).$(BUILD).$(REVISION)
+
 trigger: none  # https://aka.ms/obpipelines/triggers
 
 # global parameteres are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.
@@ -18,6 +20,11 @@ parameters:
 
 variables:
 - template: /.pipelines/templates/Shared.OneBranch.Build.CommonVariables.yaml
+
+  MAJOR: 0
+  MINOR: 1
+  BUILD: $[counter(variables['MINOR'], 0)]
+  REVISION: 0
 
 extends:
   template: /.pipelines/templates/Shared.OneBranch.Build.yaml
