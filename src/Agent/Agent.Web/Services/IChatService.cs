@@ -1,6 +1,10 @@
-using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
-namespace Agents.Web.Services;
+using Agent.Core.Models;
+
+namespace Agent.Web.Services;
 
 
 public interface IChatService

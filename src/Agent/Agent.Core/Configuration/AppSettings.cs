@@ -1,6 +1,10 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel.DataAnnotations;
 
-namespace Agents.Core.Configuration;
+namespace Agent.Core.Configuration;
 
 public class AppSettings
 {

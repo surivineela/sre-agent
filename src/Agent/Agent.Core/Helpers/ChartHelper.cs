@@ -1,8 +1,12 @@
-﻿using Agents.Core.Models;
-using ScottPlot;
-using static Agents.Core.Plugins.ChartPlugin;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
-namespace Agents.Core.Helpers;
+using Agent.Core.Models;
+using ScottPlot;
+using static Agent.Core.Plugins.ChartPlugin;
+
+namespace Agent.Core.Helpers;
 
 public static class ChartHelper
 {

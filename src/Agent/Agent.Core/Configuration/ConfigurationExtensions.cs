@@ -1,7 +1,11 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 
-namespace Agents.Core.Configuration;
+namespace Agent.Core.Configuration;
 
 public static class ConfigurationExtensions
 {

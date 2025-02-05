@@ -1,6 +1,10 @@
-﻿using Microsoft.SemanticKernel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
-namespace Agents.Core.Helpers;
+using Microsoft.SemanticKernel;
+
+namespace Agent.Core.Helpers;
 
 public sealed class AsyncOperationTracker<TDescriptor, TParameter, TProgressDetail>
     where TDescriptor : notnull

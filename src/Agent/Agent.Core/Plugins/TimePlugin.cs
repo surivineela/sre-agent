@@ -1,4 +1,8 @@
-﻿using Microsoft.SemanticKernel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -6,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class TimePlugin
 

@@ -1,9 +1,13 @@
-﻿using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Collections.Concurrent;
 
-namespace Agents.Core.Helpers;
+namespace Agent.Core.Helpers;
 
 // TODO: DI
 public static class PeriodicMonitor

@@ -1,6 +1,10 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
-namespace Agents.Core.Helpers;
+using System.ComponentModel;
+
+namespace Agent.Core.Helpers;
 
 public sealed record AsyncOperationProgress<TProgressDetail>(
     [Description("The time when this progress update is posted.")]

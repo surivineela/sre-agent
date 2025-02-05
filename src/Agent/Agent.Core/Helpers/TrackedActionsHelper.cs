@@ -1,8 +1,12 @@
-﻿using System.Text.Json;
-using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
+using Agent.Core.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Agents.Core.Helpers;
+namespace Agent.Core.Helpers;
 
 public static class TrackedActionHelper
 

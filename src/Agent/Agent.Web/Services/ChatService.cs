@@ -1,5 +1,5 @@
-namespace Agents.Web.Services;
-using Agents.Core.Models;
+namespace Agent.Web.Services;
+using Agent.Core.Models;
 
 public class ChatService : IChatService
 {
@@ -13,4 +13,4 @@ public class ChatService : IChatService
             Timestamp = DateTime.UtcNow
         };
     }
-} 
+}

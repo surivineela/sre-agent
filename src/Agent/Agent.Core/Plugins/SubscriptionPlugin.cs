@@ -1,6 +1,10 @@
-﻿using Agents.Core.Configuration;
-using Agents.Core.Helpers;
-using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -15,7 +19,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class SubscriptionPlugin
 {

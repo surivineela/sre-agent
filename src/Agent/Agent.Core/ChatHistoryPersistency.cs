@@ -1,7 +1,11 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.SemanticKernel.ChatCompletion;
 using System.Text.Json;
 
-namespace Agents.Core;
+namespace Agent.Core;
 
 public static class ChatHistoryPersistency
 {

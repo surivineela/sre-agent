@@ -1,4 +1,8 @@
-﻿using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -8,7 +12,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace Agents.Core.Helpers;
+namespace Agent.Core.Helpers;
 
 public static class ArmHelper
 

@@ -1,4 +1,8 @@
-﻿using Azure.Core;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
@@ -7,7 +11,7 @@ using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class GrafanaPlugin
 {
@@ -115,7 +119,7 @@ public class GrafanaPlugin
             });
         }
 
-        // Grafana’s /api/dashboards/db expects a container object with "dashboard" and "overwrite"
+        // Grafana�s /api/dashboards/db expects a container object with "dashboard" and "overwrite"
         var dashboardSpec = new
         {
             dashboard = new

@@ -1,4 +1,8 @@
-﻿using Azure;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -7,7 +11,7 @@ using Azure.ResourceManager.Resources;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public enum ConnectionType
 {

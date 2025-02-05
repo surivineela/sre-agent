@@ -1,15 +1,19 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
-using Agents.Core.Configuration;
-using Agents.Core.Helpers;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class CodeAnalyzerService
 

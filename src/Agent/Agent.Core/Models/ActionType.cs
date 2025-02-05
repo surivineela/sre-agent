@@ -1,6 +1,10 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System;
 
-namespace Agents.Core.Models;
+namespace Agent.Core.Models;
 
 public enum ActionType1
 {

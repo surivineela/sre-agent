@@ -1,8 +1,12 @@
-﻿using Agents.Core.Helpers;
-using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Helpers;
+using Agent.Core.Models;
 using System.Collections.Concurrent;
 
-namespace Agents.Core;
+namespace Agent.Core;
 
 // TODO: figure out how to DI these into DiagnosePlugin
 public static class GlobalStatic

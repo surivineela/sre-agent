@@ -1,11 +1,15 @@
-﻿using Microsoft.Extensions.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Extensions.Configuration;
 using System.Text;
 using System.Threading.Tasks;
 using static SkiaSharp.HarfBuzz.SKShaper;
 using System.Text.Json;
-using Agents.Core.Models;
+using Agent.Core.Models;
 
-namespace Agents.Core.Helpers;
+namespace Agent.Core.Helpers;
 
 public sealed class TeamsConnector
 

@@ -1,12 +1,16 @@
-﻿using System.ComponentModel;
-using Agents.Core.Configuration;
-using Agents.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 [Description(@"Note that pull requests are considered issues.
 You can create/ update comments on a PR the same way you would on a regular issue.")]

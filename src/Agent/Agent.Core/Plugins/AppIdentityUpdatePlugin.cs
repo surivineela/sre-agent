@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
@@ -10,7 +14,7 @@ using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class AppIdentityUpdatePlugin
 {

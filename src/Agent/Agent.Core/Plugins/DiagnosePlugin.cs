@@ -1,11 +1,15 @@
-ï»¿using Agents.Core.Helpers;
-using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
 using System.Text.Json;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class DiagnosePlugin
 
@@ -117,21 +121,21 @@ Health Assessment Guidelines:
 - Low or zero request counts alone do not indicate unhealthiness, it may mean app has low usage
 - Focus on performance degradation patterns and error indicators
 - Key metrics to monitor:
-  â€¢ Memory usage and potential leaks
-  â€¢ CPU utilization patterns
-  â€¢ HTTP error rates
-  â€¢ Response time trends
-  â€¢ Server response codes (Note: Low 200 counts alone are not concerning)
+  • Memory usage and potential leaks
+  • CPU utilization patterns
+  • HTTP error rates
+  • Response time trends
+  • Server response codes (Note: Low 200 counts alone are not concerning)
 
 Output Format:
 
 FOR UNHEALTHY RESOURCES:
 - Provide detailed analysis of problematic metrics
 - Call plot_time_series_data plugin to visualize:
-  â€¢ Significant metric degradation
-  â€¢ Error patterns
-  â€¢ Resource exhaustion trends
-  â€¢ Performance bottlenecks
+  • Significant metric degradation
+  • Error patterns
+  • Resource exhaustion trends
+  • Performance bottlenecks
 - Explain specifically why you concluded the resource is unhealthy
 - Include remediation suggestions when possible
 - Append <unhealthy> to the end of output

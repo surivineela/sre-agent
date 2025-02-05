@@ -1,8 +1,12 @@
-﻿using Agents.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using Octokit;
 
-namespace Agents.Core.Models
+namespace Agent.Core.Models
 {
     public class GitHubClient
     {

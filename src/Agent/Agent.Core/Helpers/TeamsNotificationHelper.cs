@@ -1,7 +1,11 @@
-﻿using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text;
 using System.Text.Json;
 
-namespace Agents.Core.Helpers;
+namespace Agent.Core.Helpers;
 
 public static class TeamsNotificationHelper
 {

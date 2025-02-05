@@ -1,13 +1,17 @@
-﻿using Azure;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using System.Net.Http.Headers;
-using Agents.Core.Models;
-using Agents.Core.Helpers;
+using Agent.Core.Models;
+using Agent.Core.Helpers;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class RemediationPlugin
 

@@ -1,12 +1,16 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using System.Security.Authentication;
-using Agents.Core.Helpers;
-using Agents.Core.Models;
+using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Internal.AntiSSRF;
 using Microsoft.SemanticKernel;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class TlsPlugin
 {

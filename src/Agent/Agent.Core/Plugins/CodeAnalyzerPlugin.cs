@@ -1,14 +1,18 @@
-﻿using System.ComponentModel;
-using Agents.Core.Configuration;
-using Agents.Core.Helpers;
-using Agents.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;
 
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class CodeAnalyzerPlugin
 {
@@ -54,13 +58,13 @@ public class CodeAnalyzerPlugin
             return "Github logged in already has been retried already";
         }
 
-        var message = $@"# 🔐 GitHub Authorization Required
+        var message = $@"# ?? GitHub Authorization Required
 
 - {userMessage}
 
 - This Action would get permission scan your Github Repo
 
-▶️ **[Authorize GitHub Access]({loginUrl})**"; ;
+?? **[Authorize GitHub Access]({loginUrl})**"; ;
         await _teamsConnector.PostMessageAsync(new TeamsMessage(message));
         return "GitHub authorization request sent to Teams, wait for callback";
     }

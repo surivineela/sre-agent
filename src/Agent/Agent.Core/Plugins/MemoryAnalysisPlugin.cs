@@ -1,4 +1,8 @@
-﻿using Agents.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Helpers;
 
 public class MemoryAnalysisPlugin
 {

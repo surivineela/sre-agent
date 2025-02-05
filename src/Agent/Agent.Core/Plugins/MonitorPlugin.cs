@@ -1,4 +1,8 @@
-﻿using Agents.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Helpers;
 using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
@@ -7,7 +11,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Agents.Core.Plugins;
+namespace Agent.Core.Plugins;
 
 public class MonitorPlugin
 {

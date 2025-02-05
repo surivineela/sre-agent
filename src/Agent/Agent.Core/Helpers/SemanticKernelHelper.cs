@@ -1,10 +1,14 @@
-﻿using Agents.Core.Configuration;
-using Agents.Core.Plugins;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
+using Agent.Core.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 
-namespace Agents.Core.Helpers;
+namespace Agent.Core.Helpers;
 
 public static class SemanticKernelHelper
 

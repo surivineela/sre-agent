@@ -1,4 +1,8 @@
-﻿namespace Agents.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Core.Helpers;
 public static class GitHubTokenManager
 {
     private static readonly string TokenFilePath = Path.GetTempPath();
