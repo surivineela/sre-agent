@@ -19,12 +19,16 @@ parameters:
   default: false
 
 variables:
-- template: /.pipelines/templates/Shared.OneBranch.Build.CommonVariables.yaml
+- name: MAJOR
+  value: 0
+- name: MINOR
+  value: 0
+- name: BUILD
+  value: $[counter(variables['MINOR'], 0)]
+- name: REVISION
+  value: 0
 
-  MAJOR: 0
-  MINOR: 1
-  BUILD: $[counter(variables['MINOR'], 0)]
-  REVISION: 0
+- template: /.pipelines/templates/Shared.OneBranch.Build.CommonVariables.yaml
 
 extends:
   template: /.pipelines/templates/Shared.OneBranch.Build.yaml
