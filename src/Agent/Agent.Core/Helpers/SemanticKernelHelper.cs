@@ -23,6 +23,7 @@ public static class SemanticKernelHelper
         serviceCollection.AddScoped<MemoryAnalysisPlugin>();
         serviceCollection.AddScoped<SubscriptionPlugin>();
         serviceCollection.AddScoped<TlsPlugin>();
+        serviceCollection.AddScoped<IcmPlugin>();
 
         //serviceCollection.AddScoped<CodeAnalyzerPlugin>();
         //serviceCollection.AddSingleton<CodeAnalyzerService>();
@@ -60,6 +61,9 @@ public static class SemanticKernelHelper
 
             var createGithubWorkItemPlugin = sp.GetRequiredService<GithubIssuePlugin>();
             kernelBuilder.Plugins.AddFromObject(createGithubWorkItemPlugin, "CreateGithubWorkItemPlugin");
+
+            var icmPlugin = sp.GetRequiredService<IcmPlugin>();
+            kernelBuilder.Plugins.AddFromObject(icmPlugin, "IcmPlugin");
 
             var subscriptionPlugin = sp.GetRequiredService<SubscriptionPlugin>();
             kernelBuilder.Plugins.AddFromObject(subscriptionPlugin, "SubscriptionPlugin");

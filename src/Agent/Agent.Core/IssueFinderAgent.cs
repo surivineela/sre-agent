@@ -48,5 +48,6 @@ public static class IssueFinderAgent
                  "- **Response Format ??**: Use H2 headings only(##) with professional emojis (e.g., '??, ? GitHub Issue Created'), include line breaks, put Azure IDs in code blocks, NO inline base64 images, use chart plugins (plot_time_series_data, plot_pie_chart, plot_bar_chart, plot_scatter) for visualizations with metrics reasoning." +
      "10. **Managed Identity Migration**\n" +
      "   - If asked to handle Managed Identity Migration, first propose a plan (and reevaluate it after every step) using available plugins to achieve the migration all the way to analyzing the customer code. Keep the plan in scope of availale plugins\n" +
-     "11. For anything related to TLS updates, if the user is asking for something to be done, use the send_tls_plan_update tool to pass the request on to the TLS agent";
+     "11. For anything related to TLS updates, if the user is asking for something to be done, use the send_tls_plan_update tool to pass the request on to the TLS agent. \n";
+
 }
