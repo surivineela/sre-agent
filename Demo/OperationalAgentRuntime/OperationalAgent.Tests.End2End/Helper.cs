@@ -5,7 +5,9 @@ using System.Text.Json;
 using Microsoft.Extensions.Configuration;
 using Microsoft.VisualStudio.TestPlatform.Utilities;
 using OpenAI.Chat;
+using OperationalAgent.Tests.End2End.Fixtures;
 using OperationalAgentRuntime.Skills;
+
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -16,12 +18,12 @@ namespace E2ETests
     {
         private static string? _key;
 
-        public static async Task<HttpResponseMessage> SendMessageAndWait(TestFixture _fixture, ITestOutputHelper _output, string message, int delayInSeconds = 5)
+        public static async Task<HttpResponseMessage> SendMessageAndWait(CombinedFixture _fixture, ITestOutputHelper _output, string message, int delayInSeconds = 5)
         {
             _output.WriteLine($"Sending message: {message}");
 
             StringContent content = new StringContent(message);
-            HttpResponseMessage rsp = await _fixture.Client.PostAsync("api/Entrypoint", content);
+            HttpResponseMessage rsp = await _fixture.AzureFunctionsFixture.Client.PostAsync("api/Entrypoint", content);
 
             await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
 
@@ -37,12 +39,12 @@ namespace E2ETests
             return rsp;
         }
 
-        public static async Task<HttpResponseMessage> SendMessage(TestFixture _fixture, ITestOutputHelper _output, string message)
+        public static async Task<HttpResponseMessage> SendMessage(CombinedFixture _fixture, ITestOutputHelper _output, string message)
         {
             _output.WriteLine($"Sending message: {message}");
 
             StringContent content = new StringContent(message);
-            HttpResponseMessage rsp = await _fixture.Client.PostAsync("api/Entrypoint", content);
+            HttpResponseMessage rsp = await _fixture.AzureFunctionsFixture.Client.PostAsync("api/Entrypoint", content);
 
             // Set approval key after first message sent
             if (_key == null)
@@ -70,9 +72,9 @@ namespace E2ETests
             }
         }
 
-        public static void DisposeAndRunGenericAssertions(TestFixture _fixture, ITestOutputHelper _output)
+        public static void DisposeAndRunGenericAssertions(CombinedFixture _fixture, ITestOutputHelper _output)
         {
-            List<string> output = _fixture.FunctionApp1Process.Output;
+            List<string> output = _fixture.AzureFunctionsFixture.FunctionApp1Process.Output;
             var outputCopy = new List<string>(output);
             string outputString = string.Join(Environment.NewLine, outputCopy);
 
@@ -80,11 +82,11 @@ namespace E2ETests
             _output.WriteLine(outputString);
 
             Assert.True(Helper.MatchesNaturalLanguagePrompt(_fixture, _output, "no exceptions or errors occurred"));
-            Assert.True(Helper.IsProcessRunning(_fixture.FunctionApp1Process.FuncHostProcess));
+            Assert.True(Helper.IsProcessRunning(_fixture.AzureFunctionsFixture.FunctionApp1Process.FuncHostProcess));
 
             Helper.SendDisableBasicAuthApprovalEvent(_fixture).GetAwaiter().GetResult();
-            _fixture.FunctionApp1Process.Output.Clear();
-            _fixture.FunctionApp1Process.WorkingOutput.Clear();
+            _fixture.AzureFunctionsFixture.FunctionApp1Process.Output.Clear();
+            _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput.Clear();
         }
 
         public static async Task<bool> AnyTaskReturnsTrueAsync(List<Task<bool>> tasks)
@@ -148,7 +150,7 @@ namespace E2ETests
         }
 
         /// <summary>
-        /// Calls <see cref="MatchesNaturalLanguagePrompt(TestFixture, ITestOutputHelper, string)"/>
+        /// Calls <see cref="MatchesNaturalLanguagePrompt(CombinedFixture, ITestOutputHelper, string)"/>
         /// 
         /// If call returns True, clears working output to avoid accumulating tokens
         /// </summary>
@@ -156,11 +158,11 @@ namespace E2ETests
         /// <param name="_output"></param>
         /// <param name="expected"></param>
         /// <returns></returns>
-        public static bool MatchesNaturalLanguagePromptAndClear(this TestFixture _fixture, ITestOutputHelper _output, string expected)
+        public static bool MatchesNaturalLanguagePromptAndClear(this CombinedFixture _fixture, ITestOutputHelper _output, string expected)
         {
-            if (MatchesNaturalLanguagePrompt(_fixture, _output, string.Join("\n", _fixture.FunctionApp1Process.WorkingOutput), expected))
+            if (MatchesNaturalLanguagePrompt(_fixture, _output, string.Join("\n", _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput), expected))
             {
-                _fixture.FunctionApp1Process.WorkingOutput.Clear();
+                _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput.Clear();
                 return true;
             }
             return false;
@@ -174,9 +176,9 @@ namespace E2ETests
         /// <param name="_output"></param>
         /// <param name="expected"></param>
         /// <returns></returns>
-        public static bool MatchesNaturalLanguagePrompt(this TestFixture _fixture, ITestOutputHelper _output, string expected)
+        public static bool MatchesNaturalLanguagePrompt(this CombinedFixture _fixture, ITestOutputHelper _output, string expected)
         {
-            string actual = string.Join("\n", _fixture.FunctionApp1Process.WorkingOutput);
+            string actual = string.Join("\n", _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput);
             return MatchesNaturalLanguagePrompt(_fixture, _output, actual, expected);
         }
 
@@ -187,9 +189,9 @@ namespace E2ETests
         /// <param name="_output"></param>
         /// <param name="expected"></param>
         /// <returns></returns>
-        public static bool MatchesNaturalLanguagePrompt(this TestFixture _fixture, ITestOutputHelper _output, string actual, string expected)
+        public static bool MatchesNaturalLanguagePrompt(this CombinedFixture _fixture, ITestOutputHelper _output, string actual, string expected)
         {
-            ChatCompletion completion = _fixture.ChatClient.CompleteChat(
+            ChatCompletion completion = _fixture.ChatClientFixture.ChatClient.CompleteChat(
                 [
                     new SystemChatMessage(
                         @"You are part of an end to end unit testing framework.
@@ -214,7 +216,7 @@ Actual: {actual}
             return result;
         }
 
-        public static async Task SendDisableBasicAuthApprovalEvent(TestFixture _fixture)
+        public static async Task SendDisableBasicAuthApprovalEvent(CombinedFixture _fixture)
         {
             ApprovalEventPayload payload = new()
             {
@@ -232,17 +234,17 @@ Actual: {actual}
             var requestBody = JsonSerializer.Serialize(payload);
             var requestContent = new StringContent(requestBody, Encoding.UTF8, "application/json");
 
-            HttpResponseMessage rsp = await _fixture.Client.PostAsync(approvalEndpoint, requestContent);
+            HttpResponseMessage rsp = await _fixture.AzureFunctionsFixture.Client.PostAsync(approvalEndpoint, requestContent);
         }
 
-        public static void LogAndClearWorkingOutput(TestFixture _fixture, ITestOutputHelper _output)
+        public static void LogAndClearWorkingOutput(CombinedFixture _fixture, ITestOutputHelper _output)
         {
-            var outputCopy = new List<string>(_fixture.FunctionApp1Process.WorkingOutput);
+            var outputCopy = new List<string>(_fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput);
             _output.WriteLine(string.Join(Environment.NewLine, outputCopy));
-            _fixture.FunctionApp1Process.WorkingOutput.Clear();
+            _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput.Clear();
         }
 
-        public async static Task DisposeIssues(TestFixture _fixture, ITestOutputHelper _output)
+        public async static Task DisposeIssues(CombinedFixture _fixture, ITestOutputHelper _output)
         {
             await SendMessageAndWait(_fixture, _output, $"close all issues with the [E2ETests] tag: https://github.com/sanchitmehta/sample-app");
         }

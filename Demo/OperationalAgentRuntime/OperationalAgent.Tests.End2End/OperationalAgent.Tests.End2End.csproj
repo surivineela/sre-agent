@@ -29,6 +29,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\OperationalAgent.Tests.Common\OperationalAgent.Tests.Common.csproj" />
+    <ProjectReference Include="..\OperationalAgentCore\OperationalAgentCore.csproj" />
     <ProjectReference Include="..\OperationalAgentRuntime\OperationalAgentRuntime.csproj" />
   </ItemGroup>
 

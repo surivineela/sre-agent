@@ -23,7 +23,7 @@ public static class SemanticKernelHelper
         serviceCollection.AddScoped<PeriodicRemediationPlugin>();
         serviceCollection.AddScoped<SubscriptionPlugin>();
         serviceCollection.AddScoped<TlsPlugin>();
-
+        
         serviceCollection.AddSingleton<CodeAnalyzerService>();
         serviceCollection.AddSingleton<ITaskClient, TaskClient>();
         serviceCollection.AddSingleton<TeamsConnector>();
@@ -73,6 +73,9 @@ public static class SemanticKernelHelper
 
                 var subscriptionPlugin = sp.GetRequiredService<SubscriptionPlugin>();
                 kernelBuilder.Plugins.AddFromObject(subscriptionPlugin, "SubscriptionPlugin");
+
+                var TestEmbeddingPlugin = sp.GetRequiredService<TestEmbeddingPlugin>();
+                kernelBuilder.Plugins.AddFromObject(TestEmbeddingPlugin, "TestEmbeddingPlugin");
 
                 var repoPlugin = sp.GetRequiredService<CodeAnalyzerPlugin>();
                 kernelBuilder.Plugins.AddFromObject(repoPlugin, "CodeAnalyzerPlugin");

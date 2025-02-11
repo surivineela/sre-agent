@@ -54,6 +54,7 @@ builder.Services.AddHttpClient();
 
 builder.Services.AddSingleton<AzureOpenAIClient>(GetAzureOpenAIClient(azureSettings));
 builder.Services.AddSingleton<IChatClient>(serviceProvider => GetChatClient(serviceProvider.GetRequiredService<AzureOpenAIClient>(), azureSettings));
+builder.Services.AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>(serviceProvider => GetEmbeddingGenerator(serviceProvider.GetRequiredService<AzureOpenAIClient>(), azureSettings));
 
 builder.Build().Run();
 
@@ -90,6 +91,16 @@ IChatClient GetChatClient(AzureOpenAIClient client, AzureSettings azureSettings)
         // disable this so that we can control the dispatch
         //.UseFunctionInvocation() 
         .Build();
+}
+
+IEmbeddingGenerator<string, Embedding<float>> GetEmbeddingGenerator(AzureOpenAIClient client, AzureSettings azureSettings)
+{
+    string? deployment = azureSettings.OpenAI.EmbeddingGeneratorDeploymentName;
+
+    if (string.IsNullOrEmpty(deployment))
+        throw new Exception("Please set `EmbeddingGeneratorDeploymentName`, check the readme for more information.");
+
+    return client.AsEmbeddingGenerator(deployment);
 }
 
 ResourceBuilder GetResourceBuilder()

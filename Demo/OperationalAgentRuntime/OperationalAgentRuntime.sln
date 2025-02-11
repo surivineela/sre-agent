@@ -15,6 +15,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgentRuntimeSK",
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgentRuntime", "OperationalAgentRuntime\OperationalAgentRuntime.csproj", "{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgent.Tests.Integration", "OperationalAgent.Tests.Integration\OperationalAgent.Tests.Integration.csproj", "{18A286C4-D93D-4580-921D-7A180575BC0E}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OperationalAgent.Tests.Common", "OperationalAgent.Tests.Common\OperationalAgent.Tests.Common.csproj", "{F1F9902B-261A-458E-9D57-16F702A9B8FA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -45,6 +49,14 @@ Global
 		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CBAB5BC0-77CA-40BD-979E-76BBBB8A62A7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{18A286C4-D93D-4580-921D-7A180575BC0E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{18A286C4-D93D-4580-921D-7A180575BC0E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{18A286C4-D93D-4580-921D-7A180575BC0E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{18A286C4-D93D-4580-921D-7A180575BC0E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F1F9902B-261A-458E-9D57-16F702A9B8FA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F1F9902B-261A-458E-9D57-16F702A9B8FA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F1F9902B-261A-458E-9D57-16F702A9B8FA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F1F9902B-261A-458E-9D57-16F702A9B8FA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

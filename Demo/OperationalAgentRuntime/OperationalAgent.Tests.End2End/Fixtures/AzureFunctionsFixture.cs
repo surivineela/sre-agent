@@ -7,14 +7,15 @@ using Xunit.Abstractions;
 using E2ETests.Models;
 using OpenAI.Chat;
 using Microsoft.Extensions.Configuration;
-using OperationalAgentRuntime.Configuration.Settings;
+using OperationAgent.Tests.Common;
+using E2ETests;
 
-namespace E2ETests
+namespace OperationalAgent.Tests.End2End.Fixtures
 {
     /// <summary>
     /// 
     /// </summary>
-    public class TestFixture : IDisposable
+    public class AzureFunctionsFixture : IDisposable
     {
         public AzureFunctionProcess FunctionApp1Process;
         public HttpClient Client;
@@ -25,12 +26,16 @@ namespace E2ETests
         private readonly IMessageSink _sink;
         private WebApp _webApp;
 
+        public ConfigFixture ConfigFixture { get; }
 
-        public TestFixture(IMessageSink sink)
+
+        public AzureFunctionsFixture(IMessageSink sink)
         {
             _sink = sink;
             _webApp = new WebApp(sink);
             _webApp.EnsureWebAppExists().GetAwaiter().GetResult();
+
+            ConfigFixture = new ConfigFixture();
 
             ChatClient = GetChatClient();
             StartFunctionApp();
@@ -59,27 +64,10 @@ namespace E2ETests
 
         public ChatClient GetChatClient()
         {
-            string basePath = Path.Combine("..", "..", "..", "..", "OperationalAgentRuntimeSK");
-            basePath = Path.GetFullPath(basePath);
-
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(basePath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
-                .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
-                .AddEnvironmentVariables()
-                .Build();
-
-            if (configuration == null)
-            {
-                throw new InvalidOperationException("Error: Could not find appsettings.json or appsettings.development.json");
-            }
-
-            var azureSettings = configuration.GetSection("Azure").Get<AzureSettings>();
-
             // Extract configuration values
-            string aoaiEndpoint = azureSettings.OpenAI.Endpoint;
-            string? key = azureSettings.OpenAI.ApiKey;
-            string? deployment = azureSettings.OpenAI.DeploymentName;
+            string aoaiEndpoint = ConfigFixture.AzureSettings.OpenAI.Endpoint;
+            string? key = ConfigFixture.AzureSettings.OpenAI.ApiKey;
+            string? deployment = ConfigFixture.AzureSettings.OpenAI.DeploymentName;
 
             // Validate required settings
             if (string.IsNullOrEmpty(aoaiEndpoint))

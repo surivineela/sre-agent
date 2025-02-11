@@ -1,17 +1,18 @@
 ﻿using Microsoft.Extensions.Configuration;
+using OperationalAgent.Tests.End2End.Fixtures;
 using Xunit;
 using Xunit.Abstractions;
 
 namespace E2ETests.Tests
 {
-    [Collection(nameof(AzureFunctionsTestsCollection))]
+    [Collection(nameof(CombinedTestCollection))]
     public class GithubIssuePluginTests : IDisposable
     {
-        private readonly TestFixture _fixture;
+        private readonly CombinedFixture _fixture;
         private readonly ITestOutputHelper _output;
         private readonly IConfiguration _config;
 
-        public GithubIssuePluginTests(TestFixture fixture, ITestOutputHelper testOutputHelper)
+        public GithubIssuePluginTests(CombinedFixture fixture, ITestOutputHelper testOutputHelper)
         {
             _fixture = fixture;
             _output = testOutputHelper;

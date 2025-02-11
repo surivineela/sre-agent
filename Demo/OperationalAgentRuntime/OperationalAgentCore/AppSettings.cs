@@ -50,4 +50,7 @@ public class OpenAISettings
 
     [Required]
     public string ApiKey { get; set; } = string.Empty;
+
+    [Required]
+    public string EmbeddingGeneratorDeploymentName { get; set; } = string.Empty;
 }
