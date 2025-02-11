@@ -1,13 +1,12 @@
-﻿using Agent.Core.Helpers;
-using Agent.Core.Models.ICM;
+﻿using OperationalAgentCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using HtmlAgilityPack;
 
-namespace Agent.Core.Plugins
+namespace OperationalAgentCore
 {
     public class IcmPlugin
     {
@@ -29,8 +28,15 @@ namespace Agent.Core.Plugins
             return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
         }
 
-        private async Task<HttpResponseMessage> SendRequestWithRetry(HttpRequestMessage requestMessage, bool retry = true)
+        private static string ExtractTextFromHTML(string html)
         {
+            var doc = new HtmlDocument();
+            doc.LoadHtml(html);
+            return doc.DocumentNode.InnerText?.Trim();
+        }
+
+        private async Task<HttpResponseMessage> SendRequestWithRetry(HttpRequestMessage requestMessage, bool retry = true)
+        {            
             var cts = new CancellationTokenSource();
             try
             {
@@ -106,6 +112,12 @@ namespace Agent.Core.Plugins
             {
                 var content = await response.Content.ReadAsStringAsync();
                 var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
+                foreach (var entry in discussionEntries)
+                {
+                    if (entry.IsHtml) {
+                        entry.Text = ExtractTextFromHTML(entry.Text);
+                    }
+                }
                 return discussionEntries;
             }
             else
@@ -115,6 +127,24 @@ namespace Agent.Core.Plugins
             }
         }
 
+        [KernelFunction("get_applens_diagnostics_for_icm_incident")]
+        [Description("Get AppLens diagnostics for ICM incident")]
+        public async Task<string> GetAppLensDiagnostics(
+           [Description("Incident ID")] string incidentId)
+        {
+            var payload = JsonConvert.SerializeObject(new { incidentId });
+            var response = await ExecuteICMWorkflow("ApplensPlugin-SREAgent-1P-AJSHARM", payload);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            else
+            {
+                Console.WriteLine($"Failed to fetch AppLens diagnostics for incidentId: {incidentId}");
+                return $"Failed to fetch AppLens diagnostics for incidentId: {incidentId}";
+            }
+        }
 
         [KernelFunction("mitigate_icm_incident")]
         [Description("Mitigate ICM incident")]
@@ -132,7 +162,7 @@ namespace Agent.Core.Plugins
             {
                 string errorMessage = $"Failed to mitigate incident for incidentId: {incidentId}";
                 return errorMessage;
-        }
+            }
         }
 
         [KernelFunction("post_icm_discussion_entry")]

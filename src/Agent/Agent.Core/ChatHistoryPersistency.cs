@@ -15,7 +15,7 @@ public static class ChatHistoryPersistency
     static ChatHistoryPersistency()
     {
         s_chatHistory = new ChatHistory();
-        s_chatHistory.AddSystemMessage(IssueFinderAgent.SystemMessage);
+        s_chatHistory.AddSystemMessage(MarkFirstPartyAgent.SystemMessage);
     }
 
     public static async Task<T> ChatHistoryTransition<T>(

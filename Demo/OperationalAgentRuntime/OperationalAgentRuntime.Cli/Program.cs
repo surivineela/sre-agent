@@ -70,7 +70,7 @@ using (var scope = host.Services.CreateScope())
                 await ExecuteFunctionAsync(kernel, logger);
                 break;
             case "3":
-                await DemoExec2.Execute(kernel, logger);
+                await DemoExec2.Execute(kernel, config, logger);
                 return;
             case "4":
                 using (var repoScope = host.Services.CreateScope())

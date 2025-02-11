@@ -13,6 +13,7 @@ using System.Net;
 using OperationalAgentRuntimeSK.LongRunningProcess;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Runtime.CompilerServices;
+using OperationalAgentCore.Models;
 
 namespace OperationalAgentRuntimeSK
 {
@@ -23,12 +24,16 @@ namespace OperationalAgentRuntimeSK
         private readonly TeamsConnector _teamsConnector;
         private readonly GitHubSettings _githubSettings;
         public bool SystemMessageAdded = false;
+        private readonly AgentMode _agentMode; 
+
         public DurableFunctionEntrypoint(ILogger<Entrypoint> logger, IConfiguration config, Kernel kernel, TeamsConnector teamsConnector)
         {
             _logger = logger;
             _kernel = kernel;
             _teamsConnector = teamsConnector;
             var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
+            string agentModeStr = config["AgentMode"] ?? string.Empty;
+            _agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.SREAgent;
             _githubSettings = azureSettings.Github;
 
             Interlocked.CompareExchange(ref GlobalStatic.TeamsConnector, teamsConnector, null);
@@ -83,6 +88,7 @@ namespace OperationalAgentRuntimeSK
                 FunctionContext executionContext)
         {
             var (approvalDescriptor, approvalStatus) = GlobalStatic.ApprovalStatus.FirstOrDefault(v => v.Value.OperationId == approvalId);
+            string resourceEntityName = _agentMode == AgentMode.ICM ? "incident" : "resource";
             if (approvalStatus.ProcessedTime != null)
             {
                 var response = req.CreateResponse(HttpStatusCode.OK);
@@ -105,13 +111,13 @@ namespace OperationalAgentRuntimeSK
                    {
                        if (approvalRecord.isApproved)
                        {
-                           await _teamsConnector.PostMessageAsync(new TeamsMessage($"✅ **Approved**: Operation **{approvalDescriptor.OperationName}** (ID: {approvalStatus.OperationId}) for resource `{approvalDescriptor.ResourceId}` was approved by **{approvalStatus.DecisionMaker}** at {approvalStatus.ApprovedTime:yyyy-MM-dd HH:mm:ss}"));
-                           chatHistory.AddSystemMessage($"Operation ID {approvalStatus.OperationId} of {approvalDescriptor.OperationName} is approved by {approvalStatus.DecisionMaker} for resource id: {approvalDescriptor.ResourceId} , at {approvalStatus.ApprovedTime}. Now let's start operation execution");
+                           await _teamsConnector.PostMessageAsync(new TeamsMessage($"✅ **Approved**: Operation **{approvalDescriptor.OperationName}** (ID: {approvalStatus.OperationId}) for {resourceEntityName} `{approvalDescriptor.ResourceId}` was approved by **{approvalStatus.DecisionMaker}** at {approvalStatus.ApprovedTime:yyyy-MM-dd HH:mm:ss}"));
+                           chatHistory.AddSystemMessage($"Operation ID {approvalStatus.OperationId} of {approvalDescriptor.OperationName} is approved by {approvalStatus.DecisionMaker} for {resourceEntityName} id: {approvalDescriptor.ResourceId} , at {approvalStatus.ApprovedTime}. Now let's start operation execution");
                        }
                        else
                        {
-                           await _teamsConnector.PostMessageAsync(new TeamsMessage($"❌ **Rejected**: Operation **{approvalDescriptor.OperationName}** (ID: {approvalStatus.OperationId}) for resource {approvalDescriptor.ResourceId} was rejected by **{approvalStatus.DecisionMaker}** at {DateTime.Now:yyyy-MM-dd HH:mm:ss}"));
-                           chatHistory.AddSystemMessage($"Approval for operation ID {approvalStatus.OperationId} of {approvalDescriptor.OperationName} is rejected by {approvalStatus.DecisionMaker} for resource id: {approvalDescriptor.ResourceId}, at {DateTime.Now}. We will not proceed with operation execution.");
+                           await _teamsConnector.PostMessageAsync(new TeamsMessage($"❌ **Rejected**: Operation **{approvalDescriptor.OperationName}** (ID: {approvalStatus.OperationId}) for {resourceEntityName} {approvalDescriptor.ResourceId} was rejected by **{approvalStatus.DecisionMaker}** at {DateTime.Now:yyyy-MM-dd HH:mm:ss}"));
+                           chatHistory.AddSystemMessage($"Approval for operation ID {approvalStatus.OperationId} of {approvalDescriptor.OperationName} is rejected by {approvalStatus.DecisionMaker} for {resourceEntityName} id: {approvalDescriptor.ResourceId}, at {DateTime.Now}. We will not proceed with operation execution.");
                        }
 
                        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
@@ -148,18 +154,23 @@ namespace OperationalAgentRuntimeSK
                 async chatHistory =>
                 {
                     if (message != null &&
-                        !string.IsNullOrEmpty(message.User) &&
-                        (message.User.Contains("balam", StringComparison.OrdinalIgnoreCase) ||
-                        message.User.Contains("bilal alam", StringComparison.OrdinalIgnoreCase)))
+                        !string.IsNullOrEmpty(message.User))
                     {
-                        if (!SystemMessageAdded)
+                        if ((message.User.Contains("balam", StringComparison.OrdinalIgnoreCase) || message.User.Contains("bilal alam", StringComparison.OrdinalIgnoreCase)))
                         {
-                            SystemMessageAdded = true;
-                            chatHistory.AddSystemMessage($"{message.User} (Technical Fellow) has joined. As a senior technical leader: 1) Great their presence if not already done 2) Provide a concise technical executive summary 3) Address the question. Note: These messages will always include the username '{message.User}', if it doesn't these rules don't apply");
+                            if (!SystemMessageAdded)
+                            {
+                                SystemMessageAdded = true;
+                                chatHistory.AddSystemMessage($"{message.User} (Technical Fellow) has joined. As a senior technical leader: 1) Great their presence if not already done 2) Provide a concise technical executive summary 3) Address the question. Note: These messages will always include the username '{message.User}', if it doesn't these rules don't apply");
+                            }
+                            else
+                            {
+                                message.Content = "User: Bilal Alam - " + message.Content;
+                            }
                         }
-                        else
+                        else if (message.User.Equals("icm_automation", StringComparison.OrdinalIgnoreCase))
                         {
-                            message.Content = "User: Bilal Alam - " + message.Content;
+                            message.Content = "source : icm_automation - " + message.Content;
                         }
                     }
 
@@ -289,14 +300,14 @@ namespace OperationalAgentRuntimeSK
             HttpRequestData req,
             FunctionContext executionContext)
         {
-                var response = req.CreateResponse(HttpStatusCode.OK);
-                await GitHubTokenManager.DeleteTokenAsync();
-                await response.WriteAsJsonAsync(new
-                {
-                    message = "Reset successful",
-                });
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            await GitHubTokenManager.DeleteTokenAsync();
+            await response.WriteAsJsonAsync(new
+            {
+                message = "Reset successful",
+            });
 
-                return response;
+            return response;
         }
 
         private async Task<TokenProcessResult> ExchangeCodeForToken(string code)
@@ -313,7 +324,7 @@ namespace OperationalAgentRuntimeSK
 
             var content = await response.Content.ReadAsStringAsync();
             var values = System.Web.HttpUtility.ParseQueryString(content);
-            
+
             // store to account that the token flow is done
             string filePath = Path.Combine(Directory.GetCurrentDirectory(), "ghtoken.txt");
             File.WriteAllText(filePath, content);
@@ -434,7 +445,7 @@ namespace OperationalAgentRuntimeSK
 
             string requestBody = await new StreamReader(req.Body).ReadToEndAsync();
             await this._teamsConnector.PostMessageAsync(new TeamsMessage(requestBody));
-            
+
             return req.CreateResponse(HttpStatusCode.OK);
         }
     }

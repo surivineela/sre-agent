@@ -66,7 +66,11 @@ namespace OperationalAgent.Approval.Controllers
                 await this._httpClient.PostAsJsonAsync($"https://sreagentruntimesk.azurewebsites.net/api/approve/{payload.Id}", payload);
 
                 // Store approval payload in memory cache
-                var approvals = _memoryCache.GetOrCreate(ApprovalsCacheKey, entry => new List<ApprovalPayload>());
+                var approvals = await _memoryCache.GetOrCreateAsync(ApprovalsCacheKey, entry =>
+                {
+                    return Task.FromResult(new List<ApprovalPayload>());
+                });
+
                 approvals.Add(payload);
                 _memoryCache.Set(ApprovalsCacheKey, approvals);
             }
@@ -80,9 +84,13 @@ namespace OperationalAgent.Approval.Controllers
         }
 
         [HttpGet("GetApprovals")]
-        public IActionResult GetApprovals()
+        public async Task<IActionResult> GetApprovals()
         {
-            var approvals = _memoryCache.GetOrCreate(ApprovalsCacheKey, entry => new List<ApprovalPayload>());
+            var approvals = await _memoryCache.GetOrCreateAsync(ApprovalsCacheKey, entry =>
+            {
+                return Task.FromResult(new List<ApprovalPayload>());
+            });
+
             return Ok(approvals);
         }
 

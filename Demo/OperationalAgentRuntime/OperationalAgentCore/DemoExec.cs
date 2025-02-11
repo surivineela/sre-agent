@@ -1,6 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using OperationalAgentCore.Models;
 
 namespace OperationalAgentCore;
 
@@ -10,11 +12,18 @@ public static class DemoExec2
 
     public static async Task Execute(
         Kernel kernel,
+        IConfiguration configuration,
         ILogger logger)
     {
         var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+        string agentModeStr = configuration["AgentMode"] ?? string.Empty;
+        var agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.SREAgent;
+
+        string systemPrompt = agentMode == AgentMode.ICM ? ICMAgent.SystemMessage : IssueFinderAgent.SystemMessage;
+
         var history = new ChatHistory();
-        history.AddSystemMessage(IssueFinderAgent.SystemMessage);
+        history.AddSystemMessage(systemPrompt);
 
         while (true)
         {
