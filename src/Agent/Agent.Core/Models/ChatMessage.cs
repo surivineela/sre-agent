@@ -4,7 +4,7 @@
 
 namespace Agent.Core.Models;
 
-public class ChatMessage
+public record ChatMessage()
 {
     public string Message { get; set; } = string.Empty;
     public bool IsUser { get; set; }

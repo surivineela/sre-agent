@@ -4,6 +4,7 @@
 
 using Agent.Core.Helpers;
 using Agent.Web.Services;
+using Agent.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,11 +13,31 @@ config.SetBasePath(builder.Environment.ContentRootPath)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
             .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
             .AddEnvironmentVariables();
-SemanticKernelHelper.ConfigService(builder.Services);
+
+bool useSessionChatService = false;
+if (args.Length > 0)
+{
+    if (args[0] == "--session")
+    {
+        useSessionChatService = true;
+    }
+}
+
+if (useSessionChatService)
+{
+    builder.Services.ConfigureAgents();
+    // Add background service that processes the chat conversation
+    builder.Services.AddHostedService<SessionService>();
+    builder.Services.AddScoped<IChatService, SessionChatService>();
+}
+else
+{
+    SemanticKernelHelper.ConfigService(builder.Services);
+    builder.Services.AddScoped<IChatService, LegacyChatService>();
+}
 
 // Add services to the container.
 // Register our chat service
-builder.Services.AddScoped<IChatService, ChatService>();
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
