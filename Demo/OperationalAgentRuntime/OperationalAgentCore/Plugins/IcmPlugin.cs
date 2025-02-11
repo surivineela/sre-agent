@@ -146,6 +146,27 @@ namespace OperationalAgentCore
             }
         }
 
+        [KernelFunction("transfer_icm_incident")]
+        [Description("Transfer ICM incident")]
+        public async Task<string> TransferIncident(
+               [Description("Incident ID")] string incidentId,
+               [Description("Discussion Entry - reason for transferring the incident")] string discussionEntry,
+               [Description("Tenant of the team to transfer the incident to")] string tenantName,
+               [Description("Owning Team to transfer the incident to")] string owningTeam)
+        {
+            var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry, tenantName, owningTeam });
+            var response = await ExecuteICMWorkflow("TransferIncident-SREAgent-1P-AJSHARM", payload);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success";
+            }
+            else
+            {
+                string errorMessage = $"Failed to transfer incident for incidentId: {incidentId}";
+                return errorMessage;
+            }
+        }
+
         [KernelFunction("mitigate_icm_incident")]
         [Description("Mitigate ICM incident")]
         public async Task<string> MitigateIncident(
@@ -161,6 +182,44 @@ namespace OperationalAgentCore
             else
             {
                 string errorMessage = $"Failed to mitigate incident for incidentId: {incidentId}";
+                return errorMessage;
+            }
+        }
+
+        [KernelFunction("downgrade_sev2_incident_to_sev3")]
+        [Description("Downgrade severity of ICM incident 2 to 3")]
+        public async Task<string> DowngradeSeverity(
+            [Description("Incident ID")] string incidentId,
+            [Description("Discussion Entry - reason for downgrading the incident")] string discussionEntry)
+        {
+            var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry });
+            var response = await ExecuteICMWorkflow("DowngradeSev2-SREAgent-1P-AJSHARM", payload);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success";
+            }
+            else
+            {
+                string errorMessage = $"Failed to downgrade severity of incident for incidentId: {incidentId}";
+                return errorMessage;
+            }
+        }
+
+        [KernelFunction("resolve_icm_incident")]
+        [Description("Resolve ICM incident")]
+        public async Task<string> ResolveIncident(
+               [Description("Incident ID")] string incidentId,
+               [Description("Discussion Entry - reason for resolving the incident")] string discussionEntry)
+        {
+            var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry });
+            var response = await ExecuteICMWorkflow("ResolveIncident-SREAgent-1P-AJSHARM", payload);
+            if (response.IsSuccessStatusCode)
+            {
+                return "Success";
+            }
+            else
+            {
+                string errorMessage = $"Failed to resolve incident for incidentId: {incidentId}";
                 return errorMessage;
             }
         }
