@@ -4,6 +4,8 @@
 
 Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting Azure applications and services. Get started quickly with the `Agent.Web` project and extend functionality using the plugins and helpers in `Agent.Core`.
 
+![Component Diagram](docs/images/sre_components.jpg)
+
 ## Getting Started
 
 1. **Configure the Agent.Web Project**  
