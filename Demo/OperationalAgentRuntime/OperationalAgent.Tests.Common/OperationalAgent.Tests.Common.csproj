@@ -16,8 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="../OperationalAgentRuntimeSK/appsettings.json" CopyToOutputDirectory="PreserveNewest" />
-    <None Include="../OperationalAgentRuntimeSK/appsettings.development.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="../OperationalAgentRuntimeSK/appsettings*.json" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
