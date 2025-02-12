@@ -8,6 +8,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Octokit;
+using System.Net.Http;
 
 namespace Agent.Core.Helpers;
 
@@ -16,6 +17,11 @@ public static class SemanticKernelHelper
 {
     public static void ConfigService(IServiceCollection serviceCollection)
     {
+        serviceCollection.AddSingleton<HttpClient>(sp => {
+            var overrideApiVersion = "2025-01-01-preview";
+            return new HttpClient(new AzureOverrideHandler(overrideApiVersion));
+        });
+
         serviceCollection.AddScoped<AppIdentityUpdatePlugin>();
         serviceCollection.AddScoped<ChartPlugin>();
         serviceCollection.AddSingleton<Models.GitHubClient>();
@@ -41,11 +47,31 @@ public static class SemanticKernelHelper
                 throw new NullReferenceException("Azure settings are required.");
             }
 
-            var kernelBuilder = Kernel.CreateBuilder()
-                .AddAzureOpenAIChatCompletion(
+            // Check if the model is a reasoning model that needs API version override
+            bool isReasoningModel = azureSettings.OpenAI.DeploymentName.Contains("o1-mini", StringComparison.OrdinalIgnoreCase) || 
+                                  azureSettings.OpenAI.DeploymentName.Contains("o3-mini", StringComparison.OrdinalIgnoreCase) ||
+                                  azureSettings.OpenAI.DeploymentName.Contains("o1", StringComparison.OrdinalIgnoreCase) ||
+                                  azureSettings.OpenAI.DeploymentName.Contains("deepseek-r1", StringComparison.OrdinalIgnoreCase);
+
+            var kernelBuilder = Kernel.CreateBuilder();
+
+            if (isReasoningModel)
+            {
+                var httpClient = sp.GetRequiredService<HttpClient>();
+                
+                kernelBuilder.AddAzureOpenAIChatCompletion(
+                    deploymentName: azureSettings.OpenAI.DeploymentName,
+                    endpoint: azureSettings.OpenAI.Endpoint,
+                    apiKey: azureSettings.OpenAI.ApiKey,
+                    httpClient: httpClient);
+            }
+            else
+            {
+                kernelBuilder.AddAzureOpenAIChatCompletion(
                     deploymentName: azureSettings.OpenAI.DeploymentName,
                     endpoint: azureSettings.OpenAI.Endpoint,
                     apiKey: azureSettings.OpenAI.ApiKey);
+            }
 
             // Register skills
             kernelBuilder.Plugins.AddFromType<DiagnosePlugin>("DiagnosePlugin");
