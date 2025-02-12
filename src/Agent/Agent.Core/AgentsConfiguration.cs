@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Agent.Core.Configuration;
+using Agent.Data.DatabaseManagers.GraphDatabase;
 
 namespace Agent.Core
 {
@@ -34,7 +35,7 @@ namespace Agent.Core
                 {
                     return new Kernel(sp);
                 })
-                .AddSingleton<ISubscriptionPlugin, MockSubscriptionPlugin>()
+                .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
                 .AddSingleton<SubscriptionPluginDefinition>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
@@ -54,7 +55,8 @@ namespace Agent.Core
                     var conversation = new Session();
                     conversation.AddAgent(s.GetRequiredService<Agent>());
                     return conversation;
-                });
+                })
+                .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
         }
     }
 }

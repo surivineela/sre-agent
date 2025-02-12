@@ -13,6 +13,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Tests.Integration", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Plugins", "Agent.Plugins\Agent.Plugins.csproj", "{EFD7384D-C24D-407F-A1FA-58067DB7952E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Data", "Agent.Data\Agent.Data.csproj", "{08AF145E-3187-4A9D-873C-21263FB6903F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -39,6 +41,10 @@ Global
 		{EFD7384D-C24D-407F-A1FA-58067DB7952E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EFD7384D-C24D-407F-A1FA-58067DB7952E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EFD7384D-C24D-407F-A1FA-58067DB7952E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{08AF145E-3187-4A9D-873C-21263FB6903F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{08AF145E-3187-4A9D-873C-21263FB6903F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{08AF145E-3187-4A9D-873C-21263FB6903F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{08AF145E-3187-4A9D-873C-21263FB6903F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

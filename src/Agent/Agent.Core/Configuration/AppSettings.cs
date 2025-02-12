@@ -32,6 +32,9 @@ public class AzureSettings
 
     [Required]
     public bool OpenSupportTickets { get; set; }
+
+    [Required]
+    public GremlinSettings Gremlin { get; set; } = new();
 }
 
 public class GitHubSettings
@@ -54,4 +57,19 @@ public class OpenAISettings
 
     [Required]
     public string ApiKey { get; set; } = string.Empty;
+}
+
+public class GremlinSettings
+{
+    [Required]
+    public string AccountName { get; set; } = string.Empty;
+
+    [Required]
+    public string AccountKey { get; set; } = string.Empty;
+
+    [Required]
+    public string Database { get; set; } = string.Empty;
+
+    [Required]
+    public string Collection { get; set; } = string.Empty;
 }

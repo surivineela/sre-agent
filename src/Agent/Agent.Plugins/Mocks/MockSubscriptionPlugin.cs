@@ -1,4 +1,6 @@
-﻿namespace Agent.Plugins
+﻿using Agent.Plugins.Models;
+
+namespace Agent.Plugins
 {
     public class MockSubscriptionPlugin : ISubscriptionPlugin
     {
@@ -24,6 +26,43 @@
                 "Running", 
                 "appservices-sre-demo")
                 ];
+        }
+
+        public async Task<ResourceGraph> GetResourceGraphForAllSubscriptionsAsync()
+        {
+            await Task.Yield();
+
+            var resources = new List<Resource>
+            {
+                new Resource
+                {
+                    Id = "1",
+                    Name = "Resource1",
+                    Type = "Type1",
+                    ChildResources = new List<Resource>
+                    {
+                        new Resource
+                        {
+                            Id = "1.1",
+                            Name = "ChildResource1",
+                            Type = "ChildType1",
+                            ChildResources = new List<Resource>()
+                        }
+                    }
+                },
+                new Resource
+                {
+                    Id = "2",
+                    Name = "Resource2",
+                    Type = "Type2",
+                    ChildResources = new List<Resource>()
+                }
+            };
+
+            var resourceGraph = new ResourceGraph();
+            resourceGraph.AddResources(resources);
+
+            return resourceGraph;
         }
     }
 }

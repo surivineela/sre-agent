@@ -1,4 +1,5 @@
-﻿using Microsoft.SemanticKernel;
+﻿using Agent.Plugins.Models;
+using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
@@ -22,6 +23,12 @@ namespace Agent.Plugins
         public async Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId)
         {
             return await _subscriptionPlugin.ListAppServicesAsync(subscriptionId);
+        }
+
+        [KernelFunction("get_resource_graph_for_all_subscriptions")]
+        public async Task<ResourceGraph> GetResourceGraphForAllSubscriptionsAsync()
+        {
+            return await _subscriptionPlugin.GetResourceGraphForAllSubscriptionsAsync();
         }
     }
 }

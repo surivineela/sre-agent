@@ -29,6 +29,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
 	  <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
 	</ItemGroup>
 </Project>
