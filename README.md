@@ -114,11 +114,14 @@ az cosmosdb gremlin graph create \
 ```
 
 10. Add a Gremlin section in appsettings.Development.json that looks like the following:
+
+Make sure to match the case for `Database` and `Collection`. Otherwise you'll get an error `["Owner resource does not exist"]`
+
 ```json
  "Gremlin": {
    "AccountName": "<<ACCOUNTNAME>>",
    "AccountKey": "<<<ACCOUNTKEY>>",
-   "Database": "resourceGraph",
+   "Database": "resourcegraph",
    "Collection": "resources"
  }
 ```
