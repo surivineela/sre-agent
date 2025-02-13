@@ -1,4 +1,4 @@
-﻿using Agent.Plugins.Models;
+﻿using Agent.Graph;
 
 namespace Agent.Plugins
 {
@@ -8,6 +8,6 @@ namespace Agent.Plugins
 
         Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId);
 
-        Task<ResourceGraph> GetResourceGraphForAllSubscriptionsAsync();
+        Task<InMemoryGraphManager> GetResourceGraphForAllSubscriptionsAsync();
     }
 }

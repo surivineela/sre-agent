@@ -4,9 +4,8 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.AppService;
-using Agent.Plugins.Models;
-using Agent.Plugins.Helpers;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Graph;
 
 namespace Agent.Plugins
 {
@@ -116,30 +115,9 @@ namespace Agent.Plugins
             return appServices;
         }
 
-        public async Task<ResourceGraph> GetResourceGraphForAllSubscriptionsAsync()
+        public async Task<InMemoryGraphManager> GetResourceGraphForAllSubscriptionsAsync()
         {
-            // Example implementation
-            var resourceGraph = new ResourceGraph();
-            var subscriptions = await ListAllSubscriptionsAsync();
-
-            foreach (var subscription in subscriptions)
-            {
-                // Fetch and add resources for each subscription to the resource graph
-                var resources = await ResourceGraphHelper.FetchResourcesForSubscriptionAsync(subscription.Id);
-                resourceGraph.AddResources(resources);
-            }
-
-            try
-            {
-                await ResourceGraphHelper.PersistResourceGraphAsync(_graphDatabaseManager, resourceGraph);
-            }
-            catch (Exception e)
-            {
-                Console.Error.WriteLine($"Error in GetResourceGraphForAllSubscriptionsAsync: {e}");
-                throw;
-            }
-
-            return resourceGraph;
+            return await ResourceGraphHelper.ConstructResourceGraphAndPersistAsync(_graphDatabaseManager);
         }
     }
 }

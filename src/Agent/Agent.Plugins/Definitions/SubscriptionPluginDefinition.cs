@@ -1,4 +1,4 @@
-﻿using Agent.Plugins.Models;
+﻿using Agent.Graph;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -26,7 +26,7 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("get_resource_graph_for_all_subscriptions")]
-        public async Task<ResourceGraph> GetResourceGraphForAllSubscriptionsAsync()
+        public async Task<InMemoryGraphManager> GetResourceGraphForAllSubscriptionsAsync()
         {
             return await _subscriptionPlugin.GetResourceGraphForAllSubscriptionsAsync();
         }

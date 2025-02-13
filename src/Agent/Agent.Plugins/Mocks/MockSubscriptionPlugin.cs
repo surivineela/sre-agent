@@ -1,4 +1,6 @@
-﻿using Agent.Plugins.Models;
+﻿using Agent.Graph;
+using Agent.Graph.Schema;
+using Agent.Plugins.Models;
 
 namespace Agent.Plugins
 {
@@ -28,7 +30,7 @@ namespace Agent.Plugins
                 ];
         }
 
-        public async Task<ResourceGraph> GetResourceGraphForAllSubscriptionsAsync()
+        public async Task<InMemoryGraphManager> GetResourceGraphForAllSubscriptionsAsync()
         {
             await Task.Yield();
 
@@ -59,10 +61,22 @@ namespace Agent.Plugins
                 }
             };
 
-            var resourceGraph = new ResourceGraph();
-            resourceGraph.AddResources(resources);
+            var graphManager = new InMemoryGraphManager();
 
-            return resourceGraph;
+            foreach (var resource in resources)
+            {
+                var node = new Node(resource.Id, resource.Name, resource.Type);
+                graphManager.AddOrUpdateNode(node);
+
+                foreach (var childResource in resource.ChildResources)
+                {
+                    var childNode = new Node(childResource.Id, childResource.Name, childResource.Type);
+                    graphManager.AddOrUpdateNode(childNode);
+                    graphManager.AddDirectedEdgeIfNotExists(node, childNode, "contains");
+                }
+            }
+
+            return graphManager;
         }
     }
 }

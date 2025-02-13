@@ -16,7 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
+    <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
   </ItemGroup>
 
 </Project>
