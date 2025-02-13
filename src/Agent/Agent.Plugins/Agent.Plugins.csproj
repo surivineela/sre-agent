@@ -7,16 +7,14 @@
   </PropertyGroup>
 
   <ItemGroup>
-	  <PackageReference Include="Azure.Identity" Version="1.13.2" />
-	  <PackageReference Include="Azure.ResourceManager" Version="1.13.0" />
-	  <PackageReference Include="Azure.ResourceManager.AppService" Version="1.3.0" />
-	  <PackageReference Include="Azure.ResourceManager.Sql" Version="1.2.1" />
-	  <PackageReference Include="Azure.ResourceManager.Support" Version="1.1.0" />
-	  <PackageReference Include="Microsoft.SemanticKernel" Version="1.36.1" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.36.1" />
+	  <PackageReference Include="ScottPlot" Version="5.0.53" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Planners.OpenAI" Version="1.6.3-preview" />
   </ItemGroup>
-
+ 
   <ItemGroup>
-    <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
+	<ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+	<ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
   </ItemGroup>
 
 </Project>

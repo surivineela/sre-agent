@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Charts;
 using ScottPlot;
 using static Agent.Core.Plugins.ChartPlugin;
 

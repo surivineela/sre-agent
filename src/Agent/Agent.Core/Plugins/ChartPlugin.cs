@@ -7,9 +7,9 @@ using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 using ScottPlot;
-using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using Agent.Core.Models.Charts;
 
 namespace Agent.Core.Plugins;
 
@@ -386,34 +386,5 @@ A status message, after optionally sending the chart to Teams.")]
             _logger?.LogError(ex, "Failed to generate scatter plot with ScottPlot.");
             return $"ERROR: Scatter plot generation failed: {ex.Message}";
         }
-    }
-
-    public class BarData
-    {
-        public string Category { get; set; } = "";
-        public double Value { get; set; }
-    }
-
-    public class BarChartInput
-    {
-        public string Title { get; set; } = "";
-        public string XAxisLabel { get; set; } = "";
-        public string YAxisLabel { get; set; } = "";
-        public List<BarData> Data { get; set; } = new List<BarData>();
-    }
-
-    public class ScatterPoint
-    {
-        public double X { get; set; }
-        public double Y { get; set; }
-        public string Label { get; set; } = "";
-    }
-
-    public class ScatterChartInput
-    {
-        public string Title { get; set; } = "";
-        public string XAxisLabel { get; set; } = "";
-        public string YAxisLabel { get; set; } = "";
-        public List<ScatterPoint> Points { get; set; } = new List<ScatterPoint>();
     }
 }

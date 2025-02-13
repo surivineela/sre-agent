@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Charts;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;

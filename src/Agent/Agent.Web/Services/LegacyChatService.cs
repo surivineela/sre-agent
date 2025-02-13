@@ -29,50 +29,58 @@ public class LegacyChatService : IChatService
         return await ChatHistoryPersistency.ChatHistoryTransition(
                 async chatHistory =>
                 {
-
-                    if (message != null)
+                    try
                     {
-                        chatHistory.AddUserMessage(message);
-                    }
 
-                    // Load tracked app states before adding user message
-                    var trackedStates = TrackedActionHelper.GetActions(type: ActionType.AppStateTracking)
-                        .OrderByDescending(a => a.Timestamp)
-                        .DistinctBy(a => a.Metadata["name"])
-                        .ToList();
-
-                    _logger.LogInformation("User > " + message);
-                    FunctionChoiceBehaviorOptions options = new() { AllowParallelCalls = true };
-
-                    var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-                    var result = await chatCompletionService.GetChatMessageContentAsync(
-                        chatHistory,
-                        executionSettings: new()
+                        if (message != null)
                         {
-                            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-                        },
-                        kernel: _kernel);
+                            chatHistory.AddUserMessage(message);
+                        }
 
-                    IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
+                        // Load tracked app states before adding user message
+                        var trackedStates = TrackedActionHelper.GetActions(type: ActionType.AppStateTracking)
+                            .OrderByDescending(a => a.Timestamp)
+                            .DistinctBy(a => a.Metadata["name"])
+                            .ToList();
 
-                    foreach (FunctionCallContent functionCall in functionCalls)
-                    {
-                        FunctionResultContent resultContent = await functionCall.InvokeAsync(_kernel);
+                        _logger.LogInformation("User > " + message);
+                        FunctionChoiceBehaviorOptions options = new() { AllowParallelCalls = true };
 
-                        chatHistory.Add(resultContent.ToChatMessage());
+                        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+                        var result = await chatCompletionService.GetChatMessageContentAsync(
+                            chatHistory,
+                            executionSettings: new()
+                            {
+                                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                            },
+                            kernel: _kernel);
+
+                        IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
+
+                        foreach (FunctionCallContent functionCall in functionCalls)
+                        {
+                            FunctionResultContent resultContent = await functionCall.InvokeAsync(_kernel);
+
+                            chatHistory.Add(resultContent.ToChatMessage());
+                        }
+
+                        Console.WriteLine("Assistant > " + result);
+                        chatHistory.AddMessage(result.Role, result.Content ?? string.Empty);
+
+                        string content = result.Content ?? string.Empty;
+                        var htmlContent = Markdown.ToHtml(content, _markdownPipeline);
+
+                        return new ChatMessage()
+                        {
+                            Message = htmlContent,  // Raw markdown
+                            Timestamp = DateTime.Now
+                        };
                     }
-
-                    Console.WriteLine("Assistant > " + result);
-                    chatHistory.AddMessage(result.Role, result.Content ?? string.Empty);
-
-                    string content = result.Content ?? string.Empty;
-                    var htmlContent = Markdown.ToHtml(content, _markdownPipeline);
-
-                    return new ChatMessage()
+                    catch (Exception ex)
                     {
-                        Message = htmlContent,  // Raw markdown
-                        Timestamp = DateTime.Now
-                    };
+                        _logger.LogError(ex, "Error running the chat service");
+                        throw;
+                    }
                 });
     }
 }

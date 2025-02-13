@@ -2,6 +2,7 @@ namespace Agent.Web.Services;
 
 using Agent.Core;
 using Agent.Core.Models;
+using Agent.Runtime;
 using Markdig;
 
 public class SessionChatService : IChatService
