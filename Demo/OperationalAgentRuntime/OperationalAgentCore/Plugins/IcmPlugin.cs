@@ -13,19 +13,17 @@ namespace OperationalAgentCore
         private readonly IConfiguration _config;
         private readonly HttpClient _httpClient;
         private const int timeoutInSeconds = 600;
-
+        // When ReadOnly is true, we will skip running the tools that perform write actions
+        private readonly bool ReadOnly;
+        
         public IcmPlugin(IConfiguration configuration)
         {
             _config = configuration;
             var functionAppKey = _config.GetValue("ICM:PluginAppKey", string.Empty);
+            ReadOnly = _config.GetValue("ICM:ReadOnly", false);
             _httpClient = new HttpClient();
             _httpClient.DefaultRequestHeaders.Add("x-functions-key", functionAppKey);
             _httpClient.Timeout = TimeSpan.FromSeconds(timeoutInSeconds);
-        }
-
-        private static bool IsDevelopment()
-        {
-            return Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") == "Development";
         }
 
         private static string ExtractTextFromHTML(string html)
@@ -154,6 +152,10 @@ namespace OperationalAgentCore
                [Description("Tenant of the team to transfer the incident to")] string tenantName,
                [Description("Owning Team to transfer the incident to")] string owningTeam)
         {
+            if (ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
             var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry, tenantName, owningTeam });
             var response = await ExecuteICMWorkflow("TransferIncident-SREAgent-1P-AJSHARM", payload);
             if (response.IsSuccessStatusCode)
@@ -173,6 +175,10 @@ namespace OperationalAgentCore
            [Description("Incident ID")] string incidentId,
            [Description("Discussion Entry - reason for mitigating the incident")] string discussionEntry)
         {
+            if (ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
             var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry });
             var response = await ExecuteICMWorkflow("MitigateIncident-AJSHARM", payload);
             if (response.IsSuccessStatusCode)
@@ -192,6 +198,10 @@ namespace OperationalAgentCore
             [Description("Incident ID")] string incidentId,
             [Description("Discussion Entry - reason for downgrading the incident")] string discussionEntry)
         {
+            if (ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
             var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry });
             var response = await ExecuteICMWorkflow("DowngradeSev2-SREAgent-1P-AJSHARM", payload);
             if (response.IsSuccessStatusCode)
@@ -211,6 +221,10 @@ namespace OperationalAgentCore
                [Description("Incident ID")] string incidentId,
                [Description("Discussion Entry - reason for resolving the incident")] string discussionEntry)
         {
+            if (ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
             var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry });
             var response = await ExecuteICMWorkflow("ResolveIncident-SREAgent-1P-AJSHARM", payload);
             if (response.IsSuccessStatusCode)
@@ -230,6 +244,10 @@ namespace OperationalAgentCore
            [Description("Incident ID")] string incidentId,
            [Description("Discussion Entry")] string discussionEntry)
         {
+            if (ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
             var payload = JsonConvert.SerializeObject(new { incidentId, discussionEntry });
             var response = await ExecuteICMWorkflow("PostDiscussionEntry-SREAgent-1P-AJSHARM", payload);
             if (response.IsSuccessStatusCode)
@@ -248,6 +266,10 @@ namespace OperationalAgentCore
         public async Task<string> MarkSubFirstParty(
            [Description("Subscription ID")] string subscriptionId)
         {
+            if (ReadOnly)
+            {
+                return "Success. ICM Plugin is in ReadOnly mode.";
+            }
             var payload = JsonConvert.SerializeObject(new { subscriptionId });
             var response = await ExecuteICMWorkflow("MFPSub-AJSHARM", payload);
             if (response.IsSuccessStatusCode)
