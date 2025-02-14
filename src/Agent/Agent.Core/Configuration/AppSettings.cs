@@ -57,6 +57,9 @@ public class OpenAISettings
 
     [Required]
     public string ApiKey { get; set; } = string.Empty;
+
+    [Required]
+    public string EmbeddingGeneratorDeploymentName { get; set; } = string.Empty;
 }
 
 public class GremlinSettings
@@ -72,4 +75,13 @@ public class GremlinSettings
 
     [Required]
     public string Collection { get; set; } = string.Empty;
+}
+
+public class TestSettings
+{
+    [Required]
+    public string SubscriptionId { get; set; } = string.Empty;
+
+    [Required]
+    public bool SkipResourceCleanupAfterTestRun { get; set; } = true;
 }

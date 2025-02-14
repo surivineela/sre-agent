@@ -208,7 +208,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
-            arguments: '--no-build --output $(ob_outputDirectory) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\'
+            arguments: '--no-build --output $(ob_outputDirectory) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests' 
             publishTestResults: false
 
         #

@@ -10,7 +10,7 @@ namespace Agent.Core.Models
 {
     public class GitHubClient
     {
-        internal Octokit.GitHubClient Client { get; }
+        public Octokit.GitHubClient Client { get; }
 
         public GitHubClient(IConfiguration configuration)
         {

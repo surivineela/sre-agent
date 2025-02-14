@@ -8,8 +8,9 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.36.1" />
-	<PackageReference Include="ScottPlot" Version="5.0.53" />
-	<PackageReference Include="Microsoft.SemanticKernel.Planners.OpenAI" Version="1.6.3-preview" />
+	  <PackageReference Include="ScottPlot" Version="5.0.53" />
+	  <PackageReference Include="Microsoft.SemanticKernel.Planners.OpenAI" Version="1.6.3-preview" />
+	  <PackageReference Include="OpenAI" Version="2.1.0" />
   </ItemGroup>
  
   <ItemGroup>
