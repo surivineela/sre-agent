@@ -125,6 +125,32 @@ Make sure to match the case for `Database` and `Collection`. Otherwise you'll ge
    "Collection": "resources"
  }
 ```
+## Manually Deploy FirstPartyAgent to ACA using azd
+TODO: add cosmosdb(gremlin) to bicep files
+### Preparation
+Please install:
+1. az
+1. azd
+1. docker
 
+Because we have internal-only dependencies, please make sure you have access to internal Nuget feed when building the docker image.
+### deployment definition files
+Everything lives in src/Deployment/FirstPartyAgent
 
+1. azure.yaml -> used by azd
+1. infra folder -> bicep files
+1. Dockerfile
 
+### deployment procedures
+A subscription called [Container Apps Operational Agent (be8d491e-109c-4ee1-aaee-dc7615af0a42)](https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/be8d491e-109c-4ee1-aaee-dc7615af0a42/overview) is crated for ACA agent. Please select it when azd asks for a subscription if you want to deploy to that subscription, e.g. for production deployment.
+
+`azd up` currently reports errors without even building a docker image. so please do the following as a workaround.
+1. `cd src/Deployment/FirstPartyAgent`
+1. Login to azd using `azd auth login --scope https://management.azure.com//.default`
+1. Select your target subscription using `az account set --subscription <target-subscription>`
+1. (Only required for first time deployment) Run `azd env new` to create a new azd env.
+1. (Only required for first time deployment) Run `azd provision` to provision all azure resources(ACA managed env, ACR, Azure OpenAI, etc.). Pleaes remember to increase the quota of gpt-4o deployment in Azure Portal, or you will get a lot of 429 code when accessing this app.
+1. Run `build_and_publish_image.ps1` to build the docker image and push to ACR
+1. Run `azd provision`, which will deploy the image built in the previous step.
+
+If you want to deploy to production, please contact yefwuang, zhenquan.xu, xiangy for production azd config files.

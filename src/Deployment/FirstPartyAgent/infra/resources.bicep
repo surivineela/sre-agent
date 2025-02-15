@@ -1,0 +1,816 @@
+@description('The location used for all deployed resources')
+param location string = resourceGroup().location
+
+@description('Tags that will be applied to all resources')
+param tags object = {}
+
+param agentWebExists bool
+@secure()
+param agentWebDefinition object
+
+@description('Id of the user or app to assign application roles')
+param principalId string
+
+@description('azd env name')
+param environmentName string
+
+@description('Image to deploy')
+param imageToDeploy string = ''
+
+param vnetAddressPrefix string = '10.0.0.0/16'
+param containerAppEnvSubnetPrefix string = '10.0.0.0/21'
+param appGatewaySubnetPrefix string = '10.0.8.0/24'
+
+param icmClientCertName string = 'IcmClientCert'
+param icmClientCertSubject string = 'icm-client.agent.azurecontainerapps.dev'
+param fileshareName string = 'aca-agent-share'
+
+var abbrs = loadJsonContent('./abbreviations.json')
+var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
+
+// Monitor application with Azure Monitor
+module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
+  name: 'monitoring'
+  params: {
+    logAnalyticsName: '${abbrs.operationalInsightsWorkspaces}${resourceToken}'
+    applicationInsightsName: '${abbrs.insightsComponents}${resourceToken}'
+    applicationInsightsDashboardName: '${abbrs.portalDashboards}${resourceToken}'
+    location: location
+    tags: tags
+  }
+}
+
+module nsg 'br/public:avm/res/network/network-security-group:0.5.0' = {
+  name: 'nsg'
+  params: {
+    name: '${abbrs.networkNetworkSecurityGroups}${resourceToken}'
+    location: location
+    tags: tags
+    securityRules: [
+      {
+        name: 'NRMS-Rule-104'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'CorpNetSaw'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          direction: 'Inbound'
+          priority: 104
+        }
+      }
+      {
+        name: 'NRMS-Rule-101'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'VirtualNetwork'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 101
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'NRMS-Rule-105'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: '*'
+          access: 'Deny'
+          priority: 105
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '1433'
+            '1434'
+            '3306'
+            '4333'
+            '5432'
+            '6379'
+            '7000'
+            '7001'
+            '7199'
+            '9042'
+            '9160'
+            '9300'
+            '16379'
+            '26379'
+            '27017'
+          ]
+        }
+      }
+      {
+        name: 'NRMS-Rule-107'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: '*'
+          access: 'Deny'
+          priority: 107
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '23'
+            '135'
+            '445'
+            '5985'
+            '5986'
+          ]
+        }
+      }
+      {
+        name: 'NRMS-Rule-108'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: '*'
+          access: 'Deny'
+          priority: 108
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '13'
+            '17'
+            '19'
+            '53'
+            '69'
+            '111'
+            '123'
+            '512'
+            '514'
+            '593'
+            '873'
+            '1900'
+            '5353'
+            '11211'
+          ]
+        }
+      }
+      {
+        name: 'NRMS-Rule-106'
+        properties: {
+          protocol: 'Tcp'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: '*'
+          access: 'Deny'
+          priority: 106
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '22'
+            '3389'
+          ]
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'NRMS-Rule-103'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '*'
+          sourceAddressPrefix: 'CorpNetPublic'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 103
+          direction: 'Inbound'
+        }
+      }
+      {
+        name: 'NRMS-Rule-109'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          sourceAddressPrefix: 'Internet'
+          destinationAddressPrefix: '*'
+          access: 'Deny'
+          priority: 109
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: [
+            '119'
+            '137'
+            '138'
+            '139'
+            '161'
+            '162'
+            '389'
+            '636'
+            '2049'
+            '2301'
+            '2381'
+            '3268'
+            '5800'
+            '5900'
+          ]
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowGatewayManagerInbound'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '65200-65535'
+          sourceAddressPrefix: 'GatewayManager'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 119
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowIcMAutomation_1'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'LogicApps'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 120
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowIcMAutomation_2'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'AzureConnectors.WestUS'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 121
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowIcMAutomation_3'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: 'AzureConnectors.WestUS3'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 122
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowMSFTVPN'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          sourceAddressPrefix: '137.116.128.0/24'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 129
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: []
+          destinationAddressPrefixes: []
+        }
+      }
+      {
+        name: 'AllowedLogicApps'
+        properties: {
+          protocol: '*'
+          sourcePortRange: '*'
+          destinationPortRange: '443'
+          destinationAddressPrefix: '*'
+          access: 'Allow'
+          priority: 123
+          direction: 'Inbound'
+          sourcePortRanges: []
+          destinationPortRanges: []
+          sourceAddressPrefixes: [
+            '40.123.47.55'
+            '40.123.44.27'
+            '40.123.41.219'
+            '40.123.42.8'
+            '40.84.30.124'
+            '52.177.196.86'
+            '52.247.57.175'
+            '52.179.167.128'
+            '52.232.245.226'
+            '20.72.97.111'
+            '20.96.210.231'
+            '20.96.212.169'
+            '20.96.212.184'
+            '20.96.212.185'
+            '20.96.212.196'
+            '20.96.254.218'
+            '20.96.254.225'
+            '20.96.254.247'
+            '20.96.255.32'
+            '20.96.255.75'
+            '20.96.255.110'
+            '40.123.47.58'
+          ]
+          destinationAddressPrefixes: []
+        }
+      }
+    ]
+  }
+}
+
+module vnet 'br/public:avm/res/network/virtual-network:0.5.2' = {
+  name: 'vnet'
+  params: {
+    name: '${abbrs.networkVirtualNetworks}${resourceToken}'
+    location: location
+    tags: tags
+    addressPrefixes: [vnetAddressPrefix]
+    subnets: [
+      {
+        name: 'aca-agent-web-subnet'
+        addressPrefixes: [containerAppEnvSubnetPrefix]
+        delegation: 'Microsoft.App/environments'
+        networkSecurityGroupResourceId: nsg.outputs.resourceId
+      }
+      {
+        name: 'app-gateway'
+        addressPrefixes: [appGatewaySubnetPrefix]
+        networkSecurityGroupResourceId: nsg.outputs.resourceId
+      }
+    ]
+  }
+}
+
+// Container registry
+module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
+  name: 'registry'
+  params: {
+    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
+    location: location
+    acrAdminUserEnabled: true
+    tags: tags
+    publicNetworkAccess: 'Enabled'
+    roleAssignments: [
+      {
+        principalId: agentWebIdentity.outputs.principalId
+        principalType: 'ServicePrincipal'
+        roleDefinitionIdOrName: subscriptionResourceId(
+          'Microsoft.Authorization/roleDefinitions',
+          '7f951dda-4ed3-4680-a7ca-43fe172d538d'
+        )
+      }
+    ]
+  }
+}
+
+// Container apps environment
+module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.9.0' = {
+  name: 'container-apps-environment'
+  params: {
+    logAnalyticsWorkspaceResourceId: monitoring.outputs.logAnalyticsWorkspaceResourceId
+    name: '${abbrs.appManagedEnvironments}${resourceToken}'
+    location: location
+    zoneRedundant: true
+    internal: true
+    workloadProfiles: [
+      {
+        name: 'Consumption'
+        workloadProfileType: 'Consumption'
+      }
+    ]
+    infrastructureSubnetId: vnet.outputs.subnetResourceIds[0]
+    storages:[
+      {
+        storageAccountName: storage.outputs.storageAccountName
+        accessMode: 'ReadWrite'
+        kind: 'SMB'
+        shareName: fileshareName
+      }
+    ]
+  }
+}
+
+module agentWebIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
+  name: 'agentWebidentity'
+  params: {
+    name: '${abbrs.managedIdentityUserAssignedIdentities}agentWeb-${resourceToken}'
+    location: location
+  }
+}
+
+module deploymentScriptIdentity 'br/public:avm/res/managed-identity/user-assigned-identity:0.2.1' = {
+  name: 'deploymentScriptIdentity'
+  params: {
+    name: '${abbrs.managedIdentityUserAssignedIdentities}script-${resourceToken}'
+    location: location
+  }
+}
+
+module agentWebFetchLatestImage './modules/fetch-container-image.bicep' = {
+  name: 'agentWeb-fetch-image'
+  params: {
+    exists: agentWebExists
+    name: 'agent-web'
+  }
+}
+
+var agentWebAppSettingsArray = filter(array(agentWebDefinition.settings), i => i.name != '')
+var agentWebSecrets = map(filter(agentWebAppSettingsArray, i => i.?secret != null), i => {
+  name: i.name
+  value: i.value
+  secretRef: i.?secretRef ?? take(replace(replace(toLower(i.name), '_', '-'), '.', '-'), 32)
+})
+var agentWebEnv = map(filter(agentWebAppSettingsArray, i => i.?secret == null), i => {
+  name: i.name
+  value: i.value
+})
+
+module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
+  name: 'agentWeb'
+  // dependsOn: [GenerateIcmClientCertScript]
+  params: {
+    name: 'agent-web'
+    ingressTargetPort: 8080
+    scaleMinReplicas: 1
+    scaleMaxReplicas: 10
+    secrets: {
+      secureList: union(
+        [
+          {
+            name: 'icm-automation-client-cert'
+            keyVaultUrl: '${keyVault.outputs.uri}secrets/${icmClientCertName}'
+            identity: agentWebIdentity.outputs.resourceId
+          }
+          {
+            name: 'logicapp-post-incident-discussion-url'
+            keyVaultUrl: '${keyVault.outputs.uri}secrets/logicapp-post-incident-discussion-url'
+            identity: agentWebIdentity.outputs.resourceId
+          }
+        ],
+        map(agentWebSecrets, secret => {
+          name: secret.secretRef
+          value: secret.value
+        })
+      )
+    }
+    workloadProfileName: 'Consumption'
+    containers: [
+      {
+        // image: agentWebFetchLatestImage.outputs.?containers[?0].?image ?? 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        image: agentWebExists && !empty(imageToDeploy)
+          ? imageToDeploy
+          : 'mcr.microsoft.com/azuredocs/containerapps-helloworld:latest'
+        name: 'main'
+        resources: {
+          cpu: json('0.5')
+          memory: '1.0Gi'
+        }
+        env: union(
+          [
+            {
+              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              value: monitoring.outputs.applicationInsightsConnectionString
+            }
+            {
+              name: 'AZURE_CLIENT_ID'
+              value: agentWebIdentity.outputs.clientId
+            }
+            {
+              name: 'PORT'
+              value: '8080'
+            }
+            {
+              name: 'Azure__OpenAI__DeploymentName'
+              value: 'gpt-4o'
+            }
+            {
+              name: 'Azure__OpenAI__Endpoint'
+              value: openai.properties.endpoint
+            }
+            // TODO: put API key in key vault
+            {
+              name: 'Azure__OpenAI__ApiKey'
+              value: openai.listKeys().key1
+            }
+            {
+              name: 'Azure__TaskStorage__FilePath'
+              value: '/mnt/task-storage/tasks.json'
+            }
+            {
+              name: 'Kusto__ManagedIdentityClientId'
+              value: agentWebIdentity.outputs.clientId
+            }
+            {
+              name: 'ICM__ServiceId'
+              value: 'f7c85136-4f1f-417c-bb3d-d540a26746c8'
+            }
+            {
+              name: 'ICM__CertificateFilePath'
+              value: 'base64:/mnt/icm-automation/client-cert.pfx'
+            }
+            {
+              name: 'ICM__WorkflowNames__FetchICMIncidentInfo'
+              value: 'Workflow-GetIncidentInfo'
+            }
+            {              
+              name: 'ICM__PostIncidentDiscussionUrl'
+              secretRef: 'logicapp-post-incident-discussion-url'
+            }
+          ],
+          agentWebEnv,
+          map(agentWebSecrets, secret => {
+            name: secret.name
+            secretRef: secret.secretRef
+          })
+        )
+        volumeMounts: [
+          {
+            volumeName: 'icm-automation-client-cert-vol'
+            mountPath: '/mnt/icm-automation'
+          }
+          {
+            volumeName: 'task-storage'
+            mountPath: '/mnt/task-storage'
+          }
+        ]
+      }
+    ]
+    volumes: [
+      {
+        name: 'icm-automation-client-cert-vol'
+        storageType: 'Secret'
+        secrets: [
+          {
+            secretRef: 'icm-automation-client-cert'
+            path: 'client-cert.pfx'
+          }
+        ]
+      }
+      {
+        name: 'task-storage'
+        storageType: 'AzureFile'
+        storageName: fileshareName
+      }
+    ]
+    managedIdentities: {
+      systemAssigned: false
+      userAssignedResourceIds: [agentWebIdentity.outputs.resourceId]
+    }
+    registries: [
+      {
+        server: containerRegistry.outputs.loginServer
+        identity: agentWebIdentity.outputs.resourceId
+      }
+    ]
+    environmentResourceId: containerAppsEnvironment.outputs.resourceId
+    location: location
+    tags: union(tags, { 'azd-service-name': 'agent-web' })
+  }
+}
+
+// Create a keyvault to store secrets
+module keyVault 'br/public:avm/res/key-vault/vault:0.11.2' = {
+  name: 'keyvault'
+  params: {
+    name: '${abbrs.keyVaultVaults}${resourceToken}'
+    location: location
+    tags: tags
+    enableRbacAuthorization: false
+    accessPolicies: [
+      {
+        objectId: principalId
+        permissions: {
+          secrets: ['get', 'list']
+          certificates: ['get', 'list']
+        }
+      }
+      {
+        objectId: agentWebIdentity.outputs.principalId
+        permissions: {
+          secrets: ['get', 'list']
+          certificates: ['get', 'list']
+        }
+      }
+      {
+        objectId: deploymentScriptIdentity.outputs.principalId
+        permissions: {
+          certificates: ['get', 'create']
+        }
+      }
+    ]
+    secrets: [
+      {
+        name: 'openai-api-key'
+        value: openai.listKeys().key1
+      }
+    ]
+  }
+}
+
+/*
+module GenerateIcmClientCertScript 'br/public:avm/res/resources/deployment-script:0.5.1' = {
+  name: 'GenerateIcmClientCert'
+  params: {
+    name: 'GenerateIcmClientCert'
+    location: location
+    kind: 'AzurePowerShell'
+    azPowerShellVersion: '10.0'
+    arguments: '-name ${icmClientCertName} -keyVault ${keyVault.name} -subject ${icmClientCertSubject}'
+    scriptContent: '''
+      param(
+        [Parameter(Mandatory=$true)][string] $name,  
+        [Parameter(Mandatory=$true)][string] $keyVault,  
+        [Parameter(Mandatory=$true)][string] $subject
+      )
+      $ErrorActionPreference = 'Stop"
+      $DeploymentScriptOutputs = @{}
+      $DeploymentScriptOutputs['text'] = $output
+      Connect-AzAccount -Identity
+      $Cert = Get-AzKeyVaultCertificate -VaultName "$keyVault" -Name "$name"
+      if ($Cert -eq $null)
+      {
+          Write-Host "No client certifate of Icm is found. Will generate a new one..."
+          $Policy = New-AzKeyVaultCertificatePolicy -SecretContentType "application/x-pkcs12" -SubjectName "CN=$subject" -IssuerName "Self" -ValidityInMonths 6 -ReuseKeyOnRenewal -DnsName "$subject"
+          Add-AzKeyVaultCertificate -VaultName "$keyVault" -Name "$name" -CertificatePolicy $Policy
+      }
+      else
+      {
+          Write-Host "The client certifate of Icm already exists."
+      }
+    '''
+    timeout: 'PT1H'
+    retentionInterval: 'PT1H'
+    managedIdentities: {
+      userAssignedResourceIds: [
+        deploymentScriptIdentity.outputs.resourceId
+      ]
+    }
+  }
+}
+*/
+
+resource openai 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
+  name: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
+  location: location
+  sku: {
+    name: 'S0'
+  }
+  kind: 'OpenAI'
+  tags: tags
+  properties: {}
+}
+
+// Use conditional expression as a workaround. A model deployment will fail if the model already exists with error message 'InvalidResourceProperties: The sku of model deployment is not provided.'
+resource gpt4o 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = if (!agentWebExists) {
+  parent: openai
+  name: 'gpt-4o'
+  sku: {
+    name: 'Standard'
+    capacity: 10
+  }
+  properties: {
+    model: {
+      name: 'gpt-4o'
+      format: 'OpenAI'
+      version: '2024-05-13'
+    }
+    raiPolicyName: 'Microsoft.Default'
+    versionUpgradeOption: 'OnceCurrentVersionExpired'
+  }
+}
+
+module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.7.0' = {
+  name: 'privateDnsZone'
+  params: {
+    name: containerAppsEnvironment.outputs.defaultDomain
+    // private dns zone is a global resource
+    // location: location
+    tags: tags
+    virtualNetworkLinks: [
+      {
+        name: 'my-custom-vnet-pdns-link'
+        virtualNetworkResourceId: vnet.outputs.resourceId
+      }
+    ]
+    a: [
+      {
+        name: '*'
+        aRecords: [
+          {
+            ipv4Address: containerAppsEnvironment.outputs.staticIp
+          }
+        ]
+      }
+      {
+        name: '@'
+        aRecords: [
+          {
+            ipv4Address: containerAppsEnvironment.outputs.staticIp
+          }
+        ]
+      }
+    ]
+  }
+}
+
+module storage 'modules/storage.bicep' = {
+  name: 'storage'
+  params: {
+    accountName: '${abbrs.storageStorageAccounts}${resourceToken}'
+    queueName: 'aca-agent-queue'
+    fileshareName: fileshareName
+    tags: tags
+    userAssignedIdentityId: agentWebIdentity.outputs.resourceId
+    userAssignedIdentityPrincipalId: agentWebIdentity.outputs.principalId
+  }
+}
+
+/*
+module appGateway 'br/public:avm/res/network/application-gateway:0.5.1' = {
+  name: 'appGateway'
+  params: {
+    name: '${abbrs.networkApplicationGateways}${resourceToken}'
+    location: location
+    tags: tags
+    sku: 'WAF_v2'
+    httpSettings: [
+      {
+        name: 'appGatewayHttpSettings'
+        cookieBasedAffinity: 'Disabled'
+        port: 80
+        protocol: 'Http'
+        requestTimeout: 20
+      }
+    ]
+    frontendIPConfigurations: [
+      {
+        name: 'appGatewayFrontendIPConfig'
+        publicIPAddressId: containerAppsEnvironment.outputs.publicIpId
+      }
+    ]
+    frontendPorts: [
+      {
+        name: 'appGatewayFrontendPort'
+        port: 80
+      }
+    ]
+    backendAddressPools: [
+      {
+        name: 'appGatewayBackendAddressPool'
+        backendAddresses: [
+          {
+            fqdn: containerAppsEnvironment.outputs.defaultDomain
+          }
+        ]
+      }
+    ]
+    httpListeners: [
+      {
+        name: 'appGatewayHttpListener'
+        frontendIPConfigurationId: containerAppsEnvironment.outputs.frontendIpConfigId
+        frontendPortId: containerAppsEnvironment.outputs.frontendPortId
+        protocol: 'Http'
+      }
+    ]
+    requestRoutingRules: [
+      {
+        name: 'appGatewayRequestRoutingRule'
+        httpListenerId: containerAppsEnvironment.outputs.httpListenerId
+        backendAddressPoolId: containerAppsEnvironment.outputs.backendAddressPoolId
+        backendHttpSettingsId: containerAppsEnvironment.outputs.httpSettingsId
+      }
+    ]
+  }
+}
+  */
+
+output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
+output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.uri
+output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
+output AZURE_RESOURCE_AGENT_WEB_ID string = agentWeb.outputs.resourceId
+output AZURE_OPENAI_ENDPOINT string = openai.properties.endpoint

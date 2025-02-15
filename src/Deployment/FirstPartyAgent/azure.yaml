@@ -1,0 +1,15 @@
+# yaml-language-server: $schema=https://raw.githubusercontent.com/Azure/azure-dev/main/schemas/v1.0/azure.yaml.json
+
+name: aapt-antares-operationalagent
+metadata:
+    template: azd-init@1.12.0
+services:
+    agent-web:
+        project: ..\..\Agent\FirstPartyAgent.Web\FirstPartyAgent.Web.csproj
+        host: containerapp
+        language: csharp
+        docker:
+          path: ./Dockerfile
+          context: .
+          buildArgs:
+            - NUGET_FEED_ACCESS_TOKEN
