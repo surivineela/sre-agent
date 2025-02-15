@@ -2,7 +2,6 @@
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using OperationalAgentCore.Models;
-using Model = OperationalAgentCore.Models;
 
 namespace OperationalAgentCore;
 
@@ -29,6 +28,7 @@ public static class SemanticKernelHelper
         serviceCollection.AddSingleton<TeamsConnector>();
         serviceCollection.AddScoped<IcmPlugin>();
         serviceCollection.AddScoped<ICMApprovalPlugin>();
+        serviceCollection.AddSingleton<KustoPlugin>();
 
 
         // Configure Semantic Kernel
@@ -91,10 +91,12 @@ public static class SemanticKernelHelper
             }
             else if(agentMode == AgentMode.ICM)
             {
-                var icmPlugin = sp.GetRequiredService<IcmPlugin>();
-                kernelBuilder.Plugins.AddFromObject(icmPlugin, "IcmPlugin");
-                kernelBuilder.Plugins.AddFromType<ICMApprovalPlugin>("ICMApprovalPlugin");
-            }
+               var icmPlugin = sp.GetRequiredService<IcmPlugin>();
+               var kustoPlugin = sp.GetRequiredService<KustoPlugin>();
+               kernelBuilder.Plugins.AddFromObject(icmPlugin, "IcmPlugin");
+               kernelBuilder.Plugins.AddFromType<ICMApprovalPlugin>("ICMApprovalPlugin");
+               kernelBuilder.Plugins.AddFromObject(kustoPlugin, "KustoPlugin");
+         }
             
             return kernelBuilder.Build();
         });

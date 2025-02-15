@@ -40,6 +40,7 @@
 		<PackageReference Include="ScottPlot" Version="5.0.53" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
 		<PackageReference Include="NCrontab" Version="3.3.3" />
+		<PackageReference Include="Microsoft.Azure.Kusto.Data" Version="12.2.3" />
 		<PackageReference Include="System.Linq.Async" Version="6.0.1" />
 	</ItemGroup>
 </Project>
