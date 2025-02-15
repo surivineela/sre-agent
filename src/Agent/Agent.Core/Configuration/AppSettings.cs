@@ -85,3 +85,34 @@ public class TestSettings
     [Required]
     public bool SkipResourceCleanupAfterTestRun { get; set; } = true;
 }
+
+public class KustoCluster
+{
+    [Required]
+    public string Region { get; set; }
+    [Required]
+    public string ClusterUri { get; set; }
+    [Required]
+    public string Database { get; set; }
+}
+
+public class KustoClusterSettings : List<KustoCluster> { }
+
+public enum KustoAuthenticationType
+{
+    ManagedIdentity,
+    UAMI,
+    App,
+    User, // for testing
+}
+
+public class KustoSettings
+{
+    [Required]
+    public KustoAuthenticationType AuthenticationType { get; set; }
+    public string Authority { get; set; } = string.Empty;
+    public string AuthorityHost { get; set; } = string.Empty;
+    public string ApplicationClientId { get; set; } = string.Empty;
+    public string ApplicationCertificate { get; set; } = string.Empty;
+    public string ManagedIdentityClientId { get; set; } = string.Empty;
+}

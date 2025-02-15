@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;
 using System.Net.Http;
@@ -72,6 +73,13 @@ public static class SemanticKernelHelper
                     endpoint: azureSettings.OpenAI.Endpoint,
                     apiKey: azureSettings.OpenAI.ApiKey);
             }
+
+            kernelBuilder.Services.AddLogging(builder =>
+            {
+                // Use configuration for logging levels
+                builder.AddConfiguration(config.GetSection("Logging"));
+                builder.AddConsole();
+            });
 
             // Register skills
             kernelBuilder.Plugins.AddFromType<DiagnosePlugin>("DiagnosePlugin");

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Security.Cryptography.X509Certificates;
+﻿using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Helpers
@@ -50,6 +49,35 @@ namespace Agent.Core.Helpers
             finally
             {
                 certStore.Close();
+            }
+        }
+
+        // Load cert from the file path
+        public static X509Certificate2 LoadCertFromFile(string certFilePath, string? certPassword = null, ILogger? log = null)
+        {
+            try
+            {
+                if (certFilePath.StartsWith("base64:", StringComparison.OrdinalIgnoreCase))
+                {
+                    certFilePath = certFilePath.Substring(7);
+                    // Read the file content from the path
+                    var content = File.ReadAllText(certFilePath);
+                    var certBytes = Convert.FromBase64String(content);
+                    var cert = new X509Certificate2(certBytes, certPassword);
+                    log?.LogInformation("Successfully loaded Cert from base64 string");
+                    return cert;
+                }
+                else
+                {
+                    var cert = new X509Certificate2(certFilePath, certPassword);
+                    log?.LogInformation("Successfully loaded Cert from file {}", certFilePath);
+                    return cert;
+                }
+            }
+            catch (Exception ex)
+            {
+                log?.LogError(ex, "Error: {} occurred while trying to load cert from file {}", ex.Message, certFilePath);
+                throw;
             }
         }
     }
