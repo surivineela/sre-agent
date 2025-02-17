@@ -2,6 +2,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using OpenAI.Chat;
 using OperationalAgentCore.Models;
 
 namespace OperationalAgentCore;
@@ -25,6 +26,7 @@ public static class DemoExec2
         var history = new ChatHistory();
         history.AddSystemMessage(systemPrompt);
 
+        int? lastTokenCount = null;
         while (true)
         {
 
@@ -40,7 +42,10 @@ public static class DemoExec2
                     },
                     kernel: kernel);
 
-                Console.WriteLine("Assistant > " + result);
+                // get the totaltokencount out of ChatTokenUsage in result.Metadasta array
+                int? totalTokenCount = result.Metadata?.TryGetValue("Usage", out var chatTokenUsage) == true ? (chatTokenUsage as ChatTokenUsage)?.TotalTokenCount : null;
+
+                Console.WriteLine($"Assistant ({totalTokenCount} tokens, +{totalTokenCount - (lastTokenCount ?? 0)}) > " + result);
 
                 if (result.Metadata?.TryGetValue("tool_calls", out var toolCalls) == true &&
                     toolCalls.ToString().Contains("end_conversation"))
@@ -54,6 +59,7 @@ public static class DemoExec2
                     result.Content);
 
                 history.AddMessage(result.Role, result.Content ?? string.Empty);
+                lastTokenCount = totalTokenCount;
             }
             catch (HttpOperationException ex)
             {

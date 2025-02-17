@@ -5,6 +5,11 @@ using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Text;
 using HtmlAgilityPack;
+using System.Text.RegularExpressions;
+using System.Net.Http;
+using SkiaSharp;
+using Microsoft.SemanticKernel.ChatCompletion;
+using OperationalAgentCore.Helpers;
 
 namespace OperationalAgentCore
 {
@@ -82,14 +87,36 @@ namespace OperationalAgentCore
         [KernelFunction("get_icm_incident_details")]
         [Description("Get ICM incident details")]
         public async Task<Incident> GetIncidentInfo(
-           [Description("Incident ID")] string incidentId)
+           [Description("Incident ID")] string incidentId, Kernel kernel)
         {
             var payload = JsonConvert.SerializeObject(new { incidentId });
             var response = await ExecuteICMWorkflow("GetIncidentInfo-AppLensAutomation", payload);
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
+
                 var incident = JsonConvert.DeserializeObject<Incident>(content);
+
+                List<(string, string)> base64Images = new List<(string, string)>();
+                if (incident.Summary != null)
+                {
+                    // remove base64 images from the summary (they would blow the response which goes back to the model and the model wouldn't make sense out of it) and store them in a list
+                    incident.Summary = TextProcessingHelpers.StripBase64Images(incident.Summary, base64Images);
+
+                    // remove html attributes as they don't provide much value and make the response longer (todo: it might be useful to strip html tags completely and convert the text rather to markdown or something like that)
+                    incident.Summary = TextProcessingHelpers.RemoveHtmlAttributes(incident.Summary);
+
+                    var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+                    for (int i = 0; i < base64Images.Count; i++)
+                    {
+                        // extract text from the image and replace the placeholder in the summary with the extracted text
+                        ChatMessageContent result = await ExtractTextFromImage(kernel, base64Images[i].Item1, base64Images[i].Item2, chatCompletionService);
+
+                        incident.Summary = incident.Summary.Replace($"####{i}####", "[The following text was in an image in the incident]" + result.Content + "\r\n[End of the image]");
+                    }
+                }
+
                 return incident;
             }
             else
@@ -97,6 +124,38 @@ namespace OperationalAgentCore
                 Console.WriteLine($"Failed to fetch incident info for incidentId: {incidentId}");
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Extracts text from an image using the chat completion service with SK (does not carry around the conversation history/context etc.; no tool calling)
+        /// </summary>
+        /// <param name="kernel"></param>
+        /// <param name="mimeType"></param>
+        /// <param name="base64Image"></param>
+        /// <param name="chatCompletionService"></param>
+        /// <returns></returns>
+        private static async Task<ChatMessageContent> ExtractTextFromImage(Kernel kernel, string mimeType, string base64Image, IChatCompletionService chatCompletionService)
+        {
+            Console.WriteLine($"Extracting text from image ({mimeType}, {base64Image.Length} characters)");
+
+            var history = new ChatHistory();
+            var message = new ChatMessageContentItemCollection
+                        {
+                            new TextContent("Please extract the text from the image"),
+                            new ImageContent($"{mimeType};base64,{base64Image}")
+                        };
+
+            history.AddUserMessage(message);
+
+            var result = await chatCompletionService.GetChatMessageContentAsync(
+            history,
+            executionSettings: new()
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.None()
+            },
+            kernel: kernel);
+
+            return result;
         }
 
         [KernelFunction("get_icm_discussion_entries")]
