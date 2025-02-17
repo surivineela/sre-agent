@@ -6,6 +6,7 @@ using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.AppService;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph;
+using Gremlin.Net.Driver;
 
 namespace Agent.Plugins
 {
@@ -115,9 +116,24 @@ namespace Agent.Plugins
             return appServices;
         }
 
-        public async Task<InMemoryGraphManager> GetResourceGraphForAllSubscriptionsAsync()
+        public async Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync()
         {
             return await ResourceGraphHelper.ConstructResourceGraphAndPersistAsync(_graphDatabaseManager);
+        }
+
+        public async Task<InMemoryGraphManager> BuildMockResourceGraphForAllSubscriptionsAsync()
+        {
+            return await ResourceGraphHelper.ConstructMockResourceGraphAndPersistAsync(_graphDatabaseManager);
+        }
+
+        public async Task DeleteResourceGraph()
+        {
+            await _graphDatabaseManager.Clear();
+        }
+
+        public async Task<ResultSet<dynamic>> QueryResourceGraph(string query)
+        {
+            return await _graphDatabaseManager.Query(query);
         }
     }
 }

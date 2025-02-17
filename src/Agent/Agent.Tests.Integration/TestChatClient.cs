@@ -25,6 +25,14 @@ namespace Agent.Tests.Integration
             _output = output;
         }
 
+        internal TestChatClient(IChatClient client, ChatOptions chatOptions, string systemPrompt, ITestOutputHelper output)
+        {
+            ChatHistory = [new ChatMessage(ChatRole.System, systemPrompt)];
+            ChatOptions = chatOptions;
+            Client = client;
+            _output = output;
+        }
+
         public async Task<ChatCompletion> CompleteAsync(string message)
         {
             _output.WriteLine($"Sending message: {message}");

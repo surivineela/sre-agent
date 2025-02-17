@@ -1,18 +1,37 @@
 ﻿using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using System.Text.Json;
 
 namespace Agent.Data.DatabaseManagers.GraphDatabase
 {
+    public class CustomGraphSON2Reader : GraphSON2Reader
+    {
+        public override dynamic ToObject(JsonElement graphSon) =>
+            graphSon.ValueKind switch
+            {
+                // numbers
+                JsonValueKind.Number when graphSon.TryGetInt32(out var intValue) => intValue,
+                JsonValueKind.Number when graphSon.TryGetInt64(out var longValue) => longValue,
+                JsonValueKind.Number when graphSon.TryGetDecimal(out var decimalValue) => decimalValue,
+
+
+                _ => base.ToObject(graphSon)
+            };
+    }
+
     public class GremlinGraphDatabaseManager : IGraphDatabaseManager
     {
         private static GremlinClient? _gremlinClient;
         private static readonly object _lock = new object();
         private readonly IConfiguration _configuration;
+        private readonly ILogger<GremlinGraphDatabaseManager> _logger;
 
-        public GremlinGraphDatabaseManager(IConfiguration configuration)
+        public GremlinGraphDatabaseManager(IConfiguration configuration, ILogger<GremlinGraphDatabaseManager> logger)
         {
             _configuration = configuration;
+            _logger = logger;
 
             // Initialize the Gremlin client if it hasn't been initialized yet
             if (_gremlinClient == null)
@@ -44,7 +63,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
 
             return new GremlinClient(
                 gremlinServer,
-                messageSerializer: new GraphSON2MessageSerializer()
+                messageSerializer: new GraphSON2MessageSerializer(new CustomGraphSON2Reader())
             );
         }
 
@@ -85,6 +104,20 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
                 // Handle conflict exception (edge already exists)
                 return false;
             }
+        }
+
+        public async Task Clear()
+        {
+            string query = "g.V().drop()";
+            await _gremlinClient!.SubmitAsync<dynamic>(query);
+        }
+
+        public async Task<ResultSet<dynamic>> Query(string query)
+        {
+            _logger.LogInformation($"Executing Gremlin query: {query}");
+
+            var res = await _gremlinClient!.SubmitAsync<dynamic>(query);
+            return res;
         }
 
         private static string GetSanitizedCosmosDBId(string id)

@@ -1,4 +1,6 @@
-﻿namespace Agent.Data.DatabaseManagers.GraphDatabase
+﻿using Gremlin.Net.Driver;
+
+namespace Agent.Data.DatabaseManagers.GraphDatabase
 {
     public interface IGraphDatabaseManager
     {
@@ -25,5 +27,17 @@
             string sourceNodeId,
             string targetNodeId,
             string relationshipType);
+
+        /// <summary>
+        /// Clears the graph.
+        /// </summary>
+        /// <returns></returns>
+        Task Clear();
+
+        /// <summary>
+        /// Queries the graph.
+        /// </summary>
+        /// <returns></returns>
+        Task<ResultSet<dynamic>> Query(string query);
     }
 }

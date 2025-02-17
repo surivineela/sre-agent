@@ -75,5 +75,11 @@ namespace Agent.Graph
         {
             return _edges.Values.ToList();
         }
+
+        public void Clear()
+        {
+            _edges.Clear();
+            _nodes.Clear();
+        }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Agent.Graph;
 using Agent.Graph.Schema;
 using Agent.Plugins.Models;
+using Gremlin.Net.Driver;
 
 namespace Agent.Plugins
 {
@@ -30,7 +31,7 @@ namespace Agent.Plugins
                 ];
         }
 
-        public async Task<InMemoryGraphManager> GetResourceGraphForAllSubscriptionsAsync()
+        public async Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync()
         {
             await Task.Yield();
 
@@ -75,8 +76,22 @@ namespace Agent.Plugins
                     graphManager.AddDirectedEdgeIfNotExists(node, childNode, "contains");
                 }
             }
-
             return graphManager;
+        }
+
+        public async Task<InMemoryGraphManager> BuildMockResourceGraphForAllSubscriptionsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task DeleteResourceGraph()
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<ResultSet<dynamic>> QueryResourceGraph(string query)
+        {
+            throw new NotImplementedException();
         }
     }
 }

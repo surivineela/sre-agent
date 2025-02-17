@@ -15,11 +15,28 @@ namespace Agent.Graph
             return inMemoryGraphManager;
         }
 
+        public static async Task<InMemoryGraphManager> ConstructMockResourceGraphAndPersistAsync(IGraphDatabaseManager graphDatabaseManager)
+        {
+            var inMemoryGraphManager = await ConstructResourceGraphInMemoryAsync();
+            await PersistResourceGraphAsync(
+                graphDatabaseManager: graphDatabaseManager,
+                resourceGraph: inMemoryGraphManager);
+
+            return inMemoryGraphManager;
+        }
+
         public static async Task<InMemoryGraphManager> ConstructResourceGraphInMemoryAsync()
         {
             var inMemoryGraphManager = new InMemoryGraphManager();
             var subscriptionNodes = await SubscriptionCrawler.CrawlAllSubscriptions(inMemoryGraphManager);
             await AppServiceCrawler.CrawlAllAppServices(inMemoryGraphManager, subscriptionNodes);
+            return inMemoryGraphManager;
+        }
+
+        public static async Task<InMemoryGraphManager> ConstructMockResourceGraphInMemoryAsync()
+        {
+            var inMemoryGraphManager = new InMemoryGraphManager();
+            await MockCrawler.CrawlMock(inMemoryGraphManager);
             return inMemoryGraphManager;
         }
 
