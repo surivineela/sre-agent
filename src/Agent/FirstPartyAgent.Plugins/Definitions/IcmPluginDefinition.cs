@@ -12,7 +12,7 @@ namespace FirstPartyAgent.Plugins.Definitions
 {
     public class IcmPluginDefinition(IIcmPlugin plugin)
     {
-        private readonly IIcmPlugin _plugin;
+        private readonly IIcmPlugin _plugin = plugin;
 
         [KernelFunction(KernelFunctionNames.Icm.IcmGetIncidentInfo)]
         [Description("Get ICM incident information")]

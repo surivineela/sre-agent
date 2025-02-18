@@ -18,7 +18,7 @@ public class ApiController : ControllerBase
     private readonly IQuotaAgentService _quotaAgentService;
     private readonly IIcmPlugin _icmPlugin;
     private readonly ITaskStorageService _taskStorageService;
-    public ApiController(ILogger<ApiController> logger, Kernel kernel, IQuotaAgentService quotaAgentService, IcmPlugin icmPlugin, ITaskStorageService taskStorageService)
+    public ApiController(ILogger<ApiController> logger, Kernel kernel, IQuotaAgentService quotaAgentService, IIcmPlugin icmPlugin, ITaskStorageService taskStorageService)
     {
         _logger = logger;
         _kernel = kernel;

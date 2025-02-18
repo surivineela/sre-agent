@@ -1,6 +1,5 @@
 using Agent.Core.Helpers;
 using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins.Implementation;
 using FirstPartyAgent.Web;
 using FirstPartyAgent.Web.Services;
 
@@ -17,7 +16,7 @@ builder.Services.ConfigureSemanticKernel();
 builder.Services.AddScoped<IIcmPlugin, FirstPartyAgent.Plugins.IcmPlugin>();
 builder.Services.AddScoped<IContainerAppsPlugin, ContainerAppsPlugin>();
 builder.Services.AddScoped<IKustoPlugin, KustoPlugin>();
-builder.Services.AddSingleton<IIcmAutomationClient, IcmAutomationClient>();
+builder.Services.AddSingleton<IcmAutomationClient>();
 builder.Services.AddSingleton<ITaskStorageService, FileBasedStorageService>();
 builder.Services.AddScoped<KustoServiceClientFactory>();
 builder.Services.AddScoped<IQuotaAgentService, QuotaAgentService>();
