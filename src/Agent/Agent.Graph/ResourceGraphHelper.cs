@@ -50,6 +50,7 @@ namespace Agent.Graph
             foreach (var node in nodes)
             {
                 await graphDatabaseManager.AddOrUpdateNodeAsync(
+                    nodeLabel: "node",
                     nodeId: node.Id,
                     resourceType: node.Type,
                     properties: node.Properties);

@@ -2,6 +2,7 @@
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using System.Security.AccessControl;
 using System.Text.Json;
 
 namespace Agent.Data.DatabaseManagers.GraphDatabase
@@ -67,7 +68,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             );
         }
 
-        public async Task<bool> AddOrUpdateNodeAsync(string nodeId, string resourceType, IDictionary<string, object> properties)
+        public async Task<bool> AddOrUpdateNodeAsync(string nodelabel, string nodeId, string resourceType, IDictionary<string, object> properties)
         {
             var sanitizedNodeId = GetSanitizedCosmosDBId(nodeId);
             var query = $"g.V('{sanitizedNodeId}').fold().coalesce(unfold()";
@@ -75,7 +76,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             {
                 query += $".property('{property.Key}', '{property.Value}')";
             }
-            query += $", addV('node').property(id, '{sanitizedNodeId}').property('resourceType', '{resourceType}')";
+            query += $", addV('{nodelabel}').property(id, '{sanitizedNodeId}').property('resourceType', '{resourceType}')";
             foreach (var property in properties)
             {
                 query += $".property('{property.Key}', '{property.Value}')";

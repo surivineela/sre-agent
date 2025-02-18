@@ -12,6 +12,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         /// <param name="properties">A dictionary of properties to associate with the node.</param>
         /// <returns>A boolean indicating whether the node was added (true) or updated (false).</returns>
         Task<bool> AddOrUpdateNodeAsync(
+            string nodeLabel,
             string nodeId,
             string resourceType,
             IDictionary<string, object> properties);

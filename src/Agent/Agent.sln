@@ -27,6 +27,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Tests.End2End", "Agen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Tests.Common", "Agent.Tests.Common\Agent.Tests.Common.csproj", "{BAC28CDC-0808-44E6-869B-68DE493AEF8E}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Cmd", "Agent.Cmd\Agent.Cmd.csproj", "{D985A20E-B2F0-489D-83BE-90206AFF817D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -81,6 +83,10 @@ Global
 		{BAC28CDC-0808-44E6-869B-68DE493AEF8E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BAC28CDC-0808-44E6-869B-68DE493AEF8E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BAC28CDC-0808-44E6-869B-68DE493AEF8E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D985A20E-B2F0-489D-83BE-90206AFF817D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D985A20E-B2F0-489D-83BE-90206AFF817D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D985A20E-B2F0-489D-83BE-90206AFF817D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D985A20E-B2F0-489D-83BE-90206AFF817D}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
