@@ -26,6 +26,14 @@ public class ApiController : ControllerBase
         _icmPlugin = icmPlugin;
         _taskStorageService = taskStorageService;
     }
+
+    [Route("Health")]
+    [HttpGet]
+    public IActionResult Health()
+    {
+        return Ok();
+    }
+
     [Route("UpdatePrompt")]
     [HttpPost]
     public async Task<IActionResult> UpdatePrompt(Prompt prompt)

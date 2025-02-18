@@ -19,6 +19,9 @@ param principalId string
 @description('Image to deploy')
 param imageToDeploy string = ''
 
+// @description('Enable HTTPS on the App Gateway')
+// param enbaleAppGatewayHttps bool
+
 // Tags that should be applied to all resources.
 // 
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -46,6 +49,7 @@ module resources 'resources.bicep' = {
     agentWebDefinition: agentWebDefinition
     environmentName: environmentName
     imageToDeploy: imageToDeploy
+    // enableAppGatewayHttps: enbaleAppGatewayHttps
   }
 }
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT

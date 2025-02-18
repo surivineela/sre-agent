@@ -20,10 +20,13 @@ param imageToDeploy string = ''
 param vnetAddressPrefix string = '10.0.0.0/16'
 param containerAppEnvSubnetPrefix string = '10.0.0.0/21'
 param appGatewaySubnetPrefix string = '10.0.8.0/24'
+param logicAppSubnetPrefix string = '10.0.9.0/24'
 
 param icmClientCertName string = 'IcmClientCert'
 param icmClientCertSubject string = 'icm-client.agent.azurecontainerapps.dev'
 param fileshareName string = 'aca-agent-share'
+
+// param enableAppGatewayHttps bool
 
 var abbrs = loadJsonContent('./abbreviations.json')
 var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
@@ -40,331 +43,20 @@ module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
   }
 }
 
-module nsg 'br/public:avm/res/network/network-security-group:0.5.0' = {
-  name: 'nsg'
+module vnet 'modules/vnet.bicep' = {
+  name: 'vnet'
   params: {
-    name: '${abbrs.networkNetworkSecurityGroups}${resourceToken}'
+    nsgName: '${abbrs.networkNetworkSecurityGroups}${resourceToken}'
     location: location
     tags: tags
-    securityRules: [
-      {
-        name: 'NRMS-Rule-104'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '*'
-          sourceAddressPrefix: 'CorpNetSaw'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          direction: 'Inbound'
-          priority: 104
-        }
-      }
-      {
-        name: 'NRMS-Rule-101'
-        properties: {
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: 'VirtualNetwork'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 101
-          direction: 'Inbound'
-        }
-      }
-      {
-        name: 'NRMS-Rule-105'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          sourceAddressPrefix: 'Internet'
-          destinationAddressPrefix: '*'
-          access: 'Deny'
-          priority: 105
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: [
-            '1433'
-            '1434'
-            '3306'
-            '4333'
-            '5432'
-            '6379'
-            '7000'
-            '7001'
-            '7199'
-            '9042'
-            '9160'
-            '9300'
-            '16379'
-            '26379'
-            '27017'
-          ]
-        }
-      }
-      {
-        name: 'NRMS-Rule-107'
-        properties: {
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          sourceAddressPrefix: 'Internet'
-          destinationAddressPrefix: '*'
-          access: 'Deny'
-          priority: 107
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: [
-            '23'
-            '135'
-            '445'
-            '5985'
-            '5986'
-          ]
-        }
-      }
-      {
-        name: 'NRMS-Rule-108'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          sourceAddressPrefix: 'Internet'
-          destinationAddressPrefix: '*'
-          access: 'Deny'
-          priority: 108
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: [
-            '13'
-            '17'
-            '19'
-            '53'
-            '69'
-            '111'
-            '123'
-            '512'
-            '514'
-            '593'
-            '873'
-            '1900'
-            '5353'
-            '11211'
-          ]
-        }
-      }
-      {
-        name: 'NRMS-Rule-106'
-        properties: {
-          protocol: 'Tcp'
-          sourcePortRange: '*'
-          sourceAddressPrefix: 'Internet'
-          destinationAddressPrefix: '*'
-          access: 'Deny'
-          priority: 106
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: [
-            '22'
-            '3389'
-          ]
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'NRMS-Rule-103'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '*'
-          sourceAddressPrefix: 'CorpNetPublic'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 103
-          direction: 'Inbound'
-        }
-      }
-      {
-        name: 'NRMS-Rule-109'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          sourceAddressPrefix: 'Internet'
-          destinationAddressPrefix: '*'
-          access: 'Deny'
-          priority: 109
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: [
-            '119'
-            '137'
-            '138'
-            '139'
-            '161'
-            '162'
-            '389'
-            '636'
-            '2049'
-            '2301'
-            '2381'
-            '3268'
-            '5800'
-            '5900'
-          ]
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowGatewayManagerInbound'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '65200-65535'
-          sourceAddressPrefix: 'GatewayManager'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 119
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowIcMAutomation_1'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: 'LogicApps'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 120
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowIcMAutomation_2'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: 'AzureConnectors.WestUS'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 121
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowIcMAutomation_3'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: 'AzureConnectors.WestUS3'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 122
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowMSFTVPN'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          sourceAddressPrefix: '137.116.128.0/24'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 129
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: []
-          destinationAddressPrefixes: []
-        }
-      }
-      {
-        name: 'AllowedLogicApps'
-        properties: {
-          protocol: '*'
-          sourcePortRange: '*'
-          destinationPortRange: '443'
-          destinationAddressPrefix: '*'
-          access: 'Allow'
-          priority: 123
-          direction: 'Inbound'
-          sourcePortRanges: []
-          destinationPortRanges: []
-          sourceAddressPrefixes: [
-            '40.123.47.55'
-            '40.123.44.27'
-            '40.123.41.219'
-            '40.123.42.8'
-            '40.84.30.124'
-            '52.177.196.86'
-            '52.247.57.175'
-            '52.179.167.128'
-            '52.232.245.226'
-            '20.72.97.111'
-            '20.96.210.231'
-            '20.96.212.169'
-            '20.96.212.184'
-            '20.96.212.185'
-            '20.96.212.196'
-            '20.96.254.218'
-            '20.96.254.225'
-            '20.96.254.247'
-            '20.96.255.32'
-            '20.96.255.75'
-            '20.96.255.110'
-            '40.123.47.58'
-          ]
-          destinationAddressPrefixes: []
-        }
-      }
-    ]
+    vnetName: '${abbrs.networkVirtualNetworks}${resourceToken}'
+    vnetAddressPrefix: vnetAddressPrefix
+    containerAppEnvSubnetPrefix: containerAppEnvSubnetPrefix
+    appGatewaySubnetPrefix: appGatewaySubnetPrefix
+    logicAppSubnetPrefix: logicAppSubnetPrefix
   }
 }
 
-module vnet 'br/public:avm/res/network/virtual-network:0.5.2' = {
-  name: 'vnet'
-  params: {
-    name: '${abbrs.networkVirtualNetworks}${resourceToken}'
-    location: location
-    tags: tags
-    addressPrefixes: [vnetAddressPrefix]
-    subnets: [
-      {
-        name: 'aca-agent-web-subnet'
-        addressPrefixes: [containerAppEnvSubnetPrefix]
-        delegation: 'Microsoft.App/environments'
-        networkSecurityGroupResourceId: nsg.outputs.resourceId
-      }
-      {
-        name: 'app-gateway'
-        addressPrefixes: [appGatewaySubnetPrefix]
-        networkSecurityGroupResourceId: nsg.outputs.resourceId
-      }
-    ]
-  }
-}
 
 // Container registry
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
@@ -403,7 +95,7 @@ module containerAppsEnvironment 'br/public:avm/res/app/managed-environment:0.9.0
         workloadProfileType: 'Consumption'
       }
     ]
-    infrastructureSubnetId: vnet.outputs.subnetResourceIds[0]
+    infrastructureSubnetId: vnet.outputs.containerAppsSubnetResourceId
     storages:[
       {
         storageAccountName: storage.outputs.storageAccountName
@@ -449,6 +141,7 @@ var agentWebEnv = map(filter(agentWebAppSettingsArray, i => i.?secret == null), 
   name: i.name
   value: i.value
 })
+var openaiApiKeySecretName = 'openai-api-key'
 
 module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
   name: 'agentWeb'
@@ -469,6 +162,11 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
           {
             name: 'logicapp-post-incident-discussion-url'
             keyVaultUrl: '${keyVault.outputs.uri}secrets/logicapp-post-incident-discussion-url'
+            identity: agentWebIdentity.outputs.resourceId
+          }
+          {
+            name: openaiApiKeySecretName
+            keyVaultUrl: '${keyVault.outputs.uri}secrets/${openaiApiKeySecretName}'
             identity: agentWebIdentity.outputs.resourceId
           }
         ],
@@ -515,7 +213,8 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
             // TODO: put API key in key vault
             {
               name: 'Azure__OpenAI__ApiKey'
-              value: openai.listKeys().key1
+              // value: openai.listKeys().key1
+              secretRef: openaiApiKeySecretName
             }
             {
               name: 'Azure__TaskStorage__FilePath'
@@ -625,7 +324,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.11.2' = {
     ]
     secrets: [
       {
-        name: 'openai-api-key'
+        name: openaiApiKeySecretName
         value: openai.listKeys().key1
       }
     ]
@@ -714,7 +413,7 @@ module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.7.0' = {
     virtualNetworkLinks: [
       {
         name: 'my-custom-vnet-pdns-link'
-        virtualNetworkResourceId: vnet.outputs.resourceId
+        virtualNetworkResourceId: vnet.outputs.vnetResourceId
       }
     ]
     a: [
@@ -750,67 +449,24 @@ module storage 'modules/storage.bicep' = {
   }
 }
 
-/*
-module appGateway 'br/public:avm/res/network/application-gateway:0.5.1' = {
+module appGateway 'modules/app-gateway.bicep' = {
   name: 'appGateway'
   params: {
-    name: '${abbrs.networkApplicationGateways}${resourceToken}'
     location: location
     tags: tags
-    sku: 'WAF_v2'
-    httpSettings: [
-      {
-        name: 'appGatewayHttpSettings'
-        cookieBasedAffinity: 'Disabled'
-        port: 80
-        protocol: 'Http'
-        requestTimeout: 20
-      }
-    ]
-    frontendIPConfigurations: [
-      {
-        name: 'appGatewayFrontendIPConfig'
-        publicIPAddressId: containerAppsEnvironment.outputs.publicIpId
-      }
-    ]
-    frontendPorts: [
-      {
-        name: 'appGatewayFrontendPort'
-        port: 80
-      }
-    ]
-    backendAddressPools: [
-      {
-        name: 'appGatewayBackendAddressPool'
-        backendAddresses: [
-          {
-            fqdn: containerAppsEnvironment.outputs.defaultDomain
-          }
-        ]
-      }
-    ]
-    httpListeners: [
-      {
-        name: 'appGatewayHttpListener'
-        frontendIPConfigurationId: containerAppsEnvironment.outputs.frontendIpConfigId
-        frontendPortId: containerAppsEnvironment.outputs.frontendPortId
-        protocol: 'Http'
-      }
-    ]
-    requestRoutingRules: [
-      {
-        name: 'appGatewayRequestRoutingRule'
-        httpListenerId: containerAppsEnvironment.outputs.httpListenerId
-        backendAddressPoolId: containerAppsEnvironment.outputs.backendAddressPoolId
-        backendHttpSettingsId: containerAppsEnvironment.outputs.httpSettingsId
-      }
-    ]
+    appGatewaySubnetId: vnet.outputs.appGatewaySubnetResourceId
+    appGatewayCertId: '${keyVault.outputs.uri}secrets/acaagentcert'
+    identityResourceId: agentWebIdentity.outputs.resourceId
+    backendPoolFqdn: agentWeb.outputs.fqdn
+    identityPrincipalId: agentWebIdentity.outputs.principalId
+    identityClientId: agentWebIdentity.outputs.clientId
+    // enableAppGatewayHttps: enableAppGatewayHttps
   }
 }
-  */
 
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = containerRegistry.outputs.loginServer
 output AZURE_KEY_VAULT_ENDPOINT string = keyVault.outputs.uri
 output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_RESOURCE_AGENT_WEB_ID string = agentWeb.outputs.resourceId
 output AZURE_OPENAI_ENDPOINT string = openai.properties.endpoint
+output AZURE_APP_GATEWAY_FRONTEND_IP string = appGateway.outputs.publicIp
