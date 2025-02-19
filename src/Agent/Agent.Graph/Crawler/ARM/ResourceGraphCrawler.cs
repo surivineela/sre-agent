@@ -13,12 +13,14 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ILogger<ResourceGraphCrawler> _logger;
         private readonly ArmResourceCrawlerFactory _factory;
         private readonly IGraphDatabaseManager _dbManager;
+        private readonly AzureResourceGraphClient _graphClient;
 
-        public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, ArmResourceCrawlerFactory factory, IGraphDatabaseManager dbManager)
+        public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, ArmResourceCrawlerFactory factory, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient)
         {
             _logger = logger;
             _factory = factory;
             _dbManager = dbManager;
+            _graphClient = graphClient;
         }
 
         public async Task Crawl(IList<ArmResourceNode> nodes)
@@ -33,12 +35,12 @@ namespace Agent.Graph.Crawler.ARM
 
             while (toCrawl.TryDequeue(out var node))
             {
-                if (crawled.Contains(node.ResourceId))
+                if (crawled.Contains(node.GetHashString()))
                 {
                     continue;
                 }
-                crawled.Add(node.ResourceId);
-                var crawler = _factory.CreateFromNode(node, _dbManager);
+                crawled.Add(node.GetHashString());
+                var crawler = _factory.CreateFromNode(node, _dbManager, _graphClient);
                 await foreach(var n in crawler.Crawl(node))
                 {
                     toCrawl.Enqueue(n);

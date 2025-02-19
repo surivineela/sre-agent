@@ -15,30 +15,33 @@
         public string SubscriptionId { get; set; }
         public string ResourceGroupName { get; set; }
         public string ResourceName { get; set; }
+        public bool SystemMI { get; set; }
 
         public ArmResourceNode() { }
         public ArmResourceNode(string resourceType,
             string resourceId,
             string subscriptionId,
             string resourceGroupName,
-            string resourceName)
+            string resourceName,
+            bool systemMI = false)
         {
             ResourceType = resourceType;
             ResourceId = resourceId;
             SubscriptionId = subscriptionId;
             ResourceGroupName = resourceGroupName;
             ResourceName = resourceName;
+            SystemMI = systemMI;
         }
 
         public virtual string GetNodeLabel()
         {
             var parts = ResourceType.Split('/');
-            return parts[parts.Length-1];
+            return parts[parts.Length - 1].ToLowerInvariant();
         }
 
         public virtual string GetNodeId()
         {
-            return ResourceId;
+            return ResourceId.ToLowerInvariant();
         }
 
         public virtual string GetResourceType()
@@ -58,6 +61,13 @@
                 { "resourceName", ResourceName }
             };
         }
+
+        // Mainly for system MI
+        // To be able to crawl same resource again with ManagedIdentityNode
+        public string GetHashString()
+        {
+            return $"{ResourceId}|{GetType()}";
+        }
     }
 
     public sealed class SubscriptionNode : ArmResourceNode
@@ -69,15 +79,42 @@
             ResourceType = "Subscription";
             SubscriptionId = subscriptionId;
             ResourceName = subscriptionId;
-            ResourceId = subscriptionId;
+            ResourceId = $"/subscriptions/{subscriptionId}";
         }
 
         public override IDictionary<string, object> GetNodeProperties()
         {
-            return new Dictionary<string, object> { };
+            return new Dictionary<string, object>
+            {
+                { "subscriptionId", SubscriptionId },
+            };
         }
     }
 
+    public sealed class ResourceGroupNode : ArmResourceNode
+    {
+        public ResourceGroupNode() { }
+
+        public ResourceGroupNode(
+            string subscriptionId,
+            string resoureGroupName) : base()
+        {
+            ResourceType = "ResourceGroup";
+            SubscriptionId = subscriptionId;
+            ResourceName = resoureGroupName;
+            ResourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resoureGroupName}";
+            ResourceGroupName = resoureGroupName;
+        }
+
+        public override IDictionary<string, object> GetNodeProperties()
+        {
+            return new Dictionary<string, object>
+            {
+                { "subscriptionId", SubscriptionId },
+                { "resourceGroupName", ResourceGroupName },
+            };
+        }
+    }
 
     public sealed class ContainerAppEnvironmentNode : ArmResourceNode
     {
@@ -92,7 +129,7 @@
             string subscriptionId,
             string resourceGroupName,
             string resourceName,
-            string location,
+            string location = null,
             string? vnetId = null,
             string? lbId = null)
             : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
@@ -115,6 +152,54 @@
                 props.Add("lbId", LbId);
             }
 
+            return props;
+        }
+    }
+
+    public sealed class ManagedIdentityNode : ArmResourceNode
+    {
+        public string IdentityType { set; get; }
+        public string TenantId { get; set; }
+        public string PrincipalId { get; set; }
+        public string ClientId { get; set; }
+
+        public const string UserAssignedManagedIdentityType = "UserAssigned";
+        public const string SystemAssignedManagedIdentityType = "System";
+
+        public ManagedIdentityNode() : base() { }
+        public ManagedIdentityNode(string resourceType,
+            string resourceId,
+            string subscriptionId,
+            string resourceGroupName,
+            string resourceName,
+            string type,
+            string tenantId = null,
+            string principalId = null,
+            string clientId = null)
+            : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
+        {
+            IdentityType = type;
+            TenantId = tenantId;
+            PrincipalId = principalId;
+            ClientId = clientId;
+        }
+
+        public override IDictionary<string, object> GetNodeProperties()
+        {
+            var props = base.GetNodeProperties();
+            props.Add("identityType", IdentityType);
+            if (TenantId != null)
+            {
+                props.Add("tenantId", TenantId);
+            }
+            if (PrincipalId != null)
+            {
+                props.Add("principalId", PrincipalId);
+            }
+            if (ClientId != null)
+            {
+                props.Add("clientId", ClientId);
+            }
             return props;
         }
     }

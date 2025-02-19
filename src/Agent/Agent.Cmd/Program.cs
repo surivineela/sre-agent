@@ -53,6 +53,7 @@ namespace Agent.Cmd
             services.AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
 
             services.AddSingleton<ArmResourceCrawlerFactory>();
+            services.AddSingleton<AzureResourceGraphClient>();
             services.AddScoped<ResourceGraphCrawler>();
 
             services.AddApplicationConfiguration(config);

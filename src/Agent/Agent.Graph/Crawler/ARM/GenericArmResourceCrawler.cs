@@ -39,14 +39,14 @@ namespace Agent.Graph.Crawler.ARM
                 yield break;
             }
 
-            var resource = _armClient.GetGenericResource(id);
-            if (resource == null || !resource.HasData)
+            var resp = await _armClient.GetGenericResource(id).GetAsync();
+            if (resp == null || resp.Value == null || !resp.Value.HasData)
             {
                 _logger.LogWarning($"Failed to get resource: {node.ResourceId}");
                 yield break;
             }
 
-            var jsonObj = JsonSerializer.Deserialize<JsonElement>(resource.Data.Properties);
+            var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
             foreach(var link in Tranverse(jsonObj))
             {
                 _logger.LogInformation($"Find linked resource: {link.ResourceId}");
@@ -81,12 +81,22 @@ namespace Agent.Graph.Crawler.ARM
                     }
                     break;
                 case JsonValueKind.String:
-                    var id = new ResourceIdentifier(root.GetString());
-                    if (id != null)
                     {
-                        yield return new ArmResourceNode(id.ResourceType, root.GetString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+                        ArmResourceNode node = null;
+
+                        try
+                        {
+                            var id = new ResourceIdentifier(root.GetString());
+                            node = new ArmResourceNode(id.ResourceType, root.GetString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+                        }
+                        catch { }
+
+                        if (node != null)
+                        {
+                            yield return node;
+                        }
+                        break;
                     }
-                    break;
                 case JsonValueKind.Number:
                 case JsonValueKind.True:
                 case JsonValueKind.False:

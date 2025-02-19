@@ -27,7 +27,8 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         Task<bool> AddEdgeIfNotExistsAsync(
             string sourceNodeId,
             string targetNodeId,
-            string relationshipType);
+            string relationshipType,
+            IDictionary<string, object> properties = null);
 
         /// <summary>
         /// Clears the graph.

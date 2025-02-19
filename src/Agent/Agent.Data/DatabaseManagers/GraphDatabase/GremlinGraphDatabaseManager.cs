@@ -83,17 +83,30 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             }
             query += ")";
 
+            _logger.LogTrace($"AddOrUpdateNodeAsync: query: {query}");
+
             var result = await _gremlinClient!.SubmitAsync<dynamic>(query);
             return result.Count > 0;
         }
 
-        public async Task<bool> AddEdgeIfNotExistsAsync(string sourceNodeId, string targetNodeId, string relationshipType)
+        public async Task<bool> AddEdgeIfNotExistsAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties = null)
         {
             var sanitizedSourceNodeId = GetSanitizedCosmosDBId(sourceNodeId);
             var sanitizedTargetNodeId = GetSanitizedCosmosDBId(targetNodeId);
             var edgeId = GetSanitizedCosmosDBId($"{sanitizedSourceNodeId}_{relationshipType}_{sanitizedTargetNodeId}");
 
-            var query = $"g.V('{sanitizedSourceNodeId}').as('a').V('{sanitizedTargetNodeId}').as('b').coalesce(outE('{relationshipType}').where(inV().is('b')), addE('{relationshipType}').property(id, '{edgeId}').from('a').to('b'))";
+            var query = $"g.V('{sanitizedSourceNodeId}').as('a').V('{sanitizedTargetNodeId}').as('b').coalesce(outE('{relationshipType}').where(inV().is('b')), addE('{relationshipType}').property(id, '{edgeId}')";
+
+            if (properties != null) {
+                foreach (var property in properties)
+                {
+                    query += $".property('{property.Key}', '{property.Value}')";
+                }
+            }
+
+            query += ".from('a').to('b'))";
+
+            _logger.LogTrace($"AddEdgeIfNotExistsAsync: query: {query}");
 
             try
             {

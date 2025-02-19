@@ -10,10 +10,12 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
+using Azure.ResourceManager.ManagedServiceIdentities;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.ResourceGraph;
 using Azure.ResourceManager.ResourceGraph.Models;
 using Azure.ResourceManager.Resources;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
@@ -25,13 +27,12 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ArmClient _armClient;
         private readonly AzureResourceGraphClient _graphClient;
 
-        public ContainerAppEnvironmentCrawler(ILogger<ContainerAppEnvironmentCrawler> logger, IGraphDatabaseManager dbManager)
+        public ContainerAppEnvironmentCrawler(ILogger<ContainerAppEnvironmentCrawler> logger, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient)
         {
             _logger = logger;
             _dbManager = dbManager;
             _armClient = new ArmClient(new DefaultAzureCredential());
-            _graphClient = new AzureResourceGraphClient();
-            _graphClient.InitTenantResource("72f988bf-86f1-41af-91ab-2d7cd011db47");
+            _graphClient = graphClient;
         }
 
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
@@ -80,18 +81,29 @@ namespace Agent.Graph.Crawler.ARM
             // managed identity
             if (env.Value.Data.Identity is not null)
             {
-                if(env.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned || env.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned)
+                if (env.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned || env.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned)
                 {
-                    // TODO: figure out system mi resource id
+                    var resp = await env.Value.GetSystemAssignedIdentity().GetAsync();
+                    if (resp == null || resp.Value == null || !resp.Value.HasData)
+                    {
+                        _logger.LogWarning($"Failed to get system assigned identity for container app environment: {envNode.ResourceId}");
+                    }
+
+                    var id = resp.Value.Id;
+                    var resourceId = new ResourceIdentifier(id);
+                    var identityNode = new ManagedIdentityNode(resourceId.ResourceType, id, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
+                    await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+
+                    yield return identityNode;
                 }
-                
+
                 if(env.Value.Data.Identity.UserAssignedIdentities.Count > 0)
                 {
                     foreach(var identity in env.Value.Data.Identity.UserAssignedIdentities)
                     {
                         var id = identity.Key;
                         var resourceId = new ResourceIdentifier(id);
-                        var identityNode = new ArmResourceNode(resourceId.ResourceType, id, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name);
+                        var identityNode = new ManagedIdentityNode(resourceId.ResourceType, id, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
                         await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
                         await _dbManager.AddEdgeIfNotExistsAsync(envNode.GetNodeId(), identityNode.GetNodeId(), "HAS_IDENTITY");
 
@@ -154,9 +166,10 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ArmClient _client;
         private TenantResource _tenantResource;
 
-        public AzureResourceGraphClient()
+        public AzureResourceGraphClient(IConfiguration configuration)
         {
             _client = new ArmClient(new DefaultAzureCredential());
+            InitTenantResource(configuration["Azure:Crawler:TenantId"]);
         }
 
         public void InitTenantResource(string tenantId)

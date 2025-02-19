@@ -21,14 +21,16 @@ namespace Agent.Cmd
         {
             command.Description = "Test crawling subscription";
             command.HelpOption("-?|-h|--help");
-            var sub = command.Argument("sub", "The subscription of environment");
+            var resourceId = command.Argument("resourceId", "Resource Id");
 
             command.OnExecute(async () =>
             {
                 var crawler = _sp.GetRequiredService<ResourceGraphCrawler>();
+                var node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId.Value);
+
                 await crawler.Crawl(
                     [
-                    new SubscriptionNode(sub.Value)
+                    node
                     ]
                     );
 
