@@ -18,7 +18,7 @@ namespace OperationalAgentCore.Helpers
         public static string StripBase64Images(string html, List<(string, string)> base64Images)
         {
             string pattern = @"<img\s+[^>]*src\s*=\s*""(?<mimeType>data:image\/(?<format>png|jpeg|jpg|gif|bmp));base64,(?<base64>[A-Za-z0-9+\/=]+)""[^>]*>";
-            int imageCounter = 1;
+            int imageCounter = 0;
 
             return Regex.Replace(html, pattern, match =>
             {
@@ -26,7 +26,7 @@ namespace OperationalAgentCore.Helpers
                 string base64Data = match.Groups["base64"].Value;
                 base64Images.Add((mimeType, base64Data));
 
-                return $"####{imageCounter}####";
+                return $"####{imageCounter++}####";
             }, RegexOptions.IgnoreCase);
         }
 

@@ -141,7 +141,7 @@ namespace OperationalAgentCore
             var history = new ChatHistory();
             var message = new ChatMessageContentItemCollection
                         {
-                            new TextContent("Please extract the text from the image"),
+                            new TextContent("Please extract the full text from the image and say nothing else"),
                             new ImageContent($"{mimeType};base64,{base64Image}")
                         };
 
