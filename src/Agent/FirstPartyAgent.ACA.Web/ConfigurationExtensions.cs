@@ -6,7 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Microsoft.SemanticKernel;
 
-namespace FirstPartyAgent.Web;
+namespace FirstPartyAgent.ACA.Web;
 
 public static class ConfigurationExtensions
 {
@@ -106,4 +106,3 @@ public static class ConfigurationExtensions
         return services;
     }
 }
-

@@ -19,7 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\FirstPartyAgent.Web\FirstPartyAgent.Web.csproj" />
+    <ProjectReference Include="..\FirstPartyAgent.ACA.Web\FirstPartyAgent.ACA.Web.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Plugins\FirstPartyAgent.Plugins.csproj" />
   </ItemGroup>
 

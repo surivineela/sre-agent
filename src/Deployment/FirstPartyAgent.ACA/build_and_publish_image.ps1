@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 
 Write-Host "Building and publishing solution"
-dotnet build "..\..\Agent\FirstPartyAgent.Web\FirstPartyAgent.Web.csproj" -c Release --interactive
-dotnet publish "..\..\Agent\FirstPartyAgent.Web\FirstPartyAgent.Web.csproj" --no-build -o out/publish --interactive
+dotnet build "..\..\Agent\FirstPartyAgent.ACA.Web\FirstPartyAgent.ACA.Web.csproj" -c Release --interactive
+dotnet publish "..\..\Agent\FirstPartyAgent.ACA.Web\FirstPartyAgent.ACA.Web.csproj" --no-build -o out/publish --interactive
 
 Write-Host "Building and pushing image"
 $ContainerRegistryEndpoint = $(azd env get-value AZURE_CONTAINER_REGISTRY_ENDPOINT)

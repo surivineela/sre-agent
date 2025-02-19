@@ -6,7 +6,7 @@ using System.Diagnostics;
 using Agent.Core.Models;
 using Microsoft.AspNetCore.Mvc;
 
-namespace FirstPartyAgent.Web.Controllers;
+namespace FirstPartyAgent.ACA.Web.Controllers;
 
 public class HomeController : Controller
 {

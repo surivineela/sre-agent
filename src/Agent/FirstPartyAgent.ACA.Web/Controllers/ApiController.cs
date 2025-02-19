@@ -1,17 +1,16 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
-
 using System.Text.RegularExpressions;
 using Agent.Core.Models;
+using FirstPartyAgent.ACA.Web.Services;
 using FirstPartyAgent.Agents;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel;
 
-namespace FirstPartyAgent.Web.Controllers;
+namespace FirstPartyAgent.ACA.Web.Controllers;
 
 [Route("api/")]
 [ApiController]

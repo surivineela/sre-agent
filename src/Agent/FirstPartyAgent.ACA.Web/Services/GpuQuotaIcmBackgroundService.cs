@@ -1,11 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 
-namespace FirstPartyAgent.Web.Services;
+namespace FirstPartyAgent.ACA.Web.Services;
 
 public class GpuQuotaIcmBackgroundService : BackgroundService
 {
@@ -67,10 +67,10 @@ public class GpuQuotaIcmBackgroundService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while processing gpu quota tasks.");
+
+                await Task.Delay(_pollInterval, stoppingToken);
             }
 
-            await Task.Delay(_pollInterval, stoppingToken);
         }
-
     }
 }
