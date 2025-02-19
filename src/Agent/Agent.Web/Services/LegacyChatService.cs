@@ -6,18 +6,26 @@ using Agent.Core.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Markdig;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
+using Agent.Core.Configuration;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 public class LegacyChatService : IChatService
 {
-
     private readonly ILogger<LegacyChatService> _logger;
     private readonly Kernel _kernel;
     private readonly MarkdownPipeline _markdownPipeline;
+    private readonly OpenAISettings _openAISettings;
 
-    public LegacyChatService(ILogger<LegacyChatService> logger, Kernel kernel)
+    public LegacyChatService(
+        ILogger<LegacyChatService> logger, 
+        Kernel kernel,
+        IOptions<AzureSettings> azureSettings)
     {
         _logger = logger;
         _kernel = kernel;
+        _openAISettings = azureSettings.Value.OpenAI;
         _markdownPipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .DisableHtml()           // Disable HTML parsing
@@ -31,7 +39,6 @@ public class LegacyChatService : IChatService
                 {
                     try
                     {
-
                         if (message != null)
                         {
                             chatHistory.AddUserMessage(message);
@@ -44,15 +51,27 @@ public class LegacyChatService : IChatService
                             .ToList();
 
                         _logger.LogInformation("User > " + message);
-                        FunctionChoiceBehaviorOptions options = new() { AllowParallelCalls = true };
 
                         var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+                        
+                        // Set execution settings based on model type
+                        var executionSettings = new OpenAIPromptExecutionSettings();
+
+                        if (ModelSelectionHelper.IsReasoningModel(_openAISettings.DeploymentName))
+                        {
+                            executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                            executionSettings.ReasoningEffort = "high";
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                        }
+                        else
+                        {
+                            executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
+                        }
+
                         var result = await chatCompletionService.GetChatMessageContentAsync(
                             chatHistory,
-                            executionSettings: new()
-                            {
-                                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-                            },
+                            executionSettings: executionSettings,
                             kernel: _kernel);
 
                         IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
@@ -60,7 +79,6 @@ public class LegacyChatService : IChatService
                         foreach (FunctionCallContent functionCall in functionCalls)
                         {
                             FunctionResultContent resultContent = await functionCall.InvokeAsync(_kernel);
-
                             chatHistory.Add(resultContent.ToChatMessage());
                         }
 

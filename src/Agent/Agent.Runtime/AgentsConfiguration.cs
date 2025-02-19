@@ -10,6 +10,7 @@ using Agent.Plugins;
 using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Microsoft.Extensions.Options;
 
 namespace Agent.Runtime
 {
@@ -32,7 +33,8 @@ namespace Agent.Runtime
                     var agent = new Agent(
                         "main",
                         IssueFinderAgent.SystemMessage,
-                        s.GetRequiredService<Kernel>());
+                        s.GetRequiredService<Kernel>(),
+                        s.GetRequiredService<IOptions<AzureSettings>>());
 
                     agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<SubscriptionPluginDefinition>(), "SubscriptionPlugin");
 

@@ -7,8 +7,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Web", "Agent.Web\Agen
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Core", "Agent.Core\Agent.Core.csproj", "{ABC97336-0362-E372-5D52-106FA241E6FE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Common.Core", "Common.Core\Agent.Common.Core.csproj", "{39E3BDC7-A3CA-443B-8F1F-1379497C83B8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Tests.Integration", "Agent.Tests.Integration\Agent.Tests.Integration.csproj", "{26A617E2-A920-4372-A79E-C4F0F84B6AEF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Plugins", "Agent.Plugins\Agent.Plugins.csproj", "{EFD7384D-C24D-407F-A1FA-58067DB7952E}"
@@ -45,10 +43,6 @@ Global
 		{ABC97336-0362-E372-5D52-106FA241E6FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABC97336-0362-E372-5D52-106FA241E6FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABC97336-0362-E372-5D52-106FA241E6FE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{39E3BDC7-A3CA-443B-8F1F-1379497C83B8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{39E3BDC7-A3CA-443B-8F1F-1379497C83B8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{39E3BDC7-A3CA-443B-8F1F-1379497C83B8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{39E3BDC7-A3CA-443B-8F1F-1379497C83B8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{26A617E2-A920-4372-A79E-C4F0F84B6AEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{26A617E2-A920-4372-A79E-C4F0F84B6AEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{26A617E2-A920-4372-A79E-C4F0F84B6AEF}.Release|Any CPU.ActiveCfg = Release|Any CPU

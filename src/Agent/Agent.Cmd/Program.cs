@@ -2,11 +2,11 @@
 using System.Reflection;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Crawler.ARM;
-using Azure.ResourceManager;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Agent.Core.Configuration;
 
 namespace Agent.Cmd
 {
@@ -54,6 +54,8 @@ namespace Agent.Cmd
 
             services.AddSingleton<ArmResourceCrawlerFactory>();
             services.AddScoped<ResourceGraphCrawler>();
+
+            services.AddApplicationConfiguration(config);
 
             return services.BuildServiceProvider();
         }

@@ -1,17 +1,30 @@
 ﻿using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.SemanticKernel;
+using Microsoft.Extensions.Options;
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 
 namespace Agent.Runtime
 {
-    public class Agent(
-        string name,
-        string instructions,
-        Kernel kernel)
+    public class Agent
     {
-        private readonly string _name = name;
-        private readonly string _instructions = instructions;
-        private readonly Kernel _kernel = kernel;
+        private readonly string _name;
+        private readonly string _instructions;
+        private readonly Kernel _kernel;
+        private readonly OpenAISettings _openAISettings;
+
+        public Agent(
+            string name,
+            string instructions,
+            Kernel kernel,
+            IOptions<AzureSettings> azureSettings)
+        {
+            _name = name;
+            _instructions = instructions;
+            _kernel = kernel;
+            _openAISettings = azureSettings.Value.OpenAI;
+        }
 
         public string Name => _name;
 
@@ -26,15 +39,23 @@ namespace Agent.Runtime
 
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
 
-            // Enable auto function calling
-            OpenAIPromptExecutionSettings openAIPromptExecutionSettings = new()
+            var executionSettings = new OpenAIPromptExecutionSettings();
+
+            if (ModelSelectionHelper.IsReasoningModel(_openAISettings.DeploymentName))
             {
-                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
-            };
+                executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
+#pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+                executionSettings.ReasoningEffort = "high";
+#pragma warning restore SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.
+            }
+            else
+            {
+                executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
+            }
 
             ChatMessageContent chatResult = await chatCompletionService.GetChatMessageContentAsync(
                 agentChatHistory,
-                openAIPromptExecutionSettings,
+                executionSettings,
                 _kernel);
 
             for (int i = originalCount - 1; i < agentChatHistory.Count; i++)

@@ -16,9 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
+	  <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+	  <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <None Update="appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

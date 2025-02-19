@@ -48,12 +48,6 @@ public static class ConfigurationExtensions
     // plguins will be registered into the clone of the kernel on the fly
     public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
     {
-        services.AddSingleton<HttpClient>(sp =>
-        {
-            var overrideApiVersion = "2025-01-01-preview";
-            return new HttpClient(new AzureOverrideHandler(overrideApiVersion));
-        });
-
         // Configure Semantic Kernel
         services.AddScoped<Kernel>(sp =>
         {
@@ -66,31 +60,11 @@ public static class ConfigurationExtensions
                 throw new NullReferenceException("Azure settings are required.");
             }
 
-            // Check if the model is a reasoning model that needs API version override
-            bool isReasoningModel = azureSettings.OpenAI.DeploymentName.Contains("o1-mini", StringComparison.OrdinalIgnoreCase) ||
-                                  azureSettings.OpenAI.DeploymentName.Contains("o3-mini", StringComparison.OrdinalIgnoreCase) ||
-                                  azureSettings.OpenAI.DeploymentName.Contains("o1", StringComparison.OrdinalIgnoreCase) ||
-                                  azureSettings.OpenAI.DeploymentName.Contains("deepseek-r1", StringComparison.OrdinalIgnoreCase);
-
             var kernelBuilder = Kernel.CreateBuilder();
-
-            if (isReasoningModel)
-            {
-                var httpClient = sp.GetRequiredService<HttpClient>();
-
-                kernelBuilder.AddAzureOpenAIChatCompletion(
-                    deploymentName: azureSettings.OpenAI.DeploymentName,
-                    endpoint: azureSettings.OpenAI.Endpoint,
-                    apiKey: azureSettings.OpenAI.ApiKey,
-                    httpClient: httpClient);
-            }
-            else
-            {
-                kernelBuilder.AddAzureOpenAIChatCompletion(
-                    deploymentName: azureSettings.OpenAI.DeploymentName,
-                    endpoint: azureSettings.OpenAI.Endpoint,
-                    apiKey: azureSettings.OpenAI.ApiKey);
-            }
+            kernelBuilder.AddAzureOpenAIChatCompletion(
+               deploymentName: azureSettings.OpenAI.DeploymentName,
+               endpoint: azureSettings.OpenAI.Endpoint,
+               apiKey: azureSettings.OpenAI.ApiKey);
 
 
             kernelBuilder.Services.AddLogging(builder =>

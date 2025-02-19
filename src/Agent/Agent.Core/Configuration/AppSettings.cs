@@ -8,9 +8,9 @@ namespace Agent.Core.Configuration;
 
 public class AppSettings
 {
-    // Add any general application settings here
-    [Required]
-    public bool LogGenAICalls { get; set; } = false;
+    public string ApplicationName { get; set; } = string.Empty;
+    public string Environment { get; set; } = string.Empty;
+    public bool LogGenAICalls { get; set; }
 }
 
 public class AzureSettings
@@ -45,6 +45,12 @@ public class GitHubSettings
     public string CallbackUrl { get; set; }
     public string OidcAudience { get; set; }
     public string[] AllowedRepositories { get; set; }
+}
+
+public class ICMSettings
+{
+    public string PluginUrl { get; set; }
+    public string PluginAppKey { get; set; }
 }
 
 public class OpenAISettings

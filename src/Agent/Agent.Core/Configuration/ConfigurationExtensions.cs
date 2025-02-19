@@ -20,7 +20,9 @@ public static class ConfigurationExtensions
         services.Configure<AzureSettings>(
             configuration.GetSection("Azure"));
 
-        // Add configuration validation
+        services.Configure<KustoSettings>(
+            configuration.GetSection("Kusto"));
+
         services.AddOptions<AppSettings>()
             .Bind(configuration.GetSection(nameof(AppSettings)))
             .ValidateDataAnnotations()
@@ -28,6 +30,16 @@ public static class ConfigurationExtensions
 
         services.AddOptions<AzureSettings>()
             .Bind(configuration.GetSection("Azure"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<ICMSettings>()
+            .Bind(configuration.GetSection("ICM"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<KustoSettings>()
+            .Bind(configuration.GetSection("Kusto"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
