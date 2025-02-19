@@ -4,9 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Core.Plugins;
-using FirstPartyAgent.Plugins;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Web;
@@ -51,7 +48,8 @@ public static class ConfigurationExtensions
     // plguins will be registered into the clone of the kernel on the fly
     public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
     {
-        services.AddSingleton<HttpClient>(sp => {
+        services.AddSingleton<HttpClient>(sp =>
+        {
             var overrideApiVersion = "2025-01-01-preview";
             return new HttpClient(new AzureOverrideHandler(overrideApiVersion));
         });

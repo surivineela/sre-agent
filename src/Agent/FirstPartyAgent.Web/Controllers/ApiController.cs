@@ -1,11 +1,15 @@
-﻿using Agent.Core.Models;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.RegularExpressions;
+using Agent.Core.Models;
 using FirstPartyAgent.Agents;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.SemanticKernel;
-using System.Text.RegularExpressions;
 
 namespace FirstPartyAgent.Web.Controllers;
 

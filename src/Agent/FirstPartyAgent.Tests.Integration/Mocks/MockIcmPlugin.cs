@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.ICM;
 using FirstPartyAgent.Plugins;
 
@@ -82,5 +86,5 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             return Task.FromResult(true);
         }
     }
-    
+
 }

@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Models;

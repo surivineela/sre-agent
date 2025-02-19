@@ -1,4 +1,8 @@
-﻿namespace FirstPartyAgent.Tests.Integration
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace FirstPartyAgent.Tests.Integration
 {
     public class TestAgentApplicationBuilder
     {

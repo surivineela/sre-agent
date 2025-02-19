@@ -1,6 +1,8 @@
-﻿using System.Text.Json;
-using Agent.Core.Configuration;
-using Agent.Core.Models.ICM;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
 using FirstPartyAgent.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Options;

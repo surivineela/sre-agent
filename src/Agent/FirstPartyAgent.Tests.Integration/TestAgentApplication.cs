@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Plugins;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Tests.Integration.Extensions;
 using FirstPartyAgent.Tests.Integration.Mocks;
 using FirstPartyAgent.Web;

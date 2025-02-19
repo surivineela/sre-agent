@@ -1,4 +1,8 @@
-﻿using System.Text;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using FirstPartyAgent.Configuration;

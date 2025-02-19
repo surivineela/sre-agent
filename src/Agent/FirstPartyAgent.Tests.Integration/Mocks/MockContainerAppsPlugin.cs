@@ -1,6 +1,10 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
-using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Models;
+using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Tests.End2End.Helpers;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks

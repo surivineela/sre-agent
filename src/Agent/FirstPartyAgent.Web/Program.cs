@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Helpers;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Web.Services;

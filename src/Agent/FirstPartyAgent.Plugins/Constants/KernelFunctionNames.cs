@@ -1,4 +1,8 @@
-﻿namespace FirstPartyAgent.Constants
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace FirstPartyAgent.Constants
 {
     public static class KernelFunctionNames
     {

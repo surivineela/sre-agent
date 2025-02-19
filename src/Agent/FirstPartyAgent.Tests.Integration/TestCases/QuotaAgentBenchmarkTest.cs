@@ -1,7 +1,11 @@
-﻿using FirstPartyAgent.Models;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
+using FirstPartyAgent.Models;
 
 namespace FirstPartyAgent.Tests.Integration.TestCases
 {
@@ -32,7 +36,7 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
             foreach (var reply in testDescriber.Replies)
             {
                 Assert.Equal(reply.Key, output.ApprovalResult.ToString());
-                output = await app.CreateQuotaAgentService().Process(request, new List<Discussion> {  new Discussion("John", DiscussionSource.Teams, reply.Value) });
+                output = await app.CreateQuotaAgentService().Process(request, new List<Discussion> { new Discussion("John", DiscussionSource.Teams, reply.Value) });
             }
 
             // Validate the final outcome

@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using FirstPartyAgent.Constants;
 using Microsoft.SemanticKernel;
 

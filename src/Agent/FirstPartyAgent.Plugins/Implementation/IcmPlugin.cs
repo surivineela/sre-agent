@@ -1,8 +1,12 @@
-﻿using Agent.Core.Helpers;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
+using Agent.Core.Helpers;
 using Agent.Core.Models.ICM;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
-using System.ComponentModel;
 
 namespace FirstPartyAgent.Plugins
 {

@@ -1,4 +1,7 @@
-﻿using Agent.Core.Plugins;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 
