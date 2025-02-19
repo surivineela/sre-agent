@@ -50,8 +50,13 @@ public class QuotaAgentService : IQuotaAgentService
             .Build();
     }
 
-    public async Task<QuotaIncidentState> Process(QuotaIncidentState state, IList<Disscussion> discussions)
+    public async Task<QuotaIncidentState> Process(QuotaIncidentState state, IList<Discussion> discussions)
     {
+        if (state is null)
+        {
+            throw new ArgumentNullException(nameof(state));
+        }
+
         _logger.LogInformation($"Processing request: {JsonSerializer.Serialize(state)}");
         var settings = new AzureOpenAIPromptExecutionSettings
         {
@@ -62,16 +67,17 @@ public class QuotaAgentService : IQuotaAgentService
         };
 
         ChatHistory chatHistory = new();
+        _logger.LogInformation($"SystemMessage > {Prompts.QuotaAgent}");
         chatHistory.AddSystemMessage(Prompts.QuotaAgent);
-        var msg = state.SummarizeState();
-        _logger.LogInformation($"User > {msg}");
-        chatHistory.AddUserMessage(msg);
+        _logger.LogInformation($"UserMessage > {state}");
+        chatHistory.AddUserMessage(state.ToString());
+
         if (discussions is not null)
         {
             foreach (var discussion in discussions)
             {
                 var message = $"{discussion.User} said: {discussion.Message}";
-                _logger.LogInformation($"User > {message}");
+                _logger.LogInformation($"UserMessage > {message}");
                 chatHistory.AddUserMessage(message);
             }
         }
@@ -84,6 +90,9 @@ public class QuotaAgentService : IQuotaAgentService
             _logger.LogInformation($"No result is returned from Agent.");
             // enqueue original message
             state.LastUpdateTimestamp = DateTime.UtcNow;
+
+            // TODO: We need better result, otherwise we lost the discussiom message.
+
             return state;
         }
 
@@ -98,50 +107,55 @@ public class QuotaAgentService : IQuotaAgentService
         _logger.LogInformation($"Assistant > {result.Content}");
         chatHistory.AddAssistantMessage(result.Content ?? string.Empty);
 
-        var resp = JsonSerializer.Deserialize<QuotaRequest>(result.Items[0].ToString());
+        var resp = JsonSerializer.Deserialize<QuotaIncidentState>(result.Items[0].ToString());
 
         if (resp is null)
         {
             _logger.LogInformation($"Failed to deserialize result.");
-            // enqueue original message
-            state.LastUpdateTimestamp = DateTime.UtcNow;
-
+            // TODO: This has a bug, we need to retry here.
             await _taskStorageService.UpdateTaskAsync(state);
             return state;
         }
 
-        var discussionMsg = $"{resp.Message}\n{resp.ToString()}";
+        state.UpdateFrom(resp);
 
-        await _icmPlugin.AddDiscussionEntry(state.IncidentId, discussionMsg);
-
-        if (string.IsNullOrEmpty(state.TeamsMessageId))
+        if (state?.Incident?.Id != null)
         {
-            var teamsResp = await _cappPlugin.PostTeamsDiscussionAsync(state.IncidentId, state.Title ?? "New GPU Quota Request Received", discussionMsg);
+            await _icmPlugin.AddDiscussionEntry(state.Incident.Id, state.ToString());
+        }
+        else
+        {
+            _logger.LogWarning("IncidentId is null. Cannot add discussion entry.");
+        }
+
+        if (string.IsNullOrEmpty(state?.Incident?.TeamsMessageId))
+        {
+            var teamsResp = await _cappPlugin.PostTeamsDiscussionAsync(
+                state?.Incident?.Id,
+                state?.Incident?.Title ?? "New GPU Quota Request Received",
+                state?.ToString());
+
             if (teamsResp is null || string.IsNullOrEmpty(teamsResp.MessageId))
             {
                 throw new Exception("Failed to get messageId from Teams.");
             }
-            state.TeamsMessageId = teamsResp.MessageId;
+
+            state.Incident.TeamsMessageId = teamsResp.MessageId;
         }
         else
         {
-            await _cappPlugin.ReplyTeamsDiscussionAsync(state.IncidentId, state.TeamsMessageId, discussionMsg);
+            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident?.Id, state.Incident?.TeamsMessageId, state.ToString());
         }
 
-        if (resp.ApprovalResult == ApprovalState.NotStarted || resp.ApprovalResult == ApprovalState.Pending)
+        if (state.ApprovalResult == ApprovalState.NotStarted || state.ApprovalResult == ApprovalState.Pending)
         {
             _logger.LogInformation($"Need more user inputs to proceed");
-
-            state.Summary = resp.Message;
-            state.Request = resp;
-            state.LastUpdateTimestamp = DateTime.UtcNow;
             await _taskStorageService.UpdateTaskAsync(state);
-
             return state;
         }
 
         var logMsg = "";
-        if (resp.ApprovalResult == ApprovalState.Approved)
+        if (state.ApprovalResult == ApprovalState.Approved)
         {
             _logger.LogInformation("Quota request approved and geneva action executed.");
             logMsg = $"Quota request approved and geneva action executed. Incident resolved. <br/>- Region: {resp.Region} <br/>- Quota Type: {resp.QuotaType} <br/>- Approved Quota: {resp.ApprovedQuotaLimit}.";
@@ -149,14 +163,14 @@ public class QuotaAgentService : IQuotaAgentService
         else
         {
             _logger.LogInformation("Quota request rejected.");
-            logMsg = $"Quota request rejected. Incident resolved. <br/>- Region: {resp.Region} <br/>- Quota Type: {resp.QuotaType} <br/>- Approved Quota: {resp.ApprovedQuotaLimit} <br/>- Reason: {resp.Message}.";
+            logMsg = $"Quota request rejected. Incident resolved. <br/>- Region: {resp.Region} <br/>- Quota Type: {resp.QuotaType} <br/>- Approved Quota: {resp.ApprovedQuotaLimit} <br/>- Reason: {resp.Summary}.";
         }
 
-        await _icmPlugin.ResolveIncident(state.IncidentId, logMsg);
-        await _cappPlugin.ReplyTeamsDiscussionAsync(state.IncidentId, state.TeamsMessageId, logMsg);
+        await _icmPlugin.ResolveIncident(state.Incident.Id, logMsg);
+        await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.Id, state.Incident.TeamsMessageId, logMsg);
 
-        await _taskStorageService.RemoveTaskAsync(state.IncidentId);
-        return null;
+        await _taskStorageService.RemoveTaskAsync(state.Incident.Id);
+        return state;
     }
 
     public async Task<ChatMessage> ProcessMessageAsync(string message)

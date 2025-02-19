@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace FirstPartyAgent.Agents
+﻿namespace FirstPartyAgent.Agents
 {
     public partial class Prompts
     {
@@ -40,7 +34,7 @@ You response should only return a structured JSON format without markdown syntax
     - Pending: The approval process is waiting for manual approval.
     - Approved: The quota request is approved automatically or manually.
     - Rejected: The quota request is rejected automatically or manually.
-- Message: A human readable text. If all the required fields are found, it should be summary of the current quota request. If you cannot find a proper value for a required field, generate a text with proper questions for describing what information you have and what is missing.
+- Summary: A human readable text. If all the required fields are found, it should be summary of the current quota request. If you cannot find a proper value for a required field, generate a text with proper questions for describing what information you have and what is missing.
 - QuotaType: The extracted QuotaType
 - Region: The extracted Region
 - SubscriptionId: The extracted SubscriptionId

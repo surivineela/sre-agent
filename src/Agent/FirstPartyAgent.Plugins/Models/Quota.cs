@@ -1,39 +1,117 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Text;
+using System.Text.Json.Serialization;
 
 namespace FirstPartyAgent.Models
 {
-    public record QuotaIncidentState
+
+    public class IcmIncident
     {
-        public string IncidentId { get; set; }
-
+        public string? Id { get; set; }
         public string? Title { get; set; }
-
         public string? TeamsMessageId { get; set; }
+    }
 
-        public string Summary { get; set; }
+    public class QuotaIncidentState
+    {
+        public IcmIncident? Incident { get; set; }
 
-        public QuotaRequest? Request { get; set; }
+        public string? Summary { get; set; }
 
         public DateTime? LastUpdateTimestamp { get; set; }
 
-        public string SummarizeState()
+        public ApprovalState ApprovalResult { get; set; }
+
+        public string? QuotaType { get; set; }
+
+        public string? Region { get; set; }
+
+        public string? SubscriptionId { get; set; }
+
+        public int? TargetQuotaLimit { get; set; }
+
+        public int? ApprovedQuotaLimit { get; set; }
+
+        public string? OfferType { get; set; }
+
+        public void UpdateFrom(QuotaIncidentState state)
         {
-            return $"""
-                {Summary}
-                -------- Following contains the extracted information so far --------
-                {Request?.ToString()}
-                """;
+            if (state == null)
+            {
+                return;
+            }
+
+            LastUpdateTimestamp = DateTime.UtcNow;
+
+            Summary = state.Summary;
+            ApprovalResult = state.ApprovalResult;
+            QuotaType = state.QuotaType;
+            Region = state.Region;
+            SubscriptionId = state.SubscriptionId;
+            TargetQuotaLimit = state.TargetQuotaLimit;
+            ApprovedQuotaLimit = state.ApprovedQuotaLimit;
+            OfferType = state.OfferType;
+        }
+
+        public override string ToString()
+        {
+            StringBuilder sb = new StringBuilder();
+
+            sb.AppendLine($"{Summary}<br/>");
+            sb.AppendLine($"<br/>");
+            sb.AppendLine($"-------- Following contains the extracted information so far --------<br/>");
+            sb.AppendLine($"<br/>- ApprovalResult: {ApprovalResult}<br/>");
+
+            if (!string.IsNullOrEmpty(QuotaType))
+            {
+                sb.AppendLine($"- QuotaType: {QuotaType}<br/>");
+            }
+            if (!string.IsNullOrEmpty(Region))
+            {
+                sb.AppendLine($"- Region: {Region}<br/>");
+            }
+            if (!string.IsNullOrEmpty(SubscriptionId))
+            {
+                sb.AppendLine($"- SubscriptionId: {SubscriptionId}<br/>");
+            }
+            if (TargetQuotaLimit.HasValue)
+            {
+                sb.AppendLine($"- TargetQuotaLimit: {TargetQuotaLimit}<br/>");
+            }
+            if (ApprovedQuotaLimit.HasValue)
+            {
+                sb.AppendLine($"- ApprovedQuotaLimit: {ApprovedQuotaLimit}<br/>");
+            }
+            if (!string.IsNullOrEmpty(OfferType))
+            {
+                sb.AppendLine($"- OfferType: {OfferType}<br/>");
+            }
+            return sb.ToString();
+        }
+
+        public string GetTestDescriber()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"#ApprovalResult: {ApprovalResult}");
+            sb.AppendLine($"#QuotaType: {QuotaType}");
+            sb.AppendLine($"#Region: {Region}");
+            sb.AppendLine($"#SubscriptionId: {SubscriptionId}");
+            sb.AppendLine($"#TargetQuotaLimit: {TargetQuotaLimit}");
+            sb.AppendLine($"#ApprovedQuotaLimit: {ApprovedQuotaLimit}");
+            sb.AppendLine($"#OfferType: {OfferType}");
+            return sb.ToString();
         }
     }
 
-    public record ProcessQuotaIncidentRequest : QuotaIncidentState
+    public class ProcessQuotaIncidentRequest : IcmIncident
     {
-        public IList<Disscussion>? Discussions { get; set; }
+        public string? Summary { get; set; }
+
+        public IList<Discussion>? Discussions { get; set; }
     }
 
-    public record Disscussion
+    public class Discussion
     {
-        public Disscussion(string user, DiscussionSource source, string message)
+        public Discussion(string user, DiscussionSource source, string message)
         {
             User = user;
             Source = source;
@@ -60,50 +138,6 @@ namespace FirstPartyAgent.Models
         Approved,
         Rejected,
     }
-
-    public record QuotaRequest
-    {
-        public ApprovalState ApprovalResult { get; set; }
-        public string Message { get; set; }
-        public string? QuotaType { get; set; }
-        public string? Region { get; set; }
-        public string? SubscriptionId { get; set; }
-        //public string? ResourceId { get; set; }
-        public int? TargetQuotaLimit { get; set; }
-        public int? ApprovedQuotaLimit { get; set; }
-        public string? OfferType { get; set; }
-
-        public override string ToString()
-        {
-            var str = $"<br/>- ApprovalResult: {ApprovalResult}<br/>";
-            if (!string.IsNullOrEmpty(QuotaType))
-            {
-                str += $"- QuotaType: {QuotaType}<br/>";
-            }
-            if (!string.IsNullOrEmpty(Region))
-            {
-                str += $"- Region: {Region}<br/>";
-            }
-            if (!string.IsNullOrEmpty(SubscriptionId))
-            {
-                str += $"- SubscriptionId: {SubscriptionId}<br/>";
-            }
-            if (TargetQuotaLimit.HasValue)
-            {
-                str += $"- TargetQuotaLimit: {TargetQuotaLimit}<br/>";
-            }
-            if (ApprovedQuotaLimit.HasValue)
-            {
-                str += $"- ApprovedQuotaLimit: {ApprovedQuotaLimit}<br/>";
-            }
-            if (!string.IsNullOrEmpty(OfferType))
-            {
-                str += $"- OfferType: {OfferType}<br/>";
-            }
-            return str;
-        }
-    }
-
 
     [JsonConverter(typeof(JsonStringEnumConverter<QuotaType>))]
     public enum QuotaType

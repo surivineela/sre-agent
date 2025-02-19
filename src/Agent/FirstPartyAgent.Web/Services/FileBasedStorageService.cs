@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Models.ICM;
 using FirstPartyAgent.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Options;
@@ -18,20 +19,20 @@ public class FileBasedStorageService : ITaskStorageService
         _filePath = settings.Value.TaskStorage?.FilePath ?? "/mnt/task-storage/tasks.json";
     }
 
-    public async Task SaveTaskAsync(QuotaIncidentState incident)
+    public async Task SaveTaskAsync(QuotaIncidentState state)
     {
         await _semaphore.WaitAsync();
-        _logger.LogInformation($"Lock acquired. Saving task {incident.IncidentId} to file {_filePath}");
+        _logger.LogInformation($"Lock acquired. Saving task {state.Incident.Id} to file {_filePath}");
         try
         {
             var tasks = await GetAllTasksWithoutLockAsync();
-            tasks[incident.IncidentId] = incident;
+            tasks[state.Incident.Id] = state;
             var json = JsonSerializer.Serialize(tasks);
             await File.WriteAllTextAsync(_filePath, json);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error saving task {incident.IncidentId} to file {_filePath}");
+            _logger.LogError(ex, $"Error saving task {state.Incident.Id} to file {_filePath}");
         }
         finally
         {
@@ -103,23 +104,23 @@ public class FileBasedStorageService : ITaskStorageService
         }
     }
 
-    public async Task UpdateTaskAsync(QuotaIncidentState incident)
+    public async Task UpdateTaskAsync(QuotaIncidentState state)
     {
         await _semaphore.WaitAsync();
         await EnsureFileExistsAsync();
 
-        _logger.LogInformation($"Lock acquired. Updating task {incident.IncidentId} in file {_filePath}");
+        _logger.LogInformation($"Lock acquired. Updating task {state.Incident.Id} in file {_filePath}");
         try
         {
             var tasks = await GetAllTasksWithoutLockAsync();
-            tasks[incident.IncidentId] = incident;
+            tasks[state.Incident.Id] = state;
             var json = JsonSerializer.Serialize(tasks);
             await File.WriteAllTextAsync(_filePath, json);
-            _logger.LogInformation($"Task {incident.IncidentId} updated in file {_filePath}");
+            _logger.LogInformation($"Task {state.Incident.Id} updated in file {_filePath}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error updating task {incident.IncidentId} in file {_filePath}");
+            _logger.LogError(ex, $"Error updating task {state.Incident.Id} in file {_filePath}");
         }
         finally
         {

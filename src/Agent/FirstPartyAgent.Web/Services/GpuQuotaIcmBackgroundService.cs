@@ -21,24 +21,24 @@ public class GpuQuotaIcmBackgroundService : BackgroundService
     private async Task ProcessTaskAsync(QuotaIncidentState task, IIcmPlugin icmPlugin, IQuotaAgentService quotaAgentService)
     {
         //
-        var newDiscussions = await icmPlugin.GetDiscussionEntries(task.IncidentId, new DateTimeOffset(task.LastUpdateTimestamp!.Value));
+        var newDiscussions = await icmPlugin.GetDiscussionEntries(task.Incident.Id, new DateTimeOffset(task.LastUpdateTimestamp!.Value));
         if (newDiscussions is null)
         {
-            _logger.LogInformation($"[gpu_quota_icm_background_service] No discussions found for incident {task.IncidentId}");
+            _logger.LogInformation($"[gpu_quota_icm_background_service] No discussions found for incident {task.Incident.Id}");
             return;
         }
 
         if (newDiscussions.Count != 0)
         {
-            _logger.LogInformation($"[gpu_quota_icm_background_service] LastestDiscussionTimestampUtc is null all discussions are new for incident {task.IncidentId}");
+            _logger.LogInformation($"[gpu_quota_icm_background_service] LastestDiscussionTimestampUtc is null all discussions are new for incident {task.Incident.Id}");
 
-            await quotaAgentService.Process(task, newDiscussions.Select(d => new Disscussion(d.ChangedBy, DiscussionSource.Icm, d.Text)).ToList());
-            _logger.LogInformation($"[gpu_quota_icm_background_service] finished processing incident {task.IncidentId} by agent");
+            await quotaAgentService.Process(task, newDiscussions.Select(d => new Discussion(d.ChangedBy, DiscussionSource.Icm, d.Text)).ToList());
+            _logger.LogInformation($"[gpu_quota_icm_background_service] finished processing incident {task.Incident.Id} by agent");
             return;
         }
         else
         {
-            _logger.LogInformation($"[gpu_quota_icm_background_service] No new discussions found for incident {task.IncidentId}");
+            _logger.LogInformation($"[gpu_quota_icm_background_service] No new discussions found for incident {task.Incident.Id}");
         }
     }
 

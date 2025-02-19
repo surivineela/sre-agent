@@ -62,7 +62,7 @@ public class ApiController : ControllerBase
                 allTasks.TryGetValue(incidentId, out status);
                 if (status != null)
                 {
-                    var state = await _quotaAgentService.Process(status, new List<Disscussion> { new Disscussion(message.User, DiscussionSource.Teams, message.Content) });
+                    var state = await _quotaAgentService.Process(status, new List<Discussion> { new Discussion(message.User, DiscussionSource.Teams, message.Content) });
                     return Ok(state);
                 }
             }
@@ -75,8 +75,18 @@ public class ApiController : ControllerBase
     {
         try
         {
-            var state = await _quotaAgentService.Process(req, req.Discussions);
-            return Ok(state);
+            QuotaIncidentState state = new QuotaIncidentState()
+            {
+                Incident = new IcmIncident()
+                {
+                    Id = req.Id,
+                    Title = req.Title,
+                },
+                Summary = req.Summary
+            };
+
+            var result = await _quotaAgentService.Process(state, req.Discussions);
+            return Ok(result);
         }
         catch (Exception ex)
         {

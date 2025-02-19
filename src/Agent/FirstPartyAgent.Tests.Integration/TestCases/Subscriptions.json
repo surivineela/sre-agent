@@ -1,0 +1,19 @@
+{
+  "Subscriptions": [
+    {
+      "SubscriptionId": "38262fc6-67ca-4fb4-888f-1ce9ed6a362f",
+      "OfferType": "Internal",
+      "QuotaId": "Internal_2014-09-01"
+    },
+    {
+      "SubscriptionId": "9c5e8691-f2ce-474d-85e0-22cfe27af89b",
+      "OfferType": "Benefit Programs",
+      "QuotaId": ""
+    },
+    {
+      "SubscriptionId": "09a8781d-e592-4eec-94ab-39e3d369a328",
+      "OfferType": "Benefit Programs",
+      "QuotaId": ""
+    }
+  ]
+}
