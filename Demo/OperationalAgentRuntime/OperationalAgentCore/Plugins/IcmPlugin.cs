@@ -79,8 +79,20 @@ namespace OperationalAgentCore
             Dictionary<string, string> body = new Dictionary<string, string>();
             body.Add("workflowName", workflowName);
             body.Add("body", payload);
-            var requestMessage = new HttpRequestMessage(HttpMethod.Post, PluginUrl);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, $"{PluginUrl}/api/ExecuteGenevaWorkflow");
             requestMessage.Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+            return await SendRequestWithRetry(requestMessage, true);
+        }
+
+        private async Task<HttpResponseMessage> ExecuteGetCallsInICMPlugin(string apiPath)
+        {
+            string PluginUrl = _config.GetValue("ICM:PluginUrl", string.Empty);
+            if (string.IsNullOrWhiteSpace(PluginUrl))
+            {
+                throw new Exception("ICM:PluginUrl is not set in the configuration");
+            }
+            
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, $"{PluginUrl}{apiPath}");
             return await SendRequestWithRetry(requestMessage, true);
         }
 
@@ -163,19 +175,21 @@ namespace OperationalAgentCore
         public async Task<List<DiscussionEntry>> GetDiscussionEntries(
             [Description("Incident ID")] string incidentId)
         {
-            var payload = JsonConvert.SerializeObject(new { incidentId });
-            var response = await ExecuteICMWorkflow("GetDiscussionEntries-SREAgent-1P-AJSHARM", payload);
+            if (string.IsNullOrWhiteSpace(incidentId))
+                return new List<DiscussionEntry>();
+
+            var response = await ExecuteGetCallsInICMPlugin($"/api/GetIncidentDiscussionEntries?incidentId={incidentId}");
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var discussionEntries = JsonConvert.DeserializeObject<List<DiscussionEntry>>(content);
-                foreach (var entry in discussionEntries)
+                var resObj = JsonConvert.DeserializeObject<ODataResponse<DiscussionEntry>>(content);
+                foreach (var entry in resObj.Value)
                 {
                     if (entry.IsHtml) {
                         entry.Text = ExtractTextFromHTML(entry.Text);
                     }
                 }
-                return discussionEntries;
+                return resObj.Value;
             }
             else
             {

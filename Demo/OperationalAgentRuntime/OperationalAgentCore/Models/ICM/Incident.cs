@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -21,5 +22,14 @@ namespace OperationalAgentCore
         public string ChangedBy { get; set; }
         public string Text { get; set; }
         public bool IsHtml { get; set; }
+    }
+
+    public class ODataResponse<T>
+    {
+        [JsonProperty("odata.metadata")]
+        public string OdataMetadata { get; set; }
+
+        [JsonProperty("value")]
+        public List<T> Value { get; set; }
     }
 }
