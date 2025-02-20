@@ -42,9 +42,9 @@ namespace Agent.Graph.Crawler.ARM
 
             foreach (var ds in daemonSets.Items)
             {
-                var dsId = $"{clusterNode.ResourceId}/daemonsets/{ds.Metadata.NamespaceProperty}/{ds.Metadata.Name}";
+                var dsId = $"{clusterNode.ResourceId}/daemonsets/{ds.Metadata.NamespaceProperty}{ds.Metadata.Name}";
                 var dsNode = new ArmResourceNode(
-                    resourceType: "K8s/DaemonSet",
+                    resourceType: "Microsoft.ContainerService/DaemonSet",
                     resourceId: dsId,
                     subscriptionId: clusterNode.SubscriptionId,
                     resourceGroupName: ds.Metadata.NamespaceProperty,

@@ -8,6 +8,74 @@
         public IDictionary<string, object> GetNodeProperties();
     }
 
+    public class KubernetesResourceNode : IArmResourceGraphNode
+    {
+        public string ResourceType { get; set; }
+        public string ResourceId { get; set; }
+        public string SubscriptionId { get; set; }
+        public string ResourceGroupName { get; set; }  // Maps to Namespace in K8s
+        public string ResourceName { get; set; }
+        public string Namespace { get; set; }
+        public string Kind { get; set; }
+        public string ApiVersion { get; set; }
+
+        public KubernetesResourceNode() { }
+
+        public KubernetesResourceNode(
+            string resourceType,
+            string resourceId,
+            string subscriptionId,
+            string @namespace,
+            string resourceName,
+            string kind,
+            string apiVersion)
+        {
+            ResourceType = resourceType;
+            ResourceId = resourceId;
+            SubscriptionId = subscriptionId;
+            Namespace = @namespace;
+            ResourceGroupName = @namespace;
+            ResourceName = resourceName;
+            Kind = kind;
+            ApiVersion = apiVersion;
+        }
+
+        public string GetNodeLabel()
+        {
+            // Return a standardized label combining resource type and kind
+            return $"K8s_{Kind}";
+        }
+
+        public string GetNodeId()
+        {
+            // Using ResourceId as the unique identifier
+            // This should already be in the format: {clusterResourceId}/{kind}/{namespace}/{name}
+            return ResourceId;
+        }
+
+        public string GetResourceType()
+        {
+            // Return the Kubernetes resource type in a standardized format
+            return $"K8s/{Kind}";
+        }
+
+        public IDictionary<string, object> GetNodeProperties()
+        {
+            // Return all relevant properties as a dictionary
+            return new Dictionary<string, object>
+        {
+            { "resourceType", ResourceType },
+            { "resourceId", ResourceId },
+            { "subscriptionId", SubscriptionId },
+            { "resourceGroupName", ResourceGroupName },
+            { "resourceName", ResourceName },
+            { "namespace", Namespace },
+            { "kind", Kind },
+            { "apiVersion", ApiVersion }
+        };
+        }
+    }
+
     public class ArmResourceNode : IArmResourceGraphNode
     {
         public string ResourceType { get; set; }

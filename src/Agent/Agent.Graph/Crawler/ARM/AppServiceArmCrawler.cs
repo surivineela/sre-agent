@@ -5,6 +5,8 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 using Microsoft.Data.SqlClient;
+using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.AppService;
 
 namespace Agent.Graph.Crawler.ARM
 {
@@ -25,114 +27,211 @@ namespace Agent.Graph.Crawler.ARM
         {
             _logger.LogInformation($"Crawling App Service {node.ResourceId}");
 
-            // Add or update the App Service node in the graph.
             await _dbManager.AddOrUpdateNodeAsync(
                 node.GetNodeLabel(),
                 node.GetNodeId(),
                 node.GetResourceType(),
                 node.GetNodeProperties());
 
-            // Get the resource details using the generic API.
-            var resourceIdentifier = new ResourceIdentifier(node.ResourceId);
-            var resource = _armClient.GetGenericResource(resourceIdentifier);
-            if (resource == null || !resource.HasData)
+            var credential = new DefaultAzureCredential();
+            var armClient = new ArmClient(credential);
+            var armResourceId = new ResourceIdentifier(node.ResourceId);
+            var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
+            var resourceGroup = armClient.GetResourceGroupResource(resourceGroupId);
+            var siteResponse = await resourceGroup.GetWebSiteAsync(armResourceId.Name);
+            var webApp = siteResponse.Value;
+
+            // Link to App Service Plan if it exists
+            if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
             {
-                _logger.LogWarning($"Failed to get resource details for: {node.ResourceId}");
-                yield break;
+                var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
+                var appServicePlanNode = new ArmResourceNode(
+                    resourceType: "Microsoft.Web/serverfarms",
+                    resourceId: webApp.Data.AppServicePlanId,
+                    subscriptionId: planId.SubscriptionId,
+                    resourceGroupName: planId.ResourceGroupName,
+                    resourceName: planId.Name);
+
+                // Add the App Service Plan node
+                await _dbManager.AddOrUpdateNodeAsync(
+                    appServicePlanNode.GetNodeLabel(),
+                    appServicePlanNode.GetNodeId(),
+                    appServicePlanNode.GetResourceType(),
+                    appServicePlanNode.GetNodeProperties());
+
+                // Create bidirectional edges
+                await _dbManager.AddEdgeIfNotExistsAsync(
+                    appServicePlanNode.GetNodeId(),
+                    node.GetNodeId(),
+                    "HOSTS");
+
+                await _dbManager.AddEdgeIfNotExistsAsync(
+                    node.GetNodeId(),
+                    appServicePlanNode.GetNodeId(),
+                    "HOSTED_ON");
+
+                _logger.LogInformation($"Created bidirectional edges between App Service {node.ResourceId} and App Service Plan {webApp.Data.AppServicePlanId}");
+
+                yield return appServicePlanNode;
             }
 
-            // Deserialize the properties (which should contain the site config)
-            var jsonObj = JsonSerializer.Deserialize<JsonElement>(resource.Data.Properties);
+            var appSettingsResponse = await siteResponse.Value.GetApplicationSettingsAsync();
+            var appSettings = appSettingsResponse.Value.Properties;
 
-            // Look for configuration in "siteConfig"
-            if (jsonObj.TryGetProperty("siteConfig", out JsonElement siteConfig))
+            foreach (var setting in appSettings)
             {
-                // Check appSettings for SQL-related connection values.
-                if (siteConfig.TryGetProperty("appSettings", out JsonElement appSettings) &&
-                    appSettings.ValueKind == JsonValueKind.Array)
+                var name = setting.Key;
+                var value = setting.Value;
+                if (string.IsNullOrEmpty(value)) continue;
+
+                // Look for SQL connection strings in app settings
+                if (IsSqlConnectionString(value))
                 {
-                    foreach (var setting in appSettings.EnumerateArray())
+                    var sqlHelper = new SqlConnectionStringHelper(_logger, _armClient);
+                    var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_dbManager, node, value);
+                    if (sqlNode != null)
                     {
-                        if (setting.TryGetProperty("value", out JsonElement valueElement) &&
-                            valueElement.ValueKind == JsonValueKind.String)
-                        {
-                            var value = valueElement.GetString();
-                            // If the value contains a resource ID, use the existing logic.
-                            if (!string.IsNullOrEmpty(value) &&
-                                value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
-                            {
-                                yield return await TryLinkSqlResource(node, resourceIdentifier, value);
-                            }
-                        }
+                        var properties = sqlNode.GetNodeProperties();
+                        properties["authType"] = value.Contains("Authentication=Active Directory Managed Identity", StringComparison.OrdinalIgnoreCase)
+                            ? "managedIdentity"
+                            : "connectionString";
+                        properties["source"] = $"appService:appSetting:{name}";
+
+                        await _dbManager.AddOrUpdateNodeAsync(
+                            sqlNode.GetNodeLabel(),
+                            sqlNode.GetNodeId(),
+                            sqlNode.GetResourceType(),
+                            properties);
+
+                        await _dbManager.AddEdgeIfNotExistsAsync(
+                            node.GetNodeId(),
+                            sqlNode.GetNodeId(),
+                            "SQL_CONNECTED");
+
+                        yield return sqlNode;
                     }
                 }
-
-                // Also check connectionStrings (if present)
-                if (siteConfig.TryGetProperty("connectionStrings", out JsonElement connectionStrings) &&
-                    connectionStrings.ValueKind == JsonValueKind.Array)
+                // Look for Redis connection strings in app settings
+                else if (IsRedisConnectionString(value))
                 {
-                    foreach (var conn in connectionStrings.EnumerateArray())
+                    var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
+                    var redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_dbManager, node, value);
+                    if (redisNode != null)
                     {
-                        if (conn.TryGetProperty("connectionString", out JsonElement connStringElement) &&
-                            connStringElement.ValueKind == JsonValueKind.String)
-                        {
-                            var connValue = connStringElement.GetString();
-                            if (!string.IsNullOrEmpty(connValue))
-                            {
-                                // If the connection string already has the SQL resource ID, use that.
-                                if (connValue.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    yield return await TryLinkSqlResource(node, resourceIdentifier, connValue);
-                                }
-                                else
-                                {
-                                    // Otherwise, treat it as a standard SQL connection string.
-                                    var sqlHelper = new SqlConnectionStringHelper(_logger, _armClient);
-                                    var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_dbManager, node, connValue);
-                                    if (sqlNode != null)
-                                    {
-                                        yield return sqlNode;
-                                    }
-                                }
-                            }
-                        }
+                        var properties = redisNode.GetNodeProperties();
+                        properties["authType"] = value.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase)
+                            ? "managedIdentity"
+                            : "connectionString";
+                        properties["source"] = $"appService:appSetting:{name}";
+
+                        await _dbManager.AddOrUpdateNodeAsync(
+                            redisNode.GetNodeLabel(),
+                            redisNode.GetNodeId(),
+                            redisNode.GetResourceType(),
+                            properties);
+
+                        await _dbManager.AddEdgeIfNotExistsAsync(
+                            node.GetNodeId(),
+                            redisNode.GetNodeId(),
+                            "REDIS_CONNECTED");
+
+                        yield return redisNode;
                     }
                 }
             }
-
-            yield break;
         }
 
-        private async Task<ArmResourceNode> TryLinkSqlResource(ArmResourceNode appServiceNode, ResourceIdentifier appId, string possibleSqlResource)
+        private bool IsSqlConnectionString(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            
+            // Common SQL connection string indicators
+            return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private bool IsRedisConnectionString(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+            
+            // Common Redis connection string indicators
+            return value.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) && 
+                   (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
+                    value.Contains("password=", StringComparison.OrdinalIgnoreCase));
+        }
+
+        private async Task<ArmResourceNode> TryLinkSqlResource(ArmResourceNode appServiceNode, ResourceIdentifier appId, string connValue)
         {
             try
             {
-                var sqlId = new ResourceIdentifier(possibleSqlResource).ToString();
-                // Create a new node for the SQL resource.
-                var sqlNode = new ArmResourceNode(
-                    resourceType: "Microsoft.Sql/servers",
-                    resourceId: sqlId,
-                    subscriptionId: appId.SubscriptionId,
-                    resourceGroupName: appId.ResourceGroupName,
-                    resourceName: appId.Name); // Adjust resourceName as needed
+                var sqlHelper = new SqlConnectionStringHelper(_logger, _armClient);
+                var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_dbManager, appServiceNode, connValue);
+                if (sqlNode != null)
+                {
+                    var properties = sqlNode.GetNodeProperties();
+                    properties["authType"] = connValue.Contains("Authentication=Active Directory Managed Identity", StringComparison.OrdinalIgnoreCase) 
+                        ? "managedIdentity" 
+                        : "connectionString";
+                    properties["source"] = "appService:connectionString";
 
-                await _dbManager.AddOrUpdateNodeAsync(
-                    sqlNode.GetNodeLabel(),
-                    sqlNode.GetNodeId(),
-                    sqlNode.GetResourceType(),
-                    sqlNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(
-                    appServiceNode.GetNodeId(),
-                    sqlNode.GetNodeId(),
-                    "SQL_CONNECTED");
-                _logger.LogInformation($"Linked App Service {appServiceNode.ResourceId} with SQL resource {sqlId}");
-                return sqlNode;
+                    await _dbManager.AddOrUpdateNodeAsync(
+                        sqlNode.GetNodeLabel(),
+                        sqlNode.GetNodeId(),
+                        sqlNode.GetResourceType(),
+                        properties);
+
+                    await _dbManager.AddEdgeIfNotExistsAsync(
+                        appServiceNode.GetNodeId(),
+                        sqlNode.GetNodeId(),
+                        "SQL_CONNECTED");
+
+                    _logger.LogInformation($"Linked App Service {appServiceNode.ResourceId} with SQL resource");
+                    return sqlNode;
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
-                return null;
+                _logger.LogError($"Error linking SQL resource from value: {connValue}. Exception: {ex.Message}");
             }
+            return null;
+        }
+
+        private async Task<ArmResourceNode> TryLinkRedisResource(ArmResourceNode appServiceNode, ResourceIdentifier appId, string connValue)
+        {
+            try
+            {
+                var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
+                var redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_dbManager, appServiceNode, connValue);
+                if (redisNode != null)
+                {
+                    var properties = redisNode.GetNodeProperties();
+                    properties["authType"] = connValue.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase) 
+                        ? "managedIdentity" 
+                        : "connectionString";
+                    properties["source"] = "appService:connectionString";
+
+                    await _dbManager.AddOrUpdateNodeAsync(
+                        redisNode.GetNodeLabel(),
+                        redisNode.GetNodeId(),
+                        redisNode.GetResourceType(),
+                        properties);
+
+                    await _dbManager.AddEdgeIfNotExistsAsync(
+                        appServiceNode.GetNodeId(),
+                        redisNode.GetNodeId(),
+                        "REDIS_CONNECTED");
+
+                    _logger.LogInformation($"Linked App Service {appServiceNode.ResourceId} with Redis resource");
+                    return redisNode;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error linking Redis resource from value: {connValue}. Exception: {ex.Message}");
+            }
+            return null;
         }
     }
 
@@ -140,6 +239,7 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger _logger;
         private readonly ArmClient _armClient;
+        private const string azureSqlSuffix = ".database.windows.net";
 
         public SqlConnectionStringHelper(ILogger logger, ArmClient armClient)
         {
@@ -169,13 +269,19 @@ namespace Agent.Graph.Crawler.ARM
                     serverName = serverName.Substring(0, commaIndex);
                 }
 
+                var serverBaseName = serverName;
+                if (serverBaseName.EndsWith(azureSqlSuffix, StringComparison.OrdinalIgnoreCase))
+                {
+                    serverBaseName = serverBaseName.Substring(0, serverBaseName.Length - azureSqlSuffix.Length);
+                }
+
                 _logger.LogInformation($"Parsed SQL server name: {serverName}, Database: {database}");
 
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(workloadNode.SubscriptionId));
+                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/"+workloadNode.SubscriptionId));
                 await foreach (var server in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Sql/servers'"))
                 {
                     // Compare names (adjust for case or domain differences as needed).
-                    if (server.Data.Name.Equals(serverName, StringComparison.OrdinalIgnoreCase))
+                    if (server.Data.Name.Equals(serverBaseName, StringComparison.OrdinalIgnoreCase))
                     {
                         var sqlResourceId = server.Data.Id.ToString();
                         var sqlNode = new ArmResourceNode(
@@ -225,4 +331,5 @@ namespace Agent.Graph.Crawler.ARM
         }
     }
 }
+
 

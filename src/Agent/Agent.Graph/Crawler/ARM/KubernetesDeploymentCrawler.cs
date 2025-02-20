@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Azure.Core;
+using Azure.ResourceManager;
+using Azure.Identity;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
@@ -14,12 +16,17 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ILogger<K8sDeploymentCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
         private readonly IKubernetes _k8sClient;
+        private readonly ArmClient _armClient;
+        private readonly SqlConnectionStringHelper _sqlHelper;
 
         public K8sDeploymentCrawler(ILogger<K8sDeploymentCrawler> logger, IGraphDatabaseManager dbManager)
         {
             _logger = logger;
             _dbManager = dbManager;
-            // Initialize Kubernetes client using the default configuration (e.g. from KUBECONFIG or in-cluster config)
+            _armClient = new ArmClient(new DefaultAzureCredential());
+            _sqlHelper = new SqlConnectionStringHelper(logger, _armClient);
+
+            // Initialize Kubernetes client using the default configuration
             var config = KubernetesClientConfiguration.BuildDefaultConfig();
             _k8sClient = new Kubernetes(config);
         }
@@ -28,36 +35,55 @@ namespace Agent.Graph.Crawler.ARM
         {
             _logger.LogInformation($"Crawling Kubernetes Deployments in cluster: {clusterNode.ResourceId}");
 
-            // List deployments in all namespaces.
-            var deployments = await _k8sClient.AppsV1.ListDeploymentForAllNamespacesAsync(
-                allowWatchBookmarks: false,
-                continueParameter: null,
-                fieldSelector: null,
-                labelSelector: null,
-                limit: null,
-                pretty: null,
-                resourceVersion: null,
-                resourceVersionMatch: null,
-                timeoutSeconds: null,
-                watch: false
-            );
+            V1DeploymentList deployments = null;
+            try
+            {
+                deployments = await _k8sClient.AppsV1.ListDeploymentForAllNamespacesAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error retrieving Deployments from cluster {clusterNode.ResourceId}: {ex.Message}");
+                yield break;
+            }
+
+            if (deployments == null) yield break;
+
             foreach (var dep in deployments.Items)
             {
-                // Create a unique identifier for this deployment node.
-                var deploymentId = $"{clusterNode.ResourceId}/deployments/{dep.Metadata.NamespaceProperty}/{dep.Metadata.Name}";
-                var depNode = new ArmResourceNode(
-                    resourceType: "K8s/Deployment",
-                    resourceId: deploymentId,
-                    subscriptionId: clusterNode.SubscriptionId, // reusing properties from the cluster node
-                    resourceGroupName: dep.Metadata.NamespaceProperty,
-                    resourceName: dep.Metadata.Name);
+                ArmResourceNode depNode = null;
+                try
+                {
+                    if (dep.Namespace().Contains("gatekeeper") && dep.Name().Contains("--") && string.IsNullOrEmpty(dep.Name()))
+                    {
+                        continue;
+                    }
 
-                // Add the deployment node to the graph.
-                await _dbManager.AddOrUpdateNodeAsync(depNode.GetNodeLabel(), depNode.GetNodeId(), depNode.GetResourceType(), depNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(clusterNode.GetNodeId(), depNode.GetNodeId(), "CONTAINS");
+                    var deploymentId = $"{clusterNode.ResourceId}/deployments/{dep.Metadata.NamespaceProperty}{dep.Metadata.Name}";
+                    depNode = new ArmResourceNode(
+                        resourceType: "Microsoft.ContainerService/K8sDeployment",
+                        resourceId: deploymentId,
+                        subscriptionId: clusterNode.SubscriptionId,
+                        resourceGroupName: dep.Metadata.NamespaceProperty,
+                        resourceName: dep.Metadata.Name);
 
-                // Inspect each container’s env vars for SQL connection strings.
-                if (dep.Spec?.Template?.Spec?.Containers != null)
+                    await _dbManager.AddOrUpdateNodeAsync(
+                        depNode.GetNodeLabel(),
+                        depNode.GetNodeId(),
+                        depNode.GetResourceType(),
+                        depNode.GetNodeProperties());
+
+                    await _dbManager.AddEdgeIfNotExistsAsync(
+                        clusterNode.GetNodeId(),
+                        depNode.GetNodeId(),
+                        "CONTAINS");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error creating deployment node for {dep.Metadata?.Name} in namespace {dep.Metadata?.NamespaceProperty}: {ex.Message}");
+                    continue;
+                }
+
+                if (depNode != null && dep.Spec?.Template?.Spec?.Containers != null)
                 {
                     foreach (var container in dep.Spec.Template.Spec.Containers)
                     {
@@ -65,16 +91,55 @@ namespace Agent.Graph.Crawler.ARM
                         {
                             foreach (var env in container.Env)
                             {
-                                if (!string.IsNullOrEmpty(env.Value) &&
-                                    env.Value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
+                                ArmResourceNode sqlNode = null;
+                                try
                                 {
-                                    var sqlNode = await TryLinkSqlResource(depNode, env.Value);
-                                    if (sqlNode != null)
+                                    if (!string.IsNullOrEmpty(env.Value))
                                     {
-                                        yield return sqlNode;
+                                        if (IsSqlConnectionString(env.Value))
+                                        {
+                                            sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(
+                                                _dbManager,
+                                                depNode,
+                                                env.Value);
+
+                                            if (sqlNode != null)
+                                            {
+                                                var properties = sqlNode.GetNodeProperties();
+                                                properties["authType"] = env.Value.Contains("Authentication=Active Directory Managed Identity",
+                                                    StringComparison.OrdinalIgnoreCase)
+                                                        ? "managedIdentity"
+                                                        : "connectionString";
+                                                properties["source"] = $"k8s:deployment:env:{env.Name}";
+
+                                                await _dbManager.AddOrUpdateNodeAsync(
+                                                    sqlNode.GetNodeLabel(),
+                                                    sqlNode.GetNodeId(),
+                                                    sqlNode.GetResourceType(),
+                                                    properties);
+
+                                                await _dbManager.AddEdgeIfNotExistsAsync(
+                                                    depNode.GetNodeId(),
+                                                    sqlNode.GetNodeId(),
+                                                    "SQL_CONNECTED");
+                                            }
+                                        }
+                                        else if (env.Value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            sqlNode = await TryLinkSqlResourceById(depNode, env.Value, env.Name);
+                                        }
                                     }
                                 }
-                                // If the env var comes from a secret (env.ValueFrom), you might add logic to retrieve and inspect the secret here.
+                                catch (Exception ex)
+                                {
+                                    _logger.LogError($"Error processing environment variable {env.Name} in container for deployment {dep.Metadata?.Name}: {ex.Message}");
+                                    continue;
+                                }
+
+                                if (sqlNode != null)
+                                {
+                                    yield return sqlNode;
+                                }
                             }
                         }
                     }
@@ -84,7 +149,17 @@ namespace Agent.Graph.Crawler.ARM
             }
         }
 
-        private async Task<ArmResourceNode> TryLinkSqlResource(ArmResourceNode workloadNode, string possibleSqlResource)
+        private bool IsSqlConnectionString(string value)
+        {
+            if (string.IsNullOrEmpty(value)) return false;
+
+            // Common SQL connection string indicators
+            return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+                   value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private async Task<ArmResourceNode> TryLinkSqlResourceById(ArmResourceNode workloadNode, string possibleSqlResource, string envName)
         {
             try
             {
@@ -93,11 +168,24 @@ namespace Agent.Graph.Crawler.ARM
                     resourceType: "Microsoft.Sql/servers",
                     resourceId: sqlId,
                     subscriptionId: workloadNode.SubscriptionId,
-                    resourceGroupName: workloadNode.ResourceGroupName,
-                    resourceName: workloadNode.ResourceName); // adjust as needed
+                    resourceGroupName: ExtractResourceGroupName(sqlId),
+                    resourceName: ExtractResourceName(sqlId));
 
-                await _dbManager.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(workloadNode.GetNodeId(), sqlNode.GetNodeId(), "SQL_CONNECTED");
+                var properties = sqlNode.GetNodeProperties();
+                properties["source"] = $"k8s:deployment:env:{envName}";
+                properties["authType"] = "resourceId";
+
+                await _dbManager.AddOrUpdateNodeAsync(
+                    sqlNode.GetNodeLabel(),
+                    sqlNode.GetNodeId(),
+                    sqlNode.GetResourceType(),
+                    properties);
+
+                await _dbManager.AddEdgeIfNotExistsAsync(
+                    workloadNode.GetNodeId(),
+                    sqlNode.GetNodeId(),
+                    "SQL_CONNECTED");
+
                 _logger.LogInformation($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
                 return sqlNode;
             }
@@ -106,6 +194,25 @@ namespace Agent.Graph.Crawler.ARM
                 _logger.LogError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
                 return null;
             }
+        }
+
+        private string ExtractResourceGroupName(string resourceId)
+        {
+            var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < segments.Length - 1; i++)
+            {
+                if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
+                {
+                    return segments[i + 1];
+                }
+            }
+            return string.Empty;
+        }
+
+        private string ExtractResourceName(string resourceId)
+        {
+            var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
+            return segments[segments.Length - 1];
         }
     }
 }

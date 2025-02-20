@@ -105,7 +105,7 @@ public class ArmResourceCrawlerFactory
             return new SubscriptionNode(id.SubscriptionId);
         }
 
-        if (!string.IsNullOrEmpty(id.SubscriptionId) && !string.IsNullOrEmpty(id.ResourceGroupName) && string.IsNullOrEmpty(id.ResourceType))
+        if (!string.IsNullOrEmpty(id.SubscriptionId) && !string.IsNullOrEmpty(id.ResourceGroupName) && string.Equals(id.ResourceType.Type, "resourcegroups", StringComparison.OrdinalIgnoreCase))
         {
             return new ResourceGroupNode(id.SubscriptionId, id.ResourceGroupName);
         }

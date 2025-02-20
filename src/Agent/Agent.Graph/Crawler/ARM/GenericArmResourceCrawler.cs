@@ -32,6 +32,10 @@ namespace Agent.Graph.Crawler.ARM
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             _logger.LogInformation($"Crawling generic ARM resource {node.ResourceId}");
+            if(node.ResourceType.Contains("Microsoft.ContainerService/DaemonSet") || node.ResourceType.Contains("Microsoft.ContainerService/Deployment"))
+            {
+                yield break;
+            }
             var id = new ResourceIdentifier(node.ResourceId);
             if (id == null)
             {
