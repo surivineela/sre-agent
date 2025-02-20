@@ -1,12 +1,7 @@
-﻿using System.Diagnostics;
-using System.Text;
-using System.Text.Json;
-
-using Microsoft.Extensions.Configuration;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
+﻿using Agent.Tests.End2End.Fixtures;
+using Microsoft.Extensions.AI;
 using OpenAI.Chat;
-using Agent.Tests.End2End.Fixtures;
-
+using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
 using Xunit.Sdk;
@@ -71,7 +66,7 @@ namespace E2ETests
             }
         }
 
-        public static void DisposeAndRunGenericAssertions(CombinedFixture _fixture, ITestOutputHelper _output)
+        public static async Task DisposeAndRunGenericAssertions(CombinedFixture _fixture, ITestOutputHelper _output)
         {
             List<string> output = _fixture.AzureFunctionsFixture.FunctionApp1Process.Output;
             var outputCopy = new List<string>(output);
@@ -80,7 +75,7 @@ namespace E2ETests
             _output.WriteLine($"\nAll function app logs:\n\n");
             _output.WriteLine(outputString);
 
-            Assert.True(Helper.MatchesNaturalLanguagePrompt(_fixture, _output, "no exceptions or errors occurred"));
+            Assert.True(await Helper.MatchesNaturalLanguagePrompt(_fixture, _output, "no exceptions or errors occurred"));
             Assert.True(Helper.IsProcessRunning(_fixture.AzureFunctionsFixture.FunctionApp1Process.FuncHostProcess));
 
             Helper.SendDisableBasicAuthApprovalEvent(_fixture).GetAwaiter().GetResult();
@@ -130,9 +125,9 @@ namespace E2ETests
         /// <param name="_output"></param>
         /// <param name="expected"></param>
         /// <returns></returns>
-        public static bool MatchesNaturalLanguagePromptAndClear(this CombinedFixture _fixture, ITestOutputHelper _output, string expected)
+        public static async Task<bool> MatchesNaturalLanguagePromptAndClear(this CombinedFixture _fixture, ITestOutputHelper _output, string expected)
         {
-            if (MatchesNaturalLanguagePrompt(_fixture, _output, string.Join("\n", _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput), expected))
+            if (await MatchesNaturalLanguagePrompt(_fixture, _output, string.Join("\n", _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput), expected))
             {
                 _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput.Clear();
                 return true;
@@ -148,10 +143,10 @@ namespace E2ETests
         /// <param name="_output"></param>
         /// <param name="expected"></param>
         /// <returns></returns>
-        public static bool MatchesNaturalLanguagePrompt(this CombinedFixture _fixture, ITestOutputHelper _output, string expected)
+        public static async Task<bool> MatchesNaturalLanguagePrompt(this CombinedFixture _fixture, ITestOutputHelper _output, string expected)
         {
             string actual = string.Join("\n", _fixture.AzureFunctionsFixture.FunctionApp1Process.WorkingOutput);
-            return MatchesNaturalLanguagePrompt(_fixture, _output, actual, expected);
+            return await MatchesNaturalLanguagePrompt(_fixture, _output, actual, expected);
         }
 
         /// <summary>
@@ -161,23 +156,21 @@ namespace E2ETests
         /// <param name="_output"></param>
         /// <param name="expected"></param>
         /// <returns></returns>
-        public static bool MatchesNaturalLanguagePrompt(this CombinedFixture _fixture, ITestOutputHelper _output, string actual, string expected)
+        public static async Task<bool> MatchesNaturalLanguagePrompt(this CombinedFixture _fixture, ITestOutputHelper _output, string actual, string expected)
         {
-            ChatCompletion completion = _fixture.ChatClientFixture.ChatClient.CompleteChat(
+            ChatResponse completion = await _fixture.TestChatClientFixture.ChatClient.GetResponseAsync(
                 [
-                    new SystemChatMessage(
+                    new Microsoft.Extensions.AI.ChatMessage(
+                        ChatRole.System,
                         @"You are part of an end to end unit testing framework.
 Your job is simply to respond with `true` or `false` depending on if the logs from the app match the expected text.
 The text doesn't have to match exactly, but it needs to be close enough that a human would say it's an acceptible response for what we're trying to accomplish."
                     ),
-                    new UserChatMessage($@"Expected: {expected}
-
-Actual: {actual}
-                    "),
+                    new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, $@"Expected: {expected} Actual: {actual}")
                 ]
             );
 
-            bool succeeded = bool.TryParse(completion.Content[0].Text, out var result);
+            bool succeeded = bool.TryParse(completion.Message.Text, out var result);
 
             if (!succeeded)
             {

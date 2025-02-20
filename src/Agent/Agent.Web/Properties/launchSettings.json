@@ -11,7 +11,7 @@
     },
     "https": {
       "commandName": "Project",
-      "commandLineArgs": "--legacy",
+      "commandLineArgs": "--session --legacy",
       "launchBrowser": true,
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

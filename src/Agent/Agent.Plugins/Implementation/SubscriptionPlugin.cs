@@ -125,15 +125,5 @@ namespace Agent.Plugins
         {
             return await ResourceGraphHelper.ConstructMockResourceGraphAndPersistAsync(_graphDatabaseManager);
         }
-
-        public async Task DeleteResourceGraph()
-        {
-            await _graphDatabaseManager.Clear();
-        }
-
-        public async Task<ResultSet<dynamic>> QueryResourceGraph(string query)
-        {
-            return await _graphDatabaseManager.Query(query);
-        }
     }
 }

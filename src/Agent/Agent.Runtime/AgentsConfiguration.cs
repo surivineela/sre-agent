@@ -11,6 +11,13 @@ using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Logging;
+using System.ComponentModel;
+using Gremlin.Net.Driver;
+using Agent.Core.Helpers;
+using System.Text.Json;
+using OpenAI.Chat;
+using Agent.Runtime.SubAgents;
 
 namespace Agent.Runtime
 {
@@ -20,23 +27,33 @@ namespace Agent.Runtime
         {
             _ = services
                 .ConfigureIChatCompletionService()
+                .ConfigureAzureOpenAIClient()
+                .ConfigureIChatClient()
                 .AddTransient<Kernel>(sp =>
                 {
                     return new Kernel(sp);
                 })
+                .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
                 .AddSingleton<SubscriptionPluginDefinition>()
+                .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
+                .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
+                .AddSingleton<GraphDBPluginDefinition>()
+                .AddSingleton<GraphDBQueryAgent>()
+                .AddSingleton<ArchitectureAgent>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>
                 {
                     var agent = new Agent(
                         "main",
-                        IssueFinderAgent.SystemMessage,
+                        //IssueFinderAgent.SystemMessage,
+                        @"You are SRE Agent. You must delegate to other agents",
                         s.GetRequiredService<Kernel>(),
                         s.GetRequiredService<IOptions<AzureSettings>>());
 
-                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<SubscriptionPluginDefinition>(), "SubscriptionPlugin");
+                    //agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<SubscriptionPluginDefinition>(), "SubscriptionPlugin");
+                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
 
                     return agent;
                 })
@@ -45,8 +62,7 @@ namespace Agent.Runtime
                     var conversation = new Session();
                     conversation.AddAgent(s.GetRequiredService<Agent>());
                     return conversation;
-                })
-                .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
+                });
         }
 
         public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
@@ -102,6 +118,30 @@ namespace Agent.Runtime
 
                     return new ChatClientBuilder(client.AsChatClient(azureSettings.OpenAI.DeploymentName)).Build();
                 });
+        }
+    }
+
+    public class MetaAgentPlugin
+    {
+        ILogger<MetaAgentPlugin> _logger;
+        IChatClient _chatClient;
+        ArchitectureAgent _badArchitectureAgent;
+
+        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent)
+        {
+            _chatClient = chatClient;
+            _logger = logger;
+            _badArchitectureAgent = badArchitectureAgent;
+        }
+
+        [KernelFunction("launch_architecture_agent")]
+        [Description("This agent will answer quetions relating to the architecture of a service.")]
+        public async Task<string> LaunchBadArchitectureAgentAsync(string question)
+        {
+            _logger.LogInformation("Invoking architecture agent");
+            string answer = await _badArchitectureAgent.Ask(question);
+            _logger.LogInformation($"Architecture agent responded with: {answer}");
+            return answer;
         }
     }
 }

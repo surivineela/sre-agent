@@ -3,17 +3,18 @@ using Azure.Identity;
 using OpenAI.Chat;
 
 using Agent.Core.Configuration;
+using Microsoft.Extensions.AI;
 
-namespace Agent.Tests.End2End.Fixtures
+namespace Agent.Tests.Common.Fixtures
 {
     /// <summary>
     /// 
     /// </summary>
-    public class ChatClientFixture
+    public class TestChatClientFixture
     {
-        internal ChatClient ChatClient { get; }
+        public IChatClient ChatClient { get; }
 
-        public ChatClientFixture(AzureSettings azureSettings)
+        public TestChatClientFixture(AzureSettings azureSettings)
         {
             string aoaiEndpoint = azureSettings.OpenAI.Endpoint;
             string? key = azureSettings.OpenAI.ApiKey;
@@ -45,7 +46,27 @@ namespace Agent.Tests.End2End.Fixtures
             }
 
             // Return the ChatClient instance
-            ChatClient = client.GetChatClient(deployment);
+            ChatClient = client.AsChatClient(deployment);
+        }
+
+        public async Task<bool> MatchesNaturalLanguagePrompt(string expected, IList<Microsoft.Extensions.AI.ChatMessage> chatHistory)
+        {
+            IList<Microsoft.Extensions.AI.ChatMessage> tmpChatHistory = chatHistory.Where(m => m.Role == ChatRole.Assistant || m.Role == ChatRole.Tool).ToList();
+
+            tmpChatHistory.Add(new(ChatRole.User, $@"You are part of an end to end unit testing framework.
+Your job is simply to respond with `true` or `false` depending on if the logs from this chat history match the expected text.
+The text doesn't have to match exactly, but it needs to be close enough that a human would say it's an acceptible response for what we're trying to accomplish.
+
+Expected: {expected}"
+            ));
+            ChatResponse completion = await ChatClient.GetResponseAsync(tmpChatHistory);
+
+            bool succeeded = bool.TryParse(completion.Message.Text, out var result);
+            if (!succeeded)
+            {
+                throw new Exception($"Natural language test failed to parse the result. Response was: {completion}");
+            }
+            return result;
         }
     }
 }

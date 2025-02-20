@@ -20,10 +20,10 @@ namespace Agent.Tests.Integration.Helpers
             await Task.Delay(TimeSpan.FromSeconds(delayInSeconds));
         }
 
-        public static async Task<ChatCompletion> SendMessage(IChatClient chatClient, string message, ITestOutputHelper _output)
+        public static async Task<ChatResponse> SendMessage(IChatClient chatClient, string message, ITestOutputHelper _output)
         {
             _output.WriteLine($"Sending message: {message}");
-            return await chatClient.CompleteAsync(message);
+            return await chatClient.GetResponseAsync(message);
         }
     }
 }

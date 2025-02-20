@@ -33,13 +33,13 @@ namespace Agent.Tests.Integration
             _output = output;
         }
 
-        public async Task<ChatCompletion> CompleteAsync(string message)
+        public async Task<ChatResponse> CompleteAsync(string message)
         {
             _output.WriteLine($"Sending message: {message}");
 
             var userMessage = new ChatMessage(ChatRole.User, message);
             ChatHistory.Add(userMessage);
-            ChatCompletion completion = await Client.CompleteAsync(ChatHistory, ChatOptions);
+            ChatResponse completion = await Client.GetResponseAsync(ChatHistory, ChatOptions);
             var assistantMessage = new ChatMessage(ChatRole.Assistant, completion.Message.Text);
             ChatHistory.Add(assistantMessage);
             return completion;
@@ -55,7 +55,7 @@ The text doesn't have to match exactly, but it needs to be close enough that a h
 
 Expected: {expected}"
             ));
-            ChatCompletion completion = await Client.CompleteAsync(tmpChatHistory);
+            ChatResponse completion = await Client.GetResponseAsync(tmpChatHistory);
 
             bool succeeded = bool.TryParse(completion.Message.Text, out var result);
             if (!succeeded)

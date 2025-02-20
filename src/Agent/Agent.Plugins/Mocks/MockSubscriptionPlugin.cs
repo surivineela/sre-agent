@@ -78,20 +78,5 @@ namespace Agent.Plugins
             }
             return graphManager;
         }
-
-        public async Task<InMemoryGraphManager> BuildMockResourceGraphForAllSubscriptionsAsync()
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task DeleteResourceGraph()
-        {
-            throw new NotImplementedException();
-        }
-
-        public async Task<ResultSet<dynamic>> QueryResourceGraph(string query)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

@@ -40,14 +40,14 @@ https://github.com/sanchitmehta/sample-app",
             );
 
 
-            if (Helper.MatchesNaturalLanguagePromptAndClear(_fixture, _output, "needs additional confirmation"))
+            if (await Helper.MatchesNaturalLanguagePromptAndClear(_fixture, _output, "needs additional confirmation"))
             {
                 await Helper.SendMessage(_fixture, _output, "don't modify app settings; make a code change to fix managed identity. you have access. just fix the code.");
             }
 
             await Task.Delay(TimeSpan.FromSeconds(60));
 
-            Assert.True(Helper.MatchesNaturalLanguagePromptAndClear(_fixture, _output, "work item created, "));
+            Assert.True(await Helper.MatchesNaturalLanguagePromptAndClear(_fixture, _output, "work item created, "));
         }
 
         private async Task _Dispose()

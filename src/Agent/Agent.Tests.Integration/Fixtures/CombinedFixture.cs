@@ -1,4 +1,5 @@
 ﻿using Agent.Tests.Common;
+using Agent.Tests.Common.Fixtures;
 using Xunit.Abstractions;
 
 namespace Agent.Tests.Integration.Fixtures
@@ -10,11 +11,13 @@ namespace Agent.Tests.Integration.Fixtures
     {
         public ConfigFixture ConfigFixture { get; }
         public EmbeddingGeneratorFixture EmbeddingGeneratorFixture { get; }
+        public TestChatClientFixture TestChatClientFixture { get; }
 
         public CombinedFixture(IMessageSink sink)
         {
             ConfigFixture = new ConfigFixture();
             EmbeddingGeneratorFixture = new EmbeddingGeneratorFixture(ConfigFixture.AzureSettings);
+            TestChatClientFixture = new TestChatClientFixture(ConfigFixture.AzureSettings);
         }
     }
 }

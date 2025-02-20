@@ -10,11 +10,5 @@ namespace Agent.Plugins
         Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId);
 
         Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync();
-
-        Task<InMemoryGraphManager> BuildMockResourceGraphForAllSubscriptionsAsync();
-
-        Task DeleteResourceGraph();
-
-        Task<ResultSet<dynamic>> QueryResourceGraph(string query);
     }
 }

@@ -130,8 +130,20 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         {
             _logger.LogInformation($"Executing Gremlin query: {query}");
 
-            var res = await _gremlinClient!.SubmitAsync<dynamic>(query);
-            return res;
+            try
+            {
+                var res = await _gremlinClient!.SubmitAsync<dynamic>(query);
+                int messageSize = JsonSerializer.Serialize(res).Count();
+                if (messageSize > 20000)
+                {
+                    return new ResultSet<dynamic>(new string[] { "Too many results" }, null);
+                }
+
+                return res;
+            } catch (Exception e)
+            {
+                return new ResultSet<dynamic>(new string[] { $"Exception: {e.Message}" }, null);
+            }
         }
 
         private static string GetSanitizedCosmosDBId(string id)

@@ -35,7 +35,7 @@ namespace E2ETests.Tests
         {
             var response = await Helper.SendMessage(_fixture, _output, $"start monitoring {Helper.GetWebAppName(_testSettings.SubscriptionId)}");
             await Task.Delay(TimeSpan.FromSeconds(15));
-            Assert.True(Helper.MatchesNaturalLanguagePrompt(_fixture, _output, "monitoring started"));
+            Assert.True(await Helper.MatchesNaturalLanguagePrompt(_fixture, _output, "monitoring started"));
         }
 
         [Fact]
@@ -44,14 +44,14 @@ namespace E2ETests.Tests
             await Helper.SendMessage(_fixture, _output, "how many resources are you tracking");
             await Task.Delay(TimeSpan.FromSeconds(30));
 
-            Assert.True(_fixture.MatchesNaturalLanguagePrompt(_output, "Cleared state"));
+            Assert.True(await _fixture.MatchesNaturalLanguagePrompt(_output, "Cleared state"));
         }
 
         [Fact]
         public async Task NaturalLanguageTestWorksNegative()
         {
             string fakeErrorMessage = "Error: broke";
-            bool res = _fixture.MatchesNaturalLanguagePrompt(_output, fakeErrorMessage, "Successfully tracking new subscription");
+            bool res = await _fixture.MatchesNaturalLanguagePrompt(_output, fakeErrorMessage, "Successfully tracking new subscription");
             Assert.True(!res);
         }
 
@@ -59,7 +59,7 @@ namespace E2ETests.Tests
         public async Task NaturalLanguageTestWorks()
         {
             string fakeErrorMessage = "Subscription added";
-            bool res = _fixture.MatchesNaturalLanguagePrompt(_output, fakeErrorMessage, "Successfully tracking new subscription");
+            bool res = await _fixture.MatchesNaturalLanguagePrompt(_output, fakeErrorMessage, "Successfully tracking new subscription");
             Assert.True(res);
         }
 

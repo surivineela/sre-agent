@@ -1,4 +1,5 @@
 ﻿using Agent.Tests.Common;
+using Agent.Tests.Common.Fixtures;
 using Xunit.Abstractions;
 
 namespace Agent.Tests.End2End.Fixtures
@@ -9,13 +10,13 @@ namespace Agent.Tests.End2End.Fixtures
     public class CombinedFixture : IDisposable
     {
         public ConfigFixture ConfigFixture { get; }
-        public ChatClientFixture ChatClientFixture { get; }
+        public TestChatClientFixture TestChatClientFixture { get; }
         public AzureFunctionsFixture AzureFunctionsFixture { get; }
 
         public CombinedFixture(IMessageSink sink)
         {
             ConfigFixture = new ConfigFixture();
-            ChatClientFixture = new ChatClientFixture(ConfigFixture.AzureSettings);
+            TestChatClientFixture = new TestChatClientFixture(ConfigFixture.AzureSettings);
             AzureFunctionsFixture = new AzureFunctionsFixture(sink);
         }
 
