@@ -37,28 +37,28 @@ public class ArmResourceCrawlerFactory
             throw new ArgumentNullException(nameof(dbManager));
         }
 
-        // Filter by known node type
-        if (node is SubscriptionNode)
-        {
-            return new SubscriptionCrawler(_loggerFactory.CreateLogger<SubscriptionCrawler>(), dbManager, _loggerFactory);
-        }
-
-        if (node is ResourceGroupNode)
-        {
-            return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), dbManager, graphClient);
-        }
-
-        if (node is ContainerAppEnvironmentNode)
-        {
-            return new ContainerAppEnvironmentCrawler(_loggerFactory.CreateLogger<ContainerAppEnvironmentCrawler>(), dbManager, graphClient);
-        }
-
+        // For system managed identity the resource id is the actual resource
         if (node is ManagedIdentityNode)
         {
             return new ManagedIdentityCrawler(_loggerFactory.CreateLogger<ManagedIdentityCrawler>(), dbManager, graphClient);
         }
 
         // Filter by known resource type
+        if (SubscriptionType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return new SubscriptionCrawler(_loggerFactory.CreateLogger<SubscriptionCrawler>(), dbManager, _loggerFactory);
+        }
+
+        if (ResourceGroupType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), dbManager, graphClient);
+        }
+
+        if (ContainerAppEnvironmentType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        {
+            return new ContainerAppEnvironmentCrawler(_loggerFactory.CreateLogger<ContainerAppEnvironmentCrawler>(), dbManager, graphClient);
+        }
+
         if (ContainerAppType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
         {
             return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), dbManager);

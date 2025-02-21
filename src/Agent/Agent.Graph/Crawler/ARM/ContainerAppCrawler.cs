@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
@@ -13,13 +14,14 @@ using Azure.Core;
 
 namespace Agent.Graph.Crawler.ARM
 {
-    public class ContainerAppCrawler : IArmResourceCrawler
+    public class ContainerAppCrawler : GenericArmResourceCrawler
     {
         private readonly ILogger<ContainerAppCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
         private readonly ArmClient _armClient;
 
         public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseManager dbManager)
+            : base(logger, dbManager)
         {
             _logger = logger;
             _dbManager = dbManager;
@@ -28,6 +30,11 @@ namespace Agent.Graph.Crawler.ARM
 
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
+            await foreach (var n in base.Crawl(node))
+            {
+                yield return n;
+            }
+
             _logger.LogInformation($"Crawling Container App {node.ResourceId}");
 
             await _dbManager.AddOrUpdateNodeAsync(

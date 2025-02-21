@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Graph.Schema;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
 {
-    public class K8sClusterCrawler : IArmResourceCrawler
+    public class K8sClusterCrawler : GenericArmResourceCrawler
     {
         private readonly ILogger<K8sClusterCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
@@ -13,6 +14,7 @@ namespace Agent.Graph.Crawler.ARM
         private readonly K8sDaemonSetCrawler _daemonSetCrawler;
 
         public K8sClusterCrawler(ILogger<K8sClusterCrawler> logger, IGraphDatabaseManager dbManager, ILoggerFactory loggerFactory)
+            : base(logger, dbManager)
         {
             _logger = logger;
             _dbManager = dbManager;
@@ -20,8 +22,13 @@ namespace Agent.Graph.Crawler.ARM
             _daemonSetCrawler = new K8sDaemonSetCrawler(loggerFactory.CreateLogger<K8sDaemonSetCrawler>(), dbManager);
         }
 
-        public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)
+        public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)
         {
+            await foreach (var n in base.Crawl(clusterNode))
+            {
+                yield return n;
+            }
+
             // Add the cluster node to the graph.
             await _dbManager.AddOrUpdateNodeAsync(clusterNode.GetNodeLabel(), clusterNode.GetNodeId(), clusterNode.GetResourceType(), clusterNode.GetNodeProperties());
 

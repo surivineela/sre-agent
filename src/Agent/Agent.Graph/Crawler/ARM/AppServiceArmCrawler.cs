@@ -10,21 +10,27 @@ using Azure.ResourceManager.AppService;
 
 namespace Agent.Graph.Crawler.ARM
 {
-    public class AppServiceARMCrawler : IArmResourceCrawler
+    public class AppServiceARMCrawler : GenericArmResourceCrawler
     {
         private readonly ILogger<AppServiceARMCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
         private readonly ArmClient _armClient;
 
         public AppServiceARMCrawler(ILogger<AppServiceARMCrawler> logger, IGraphDatabaseManager dbManager)
+            : base(logger, dbManager, false)
         {
             _logger = logger;
             _dbManager = dbManager;
             _armClient = new ArmClient(new DefaultAzureCredential());
         }
 
-        public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+        public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
+            await foreach (var n in base.Crawl(node))
+            {
+                yield return n;
+            }
+
             _logger.LogInformation($"Crawling App Service {node.ResourceId}");
 
             await _dbManager.AddOrUpdateNodeAsync(

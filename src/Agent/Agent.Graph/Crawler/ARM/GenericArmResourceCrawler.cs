@@ -5,9 +5,13 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.ManagedServiceIdentities;
+using Azure.ResourceManager.Models;
+using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
@@ -18,18 +22,20 @@ namespace Agent.Graph.Crawler.ARM
     /// </summary>
     public class GenericArmResourceCrawler : IArmResourceCrawler
     {
-        private readonly ILogger<GenericArmResourceCrawler> _logger;
+        private readonly ILogger _logger;
         private readonly IGraphDatabaseManager _dbManager;
         private readonly ArmClient _armClient;
+        private readonly bool _crawlLinkedResource = true;
 
-        public GenericArmResourceCrawler(ILogger<GenericArmResourceCrawler> logger, IGraphDatabaseManager dbManager)
+        public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseManager dbManager, bool crawlLinkedResource = true)
         {
             _logger = logger;
             _dbManager = dbManager;
             _armClient = new ArmClient(new DefaultAzureCredential());
+            _crawlLinkedResource = crawlLinkedResource;
         }
 
-        public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+        public virtual async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             _logger.LogInformation($"Crawling generic ARM resource {node.ResourceId}");
             if(node.ResourceType.Contains("Microsoft.ContainerService/DaemonSet") || node.ResourceType.Contains("Microsoft.ContainerService/Deployment"))
@@ -43,23 +49,71 @@ namespace Agent.Graph.Crawler.ARM
                 yield break;
             }
 
-            var resp = await _armClient.GetGenericResource(id).GetAsync();
+            Response<GenericResource> resp = null;
+            try
+            {
+                // TODO
+                // /subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/zhenqxu-rg/providers/Microsoft.Network/virtualNetworks/zhenqxu-vnet-ncu/subnets/zhenqxu-wpenv-ncu-2
+                // Invalid resource type Microsoft.Network/virtualNetworks/subnets
+                resp = await _armClient.GetGenericResource(id).GetAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Failed to get resource: {node.ResourceId}, {ex}");
+                yield break;
+            }
+            
             if (resp == null || resp.Value == null || !resp.Value.HasData)
             {
                 _logger.LogWarning($"Failed to get resource: {node.ResourceId}");
-                yield break;
+                
             }
 
-            var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
-            foreach(var link in Tranverse(jsonObj))
+            var identity = resp.Value.Data.Identity;
+            if (identity != null)
             {
-                _logger.LogInformation($"Find linked resource: {link.ResourceId}");
-                await _dbManager.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(node.GetNodeId(), link.GetNodeId(), "LINKED");
-                yield return link;
+                if (identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned || identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned)
+                {
+                    var identityResp = await resp.Value.GetSystemAssignedIdentity().GetAsync();
+                    if (resp == null || resp.Value == null || !resp.Value.HasData)
+                    {
+                        _logger.LogWarning($"Failed to get system assigned identity for resource: {node.ResourceId}");
+                    }
+
+                    var identityResourceId = resp.Value.Id;
+                    var resourceId = new ResourceIdentifier(identityResourceId);
+                    var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
+                    await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+
+                    yield return identityNode;
+                }
+
+                if (identity.UserAssignedIdentities.Count > 0)
+                {
+                    foreach (var uami in identity.UserAssignedIdentities)
+                    {
+                        var identityResourceId = uami.Key;
+                        var resourceId = new ResourceIdentifier(identityResourceId);
+                        var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
+                        await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+                        await _dbManager.AddEdgeIfNotExistsAsync(node.GetNodeId(), identityNode.GetNodeId(), "HAS_IDENTITY");
+
+                        yield return identityNode;
+                    }
+                }
             }
 
-            yield break;
+            if (_crawlLinkedResource)
+            {
+                var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
+                foreach (var link in Tranverse(jsonObj))
+                {
+                    _logger.LogInformation($"Find linked resource: {link.ResourceId}");
+                    await _dbManager.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
+                    await _dbManager.AddEdgeIfNotExistsAsync(node.GetNodeId(), link.GetNodeId(), "LINKED");
+                    yield return link;
+                }
+            }
         }
 
         private IEnumerable<ArmResourceNode> Tranverse(JsonElement root)
@@ -90,8 +144,12 @@ namespace Agent.Graph.Crawler.ARM
 
                         try
                         {
-                            var id = new ResourceIdentifier(root.GetString());
-                            node = new ArmResourceNode(id.ResourceType, root.GetString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+                            // "/" means tenant
+                            if (root.GetString() != "/")
+                            {
+                                var id = new ResourceIdentifier(root.GetString());
+                                node = new ArmResourceNode(id.ResourceType, root.GetString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+                            }
                         }
                         catch { }
 

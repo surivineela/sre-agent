@@ -26,6 +26,13 @@ namespace Agent.Cmd
                     cmd.CrawlSubscription(command);
                 });
 
+            commandLineApplication.Command("ExportGraph",
+                (command) =>
+                {
+                    var cmd = new GraphCommand(logger, serviceProvider);
+                    cmd.ExportGraph(command);
+                });
+
             commandLineApplication.OnExecute(() =>
             {
                 commandLineApplication.ShowHelp();

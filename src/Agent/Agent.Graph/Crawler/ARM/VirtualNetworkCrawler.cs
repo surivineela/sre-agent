@@ -5,22 +5,26 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
 {
-    public class VirtualNetworkCrawler : IArmResourceCrawler
+    public class VirtualNetworkCrawler : GenericArmResourceCrawler
     {
         private readonly ILogger<VirtualNetworkCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
         private readonly ArmClient _armClient;
 
         public VirtualNetworkCrawler(ILogger<VirtualNetworkCrawler> logger, IGraphDatabaseManager dbManager)
+            : base(logger, dbManager)
         {
             _logger = logger;
             _dbManager = dbManager;
             _armClient = new ArmClient(new DefaultAzureCredential());
         }
 
-        public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+        public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
-            yield break;
+            await foreach (var n in base.Crawl(node))
+            {
+                yield return n;
+            }
         }
     }
 }

@@ -20,7 +20,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
 {
-    public class ContainerAppEnvironmentCrawler : IArmResourceCrawler
+    public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
     {
         private readonly ILogger<ContainerAppEnvironmentCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
@@ -28,6 +28,7 @@ namespace Agent.Graph.Crawler.ARM
         private readonly AzureResourceGraphClient _graphClient;
 
         public ContainerAppEnvironmentCrawler(ILogger<ContainerAppEnvironmentCrawler> logger, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient)
+            : base(logger, dbManager, false)
         {
             _logger = logger;
             _dbManager = dbManager;
@@ -35,11 +36,17 @@ namespace Agent.Graph.Crawler.ARM
             _graphClient = graphClient;
         }
 
-        public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+        public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
+            // TODO: remove
             if (node.ResourceName == "large")
             {
                 yield break;
+            }
+
+            await foreach (var n in base.Crawl(node))
+            {
+                yield return n;
             }
 
             var envNode = (ContainerAppEnvironmentNode)node;
@@ -77,40 +84,6 @@ namespace Agent.Graph.Crawler.ARM
             }
 
             await _dbManager.AddOrUpdateNodeAsync(envNode.GetNodeLabel(), envNode.GetNodeId(), envNode.GetResourceType(), envNode.GetNodeProperties());
-
-            // managed identity
-            if (env.Value.Data.Identity is not null)
-            {
-                if (env.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned || env.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned)
-                {
-                    var resp = await env.Value.GetSystemAssignedIdentity().GetAsync();
-                    if (resp == null || resp.Value == null || !resp.Value.HasData)
-                    {
-                        _logger.LogWarning($"Failed to get system assigned identity for container app environment: {envNode.ResourceId}");
-                    }
-
-                    var id = resp.Value.Id;
-                    var resourceId = new ResourceIdentifier(id);
-                    var identityNode = new ManagedIdentityNode(resourceId.ResourceType, id, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
-                    await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
-
-                    yield return identityNode;
-                }
-
-                if(env.Value.Data.Identity.UserAssignedIdentities.Count > 0)
-                {
-                    foreach(var identity in env.Value.Data.Identity.UserAssignedIdentities)
-                    {
-                        var id = identity.Key;
-                        var resourceId = new ResourceIdentifier(id);
-                        var identityNode = new ManagedIdentityNode(resourceId.ResourceType, id, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
-                        await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
-                        await _dbManager.AddEdgeIfNotExistsAsync(envNode.GetNodeId(), identityNode.GetNodeId(), "HAS_IDENTITY");
-
-                        yield return identityNode;
-                    }
-                }
-            }
 
             // network
             if (env.Value.Data.VnetConfiguration?.InfrastructureSubnetId is not null)

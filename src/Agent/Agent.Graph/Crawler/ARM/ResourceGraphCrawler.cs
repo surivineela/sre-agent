@@ -46,6 +46,7 @@ namespace Agent.Graph.Crawler.ARM
                     toCrawl.Enqueue(n);
                 }
             }
+            _logger.LogInformation($"Done crawling");
         }
     }
 }

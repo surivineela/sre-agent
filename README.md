@@ -117,6 +117,25 @@ Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting
    }
    ```
 
+## Graph Visualization
+### Prerequisites
+- Download Gephi https://gephi.org/
+
+### Export graph
+dotnet run --project .\src\Agent\Agent.Cmd\Agent.Cmd.csproj ExportGraph [Path]
+
+### Visualize using Gephi
+#### Coloring Vertex using labels
+1. Duplicate label column
+![](docs/images/gephi-1.png)
+2. Apply colors
+![](docs/images/gephi-2.png)
+
+#### Coloring Edges using labels
+same as vertex
+
+#### Use Preview to Zoom/Drag
+
 ## FirstPartyAgent Deployment to ACA
 
 ### Prerequisites
