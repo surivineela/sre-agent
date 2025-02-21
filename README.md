@@ -1,171 +1,25 @@
 # SRE Agent
 
-## Introduction
-
-Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting Azure applications and services. Get started quickly with the `Agent.Web` project and extend functionality using the plugins and helpers in `Agent.Core`.
+Azure SRE Agent is a unified agentic platform for monitoring and troubleshooting Azure applications and services.
 
 <img src="docs/images/sre-components.svg" width="805.5" height="400" alt="Component Diagram">
 
-## Getting Started
+## Quick Start
 
-1. **Set the API key for NuGet**  
-   We use an internal NuGet source for packages. To restore and build using the `dotnet` CLI, set the API key by running the following command:
+1. [Join the SRE Agent Devs Security Group](https://idweb.microsoft.com/IdentityManagement/aspx/common/GlobalSearchResult.aspx?searchtype=e0c132db-08d8-4258-8bce-561687a8a51e&content=TM-SreAgent-Dev)
 
-   ```
-   nuget.exe setApiKey az -Source https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/nuget/v3/index.json
-   ```
+2. Set up your development environment by following our [Development Setup Guide](docs/development-setup.md)
 
-   **Tip**  
-   If you don't have `nutget` installed in your windows machine, you can download it from https://www.nuget.org/downloads or use `winget` to install it by running `winget install Microsoft.NuGet` in an Administrator shell.
+3. Run the application following the [Running the Application](docs/running-the-app.md) guide
 
-   > **Warning**  
-   > Using the cross-platform `dotnet nuget` won't work as it doesn't support setting the API key.
+## Project Resources
 
-2. **Configure the Agent.Web Project**  
-   In the `Agent.Web` project, add an `appsettings.Development.json` file with the following configuration:
+- [Github Tracking Board](https://github.com/orgs/serverless-paas-balam/projects/196/views/2)
+- [Architecture Overview](docs/architecture.md)
+- [Graph Database Guide](docs/graph-database.md)
+- [Graph Visualization Guide](docs/graph-visualization.md)
+- [Deployment Guide](docs/deployment.md)
 
-   ```json
-   {
-     "Azure": {
-       "OpenAI": {
-         "DeploymentName": "gpt-4o",
-         "Endpoint": "<open-ai-endpoint>",
-         "ApiKey": "<azure-openai-key>"
-       }
-     }
-   }
-   ```
+## Need Help?
 
-2. **Launch the Solution**  
-   Navigate to the directory containing the solution file (`Agent.sln`) and open it with your preferred IDE (e.g., Visual Studio):
-
-   ```powershell
-   .\AAPT-Antares-OperationalAgent\src\Agent>Agent.sln
-   ```
-
-3. **Run the Application**  
-   Build and run the solution. The `Agent.Web` project will start a test chat client that will use your identity to access Azure resources.
-   
-   ![Project Demo](docs/images/Project.gif)
-
-## Graph Database Configuration
-
-### Prerequisites
-- Azure CLI installed
-- PowerShell environment
-
-### Setup Steps
-
-1. **Set Environment Variables**
-   ```powershell
-   resourceGroupName="msdocs-cosmos-gremlin-quickstart"
-   location="westus"
-   let suffix=$RANDOM*$RANDOM
-   accountName="msdocs-gremlin-$suffix"
-   ```
-
-2. **Create Resources**
-   - Login to Azure CLI: `az login`
-   - Create resource group:
-     ```powershell
-     az group create --name $resourceGroupName --location $location
-     ```
-   - Create Cosmos DB account:
-     ```powershell
-     az cosmosdb create \
-         --resource-group $resourceGroupName \
-         --name $accountName \
-         --capabilities "EnableGremlin" \
-         --locations regionName=$location \
-         --enable-free-tier true
-     ```
-
-3. **Get Credentials**
-   - Get API endpoint name:
-     ```powershell
-     az cosmosdb show --resource-group $resourceGroupName --name $accountName --query "name"
-     ```
-   - Get primary key:
-     ```powershell
-     az cosmosdb keys list --resource-group $resourceGroupName --name $accountName --type "keys" --query "primaryMasterKey"
-     ```
-
-4. **Create Database and Graph**
-   ```powershell
-   az cosmosdb gremlin database create \
-       --resource-group $resourceGroupName \
-       --account-name $accountName \
-       --name "resourcegraph"
-
-   az cosmosdb gremlin graph create \
-       --resource-group $resourceGroupName \
-       --account-name $accountName \
-       --database-name "resourcegraph" \
-       --name "resources" \
-       --partition-key-path "/resourceType" \
-       --throughput 400
-   ```
-
-5. **Update Configuration**  
-   Add to `appsettings.Development.json`:
-   ```json
-   "Gremlin": {
-     "AccountName": "<<ACCOUNTNAME>>",
-     "AccountKey": "<<<ACCOUNTKEY>>",
-     "Database": "resourcegraph",
-     "Collection": "resources"
-   }
-   ```
-
-## Graph Visualization
-### Prerequisites
-- Download Gephi https://gephi.org/
-
-### Export graph
-dotnet run --project .\src\Agent\Agent.Cmd\Agent.Cmd.csproj ExportGraph [Path]
-
-### Visualize using Gephi
-#### Coloring Vertex using labels
-1. Duplicate label column
-![](docs/images/gephi-1.png)
-2. Apply colors
-![](docs/images/gephi-2.png)
-
-#### Coloring Edges using labels
-same as vertex
-
-#### Use Preview to Zoom/Drag
-
-## FirstPartyAgent Deployment to ACA
-
-### Prerequisites
-- Azure CLI (az)
-- Azure Developer CLI (azd)
-- Docker
-- Access to internal Nuget feed
-
-### Deployment Files
-Located in `src/Deployment/FirstPartyAgent`:
-- azure.yaml (azd configuration)
-- infra folder (bicep files)
-- Dockerfile
-
-### Deployment Steps
-
-1. **Preparation**
-   - Navigate to deployment directory: `cd src/Deployment/FirstPartyAgent`
-   - Login to azd: `azd auth login --scope https://management.azure.com//.default`
-   - Select target subscription: `az account set --subscription <target-subscription>`
-
-2. **First-time Deployment**
-   - Create new azd environment: `azd env new`
-   - Provision Azure resources: `azd provision`
-   - Note: Increase gpt-4o deployment quota in Azure Portal to avoid 429 errors
-
-3. **Build and Deploy**
-   - Run `build_and_publish_image.ps1` to build and push Docker image
-   - Run `azd provision` to deploy the image
-
-For production deployment, contact yefwuang, zhenquan.xu, xiangy for configuration files.
-
-Note: Production deployment should use the subscription "Container Apps Operational Agent (be8d491e-109c-4ee1-aaee-dc7615af0a42)".
+Check our [Troubleshooting Guide](docs/troubleshooting.md) or reach out to the team on our Teams channel.
