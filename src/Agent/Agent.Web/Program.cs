@@ -5,6 +5,7 @@
 using Agent.Core.Helpers;
 using Agent.Web.Services;
 using Agent.Runtime;
+using Agent.Core;
 
 var builder = WebApplication.CreateBuilder(args);
 

@@ -1,0 +1,127 @@
+@page "/"
+@using Agent.Core.Models
+@using FirstPartyAgent.Models
+@using FirstPartyAgent.Web.Services
+@using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@inject IChatService ChatService
+@inject IJSRuntime JS
+
+<div class="chat-container">
+    <div class="messages-container" @ref="messagesDiv">
+        @foreach (var message in messages)
+        {
+            <div class="message @(message.IsUser ? "user-message" : "assistant-message")">
+                <div class="message-content">
+                    @((MarkupString)message.Message)
+                </div>
+                <div class="message-timestamp">
+                    @message.Timestamp.ToString("HH:mm")
+                </div>
+            </div>
+        }
+        @if (isTyping)
+        {
+            <div class="message assistant-message">
+                <div class="message-content">
+                    <span class="typing-animation">
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                        <span class="typing-dot"></span>
+                    </span>
+                </div>
+                <div class="message-timestamp">@DateTime.Now.ToString("HH:mm")</div>
+            </div>
+        }
+    </div>
+
+    <div class="chat-input">
+        <form @onsubmit="HandleSubmit">
+            <textarea rows="1"
+                   @bind="currentMessage" 
+                   @bind:event="oninput"
+                   placeholder="Type a message..."
+                   @onkeypress="HandleKeyPress"
+                   @ref="textAreaRef" />
+            <button type="submit" disabled="@string.IsNullOrWhiteSpace(currentMessage)">
+                <i class="bi bi-send-fill"></i>
+            </button>
+        </form>
+    </div>
+</div>
+
+@code {
+    private ElementReference messagesDiv;
+    private ElementReference textAreaRef;
+    private string currentMessage = "";
+    private List<ChatMessage> messages = new();
+    private bool isTyping = false;
+
+    private async Task HandleSubmit()
+    {
+        if (string.IsNullOrWhiteSpace(currentMessage))
+            return;
+
+        var userMessage = new ChatMessage
+        {
+            Message = currentMessage,
+            IsUser = true
+        };
+        
+        messages.Add(userMessage);
+        var tempMessage = currentMessage;
+        currentMessage = "";
+
+        await ScrollToBottom();
+
+        try
+        {
+            isTyping = true;
+            StateHasChanged();
+            
+            var response = await ChatService.ProcessMessageAsync(tempMessage);
+            isTyping = false;
+            messages.Add(response);
+            await ScrollToBottom();
+        }
+        catch
+        {
+            isTyping = false;
+            messages.Add(new ChatMessage
+            {
+                Message = "Sorry, there was an error processing your request.",
+                IsUser = false
+            });
+        }
+    }
+
+    private async Task HandleKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter" && !e.ShiftKey)
+        {
+            await HandleSubmit();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await ScrollToBottom();
+        }
+        await JS.InvokeVoidAsync("autoAdjustHeight", textAreaRef);
+    }
+
+    private async Task ScrollToBottom()
+    {
+        try
+        {
+            await Task.Delay(50);
+            await JS.InvokeVoidAsync("scrollToBottom", messagesDiv);
+        }
+        catch
+        {
+            // Handle any potential JS interop errors
+        }
+    }
+}

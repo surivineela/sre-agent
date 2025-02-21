@@ -1,0 +1,99 @@
+﻿@{
+    ViewData["Title"] = "SRE Agent - Test Client";
+}
+
+<div class="chat-container">
+    <div class="messages-container" id="messagesContainer">
+        <!-- Messages will be added dynamically -->
+    </div>
+    
+    <div class="chat-input">
+        <form id="chatForm" onsubmit="return sendMessage(event)">
+            <textarea 
+                id="messageInput" 
+                placeholder="Type your message..." 
+                rows="1"
+                oninput="autoAdjustHeight(this)"
+                required></textarea>
+            <button type="submit" id="sendButton">Send</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function createMessageElement(message, type) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${type}-message`;
+
+            if (type === 'assistant') {
+                const mdBlock = document.createElement('md-block');
+
+            const formattedMessage = '\n' + message.split('\n')
+                .map(line => line.trim())
+                .join('\n') + '\n';
+            console.log(formattedMessage);
+            mdBlock.innerHTML = formattedMessage; // This should auto-re-render
+            messageDiv.appendChild(mdBlock);
+        } else {
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'markdown-content';
+                contentDiv.textContent = message;
+                messageDiv.appendChild(contentDiv);
+            }
+            
+            const timestamp = document.createElement('div');
+            timestamp.className = 'message-timestamp';
+            timestamp.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageDiv.appendChild(timestamp);
+            return messageDiv;
+        }
+
+        function addMessage(message, type) {
+            const container = document.getElementById('messagesContainer');
+            const messageElement = createMessageElement(message, type);
+            container.appendChild(messageElement);
+            scrollToBottom(container);
+        }
+
+        function sendMessage(event) {
+            event.preventDefault();
+            const input = document.getElementById('messageInput');
+            const message = input.value.trim();
+            
+            if (!message) return false;
+            
+            addMessage(message, 'user');
+            
+            input.value = '';
+            autoAdjustHeight(input);
+            
+            fetch('/Chat/SendMessage', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ message })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data);
+                // data.message is now raw markdown
+                addMessage(data.message, 'assistant');
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                addMessage('Sorry, there was an error processing your request.', 'assistant');
+            });
+            
+            return false;
+        }
+
+        // Initial message
+        window.addEventListener('DOMContentLoaded', () => {
+            const initialMessage = "Hello! I'm your **AI assistant**. How can I help you today?";
+            addMessage(initialMessage, 'assistant');
+        });
+    </script>
+}

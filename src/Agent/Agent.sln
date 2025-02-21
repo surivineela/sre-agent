@@ -23,11 +23,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Tests.Common", "Agent
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Agent.Cmd", "Agent.Cmd\Agent.Cmd.csproj", "{D985A20E-B2F0-489D-83BE-90206AFF817D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Plugins", "FirstPartyAgent.Plugins\FirstPartyAgent.Plugins.csproj", "{9A0FE8C8-7F5C-4CB1-86AB-745A65BF26E4}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Core", "FirstPartyAgent.Core\FirstPartyAgent.Core.csproj", "{9A0FE8C8-7F5C-4CB1-86AB-745A65BF26E4}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Tests.Integration", "FirstPartyAgent.Tests.Integration\FirstPartyAgent.Tests.Integration.csproj", "{08D18B91-DDE5-4499-98C3-2C76AD10572D}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.ACA.Web", "FirstPartyAgent.ACA.Web\FirstPartyAgent.ACA.Web.csproj", "{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Web", "FirstPartyAgent.Web\FirstPartyAgent.Web.csproj", "{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -87,6 +89,10 @@ Global
 		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
