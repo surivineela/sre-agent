@@ -22,7 +22,6 @@ public static class SemanticKernelHelper
         serviceCollection.AddScoped<ChartPlugin>();
         serviceCollection.AddSingleton<Models.GitHubClient>();
         serviceCollection.AddScoped<GithubIssuePlugin>();
-        serviceCollection.AddScoped<MemoryAnalysisPlugin>();
         serviceCollection.AddScoped<SubscriptionPlugin>();
         serviceCollection.AddScoped<TlsPlugin>();
 
