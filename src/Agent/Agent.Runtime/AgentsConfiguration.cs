@@ -39,8 +39,11 @@ namespace Agent.Runtime
                 .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
                 .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
                 .AddSingleton<GraphDBPluginDefinition>()
+                .AddSingleton<ITimePlugin, TimePlugin>()
+                .AddSingleton<TimePluginDefinition>()
                 .AddSingleton<GraphDBQueryAgent>()
                 .AddSingleton<ArchitectureAgent>()
+                .AddSingleton<GenericAgent>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>
@@ -126,12 +129,14 @@ namespace Agent.Runtime
         ILogger<MetaAgentPlugin> _logger;
         IChatClient _chatClient;
         ArchitectureAgent _badArchitectureAgent;
+        GenericAgent _genericAgent;
 
-        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent)
+        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent)
         {
             _chatClient = chatClient;
             _logger = logger;
             _badArchitectureAgent = badArchitectureAgent;
+            _genericAgent = genericAgent;
         }
 
         [KernelFunction("launch_architecture_agent")]
@@ -141,6 +146,16 @@ namespace Agent.Runtime
             _logger.LogInformation("Invoking architecture agent");
             string answer = await _badArchitectureAgent.Ask(question);
             _logger.LogInformation($"Architecture agent responded with: {answer}");
+            return answer;
+        }
+
+        [KernelFunction("launch_generic_agent")]
+        [Description("If you can't find a better agent, try this agent")]
+        public async Task<string> LaunchGenericAgentAsync(string question)
+        {
+            _logger.LogInformation("Invoking generic agent");
+            string answer = await _genericAgent.Ask(question);
+            _logger.LogInformation($"Generic agent responded with: {answer}");
             return answer;
         }
     }
