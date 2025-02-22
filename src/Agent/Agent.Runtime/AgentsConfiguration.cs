@@ -3,9 +3,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Agent.Core.Configuration;
-using Agent.Core.Configuration;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Agent.Core;
 using Agent.Plugins;
 using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
@@ -13,10 +11,6 @@ using Agent.Data.DatabaseManagers.GraphDatabase;
 using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
-using Gremlin.Net.Driver;
-using Agent.Core.Helpers;
-using System.Text.Json;
-using OpenAI.Chat;
 using Agent.Runtime.SubAgents;
 
 namespace Agent.Runtime
@@ -33,6 +27,7 @@ namespace Agent.Runtime
                 {
                     return new Kernel(sp);
                 })
+                // Add plugins
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
                 .AddSingleton<SubscriptionPluginDefinition>()
@@ -41,9 +36,14 @@ namespace Agent.Runtime
                 .AddSingleton<GraphDBPluginDefinition>()
                 .AddSingleton<ITimePlugin, TimePlugin>()
                 .AddSingleton<TimePluginDefinition>()
+                .AddSingleton<IMetricsPlugin, MetricsPlugin>()
+                .AddSingleton<MetricsPluginDefinition>()
+
+                // Add agents
+                .AddSingleton<GenericAgent>()
                 .AddSingleton<GraphDBQueryAgent>()
                 .AddSingleton<ArchitectureAgent>()
-                .AddSingleton<GenericAgent>()
+                .AddSingleton<LogsAndMetricsAgent>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>
@@ -130,13 +130,15 @@ namespace Agent.Runtime
         IChatClient _chatClient;
         ArchitectureAgent _badArchitectureAgent;
         GenericAgent _genericAgent;
+        LogsAndMetricsAgent _logsAndMetricsAgent;
 
-        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent)
+        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent, LogsAndMetricsAgent logsAndMetricsAgent)
         {
             _chatClient = chatClient;
             _logger = logger;
             _badArchitectureAgent = badArchitectureAgent;
             _genericAgent = genericAgent;
+            _logsAndMetricsAgent = logsAndMetricsAgent;
         }
 
         [KernelFunction("launch_architecture_agent")]
@@ -156,6 +158,16 @@ namespace Agent.Runtime
             _logger.LogInformation("Invoking generic agent");
             string answer = await _genericAgent.Ask(question);
             _logger.LogInformation($"Generic agent responded with: {answer}");
+            return answer;
+        }
+
+        [KernelFunction("analyze_logs_and_metrics")]
+        [Description("This agent will answer questions relating to logs and metrics of a service.")]
+        public async Task<string> LaunchLogsAndMetricsAgentAsync(string question)
+        {
+            _logger.LogInformation("Invoking LogsAndMetrics agent");
+            string answer = await _logsAndMetricsAgent.Ask(question);
+            _logger.LogInformation($"LogsAndMetrics agent responded with: {answer}");
             return answer;
         }
     }

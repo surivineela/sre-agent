@@ -1,0 +1,54 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.SemanticKernel;
+using System.ComponentModel;
+
+namespace Agent.Plugins
+{
+    public class MetricsPluginDefinition
+    {
+        private readonly IMetricsPlugin _metricsPlugin;
+
+        public MetricsPluginDefinition(IMetricsPlugin metricsPlugin)
+        {
+            _metricsPlugin = metricsPlugin;
+        }
+
+        [KernelFunction("get_webapp_cpu_metrics")]
+        [Description("Get the average CPU utilization metrics of a specific WebApp instance at per minute granularity" +
+                     " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% CPU utilization, zero metric value doesn't indicate the app is unhealthy")]
+        public async Task<IReadOnlyList<CpuTimeSeriesData>> GetWebAppCpuMetrics(
+            [Description("The resource ID of the WebApp resource.")] string resourceId)
+        {
+            return await _metricsPlugin.GetWebAppCpuMetrics(resourceId);
+        }
+
+        [KernelFunction("get_success_request_volume")]
+        [Description("Get the 2XX request volume of a specific resource at per minute granularity")]
+        public async Task<IReadOnlyList<SuccessfulRequestVolumeTimeSeriesData>> GetSuccessfulRequestVolumeAsync(
+            [Description("The resource ID of the WebApp resource.")] string resourceId)
+        {
+            return await _metricsPlugin.GetSuccessfulRequestVolumeAsync(resourceId);
+        }
+
+        [KernelFunction("get_functionapp_request_availability")]
+        [Description("Get the request availability of a specific FunctionApp at per minute granularity" +
+        " for the past 30 minutes, FunctionApp is healthy if all data points are at least 99.9 availability")]
+        public async Task<IReadOnlyList<RequestAvailabilitySeriesData>> GetFunctionAppRequestAvailability(
+            [Description("The resource ID of the FunctionApp resource.")] string resourceId)
+        {
+            return await _metricsPlugin.GetFunctionAppRequestAvailability(resourceId);
+        }
+
+        [KernelFunction("get_webapp_and_functionapp_memory_metrics")]
+        [Description("Get the average memory utilization metrics of a specific WebApp or FunctionApp instance at per minute granularity" +
+        " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% memory utilization.")]
+        public async Task<IReadOnlyList<MemoryTimeSeriesData>> GetMemoryMetrics(
+            [Description("The resource ID of the WebApp or FunctionApp resource.")] string resourceId)
+        {
+            return await _metricsPlugin.GetMemoryMetrics(resourceId);
+        }
+    }
+}

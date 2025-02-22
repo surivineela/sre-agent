@@ -66,9 +66,23 @@ namespace Agent.Tests.Integration
             Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt($"the current time is close to {DateTime.UtcNow}"));
         }
 
+        private async Task _Dispose()
+        {
+            Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("no exceptions or errors occurred"));
+
+            _output.WriteLine("\nAll chat messages:");
+            foreach (var message in ToolCallingChatClient.ChatHistory)
+            {
+                if (message.Text != null)
+                {
+                    _output.WriteLine(message.Text);
+                }
+            }
+        }
+
         public void Dispose()
         {
-            // No cleanup needed since we don't have any resources to dispose
+            _Dispose().GetAwaiter().GetResult();
         }
     }
 }
