@@ -2,8 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Configuration;
-using Agent.Core.Helpers;
+using FirstPartyAgent.Configuration;
 using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.ACA.Web;
@@ -34,6 +33,11 @@ public static class ConfigurationExtensions
 
         services.AddOptions<KustoSettings>()
             .Bind(configuration.GetSection("Kusto"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<IcmSettings>()
+            .Bind(configuration.GetSection("ICM"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

@@ -5,7 +5,9 @@
 using System.ComponentModel;
 using FirstPartyAgent.Constants;
 using FirstPartyAgent.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Octokit;
 
 namespace FirstPartyAgent.Plugins.Definitions
 {
@@ -14,9 +16,10 @@ namespace FirstPartyAgent.Plugins.Definitions
     /// https://github.com/microsoft/semantic-kernel/issues/10323
     /// </summary>
     /// <param name="plugin"></param>
-    public class ContainerAppsPluginDefinition(IContainerAppsPlugin plugin)
+    public class ContainerAppsPluginDefinition(IContainerAppsPlugin plugin, ILogger<ContainerAppsPluginDefinition> logger)
     {
         private readonly IContainerAppsPlugin _plugin = plugin;
+        private readonly ILogger<ContainerAppsPluginDefinition> _logger = logger;
 
 
         [KernelFunction(KernelFunctionNames.ACA.GetSubscriptionDetail)]
@@ -31,7 +34,10 @@ The return value includes the detailed information of the given subscription id.
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(
             [Description("Subscription ID")] string subscriptionId)
         {
-            return await _plugin.GetSubscriptionDetail(subscriptionId);
+            _logger.LogInformation($"GetSubscriptionDetail Started: {subscriptionId}");
+            var result = await _plugin.GetSubscriptionDetail(subscriptionId);
+            _logger.LogInformation($"GetSubscriptionDetail Completed: {result?.OfferType}, {result?.QuotaId}");
+            return result;
         }
 
         //[KernelFunction(KernelFunctionNames.ACA.SetSubscriptionQuota)]
@@ -53,9 +59,39 @@ The return value includes the detailed information of the given subscription id.
         public async Task<bool> SetSubscriptionQuota(
             [Description("The subscription Id")] string subscriptionId,
             [Description("The region")] string region,
-            [Description("The quota type")] string quotaType)
+            [Description("The quota type")] string quotaType,
+            [Description("The target quota limit")] string quotaLimit)
         {
-            return await _plugin.SetSubscriptionQuota(subscriptionId, region, quotaType);
+            return await _plugin.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
+        }
+
+        [KernelFunction(KernelFunctionNames.ACA.ValidateQuotaRequest)]
+        [Description(@"validate quota request
+This function evaluates a quota request based on specified parameters, including quota type, region, target limit, and offer type.
+This operation determines whether the quota request adheres to approval rules and returns a validation result.
+
+Output:
+The function returns a string containing two key pieces of information:
+
+1. ApprovalResult: The status of the quota request, which can be one of the following:
+   - Approved: The request has been successfully approved.
+   - Rejected: The request has been denied.
+   - Pending: Additional manual approval is required.
+   - NotStarted: The request is incomplete and requires more details.
+2. Reason: Provides an explanation for the validation decision.
+
+This function helps ensure quota requests comply with predefined rules and provides a clear decision with supporting context.
+")]
+        public async Task<string> ValidateQuotaRequest(
+            [Description("The quota type of the quota request")] string quotaType,
+            [Description("The offer type of the subscription")] string offerType,
+            [Description("The Azure region of the quota request")] string region,
+            [Description("The target quota limit of the quota request")] string targetQuotaLimit)
+        {
+            _logger.LogInformation($"ValidateQuotaRequest Started: {quotaType}, {offerType}, {region}, {targetQuotaLimit}");
+            var message = await _plugin.ValidateQuotaRequest(quotaType, offerType, region, targetQuotaLimit);
+            _logger.LogInformation($"ValidateQuotaRequest Completed: {message}");
+            return message;
         }
     }
 }

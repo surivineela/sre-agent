@@ -87,16 +87,12 @@ The return value is a boolean value for indicating if the operation is successfu
             [Description("Id of the incident")] string incidentId,
             [Description("comment/reason for resolution action")] string reason)
         {
+            const string workflowName = "Workflow-IcM-ResolveIncident";
 
-            string workflowName = _config.GetValue("ICM:WorkflowNames:ResolveIncident", string.Empty);
-            if (string.IsNullOrEmpty(workflowName))
-            {
-                throw new Exception("ICM:WorkflowNames:ResolveIncident is not set.");
-            }
             Dictionary<string, string> body = new()
             {
-                { "incidentId", incidentId },
-                { "message", reason }
+                { "IncidentId", incidentId },
+                { "Message", reason }
             };
             var (success, _) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<object>(workflowName, body);
             return success;

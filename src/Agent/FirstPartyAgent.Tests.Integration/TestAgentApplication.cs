@@ -7,10 +7,14 @@ using FirstPartyAgent.Tests.Integration.Extensions;
 using FirstPartyAgent.Tests.Integration.Mocks;
 using FirstPartyAgent.ACA.Web;
 using FirstPartyAgent.ACA.Web.Services;
+using FirstPartyAgent.Configuration;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using Moq;
+using Microsoft.Extensions.Logging;
+using FirstPartyAgent.Tests.Integration.Logging;
 
 namespace FirstPartyAgent.Tests.Integration
 {
@@ -26,6 +30,11 @@ namespace FirstPartyAgent.Tests.Integration
                 {
                     builder.ConfigureServices(services =>
                     {
+                        if (testBuilder.TestOutputHelper != null)
+                        {
+                            services.AddSingleton<ILoggerProvider>(new XunitTestHostLoggerProvider(testBuilder.TestOutputHelper));
+                        }
+
                         ApplyDefaultMock(services);
 
                         if (!testBuilder.BackgroundTaskEnabled)
@@ -45,7 +54,15 @@ namespace FirstPartyAgent.Tests.Integration
         public void ApplyDefaultMock(IServiceCollection services)
         {
             services.Replace<IIcmPlugin, IcmPlugin>(ServiceLifetime.Singleton, provider => new MockIcmPlugin());
-            services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Scoped, provider => new MockContainerAppsPlugin());
+
+            services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Scoped,
+                provider =>
+                {
+                    var icmSettingsOptionsMock = new Mock<IOptions<IcmSettings>>();
+                    icmSettingsOptionsMock.Setup(o => o.Value).Returns(() => null);
+                    var containerAppsPlugin = new Mock<ContainerAppsPlugin>(icmSettingsOptionsMock.Object, null);
+                    return new MockContainerAppsPlugin(containerAppsPlugin.Object);
+                });
 
             var _taskStorageServiceMock = new Mock<ITaskStorageService>();
             services.Replace<ITaskStorageService, FileBasedStorageService>(ServiceLifetime.Singleton, provider => _taskStorageServiceMock.Object);

@@ -6,19 +6,31 @@ using System.Reflection;
 using System.Text;
 using System.Text.RegularExpressions;
 using FirstPartyAgent.Models;
+using Microsoft.Extensions.Logging;
+using Xunit.Abstractions;
 
 namespace FirstPartyAgent.Tests.Integration.TestCases
 {
     public class QuotaAgentBenchmarkTest
     {
+        const int TestRunningTimes = 10;
+
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public QuotaAgentBenchmarkTest(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
 
         [Theory]
-        [MemberData(nameof(TestFiles))]
-        public async void TestQuotaAgent(string fileName)
+        [MemberData(nameof(TestFilesWithIteration))]
+        public async void TestQuotaAgent(string fileName, int iteration)
         {
             var testDescriber = LoadFile(fileName);
 
-            TestAgentApplicationBuilder builder = new TestAgentApplicationBuilder().DisableBackgroundTask();
+            TestAgentApplicationBuilder builder = new TestAgentApplicationBuilder()
+                .AddLogger(_testOutputHelper)
+                .DisableBackgroundTask();
             TestAgentApplication app = builder.Build();
 
             var request = new QuotaIncidentState
@@ -44,13 +56,35 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
             Assert.True(testDescriber.Validate(output), $"The final result is incorrect:\n {output.ToString()}");
         }
 
+        public static IEnumerable<object[]> TestFilesWithIteration
+        {
+            get
+            {
+                foreach (var file in TestFiles)
+                {
+                    for (int i = 0; i < TestRunningTimes; i++)
+                    {
+                        yield return new object[] { file[0], i };
+                    }
+                }
+            }
+        }
+
         public static IEnumerable<object[]> TestFiles
         {
             get
             {
+                yield return new object[] { "ACA_Quota_UnsupportedQuotaType.html" };
                 yield return new object[] { "ACA_Quota_AutoReject.html" };
                 yield return new object[] { "ACA_Quota_AutoApprove.html" };
                 yield return new object[] { "ACA_Quota_ManualApprove.html" };
+                yield return new object[] { "ACA_Quota_ManualReject.html" };
+                yield return new object[] { "ACA_Quota_WrongRegion.html" };
+                yield return new object[] { "ACA_Quota_WrongQuotaType.html" };
+                yield return new object[] { "ACA_Quota_ManualApproveT4.html" };
+                yield return new object[] { "ACA_Quota_AutoApproveT4.html" };
+                yield return new object[] { "ACA_Quota_MissSubId.html" };
+                yield return new object[] { "ACA_Quota_MissQuotaType.html" };
             }
         }
 
@@ -94,11 +128,11 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
                     {
                         throw new InvalidOperationException($"The line {line} is not recognized.");
                     }
-
-                    continue;
                 }
-
-                summary.AppendLine(line);
+                else
+                {
+                    summary.AppendLine(line);
+                }
             }
 
             describer.IncidentId = "88888888";

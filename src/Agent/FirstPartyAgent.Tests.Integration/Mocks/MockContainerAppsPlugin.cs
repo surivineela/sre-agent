@@ -6,11 +6,19 @@ using Agent.Core.Models;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Tests.End2End.Helpers;
+using System.ComponentModel;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
 {
     public class MockContainerAppsPlugin : IContainerAppsPlugin
     {
+        private readonly ContainerAppsPlugin containerAppsPlugin;
+
+        public MockContainerAppsPlugin(ContainerAppsPlugin containerAppsPlugin)
+        {
+            this.containerAppsPlugin = containerAppsPlugin;
+        }
+
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId)
         {
             var subscriptionInfoReaderHelper = new SubscriptionInfoReaderHelper();
@@ -20,21 +28,21 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             var subscriptionDetail = new SubscriptionDetail
             (
                 SubscriptionId: subscriptionId,
-                BillingType: "MockBillingType",
+                BillingType: "",
                 OfferType: offerInfo,
                 OfferName: quotaId,
                 TPId: 12345,
-                BillableAcctId: "MockBillableAcctId",
-                CloudCustomerGuid: "MockCloudCustomerGuid",
-                ClassifiedTypeV2: "MockClassifiedTypeV2",
-                QuotaId: "MockQuotaId",
-                OrganizationName: "MockOrganizationName"
+                BillableAcctId: "",
+                CloudCustomerGuid: "",
+                ClassifiedTypeV2: "",
+                QuotaId: "",
+                OrganizationName: ""
             );
 
             return await Task.FromResult(subscriptionDetail);
         }
 
-        public async Task<bool> SetSubscriptionQuota(string subscriptionId, string region, string quotaType)
+        public async Task<bool> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
             return await Task.FromResult(true);
         }
@@ -53,6 +61,16 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             {
                 MessageId = "MockReplyMessageId"
             });
+        }
+
+        public async Task<string> ValidateQuotaRequest(
+            [Description("The quota type of the quota request")] string quotaType,
+            [Description("The offer type of the subscription")] string offerType,
+            [Description("The region of the quota request")] string region,
+            [Description("The target quota limit of the quota request")] string targetQuotaLimit
+            )
+        {
+            return await containerAppsPlugin.ValidateQuotaRequest(quotaType, offerType, region, targetQuotaLimit);
         }
     }
 }

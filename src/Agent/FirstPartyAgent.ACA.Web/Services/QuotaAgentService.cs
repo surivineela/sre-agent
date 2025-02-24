@@ -3,7 +3,9 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Core;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using FirstPartyAgent.Agents;
@@ -40,14 +42,17 @@ public class QuotaAgentService : IQuotaAgentService
     {
         _logger = logger;
         _kernel = kernel.Clone();
+
+
         _kernel.Plugins.AddFromType<IcmPluginDefinition>(nameof(IcmPluginDefinition), provider);
         _kernel.Plugins.AddFromType<ContainerAppsPluginDefinition>(nameof(ContainerAppsPluginDefinition), provider);
+
         _icmPlugin = icmPlugin;
         _cappPlugin = cappPlugin;
         _taskStorageService = taskStorageService;
 
         _history = new ChatHistory();
-        _history.AddSystemMessage(Prompts.QuotaAgent);
+        _history.AddSystemMessage(ContainerAppAgent.GpuQuota.SystemMessage);
         _markdownPipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .DisableHtml()           // Disable HTML parsing
@@ -65,63 +70,122 @@ public class QuotaAgentService : IQuotaAgentService
         var settings = new AzureOpenAIPromptExecutionSettings
         {
             FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
-            //ResponseFormat = typeof(QuotaChatResponse),
             Temperature = 0,
             TopP = 0.95,
         };
 
         ChatHistory chatHistory = new();
-        _logger.LogInformation($"SystemMessage > {Prompts.QuotaAgent}");
-        chatHistory.AddSystemMessage(Prompts.QuotaAgent);
-        _logger.LogInformation($"UserMessage > {state}");
-        chatHistory.AddUserMessage(state.ToString());
+        chatHistory.AddSystemMessage(_logger, ContainerAppAgent.GpuQuota.SystemMessage);
+
+        if (state.IsNewRequest)
+        {
+            chatHistory.AddUserMessage(_logger, state.ToString());
+        }
+        else
+        {
+            chatHistory.AddAssistantMessage(_logger, state.ToString());
+        }
 
         if (discussions is not null)
         {
             foreach (var discussion in discussions)
             {
-                var message = $"{discussion.User} said: {discussion.Message}";
-                _logger.LogInformation($"UserMessage > {message}");
-                chatHistory.AddUserMessage(message);
+                var message = $"{discussion.Message}. Note: this message is provider by {discussion.User}.";
+                chatHistory.AddUserMessage(_logger, message);
             }
         }
 
         IChatCompletionService chatService = _kernel.Services.GetRequiredService<IChatCompletionService>();
-        ChatMessageContent result = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel).ConfigureAwait(false);
 
-        if (result is null)
+
+
+        bool needProcess = true;
+        int retry = 0;
+        do
         {
-            _logger.LogInformation($"No result is returned from Agent.");
-            // enqueue original message
-            state.LastUpdateTimestamp = DateTime.UtcNow;
+            ChatMessageContent result = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel).ConfigureAwait(false);
 
-            // TODO: We need better result, otherwise we lost the discussiom message.
+            retry++;
+            needProcess = true;
 
+            if (result is null)
+            {
+                _logger.LogError($"No result is returned from Agent. Retry = {retry}");
+
+                if (retry >= 3)
+                {
+                    await _taskStorageService.UpdateTaskAsync(state);
+                    return state;
+                }
+            }
+            else
+            {
+                chatHistory.AddAssistantMessage(_logger, result.Content ?? string.Empty);
+
+                QuotaIncidentState? newState;
+
+                try
+                {
+                    newState = JsonSerializer.Deserialize<QuotaIncidentState>(result.Items[0].ToString(), new JsonSerializerOptions
+                    {
+                        NumberHandling = JsonNumberHandling.AllowReadingFromString
+                    });
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Failed to deserialize result.");
+                    newState = null;
+                }
+
+                if (result.Items.Count > 1)
+                {
+                    _logger.LogWarning($"More than one result is returned from Agent. Only the first one is used.");
+                }
+
+                if (newState is null)
+                {
+                    _logger.LogWarning($"Failed to deserialize result.");
+                    chatHistory.AddUserMessage(_logger, ContainerAppAgent.GpuQuota.AskFormattedResponseMessage);
+                }
+                else if (!string.IsNullOrEmpty(newState.QuotaType) && newState.QuotaType.Contains(" "))
+                {
+                    _logger.LogWarning($"The quota type is not normalized.");
+                    chatHistory.AddUserMessage(_logger, ContainerAppAgent.GpuQuota.AskNormalizeOfferTypeMessage);
+                }
+                else if (!string.IsNullOrEmpty(newState.Region) && newState.Region.Contains(" "))
+                {
+                    _logger.LogWarning($"The region is not normalized.");
+                    chatHistory.AddUserMessage(_logger, ContainerAppAgent.GpuQuota.AskNormalizeRegionMessage);
+                }
+                else
+                {
+                    if (newState.ApprovalResult == ApprovalState.NotStarted &&
+                        string.IsNullOrEmpty(newState.OfferType) &&
+                        !string.IsNullOrEmpty(newState.QuotaType) &&
+                        !string.IsNullOrEmpty(newState.Region) &&
+                        !string.IsNullOrEmpty(newState.SubscriptionId) &&
+                        newState.TargetQuotaLimit != null)
+                    {
+                        // For some reason, the AI didn't get the offer type. But all the information is extracted. It is usually because it is asking some studio question.
+                        chatHistory.AddUserMessage(_logger, "I don't understand you questions. Because it seems you have already extracted the information you needed. Can you please re-process the request and give a new response? ");
+                        continue;
+                    }
+
+                    state.UpdateFrom(newState);
+
+                    needProcess = false;
+                }
+            }
+        }
+        while (needProcess && retry < 5);
+
+        state.IsNewRequest = false;
+
+        if (state.QuotaType != null && !state.QuotaType.Contains("GPU", StringComparison.OrdinalIgnoreCase))
+        {
+            state.ApprovalResult = ApprovalState.NotSupported;
             return state;
         }
-
-        //_logger.LogInformation($"Chat history: {JsonSerializer.Serialize(chatHistory)}");
-
-        IEnumerable<FunctionCallContent> functionCalls = FunctionCallContent.GetFunctionCalls(result);
-        foreach (FunctionCallContent functionCall in functionCalls)
-        {
-            _logger.LogInformation("Function call: {}", functionCall);
-        }
-
-        _logger.LogInformation($"Assistant > {result.Content}");
-        chatHistory.AddAssistantMessage(result.Content ?? string.Empty);
-
-        var resp = JsonSerializer.Deserialize<QuotaIncidentState>(result.Items[0].ToString());
-
-        if (resp is null)
-        {
-            _logger.LogInformation($"Failed to deserialize result.");
-            // TODO: This has a bug, we need to retry here.
-            await _taskStorageService.UpdateTaskAsync(state);
-            return state;
-        }
-
-        state.UpdateFrom(resp);
 
         if (state?.Incident?.Id != null)
         {
@@ -159,21 +223,40 @@ public class QuotaAgentService : IQuotaAgentService
         }
 
         var logMsg = "";
+
+        bool resolveIncident = false;
+
         if (state.ApprovalResult == ApprovalState.Approved)
         {
-            _logger.LogInformation("Quota request approved and geneva action executed.");
-            logMsg = $"Quota request approved and geneva action executed. Incident resolved. <br/>- Region: {resp.Region} <br/>- Quota Type: {resp.QuotaType} <br/>- Approved Quota: {resp.ApprovedQuotaLimit}.";
+            var result = await _cappPlugin.SetSubscriptionQuota(state.SubscriptionId, state.Region, state.QuotaType, state.ApprovedQuotaLimit?.ToString());
+
+            if (result)
+            {
+                resolveIncident = true;
+                _logger.LogInformation("Quota request approved and geneva action executed.");
+                logMsg = $"Quota request approved and geneva action executed. Incident resolved. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit}.";
+            }
+            else
+            {
+                _logger.LogError("Failed to execute geneva action.");
+                logMsg = $"Quota request approved but failed to execute geneva action. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit}.";
+            }
         }
         else
         {
+            resolveIncident = true;
             _logger.LogInformation("Quota request rejected.");
-            logMsg = $"Quota request rejected. Incident resolved. <br/>- Region: {resp.Region} <br/>- Quota Type: {resp.QuotaType} <br/>- Approved Quota: {resp.ApprovedQuotaLimit} <br/>- Reason: {resp.Summary}.";
+            logMsg = $"Quota request rejected. Incident resolved. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit} <br/>- Reason: {state.Summary}.";
         }
 
-        await _icmPlugin.ResolveIncident(state.Incident.Id, logMsg);
+        if(resolveIncident)
+        {
+            await _icmPlugin.ResolveIncident(state.Incident.Id, logMsg);
+            await _taskStorageService.RemoveTaskAsync(state.Incident.Id);
+        }
+        
         await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.Id, state.Incident.TeamsMessageId, logMsg);
-
-        await _taskStorageService.RemoveTaskAsync(state.Incident.Id);
+        
         return state;
     }
 
@@ -199,9 +282,12 @@ public class QuotaAgentService : IQuotaAgentService
             var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
             var result = await chatCompletionService.GetChatMessageContentAsync(
                 _history,
-                executionSettings: new()
+                executionSettings: new AzureOpenAIPromptExecutionSettings
                 {
-                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto()
+                    FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(),
+                    //ResponseFormat = typeof(QuotaChatResponse),
+                    Temperature = 0,
+                    TopP = 0.95,
                 },
                 kernel: _kernel);
 

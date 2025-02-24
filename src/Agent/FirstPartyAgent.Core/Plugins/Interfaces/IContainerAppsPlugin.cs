@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using FirstPartyAgent.Models;
+using System.ComponentModel;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -11,10 +12,12 @@ namespace FirstPartyAgent.Plugins
     {
         public Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId);
 
-        public Task<bool> SetSubscriptionQuota(string subscriptionId, string region, string quotaType);
+        public Task<bool> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
 
         public Task<TeamsPostMessageResponse?> PostTeamsDiscussionAsync(string incidentId, string title, string content);
 
         public Task<TeamsPostMessageResponse?> ReplyTeamsDiscussionAsync(string incidentId, string messageId, string content);
+
+        public Task<string> ValidateQuotaRequest(string quotaType, string offerType, string region, string targetQuotaLimit);
     }
 }

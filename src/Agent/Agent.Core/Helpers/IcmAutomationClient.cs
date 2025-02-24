@@ -107,8 +107,8 @@ namespace Agent.Core.Helpers
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
-                var incident = JsonConvert.DeserializeObject<T>(content);
-                return (true, incident);
+                var responseObject = JsonConvert.DeserializeObject<T>(content);
+                return (true, responseObject);
             }
             else
             {

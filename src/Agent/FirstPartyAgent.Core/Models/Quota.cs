@@ -37,6 +37,8 @@ namespace FirstPartyAgent.Models
 
         public string? OfferType { get; set; }
 
+        public bool IsNewRequest { get; set; } = true;
+
         public void UpdateFrom(QuotaIncidentState state)
         {
             if (state == null)
@@ -58,38 +60,44 @@ namespace FirstPartyAgent.Models
 
         public override string ToString()
         {
-            StringBuilder sb = new StringBuilder();
-
-            sb.AppendLine($"{Summary}<br/>");
-            sb.AppendLine($"<br/>");
-            sb.AppendLine($"-------- Following contains the extracted information so far --------<br/>");
-            sb.AppendLine($"<br/>- ApprovalResult: {ApprovalResult}<br/>");
+            StringBuilder stateBuilder = new StringBuilder();
 
             if (!string.IsNullOrEmpty(QuotaType))
             {
-                sb.AppendLine($"- QuotaType: {QuotaType}<br/>");
+                stateBuilder.AppendLine($"- QuotaType: {QuotaType}<br/>");
             }
             if (!string.IsNullOrEmpty(Region))
             {
-                sb.AppendLine($"- Region: {Region}<br/>");
+                stateBuilder.AppendLine($"- Region: {Region}<br/>");
             }
             if (!string.IsNullOrEmpty(SubscriptionId))
             {
-                sb.AppendLine($"- SubscriptionId: {SubscriptionId}<br/>");
+                stateBuilder.AppendLine($"- SubscriptionId: {SubscriptionId}<br/>");
             }
             if (TargetQuotaLimit.HasValue)
             {
-                sb.AppendLine($"- TargetQuotaLimit: {TargetQuotaLimit}<br/>");
+                stateBuilder.AppendLine($"- TargetQuotaLimit: {TargetQuotaLimit}<br/>");
             }
             if (ApprovedQuotaLimit.HasValue)
             {
-                sb.AppendLine($"- ApprovedQuotaLimit: {ApprovedQuotaLimit}<br/>");
+                stateBuilder.AppendLine($"- ApprovedQuotaLimit: {ApprovedQuotaLimit}<br/>");
             }
             if (!string.IsNullOrEmpty(OfferType))
             {
-                sb.AppendLine($"- OfferType: {OfferType}<br/>");
+                stateBuilder.AppendLine($"- OfferType: {OfferType}<br/>");
             }
-            return sb.ToString();
+
+            StringBuilder messageBuilder = new StringBuilder();
+            messageBuilder.AppendLine($"{Summary}<br/>");
+
+            if (!string.IsNullOrWhiteSpace(stateBuilder.ToString()))
+            {
+                messageBuilder.AppendLine($"<br/>");
+                messageBuilder.AppendLine($"-------- Following contains the extracted information so far --------<br/>");
+                messageBuilder.AppendLine(stateBuilder.ToString());
+            }
+
+            return messageBuilder.ToString();
         }
 
         public string GetTestDescriber()
@@ -106,8 +114,12 @@ namespace FirstPartyAgent.Models
         }
     }
 
-    public class ProcessQuotaIncidentRequest : IcmIncident
+    public class ProcessQuotaIncidentRequest
     {
+        public string? IncidentId { get; set; }
+
+        public string? Title { get; set; }
+
         public string? Summary { get; set; }
 
         public IList<Discussion>? Discussions { get; set; }
@@ -141,6 +153,7 @@ namespace FirstPartyAgent.Models
         Pending,
         Approved,
         Rejected,
+        NotSupported,
     }
 
     [JsonConverter(typeof(JsonStringEnumConverter<QuotaType>))]
@@ -159,6 +172,26 @@ namespace FirstPartyAgent.Models
         /// <summary>
         /// Quota for consumption GPUs for T4 VMs per subscription
         /// </summary>
-        SubscriptionConsumptionT4Gpus
+        SubscriptionConsumptionT4Gpus,
+
+        /// <summary>
+        /// Quota for managed environment consumption cores
+        /// </summary>
+        ManagedEnvironmentConsumptionCores,
+
+        /// <summary>
+        /// Quota for managed environment general purpose cores
+        /// </summary>
+        ManagedEnvironmentGeneralPurposeCores,
+
+        /// <summary>
+        /// Quota for managed environment memory optimized cores
+        /// </summary>
+        ManagedEnvironmentMemoryOptimizedCores,
+
+        /// <summary>
+        /// Quota for managed environment count
+        /// </summary>
+        ManagedEnvironmentCount
     }
 }

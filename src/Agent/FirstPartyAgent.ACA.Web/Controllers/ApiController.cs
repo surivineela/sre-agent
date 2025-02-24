@@ -37,14 +37,6 @@ public class ApiController : ControllerBase
         return Ok();
     }
 
-    [Route("UpdatePrompt")]
-    [HttpPost]
-    public async Task<IActionResult> UpdatePrompt(Prompt prompt)
-    {
-        Prompts.QuotaAgent = prompt.Text;
-        return Ok();
-    }
-
     [Route("UpdateTeamsMessage")]
     [HttpPost]
     public async Task<ObjectResult> UpdateTeamsMessage(TeamsMessage message)
@@ -72,6 +64,7 @@ public class ApiController : ControllerBase
         }
         return Ok(message);
     }
+
     [Route("ProcessQuotaIncident")]
     [HttpPost]
     public async Task<ObjectResult> ProcessQuotaIncident(ProcessQuotaIncidentRequest req)
@@ -82,7 +75,7 @@ public class ApiController : ControllerBase
             {
                 Incident = new IcmIncident()
                 {
-                    Id = req.Id,
+                    Id = req.IncidentId,
                     Title = req.Title,
                 },
                 Summary = req.Summary
@@ -97,8 +90,4 @@ public class ApiController : ControllerBase
             throw;
         }
     }
-}
-public class Prompt
-{
-    public string Text { get; set; }
 }

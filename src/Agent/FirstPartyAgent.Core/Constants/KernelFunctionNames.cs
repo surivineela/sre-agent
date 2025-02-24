@@ -10,6 +10,7 @@ namespace FirstPartyAgent.Constants
         {
             public const string GetSubscriptionDetail = "get_subscription_detail";
             public const string SetSubscriptionQuota = "set_subscription_quota";
+            public const string ValidateQuotaRequest = "validate_quota_request";
         }
 
         public static class Kusto
