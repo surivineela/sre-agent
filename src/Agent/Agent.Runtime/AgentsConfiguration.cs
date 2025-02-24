@@ -12,12 +12,15 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using Agent.Runtime.SubAgents;
+using Azure.Core;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime
 {
     public static class AgentsConfigurationExtensions
     {
-        public static void ConfigureAgents(this IServiceCollection services)
+        /*
+       public static void ConfigureAgents(this IServiceCollection services)
         {
             _ = services
                 .ConfigureIChatCompletionService()
@@ -53,7 +56,8 @@ namespace Agent.Runtime
                         //IssueFinderAgent.SystemMessage,
                         @"You are SRE Agent. You must delegate to other agents",
                         s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<IOptions<AzureSettings>>());
+                        s.GetRequiredService<IOptions<AzureSettings>>(),
+                        s.GetRequiredService<ILogger<Agent>>());  // Add logger parameter
 
                     //agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<SubscriptionPluginDefinition>(), "SubscriptionPlugin");
                     agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
@@ -67,7 +71,7 @@ namespace Agent.Runtime
                     return conversation;
                 });
         }
-
+*/
         public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
         {
             return services
@@ -123,7 +127,6 @@ namespace Agent.Runtime
                 });
         }
     }
-
     public class MetaAgentPlugin
     {
         ILogger<MetaAgentPlugin> _logger;
@@ -142,7 +145,7 @@ namespace Agent.Runtime
         }
 
         [KernelFunction("launch_architecture_agent")]
-        [Description("This agent will answer quetions relating to the architecture of a service.")]
+        [Description("This agent will answer questions relating to the architecture of a service.")]
         public async Task<string> LaunchBadArchitectureAgentAsync(string question)
         {
             _logger.LogInformation("Invoking architecture agent");

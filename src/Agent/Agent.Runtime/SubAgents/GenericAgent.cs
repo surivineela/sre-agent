@@ -19,7 +19,7 @@ namespace Agent.Runtime.SubAgents
 
         protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
-        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IChatClient chatClient, ILogger<GenericAgent> logger) : base(chatClient)
+        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IChatClient chatClient, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
         {
             _logger = logger;
             _subscriptionPlugin = subscriptionPlugin;

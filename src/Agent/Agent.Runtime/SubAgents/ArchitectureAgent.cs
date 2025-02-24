@@ -26,7 +26,8 @@ To do so, confirm:
 
 You can run multiple tool calls to answer a single question.";
 
-        public ArchitectureAgent(GraphDBQueryAgent queryAgent, IChatClient chatClient, ILogger<ArchitectureAgent> logger) : base(chatClient)
+        public ArchitectureAgent(GraphDBQueryAgent queryAgent, IChatClient chatClient, ILogger<ArchitectureAgent> logger) 
+            : base("ArchitectureAgent", chatClient)
         {
             _logger = logger;
             _queryAgent = queryAgent;

@@ -39,7 +39,7 @@ TIPS:
 - Try to not use specific ids in your queries
 ";
 
-        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger) : base(chatClient)
+        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger) : base("GraphDBQueryAgent", chatClient)
         {
             _logger = logger;
             _def = def;
@@ -61,7 +61,7 @@ TIPS:
             }
 
             ChatHistory.Add(new(ChatRole.User, question));
-            ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, _chatOptionsWithTools);
+            ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
         }
 

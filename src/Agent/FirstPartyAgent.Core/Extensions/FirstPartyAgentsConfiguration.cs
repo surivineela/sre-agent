@@ -4,6 +4,7 @@ using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -29,13 +30,15 @@ namespace FirstPartyAgent.Runtime
                         "main",
                         systemMessage,
                         s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<IOptions<AzureSettings>>());
+                        s.GetRequiredService<IOptions<AzureSettings>>(),
+                        s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
+                        s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Runtime.Agent>());
 
                     return agent;
                 })
                 .AddSingleton<Session>(s =>
                 {
-                    var conversation = new Session();
+                    var conversation = new Session(s.GetRequiredService<ILogger>());
                     conversation.AddAgent(s.GetRequiredService<Agent.Runtime.Agent>());
                     return conversation;
                 });

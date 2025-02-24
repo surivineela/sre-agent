@@ -18,8 +18,17 @@ public class LegacyChatService : IChatService
     private readonly MarkdownPipeline _markdownPipeline;
     private readonly OpenAISettings _openAISettings;
 
+    public async Task<string> CreateThreadAsync(string path, string threadId) => "";
+
+    public async Task<List<ChatThread>> GetThreadsAsync() => new List<ChatThread>();
+
+    public async Task SetThreadAsync(string threadId) { }
+
+    public async Task<string?> GetCurrentThreadIdAsync() => null;
+
+
     public LegacyChatService(
-        ILogger<LegacyChatService> logger, 
+        ILogger<LegacyChatService> logger,
         Kernel kernel,
         IOptions<AzureSettings> azureSettings)
     {
@@ -53,7 +62,7 @@ public class LegacyChatService : IChatService
                         _logger.LogInformation("User > " + message);
 
                         var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
-                        
+
                         // Set execution settings based on model type
                         var executionSettings = new OpenAIPromptExecutionSettings();
 
@@ -100,5 +109,11 @@ public class LegacyChatService : IChatService
                         throw;
                     }
                 });
+    }
+
+    public Task SwitchAgent(string path, string threadId)
+    {
+        // No-op for legacy service
+        return Task.CompletedTask;
     }
 }

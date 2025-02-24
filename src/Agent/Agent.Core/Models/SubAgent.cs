@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.AI;
+using Microsoft.SemanticKernel;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,21 +8,22 @@ using System.Threading.Tasks;
 
 namespace Agent.Core.Models
 {
-    public abstract class SubAgent
+    public abstract class SubAgent : IAgent
     {
         protected abstract string SystemPrompt { get; }
+        protected IChatClient _chatClient { get; }
+        public IList<Microsoft.Extensions.AI.ChatMessage> ChatHistory { get; private set; }
+        public string Name { get; }
+        public Kernel Kernel => null; // TODO: SubAgents need Kernel as well to support full conversation and debugging.
 
-        protected ChatOptions _chatOptionsWithTools => new ChatOptions
+        protected ChatOptions ChatOptionsWithTools => new ChatOptions
         {
             Tools = Tools()
         };
 
-        public IList<Microsoft.Extensions.AI.ChatMessage> ChatHistory { get; private set; }
-
-        protected IChatClient _chatClient { get; }
-
-        public SubAgent(IChatClient chatClient)
+        public SubAgent(string name, IChatClient chatClient)
         {
+            Name = name;
             _chatClient = chatClient
                 .AsBuilder()
                 .UseFunctionInvocation()
@@ -47,7 +49,7 @@ namespace Agent.Core.Models
         public virtual async Task DoWork(string question)
         {
             ChatHistory.Add(new(ChatRole.User, question));
-            ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, _chatOptionsWithTools);
+            ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
         }
 
