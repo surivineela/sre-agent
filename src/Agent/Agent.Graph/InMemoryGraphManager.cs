@@ -33,7 +33,8 @@ namespace Agent.Graph
         public bool AddDirectedEdgeIfNotExists(
             Node sourceNode,
             Node targetNode,
-            string relationshipType)
+            string relationshipType,
+            IDictionary<string, object> properties = null)
         {
             var edgeId = $"{sourceNode.Id}_{relationshipType}_{targetNode.Id}";
             if (_edges.ContainsKey(edgeId))
@@ -48,6 +49,7 @@ namespace Agent.Graph
                     SourceNodeId = sourceNode.Id,
                     TargetNodeId = targetNode.Id,
                     RelationshipType = relationshipType,
+                    Properties = properties
                 };
                 _edges[edgeId] = edge;
                 return true; // Edge added

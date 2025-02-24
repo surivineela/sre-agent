@@ -23,6 +23,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         /// <param name="sourceNodeId">The unique identifier of the source node.</param>
         /// <param name="targetNodeId">The unique identifier of the target node.</param>
         /// <param name="relationshipType">The type of relationship between the nodes.</param>
+        /// <param name="properties">edge properties.</param>
         /// <returns>A boolean indicating whether the edge was added (true) or already existed (false).</returns>
         Task<bool> AddEdgeIfNotExistsAsync(
             string sourceNodeId,
