@@ -115,7 +115,7 @@ namespace Agent.Tests.Integration
         public async Task GetFunctionAppRequestAvailability_InvalidResourceId()
         {
             await ToolCallingChatClient.CompleteAsync("get availability for invalid_resource_id");
-            Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("athe resource id is not valid or does not exist"));
+            Assert.True(await ToolCallingChatClient.MatchesNaturalLanguagePrompt("the resource id is not valid or does not exist"));
         }
 
         public void Dispose()
