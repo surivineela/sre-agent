@@ -12,7 +12,10 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using Agent.Runtime.SubAgents;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.PeriodicMonitor;
 using Azure.Core;
+using PeriodicMonitor = Agent.Plugins.PeriodicMonitor.PeriodicMonitor;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime
@@ -30,12 +33,15 @@ namespace Agent.Runtime
                 {
                     return new Kernel(sp);
                 })
+
                 // Add plugins
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
                 .AddSingleton<SubscriptionPluginDefinition>()
+                .AddSingleton<MonitorPluginDefinition>()
                 .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
                 .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
+                .AddSingleton<IMonitorPlugin, MonitorPlugin>()
                 .AddSingleton<GraphDBPluginDefinition>()
                 .AddSingleton<ITimePlugin, TimePlugin>()
                 .AddSingleton<TimePluginDefinition>()
@@ -46,6 +52,7 @@ namespace Agent.Runtime
                 .AddSingleton<GenericAgent>()
                 .AddSingleton<GraphDBQueryAgent>()
                 .AddSingleton<ArchitectureAgent>()
+                .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
                 .AddSingleton<LogsAndMetricsAgent>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory

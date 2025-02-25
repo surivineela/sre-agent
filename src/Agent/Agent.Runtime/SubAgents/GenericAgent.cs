@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -17,13 +18,16 @@ namespace Agent.Runtime.SubAgents
 
         protected ITimePlugin _timePlugin { get; }
 
+        protected IMonitorPlugin _monitorPlugin { get; }
+
         protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
-        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IChatClient chatClient, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
+        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IMonitorPlugin monitorPlugin, IChatClient chatClient, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
         {
             _logger = logger;
             _subscriptionPlugin = subscriptionPlugin;
             _timePlugin = timePlugin;
+            _monitorPlugin = monitorPlugin;
         }
 
         public override IList<AITool> Tools()
@@ -32,6 +36,12 @@ namespace Agent.Runtime.SubAgents
             {
                 AIFunctionFactory.Create(_subscriptionPlugin.ListAllSubscriptionsAsync),
                 AIFunctionFactory.Create(_subscriptionPlugin.ListAppServicesAsync),
+
+                AIFunctionFactory.Create(_monitorPlugin.StartMonitor),
+                AIFunctionFactory.Create(_monitorPlugin.UpdateMonitorInterval),
+                AIFunctionFactory.Create(_monitorPlugin.StopMonitor),
+                AIFunctionFactory.Create(_monitorPlugin.GetMonitorInfo),
+                AIFunctionFactory.Create(_monitorPlugin.SummarizeMonitorActivity),
 
                 AIFunctionFactory.Create(_timePlugin.GetCurrentUtcTime),
             };

@@ -52,7 +52,7 @@ namespace Agent.Plugins
             Console.WriteLine($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
 
             var appServices = new List<AppServiceDescriptor>();
-            string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg"];
+            string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg", "mikarmar-msha"];
 
 
             try
