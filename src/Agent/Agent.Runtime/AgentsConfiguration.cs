@@ -1,19 +1,14 @@
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Agent.Core.Configuration;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Agent.Plugins;
 using Microsoft.Extensions.AI;
 using Azure.AI.OpenAI;
-using Agent.Data.DatabaseManagers.GraphDatabase;
-using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using Agent.Runtime.SubAgents;
-using Azure.Core;
-using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime
 {
@@ -44,6 +39,8 @@ namespace Agent.Runtime
                 .AddSingleton<TimePluginDefinition>()
                 .AddSingleton<IMetricsPlugin, MetricsPlugin>()
                 .AddSingleton<MetricsPluginDefinition>()
+                .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
+                .AddSingleton<CurrentStatePluginDefinition>()
 
                 // Add agents
                 .AddSingleton<GenericAgent>()

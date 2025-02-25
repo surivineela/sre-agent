@@ -10,8 +10,9 @@ using Agent.Runtime.Services;
 using Agent.Plugins;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.PeriodicMonitor;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +51,9 @@ if (useSessionChatService)
                    .AddSingleton<MetricsPluginDefinition>()
                    .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
                    .AddSingleton<IMonitorPlugin, MonitorPlugin>()
-                   .AddSingleton<MonitorPluginDefinition>();
+                   .AddSingleton<MonitorPluginDefinition>()
+                   .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
+                   .AddSingleton<CurrentStatePluginDefinition>();
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
