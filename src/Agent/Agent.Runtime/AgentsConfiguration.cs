@@ -12,10 +12,7 @@ using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
 using Agent.Runtime.SubAgents;
-using Agent.Plugins.Definitions;
-using Agent.Plugins.PeriodicMonitor;
 using Azure.Core;
-using PeriodicMonitor = Agent.Plugins.PeriodicMonitor.PeriodicMonitor;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime

@@ -41,7 +41,7 @@ public class LegacyChatService : IChatService
             .Build();
     }
 
-    public async Task<ChatMessage> ProcessMessageAsync(string message)
+    public async Task<ChatMessage> ProcessMessageAsync(string message, string? threadId)
     {
         return await ChatHistoryPersistency.ChatHistoryTransition(
                 async chatHistory =>
@@ -115,5 +115,10 @@ public class LegacyChatService : IChatService
     {
         // No-op for legacy service
         return Task.CompletedTask;
+    }
+
+    public Task<List<ChatMessage>> GetChatHistoryAsync(string threadId)
+    {
+        throw new NotImplementedException();
     }
 }

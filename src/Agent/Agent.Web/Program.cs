@@ -7,11 +7,11 @@ using Agent.Web.Services;
 using Agent.Runtime;
 using Agent.Core.Models;
 using Agent.Runtime.Services;
-using Microsoft.AspNetCore.Routing;
 using Agent.Plugins;
-using Microsoft.SemanticKernel;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.PeriodicMonitor;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -46,14 +46,19 @@ if (useSessionChatService)
                    .AddSingleton<GraphDBPluginDefinition>()
                    .AddSingleton<ITimePlugin, TimePlugin>()
                    .AddSingleton<TimePluginDefinition>()
-                    .AddSingleton<IMetricsPlugin, MetricsPlugin>()
-                    .AddSingleton<MetricsPluginDefinition>();
+                   .AddSingleton<IMetricsPlugin, MetricsPlugin>()
+                   .AddSingleton<MetricsPluginDefinition>()
+                   .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
+                   .AddSingleton<IMonitorPlugin, MonitorPlugin>()
+                   .AddSingleton<MonitorPluginDefinition>();
+
+    builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()
                    .ConfigureAzureOpenAIClient()
                    .ConfigureIChatClient();
-
+    builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7023/") });
     // Register all SubAgent types
     foreach (var agentType in SubAgentDiscovery.DiscoverSubAgentTypes())
     {
@@ -62,7 +67,7 @@ if (useSessionChatService)
 
     // Add agent manager
     builder.Services.AddSingleton<IAgentManager, AgentManager>();
-    builder.Services.AddScoped<IChatService, SessionChatService>();
+    builder.Services.AddScoped<IChatService, Agent.Web.Services.SessionChatService>();
 }
 else
 {
@@ -97,8 +102,7 @@ app.UseHttpsRedirection();
 // Serve static files from wwwroot
 app.UseStaticFiles();
 app.UseRouting();
-
-// Then map Blazor endpoints
+app.MapControllers();
 app.MapBlazorHub();
 
 // Finally, map the fallback page

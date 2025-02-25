@@ -78,7 +78,7 @@ namespace Agent.Runtime
         {
             if (_currentAgent == null)
             {
-                throw new ArgumentNullException("Current agent hasn't been set");
+                throw new InvalidOperationException("No agent is currently set for this session");
             }
             return _currentAgent;
         }
@@ -170,6 +170,18 @@ namespace Agent.Runtime
             {
                 _logger.LogError(ex, "Error in ProcessAsync");
                 throw;
+            }
+        }
+
+        public string GetCurrentAgentType()
+        {
+            try
+            {
+                return _currentAgent?.GetType().Name.Replace("Agent", "") ?? "Meta";
+            }
+            catch (Exception)
+            {
+                return "Meta";
             }
         }
     }

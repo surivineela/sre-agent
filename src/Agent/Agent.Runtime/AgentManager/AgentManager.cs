@@ -182,24 +182,41 @@ namespace Agent.Runtime.Services
 
         private IAgent CreateAgentByType(string path)
         {
-            if (path == ROOT_AGENT_PATH)
+            try
             {
-                _logger.LogInformation("Using singleton root Agent instance");
+                if (path == ROOT_AGENT_PATH)
+                {
+                    _logger.LogInformation("Using singleton root Agent instance");
+                    return _rootAgent;
+                }
+
+                if (_subAgentPathMapping.TryGetValue(path, out var subAgentType))
+                {
+                    try
+                    {
+                        var agent = ActivatorUtilities.CreateInstance(_agentServiceProvider, subAgentType) as SubAgent;
+                        if (agent == null)
+                        {
+                            throw new InvalidOperationException($"Failed to create SubAgent instance for type {subAgentType.FullName}");
+                        }
+                        _logger.LogInformation($"Created SubAgent instance of type {subAgentType.Name}");
+                        return agent;
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error creating agent for path: {path}. Falling back to root agent.");
+                        return _rootAgent;
+                    }
+                }
+
+                _logger.LogWarning($"No agent registered for path: {path}. Using root agent.");
                 return _rootAgent;
             }
-
-            if (_subAgentPathMapping.TryGetValue(path, out var subAgentType))
+            catch (Exception ex)
             {
-                var agent = ActivatorUtilities.CreateInstance(_agentServiceProvider, subAgentType) as SubAgent;
-                if (agent == null)
-                {
-                    throw new InvalidOperationException($"Failed to create SubAgent instance for type {subAgentType.FullName}");
-                }
-                _logger.LogInformation($"Created SubAgent instance of type {subAgentType.Name}");
-                return agent;
+                _logger.LogError(ex, $"Error in CreateAgentByType for path: {path}. Using root agent.");
+                return _rootAgent;
             }
-
-            throw new InvalidOperationException($"No agent registered for path: {path}");
         }
 
         public async Task<Core.Models.ChatMessage> TrackChatThread(string threadId, string message)
@@ -235,18 +252,40 @@ namespace Agent.Runtime.Services
             }
         }
 
-        public Task<List<ChatThreadInfo>> GetChatThreads()
+        public List<ChatThreadInfo> GetChatThreads()
         {
             var threads = _sessions
-                .Select(s => new ChatThreadInfo
+                .Select(s =>
                 {
-                    Id = s.Key,
-                    Name = s.Value.Name,
-                    CreatedAt = s.Value.CreatedAt
+                    string agentType;
+                    try
+                    {
+                        var currentAgent = s.Value.GetCurrentAgent();
+                        agentType = currentAgent?.GetType().Name.Replace("Agent", "") ?? "Meta";
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Error getting agent type for session {SessionId}, defaulting to Meta", s.Key);
+                        agentType = "Meta";
+                    }
+
+                    return new ChatThreadInfo
+                    {
+                        Id = s.Key,
+                        Name = s.Value.Name,
+                        AgentType = agentType,
+                        CreatedAt = s.Value.CreatedAt
+                    };
                 })
                 .ToList();
 
-            return Task.FromResult(threads);
+            _logger.LogInformation("Retrieved {Count} chat threads", threads.Count);
+            foreach (var thread in threads)
+            {
+                _logger.LogDebug("Thread: {Id} - {Name} - {AgentType}", thread.Id, thread.Name, thread.AgentType);
+            }
+
+            return threads;
         }
 
         public void Dispose()
