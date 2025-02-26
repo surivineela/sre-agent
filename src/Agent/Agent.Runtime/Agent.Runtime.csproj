@@ -10,12 +10,22 @@
     <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.3.0" />
     <PackageReference Include="Microsoft.SemanticKernel" Version="1.37.0" />
     <PackageReference Include="ScottPlot" Version="5.0.54" />
-    <PackageReference Include="OpenAI" Version="2.2.0-beta.1" />
+	<PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.1" />
+    <PackageReference Include="Grpc.Net.Client" Version="2.67.0" />
+    <PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" Version="1.6.0-preview.1" />
+    <PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" Version="1.6.0-preview.1" />
+    <PackageReference Include="Microsoft.DurableTask.Generators" Version="1.0.0-preview.1" OutputItemType="Analyzer" />
   </ItemGroup>
  
   <ItemGroup>
 	<ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
   <ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <None Update="SubAgents\TlsBestPractices\TlsBestPracticesPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

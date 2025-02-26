@@ -35,6 +35,14 @@ public class AzureSettings
 
     [Required]
     public GremlinSettings Gremlin { get; set; } = new();
+
+    [Required]
+    public DurableTaskSchedulerSettings DurableTaskScheduler { get; set; } = new();
+}
+
+public class DurableTaskSchedulerSettings
+{
+    public string ConnectionString { get; set; } 
 }
 
 public class GitHubSettings

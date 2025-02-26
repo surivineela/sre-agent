@@ -39,4 +39,18 @@ We use an internal NuGet source for packages. To set up:
 }
 ```
 
+### Durable Task Scheduler
+
+You have two options:
+- run the emulator `./src/run-durable-emulator.ps1` (recommended)
+- deploy the Durable Task Scheduler service `./src/deploy-durable-task-service.ps1`
+
+If you deploy the service, update `appsettings.Development.json` with the connection string outputted by the deployment script
+
+```
+    "DurableTaskScheduler": {
+      "ConnectionString": "<connection string>"
+    },
+```    
+
 [Next: Running the Application](running-the-app.md) 
