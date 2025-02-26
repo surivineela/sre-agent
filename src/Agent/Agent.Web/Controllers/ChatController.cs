@@ -29,9 +29,23 @@ namespace Agent.Web.Controllers
                     return BadRequest("ThreadId is required");
                 }
 
-                _logger.LogInformation($"Getting history for thread: {threadId}");
-                var history = await _chatService.GetChatHistoryAsync(threadId);
-                _logger.LogInformation($"Found {history.Count} messages");
+                // Get the agent type from the request header
+                string? agentType = null;
+                if (Request.Headers.TryGetValue("AgentType", out var agentTypeValues))
+                {
+                    agentType = agentTypeValues.FirstOrDefault();
+                    _logger.LogInformation($"Getting history for thread: {threadId} with agent type: {agentType}");
+                }
+                else
+                {
+                    _logger.LogInformation($"Getting history for thread: {threadId} (no agent type specified)");
+                }
+
+                // Pass the agent type explicitly to the chat service
+                var historyStorage = HttpContext.RequestServices.GetRequiredService<IChatHistoryStorage>();
+                var history = await historyStorage.GetChatHistoryAsync(threadId, agentType);
+
+                _logger.LogInformation($"Found {history.Count} messages for agent type: {agentType ?? "Meta"}");
                 return Ok(history);
             }
             catch (Exception ex)

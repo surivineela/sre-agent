@@ -2,6 +2,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.AspNetCore.Http;
 using Agent.Core.Configuration;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Microsoft.Extensions.AI;
@@ -135,14 +136,16 @@ namespace Agent.Runtime
         ArchitectureAgent _badArchitectureAgent;
         GenericAgent _genericAgent;
         LogsAndMetricsAgent _logsAndMetricsAgent;
+        IHttpContextAccessor _httpContextAccessor;
 
-        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent, LogsAndMetricsAgent logsAndMetricsAgent)
+        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent, LogsAndMetricsAgent logsAndMetricsAgent, IHttpContextAccessor httpContextAccessor)
         {
             _chatClient = chatClient;
             _logger = logger;
             _badArchitectureAgent = badArchitectureAgent;
             _genericAgent = genericAgent;
             _logsAndMetricsAgent = logsAndMetricsAgent;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         [KernelFunction("launch_architecture_agent")]
@@ -152,6 +155,12 @@ namespace Agent.Runtime
             _logger.LogInformation("Invoking architecture agent");
             string answer = await _badArchitectureAgent.Ask(question);
             _logger.LogInformation($"Architecture agent responded with: {answer}");
+
+            if (_httpContextAccessor?.HttpContext?.Items != null)
+            {
+                _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "Architecture";
+            }
+
             return answer;
         }
 
@@ -162,6 +171,12 @@ namespace Agent.Runtime
             _logger.LogInformation("Invoking generic agent");
             string answer = await _genericAgent.Ask(question);
             _logger.LogInformation($"Generic agent responded with: {answer}");
+
+            if (_httpContextAccessor?.HttpContext?.Items != null)
+            {
+                _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "Generic";
+            }
+
             return answer;
         }
 
@@ -172,6 +187,12 @@ namespace Agent.Runtime
             _logger.LogInformation("Invoking LogsAndMetrics agent");
             string answer = await _logsAndMetricsAgent.Ask(question);
             _logger.LogInformation($"LogsAndMetrics agent responded with: {answer}");
+
+            if (_httpContextAccessor?.HttpContext?.Items != null)
+            {
+                _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "LogsAndMetrics";
+            }
+
             return answer;
         }
     }

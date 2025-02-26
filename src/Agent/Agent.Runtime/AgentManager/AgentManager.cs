@@ -9,7 +9,10 @@ using Agent.Core.Configuration;
 using Agent.Plugins;
 using Microsoft.SemanticKernel;
 using Agent.Data.DatabaseManagers.GraphDatabase;
-using AIMessage = Microsoft.Extensions.AI.ChatMessage; // Add alias for AI ChatMessage
+using AIMessage = Microsoft.Extensions.AI.ChatMessage;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.PeriodicMonitor;
+using Agent.Plugins.Implementation;
 
 namespace Agent.Runtime.Services
 {
@@ -52,6 +55,7 @@ namespace Agent.Runtime.Services
                 .ConfigureIChatCompletionService()
                 .ConfigureAzureOpenAIClient()
                 .ConfigureIChatClient()
+                .AddHttpContextAccessor()
                 .AddTransient<Kernel>(sp => new Kernel(sp))
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
@@ -63,7 +67,13 @@ namespace Agent.Runtime.Services
                 .AddSingleton<TimePluginDefinition>()
                 .AddSingleton<IMetricsPlugin, MetricsPlugin>()
                 .AddSingleton<MetricsPluginDefinition>()
+                .AddSingleton<IMonitorPlugin, MonitorPlugin>()
+                .AddSingleton<MonitorPluginDefinition>()
+                .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
+                .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
+                .AddSingleton<CurrentStatePluginDefinition>()
                 // Register all SubAgent types as singletons
+                .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<GraphDBQueryAgent>()
                 .AddSingleton<ArchitectureAgent>()
                 .AddSingleton<GenericAgent>()
@@ -75,13 +85,17 @@ namespace Agent.Runtime.Services
                 {
                     var agent = new Agent(
                         "main",
-                        "You are SRE Agent. You must delegate to other agents",
+                        @"You are SRE Agent. You must delegate to specific agents based on the question:
+                        - For architecture-related questions, use launch_architecture_agent
+                        - For logs and metrics related questions, use analyze_logs_and_metrics
+                        - For questions that cannot be answered by all other agents, use launch_generic_agent
+                        Always delegate to the appropriate agent rather than trying to answer directly.",
                         s.GetRequiredService<Kernel>(),
                         s.GetRequiredService<IOptions<AzureSettings>>(),
                         s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
                         s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent>());
 
-                    // agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
+                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
                     return agent;
                 });
         }
@@ -131,6 +145,9 @@ namespace Agent.Runtime.Services
                     _logger.LogInformation($"Found existing thread '{threadId}'");
                     session = existingSession;
 
+                    // Store the current path in the session
+                    session.CurrentPath = path;
+
                     // Check if the agent type matches the requested path
                     try
                     {
@@ -146,14 +163,14 @@ namespace Agent.Runtime.Services
                     {
                         _logger.LogInformation("No current agent set in session");
                     }
-                    // check if the session has this agent type
+
+                    // Check if the session has this agent type already
                     if (session.HasAgent(expectedAgentType.Name))
                     {
                         session.SetCurrentAgent(session.GetAgentByType(expectedAgentType.Name).Name);
                         _logger.LogInformation($"Reusing existing agent of type {expectedAgentType.Name}");
                         return Task.FromResult(threadId);
                     }
-
 
                     // Create new agent for existing session
                     _logger.LogInformation($"Creating new agent for existing session with type: {expectedAgentType.Name}");
@@ -163,14 +180,18 @@ namespace Agent.Runtime.Services
                     return Task.FromResult(threadId);
                 }
 
+                // If thread doesn't exist, create a new one
                 _logger.LogInformation($"Starting new chat thread for path: '{path}'");
                 session = new Session(_logger);
                 session.ConfigureSession(id: threadId);
                 _sessions[threadId] = session;
+
+                // Create the appropriate agent based on path
                 agent = CreateAgentByType(path);
                 _logger.LogInformation($"Configuring agent: {agent.Name} for type: {agent.GetType().Name}");
                 session.AddAgent(agent);
                 session.SetCurrentAgent(agent.Name);
+
                 return Task.FromResult(threadId);
             }
             catch (Exception ex)
@@ -230,6 +251,11 @@ namespace Agent.Runtime.Services
                 }
 
                 var messageTime = session.AddUserMessage(message);
+
+                // Make sure we're using the correct agent type before processing
+                var currentAgent = session.GetCurrentAgent();
+                _logger.LogInformation($"Processing message with agent: {currentAgent.Name} of type {currentAgent.GetType().Name}");
+
                 await session.ProcessAsync(CancellationToken.None);
 
                 var response = session.GetMessages(messageTime);

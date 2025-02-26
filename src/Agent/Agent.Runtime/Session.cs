@@ -11,7 +11,8 @@ namespace Agent.Runtime
         private readonly Dictionary<string, IAgent> _agents;
         private readonly ChatHistory _chatHistory = new();
         private readonly List<ChatMessage> _messages;
-
+        public string LastRespondingAgentType { get; set; } = "Meta";
+        public string CurrentPath { get; set; } = "/";
         private string? _sessionName;
         private string? _sessionId;
         private readonly Lazy<string> _lazySessionId;

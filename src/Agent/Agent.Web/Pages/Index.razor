@@ -185,7 +185,7 @@
 
     private async Task HandleSubmit()
     {
-        Console.WriteLine("HandleSubmit called");
+        Console.WriteLine($"HandleSubmit called with currentThreadId: {currentThreadId}");
         if (string.IsNullOrWhiteSpace(currentMessage))
         {
             Console.WriteLine("Message is empty, not submitting");
@@ -473,8 +473,24 @@
                 return;
             }
 
-            // Get history
-            var historyResponse = await Http.GetAsync($"/Chat/GetHistory?threadId={threadId}");
+            // IMPORTANT: Pass the agent type in the request
+            // Create a request message to add the custom header
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"/Chat/GetHistory?threadId={threadId}");
+            
+            // Extract the agent type from the current path
+            string agentType = "Meta";
+            if (!string.IsNullOrEmpty(currentPath) && currentPath != "/")
+            {
+                agentType = currentPath.TrimStart('/');
+            }
+            
+            // Add agent type as a header
+            request.Headers.Add("AgentType", agentType);
+            Console.WriteLine($"Requesting history with agent type: {agentType}");
+            
+            // Send the request with the custom header
+            var historyResponse = await Http.SendAsync(request);
+                
             if (!historyResponse.IsSuccessStatusCode)
             {
                 var error = await historyResponse.Content.ReadAsStringAsync();
@@ -484,7 +500,7 @@
             else
             {
                 messages = await historyResponse.Content.ReadFromJsonAsync<List<ChatMessage>>() ?? new List<ChatMessage>();
-                Console.WriteLine($"Loaded {messages.Count} messages for thread {threadId}");
+                Console.WriteLine($"Loaded {messages.Count} messages for thread {threadId} with agent type {agentType}");
             }
 
             SaveCurrentSession();

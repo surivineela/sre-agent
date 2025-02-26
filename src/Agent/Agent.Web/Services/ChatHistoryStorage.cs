@@ -1,14 +1,15 @@
 ﻿using Agent.Core.Models;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Agent.Web.Services
 {
     public interface IChatHistoryStorage
     {
-        Task<List<ChatMessage>> GetChatHistoryAsync(string threadId);
-        Task AddMessageAsync(string threadId, ChatMessage message);
+        Task<List<ChatMessage>> GetChatHistoryAsync(string threadId, string? agentType = null);
+        Task AddMessageAsync(string threadId, ChatMessage message, string agentType);
         Task<bool> ThreadExistsAsync(string threadId);
         Task<List<string>> GetThreadIdsAsync();
         Task<DateTime?> GetLastMessageTimestampAsync(string threadId);
@@ -16,10 +17,17 @@ namespace Agent.Web.Services
 
     public class ChatHistoryStorage : IChatHistoryStorage
     {
-        private readonly Dictionary<string, List<ChatMessage>> _threadHistory = new();
+        private readonly Dictionary<string, List<ChatMessageWithAgent>> _threadHistory = new();
         private readonly object _lock = new object();
 
-        public Task<List<ChatMessage>> GetChatHistoryAsync(string threadId)
+        // Private class to track messages with their associated agent
+        private class ChatMessageWithAgent
+        {
+            public ChatMessage Message { get; set; }
+            public string AgentType { get; set; }
+        }
+
+        public Task<List<ChatMessage>> GetChatHistoryAsync(string threadId, string? agentType = null)
         {
             lock (_lock)
             {
@@ -28,20 +36,38 @@ namespace Agent.Web.Services
                     return Task.FromResult(new List<ChatMessage>());
                 }
 
-                // Return a copy to prevent modification from outside
                 var messages = _threadHistory[threadId];
-                var result = messages.Select(m => new ChatMessage
-                {
-                    Message = m.Message,
-                    IsUser = m.IsUser,
-                    Timestamp = m.Timestamp
-                }).ToList();
 
-                return Task.FromResult(result);
+                // If Meta agent is requested, return all messages from Meta agent only
+                if (string.IsNullOrEmpty(agentType) || agentType.ToLower() == "meta")
+                {
+                    var result = messages
+                        .Where(m => m.AgentType.ToLower() == "meta")
+                        .Select(m => new ChatMessage
+                        {
+                            Message = m.Message.Message,
+                            IsUser = m.Message.IsUser,
+                            Timestamp = m.Message.Timestamp
+                        }).ToList();
+
+                    return Task.FromResult(result);
+                }
+
+                // For specific agent types, only return messages with that specific agent type
+                var filteredMessages = messages
+                    .Where(m => m.AgentType.ToLower() == agentType.ToLower())
+                    .Select(m => new ChatMessage
+                    {
+                        Message = m.Message.Message,
+                        IsUser = m.Message.IsUser,
+                        Timestamp = m.Message.Timestamp
+                    }).ToList();
+
+                return Task.FromResult(filteredMessages);
             }
         }
 
-        public Task AddMessageAsync(string threadId, ChatMessage message)
+        public Task AddMessageAsync(string threadId, ChatMessage message, string agentType)
         {
             lock (_lock)
             {
@@ -52,10 +78,15 @@ namespace Agent.Web.Services
 
                 if (!_threadHistory.ContainsKey(threadId))
                 {
-                    _threadHistory[threadId] = new List<ChatMessage>();
+                    _threadHistory[threadId] = new List<ChatMessageWithAgent>();
                 }
 
-                _threadHistory[threadId].Add(message);
+                _threadHistory[threadId].Add(new ChatMessageWithAgent
+                {
+                    Message = message,
+                    AgentType = agentType
+                });
+
                 return Task.CompletedTask;
             }
         }
@@ -85,7 +116,7 @@ namespace Agent.Web.Services
                     return Task.FromResult<DateTime?>(null);
                 }
 
-                return Task.FromResult<DateTime?>(_threadHistory[threadId].Last().Timestamp);
+                return Task.FromResult<DateTime?>(_threadHistory[threadId].Last().Message.Timestamp);
             }
         }
     }
