@@ -1,4 +1,6 @@
-﻿namespace FirstPartyAgent.Models
+﻿using Newtonsoft.Json;
+
+namespace FirstPartyAgent.Models
 {
     public class Incident
     {
@@ -32,5 +34,14 @@
         public string ChangedBy { get; set; }
         public string Text { get; set; }
         public bool IsHtml { get; set; }
+    }
+
+    public class ODataResponse<T>
+    {
+        [JsonProperty("odata.metadata")]
+        public string OdataMetadata { get; set; }
+
+        [JsonProperty("value")]
+        public List<T> Value { get; set; }
     }
 }

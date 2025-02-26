@@ -2,8 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.DependencyInjection;
+using Agent.Core.Configuration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace FirstPartyAgent.Configuration;
 
@@ -28,6 +29,15 @@ public static class ConfigurationExtensions
 
         services.AddOptions<AzureSettings>()
             .Bind(configuration.GetSection("Azure"))
+            .ValidateOnStart();
+
+        services.AddOptions<KustoSettings>()
+            .Bind(configuration.GetSection("Kusto"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
+        services.AddOptions<KustoClusterSettings>()
+            .Bind(configuration.GetSection("KustoClusters"))
             .ValidateDataAnnotations()
             .ValidateOnStart();
 

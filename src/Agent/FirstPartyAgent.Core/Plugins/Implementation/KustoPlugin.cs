@@ -49,7 +49,7 @@ namespace FirstPartyAgent.Plugins
         }
 
         [KernelFunction("execute_kusto_query")]
-        [Description("Execute a query on the regional kusto cluster")]
+        [Description("Execute a query on the regional kusto cluster and returns JSON response")]
         public async Task<string> ExecuteKustoQuery(
             [Description("The region of the target kusto")] string region,
             [Description("The query to execute")] string query)
@@ -68,6 +68,29 @@ namespace FirstPartyAgent.Plugins
             reader.WriteAsJson(writer, 1024 * 1024, out var size);
 
             _logger.LogInformation($"result: {writer.ToString()}");
+            return writer.ToString();
+        }
+
+        [KernelFunction("execute_kusto_query_on_cluster")]
+        [Description("Executes a fully qualified Kusto query on a cluster and returns JSON response")]
+        public async Task<string> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery)
+        {
+            var config = new KustoConfig
+            {
+                ClusterUri = $"https://{cluster}.kusto.windows.net",
+                DatabaseName = database,
+                AuthType = _kustoSettings.AuthenticationType,
+                Authority = _kustoSettings.Authority,
+                AuthorityHost = _kustoSettings.AuthorityHost,
+                ApplicationClientId = _kustoSettings.ApplicationClientId,
+                ApplicationCertificate = _kustoSettings.ApplicationCertificate,
+                ManagedIdentityClientId = _kustoSettings.ManagedIdentityClientId,
+            };
+            var kustoService = _kustoServiceFactory.CreateKustoService(config);
+            var reader = await kustoService.PerformQueryAsync(fullQuery);
+            var writer = new StringWriter();
+
+            reader.WriteAsJson(writer, 1024 * 1024, out var size);
             return writer.ToString();
         }
     }

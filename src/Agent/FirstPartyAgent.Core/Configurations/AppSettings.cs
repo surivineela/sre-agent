@@ -6,117 +6,6 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstPartyAgent.Configuration;
 
-public class AppSettings
-{
-    // Add any general application settings here
-    [Required]
-    public bool LogGenAICalls { get; set; } = false;
-}
-
-public class AzureSettings
-{
-    [Required]
-    public OpenAISettings OpenAI { get; set; } = new();
-
-    [Required]
-    public string TeamsEndpoint { get; set; } = string.Empty;
-
-    [Required]
-    public GitHubSettings Github { get; set; }
-
-    [Required]
-    public string ApprovalUrl { get; set; }
-
-    [Required]
-    public string? AppInsightsConnectionString { get; set; }
-
-    [Required]
-    public bool OpenSupportTickets { get; set; }
-
-    [Required]
-    public GremlinSettings Gremlin { get; set; } = new();
-}
-
-public class GitHubSettings
-{
-    public string ClientId { get; set; }
-    public string PatOverride { get; set; }
-    public string ClientSecret { get; set; }
-    public string CallbackUrl { get; set; }
-    public string OidcAudience { get; set; }
-    public string[] AllowedRepositories { get; set; }
-}
-
-public class OpenAISettings
-{
-    [Required]
-    public string DeploymentName { get; set; } = string.Empty;
-
-    [Required]
-    public string Endpoint { get; set; } = string.Empty;
-
-    [Required]
-    public string ApiKey { get; set; } = string.Empty;
-
-    [Required]
-    public string EmbeddingGeneratorDeploymentName { get; set; } = string.Empty;
-}
-
-public class GremlinSettings
-{
-    [Required]
-    public string AccountName { get; set; } = string.Empty;
-
-    [Required]
-    public string AccountKey { get; set; } = string.Empty;
-
-    [Required]
-    public string Database { get; set; } = string.Empty;
-
-    [Required]
-    public string Collection { get; set; } = string.Empty;
-}
-
-public class TestSettings
-{
-    [Required]
-    public string SubscriptionId { get; set; } = string.Empty;
-
-    [Required]
-    public bool SkipResourceCleanupAfterTestRun { get; set; } = true;
-}
-
-public class KustoCluster
-{
-    [Required]
-    public string Region { get; set; }
-    [Required]
-    public string ClusterUri { get; set; }
-    [Required]
-    public string Database { get; set; }
-}
-
-public class KustoClusterSettings : List<KustoCluster> { }
-
-public enum KustoAuthenticationType
-{
-    ManagedIdentity,
-    UAMI,
-    App,
-    User, // for testing
-}
-
-public class KustoSettings
-{
-    [Required]
-    public KustoAuthenticationType AuthenticationType { get; set; }
-    public string Authority { get; set; } = string.Empty;
-    public string AuthorityHost { get; set; } = string.Empty;
-    public string ApplicationClientId { get; set; } = string.Empty;
-    public string ApplicationCertificate { get; set; } = string.Empty;
-    public string ManagedIdentityClientId { get; set; } = string.Empty;
-}
-
 public class TaskStorageSettings
 {
     public string FilePath { get; set; } = string.Empty;
@@ -138,4 +27,40 @@ public class IcmSettings
     public string CertificateFilePath { get; set; } = string.Empty;
     public string UserToken { get; set; } = string.Empty;
     public string PostIncidentDiscussionUrl { get; set; } = string.Empty;
+}
+
+public class ICMWorkflowSettings
+{
+    [Required]
+    public string WorkflowsEndpoint { get; set; } = string.Empty;
+    public string CertificateSubjectName { get; set; } = string.Empty;
+    public string UserToken { get; set; } = string.Empty;
+    public bool UseFunctionApp { get; set; } = false;
+    public string FunctionAppEndpoint { get; set; } = string.Empty;
+    public string FunctionAppKey { get; set; } = string.Empty;
+    public string GetIncidentWorkflowName { get; set; } = string.Empty;
+    public string GetIncidentDiscussionEntriesWorkflowName { get; set; } = string.Empty;
+    public string TransferIncidentWorkflowName { get; set; } = string.Empty;
+    public string UpdateIncidentWorkflowName { get; set; } = string.Empty;
+    public string MitigateIncidentWorkflowName { get; set; } = string.Empty;
+    public string ResolveIncidentWorkflowName { get; set; } = string.Empty;
+    public string PostIncidentDiscussionWorkflowName { get; set; } = string.Empty;
+    public string DowngradeSev2WorkflowName { get; set; } = string.Empty;
+    public string MarkSubscriptionFirstPartyWorkflowName { get; set; } = string.Empty;
+    public string GetSubscriptionWorkflowName { get; set; } = string.Empty;
+    public string AddIncidentTagWorkflowName { get; set; } = string.Empty;
+    public string ApplensPluginWorkflowName { get; set; } = string.Empty;
+    public string HumanInterventionServiceName { get; set; } = string.Empty;
+    public string HumanInterventionTeamName { get; set; } = string.Empty;
+    public bool ReadOnly { get; set; } = false;
+}
+
+public class ICMAPISettings
+{
+    [Required]
+    public string APIEndpoint { get; set; } = string.Empty;
+    public string CertificateSubjectName { get; set; } = string.Empty;
+    public string UserToken { get; set; } = string.Empty;
+    public bool Enabled { get; set; } = true;
+    public bool ReadOnly { get; set; } = false;
 }

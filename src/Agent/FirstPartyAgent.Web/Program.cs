@@ -2,12 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using FirstPartyAgent.Runtime;
+using Agent.Core.Helpers;
 using FirstPartyAgent.Agents;
-using FirstPartyAgent.Helpers;
+using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
+using FirstPartyAgent.Runtime;
 using FirstPartyAgent.Web.Services;
-using Microsoft.Extensions.DependencyInjection;
+using FirstPartyAgent.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -26,18 +27,23 @@ if (args.Length > 0)
     }
 }
 
+builder.Services.AddApplicationConfiguration(config);
+builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+builder.Services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
+builder.Services.AddSingleton<ICMPlugin>();
+builder.Services.AddSingleton<KustoServiceClientFactory>();
+builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
+
 if (useSessionChatService)
 {
     builder.Services.ConfigureAgents(ICMAgent.SystemMessage);
     // Add background service that processes the chat conversation
     builder.Services.AddHostedService<SessionService>();
     builder.Services.AddScoped<IChatService, SessionChatService>();
-    builder.Services.AddScoped<ICMFunctionAppPlugin>();
-    builder.Services.AddScoped<GenericKustoPlugin>();
 }
 else
 {
-    FirstPartyAgent.Helpers.SemanticKernelHelper.ConfigService(builder.Services);
+    builder.Services.ConfigureSemanticKernel();
     builder.Services.AddScoped<IChatService, LegacyChatService>();
 }
 

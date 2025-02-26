@@ -1,7 +1,7 @@
 using Agent.Core.Configuration;
 using Agent.Runtime;
-using Azure.AI.OpenAI;
-using Microsoft.Extensions.AI;
+using FirstPartyAgent.Models;
+using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -34,6 +34,9 @@ namespace FirstPartyAgent.Runtime
                         s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
                         s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Runtime.Agent>());
 
+                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
+                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<ICMPlugin>(), "IcmPlugin");
+
                     return agent;
                 })
                 .AddSingleton<Session>(s =>
@@ -63,40 +66,51 @@ namespace FirstPartyAgent.Runtime
                 });
         }
 
-        public static IServiceCollection ConfigureAzureOpenAIClient(this IServiceCollection services)
+        public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
         {
-            return services
-                .AddSingleton<AzureOpenAIClient>(sp =>
+            // Configure Semantic Kernel
+            services.AddScoped<Kernel>(sp =>
+            {
+                var config = sp.GetRequiredService<IConfiguration>();
+
+                var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
+
+                if (azureSettings == null)
                 {
-                    var config = sp.GetRequiredService<IConfiguration>();
-                    var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-                    if (azureSettings == null)
-                    {
-                        throw new NullReferenceException("Azure settings are required.");
-                    }
+                    throw new NullReferenceException("Azure settings are required.");
+                }
 
-                    return new AzureOpenAIClient(
-                        endpoint: new Uri(azureSettings.OpenAI.Endpoint),
-                        credential: new System.ClientModel.ApiKeyCredential(azureSettings.OpenAI.ApiKey)
-                    );
-                });
-        }
+                var kernelBuilder = Kernel.CreateBuilder();
+                kernelBuilder.AddAzureOpenAIChatCompletion(
+                   deploymentName: azureSettings.OpenAI.DeploymentName,
+                   endpoint: azureSettings.OpenAI.Endpoint,
+                   apiKey: azureSettings.OpenAI.ApiKey);
 
-        public static IServiceCollection ConfigureIChatClient(this IServiceCollection services)
-        {
-            return services
-                .AddSingleton<IChatClient>(sp =>
+
+                kernelBuilder.Services.AddLogging(builder =>
                 {
-                    var client = sp.GetRequiredService<AzureOpenAIClient>();
-                    var config = sp.GetRequiredService<IConfiguration>();
-                    var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-                    if (azureSettings == null)
-                    {
-                        throw new NullReferenceException("Azure settings are required.");
-                    }
-
-                    return new ChatClientBuilder(client.AsChatClient(azureSettings.OpenAI.DeploymentName)).Build();
+                    // Use configuration for logging levels
+                    builder.AddConfiguration(config.GetSection("Logging"));
+                    builder.AddConsole();
                 });
+
+                string agentModeStr = config.GetValue("AgentMode", string.Empty);
+                var agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.ICM;
+
+                if (agentMode == AgentMode.ICM)
+                {
+                    kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<ICMPlugin>(), "IcmPlugin");
+                    kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
+                }
+                else if (agentMode == AgentMode.ACA)
+                {
+                    // ACA Agent is configuring the SemanticKernel within the FirstPartyAgent.ACA.Web project
+                }
+
+                return kernelBuilder.Build();
+            });
+
+            return services;
         }
     }
 }
