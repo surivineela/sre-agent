@@ -61,7 +61,7 @@ if (useSessionChatService)
     builder.Services.ConfigureIChatCompletionService()
                    .ConfigureAzureOpenAIClient()
                    .ConfigureIChatClient();
-    builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("https://localhost:7023/") });
+    builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5073/") });
     // Register all SubAgent types
     foreach (var agentType in SubAgentDiscovery.DiscoverSubAgentTypes())
     {
