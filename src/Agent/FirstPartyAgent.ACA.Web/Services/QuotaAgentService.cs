@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core;
@@ -187,9 +188,17 @@ public class QuotaAgentService : IQuotaAgentService
             return state;
         }
 
+        var messageContent = state?.ToString();
+        if (state?.ApprovalResult == ApprovalState.Pending && state.SubscriptionId != null)
+        {
+            StringBuilder referenceBuilder = new StringBuilder();           
+            AppendReferenceInformation(referenceBuilder, state.SubscriptionId);
+            messageContent += referenceBuilder.ToString();
+        }
+
         if (state?.Incident?.Id != null)
         {
-            await _icmPlugin.AddDiscussionEntry(state.Incident.Id, state.ToString());
+            await _icmPlugin.AddDiscussionEntry(state.Incident.Id, messageContent);
         }
         else
         {
@@ -201,7 +210,7 @@ public class QuotaAgentService : IQuotaAgentService
             var teamsResp = await _cappPlugin.PostTeamsDiscussionAsync(
                 state?.Incident?.Id,
                 state?.Incident?.Title ?? "New GPU Quota Request Received",
-                state?.ToString());
+                messageContent);
 
             if (teamsResp is null || string.IsNullOrEmpty(teamsResp.MessageId))
             {
@@ -212,7 +221,7 @@ public class QuotaAgentService : IQuotaAgentService
         }
         else
         {
-            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident?.Id, state.Incident?.TeamsMessageId, state.ToString());
+            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident?.Id, state.Incident?.TeamsMessageId, messageContent);
         }
 
         if (state.ApprovalResult == ApprovalState.NotStarted || state.ApprovalResult == ApprovalState.Pending)
@@ -317,6 +326,20 @@ public class QuotaAgentService : IQuotaAgentService
             _logger.LogError(ex, "Error running the chat service");
             throw;
         }
+    }
+
+    public static void AppendReferenceInformation(StringBuilder messageBuilder, string subscriptionId)
+    {
+        messageBuilder.AppendLine("<br/>");
+        messageBuilder.AppendLine($"-------- Reference Information --------<br/>");
+
+        string sherlockLink = $"https://sherlock.trafficmanager.net/Customers?customer={subscriptionId}";
+        messageBuilder.AppendLine("You can use Sherlock to find out usage details and offer status of the subscription:<br/>");
+        messageBuilder.AppendLine($"<a href=\"{sherlockLink}\">Sherlock Link for {subscriptionId}</a><br/>");
+
+        string refDocLink = $"https://eng.ms/docs/cloud-ai-platform/devdiv/serverless-paas-balam/serverless-paas-vikr/azure-container-apps/container-apps-on-call-process-tsg/troubleshooting/tsg/tsg-capps-quota-008";
+        messageBuilder.AppendLine("<br/>You can find the general guidelines for GPU quota request handling from:");
+        messageBuilder.AppendLine($"<a href=\"{refDocLink}\">GPU quota handling guidelines</a>");
     }
 }
 
