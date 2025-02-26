@@ -67,10 +67,9 @@ public class GpuQuotaIcmBackgroundService : BackgroundService
             catch (Exception ex)
             {
                 _logger.LogError(ex, "An error occurred while processing gpu quota tasks.");
-
-                await Task.Delay(_pollInterval, stoppingToken);
             }
 
+            await Task.Delay(_pollInterval, stoppingToken);
         }
     }
 }

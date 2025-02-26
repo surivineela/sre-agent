@@ -26,10 +26,11 @@ param icmClientCertName string = 'IcmClientCert'
 param icmClientCertSubject string = 'icm-client.agent.azurecontainerapps.dev'
 param fileshareName string = 'aca-agent-share'
 
-// param enableAppGatewayHttps bool
+param enableAppGatewayHttps bool
 
 var abbrs = loadJsonContent('./abbreviations.json')
-var resourceToken = uniqueString(subscription().id, resourceGroup().id, location)
+var uniqueToken = substring(uniqueString(subscription().id, resourceGroup().id, location), 0, 3)
+var resourceToken = 'aca-agent-1p-${uniqueToken}'
 
 // Monitor application with Azure Monitor
 module monitoring 'br/public:avm/ptn/azd/monitoring:0.1.0' = {
@@ -62,7 +63,7 @@ module vnet 'modules/vnet.bicep' = {
 module containerRegistry 'br/public:avm/res/container-registry/registry:0.1.1' = {
   name: 'registry'
   params: {
-    name: '${abbrs.containerRegistryRegistries}${resourceToken}'
+    name: replace('${abbrs.containerRegistryRegistries}${resourceToken}', '-', '')
     location: location
     acrAdminUserEnabled: true
     tags: tags
@@ -293,7 +294,7 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
 }
 
 // Create a keyvault to store secrets
-module keyVault 'br/public:avm/res/key-vault/vault:0.11.2' = {
+module keyVault 'br/public:avm/res/key-vault/vault:0.12.0' = {
   name: 'keyvault'
   params: {
     name: '${abbrs.keyVaultVaults}${resourceToken}'
@@ -319,6 +320,12 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.11.2' = {
         objectId: deploymentScriptIdentity.outputs.principalId
         permissions: {
           certificates: ['get', 'create']
+        }
+      }
+      {
+        objectId: 'f3c21649-0979-4721-ac85-b0216b2cf413' // Microsoft.Azure.CertificateRegistration
+        permissions: {
+          secrets: ['get', 'list', 'set', 'delete', 'recover', 'backup', 'restore']
         }
       }
     ]
@@ -440,7 +447,8 @@ module privateDnsZone 'br/public:avm/res/network/private-dns-zone:0.7.0' = {
 module storage 'modules/storage.bicep' = {
   name: 'storage'
   params: {
-    accountName: '${abbrs.storageStorageAccounts}${resourceToken}'
+    // storage account name can't contain '-'
+    accountName: replace('${abbrs.storageStorageAccounts}${resourceToken}', '-', '')
     queueName: 'aca-agent-queue'
     fileshareName: fileshareName
     tags: tags
@@ -452,15 +460,19 @@ module storage 'modules/storage.bicep' = {
 module appGateway 'modules/app-gateway.bicep' = {
   name: 'appGateway'
   params: {
+    appGatewayName: '${abbrs.networkApplicationGateways}${resourceToken}'
+    publicIpName: '${abbrs.networkPublicIPAddresses}-agw-${resourceToken}'
     location: location
     tags: tags
     appGatewaySubnetId: vnet.outputs.appGatewaySubnetResourceId
     appGatewayCertId: '${keyVault.outputs.uri}secrets/acaagentcert'
     identityResourceId: agentWebIdentity.outputs.resourceId
     backendPoolFqdn: agentWeb.outputs.fqdn
-    identityPrincipalId: agentWebIdentity.outputs.principalId
-    identityClientId: agentWebIdentity.outputs.clientId
-    // enableAppGatewayHttps: enableAppGatewayHttps
+    // identityPrincipalId: agentWebIdentity.outputs.principalId
+    // identityClientId: agentWebIdentity.outputs.clientId
+    enableAppGatewayHttps: enableAppGatewayHttps
+    keyVaultResourceId: keyVault.outputs.resourceId
+    keyVaultName: keyVault.outputs.name
   }
 }
 
@@ -470,3 +482,4 @@ output AZURE_KEY_VAULT_NAME string = keyVault.outputs.name
 output AZURE_RESOURCE_AGENT_WEB_ID string = agentWeb.outputs.resourceId
 output AZURE_OPENAI_ENDPOINT string = openai.properties.endpoint
 output AZURE_APP_GATEWAY_FRONTEND_IP string = appGateway.outputs.publicIp
+output AZURE_KEY_VAULT_ID string = keyVault.outputs.resourceId

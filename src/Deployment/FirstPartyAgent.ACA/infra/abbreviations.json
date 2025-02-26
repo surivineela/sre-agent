@@ -3,7 +3,7 @@
     "apiManagementService": "apim-",
     "appConfigurationStores": "appcs-",
     "appManagedEnvironments": "cae-",
-    "appContainerApps": "ca-",
+    "appContainerApps": "capp-",
     "authorizationPolicyDefinitions": "policy-",
     "automationAutomationAccounts": "aa-",
     "blueprintBlueprints": "bp-",

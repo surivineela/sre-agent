@@ -19,8 +19,8 @@ param principalId string
 @description('Image to deploy')
 param imageToDeploy string = ''
 
-// @description('Enable HTTPS on the App Gateway')
-// param enbaleAppGatewayHttps bool
+@description('Whether to enable https ingress for the app gateway. Usually disabled when deploying a new environment because https requires a certificate in the key vault that is configured manually.')
+param enbaleAppGatewayHttps bool
 
 // Tags that should be applied to all resources.
 // 
@@ -49,10 +49,11 @@ module resources 'resources.bicep' = {
     agentWebDefinition: agentWebDefinition
     environmentName: environmentName
     imageToDeploy: imageToDeploy
-    // enableAppGatewayHttps: enbaleAppGatewayHttps
+    enableAppGatewayHttps: enbaleAppGatewayHttps
   }
 }
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT
 output AZURE_KEY_VAULT_ENDPOINT string = resources.outputs.AZURE_KEY_VAULT_ENDPOINT
 output AZURE_KEY_VAULT_NAME string = resources.outputs.AZURE_KEY_VAULT_NAME
+output AZURE_KEY_VAULT_ID string = resources.outputs.AZURE_KEY_VAULT_ID
 output AZURE_RESOURCE_AGENT_WEB_ID string = resources.outputs.AZURE_RESOURCE_AGENT_WEB_ID
