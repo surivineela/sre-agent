@@ -67,6 +67,8 @@ namespace Agent.Runtime.Services
                 .AddSingleton<TimePluginDefinition>()
                 .AddSingleton<IMetricsPlugin, MetricsPlugin>()
                 .AddSingleton<MetricsPluginDefinition>()
+                .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
+                .AddSingleton<DiagnosePluginDefinition>()
                 .AddSingleton<IMonitorPlugin, MonitorPlugin>()
                 .AddSingleton<MonitorPluginDefinition>()
                 .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
@@ -78,6 +80,7 @@ namespace Agent.Runtime.Services
                 .AddSingleton<ArchitectureAgent>()
                 .AddSingleton<GenericAgent>()
                 .AddSingleton<LogsAndMetricsAgent>()
+                .AddSingleton<DiagnosticAgent>()
                 // Add logger factory from parent service provider
                 .AddSingleton(_serviceProvider.GetRequiredService<ILoggerFactory>())
                 // Register the root Agent with explicit logger

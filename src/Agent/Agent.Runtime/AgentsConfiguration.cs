@@ -40,6 +40,8 @@ namespace Agent.Runtime
                 .AddSingleton<TimePluginDefinition>()
                 .AddSingleton<IMetricsPlugin, MetricsPlugin>()
                 .AddSingleton<MetricsPluginDefinition>()
+                .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
+                .AddSingleton<DiagnosePluginDefinition>()  
                 .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
                 .AddSingleton<CurrentStatePluginDefinition>()
 
@@ -49,6 +51,7 @@ namespace Agent.Runtime
                 .AddSingleton<ArchitectureAgent>()
                 .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
                 .AddSingleton<LogsAndMetricsAgent>()
+                .AddSingleton<DiagnosticAgent>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>

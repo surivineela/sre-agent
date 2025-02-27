@@ -53,7 +53,9 @@ if (useSessionChatService)
                    .AddSingleton<IMonitorPlugin, MonitorPlugin>()
                    .AddSingleton<MonitorPluginDefinition>()
                    .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
-                   .AddSingleton<CurrentStatePluginDefinition>();
+                   .AddSingleton<CurrentStatePluginDefinition>()
+                   .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
+                   .AddSingleton<DiagnosePluginDefinition>();
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
