@@ -28,5 +28,10 @@ namespace FirstPartyAgent.Constants
             public const string IcmGetDisscussionEntries = "icm_get_discussion_entries";
             public const string IcmAddDiscussionEntry = "icm_add_discussion_entry";
         }
+
+        public static class AzureSearch
+        {
+            public const string PerformSemanticSearch = "perform_semantic_search"; 
+        }
     }
 }

@@ -38,6 +38,11 @@ public static class ConfigurationExtensions
             .ValidateDataAnnotations()
             .ValidateOnStart();
 
+        services.AddOptions<AzureSearchSettings>()
+            .Bind(configuration.GetSection("AzureSearch"))
+            .ValidateDataAnnotations()
+            .ValidateOnStart();
+
         services.AddOptions<KustoSettings>()
             .Bind(configuration.GetSection("Kusto"))
             .ValidateDataAnnotations()

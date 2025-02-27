@@ -5,16 +5,18 @@ using Agent.Core.Models;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Markdig;
+using FirstPartyAgent.Models;
 
 public class LegacyChatService : IChatService
 {
-
+    private readonly IConfiguration _config;
     private readonly ILogger<LegacyChatService> _logger;
     private readonly Kernel _kernel;
     private readonly MarkdownPipeline _markdownPipeline;
 
-    public LegacyChatService(ILogger<LegacyChatService> logger, Kernel kernel)
+    public LegacyChatService(IConfiguration config, ILogger<LegacyChatService> logger, Kernel kernel)
     {
+        _config = config;
         _logger = logger;
         _kernel = kernel;
         _markdownPipeline = new MarkdownPipelineBuilder()
@@ -25,7 +27,10 @@ public class LegacyChatService : IChatService
 
     public async Task<ChatMessage> ProcessMessageAsync(string message)
     {
+        var agentModeStr = _config.GetSection("AgentMode").Value;
+        var agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.ICM;
         return await ChatHistoryPersistency.ChatHistoryTransition(
+            agentMode,
                 async chatHistory =>
                 {
                     try

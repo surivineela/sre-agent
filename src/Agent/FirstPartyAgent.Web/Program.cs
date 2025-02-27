@@ -9,6 +9,10 @@ using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Runtime;
 using FirstPartyAgent.Web.Services;
 using FirstPartyAgent.Configuration;
+using Agent.Plugins;
+using FirstPartyAgent.Plugins.Definitions;
+using FirstPartyAgent.Models;
+using Agent.Runtime;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,16 +38,29 @@ builder.Services.AddSingleton<ICMPlugin>();
 builder.Services.AddSingleton<KustoServiceClientFactory>();
 builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
 
+builder.Services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
+builder.Services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
+builder.Services.AddSingleton<AzureSearchPluginDefinition>();
+
+builder.Services.AddSingleton<Agent.Core.Models.GitHubClient>();
+builder.Services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
+builder.Services.AddSingleton<GitHubIssuePluginDefinition>();
+
+var agentModeStr = config.GetValue<string>("AgentMode") ?? string.Empty;
+var agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.ICM;
+
 if (useSessionChatService)
 {
-    builder.Services.ConfigureAgents(ICMAgent.SystemMessage);
+    builder.Services.ConfigureAzureOpenAIClient();
+    builder.Services.ConfigureIChatClient();
+    builder.Services.ConfigureAgents(agentMode);
     // Add background service that processes the chat conversation
     builder.Services.AddHostedService<SessionService>();
     builder.Services.AddScoped<IChatService, SessionChatService>();
 }
 else
 {
-    builder.Services.ConfigureSemanticKernel();
+    builder.Services.ConfigureSemanticKernel(agentMode);
     builder.Services.AddScoped<IChatService, LegacyChatService>();
 }
 

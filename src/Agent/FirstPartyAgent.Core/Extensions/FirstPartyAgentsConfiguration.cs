@@ -1,7 +1,10 @@
 using Agent.Core.Configuration;
+using Agent.Plugins;
 using Agent.Runtime;
+using FirstPartyAgent.Agents;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
+using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -14,7 +17,7 @@ namespace FirstPartyAgent.Runtime
 {
     public static class FirstPartyAgentsConfigurationExtensions
     {
-        public static void ConfigureAgents(this IServiceCollection services, string systemMessage)
+        public static void ConfigureAgents(this IServiceCollection services, AgentMode agentMode)
         {
             _ = services
                 .ConfigureIChatCompletionService()
@@ -22,10 +25,25 @@ namespace FirstPartyAgent.Runtime
                 {
                     return new Kernel(sp);
                 })
+
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>
                 {
+                    string systemMessage = ICMAgent.SystemMessage;
+                    switch (agentMode)
+                    {
+                        case AgentMode.ICM:
+                            systemMessage = ICMAgent.SystemMessage;
+                            break;
+                        case AgentMode.GithubIssueTagger:
+                            systemMessage = GithubIssueTaggerAgent.SystemMessage;
+                            break;
+                        case AgentMode.ACA:
+                            break;
+                        default:
+                            break;
+                    }
                     var agent = new Agent.Runtime.Agent(
                         "main",
                         systemMessage,
@@ -34,14 +52,27 @@ namespace FirstPartyAgent.Runtime
                         s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
                         s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Runtime.Agent>());
 
-                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
-                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<ICMPlugin>(), "IcmPlugin");
+                    switch (agentMode)
+                    {
+                        case AgentMode.ICM:
+                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
+                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<ICMPlugin>(), "IcmPlugin");
+                            break;
+                        case AgentMode.GithubIssueTagger:
+                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<GitHubIssuePluginDefinition>(), "GitHubIssuePlugin");
+                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<AzureSearchPluginDefinition>(), "AzureSearchPlugin");
+                            break;
+                        case AgentMode.ACA:
+                            break;
+                        default:
+                            break;
+                    }
 
                     return agent;
                 })
                 .AddSingleton<Session>(s =>
                 {
-                    var conversation = new Session(s.GetRequiredService<ILogger>());
+                    var conversation = new Session(s.GetRequiredService<ILoggerFactory>().CreateLogger<Session>());
                     conversation.AddAgent(s.GetRequiredService<Agent.Runtime.Agent>());
                     return conversation;
                 });
@@ -66,7 +97,7 @@ namespace FirstPartyAgent.Runtime
                 });
         }
 
-        public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
+        public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services, AgentMode agentMode)
         {
             // Configure Semantic Kernel
             services.AddScoped<Kernel>(sp =>
@@ -94,17 +125,20 @@ namespace FirstPartyAgent.Runtime
                     builder.AddConsole();
                 });
 
-                string agentModeStr = config.GetValue("AgentMode", string.Empty);
-                var agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.ICM;
-
-                if (agentMode == AgentMode.ICM)
+                switch (agentMode)
                 {
-                    kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<ICMPlugin>(), "IcmPlugin");
-                    kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
-                }
-                else if (agentMode == AgentMode.ACA)
-                {
-                    // ACA Agent is configuring the SemanticKernel within the FirstPartyAgent.ACA.Web project
+                    case AgentMode.ICM:
+                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<ICMPlugin>(), "IcmPlugin");
+                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
+                        break;
+                    case AgentMode.GithubIssueTagger:
+                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<GitHubIssuePluginDefinition>(), "GitHubIssuePlugin");
+                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<AzureSearchPluginDefinition>(), "AzureSearchPlugin");
+                        break;
+                    case AgentMode.ACA:
+                        break;
+                    default:
+                        break;
                 }
 
                 return kernelBuilder.Build();

@@ -61,6 +61,14 @@ public class ICMSettings
     public string PluginAppKey { get; set; }
 }
 
+public class AzureSearchSettings
+{
+    public string SearchServiceUri { get; set; } = string.Empty;
+    public string IndexName { get; set; } = string.Empty;
+    public string UserAssignedMIClientId { get; set; } = string.Empty;
+    public string SearchApiKeyOverride { get; set; } = string.Empty;
+}
+
 public class OpenAISettings
 {
     [Required]

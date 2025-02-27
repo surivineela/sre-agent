@@ -9,6 +9,7 @@ namespace FirstPartyAgent.Models
     public enum AgentMode
     {
         ACA,
-        ICM
+        ICM,
+        GithubIssueTagger
     }
 }

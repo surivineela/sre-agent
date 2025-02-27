@@ -101,6 +101,15 @@ resolved
         return await _gitHubIssuePlugin.FetchGithubIssues(repoUrl, issueFilter, itemStateFilter, milestone, assignee, creator, mentioned, labels, since);
     }
 
+    [KernelFunction("fetch_github_issue")]
+    [Description("Fetch a specific github issue. If the returned object is empty and is not an exception, let the user know there were none found.")]
+    public async Task<GithubIssuePluginIssue> FetchGithubIssue(
+            [Description("Github issue URL, e.g. https://github.com/owner/repo-name/issues/issueNumber")] string issueUrl
+        )
+    {
+        return await _gitHubIssuePlugin.FetchGithubIssue(issueUrl);
+    }
+
     [KernelFunction("fetch_github_issue_comments")]
     [Description(@"Fetch comments for a specific github issue.")]
     public async Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(
@@ -120,6 +129,15 @@ resolved
     )
     {
         await _gitHubIssuePlugin.DeleteGithubIssueComment(repoUrl, id, newCommentBody);
+    }
+
+    [KernelFunction("get_user_organizations")]
+    [Description("Get the names of all organizations a GitHub user is part of.")]
+    public async Task<IEnumerable<string>> GetUserOrganizations(
+            [Description("GitHub username")] string username
+        )
+    {
+        return await _gitHubIssuePlugin.GetUserOrganizations(username);
     }
 }
 

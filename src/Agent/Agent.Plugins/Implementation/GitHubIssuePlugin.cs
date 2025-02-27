@@ -99,12 +99,12 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 
                 foreach (var label in labelsToAdd ?? Array.Empty<string>())
                 {
-                    update.Labels.Add(label);
+                    update.AddLabel(label);
                 }
 
                 foreach (var label in labelsToRemove ?? Array.Empty<string>())
                 {
-                    update.Labels.Remove(label);
+                    update.RemoveLabel(label);
                 }
 
                 return await _gitHubClient.Issue.Update(owner, repo, number, update);
@@ -174,6 +174,26 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         );
     }
 
+    public async Task<GithubIssuePluginIssue> FetchGithubIssue(
+        string issueUrl
+    )
+    {
+        return await KernelFunctionHelpers.TryAction(
+            nameof(GitHubIssuePlugin),
+            async () =>
+            {
+                var (owner, repo, issueNumber) = GitHubHelper.ParseGitHubIssueUrl(issueUrl);
+
+                var res = await _gitHubClient.Issue.Get(owner, repo, issueNumber);
+
+                _logger.LogInformation($"GitHub issue with id {issueNumber} fetched from repo {owner}/{repo}");
+
+                return res?.ToGithubIssuePluginIssue() ?? default;
+            },
+            _logger
+        );
+    }
+
     public async Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(
         string repoUrl,
         int issueNumber
@@ -202,6 +222,21 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
                 await _gitHubClient.Issue.Comment.Delete(owner, repo, id);
+            },
+            _logger
+        );
+    }
+
+    public async Task<IEnumerable<string>> GetUserOrganizations(
+        string username
+    )
+    {
+        return await KernelFunctionHelpers.TryAction(
+            nameof(GitHubIssuePlugin),
+            async () =>
+            {
+                var organizations = await _gitHubClient.Organization.GetAllForUser(username);
+                return organizations?.Select(org => org.Login) ?? new List<string>();
             },
             _logger
         );
