@@ -258,14 +258,21 @@ public class QuotaAgentService : IQuotaAgentService
             logMsg = $"Quota request rejected. Incident resolved. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit} <br/>- Reason: {state.Summary}.";
         }
 
-        if(resolveIncident)
+        var successfullyResolved = false;
+        if (resolveIncident)
         {
-            await _icmPlugin.ResolveIncident(state.Incident.Id, logMsg);
-            await _taskStorageService.RemoveTaskAsync(state.Incident.Id);
+            successfullyResolved = await _icmPlugin.ResolveIncident(state.Incident.Id, logMsg);          
         }
         
         await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.Id, state.Incident.TeamsMessageId, logMsg);
-        
+
+        if (successfullyResolved)
+        {
+            await _taskStorageService.RemoveTaskAsync(state.Incident.Id);
+            var offTrackMsg = "The quota request has been successfully resolved. The agent will now stop proactive tracking on this case.";
+            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.Id, state.Incident.TeamsMessageId, offTrackMsg);
+        }
+
         return state;
     }
 
