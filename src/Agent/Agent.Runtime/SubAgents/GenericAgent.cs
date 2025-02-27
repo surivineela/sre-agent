@@ -22,15 +22,18 @@ namespace Agent.Runtime.SubAgents
 
         protected ICurrentStatePlugin _currentStatePlugin { get; }
 
+        protected IRemediationPlugin _remediationPlugin { get; }
+
         protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
-        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IMonitorPlugin monitorPlugin, ICurrentStatePlugin currentStatePlugin, IChatClient chatClient, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
+        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IMonitorPlugin monitorPlugin, ICurrentStatePlugin currentStatePlugin, IChatClient chatClient, IRemediationPlugin remediationPlugin, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
         {
             _logger = logger;
             _subscriptionPlugin = subscriptionPlugin;
             _timePlugin = timePlugin;
             _monitorPlugin = monitorPlugin;
             _currentStatePlugin = currentStatePlugin;
+            _remediationPlugin = remediationPlugin;
         }
 
         public override IList<AITool> Tools()
@@ -50,6 +53,12 @@ namespace Agent.Runtime.SubAgents
 
                 AIFunctionFactory.Create(_currentStatePlugin.GetCurrentAppState),
                 AIFunctionFactory.Create(_currentStatePlugin.GetCurrentBotState),
+
+                AIFunctionFactory.Create(_remediationPlugin.ScaleAppServicePlanVertically),
+                AIFunctionFactory.Create(_remediationPlugin.RestartWebApp),
+                AIFunctionFactory.Create(_remediationPlugin.CollectMemoryDump),
+                AIFunctionFactory.Create(_remediationPlugin.CalculateScalingCost),
+                AIFunctionFactory.Create(_remediationPlugin.SuggestNextSku),
             };
         }
     }

@@ -74,6 +74,8 @@ namespace Agent.Runtime.Services
                 .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
                 .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
                 .AddSingleton<CurrentStatePluginDefinition>()
+                .AddSingleton<IRemediationPlugin, RemediationPlugin>()
+                .AddSingleton<RemediationPluginDefinition>() 
                 // Register all SubAgent types as singletons
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<GraphDBQueryAgent>()

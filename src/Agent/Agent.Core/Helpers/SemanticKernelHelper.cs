@@ -57,7 +57,6 @@ public static class SemanticKernelHelper
 
             // Register skills
             kernelBuilder.Plugins.AddFromType<DiagnosePlugin>("DiagnosePlugin");
-            kernelBuilder.Plugins.AddFromType<RemediationPlugin>("RemediationPlugin");
             kernelBuilder.Plugins.AddFromType<AppConfigurationChecksPlugin>("SqlConnectionPlugin");
 
             // kernelBuilder.Plugins.AddFromType<MonitorPlugin>("MonitorPlugin");

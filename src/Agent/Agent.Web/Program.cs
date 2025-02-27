@@ -55,7 +55,9 @@ if (useSessionChatService)
                    .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
                    .AddSingleton<CurrentStatePluginDefinition>()
                    .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
-                   .AddSingleton<DiagnosePluginDefinition>();
+                   .AddSingleton<DiagnosePluginDefinition>()
+                   .AddSingleton<IRemediationPlugin, RemediationPlugin>()
+                   .AddSingleton<RemediationPluginDefinition>();
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 

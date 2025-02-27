@@ -1,15 +1,15 @@
-using Microsoft.SemanticKernel;
+using System.ComponentModel;
+using Agent.Core.Configuration;
+using Agent.Runtime.SubAgents;
+using Azure.AI.OpenAI;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.AspNetCore.Http;
-using Agent.Core.Configuration;
-using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Microsoft.Extensions.AI;
-using Azure.AI.OpenAI;
 using Microsoft.Extensions.Logging;
-using System.ComponentModel;
-using Agent.Runtime.SubAgents;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 
 namespace Agent.Runtime
 {
@@ -52,6 +52,8 @@ namespace Agent.Runtime
                 .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
                 .AddSingleton<LogsAndMetricsAgent>()
                 .AddSingleton<DiagnosticAgent>()
+                .AddSingleton<IRemediationPlugin, RemediationPlugin>()
+                .AddSingleton<RemediationPluginDefinition>()
                 // Agent is defined by its name, instructions, and the plugins it uses
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>
