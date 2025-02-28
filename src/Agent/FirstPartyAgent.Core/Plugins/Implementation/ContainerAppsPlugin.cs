@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Constants;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -116,25 +117,24 @@ namespace FirstPartyAgent.Plugins
             )
         {
             string approvalResult;
-            
             if (string.IsNullOrEmpty(quotaType) || string.IsNullOrEmpty(region) || string.IsNullOrEmpty(offerType))
             {
-                approvalResult = ApprovalState.Pending.ToString();
-                return string.IsNullOrEmpty(quotaType) ? "ApproveResult: NotStarted. Reason: The Quota type is missing. Need to ask the user to provide the QuotaType."
-                    : string.IsNullOrEmpty(region) ? "ApproveResult: NotStarted. Reason: The Region information is missing. Need to ask the user to provide the Region."
-                    : "ApproveResult: NotStarted. Reason: The subscription offer type information is missing. Try to use get_subscription_detail tool to get the subscription information.";
+                approvalResult = ApprovalState.NotStarted.ToString();
+                return string.IsNullOrEmpty(quotaType) ? string.Concat($"ApproveResult: {approvalResult}. Reason: ", string.Format(MessageTemplates.RequestInformationMissing, "quota type"))
+                    : string.IsNullOrEmpty(region) ? string.Concat($"ApproveResult: {approvalResult}. Reason: ", string.Format(MessageTemplates.RequestInformationMissing, "region"))
+                    : string.Concat($"ApproveResult: {approvalResult}. Reason: ", string.Format(MessageTemplates.SubscriptionInformationMissing, "offer type", KernelFunctionNames.ACA.GetSubscriptionDetail));
             }
 
             if (!int.TryParse(targetQuotaLimit, out int limit))
             {
-                approvalResult = ApprovalState.Pending.ToString();
-                return "ApproveResult: NotStarted. Reason: Invalid target limit number. Ask the user to provide a valid target limit.";
+                approvalResult = ApprovalState.NotStarted.ToString();
+                return string.Concat($"ApproveResult: {approvalResult}. Reason: ", string.Format(MessageTemplates.InvalidQuotaLimit));
             }
 
             if (!Enum.TryParse(quotaType, true, out QuotaType quotaTypeEnum))
             {
-                approvalResult = ApprovalState.Pending.ToString();
-                return "ApproveResult: NotStarted. Reason: Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus.";
+                approvalResult = ApprovalState.NotStarted.ToString();
+                return string.Concat($"ApproveResult: {approvalResult}. Reason: ", string.Format(MessageTemplates.InvalidQuotaType));
             }
 
             var result = ValidateQuotaRule(limit, quotaTypeEnum, region.ToLowerInvariant(), offerType);
@@ -164,26 +164,26 @@ namespace FirstPartyAgent.Plugins
                 switch (region)
                 {
                     case "northeurope":
-                        return (ApprovalState.NotStarted, "We have run out of SubscriptionNCA100Gpus in northeurope. Please ask the user if the customer can switch to westus3, or use SubscriptionConsumptionNCA100Gpus or SubscriptionConsumptionT4Gpus instead.");
+                        return (ApprovalState.NotStarted, MessageTemplates.NorthEuropeNotSupported);
                     case "westus3":
                         if (isEA)
                         {
                             return limit <= 10
-                                ? (ApprovalState.Approved, $"Auto approved SubscriptionNCA100Gpus quota for EA offer type with limit less than or equal to 10.")
-                                : (ApprovalState.Pending, $"Manual approval is required for EA offer type to set SubscriptionNCA100Gpus quota with a limit great than 10.");
+                                ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionNCA100Gpus", "EA", "10"))
+                                : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionNCA100Gpus", "EA", "10"));
                         }
                         else if (isPayAsYouGo || isInternal)
                         {
                             return limit <= 5
-                                ? (ApprovalState.Approved, $"Auto approved SubscriptionNCA100Gpus quota for {offerType} offer type with limit less than or equal to 5.")
-                                : (ApprovalState.Pending, $"Manual approval is required for {offerType} offer type to set SubscriptionNCA100Gpus quota with a limit great than 5.");
+                                ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionNCA100Gpus", offerType, "5"))
+                                : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionNCA100Gpus", offerType, "5"));
                         }
                         else
                         {
-                            return (ApprovalState.Pending, $"Manual approval is required for {offerType} offer type to set SubscriptionNCA100Gpus quota.");
+                            return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionNCA100Gpus", offerType, limit.ToString()));
                         }
                     default:
-                        return (ApprovalState.NotStarted, $"Quota type SubscriptionNCA100Gpus is not supported in this region: {region}. Ask the customer to provide the correct region.");
+                        return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionNCA100Gpus", region, "westus3"));
                 }
             }
             else if (quotaType.Equals(QuotaType.SubscriptionConsumptionNCA100Gpus))
@@ -193,23 +193,23 @@ namespace FirstPartyAgent.Plugins
                     if (isEA)
                     {
                         return limit <= 10
-                            ? (ApprovalState.Approved, $"Auto approved SubscriptionConsumptionNCA100Gpus quota for EA offer typewith limit less than or equal to 10.")
-                            : (ApprovalState.Pending, $"Manual approval is required for EA offer type to set SubscriptionConsumptionNCA100Gpus quota with a limit great than 10.");
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionNCA100Gpus", "EA", "10"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionNCA100Gpus", "EA", "10"));
                     }
                     else if (isPayAsYouGo || isInternal)
                     {
                         return limit <= 5
-                            ? (ApprovalState.Approved, $"Auto approved SubscriptionConsumptionNCA100Gpus quota for {offerType} offer type with limit less than or equal to 5.")
-                            : (ApprovalState.Pending, $"Manual approval is required for {offerType} offer type to set SubscriptionConsumptionNCA100Gpus quota with a limit great than 5.");
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionNCA100Gpus", offerType, "5"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionNCA100Gpus", offerType, "5"));
                     }
                     else
                     {
-                        return (ApprovalState.Pending, $"Manual approval is required for {offerType} offer type to set SubscriptionConsumptionNCA100Gpus quota.");
+                        return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionNCA100Gpus", offerType, limit.ToString()));
                     }
                 }
                 else
                 {
-                    return (ApprovalState.Pending, $"SubscriptionConsumptionNCA100Gpus is not supported in this region: {region}. Ask the customer to provide correct region.");
+                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionNCA100Gpus", region, "westus3, australiaeast, or swedensentral"));
                 }
             }
             else if (quotaType.Equals(QuotaType.SubscriptionConsumptionT4Gpus))
@@ -219,23 +219,23 @@ namespace FirstPartyAgent.Plugins
                     if (isEA)
                     {
                         return limit <= 40
-                            ? (ApprovalState.Approved, $"Auto approved SubscriptionConsumptionT4Gpus quota for EA offer type with limit less than or equal to 40.")
-                            : (ApprovalState.Pending, $"Manual approval is required for EA offer type to set SubscriptionConsumptionT4Gpus quota with a limit great than 40.");
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionT4Gpus", "EA", "40"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionT4Gpus", "EA", "40"));
                     }
                     else if (isPayAsYouGo || isInternal)
                     {
                         return limit <= 20
-                            ? (ApprovalState.Approved, $"Auto approved SubscriptionConsumptionT4Gpus quota for {offerType} offer type with limit less than or equal to 20.")
-                            : (ApprovalState.Pending, $"Manual approval is required for {offerType} offer type to set SubscriptionConsumptionT4Gpus quota with a limit great than 20.");
+                            ? (ApprovalState.Approved, string.Format(MessageTemplates.AutoApproved, "SubscriptionConsumptionT4Gpus", offerType, "20"))
+                            : (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionT4Gpus", offerType, "20"));
                     }
                     else
                     {
-                        return (ApprovalState.Pending, $"Manual approval is required for {offerType} offer type to set SubscriptionConsumptionT4Gpus quota.");
+                        return (ApprovalState.Pending, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, or swedensentral"));
                     }
                 }
                 else
                 {
-                    return (ApprovalState.Pending, $"SubscriptionConsumptionT4Gpus is not supported in this region: {region}. Ask the customer to provide correct region.");
+                    return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, or swedensentral"));
                 }
 
             }
@@ -244,12 +244,34 @@ namespace FirstPartyAgent.Plugins
                     || quotaType.Equals(QuotaType.ManagedEnvironmentMemoryOptimizedCores)
                     || quotaType.Equals(QuotaType.ManagedEnvironmentCount))
             {
-                return (ApprovalState.NotStarted, "Managed Environment Count and Managed Environment Cores quota types are not suppored.");
+                return (ApprovalState.NotStarted, string.Format(MessageTemplates.QuotaTypeNotSupported, quotaType.ToString()));
             }
             else
             {
-                return (ApprovalState.Pending, $"Quota type {quotaType} is not supported. Ask the user to provide correct QuotaType.");
+               
+                return (ApprovalState.NotStarted, string.Format(MessageTemplates.QuotaTypeNotSupported, quotaType.ToString()));
             }
+        }
+
+        public static class MessageTemplates
+        {
+            public const string RegionNotSupported = @"Quota type {0} is not supported in this region {1}. For QuotaType {0}, the valid region should be {2}. Ask the user to provide the correct region.";
+
+            public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus. Ask the user to provide the correct quota type.";
+
+            public const string NorthEuropeNotSupported = "We have run out of SubscriptionNCA100Gpus in northeurope. Ask the user if the customer can switch to westus3, or use SubscriptionConsumptionNCA100Gpus or SubscriptionConsumptionT4Gpus instead.";
+
+            public const string AutoApproved = @"Auto approved {0} quota for {1} offer type with limit less than or equal to {2}.";
+
+            public const string RequireManualApprove = @"Manual approval is required for {1} offer type to set {0} quota with a limit great than {2}.";
+
+            public const string RequestInformationMissing = @"The request {0} is missing. Ask the user to provide the {0}.";
+
+            public const string SubscriptionInformationMissing = @"The subscription {0} is missing. Try to use {1} tool to get the subscription information.";
+
+            public const string InvalidQuotaLimit = @"Invalid target limit number. Ask the user to provide a valid target limit.";
+
+            public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus.";
         }
     }
 }
