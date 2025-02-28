@@ -1,5 +1,6 @@
 ﻿using Agent.Core.Configuration;
 using Azure.Identity;
+using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -63,6 +64,8 @@ namespace Agent.Runtime
         public static void RegisterInnerAppSettings<TAppSettings>(this IServiceCollection sc)
             where TAppSettings : AppSettings
         {
+
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.OpenAI);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB.Graph);

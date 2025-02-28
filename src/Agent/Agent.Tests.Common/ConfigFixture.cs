@@ -19,6 +19,7 @@ namespace Agent.Tests.Common
 
             var sp = builder.Services.BuildServiceProvider();
 
+            Configuration = builder.Configuration;
             AzureSettings = sp.GetRequiredService<AzureSettings>();
         }
     }
