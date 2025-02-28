@@ -20,8 +20,6 @@ public static class SemanticKernelHelper
     {
         serviceCollection.AddScoped<AppIdentityUpdatePlugin>();
         serviceCollection.AddScoped<ChartPlugin>();
-        serviceCollection.AddSingleton<Models.GitHubClient>();
-        serviceCollection.AddScoped<GithubIssuePlugin>();
         serviceCollection.AddScoped<SubscriptionPlugin>();
         serviceCollection.AddScoped<TlsPlugin>();
 
@@ -59,9 +57,6 @@ public static class SemanticKernelHelper
             var curlPlugin = sp.GetRequiredService<TlsPlugin>();
             kernelBuilder.Plugins.AddFromObject(curlPlugin, "CurlPlugin");
 
-            var createGithubWorkItemPlugin = sp.GetRequiredService<GithubIssuePlugin>();
-            kernelBuilder.Plugins.AddFromObject(createGithubWorkItemPlugin, "CreateGithubWorkItemPlugin");
-
             var subscriptionPlugin = sp.GetRequiredService<SubscriptionPlugin>();
             kernelBuilder.Plugins.AddFromObject(subscriptionPlugin, "SubscriptionPlugin");
 
@@ -78,4 +73,3 @@ public static class SemanticKernelHelper
         }));
     }
 }
-

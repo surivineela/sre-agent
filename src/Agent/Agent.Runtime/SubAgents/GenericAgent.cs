@@ -17,20 +17,23 @@ namespace Agent.Runtime.SubAgents
         protected ISubscriptionPlugin _subscriptionPlugin { get; }
 
         protected ITimePlugin _timePlugin { get; }
-
+        
         protected IMonitorPlugin _monitorPlugin { get; }
 
         protected ICurrentStatePlugin _currentStatePlugin { get; }
 
+        protected ICodeAnalyzerPlugin _codeAnalyzerPlugin { get; }
+        
         protected IRemediationPlugin _remediationPlugin { get; }
 
         protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
-        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, IMonitorPlugin monitorPlugin, ICurrentStatePlugin currentStatePlugin, IChatClient chatClient, IRemediationPlugin remediationPlugin, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
+        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, ICodeAnalyzerPlugin codeAnalyzerPlugin, IMonitorPlugin monitorPlugin, ICurrentStatePlugin currentStatePlugin, IChatClient chatClient, IRemediationPlugin remediationPlugin, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
         {
             _logger = logger;
             _subscriptionPlugin = subscriptionPlugin;
             _timePlugin = timePlugin;
+            _codeAnalyzerPlugin = codeAnalyzerPlugin;
             _monitorPlugin = monitorPlugin;
             _currentStatePlugin = currentStatePlugin;
             _remediationPlugin = remediationPlugin;

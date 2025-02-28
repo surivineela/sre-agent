@@ -1,12 +1,8 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
-using Agent.Core.Configuration;
+﻿using Agent.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using Octokit;
 
-namespace Agent.Core.Models
+namespace Agent.Plugins.Models
 {
     public class GitHubClient
     {
@@ -14,7 +10,6 @@ namespace Agent.Core.Models
 
         public GitHubClient(IConfiguration configuration, GitHubSettings gitHubSettings)
         {
-
             if (gitHubSettings == null)
             {
                 throw new ArgumentNullException(nameof(gitHubSettings), "GitHub settings cannot be null");

@@ -49,7 +49,6 @@ namespace Agent.Runtime
                 .AddSingleton<GenericAgent>()
                 .AddSingleton<GraphDBQueryAgent>()
                 .AddSingleton<ArchitectureAgent>()
-                .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
                 .AddSingleton<LogsAndMetricsAgent>()
                 .AddSingleton<DiagnosticAgent>()
                 .AddSingleton<IRemediationPlugin, RemediationPlugin>()

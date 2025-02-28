@@ -20,7 +20,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
 
-    public GitHubIssuePlugin(GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Core.Models.GitHubClient gitHubClient)
+    public GitHubIssuePlugin(GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Models.GitHubClient gitHubClient)
     {
         _logger = logger;
         _gitHubSettings = gitHubSettings;

@@ -30,5 +30,16 @@ public class KernelFunctionHelpers
             throw;
         }
     }
+
+    public static (string owner, string repo) ParseGitHubUrl(string repoUrl)
+    {
+        var match = Regex.Match(repoUrl, @"github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)(?:\.git)?$");
+        if (!match.Success)
+        {
+            throw new ArgumentException("Invalid GitHub repository URL format");
+        }
+
+        return (match.Groups["owner"].Value, match.Groups["repo"].Value);
+    }
 }
 

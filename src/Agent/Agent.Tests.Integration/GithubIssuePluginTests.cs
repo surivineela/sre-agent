@@ -1,6 +1,7 @@
 ﻿using Agent.Core;
 using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Plugins.Models;
 using Agent.Runtime;
 using Agent.Tests.Integration.Fixtures;
 using Agent.Tests.Integration.Helpers;

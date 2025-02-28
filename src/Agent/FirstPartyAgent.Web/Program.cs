@@ -44,7 +44,7 @@ builder.Services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, 
 builder.Services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
 builder.Services.AddSingleton<AzureSearchPluginDefinition>();
 
-builder.Services.AddSingleton<Agent.Core.Models.GitHubClient>();
+builder.Services.AddSingleton<Agent.Plugins.Models.GitHubClient>();
 builder.Services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
 builder.Services.AddSingleton<GitHubIssuePluginDefinition>();
 

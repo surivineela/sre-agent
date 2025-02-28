@@ -9,6 +9,7 @@ using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
 using Agent.Runtime.Services;
@@ -57,6 +58,10 @@ if (useSessionChatService)
                    .AddSingleton<MonitorPluginDefinition>()
                    .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
                    .AddSingleton<CurrentStatePluginDefinition>()
+                   .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
+                   .AddSingleton<CodeAnalyzerPluginDefinition>()
+                   .AddSingleton<CodeAnalyzerService>()
+                   .AddSingleton<Agent.Plugins.Models.GitHubClient>()
                    .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
                    .AddSingleton<DiagnosePluginDefinition>()
                    .AddSingleton<IRemediationPlugin, RemediationPlugin>()
@@ -84,6 +89,9 @@ else
     SemanticKernelHelper.ConfigService(builder.Services);
     builder.Services.AddScoped<IChatService, LegacyChatService>();
 }
+
+// Register TeamsConnector service
+builder.Services.AddSingleton<TeamsConnector>();
 
 // Add services to the container.
 builder.Services.AddHttpContextAccessor(); // Add this line

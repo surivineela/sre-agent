@@ -9,14 +9,15 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Plugins.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;
-namespace Agent.Core.Plugins;
+
+namespace Agent.Plugins.CodeAnalyzer;
 
 public class CodeAnalyzerService
-
 {
     private readonly GitHubSettings _gitHubSettings;
     private readonly Octokit.GitHubClient _gitHubClient;
@@ -24,10 +25,10 @@ public class CodeAnalyzerService
     private readonly AsyncOperationTracker<MemoryLeakeAnalysisDescriptor, string, string> _memoryLeakAnalysisTracker;
     private readonly ILogger<CodeAnalyzerService> _logger;
 
-    public CodeAnalyzerService(GitHubSettings gitHubSettings, GitHubClient gitHubClient, ILogger<CodeAnalyzerService> logger)
+    public CodeAnalyzerService(GitHubSettings gitHubSettings, Models.GitHubClient gitHubClient, ILogger<CodeAnalyzerService> logger)
     {
         _gitHubSettings = gitHubSettings;
-        _gitHubClient = gitHubClient;
+        _gitHubClient = gitHubClient.Client;
         _managedIdentityMigrationAnalysisTracker = new(func: ProcessRepositoryForManagedIdentityMigrationAndOpenPRAsyncInternal);
         _memoryLeakAnalysisTracker = new(func: AnalyzeAndFixMemoryLeaksAsyncInternal);
         _logger = logger;
@@ -511,15 +512,3 @@ Output only the complete updated file content.";
         }
     }
 }
-
-public sealed record ManagedIdentityMigrationAnalysisDescriptor(
-    [Description("Full GitHub repository URL. Can be inferred from app being CI/CD Enabled.Always confirm")] string repoUrl,
-    [Description("Name of the branch to clone. Can be inferred from app's CI?CD Branch")] string branchToClone,
-    [Description("Name of the branch to create with the fix.")] string branchName,
-    [Description("SQLServer name in the original connection string. We are trying to migrate this to to use AD Based auth")] string sqlServer,
-    [Description("Database in the original connection string")] string database);
-
-public sealed record MemoryLeakeAnalysisDescriptor(
-    [Description("Full GitHub repository URL. Can be inferred from app if CI/CD Enabled.Always confirm")] string repoUrl,
-    [Description("Base branch name. Can be inferred from app if CI/CD Enabled.Always confirm")] string baseBranch,
-    [Description("New branch name for fixes")] string newBranch);

@@ -2,42 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.ComponentModel;
-using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Core.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
+using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
-using Octokit;
+using System.ComponentModel;
 
+namespace Agent.Plugins;
 
-namespace Agent.Core.Plugins;
-
-public class CodeAnalyzerPlugin
+public class CodeAnalyzerPluginDefinition
 {
-    private const int MaxChunkSize = 2000;
-    private readonly GitHubSettings _gitHubSettings;
-    private readonly TeamsConnector _teamsConnector;
-    private readonly CodeAnalyzerService _codeAnalyzer;
-    private readonly Octokit.GitHubClient _gitHubClient;
-
-    private readonly ILogger<CodeAnalyzerPlugin> _logger;
-
-
-    public CodeAnalyzerPlugin(
-        CodeAnalyzerService codeAnalyzerService,
-        IConfiguration configuration,
-        TeamsConnector teamsConnector,
-        Models.GitHubClient gitHubClient,
-        GitHubSettings gitHubSettings,
-        ILogger<CodeAnalyzerPlugin> logger)
+    private readonly ICodeAnalyzerPlugin _codeAnalyzer;
+    
+    public CodeAnalyzerPluginDefinition(ICodeAnalyzerPlugin codeAnalyzer)
     {
-        _logger = logger;
-        _gitHubSettings = gitHubSettings;
-        _teamsConnector = teamsConnector;
-        _codeAnalyzer = codeAnalyzerService;
-        _gitHubClient = gitHubClient.Client;
+        _codeAnalyzer = codeAnalyzer;
     }
 
     [KernelFunction("request_github_token_for_gh_actions")]
@@ -46,27 +24,9 @@ public class CodeAnalyzerPlugin
         [Description("Message to user posted regarding why Github login is needed")] string userMessage,
         [Description("Github full repository")] string repository)
     {
-        var state = Guid.NewGuid().ToString();
-        var loginUrl = $"https://github.com/login/oauth/authorize" +
-            $"?client_id={_gitHubSettings.ClientId}" +
-            $"&redirect_uri={Uri.EscapeDataString(_gitHubSettings.CallbackUrl)}" +
-            $"&scope=repo" +
-            $"&state={state}";
-
-        if (await GitHubTokenManager.TokenExistsAsync())
-        {
-            return "Github logged in already has been retried already";
-        }
-
-        var message = $@"# ?? GitHub Authorization Required
-
-- {userMessage}
-
-- This Action would get permission scan your Github Repo
-
-?? **[Authorize GitHub Access]({loginUrl})**"; ;
-        await _teamsConnector.PostMessageAsync(new TeamsMessage(message));
-        return "GitHub authorization request sent to Teams, wait for callback";
+        return await _codeAnalyzer.RequestGitHubTokenAsync(
+            userMessage: userMessage,
+            repository: repository);
     }
 
     [KernelFunction("get_status_repo_for_mi_migration_2_adauth")]
@@ -79,18 +39,13 @@ public class CodeAnalyzerPlugin
         [Description("SQLServer name in the original connection string. We are trying to migrate this to to use AD Based auth")] string sqlServer,
         [Description("Database in the original connection string")] string database)
     {
-        if (repoUrl.EndsWith(".git"))
-        {
-            repoUrl = repoUrl.Replace(".git", "");
-        }
-        var descriptor = new ManagedIdentityMigrationAnalysisDescriptor(
-            repoUrl,
-            branchToClone,
-            branchName,
-            sqlServer,
-            database);
-        return _codeAnalyzer.GetProcessRepositoryForManagedIdentityMigrationAndOpenPRStatus(
-            descriptor);
+        return GetProcessRepositoryForManagedIdentityMigrationAndOpenPRStatus(
+            kernel: kernel,
+            repoUrl: repoUrl,
+            branchToClone: branchToClone,
+            branchName: branchName,
+            sqlServer: sqlServer,
+            database: database);
     }
 
     [KernelFunction("process_repo_for_mi_mig_2_adauth")]
@@ -106,19 +61,13 @@ public class CodeAnalyzerPlugin
         [Description("SQLServer name in the original connection string. We are trying to migrate this to to use AD Based auth")] string sqlServer,
         [Description("Database in the original connection string")] string database)
     {
-        if (repoUrl.EndsWith(".git"))
-        {
-            repoUrl = repoUrl.Replace(".git", "");
-        }
-        var descriptor = new ManagedIdentityMigrationAnalysisDescriptor(
-            repoUrl,
-            branchToClone,
-            branchName,
-            sqlServer,
-            database);
         return _codeAnalyzer.ProcessRepositoryForManagedIdentityMigrationAndOpenPRAsync(
             kernel,
-            descriptor);
+            repoUrl: repoUrl,
+            branchToClone: branchToClone,
+            branchName: branchName,
+            sqlServer: sqlServer,
+            database: database);
     }
 
     [KernelFunction("get_status_process_repo_memory_leaks_open_pr")]
@@ -128,16 +77,10 @@ public class CodeAnalyzerPlugin
         [Description("Base branch name. Can be inferred from app if CI/CD Enabled.Always confirm")] string baseBranch,
         [Description("New branch name for fixes")] string newBranch)
     {
-        if (repoUrl.EndsWith(".git"))
-        {
-            repoUrl = repoUrl.Replace(".git", "");
-        }
-        var descriptor = new MemoryLeakeAnalysisDescriptor(
-            repoUrl,
-            baseBranch,
-            newBranch);
         return _codeAnalyzer.GetStatusAnalyzeAndFixMemoryLeaksAsync(
-            descriptor);
+            repoUrl: repoUrl,
+            baseBranch: baseBranch,
+            newBranch: newBranch);
     }
 
     [KernelFunction("process_repo_memory_leaks_open_pr")]
@@ -151,15 +94,12 @@ User should be notified this operates on memory leak analysis and would try to f
         [Description("New branch name for fixes")] string newBranch,
         [Description("Description of memory analysis results and fixes that should be targeted in the repo scoped to the analysis")] string memoryAnalysis)
     {
-        if (repoUrl.EndsWith(".git"))
-        {
-            repoUrl = repoUrl.Replace(".git", "");
-        }
-        var descriptor = new MemoryLeakeAnalysisDescriptor(repoUrl, baseBranch, newBranch);
         return _codeAnalyzer.AnalyzeAndFixMemoryLeaksAsync(
             kernel,
-            descriptor,
-            memoryAnalysis);
+            repoUrl: repoUrl,
+            baseBranch: baseBranch,
+            newBranch: newBranch,
+            memoryAnalysis: memoryAnalysis);
     }
 
     [KernelFunction("fetch_github_pull_requests")]
@@ -176,35 +116,15 @@ User should be notified this operates on memory leak analysis and would try to f
             DateTimeOffset? since = null
         )
     {
-        return await KernelFunctionHelpers.TryAction(
-            nameof(CodeAnalyzerPlugin),
-            async () =>
-            {
-                var (owner, repo) = KernelFunctionHelpers.ParseGitHubUrl(repoUrl);
-
-                var actualFilter = new RepositoryIssueRequest();
-
-                actualFilter.Filter = (IssueFilter)issueFilter;
-                actualFilter.State = (ItemStateFilter)itemStateFilter;
-                actualFilter.Milestone = milestone;
-                actualFilter.Assignee = assignee;
-                actualFilter.Creator = creator;
-                actualFilter.Mentioned = mentioned;
-                actualFilter.Since = since;
-
-                foreach (string label in labels ?? Array.Empty<string>())
-                {
-                    actualFilter.Labels.Add(label);
-                }
-
-                var res = await _gitHubClient.Issue.GetAllForRepository(owner, repo, actualFilter);
-
-                _logger.LogInformation($"Github issues fetched");
-
-                // Only fetch issues, not pull requests
-                return res.Where(issue => issue.PullRequest != null).Select(issue => issue.ToGithubIssuePluginIssue());
-            },
-            _logger
-        );
+        return await _codeAnalyzer.FetchGithubIssues(
+            repoUrl: repoUrl,
+            issueFilter: issueFilter,
+            itemStateFilter: itemStateFilter,
+            milestone: milestone,
+            assignee: assignee,
+            creator: creator,
+            mentioned: mentioned,
+            labels: labels,
+            since: since);
     }
 }
