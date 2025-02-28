@@ -2,6 +2,14 @@ var consts = loadJsonContent('../consts.json')
 
 param namePrefix string
 
+resource appConfig 'Microsoft.AppConfiguration/configurationStores@2022-05-01' existing = {
+  name: '${namePrefix}${consts.appConfigNameSuffix}'
+}
+
+resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
+  name: '${namePrefix}${consts.kvNameSuffix}'
+}
+
 resource openai 'Microsoft.CognitiveServices/accounts@2023-05-01' = {
   name: '${namePrefix}${consts.openAIAccountNameSuffix}'
   location: resourceGroup().location
@@ -87,3 +95,47 @@ resource cognitiveServicesAccountDeployment_5K9aRgiZP 'Microsoft.CognitiveServic
   properties: deployment.properties
   sku: deployment.sku
 }]
+
+// Settings
+var openaiEndpoint = openai.properties.endpoint
+resource openaiEndpointSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:OpenAI:Endpoint'
+  parent: appConfig
+  properties: {
+    value: openaiEndpoint
+  }
+}
+
+resource openaiLLMDeploymentNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:OpenAI:LLMDeploymentName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-${consts.openAILLMModel}'
+  }
+}
+
+resource openaiEmbeddingGeneratorDeploymentNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:OpenAI:EmbeddingGeneratorDeploymentName'
+  parent: appConfig
+  properties: {
+    value: '${namePrefix}-${consts.openAIEmbeddingGeneratorModel}'
+  }
+}
+
+// Secret Settings
+var openaiApiKey = openai.listKeys().key1
+resource openaiApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
+  name: 'openai-api-key'
+  parent: kv
+  properties: {
+    value: openaiApiKey
+  }
+}
+resource openaiApiKeySetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:OpenAI:ApiKey'
+  parent: appConfig
+  properties: {
+    value: string({uri: openaiApiKeySecret.properties.secretUri})
+    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
+  }
+}

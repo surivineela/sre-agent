@@ -2,6 +2,7 @@ var consts = loadJsonContent('consts.json')
 
 targetScope = 'subscription'
 
+@minLength(2)
 param namePrefix string
 
 var rgName = '${namePrefix}${consts.resourceGroupNameSuffix}'

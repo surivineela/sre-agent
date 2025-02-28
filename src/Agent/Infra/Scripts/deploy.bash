@@ -1,35 +1,48 @@
 #!/bin/bash
-
-################################################################
-# Will use this once deployment stacks are less buggy and slow
-################################################################
-
 set -e
 
 pushd "$(dirname "$0")" >/dev/null
 
-source helpers.bash
+source deploy-common.bash
+
+# Validate arguments
+validateArgs "$@"
 
 # Variables
 TEMPLATE_FILE="../Bicep/main.bicep"
-PARAMETERS_FILE="../Bicep/Params/dev.bicepparam"
-NAME_PREFIX=$(grep "param namePrefix" "$PARAMETERS_FILE" | awk -F "'" '{print $2}')
-DEPLOYMENT_NAME="${NAME_PREFIX}-operations-agent-deployment"
-
-confirmDeployment $PARAMETERS_FILE
 
 # Deploy the Bicep template
-echo "Creating deployment stack with name $DEPLOYMENT_NAME..."
-az stack sub create \
-    --name $DEPLOYMENT_NAME \
-    --template-file $TEMPLATE_FILE \
-    --parameters $PARAMETERS_FILE \
-    --location westus \
-    --action-on-unmanage deleteAll \
-    --deny-settings-mode none \
-    --yes
+prepare_deployment "$PARAMETERS_FILE"
 
-# # Check the deployment status
+# Prep CLI
+echo "Upgrading bicep..."
+az bicep upgrade
+
+registerFeature
+registerProvider
+
+if [ "$useStack" == true ]; then
+    echo "Creating deployment with name $DEPLOYMENT_NAME..."
+    az stack sub create \
+        --name "$DEPLOYMENT_NAME" \
+        --template-file "$TEMPLATE_FILE" \
+        --parameters "$PARAMETERS_FILE" \
+        --location westus \
+        --action-on-unmanage deleteAll \
+        --deny-settings-mode none \
+        --yes
+else
+    echo "Creating deployment stack with name $DEPLOYMENT_NAME..."
+    subId=$(az account show --query id -o tsv)
+    echo "You can check deployment status here: https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/$subId/resourceGroups/$RG_NAME/deployments"
+    az deployment sub create \
+        --name "$DEPLOYMENT_NAME" \
+        --template-file "$TEMPLATE_FILE" \
+        --parameters "$PARAMETERS_FILE" \
+        --location westus
+fi
+
+# Check the deployment status
 if [ $? -eq 0 ]; then
     echo "Deployment succeeded."
 else

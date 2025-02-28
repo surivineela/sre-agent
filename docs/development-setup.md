@@ -6,14 +6,17 @@
 - .NET Core SDK
 - NuGet Package Manager
 
+## Private Environment Setup
+1. **Depoloy the necessary resources**
+  You can use git bash to run these on windows via the VSCode terminal or directly. The first time you run, an untracked `dev.bicepparam` file will be created which you can use to re-run the command without needing to specify the `-n` arg.
+   ```bash
+   source aliases.bash
+   deploy3p -n <stamp prefix>
+   ```
+
 ## NuGet Configuration
 
 We use an internal NuGet source for packages. To set up:
-1. **Depoloy the necessary resources**
-   ```bash
-   source aliases.bash
-   deploy3p
-   ```
 
 1. Install NuGet if needed:
    ```powershell
@@ -30,9 +33,7 @@ We use an internal NuGet source for packages. To set up:
 
 ## Configuration Setup
 
-1. Project should automatically start with no additional configuration. Required settings should be pulled from the Azure App Config instance
-that was set up as part of the private environment deployment. For optional settings, copy appsettings.json to appsettings.development.json and add any settings
-you need. These settings will override any other settings.
+1. Project should automatically start with no additional configuration. Required settings should be pulled from the Azure App Config instance that was set up as part of the private environment deployment. For optional settings, copy appsettings.json to appsettings.development.json and add any settings you need. These settings will override any other settings.
 
 ### Durable Task Scheduler
 

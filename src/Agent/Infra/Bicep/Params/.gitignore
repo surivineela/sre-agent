@@ -1,0 +1,5 @@
+# Ignore all .bicapparam files
+*.bicepparam
+
+# Except dev.example.bicapparam
+!dev.example.bicapparam

@@ -1,4 +1,5 @@
-// Make a copy of this file, rename it to dev.bicepparam, and replace the placholders with the desired values
+// Deploy script will automatically replace the '<stampName>' with the actual stamp name
+// namePrefix will be prepended to all your resource names
 
 using '../main.bicep'
 

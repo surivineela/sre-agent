@@ -1,17 +1,10 @@
 #!/bin/bash
-
-################################################################
-# Will use this once deployment stacks are less buggy and slow
-################################################################
-
-set -e
-
 pushd "$(dirname "$0")" >/dev/null
-source helpers.bash
+source deploy-common.bash
 
 PARAMETERS_FILE="../Bicep/Params/dev.bicepparam"
-NAME_PREFIX=$(grep "param namePrefix" "$PARAMETERS_FILE" | awk -F "'" '{print $2}')
 
+validateArgs "$@"
 confirmDeployment $PARAMETERS_FILE
 
 # Delete and purge OpenAI account
@@ -21,11 +14,23 @@ confirmDeployment $PARAMETERS_FILE
 # Commenting out since purging via cli seems broken too...
 # Purge via portal if you need to re-create resources
 
-# Delete the rest of the resources
-echo "Deleting deployment stack..."
-az stack sub delete --name mnils-operations-agent-deployment --action-on-unmanage deleteAll --yes
+# Purge and delete app config
+echo "Deleting app config..."
+az appconfig delete --name $namePrefixArg-appconfig --yes
+echo "Purging app config..."
+az appconfig purge --name $namePrefixArg-appconfig --yes
 
-echo "To finish cleaning up, purge the Azure AI Services resource in the Azure portal:"
+# Delete the rest of the resources
+echo "About to delete everything else. In the meantime, for now you need to manually purge the OpenAI resource in the Azure portal."
+echo "Once this script deletes the resource, purge the Azure AI Services resource here (under 'manage deleted resources'):"
 echo "https://ms.portal.azure.com/#view/Microsoft_Azure_ProjectOxford/CognitiveServicesHub/~/OpenAI"
+
+if [ "$useStack" == true ]; then
+    echo "Deleting deployment stack (graph db takes a while)......"
+    az stack sub delete --name mnils-operations-agent-deployment --action-on-unmanage deleteAll --yes
+else
+    echo "Deleting resource group (graph db takes a while)..."
+    az group delete --name $namePrefixArg-operations-agent-3p-rg --yes
+fi
 
 popd >/dev/null
