@@ -36,16 +36,22 @@ you need. These settings will override any other settings.
 
 ### Durable Task Scheduler
 
-You have two options:
-- run the emulator `./src/run-durable-emulator.ps1` (recommended)
-- deploy the Durable Task Scheduler service `./src/deploy-durable-task-service.ps1`
 
-If you deploy the service, update `appsettings.Development.json` with the connection string outputted by the deployment script
+Deploy the Durable Task Scheduler service `./src/deploy-durable-task-service.ps1`
+
+Update `appsettings.Development.json` with the connection string outputted by the deployment script
 
 ```
     "DurableTaskScheduler": {
       "ConnectionString": "<connection string>"
     },
 ```    
+
+Note - there is also a script for running the durable emulator `./src/run-durable-emulator.ps1`
+HOWEVER the emulator has issues that we are waiting for fixes:
+- GetAllInstancesAsync hangs and doesnt return orchestration instances
+- external events don't fire (context.WaitForExternalEvent)
+
+TODO - update these instructions once we have new emulator build with fixes
 
 [Next: Running the Application](running-the-app.md) 
