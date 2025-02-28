@@ -62,7 +62,7 @@ namespace Agent.Tests.End2End.Fixtures
             // Extract configuration values
             string aoaiEndpoint = ConfigFixture.AzureSettings.OpenAI.Endpoint;
             string? key = ConfigFixture.AzureSettings.OpenAI.ApiKey;
-            string? deployment = ConfigFixture.AzureSettings.OpenAI.DeploymentName;
+            string? deployment = ConfigFixture.AzureSettings.OpenAI.LLMDeploymentName;
 
             // Validate required settings
             if (string.IsNullOrEmpty(aoaiEndpoint))

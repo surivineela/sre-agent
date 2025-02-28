@@ -2,6 +2,7 @@ using Agent.Core.Configuration;
 using Agent.Plugins;
 using Agent.Runtime;
 using FirstPartyAgent.Agents;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
@@ -17,7 +18,7 @@ namespace FirstPartyAgent.Runtime
 {
     public static class FirstPartyAgentsConfigurationExtensions
     {
-        public static void ConfigureAgents(this IServiceCollection services, AgentMode agentMode)
+        public static void ConfigureAgents(this IServiceCollection services)
         {
             _ = services
                 .ConfigureIChatCompletionService()
@@ -30,8 +31,9 @@ namespace FirstPartyAgent.Runtime
                 // In future we load the agent and conversation from a data store. For now it is all in memory
                 .AddSingleton(s =>
                 {
+                    FirstPartyAgentAppSettings appSettings = s.GetRequiredService<FirstPartyAgentAppSettings>();
                     string systemMessage = ICMAgent.SystemMessage;
-                    switch (agentMode)
+                    switch (appSettings.AgentMode)
                     {
                         case AgentMode.ICM:
                             systemMessage = ICMAgent.SystemMessage;
@@ -42,17 +44,18 @@ namespace FirstPartyAgent.Runtime
                         case AgentMode.ACA:
                             break;
                         default:
+                            systemMessage = "Let the user know that you were not given an AgentMode, but you will do your best to respond";
                             break;
                     }
                     var agent = new Agent.Runtime.Agent(
                         "main",
                         systemMessage,
                         s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<IOptions<AzureSettings>>(),
+                        s.GetRequiredService<OpenAISettings>(),
                         s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
                         s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Runtime.Agent>());
 
-                    switch (agentMode)
+                    switch (appSettings.AgentMode)
                     {
                         case AgentMode.ICM:
                             agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
@@ -78,44 +81,20 @@ namespace FirstPartyAgent.Runtime
                 });
         }
 
-        public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
-        {
-            return services
-                .AddSingleton<IChatCompletionService>(sp =>
-                {
-                    var config = sp.GetRequiredService<IConfiguration>();
-                    var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-                    if (azureSettings == null)
-                    {
-                        throw new NullReferenceException("Azure settings are required.");
-                    }
-                    return new AzureOpenAIChatCompletionService(
-                        deploymentName: azureSettings.OpenAI.DeploymentName,
-                        endpoint: azureSettings.OpenAI.Endpoint,
-                        apiKey: azureSettings.OpenAI.ApiKey
-                    );
-                });
-        }
-
-        public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services, AgentMode agentMode)
+        public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
         {
             // Configure Semantic Kernel
             services.AddScoped<Kernel>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
-
-                var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-
-                if (azureSettings == null)
-                {
-                    throw new NullReferenceException("Azure settings are required.");
-                }
+                var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                var appSettings = sp.GetRequiredService<FirstPartyAgentAppSettings>();
 
                 var kernelBuilder = Kernel.CreateBuilder();
                 kernelBuilder.AddAzureOpenAIChatCompletion(
-                   deploymentName: azureSettings.OpenAI.DeploymentName,
-                   endpoint: azureSettings.OpenAI.Endpoint,
-                   apiKey: azureSettings.OpenAI.ApiKey);
+                   deploymentName: openAISettings.LLMDeploymentName,
+                   endpoint: openAISettings.Endpoint,
+                   apiKey: openAISettings.ApiKey);
 
 
                 kernelBuilder.Services.AddLogging(builder =>
@@ -125,7 +104,7 @@ namespace FirstPartyAgent.Runtime
                     builder.AddConsole();
                 });
 
-                switch (agentMode)
+                switch (appSettings.AgentMode)
                 {
                     case AgentMode.ICM:
                         kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<ICMPlugin>(), "IcmPlugin");

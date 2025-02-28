@@ -1,4 +1,5 @@
-﻿using Gremlin.Net.Driver;
+﻿using Agent.Core.Configuration;
+using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -26,12 +27,12 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
     {
         private static GremlinClient? _gremlinClient;
         private static readonly object _lock = new object();
-        private readonly IConfiguration _configuration;
+        private readonly GraphSettings _graphSettings;
         private readonly ILogger<GremlinGraphDatabaseManager> _logger;
 
-        public GremlinGraphDatabaseManager(IConfiguration configuration, ILogger<GremlinGraphDatabaseManager> logger)
+        public GremlinGraphDatabaseManager(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseManager> logger)
         {
-            _configuration = configuration;
+            _graphSettings = graphSettings;
             _logger = logger;
 
             // Initialize the Gremlin client if it hasn't been initialized yet
@@ -49,10 +50,10 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
 
         private GremlinClient CreateGremlinClient()
         {
-            var accountName = _configuration["Azure:Gremlin:AccountName"];
-            var accountKey = _configuration["Azure:Gremlin:AccountKey"];
-            var database = _configuration["Azure:Gremlin:Database"];
-            var collection = _configuration["Azure:Gremlin:Collection"];
+            var accountName = _graphSettings.AccountName;
+            var accountKey = _graphSettings.ApiKey;
+            var database = _graphSettings.Database;
+            var collection = _graphSettings.Collection;
 
             var gremlinServer = new GremlinServer(
                 hostname: $"{accountName}.gremlin.cosmos.azure.com",

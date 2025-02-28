@@ -19,15 +19,13 @@ public class GithubIssuePlugin
 {
     private const string AGENT_ID = nameof(GithubIssuePlugin);
     private readonly ILogger<GithubIssuePlugin> _logger;
-    private readonly IConfiguration _config;
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
 
-    public GithubIssuePlugin(IConfiguration configuration, ILogger<GithubIssuePlugin> logger, Models.GitHubClient gitHubClient)
+    public GithubIssuePlugin(GitHubSettings gitHubSettings, ILogger<GithubIssuePlugin> logger, Models.GitHubClient gitHubClient)
     {
-        _config = configuration;
         _logger = logger;
-        _gitHubSettings = configuration.GetSection("Azure").Get<AzureSettings>().Github;
+        _gitHubSettings = gitHubSettings;
         _gitHubClient = gitHubClient.Client;
     }
 

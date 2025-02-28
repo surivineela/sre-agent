@@ -6,7 +6,7 @@ using System.ComponentModel;
 using System.Text;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
-using FirstPartyAgent.Configuration;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -15,13 +15,13 @@ namespace FirstPartyAgent.Plugins
 {
     public class ContainerAppsPlugin : IContainerAppsPlugin
     {
-        private readonly IcmSettings _icmSettings;
+        private readonly ICMSettings _icmSettings;
         private readonly IcmAutomationClient _icmAutomationClient;
         private readonly HttpClient _httpClient = new HttpClient();
       
-        public ContainerAppsPlugin(IOptions<IcmSettings> icmSettings, IcmAutomationClient icmAutomationClient)
+        public ContainerAppsPlugin(ICMSettings icmSettings, IcmAutomationClient icmAutomationClient)
         {
-            _icmSettings = icmSettings.Value;
+            _icmSettings = icmSettings;
             _icmAutomationClient = icmAutomationClient;
         }
 

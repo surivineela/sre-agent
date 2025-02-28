@@ -19,6 +19,7 @@
   <ItemGroup>
 	  <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
 	  <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
+	  <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="appsettings.json">

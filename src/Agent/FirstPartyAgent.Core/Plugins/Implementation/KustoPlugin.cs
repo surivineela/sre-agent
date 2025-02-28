@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Kusto.Cloud.Platform.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -16,36 +17,17 @@ namespace FirstPartyAgent.Plugins
     public partial class KustoPlugin : IKustoPlugin
     {
         private readonly ILogger<KustoPlugin> _logger;
-        private readonly KustoServiceClientFactory _kustoServiceFactory;
+        private readonly KustoClientService _kustoClientService;
         private readonly KustoSettings _kustoSettings;
-
-        private IDictionary<string, KustoConfig> _regionalConfigs;
 
         [GeneratedRegex("[^a-zA-Z\\d]")]
         private static partial Regex RegionNormalizationRegex();
 
-        public KustoPlugin(ILogger<KustoPlugin> logger, KustoServiceClientFactory kustoServiceFactory, IOptions<KustoSettings> kustoSettings, IOptions<KustoClusterSettings> kustoClusterSettings)
+        public KustoPlugin(ILogger<KustoPlugin> logger, KustoClientService kustoClientService, KustoSettings kustoSettings)
         {
             _logger = logger;
-            _kustoServiceFactory = kustoServiceFactory;
-            _kustoSettings = kustoSettings.Value;
-
-            _regionalConfigs = new Dictionary<string, KustoConfig> { };
-
-            foreach (var cluster in kustoClusterSettings.Value)
-            {
-                _regionalConfigs[cluster.Region] = new KustoConfig
-                {
-                    ClusterUri = cluster.ClusterUri,
-                    DatabaseName = cluster.Database,
-                    AuthType = _kustoSettings.AuthenticationType,
-                    Authority = _kustoSettings.Authority,
-                    AuthorityHost = _kustoSettings.AuthorityHost,
-                    ApplicationClientId = _kustoSettings.ApplicationClientId,
-                    ApplicationCertificate = _kustoSettings.ApplicationCertificate,
-                    ManagedIdentityClientId = _kustoSettings.ManagedIdentityClientId,
-                };
-            }
+            _kustoClientService = kustoClientService;
+            _kustoSettings = kustoSettings;
         }
 
         [KernelFunction("execute_kusto_query")]
@@ -56,13 +38,7 @@ namespace FirstPartyAgent.Plugins
         {
             _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
             var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
-            if (!_regionalConfigs.ContainsKey(normalizedRegion))
-            {
-                throw new ArgumentException($"Invalid region {region}");
-            }
-            var kustoService = _kustoServiceFactory.CreateKustoService(_regionalConfigs[normalizedRegion]);
-
-            var reader = await kustoService.PerformQueryAsync(query);
+            var reader = await _kustoClientService.PerformQueryAsync(query, region);
             var writer = new StringWriter();
 
             reader.WriteAsJson(writer, 1024 * 1024, out var size);
@@ -75,19 +51,12 @@ namespace FirstPartyAgent.Plugins
         [Description("Executes a fully qualified Kusto query on a cluster and returns JSON response")]
         public async Task<string> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery)
         {
-            var config = new KustoConfig
+            var config = new KustoCluster
             {
                 ClusterUri = $"https://{cluster}.kusto.windows.net",
-                DatabaseName = database,
-                AuthType = _kustoSettings.AuthenticationType,
-                Authority = _kustoSettings.Authority,
-                AuthorityHost = _kustoSettings.AuthorityHost,
-                ApplicationClientId = _kustoSettings.ApplicationClientId,
-                ApplicationCertificate = _kustoSettings.ApplicationCertificate,
-                ManagedIdentityClientId = _kustoSettings.ManagedIdentityClientId,
+                Database = database,
             };
-            var kustoService = _kustoServiceFactory.CreateKustoService(config);
-            var reader = await kustoService.PerformQueryAsync(fullQuery);
+            var reader = await _kustoClientService.PerformQueryAsync(config, fullQuery);
             var writer = new StringWriter();
 
             reader.WriteAsJson(writer, 1024 * 1024, out var size);

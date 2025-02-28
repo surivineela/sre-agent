@@ -1,4 +1,4 @@
-﻿using FirstPartyAgent.Configuration;
+﻿using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -18,14 +18,14 @@ namespace FirstPartyAgent.Core.Services
     public class ICMAPIClient : IICMAPIClient
     {
         private readonly bool IsDevelopment;
-        private readonly ICMAPISettings icmApiSettings;
+        private readonly ICMAPISettings _icmApiSettings;
         private static HttpClient _httpClient;
         private readonly int TimeoutInSeconds = 60;
         private readonly string IcmAPIPathPrefix;
 
-        public ICMAPIClient(IConfiguration configuration, IHostEnvironment environment)
+        public ICMAPIClient(IConfiguration configuration, IHostEnvironment environment, ICMAPISettings icmApiSettings)
         {
-            icmApiSettings = configuration.GetSection("ICMAPI").Get<ICMAPISettings>();
+            _icmApiSettings = icmApiSettings;
             IsDevelopment = environment.IsDevelopment();
 
             if (string.IsNullOrWhiteSpace(icmApiSettings.APIEndpoint))
@@ -48,7 +48,7 @@ namespace FirstPartyAgent.Core.Services
 
         public bool IsEnabled()
         {
-            return icmApiSettings.Enabled;
+            return _icmApiSettings.Enabled;
         }
 
         private void InitializeHttpClient()
@@ -59,7 +59,7 @@ namespace FirstPartyAgent.Core.Services
                 {
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {icmApiSettings.UserToken}");
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmApiSettings.UserToken}");
             }
             else
             {
@@ -71,10 +71,10 @@ namespace FirstPartyAgent.Core.Services
                     store.Open(OpenFlags.ReadOnly);
 
                     // Locate the certificate by matching the subject name.
-                    var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, icmApiSettings.CertificateSubjectName, validOnly: false);
+                    var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, _icmApiSettings.CertificateSubjectName, validOnly: false);
                     if (certificates == null || certificates.Count == 0)
                     {
-                        throw new Exception($"Certificate with subject matching '{icmApiSettings.CertificateSubjectName}' not found.");
+                        throw new Exception($"Certificate with subject matching '{_icmApiSettings.CertificateSubjectName}' not found.");
                     }
 
                     // Use the first matching certificate.
@@ -94,7 +94,7 @@ namespace FirstPartyAgent.Core.Services
                 throw new ArgumentException("apiPath must be provided.", nameof(apiPath));
 
 
-            var requestUri = $"{icmApiSettings.APIEndpoint}{apiPath}";
+            var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
             var response = await _httpClient.GetAsync(requestUri);
             return response;
         }

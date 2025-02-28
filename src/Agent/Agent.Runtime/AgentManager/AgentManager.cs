@@ -26,16 +26,20 @@ namespace Agent.Runtime.Services
         private readonly Agent _rootAgent;
         private readonly ServiceProvider _agentServiceProvider;
 
-        public AgentManager(IServiceProvider serviceProvider)
+        public AgentManager(IServiceProvider serviceProvider, AppSettings appSettings, AzureSettings azureSettings, ExternalSettings externalSettings)
         {
             _serviceProvider = serviceProvider;
             _logger = _serviceProvider.GetRequiredService<ILogger<AgentManager>>();
 
             // Create a new ServiceCollection and configure it
-            var services = new ServiceCollection();
+            IServiceCollection services = new ServiceCollection();
             services.AddLogging(builder => builder.AddProvider(_serviceProvider.GetRequiredService<ILoggerProvider>()));
-            services.AddSingleton(_serviceProvider.GetRequiredService<IConfiguration>());
-            services.AddSingleton(_serviceProvider.GetRequiredService<IOptions<AzureSettings>>());
+
+            // Pass through configurations from parent service collection
+            services.AddSingleton(appSettings);
+            services.AddSingleton(azureSettings);
+            services.AddSingleton(externalSettings);
+            services.RegisterInnerAppSettings<AppSettings>();
 
             // Configure agent-specific services
             ConfigureAgentServices(services);
@@ -96,7 +100,7 @@ namespace Agent.Runtime.Services
                         - For questions that cannot be answered by all other agents, use launch_generic_agent
                         Always delegate to the appropriate agent rather than trying to answer directly.",
                         s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<IOptions<AzureSettings>>(),
+                        s.GetRequiredService<OpenAISettings>(),
                         s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
                         s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent>());
 

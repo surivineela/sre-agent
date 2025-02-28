@@ -9,6 +9,11 @@
 ## NuGet Configuration
 
 We use an internal NuGet source for packages. To set up:
+1. **Depoloy the necessary resources**
+   ```bash
+   source aliases.bash
+   deploy3p
+   ```
 
 1. Install NuGet if needed:
    ```powershell
@@ -16,7 +21,7 @@ We use an internal NuGet source for packages. To set up:
    ```
    Or download from [nuget.org/downloads](https://www.nuget.org/downloads)
 
-2. Set the API key:
+1. Set the API key:
    ```powershell
    nuget.exe setApiKey az -Source https://msazure.pkgs.visualstudio.com/Antares/_packaging/antares-websites/nuget/v3/index.json
    ```
@@ -25,19 +30,9 @@ We use an internal NuGet source for packages. To set up:
 
 ## Configuration Setup
 
-1. Create `appsettings.Development.json` in the `Agent.Web` project:
-
-```json
-{
-  "Azure": {
-    "OpenAI": {
-      "DeploymentName": "gpt-4o",
-      "Endpoint": "<open-ai-endpoint>",
-      "ApiKey": "<azure-openai-key>"
-    }
-  }
-}
-```
+1. Project should automatically start with no additional configuration. Required settings should be pulled from the Azure App Config instance
+that was set up as part of the private environment deployment. For optional settings, copy appsettings.json to appsettings.development.json and add any settings
+you need. These settings will override any other settings.
 
 ### Durable Task Scheduler
 

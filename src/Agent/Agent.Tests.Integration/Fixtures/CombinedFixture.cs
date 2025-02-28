@@ -16,8 +16,8 @@ namespace Agent.Tests.Integration.Fixtures
         public CombinedFixture(IMessageSink sink)
         {
             ConfigFixture = new ConfigFixture();
-            EmbeddingGeneratorFixture = new EmbeddingGeneratorFixture(ConfigFixture.AzureSettings);
-            TestChatClientFixture = new TestChatClientFixture(ConfigFixture.AzureSettings);
+            EmbeddingGeneratorFixture = new EmbeddingGeneratorFixture(ConfigFixture.AzureSettings.OpenAI);
+            TestChatClientFixture = new TestChatClientFixture(ConfigFixture.AzureSettings.OpenAI);
         }
     }
 }

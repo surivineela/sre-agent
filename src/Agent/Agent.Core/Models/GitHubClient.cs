@@ -12,10 +12,8 @@ namespace Agent.Core.Models
     {
         public Octokit.GitHubClient Client { get; }
 
-        public GitHubClient(IConfiguration configuration)
+        public GitHubClient(IConfiguration configuration, GitHubSettings gitHubSettings)
         {
-
-            GitHubSettings? gitHubSettings = configuration.GetSection("Azure")?.Get<AzureSettings>()?.Github;
 
             if (gitHubSettings == null)
             {

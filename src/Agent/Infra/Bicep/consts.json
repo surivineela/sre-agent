@@ -1,0 +1,38 @@
+{
+    // RG
+    "resourceGroupNameSuffix": "-operations-agent-3p-rg",
+    "location": "westus",
+
+    // Cosmos
+    "cosmosAccountNameSuffix": "-cosmosdb-graph",
+    "cosmosDatabaseName": "resourcegraph",
+    "cosmosGraphName": "configuration",
+
+    // OpenAI
+    "openAIAccountNameSuffix": "-openai",
+    "openAILLMModel": "gpt-4o",
+    "openAILLMModelVersion": "2024-11-20",
+    "openAIEmbeddingGeneratorModel": "text-embedding-ada-002",
+    "openAIEmbeddingGeneratorModelVersion": "2",
+
+    // App Config
+    "appConfigNameSuffix": "-appconfig",
+
+    // KeyVault
+    "kvNameSuffix": "-kv",
+
+    // App Insights
+    "appInsightsNameSuffix": "-app-insights",
+
+    // Log Analytics Workspace
+    "logAnalyticsWorkspaceNameSuffix": "-log-analytics",
+
+     // Durable Task Scheduler
+     "durableTaskSchedulerNameSuffix": "-dts",
+     "durableTaskSchedulerTaskHubNameSuffix": "-dts-hub",
+     "defaultDTSLocation": "westus2",
+
+    // Roles
+    "appConfigurationDataReader": "516239f1-63e1-4d78-a4de-a74fb236a071",
+    "keyVaultSecretsUser": "4633458b-17de-408a-b874-0445c86b69e6"
+}

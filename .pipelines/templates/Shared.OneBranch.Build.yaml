@@ -195,25 +195,29 @@ extends:
             includeNuGetOrg: false
 
         # Add runtime test for Agent.Web
-        - task: PowerShell@2
-          displayName: '🧪 Runtime test Agent.Web'
-          inputs:
-            targetType: 'inline'
-            workingDirectory: $(Build.SourcesDirectory)
-            script: |
-                $process = Start-Process -FilePath "dotnet" -ArgumentList "run --project ./src/Agent/Agent.Web/Agent.Web.csproj --session" -RedirectStandardOutput "runtime.log" -RedirectStandardError "error.log" -PassThru
-                Write-Host "Started Agent.Web with PID: $($process.Id)"
-                Start-Sleep -Seconds 30
-                if (!$process.HasExited) {
-                  Write-Host "Agent.Web ran successfully for 30 seconds, stopping process..."
-                  Stop-Process -Id $process.Id -Force
-                  exit 0
-                } else {
-                  Write-Host "Agent.Web crashed or exited prematurely"
-                  Write-Host "Error logs:"
-                  Get-Content "error.log"
-                  exit 1
-                }
+        # Commenting this out for now, since running this project depends on settings being present
+        # (We want to know if something is broken before runtime)
+        # We can re-enable this once we set up some infra or mock this for pipelines
+        #
+        # - task: PowerShell@2
+        #   displayName: '🧪 Runtime test Agent.Web'
+        #   inputs:
+        #     targetType: 'inline'
+        #     workingDirectory: $(Build.SourcesDirectory)
+        #     script: |
+        #         $process = Start-Process -FilePath "dotnet" -ArgumentList "run --project ./src/Agent/Agent.Web/Agent.Web.csproj --session" -RedirectStandardOutput "runtime.log" -RedirectStandardError "error.log" -PassThru
+        #         Write-Host "Started Agent.Web with PID: $($process.Id)"
+        #         Start-Sleep -Seconds 30
+        #         if (!$process.HasExited) {
+        #           Write-Host "Agent.Web ran successfully for 30 seconds, stopping process..."
+        #           Stop-Process -Id $process.Id -Force
+        #           exit 0
+        #         } else {
+        #           Write-Host "Agent.Web crashed or exited prematurely"
+        #           Write-Host "Error logs:"
+        #           Get-Content "error.log"
+        #           exit 1
+        #         }
 
         # keep roslynanalyzers task separate from dotnet build, otherwise compile-time LoggerMessage autogen partial classes will result in build error CS8795
         - task: RoslynAnalyzers@3

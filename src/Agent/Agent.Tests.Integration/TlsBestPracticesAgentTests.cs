@@ -66,7 +66,7 @@ namespace Agent.Tests.Integration
 
                     var diskCache = new TestCachingChatClientBuilderExtensions.DiskCache(cacheDir);
 
-                    var durableConnectionString = config.AzureSettings.DurableTaskScheduler.ConnectionString;
+                    var durableConnectionString = config.AzureSettings.DTS.ConnectionString;
                     if (string.IsNullOrEmpty(durableConnectionString))
                     {
                         durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
@@ -75,12 +75,12 @@ namespace Agent.Tests.Integration
 
                     services.AddSingleton(openAIClient);
 
-                    services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.DeploymentName))                        
+                    services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName))                        
                         .UseAgenticLogging()
                         .UseDistributedCache(diskCache)
                         .UseFunctionInvocation();
 
-                    services.AddKeyedChatClient("no-function-invocation", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.DeploymentName))
+                    services.AddKeyedChatClient("no-function-invocation", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName))
                         .UseAgenticLogging()
                         .UseDistributedCache(diskCache);
 

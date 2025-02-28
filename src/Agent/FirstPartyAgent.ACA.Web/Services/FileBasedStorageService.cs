@@ -3,7 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using FirstPartyAgent.Configuration;
+using FirstPartyAgent.ACA.Web.Configuration;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Options;
 
@@ -15,10 +16,10 @@ public class FileBasedStorageService : ITaskStorageService
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly string _filePath;
 
-    public FileBasedStorageService(ILogger<FileBasedStorageService> logger, IOptions<SREAgentSettings> settings)
+    public FileBasedStorageService(ILogger<FileBasedStorageService> logger, FirstPartyAgentACAAppSettings settings)
     {
         _logger = logger;
-        _filePath = settings.Value.TaskStorage?.FilePath ?? "/mnt/task-storage/tasks.json";
+        _filePath = settings.ACASettings.SREAgentSettings.TaskStorage?.FilePath ?? "/mnt/task-storage/tasks.json";
     }
 
     public async Task SaveTaskAsync(QuotaIncidentState state)

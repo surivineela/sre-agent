@@ -30,11 +30,11 @@ public class CodeAnalyzerPlugin
         IConfiguration configuration,
         TeamsConnector teamsConnector,
         Models.GitHubClient gitHubClient,
+        GitHubSettings gitHubSettings,
         ILogger<CodeAnalyzerPlugin> logger)
     {
-        var azureSettings = configuration.GetSection("Azure").Get<AzureSettings>();
         _logger = logger;
-        _gitHubSettings = azureSettings.Github;
+        _gitHubSettings = gitHubSettings;
         _teamsConnector = teamsConnector;
         _codeAnalyzer = codeAnalyzerService;
         _gitHubClient = gitHubClient.Client;

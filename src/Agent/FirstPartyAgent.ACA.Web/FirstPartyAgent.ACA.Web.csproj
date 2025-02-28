@@ -13,7 +13,8 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+    <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
+    <ProjectReference Include="..\Agent.Web\Agent.Web.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />
   </ItemGroup>
-
 </Project>

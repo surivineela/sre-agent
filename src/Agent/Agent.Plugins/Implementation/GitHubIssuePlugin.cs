@@ -20,11 +20,10 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
 
-    public GitHubIssuePlugin(IConfiguration configuration, ILogger<GitHubIssuePlugin> logger, Core.Models.GitHubClient gitHubClient)
+    public GitHubIssuePlugin(GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Core.Models.GitHubClient gitHubClient)
     {
-        _config = configuration;
         _logger = logger;
-        _gitHubSettings = configuration.GetSection("Azure").Get<AzureSettings>().Github;
+        _gitHubSettings = gitHubSettings;
         _gitHubClient = gitHubClient.Client;
     }
 

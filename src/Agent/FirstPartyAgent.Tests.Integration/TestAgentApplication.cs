@@ -7,7 +7,7 @@ using FirstPartyAgent.Tests.Integration.Extensions;
 using FirstPartyAgent.Tests.Integration.Mocks;
 using FirstPartyAgent.ACA.Web;
 using FirstPartyAgent.ACA.Web.Services;
-using FirstPartyAgent.Configuration;
+using FirstPartyAgent.Core.Configuration;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -58,7 +58,7 @@ namespace FirstPartyAgent.Tests.Integration
             services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Scoped,
                 provider =>
                 {
-                    var icmSettingsOptionsMock = new Mock<IOptions<IcmSettings>>();
+                    var icmSettingsOptionsMock = new Mock<IOptions<ICMSettings>>();
                     icmSettingsOptionsMock.Setup(o => o.Value).Returns(() => null);
                     var containerAppsPlugin = new Mock<ContainerAppsPlugin>(icmSettingsOptionsMock.Object, null);
                     return new MockContainerAppsPlugin(containerAppsPlugin.Object);

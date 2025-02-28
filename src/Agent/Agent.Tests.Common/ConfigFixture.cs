@@ -1,5 +1,8 @@
 ﻿using Agent.Core.Configuration;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using Agent.Runtime;
 
 namespace Agent.Tests.Common
 {
@@ -10,18 +13,13 @@ namespace Agent.Tests.Common
 
         public ConfigFixture()
         {
-            Configuration = new ConfigurationBuilder()
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
-                .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
-                .AddEnvironmentVariables()
-                .Build();
+            IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
+            builder.LoadAppSettings();
+            builder.ValidateAndRegisterAppSettings<AppSettings>();
 
-            if (Configuration == null)
-            {
-                throw new InvalidOperationException($"Error: Could not find appsettings.json or appsettings.development.json at {Directory.GetCurrentDirectory()}");
-            }
+            var sp = builder.Services.BuildServiceProvider();
 
-            AzureSettings = Configuration.GetRequiredSection("Azure").Get<AzureSettings>();
+            AzureSettings = sp.GetRequiredService<AzureSettings>();
         }
     }
 }

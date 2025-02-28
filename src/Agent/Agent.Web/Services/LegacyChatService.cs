@@ -30,11 +30,11 @@ public class LegacyChatService : IChatService
     public LegacyChatService(
         ILogger<LegacyChatService> logger,
         Kernel kernel,
-        IOptions<AzureSettings> azureSettings)
+        OpenAISettings openAISettings)
     {
         _logger = logger;
         _kernel = kernel;
-        _openAISettings = azureSettings.Value.OpenAI;
+        _openAISettings = openAISettings;
         _markdownPipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
             .DisableHtml()           // Disable HTML parsing
@@ -66,7 +66,7 @@ public class LegacyChatService : IChatService
                         // Set execution settings based on model type
                         var executionSettings = new OpenAIPromptExecutionSettings();
 
-                        if (ModelSelectionHelper.IsReasoningModel(_openAISettings.DeploymentName))
+                        if (ModelSelectionHelper.IsReasoningModel(_openAISettings.LLMDeploymentName))
                         {
                             executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

@@ -82,56 +82,42 @@ namespace Agent.Runtime
         public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
         {
             return services
-                .AddSingleton<IChatCompletionService>(sp =>
+                .AddSingleton((Func<IServiceProvider, IChatCompletionService>)(sp =>
                 {
-                    var config = sp.GetRequiredService<IConfiguration>();
-                    var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-                    if (azureSettings == null)
-                    {
-                        throw new NullReferenceException("Azure settings are required.");
-                    }
-                    return new AzureOpenAIChatCompletionService(
-                        deploymentName: azureSettings.OpenAI.DeploymentName,
-                        endpoint: azureSettings.OpenAI.Endpoint,
-                        apiKey: azureSettings.OpenAI.ApiKey
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
+
+                    return (IChatCompletionService)new AzureOpenAIChatCompletionService(
+                        deploymentName: openAISettings.LLMDeploymentName,
+                        endpoint: openAISettings.Endpoint,
+                        apiKey: openAISettings.ApiKey
                     );
-                });
+                }));
         }
 
         public static IServiceCollection ConfigureAzureOpenAIClient(this IServiceCollection services)
         {
             return services
-                .AddSingleton<AzureOpenAIClient>(sp =>
+                .AddSingleton((Func<IServiceProvider, AzureOpenAIClient>)(sp =>
                 {
-                    var config = sp.GetRequiredService<IConfiguration>();
-                    var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-                    if (azureSettings == null)
-                    {
-                        throw new NullReferenceException("Azure settings are required.");
-                    }
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
 
                     return new AzureOpenAIClient(
-                        endpoint: new Uri(azureSettings.OpenAI.Endpoint),
-                        credential: new System.ClientModel.ApiKeyCredential(azureSettings.OpenAI.ApiKey)
+                        endpoint: new Uri(openAISettings.Endpoint),
+                        credential: new System.ClientModel.ApiKeyCredential(openAISettings.ApiKey)
                     );
-                });
+                }));
         }
 
         public static IServiceCollection ConfigureIChatClient(this IServiceCollection services)
         {
             return services
-                .AddSingleton<IChatClient>(sp =>
+                .AddSingleton((Func<IServiceProvider, IChatClient>)(sp =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
-                    var config = sp.GetRequiredService<IConfiguration>();
-                    var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-                    if (azureSettings == null)
-                    {
-                        throw new NullReferenceException("Azure settings are required.");
-                    }
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
 
-                    return new ChatClientBuilder(client.AsChatClient(azureSettings.OpenAI.DeploymentName)).Build();
-                });
+                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName)).Build();
+                }));
         }
     }
     public class MetaAgentPlugin

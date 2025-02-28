@@ -24,10 +24,9 @@ public class CodeAnalyzerService
     private readonly AsyncOperationTracker<MemoryLeakeAnalysisDescriptor, string, string> _memoryLeakAnalysisTracker;
     private readonly ILogger<CodeAnalyzerService> _logger;
 
-    public CodeAnalyzerService(IConfiguration configuration, GitHubClient gitHubClient, ILogger<CodeAnalyzerService> logger)
+    public CodeAnalyzerService(GitHubSettings gitHubSettings, GitHubClient gitHubClient, ILogger<CodeAnalyzerService> logger)
     {
-        var azureSettings = configuration.GetSection("Azure").Get<AzureSettings>();
-        _gitHubSettings = azureSettings.Github;
+        _gitHubSettings = gitHubSettings;
         _gitHubClient = gitHubClient;
         _managedIdentityMigrationAnalysisTracker = new(func: ProcessRepositoryForManagedIdentityMigrationAndOpenPRAsyncInternal);
         _memoryLeakAnalysisTracker = new(func: AnalyzeAndFixMemoryLeaksAsyncInternal);

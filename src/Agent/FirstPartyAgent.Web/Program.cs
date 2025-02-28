@@ -8,19 +8,22 @@ using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Runtime;
 using FirstPartyAgent.Web.Services;
-using FirstPartyAgent.Configuration;
-using Agent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
-using FirstPartyAgent.Models;
+using Microsoft.Extensions.DependencyInjection;
 using Agent.Runtime;
+using Agent.Core.Configuration;
+using FirstPartyAgent.Core.Configuration;
+using Microsoft.Extensions.Options;
+using FirstPartyAgent.Plugins.Definitions;
+using Agent.Plugins;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var config = builder.Configuration;
-config.SetBasePath(builder.Environment.ContentRootPath)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
-            .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
-            .AddEnvironmentVariables();
+builder.LoadAppSettings();
+builder.ValidateAndRegisterAppSettings<FirstPartyAgentAppSettings>();
+builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().Kusto);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().ICM);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().ICMAPI);
+builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().ICMWorkflow);
 
 bool useSessionChatService = false;
 if (args.Length > 0)
@@ -31,11 +34,10 @@ if (args.Length > 0)
     }
 }
 
-builder.Services.AddApplicationConfiguration(config);
 builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
 builder.Services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
 builder.Services.AddSingleton<ICMPlugin>();
-builder.Services.AddSingleton<KustoServiceClientFactory>();
+builder.Services.AddSingleton<KustoClientService>();
 builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
 
 builder.Services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
@@ -46,21 +48,18 @@ builder.Services.AddSingleton<Agent.Core.Models.GitHubClient>();
 builder.Services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
 builder.Services.AddSingleton<GitHubIssuePluginDefinition>();
 
-var agentModeStr = config.GetValue<string>("AgentMode") ?? string.Empty;
-var agentMode = Enum.TryParse<AgentMode>(agentModeStr, out var mode) ? mode : AgentMode.ICM;
-
 if (useSessionChatService)
 {
     builder.Services.ConfigureAzureOpenAIClient();
     builder.Services.ConfigureIChatClient();
-    builder.Services.ConfigureAgents(agentMode);
+    builder.Services.ConfigureAgents();
     // Add background service that processes the chat conversation
     builder.Services.AddHostedService<SessionService>();
     builder.Services.AddScoped<IChatService, SessionChatService>();
 }
 else
 {
-    builder.Services.ConfigureSemanticKernel(agentMode);
+    builder.Services.ConfigureSemanticKernel();
     builder.Services.AddScoped<IChatService, LegacyChatService>();
 }
 

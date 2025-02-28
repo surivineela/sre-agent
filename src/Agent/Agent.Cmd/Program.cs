@@ -7,6 +7,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Configuration;
+using Microsoft.Extensions.Hosting;
+using Agent.Runtime;
 
 namespace Agent.Cmd
 {
@@ -14,22 +16,36 @@ namespace Agent.Cmd
     {
         static void Main(string[] args)
         {
-            var serviceProvider = BuildServiceProvider();
-            ILogger logger = serviceProvider.GetService<ILogger<Program>>();
+            HostApplicationBuilder builder = Host.CreateApplicationBuilder();
+            builder.LoadAppSettings();
+            builder.ValidateAndRegisterAppSettings<AppSettings>();
+
+            // Register DI dependencies using builder.Services
+            builder.Services.AddLogging(loggingBuilder =>
+            {
+                loggingBuilder.AddConsole();
+            });
+            builder.Services.AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
+            builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
+            builder.Services.AddSingleton<AzureResourceGraphClient>();
+            builder.Services.AddScoped<ResourceGraphCrawler>();
+
+            var host = builder.Build();
+            ILogger logger = host.Services.GetService<ILogger<Program>>();
             CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
             commandLineApplication.HelpOption("-?|-h|--help");
 
             commandLineApplication.Command("Crawl",
                 (command) =>
                 {
-                    var cmd = new CrawlerCommand(logger, serviceProvider);
+                    var cmd = new CrawlerCommand(logger, host.Services);
                     cmd.CrawlSubscription(command);
                 });
 
             commandLineApplication.Command("ExportGraph",
                 (command) =>
                 {
-                    var cmd = new GraphCommand(logger, serviceProvider);
+                    var cmd = new GraphCommand(logger, host.Services);
                     cmd.ExportGraph(command);
                 });
 
@@ -40,32 +56,6 @@ namespace Agent.Cmd
             });
 
             commandLineApplication.Execute(args);
-        }
-
-        private static IServiceProvider BuildServiceProvider()
-        {
-            var configBuilder = new ConfigurationBuilder();
-            configBuilder.SetBasePath(Path.GetDirectoryName(Assembly.GetEntryAssembly()!.Location))
-            .AddJsonFile("appsettings.json")
-            .AddJsonFile("appsettings.development.json");
-            var config = configBuilder.Build();
-
-            var services = new ServiceCollection();
-            services.AddLogging(builder =>
-            {
-                builder.AddConsole();
-            });
-
-            services.AddSingleton((IConfiguration)config);
-            services.AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
-
-            services.AddSingleton<ArmResourceCrawlerFactory>();
-            services.AddSingleton<AzureResourceGraphClient>();
-            services.AddScoped<ResourceGraphCrawler>();
-
-            services.AddApplicationConfiguration(config);
-
-            return services.BuildServiceProvider();
         }
     }
 }

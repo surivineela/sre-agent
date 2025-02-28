@@ -1,12 +1,8 @@
-﻿using Agent.Core.Helpers;
-using FirstPartyAgent.Configuration;
+﻿using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
-using IdentityModel.Client;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
-using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;

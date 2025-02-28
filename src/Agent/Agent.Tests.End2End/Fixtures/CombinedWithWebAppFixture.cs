@@ -17,7 +17,7 @@ namespace Agent.Tests.End2End.Fixtures
         public CombinedWithWebAppFixture(IMessageSink sink)
         {
             ConfigFixture = new ConfigFixture();
-            TestChatClientFixture = new TestChatClientFixture(ConfigFixture.AzureSettings);
+            TestChatClientFixture = new TestChatClientFixture(ConfigFixture.AzureSettings.OpenAI);
             AzureFunctionsFixture = new AzureFunctionsFixture(sink);
             WebAppFixture = new WebAppFixture(sink);
         }

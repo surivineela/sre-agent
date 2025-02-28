@@ -14,11 +14,11 @@ namespace Agent.Tests.Common.Fixtures
     {
         public IChatClient ChatClient { get; }
 
-        public TestChatClientFixture(AzureSettings azureSettings)
+        public TestChatClientFixture(OpenAISettings openAISettings)
         {
-            string aoaiEndpoint = azureSettings.OpenAI.Endpoint;
-            string? key = azureSettings.OpenAI.ApiKey;
-            string? deployment = azureSettings.OpenAI.DeploymentName;
+            string aoaiEndpoint = openAISettings.Endpoint;
+            string? key = openAISettings.ApiKey;
+            string? deployment = openAISettings.LLMDeploymentName;
 
             // Validate required settings
             if (string.IsNullOrEmpty(aoaiEndpoint))

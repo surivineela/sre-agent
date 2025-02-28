@@ -30,23 +30,18 @@ public static class SemanticKernelHelper
         serviceCollection.AddSingleton<TeamsConnector>();
 
         // Configure Semantic Kernel
-        serviceCollection.AddScoped<Kernel>(sp =>
+        serviceCollection.AddScoped((Func<IServiceProvider, Kernel>)(sp =>
         {
             var config = sp.GetRequiredService<IConfiguration>();
 
-            var azureSettings = config.GetSection("Azure").Get<AzureSettings>();
-
-            if (azureSettings == null)
-            {
-                throw new NullReferenceException("Azure settings are required.");
-            }
+            OpenAISettings openAiSettings = config.GetSection("Azure").Get<OpenAISettings>();
 
             var kernelBuilder = Kernel.CreateBuilder();
 
             kernelBuilder.AddAzureOpenAIChatCompletion(
-                    deploymentName: azureSettings.OpenAI.DeploymentName,
-                    endpoint: azureSettings.OpenAI.Endpoint,
-                    apiKey: azureSettings.OpenAI.ApiKey);
+                    deploymentName: openAiSettings.LLMDeploymentName,
+                    endpoint: openAiSettings.Endpoint,
+                    apiKey: openAiSettings.ApiKey);
 
             kernelBuilder.Services.AddLogging(builder =>
             {
@@ -80,7 +75,7 @@ public static class SemanticKernelHelper
             kernelBuilder.Plugins.AddFromObject(chartPlugin, "ChartPlugin");
 
             return kernelBuilder.Build();
-        });
+        }));
     }
 }
 

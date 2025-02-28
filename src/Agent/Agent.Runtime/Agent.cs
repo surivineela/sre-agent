@@ -33,7 +33,7 @@ namespace Agent.Runtime
             string name,
             string instructions,
             Kernel kernel,
-            IOptions<AzureSettings> azureSettings,
+            OpenAISettings openAISettings,
             IChatClient chatClient,
             ILogger<Agent> logger)
         {
@@ -46,12 +46,7 @@ namespace Agent.Runtime
                 _instructions = instructions ?? throw new ArgumentNullException(nameof(instructions));
                 _kernel = kernel ?? throw new ArgumentNullException(nameof(kernel));
 
-                if (azureSettings?.Value?.OpenAI == null)
-                {
-                    _logger.LogError("Azure settings or OpenAI configuration is null");
-                    throw new ArgumentNullException(nameof(azureSettings));
-                }
-                _openAISettings = azureSettings.Value.OpenAI;
+                _openAISettings = openAISettings;
 
                 _chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
@@ -120,7 +115,7 @@ namespace Agent.Runtime
 
                 var executionSettings = new OpenAIPromptExecutionSettings();
 
-                if (ModelSelectionHelper.IsReasoningModel(_openAISettings.DeploymentName))
+                if (ModelSelectionHelper.IsReasoningModel(_openAISettings.LLMDeploymentName))
                 {
                     executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
 #pragma warning disable SKEXP0010 // Type is for evaluation purposes only and is subject to change or removal in future updates. Suppress this diagnostic to proceed.

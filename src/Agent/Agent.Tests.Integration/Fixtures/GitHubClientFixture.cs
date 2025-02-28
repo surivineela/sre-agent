@@ -14,11 +14,11 @@ namespace Agent.Tests.Integration.Fixtures
     {
         internal IEmbeddingGenerator<string, Embedding<float>> EmbeddingGenerator { get; }
 
-        public GitHubClientFixture(AzureSettings azureSettings)
+        public GitHubClientFixture(OpenAISettings openAISettings)
         {
-            string aoaiEndpoint = azureSettings.OpenAI.Endpoint;
-            string? key = azureSettings.OpenAI.ApiKey;
-            string? deployment = azureSettings.OpenAI.EmbeddingGeneratorDeploymentName;
+            string aoaiEndpoint = openAISettings.Endpoint;
+            string? key = openAISettings.ApiKey;
+            string? deployment = openAISettings.EmbeddingGeneratorDeploymentName;
 
             // Validate required settings
             if (string.IsNullOrEmpty(aoaiEndpoint))

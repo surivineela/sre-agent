@@ -28,15 +28,10 @@ public class SubscriptionPlugin
     private readonly ILogger<SubscriptionPlugin> _logger;
     private AzureSettings _azureSettings;
 
-    public SubscriptionPlugin(ILogger<SubscriptionPlugin> logger, IConfiguration configuration)
+    public SubscriptionPlugin(AzureSettings azureSettings, ILogger<SubscriptionPlugin> logger)
     {
+        _azureSettings = azureSettings;
         _logger = logger;
-
-        _azureSettings = configuration.GetSection("Azure").Get<AzureSettings>();
-        if (_azureSettings == null)
-        {
-            throw new NullReferenceException("Azure settings are required.");
-        }
     }
 
     /// <summary>

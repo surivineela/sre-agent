@@ -142,7 +142,7 @@ namespace Agent.Graph.Crawler.ARM
         public AzureResourceGraphClient(IConfiguration configuration)
         {
             _client = new ArmClient(new DefaultAzureCredential());
-            InitTenantResource(configuration["Azure:Crawler:TenantId"]);
+            InitTenantResource(configuration["AppSettings:Core:Azure:Crawler:TenantId"]);
         }
 
         public void InitTenantResource(string tenantId)
