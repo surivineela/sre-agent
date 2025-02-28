@@ -41,9 +41,35 @@ Write-Host "Registering feature 'PrivatePreview' for Microsoft.DurableTask names
 az feature register --namespace Microsoft.DurableTask --name PrivatePreview
 Test-CommandSuccess "az feature register"
 
+Write-Host "Waiting for feature registration to complete..." -ForegroundColor Yellow
+$registered = $false
+while (-not $registered) {
+    $state = az feature show --namespace Microsoft.DurableTask --name PrivatePreview --query "properties.state" -o tsv
+    if ($state -eq "Registered") {
+        Write-Host "Feature 'PrivatePreview' is now registered." -ForegroundColor Green
+        $registered = $true
+    } else {
+        Write-Host "Feature registration state: $state. Waiting 30 seconds..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 30
+    }
+}
+
 Write-Host "Registering Microsoft.DurableTask provider..."
 az provider register -n Microsoft.DurableTask
 Test-CommandSuccess "az provider register"
+
+Write-Host "Waiting for provider registration to complete..." -ForegroundColor Yellow
+$registered = $false
+while (-not $registered) {
+    $state = az provider show -n Microsoft.DurableTask --query "registrationState" -o tsv
+    if ($state -eq "Registered") {
+        Write-Host "Provider 'Microsoft.DurableTask' is now registered." -ForegroundColor Green
+        $registered = $true
+    } else {
+        Write-Host "Provider registration state: $state. Waiting 30 seconds..." -ForegroundColor Yellow
+        Start-Sleep -Seconds 30
+    }
+}
 
 # Step 2: Upgrade Azure CLI and add the durabletask extension
 Write-Host "Step 2: Upgrading Azure CLI and adding Durable Task extension..." -ForegroundColor Green
@@ -53,14 +79,6 @@ $null = Read-Host
 
 az upgrade --yes
 Test-CommandSuccess "az upgrade"
-
-Write-Host "Registering Microsoft.DurableTask provider again after upgrade..."
-az provider register -n Microsoft.DurableTask
-Test-CommandSuccess "az provider register"
-
-Write-Host "Checking Microsoft.DurableTask provider status..."
-az provider show -n Microsoft.DurableTask
-Test-CommandSuccess "az provider show"
 
 Write-Host "Checking if durabletask extension is already installed..."
 $extension = az extension list --query "[?name=='durabletask']" | ConvertFrom-Json
