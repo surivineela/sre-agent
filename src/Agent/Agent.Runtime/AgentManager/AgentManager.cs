@@ -13,6 +13,8 @@ using AIMessage = Microsoft.Extensions.AI.ChatMessage;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.CodeAnalyzer;
+using Agent.Plugins.Models;
 
 namespace Agent.Runtime.Services
 {
@@ -79,6 +81,10 @@ namespace Agent.Runtime.Services
                 .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
                 .AddSingleton<CurrentStatePluginDefinition>()
                 .AddSingleton<IRemediationPlugin, RemediationPlugin>()
+                .AddSingleton<TeamsConnector>()
+                .AddSingleton<GitHubClient>()
+                .AddSingleton<CodeAnalyzerService>()
+                .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
                 .AddSingleton<RemediationPluginDefinition>() 
                 // Register all SubAgent types as singletons
                 .AddSingleton<MetaAgentPlugin>()

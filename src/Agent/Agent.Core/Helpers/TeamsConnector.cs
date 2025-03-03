@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using static SkiaSharp.HarfBuzz.SKShaper;
 using System.Text.Json;
 using Agent.Core.Models;
+using Agent.Core.Configuration;
 
 namespace Agent.Core.Helpers;
 
@@ -17,9 +18,9 @@ public sealed class TeamsConnector
     private readonly string _endpoint;
     private readonly HttpClient _httpClient;
 
-    public TeamsConnector(IConfiguration config)
+    public TeamsConnector(ExternalSettings externalSettings)
     {
-        _endpoint = "";//config.GetSection("Azure").Get<AzureSettings>()!.TeamsEndpoint;
+        _endpoint = externalSettings.TeamsEndpoint;
         _httpClient = new HttpClient();
     }
 

@@ -8,7 +8,7 @@ namespace Agent.Plugins.Models
     {
         public Octokit.GitHubClient Client { get; }
 
-        public GitHubClient(IConfiguration configuration, GitHubSettings gitHubSettings)
+        public GitHubClient(GitHubSettings gitHubSettings)
         {
             if (gitHubSettings == null)
             {
