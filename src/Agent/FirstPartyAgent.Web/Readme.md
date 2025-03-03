@@ -11,3 +11,11 @@
 Once done, simply run the project in Visual Studio or using dotnet run on the command line.
 
 **Important Note**: If you do not want to alter the ICM incidents during local development/testing, set the ICMAPI:ReadOnly and ICMWorkflows:ReadOnly to true in appsettings.Development.json.
+
+## Deployment
+- install azd, az, docker
+- `cd src\Deployment\FirstPartyAgent.ACA`
+- `azd env list` will show two envs `aca-agent-1p` and `aca-agent-1p-test`
+- `azd env select <your-target-env>`
+- run `./build_and_publish_image.ps1`, which will build `FirstPartyAgent.Web` to a docker image and push it to the env's ACR
+- `azd provision`

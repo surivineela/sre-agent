@@ -22,6 +22,9 @@ param imageToDeploy string = ''
 @description('Whether to enable https ingress for the app gateway. Usually disabled when deploying a new environment because https requires a certificate in the key vault that is configured manually.')
 param enbaleAppGatewayHttps bool
 
+@description('The domain name to use for the application gateway, e.g. theacaagent.net, theacaagent-test.net')
+param domainName string
+
 // Tags that should be applied to all resources.
 // 
 // Note that 'azd-service-name' tags should be applied separately to service host resources.
@@ -50,6 +53,7 @@ module resources 'resources.bicep' = {
     environmentName: environmentName
     imageToDeploy: imageToDeploy
     enableAppGatewayHttps: enbaleAppGatewayHttps
+    domainName: domainName
   }
 }
 output AZURE_CONTAINER_REGISTRY_ENDPOINT string = resources.outputs.AZURE_CONTAINER_REGISTRY_ENDPOINT

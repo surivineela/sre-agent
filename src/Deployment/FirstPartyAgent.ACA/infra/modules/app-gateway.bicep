@@ -4,14 +4,9 @@ param location string = resourceGroup().location
 param appGatewaySubnetId string
 param backendPoolFqdn string
 param identityResourceId string
-// param identityPrincipalId string
-// param identityClientId string
 param tags object
 param enableAppGatewayHttps bool
-param keyVaultResourceId string
-param keyVaultName string
-
-
+param domainName string
 
 @secure()
 @description('The ID of the secret in the Key Vault that contains the certificate for the Application Gateway that usually follows the format of `https://<key-vault-url/secrets/<secret-name>`')
@@ -20,8 +15,7 @@ param appGatewayCertId string
 module domain 'domain.bicep' = if (enableAppGatewayHttps) {
   name: 'domain'
   params: {
-    keyVaultResourceId: keyVaultResourceId
-    keyVaultName: keyVaultName
+    domainName: domainName
   }
 }
 

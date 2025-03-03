@@ -38,6 +38,9 @@
       },
       "principalId": {
         "value": "${AZURE_PRINCIPAL_ID}"
+      },
+      "domainName": {
+        "value": "${AZURE_APPGATEWAY_DOMAIN_NAME=theacaagent-test.net}"
       }
     }
 }

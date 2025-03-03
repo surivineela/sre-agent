@@ -25,6 +25,7 @@ param logicAppSubnetPrefix string = '10.0.9.0/24'
 param icmClientCertName string = 'IcmClientCert'
 param icmClientCertSubject string = 'icm-client.agent.azurecontainerapps.dev'
 param fileshareName string = 'aca-agent-share'
+param domainName string = 'theacaagent.net'
 
 param enableAppGatewayHttps bool
 
@@ -396,14 +397,14 @@ resource gpt4o 'Microsoft.CognitiveServices/accounts/deployments@2024-10-01' = i
   parent: openai
   name: 'gpt-4o'
   sku: {
-    name: 'Standard'
+    name: 'GlobalStandard'
     capacity: 10
   }
   properties: {
     model: {
       name: 'gpt-4o'
       format: 'OpenAI'
-      version: '2024-05-13'
+      version: '2024-11-20'
     }
     raiPolicyName: 'Microsoft.Default'
     versionUpgradeOption: 'OnceCurrentVersionExpired'
@@ -468,11 +469,8 @@ module appGateway 'modules/app-gateway.bicep' = {
     appGatewayCertId: '${keyVault.outputs.uri}secrets/acaagentcert'
     identityResourceId: agentWebIdentity.outputs.resourceId
     backendPoolFqdn: agentWeb.outputs.fqdn
-    // identityPrincipalId: agentWebIdentity.outputs.principalId
-    // identityClientId: agentWebIdentity.outputs.clientId
     enableAppGatewayHttps: enableAppGatewayHttps
-    keyVaultResourceId: keyVault.outputs.resourceId
-    keyVaultName: keyVault.outputs.name
+    domainName: domainName
   }
 }
 
