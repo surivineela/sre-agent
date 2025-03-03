@@ -3,13 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Helpers;
-using FirstPartyAgent.ACA.Web.Services;
-using FirstPartyAgent.Plugins;
 using Agent.Runtime;
-using Agent.Core.Configuration;
+using FirstPartyAgent.ACA.Web.Services;
 using FirstPartyAgent.Core.Configuration;
-using FirstPartyAgent.ACA.Web.Configuration;
-using Microsoft.Extensions.Options;
+using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.ACA.Web;
 
@@ -19,25 +18,19 @@ public class Program
     {
         var builder = WebApplication.CreateBuilder(args);
         builder.LoadAppSettings();
-        builder.ValidateAndRegisterAppSettings<FirstPartyAgentACAAppSettings>();
-        
-        builder.Services.AddOptionsWithValidateOnStart<FirstPartyAgentACAAppSettings>()
-        .BindConfiguration("ACA")
-        .ValidateDataAnnotations();
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentACAAppSettings>>().Value);
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Kusto);
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICM);
+        builder.ValidateAndRegisterAppSettings<FirstPartyAgentAppSettings>();
 
-        builder.Configuration.AddJsonFile("aca-kusto.json", optional: true, reloadOnChange: true); //load kusto settings
+        builder.Services.RegisterFirstPartyAppSettings();
 
         builder.Services.ConfigureSemanticKernel();
+
         // Add services to the container.
-        builder.Services.AddSingleton<IIcmPlugin, FirstPartyAgent.Plugins.IcmPlugin>();
-        builder.Services.AddScoped<IContainerAppsPlugin, ContainerAppsPlugin>();
-        builder.Services.AddScoped<IKustoPlugin, KustoPlugin>();
-        builder.Services.AddSingleton<IcmAutomationClient>();
-        builder.Services.AddSingleton<ITaskStorageService, FileBasedStorageService>();
-        builder.Services.AddScoped<KustoClientService>();
+        builder.Services.AddSingleton<IIcmPlugin, IcmPlugin>();
+        builder.Services.AddSingleton<IContainerAppsPlugin, ContainerAppsPlugin>();
+        builder.Services.AddSingleton<KustoClientService>();
+        builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
+        builder.Services.AddSingleton<ICMWorkflowClient>();
+        builder.Services.AddSingleton<ITaskStorageService, FileBasedStorageService>();        
         builder.Services.AddScoped<IQuotaAgentService, QuotaAgentService>();
         builder.Services.AddHostedService<GpuQuotaIcmBackgroundService>();
 

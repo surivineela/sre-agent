@@ -3,27 +3,20 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Helpers;
-using FirstPartyAgent.Agents;
+using Agent.Plugins;
+using Agent.Runtime;
+using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Runtime;
-using FirstPartyAgent.Web.Services;
-using Microsoft.Extensions.DependencyInjection;
-using Agent.Runtime;
-using Agent.Core.Configuration;
-using FirstPartyAgent.Core.Configuration;
-using Microsoft.Extensions.Options;
 using FirstPartyAgent.Plugins.Definitions;
-using Agent.Plugins;
+using FirstPartyAgent.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.LoadAppSettings();
 builder.ValidateAndRegisterAppSettings<FirstPartyAgentAppSettings>();
-builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().Kusto);
-builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().ICM);
-builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().ICMAPI);
-builder.Services.AddSingleton(sp => sp.GetRequiredService<FirstPartyAgentExternalSettings>().ICMWorkflow);
+builder.Services.RegisterFirstPartyAppSettings();
 
 bool useSessionChatService = false;
 if (args.Length > 0)

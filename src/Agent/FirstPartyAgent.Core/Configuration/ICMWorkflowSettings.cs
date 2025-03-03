@@ -21,6 +21,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string DowngradeSev2WorkflowName { get; set; } = string.Empty;
         public string MarkSubscriptionFirstPartyWorkflowName { get; set; } = string.Empty;
         public string GetSubscriptionWorkflowName { get; set; } = string.Empty;
+        public string SubscriptionDetailWorkflowName { get; set; } = string.Empty;
         public string AddIncidentTagWorkflowName { get; set; } = string.Empty;
         public string ApplensPluginWorkflowName { get; set; } = string.Empty;
         public string HumanInterventionServiceName { get; set; } = string.Empty;

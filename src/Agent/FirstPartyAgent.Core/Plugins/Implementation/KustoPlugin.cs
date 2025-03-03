@@ -9,7 +9,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Kusto.Cloud.Platform.Data;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Plugins
@@ -18,16 +17,14 @@ namespace FirstPartyAgent.Plugins
     {
         private readonly ILogger<KustoPlugin> _logger;
         private readonly KustoClientService _kustoClientService;
-        private readonly KustoSettings _kustoSettings;
 
         [GeneratedRegex("[^a-zA-Z\\d]")]
         private static partial Regex RegionNormalizationRegex();
 
-        public KustoPlugin(ILogger<KustoPlugin> logger, KustoClientService kustoClientService, KustoSettings kustoSettings)
+        public KustoPlugin(ILogger<KustoPlugin> logger, KustoClientService kustoClientService)
         {
             _logger = logger;
             _kustoClientService = kustoClientService;
-            _kustoSettings = kustoSettings;
         }
 
         [KernelFunction("execute_kusto_query")]

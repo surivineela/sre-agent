@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
+using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
@@ -13,9 +14,9 @@ namespace FirstPartyAgent.Plugins
     public class IcmPlugin : IIcmPlugin
     {
         private readonly IConfiguration _config;
-        private readonly IcmAutomationClient _icmAutomationClient;
+        private readonly ICMWorkflowClient _icmAutomationClient;
 
-        public IcmPlugin(IConfiguration config, IcmAutomationClient icmAutomationClient)
+        public IcmPlugin(IConfiguration config, ICMWorkflowClient icmAutomationClient)
         {
             _config = config;
             _icmAutomationClient = icmAutomationClient;
@@ -26,33 +27,7 @@ namespace FirstPartyAgent.Plugins
         public async Task<Incident?> GetIncidentInfo(
            [Description("Incident ID")] string incidentId)
         {
-            string workflowName = _config.GetValue("ICM:WorkflowNames:FetchICMIncidentInfo", string.Empty);
-            if (string.IsNullOrEmpty(workflowName))
-            {
-                throw new Exception("ICM:WorkflowNames:FetchICMIncidentInfo is not set.");
-            }
-            Dictionary<string, string> body = new()
-            {
-                { "incidentId", incidentId }
-            };
-            var (success, incident) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<Incident>(workflowName, body);
-            if (success)
-            {
-                return incident;
-            }
-            else
-            {
-                throw new Exception($"Failed to fetch incident info for incidentId: {incidentId}");
-            }
-        }
-
-        [KernelFunction("get_icm_incidents_by_team")]
-        [Description("Gets a list of ICM incidents by Tenant and Team")]
-        public async Task<List<Incident>> GetIncidents(
-        [Description("The name of the tenant")] string tenant,
-        [Description("Comma-separated list of metrics to include")] string metrics)
-        {
-            return new List<Incident>();
+            return await _icmAutomationClient.GetIncidentAsync(incidentId);
         }
 
         [KernelFunction("icm_mitigate_incident")]
@@ -70,15 +45,7 @@ The return value is a boolean value for indicating if the operation is successfu
         [Description("Id of the incident")] string incidentId,
         [Description("The comment for mitigation action")] string reason)
         {
-            const string workflowName = "Workflow-IcM-MitigateIncident";
-
-            Dictionary<string, string> body = new()
-            {
-                { "IncidentId", incidentId },
-                { "Message", reason }
-            };
-            var (success, _) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<object>(workflowName, body);
-            return success;
+            return await _icmAutomationClient.MitigateIncidentAsync(incidentId, reason) == "Success";
         }
 
         [KernelFunction("icm_resolve_incident")]
@@ -87,35 +54,7 @@ The return value is a boolean value for indicating if the operation is successfu
             [Description("Id of the incident")] string incidentId,
             [Description("comment/reason for resolution action")] string reason)
         {
-            const string workflowName = "Workflow-IcM-ResolveIncident";
-
-            Dictionary<string, string> body = new()
-            {
-                { "IncidentId", incidentId },
-                { "Message", reason }
-            };
-            var (success, _) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<object>(workflowName, body);
-            return success;
-        }
-
-        [KernelFunction("icm_add_tag")]
-        [Description("Add a tag to an ICM incident")]
-        public async Task<bool> AddTag(
-            [Description("Id of the incident")] string incidentId,
-            [Description("Tag to add")] string tag)
-        {
-            string workflowName = _config.GetValue("ICM:WorkflowNames:AddTag", string.Empty);
-            if (string.IsNullOrEmpty(workflowName))
-            {
-                throw new Exception("ICM:WorkflowNames:AddTag is not set.");
-            }
-            Dictionary<string, string> body = new()
-            {
-                { "incidentId", incidentId },
-                { "tag", tag }
-            };
-            var (success, _) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<object>(workflowName, body, "ManualTrigger");
-            return success;
+            return await _icmAutomationClient.ResolveIncidentAsync(incidentId, reason) == "Success";
         }
 
         [KernelFunction("icm_get_discussion_entries")]
@@ -135,23 +74,7 @@ The return value is a list of discussion entries of the given IcM Incident. Each
            [Description("Incident ID")] string incidentId,
            [Description("From time of the query")] DateTimeOffset queryFrom)
         {
-            const string workflowName = "Workflow-IcM-GetDiscussions";
-
-            Dictionary<string, string> body = new()
-            {
-                { "IncidentId", incidentId },
-                { "QueryFrom", queryFrom.ToString("s", System.Globalization.CultureInfo.InvariantCulture) }
-            };
-            var (success, discussionEntries) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<List<DiscussionEntry>>(workflowName, body);
-            if (success)
-            {
-                return discussionEntries;
-            }
-            else
-            {
-                Console.WriteLine($"Failed to fetch discussion entries for incidentId: {incidentId}");
-                return null;
-            }
+            return await _icmAutomationClient.GetIncidentDiscussionEntriesAsync(incidentId);
         }
 
         [KernelFunction("icm_add_discussion_entry")]
@@ -169,14 +92,7 @@ The return value is a boolean value for indicating if the operation is successfu
             [Description("Incident ID")] string incidentId,
             [Description("Discussion entry text")] string text)
         {
-            const string workflowName = "Workflow-IcM-AddDiscussion";
-            Dictionary<string, string> body = new()
-            {
-                { "incidentId", incidentId },
-                { "text", text }
-            };
-            var (success, _) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<object>(workflowName, body);
-            return success;
+            return await _icmAutomationClient.PostDiscussionEntryAsync(incidentId, text) == "Success";
         }
     }
 }

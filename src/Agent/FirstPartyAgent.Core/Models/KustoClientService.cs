@@ -6,9 +6,7 @@ using Azure.Identity;
 using Kusto.Cloud.Platform.Data;
 using Kusto.Data;
 using Kusto.Data.Common;
-using Kusto.Data.Net.Client;
 using Microsoft.Extensions.Logging;
-using SkiaSharp;
 
 namespace Agent.Core.Helpers;
 
@@ -19,7 +17,7 @@ public class KustoClientService
     private readonly Dictionary<string, ICslQueryProvider> _regionsToQueryProviders = new();
     private readonly Dictionary<string, KustoCluster> _regionsToClusters = new();
 
-    public KustoClientService(KustoSettings kustoSettings, ILogger<KustoClientService> logger)
+    public KustoClientService(ILogger<KustoClientService> logger, KustoSettings kustoSettings)
     {
         _logger = logger;
         _kustoSettings = kustoSettings;

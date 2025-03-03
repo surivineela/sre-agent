@@ -15,6 +15,8 @@ namespace FirstPartyAgent.Tests.Integration
 
         public bool BackgroundTaskEnabled { get; private set; } = true;
 
+        public bool DefaultMockEnabled { get; private set; } = true;
+
         public ITestOutputHelper? TestOutputHelper { get; private set; } = null;
 
         public TestAgentApplicationBuilder AddLogger(ITestOutputHelper testOutputHelper)
@@ -26,6 +28,12 @@ namespace FirstPartyAgent.Tests.Integration
         public TestAgentApplicationBuilder DisableBackgroundTask()
         {
             BackgroundTaskEnabled = false;
+            return this;
+        }
+
+        public TestAgentApplicationBuilder DisableDefaultMock()
+        {
+            DefaultMockEnabled = false;
             return this;
         }
     }

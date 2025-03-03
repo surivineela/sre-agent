@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 using System.Text.RegularExpressions;
 using Agent.Core.Models;
+using FirstPartyAgent.ACA.Web.Models;
 using FirstPartyAgent.ACA.Web.Services;
 using FirstPartyAgent.Agents;
 using FirstPartyAgent.Models;
@@ -57,7 +58,7 @@ public class ApiController : ControllerBase
                 allTasks.TryGetValue(incidentId, out status);
                 if (status != null)
                 {
-                    var state = await _quotaAgentService.Process(status, new List<Discussion> { new Discussion(message.User, DiscussionSource.Teams, message.Content) });
+                    var state = await _quotaAgentService.Process(status, new List<ConversationEntry> { new ConversationEntry(message.User, ConversationSource.Teams, message.Content) });
                     return Ok(state);
                 }
             }
@@ -73,9 +74,9 @@ public class ApiController : ControllerBase
         {
             QuotaIncidentState state = new QuotaIncidentState()
             {
-                Incident = new IcmIncident()
+                Incident = new Incident()
                 {
-                    Id = req.IncidentId,
+                    IncidentId = req.IncidentId,
                     Title = req.Title,
                 },
                 Summary = req.Summary

@@ -11,10 +11,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
-using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 
-namespace FirstPartyAgent.Runtime
+namespace FirstPartyAgent.Core.Extensions
 {
     public static class FirstPartyAgentsConfigurationExtensions
     {
@@ -122,6 +120,19 @@ namespace FirstPartyAgent.Runtime
 
                 return kernelBuilder.Build();
             });
+
+            return services;
+        }
+
+        public static IServiceCollection RegisterFirstPartyAppSettings(this IServiceCollection services)
+        {
+            services.AddOptionsWithValidateOnStart<FirstPartyAgentExternalSettings>()
+                .BindConfiguration("AppSettings:Core:External")
+                .ValidateDataAnnotations();
+
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Kusto);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMAPI);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMWorkflow);
 
             return services;
         }

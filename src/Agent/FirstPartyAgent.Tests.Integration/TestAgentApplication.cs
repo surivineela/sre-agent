@@ -15,6 +15,7 @@ using Microsoft.Extensions.Options;
 using Moq;
 using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Tests.Integration.Logging;
+using Agent.Core.Configuration;
 
 namespace FirstPartyAgent.Tests.Integration
 {
@@ -35,7 +36,10 @@ namespace FirstPartyAgent.Tests.Integration
                             services.AddSingleton<ILoggerProvider>(new XunitTestHostLoggerProvider(testBuilder.TestOutputHelper));
                         }
 
-                        ApplyDefaultMock(services);
+                        if (testBuilder.DefaultMockEnabled)
+                        {
+                            ApplyDefaultMock(services);
+                        }
 
                         if (!testBuilder.BackgroundTaskEnabled)
                         {
@@ -46,23 +50,28 @@ namespace FirstPartyAgent.Tests.Integration
                 });
         }
 
+        public IServiceProvider ServiceProvider => _firstParityAgentWeb.Services;
+
         public IQuotaAgentService CreateQuotaAgentService()
         {
-            return _firstParityAgentWeb.Services.CreateScope().ServiceProvider.GetRequiredService<IQuotaAgentService>();
+            return ServiceProvider.CreateScope().ServiceProvider.GetRequiredService<IQuotaAgentService>();
         }
 
         public void ApplyDefaultMock(IServiceCollection services)
         {
+            var code = services.BuildServiceProvider().GetRequiredService<OpenAISettings>();
+
+
             services.Replace<IIcmPlugin, IcmPlugin>(ServiceLifetime.Singleton, provider => new MockIcmPlugin());
 
-            services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Scoped,
-                provider =>
-                {
-                    var icmSettingsOptionsMock = new Mock<IOptions<ICMSettings>>();
-                    icmSettingsOptionsMock.Setup(o => o.Value).Returns(() => null);
-                    var containerAppsPlugin = new Mock<ContainerAppsPlugin>(icmSettingsOptionsMock.Object, null);
-                    return new MockContainerAppsPlugin(containerAppsPlugin.Object);
-                });
+            //services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Scoped,
+            //    provider =>
+            //    {
+            //        var icmSettingsOptionsMock = new Mock<IOptions<ICMSettings>>();
+            //        icmSettingsOptionsMock.Setup(o => o.Value).Returns(() => null);
+            //        var containerAppsPlugin = new Mock<ContainerAppsPlugin>(icmSettingsOptionsMock.Object, null);
+            //        return new MockContainerAppsPlugin(containerAppsPlugin.Object);
+            //    });
 
             var _taskStorageServiceMock = new Mock<ITaskStorageService>();
             services.Replace<ITaskStorageService, FileBasedStorageService>(ServiceLifetime.Singleton, provider => _taskStorageServiceMock.Object);

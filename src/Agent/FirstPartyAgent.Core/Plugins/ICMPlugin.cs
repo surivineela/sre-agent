@@ -1,17 +1,9 @@
-﻿using Agent.Core.Helpers;
+﻿using System.ComponentModel;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -20,7 +12,7 @@ namespace FirstPartyAgent.Plugins
         private readonly IICMAPIClient _icmApiClient;
         private readonly ICMWorkflowClient _icmWorkflowClient;
 
-        public ICMPlugin(IConfiguration configuration, IICMAPIClient icmAPIClient, ICMWorkflowClient icmWorkflowClient)
+        public ICMPlugin(IICMAPIClient icmAPIClient, ICMWorkflowClient icmWorkflowClient)
         {
             _icmApiClient = icmAPIClient;
             _icmWorkflowClient = icmWorkflowClient;

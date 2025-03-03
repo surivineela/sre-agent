@@ -56,7 +56,7 @@ The return value includes the detailed information of the given subscription id.
         //The operation will update the given quota type for given subscription in the given region.
         //The return value is a boolean value for indicating if the operation is successful.
         //")]
-        public async Task<bool> SetSubscriptionQuota(
+        public async Task<string> SetSubscriptionQuota(
             [Description("The subscription Id")] string subscriptionId,
             [Description("The region")] string region,
             [Description("The quota type")] string quotaType,

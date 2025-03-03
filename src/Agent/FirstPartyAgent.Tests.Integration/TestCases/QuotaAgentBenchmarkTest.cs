@@ -4,9 +4,13 @@
 
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
 namespace FirstPartyAgent.Tests.Integration.TestCases
@@ -22,6 +26,18 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
             _testOutputHelper = testOutputHelper;
         }
 
+        [Fact]
+        public void TestDependencyInjection()
+        {
+            TestAgentApplicationBuilder builder = new TestAgentApplicationBuilder()
+                .AddLogger(_testOutputHelper)
+                .DisableBackgroundTask()
+                .DisableDefaultMock();
+            TestAgentApplication app = builder.Build();
+            var service = app.CreateQuotaAgentService();
+        }
+
+
         [Theory]
         [MemberData(nameof(TestFilesWithIteration))]
         public async void TestQuotaAgent(string fileName, int iteration)
@@ -35,9 +51,9 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
 
             var request = new QuotaIncidentState
             {
-                Incident = new IcmIncident
+                Incident = new Incident
                 {
-                    Id = testDescriber.IncidentId,
+                    IncidentId = testDescriber.IncidentId,
                     Title = $"Test Incident <{testDescriber.IncidentId}>",
                 },
                 Summary = testDescriber.Summary,
@@ -48,7 +64,7 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
             foreach (var reply in testDescriber.Replies)
             {
                 Assert.Equal(reply.Key, output.ApprovalResult.ToString());
-                output = await app.CreateQuotaAgentService().Process(request, new List<Discussion> { new Discussion("John", DiscussionSource.Teams, reply.Value) });
+                output = await app.CreateQuotaAgentService().Process(request, new List<ConversationEntry> { new ConversationEntry("John", ConversationSource.Teams, reply.Value) });
             }
 
             // Validate the final outcome

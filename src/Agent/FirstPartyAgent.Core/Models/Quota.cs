@@ -7,17 +7,11 @@ using System.Text.Json.Serialization;
 
 namespace FirstPartyAgent.Models
 {
-
-    public class IcmIncident
-    {
-        public string? Id { get; set; }
-        public string? Title { get; set; }
-        public string? TeamsMessageId { get; set; }
-    }
-
     public class QuotaIncidentState
     {
-        public IcmIncident? Incident { get; set; }
+        public Incident? Incident { get; set; }
+
+        public ConversationContext ConversationContext { get; set; }
 
         public string? Summary { get; set; }
 
@@ -114,20 +108,16 @@ namespace FirstPartyAgent.Models
         }
     }
 
-    public class ProcessQuotaIncidentRequest
+    public class ConversationContext
     {
-        public string? IncidentId { get; set; }
+        public string TeamsMessageId { get; set; }
 
-        public string? Title { get; set; }
-
-        public string? Summary { get; set; }
-
-        public IList<Discussion>? Discussions { get; set; }
+        public string IncidentId { get; set; }
     }
 
-    public class Discussion
+    public class ConversationEntry
     {
-        public Discussion(string user, DiscussionSource source, string message)
+        public ConversationEntry(string user, ConversationSource source, string message)
         {
             User = user;
             Source = source;
@@ -135,12 +125,12 @@ namespace FirstPartyAgent.Models
         }
 
         public string User { get; set; }
-        public DiscussionSource Source { get; set; }
+        public ConversationSource Source { get; set; }
         public string Message { get; set; }
     }
 
-    [JsonConverter(typeof(JsonStringEnumConverter<DiscussionSource>))]
-    public enum DiscussionSource
+    [JsonConverter(typeof(JsonStringEnumConverter<ConversationSource>))]
+    public enum ConversationSource
     {
         Teams,
         Icm,

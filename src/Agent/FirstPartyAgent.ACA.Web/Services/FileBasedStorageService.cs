@@ -3,10 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using FirstPartyAgent.ACA.Web.Configuration;
-using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.Options;
 
 namespace FirstPartyAgent.ACA.Web.Services;
 
@@ -16,26 +13,27 @@ public class FileBasedStorageService : ITaskStorageService
     private readonly SemaphoreSlim _semaphore = new SemaphoreSlim(1, 1);
     private readonly string _filePath;
 
-    public FileBasedStorageService(ILogger<FileBasedStorageService> logger, FirstPartyAgentACAAppSettings settings)
+    public FileBasedStorageService(ILogger<FileBasedStorageService> logger)
     {
         _logger = logger;
-        _filePath = settings.ACASettings.SREAgentSettings.TaskStorage?.FilePath ?? "/mnt/task-storage/tasks.json";
+        // TODO: Refactor to setting.
+        _filePath =  "/mnt/task-storage/tasks.json";
     }
 
     public async Task SaveTaskAsync(QuotaIncidentState state)
     {
         await _semaphore.WaitAsync();
-        _logger.LogInformation($"Lock acquired. Saving task {state.Incident.Id} to file {_filePath}");
+        _logger.LogInformation($"Lock acquired. Saving task {state.Incident.IncidentId} to file {_filePath}");
         try
         {
             var tasks = await GetAllTasksWithoutLockAsync();
-            tasks[state.Incident.Id] = state;
+            tasks[state.Incident.IncidentId] = state;
             var json = JsonSerializer.Serialize(tasks);
             await File.WriteAllTextAsync(_filePath, json);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error saving task {state.Incident.Id} to file {_filePath}");
+            _logger.LogError(ex, $"Error saving task {state.Incident.IncidentId} to file {_filePath}");
         }
         finally
         {
@@ -112,18 +110,18 @@ public class FileBasedStorageService : ITaskStorageService
         await _semaphore.WaitAsync();
         await EnsureFileExistsAsync();
 
-        _logger.LogInformation($"Lock acquired. Updating task {state.Incident.Id} in file {_filePath}");
+        _logger.LogInformation($"Lock acquired. Updating task {state.Incident.IncidentId} in file {_filePath}");
         try
         {
             var tasks = await GetAllTasksWithoutLockAsync();
-            tasks[state.Incident.Id] = state;
+            tasks[state.Incident.IncidentId] = state;
             var json = JsonSerializer.Serialize(tasks);
             await File.WriteAllTextAsync(_filePath, json);
-            _logger.LogInformation($"Task {state.Incident.Id} updated in file {_filePath}");
+            _logger.LogInformation($"Task {state.Incident.IncidentId} updated in file {_filePath}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error updating task {state.Incident.Id} in file {_filePath}");
+            _logger.LogError(ex, $"Error updating task {state.Incident.IncidentId} in file {_filePath}");
         }
         finally
         {

@@ -20,6 +20,8 @@ namespace FirstPartyAgent.Constants
 
         public static class Icm
         {
+            public const string GetIncidentDetails = "get_icm_incident_details";
+
             public const string IcmGetIncidentInfo = "icm_get_incident_info";
             public const string IcmGetIncidentsByTeam = "icm_get_incidents_by_team";
             public const string IcmMitigateIncident = "icm_mitigate_incident";
@@ -31,7 +33,7 @@ namespace FirstPartyAgent.Constants
 
         public static class AzureSearch
         {
-            public const string PerformSemanticSearch = "perform_semantic_search"; 
+            public const string PerformSemanticSearch = "perform_semantic_search";
         }
     }
 }

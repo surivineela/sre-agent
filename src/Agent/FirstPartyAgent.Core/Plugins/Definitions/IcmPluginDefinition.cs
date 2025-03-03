@@ -21,15 +21,6 @@ namespace FirstPartyAgent.Plugins.Definitions
             return await _plugin.GetIncidentInfo(incidentId);
         }
 
-        [KernelFunction(KernelFunctionNames.Icm.IcmGetIncidentsByTeam)]
-        [Description("Gets a list of ICM incidents by Tenant and Team")]
-        public async Task<List<Incident>> GetIncidents(
-            [Description("The name of the tenant")] string tenant,
-            [Description("Comma-separated list of metrics to include")] string metrics)
-        {
-            return await _plugin.GetIncidents(tenant, metrics);
-        }
-
         [KernelFunction(KernelFunctionNames.Icm.IcmMitigateIncident)]
         [Description(@"Mitigate an IcM incident
 This operation will set the given IcM Incident to Mitigated state. And you must give a reason of this mitigation action.
@@ -55,15 +46,6 @@ The return value is a boolean value for indicating if the operation is successfu
             [Description("comment/reason for resolution action")] string reason)
         {
             return await _plugin.ResolveIncident(incidentId, reason);
-        }
-
-        [KernelFunction(KernelFunctionNames.Icm.IcmAddTag)]
-        [Description("Add a tag to an ICM incident")]
-        public async Task<bool> AddTag(
-            [Description("Id of the incident")] string incidentId,
-            [Description("Tag to add")] string tag)
-        {
-            return await _plugin.AddTag(incidentId, tag);
         }
 
         [KernelFunction(KernelFunctionNames.Icm.IcmGetDisscussionEntries)]

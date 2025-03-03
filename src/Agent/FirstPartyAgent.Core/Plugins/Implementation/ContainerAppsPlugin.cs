@@ -4,51 +4,34 @@
 
 using System.ComponentModel;
 using System.Text;
-using Agent.Core.Helpers;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using Agent.Core.Models;
-using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Constants;
+using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Plugins
 {
     public class ContainerAppsPlugin : IContainerAppsPlugin
     {
-        private readonly ICMSettings _icmSettings;
-        private readonly IcmAutomationClient _icmAutomationClient;
+        private readonly ILogger<ContainerAppsPlugin> _logger;
+        private readonly ICMWorkflowClient _icmWorkflowClient;
         private readonly HttpClient _httpClient = new HttpClient();
-      
-        public ContainerAppsPlugin(ICMSettings icmSettings, IcmAutomationClient icmAutomationClient)
+
+        public ContainerAppsPlugin(ILogger<ContainerAppsPlugin> logger, ICMWorkflowClient icmWorkflowClient)
         {
-            _icmSettings = icmSettings;
-            _icmAutomationClient = icmAutomationClient;
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _icmWorkflowClient = icmWorkflowClient ?? throw new ArgumentNullException(nameof(icmWorkflowClient));
         }
 
-        public async Task<SubscriptionDetail?> GetSubscriptionDetail(
-     string subscriptionId)
+        public async Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId)
         {
-            const string workflowName = "Workflow-Data-GetSubscriptionDetail";
-
-            Dictionary<string, string> body = new()
-            {
-                { "SubscriptionId", subscriptionId }
-            };
-
-            var (success, subscriptionDetail) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<SubscriptionDetail>(workflowName, body);
-
-            if (success)
-            {
-                return subscriptionDetail;
-            }
-            else
-            {
-                return new SubscriptionDetail(subscriptionId);
-            }
+            return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
         }
 
-        public async Task<bool> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
+        public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";
 
@@ -59,8 +42,9 @@ namespace FirstPartyAgent.Plugins
                 { "QuotaType", quotaType },
                 { "QuotaLimit", quotaLimit },
             };
-            var (success, _) = await _icmAutomationClient.TriggerIcmWorkflowWithResponse<object>(workflowName, body, "manual");
-            return success;
+
+            var response = await _icmWorkflowClient.SendICMWorkflowRequest<JsonObject>(workflowName, body);
+            return JsonSerializer.Serialize(response);
         }
 
         public async Task<TeamsPostMessageResponse?> PostTeamsDiscussionAsync(string incidentId, string title, string content)
@@ -91,7 +75,8 @@ namespace FirstPartyAgent.Plugins
 
         private async Task<TeamsPostMessageResponse?> SendTeamsRequestAsync(object body)
         {
-            var triggerUrl = _icmSettings.PostIncidentDiscussionUrl;
+            // TODO: HOWANG
+            var triggerUrl = string.Empty; // _icmSettings.PostIncidentDiscussionUrl;
             if (string.IsNullOrEmpty(triggerUrl))
             {
                 throw new Exception("ICM:PostIncidentDiscussionUrl is not configured.");
@@ -99,13 +84,13 @@ namespace FirstPartyAgent.Plugins
             var requestMessage = new HttpRequestMessage(HttpMethod.Post, triggerUrl);
             if (body != null)
             {
-                requestMessage.Content = new StringContent(JsonConvert.SerializeObject(body), Encoding.UTF8, "application/json");
+                requestMessage.Content = new StringContent(JsonSerializer.Serialize(body), Encoding.UTF8, "application/json");
             }
 
             var response = await _httpClient.SendAsync(requestMessage);
             response.EnsureSuccessStatusCode();
             var respContent = await response.Content.ReadAsStringAsync();
-            var respBody = JsonConvert.DeserializeObject<TeamsPostMessageResponse>(respContent);
+            var respBody = JsonSerializer.Deserialize<TeamsPostMessageResponse>(respContent);
             return respBody;
         }
 
@@ -248,7 +233,7 @@ namespace FirstPartyAgent.Plugins
             }
             else
             {
-               
+
                 return (ApprovalState.NotStarted, string.Format(MessageTemplates.QuotaTypeNotSupported, quotaType.ToString()));
             }
         }

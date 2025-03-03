@@ -60,7 +60,7 @@ public class QuotaAgentService : IQuotaAgentService
             .Build();
     }
 
-    public async Task<QuotaIncidentState> Process(QuotaIncidentState state, IList<Discussion> discussions)
+    public async Task<QuotaIncidentState> Process(QuotaIncidentState state, IList<ConversationEntry> discussions)
     {
         if (state is null)
         {
@@ -191,24 +191,24 @@ public class QuotaAgentService : IQuotaAgentService
         var messageContent = state?.ToString();
         if (state?.ApprovalResult == ApprovalState.Pending && state.SubscriptionId != null)
         {
-            StringBuilder referenceBuilder = new StringBuilder();           
+            StringBuilder referenceBuilder = new StringBuilder();
             AppendReferenceInformation(referenceBuilder, state.SubscriptionId);
             messageContent += referenceBuilder.ToString();
         }
 
-        if (state?.Incident?.Id != null)
+        if (state?.Incident?.IncidentId != null)
         {
-            await _icmPlugin.AddDiscussionEntry(state.Incident.Id, messageContent);
+            await _icmPlugin.AddDiscussionEntry(state.Incident.IncidentId, messageContent);
         }
         else
         {
             _logger.LogWarning("IncidentId is null. Cannot add discussion entry.");
         }
 
-        if (string.IsNullOrEmpty(state?.Incident?.TeamsMessageId))
+        if (string.IsNullOrEmpty(state?.ConversationContext?.TeamsMessageId))
         {
             var teamsResp = await _cappPlugin.PostTeamsDiscussionAsync(
-                state?.Incident?.Id,
+                state?.Incident?.IncidentId,
                 state?.Incident?.Title ?? "New GPU Quota Request Received",
                 messageContent);
 
@@ -217,11 +217,11 @@ public class QuotaAgentService : IQuotaAgentService
                 throw new Exception("Failed to get messageId from Teams.");
             }
 
-            state.Incident.TeamsMessageId = teamsResp.MessageId;
+            state.ConversationContext.TeamsMessageId = teamsResp.MessageId;
         }
         else
         {
-            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident?.Id, state.Incident?.TeamsMessageId, messageContent);
+            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident?.IncidentId, state.ConversationContext?.TeamsMessageId, messageContent);
         }
 
         if (state.ApprovalResult == ApprovalState.NotStarted || state.ApprovalResult == ApprovalState.Pending)
@@ -237,18 +237,18 @@ public class QuotaAgentService : IQuotaAgentService
 
         if (state.ApprovalResult == ApprovalState.Approved)
         {
-            var result = await _cappPlugin.SetSubscriptionQuota(state.SubscriptionId, state.Region, state.QuotaType, state.ApprovedQuotaLimit?.ToString());
-
-            if (result)
+            try
             {
+                var result = await _cappPlugin.SetSubscriptionQuota(state.SubscriptionId, state.Region, state.QuotaType, state.ApprovedQuotaLimit?.ToString());
+
                 resolveIncident = true;
                 _logger.LogInformation("Quota request approved and geneva action executed.");
-                logMsg = $"Quota request approved and geneva action executed. Incident resolved. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit}.";
+                logMsg = $"Quota request approved and geneva action executed. Incident resolved. {result}.";
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogError("Failed to execute geneva action.");
-                logMsg = $"Quota request approved but failed to execute geneva action. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit}.";
+                _logger.LogError(ex, "Failed to execute geneva action.");
+                logMsg = $"Quota request approved but failed to execute geneva action. Error: {ex}.";
             }
         }
         else
@@ -261,16 +261,16 @@ public class QuotaAgentService : IQuotaAgentService
         var successfullyResolved = false;
         if (resolveIncident)
         {
-            successfullyResolved = await _icmPlugin.ResolveIncident(state.Incident.Id, logMsg);          
+            successfullyResolved = await _icmPlugin.ResolveIncident(state.Incident.IncidentId, logMsg);
         }
-        
-        await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.Id, state.Incident.TeamsMessageId, logMsg);
+
+        await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.IncidentId, state.ConversationContext.TeamsMessageId, logMsg);
 
         if (successfullyResolved)
         {
-            await _taskStorageService.RemoveTaskAsync(state.Incident.Id);
+            await _taskStorageService.RemoveTaskAsync(state.Incident.IncidentId);
             var offTrackMsg = "The quota request has been successfully resolved. The agent will now stop proactive tracking on this case.";
-            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.Id, state.Incident.TeamsMessageId, offTrackMsg);
+            await _cappPlugin.ReplyTeamsDiscussionAsync(state.Incident.IncidentId, state.ConversationContext.TeamsMessageId, offTrackMsg);
         }
 
         return state;

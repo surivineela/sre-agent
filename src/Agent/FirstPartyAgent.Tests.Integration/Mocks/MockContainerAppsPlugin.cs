@@ -25,26 +25,26 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             var offerInfo = subscriptionInfoReaderHelper.GetOfferTypeBySubscriptionId(subscriptionId);
             var quotaId = subscriptionInfoReaderHelper.GetQoutaIdBySubscriptionId(subscriptionId);
 
-            var subscriptionDetail = new SubscriptionDetail
-            (
-                SubscriptionId: subscriptionId,
-                BillingType: "",
-                OfferType: offerInfo,
-                OfferName: quotaId,
-                TPId: 12345,
-                BillableAcctId: "",
-                CloudCustomerGuid: "",
-                ClassifiedTypeV2: "",
-                QuotaId: "",
-                OrganizationName: ""
-            );
+            var subscriptionDetail = new SubscriptionDetail();
+            //(
+            //    SubscriptionId: subscriptionId,
+            //    BillingType: "",
+            //    OfferType: offerInfo,
+            //    OfferName: quotaId,
+            //    TPId: 12345,
+            //    BillableAcctId: "",
+            //    CloudCustomerGuid: "",
+            //    ClassifiedTypeV2: "",
+            //    QuotaId: "",
+            //    OrganizationName: ""
+            //);
 
             return await Task.FromResult(subscriptionDetail);
         }
 
-        public async Task<bool> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
+        public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
-            return await Task.FromResult(true);
+            return await Task.FromResult(string.Empty);
         }
 
         public async Task<TeamsPostMessageResponse?> PostTeamsDiscussionAsync(string incidentId, string title, string content)
