@@ -10,7 +10,7 @@ namespace FirstPartyAgent.Agents
 You will be provided with text that describes one or more types of quotas requested.
 A complete quota request contains following information:
 
-QuotaType: [Required] It must be one of SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ManagedEnvironmentCount. But the request might contains the quota type in a different format, for example it will contains whitespace, you should automatically normalize it as possible as you can.
+QuotaType: [Required] It must be one of SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ManagedEnvironmentComputeOptimizedCores, ManagedEnvironmentCount, SessionPools. But the request might contains the quota type in a different format, for example it will contains whitespace, you should automatically normalize it as possible as you can.
 Region: [Required] An Azure region, you might need to convert it to a normalized format which in lower case without whitespace.
 SubscriptionId: [Required] An Azure Subscription Id. It is must in a GUID format.
 TargetQuotaLimit: [Required] The target quota requested should be an integer value. It might be called 'New Limit' in the request.

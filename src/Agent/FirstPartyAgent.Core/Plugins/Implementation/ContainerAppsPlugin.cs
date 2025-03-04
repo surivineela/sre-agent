@@ -121,6 +121,10 @@ namespace FirstPartyAgent.Plugins
                 approvalResult = ApprovalState.NotStarted.ToString();
                 return string.Concat($"ApproveResult: {approvalResult}. Reason: ", string.Format(MessageTemplates.InvalidQuotaType));
             }
+            else if (!quotaType.Contains("GPU", StringComparison.OrdinalIgnoreCase))
+            {
+                return "ApprovalResult: NotStarted. Reason: Quota type is not supported. Skip all subsequent tasks.";
+            }
 
             var result = ValidateQuotaRule(limit, quotaTypeEnum, region.ToLowerInvariant(), offerType);
             approvalResult = result.approvalState.ToString();
@@ -222,14 +226,6 @@ namespace FirstPartyAgent.Plugins
                 {
                     return (ApprovalState.NotStarted, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, or swedensentral"));
                 }
-
-            }
-            else if (quotaType.Equals(QuotaType.ManagedEnvironmentConsumptionCores)
-                    || quotaType.Equals(QuotaType.ManagedEnvironmentGeneralPurposeCores)
-                    || quotaType.Equals(QuotaType.ManagedEnvironmentMemoryOptimizedCores)
-                    || quotaType.Equals(QuotaType.ManagedEnvironmentCount))
-            {
-                return (ApprovalState.NotStarted, string.Format(MessageTemplates.QuotaTypeNotSupported, quotaType.ToString()));
             }
             else
             {

@@ -180,8 +180,18 @@ namespace FirstPartyAgent.Models
         ManagedEnvironmentMemoryOptimizedCores,
 
         /// <summary>
+        /// Quota for managed environment compute optimized cores
+        /// </summary>
+        ManagedEnvironmentComputeOptimizedCores,
+
+        /// <summary>
         /// Quota for managed environment count
         /// </summary>
-        ManagedEnvironmentCount
+        ManagedEnvironmentCount,
+
+        /// <summary>
+        /// Quota for Session Pools
+        /// </summary>
+        SessionPools
     }
 }
