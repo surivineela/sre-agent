@@ -246,6 +246,13 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\TestResults\**\*.trx'
             failTaskOnFailedTests: true
 
+        # - task: PowerShell@2
+        #   displayName: 'Copy dockerfile to output directory'
+        #   inputs:
+        #     targetType: 'inline'
+        #     script: |
+        #       Copy-Item -Path $(Build.SourcesDirectory)\src\Deployment\Agent.Web\Dockerfile -Destination $(ob_outputDirectory)\src\Deployment\Agent.Web\Dockerfile
+
         #
         # Sign output binaries if it is an official build
         #
@@ -257,3 +264,41 @@ extends:
               signing_profile: 'internal_azure_service'
               files_to_sign: '**/*.exe;**/*.dll;**/*.ps1'
               search_root: '$(ob_outputDirectory)'
+
+    - stage: docker      
+      dependsOn: build
+      jobs:
+      - job: buildImageForAgentWeb
+        displayName: "🔨 Build Docker Image for Agent.Web"
+        pool:
+          type: docker
+          os: linux
+        variables:
+          ob_git_checkout: true
+        steps:
+        - task: DownloadPipelineArtifact@2
+          inputs:
+            targetPath: $(Build.SourcesDirectory)/dst/drop_build_main
+            artifact: drop_build_main
+          # This task downloads the build artifacts from the previous stage.
+
+        - task: onebranch.pipeline.containercontrol@1
+          displayName: "Login to ACR"
+          inputs:
+            command: login
+            acr_name: k8seprod
+            endpoint: k8seprod
+
+        - task: onebranch.pipeline.imagebuildinfo@1
+          displayName: 'Build Docker image for Agent.Web'
+          inputs:
+            registry: k8seprod.azurecr.io
+            repositoryName: public/k8se/aca-agent-web
+            dockerFileRelPath: src/Deployment/Agent.Web/Dockerfile
+            dockerFileContextPath: drop_build_main
+            saveImageToPath: 'images/aca-agent-web.tar.gz'
+            saveMetadataToPath: 'images/aca-agent-web-metadata.json'
+            enable_service_tree_acr_path: false
+            build_tag: $(Build.BuildNumber)
+            enable_acr_push: true
+            endpoint: k8seprod
