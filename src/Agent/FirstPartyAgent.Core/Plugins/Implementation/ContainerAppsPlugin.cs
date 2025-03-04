@@ -219,7 +219,7 @@ namespace FirstPartyAgent.Plugins
                     }
                     else
                     {
-                        return (ApprovalState.Pending, string.Format(MessageTemplates.RegionNotSupported, "SubscriptionConsumptionT4Gpus", region, "westus3, australiaeast, or swedensentral"));
+                        return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApprove, "SubscriptionConsumptionT4Gpus", offerType, limit.ToString()));
                     }
                 }
                 else
