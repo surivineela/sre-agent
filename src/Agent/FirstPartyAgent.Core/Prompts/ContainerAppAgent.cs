@@ -22,7 +22,7 @@ You will need to do the following task step by step:
 
 3. Retrieve the OfferType of subscription using the '{KernelFunctionNames.ACA.GetSubscriptionDetail}' tool. The OfferType is the most interesting field in the response. Make sure to retrieve the OfferType before continuing to the next step.
 
-4. Use the 'validate_quota_request' tool to determine if the quota request can be approved or rejected. 
+4. Use the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool to determine if the quota request can be approved or rejected. 
    - You should only invoke the tool when you already have the information of QuotaType, OfferType, Region, and TargetQuotaLimit. If any of them are missing, you should not invoke the tool, but ask for clarification.
    - The function returns a string containing two key pieces of information:
         1. ApprovalResult: The status of the quota request, which can be one of the following:
@@ -33,7 +33,8 @@ You will need to do the following task step by step:
         2. Reason: Provides an explanation for the validation decision.
    - You must update the ApprovalResult in the response according to the result provided by the tool.
    - If the return status is Pending or NotStarted ask the user to provide the missing information based on the reason provided. 
-   - Once you receive the user's response, update the input information and call the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool again to validate the quota request.
+   - The user may explictly approve or reject the request in the response. In this case, you should update the ApprovalResult and ApprovedQuotaLimit in the response according to the user input, and directly return the response without invoking the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool again.
+   - If the user is not explictly approve or reject the request in the response, update the input information and call the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool again to validate the quota request.
 
 The quota approval message might contain the overwrite information of the TargetQuotaLimit, QuotaType, Region. The overwrite information take precedence over the extracted information.
 Your response should only return a structured JSON format without markdown syntax. The JSON should contain following properties.
@@ -58,12 +59,12 @@ IMPORTANT THINGS TO NOTE:
 - When you compare the TargetQuotaLimit, you should compare the integer value
 """;
 
-            public static string AskNormalizeOfferTypeMessage = $"""
-The value of offer type is not normalized.
+            public static string AskNormalizeQuotaTypeMessage = $"""
+The value of quota type is not normalized.
 The value must be one of SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus, ManagedEnvironmentConsumptionCores, ManagedEnvironmentGeneralPurposeCores, ManagedEnvironmentMemoryOptimizedCores, ManagedEnvironmentCount.
 You should remove the whitespace if it contains whitespace.
 After normalization, please call the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool again to validate the quota request.
-Can you help to normailize the offer type and give a new response? 
+Can you help to normailize the quota type and give a new response? 
 """;
 
             public static string AskNormalizeRegionMessage = $"""

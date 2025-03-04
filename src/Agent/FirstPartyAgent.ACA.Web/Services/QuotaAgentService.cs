@@ -151,7 +151,7 @@ public class QuotaAgentService : IQuotaAgentService
                 else if (!string.IsNullOrEmpty(newState.QuotaType) && newState.QuotaType.Contains(" "))
                 {
                     _logger.LogWarning($"The quota type is not normalized.");
-                    chatHistory.AddUserMessage(_logger, ContainerAppAgent.GpuQuota.AskNormalizeOfferTypeMessage);
+                    chatHistory.AddUserMessage(_logger, ContainerAppAgent.GpuQuota.AskNormalizeQuotaTypeMessage);
                 }
                 else if (!string.IsNullOrEmpty(newState.Region) && newState.Region.Contains(" "))
                 {

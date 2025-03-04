@@ -32,6 +32,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="TestData\ACA_Quota_ManualApproveReplyTest3.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\ACA_Quota_ManualApproveReplyTest2.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="TestData\ACA_Quota_ManualApproveReplyTest1.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\ACA_Quota_ManualApprove.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

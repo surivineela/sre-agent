@@ -94,6 +94,9 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
                 yield return new object[] { "ACA_Quota_AutoReject.html" };
                 yield return new object[] { "ACA_Quota_AutoApprove.html" };
                 yield return new object[] { "ACA_Quota_ManualApprove.html" };
+                yield return new object[] { "ACA_Quota_ManualApproveReplyTest1.html" };
+                yield return new object[] { "ACA_Quota_ManualApproveReplyTest2.html" };
+                yield return new object[] { "ACA_Quota_ManualApproveReplyTest3.html" };
                 yield return new object[] { "ACA_Quota_ManualReject.html" };
                 yield return new object[] { "ACA_Quota_WrongRegion.html" };
                 yield return new object[] { "ACA_Quota_WrongQuotaType.html" };
