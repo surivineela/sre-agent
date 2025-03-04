@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Agent.Core.Configuration;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Schema;
 using Azure.Core;
@@ -50,7 +51,7 @@ namespace Agent.Graph.Crawler.ARM
             }
 
             var envNode = (ContainerAppEnvironmentNode)node;
-            _logger.LogInformation($"Crawling container app environment: {envNode.ResourceId}");
+            _logger.LogDebug($"Crawling container app environment: {envNode.ResourceId}");
 
             var rgResourceId = ResourceGroupResource.CreateResourceIdentifier(envNode.SubscriptionId, envNode.ResourceGroupName);
             var rgResource = _armClient.GetResourceGroupResource(rgResourceId);
@@ -114,7 +115,7 @@ namespace Agent.Graph.Crawler.ARM
             // container apps
             var queryResult = await _graphClient.Query([envNode.SubscriptionId], $"resources|where type =~ 'Microsoft.App/containerApps' and properties.environmentId =~ '{envNode.ResourceId}'| project id, type, subscriptionId, resourceGroup, name");
 
-            _logger.LogInformation($"Find {queryResult.Count} container apps under environment");
+            _logger.LogDebug($"Find {queryResult.Count} container apps under environment");
             var jsonObj = JsonSerializer.Deserialize<JsonElement>(queryResult.Data);
             foreach(var item in jsonObj.EnumerateArray())
             {
@@ -139,10 +140,10 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ArmClient _client;
         private TenantResource _tenantResource;
 
-        public AzureResourceGraphClient(IConfiguration configuration)
+        public AzureResourceGraphClient(CrawlerSettings crawlerSettings)
         {
             _client = new ArmClient(new DefaultAzureCredential());
-            InitTenantResource(configuration["AppSettings:Core:Azure:Crawler:TenantId"]);
+            InitTenantResource(crawlerSettings.TenantId);
         }
 
         public void InitTenantResource(string tenantId)

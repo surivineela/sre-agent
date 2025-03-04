@@ -79,7 +79,7 @@ namespace FirstPartyAgent.Tests.Integration
         }
     }
 
-    internal class TestWebApplication : WebApplicationFactory<Program>
+    internal class TestWebApplication : WebApplicationFactory<FirstPartyAgent.ACA.Web.Program>
     {
         private readonly Action<IHostBuilder> _configure;
 

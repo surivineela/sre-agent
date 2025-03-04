@@ -23,5 +23,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public DurableTaskSchedulerSettings DTS { get; set; } = new();
+
+        [Required]
+        public CrawlerSettings Crawler { get; set; } = new();
     }
 }

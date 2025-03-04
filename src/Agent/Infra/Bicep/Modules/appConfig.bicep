@@ -63,6 +63,22 @@ module dts 'dts.bicep' = {
   ]
 }
 
+// General settings
+resource subIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:Crawler:SubscriptionId'
+  parent: appConfig
+  properties: {
+    value: subscription().subscriptionId
+  }
+}
+resource tenantIdSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
+  name: 'AppSettings:Core:Azure:Crawler:TenantId'
+  parent: appConfig
+  properties: {
+    value: subscription().tenantId
+  }
+}
+
 // Assign Data Plane Role
 resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   name: guid(appConfig.id, deployer().objectId, consts.appConfigurationDataReader) // 'Contributor' role ID

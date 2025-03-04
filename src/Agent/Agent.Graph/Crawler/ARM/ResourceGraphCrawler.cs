@@ -23,30 +23,36 @@ namespace Agent.Graph.Crawler.ARM
             _graphClient = graphClient;
         }
 
-        public async Task Crawl(IList<ArmResourceNode> nodes)
+        public async Task Crawl(IList<ArmResourceNode> nodes, CancellationToken? cancellationToken = null)
         {
-            HashSet<string> crawled = new();
-            Queue<ArmResourceNode> toCrawl = new();
-
-            foreach (var node in nodes)
+            try
             {
-                toCrawl.Enqueue(node);
-            }
+                HashSet<string> crawled = new();
+                Queue<ArmResourceNode> toCrawl = new();
 
-            while (toCrawl.TryDequeue(out var node))
+                foreach (var node in nodes)
+                {
+                    toCrawl.Enqueue(node);
+                }
+
+                while (toCrawl.TryDequeue(out var node))
+                {
+                    if (crawled.Contains(node.GetHashString()))
+                    {
+                        continue;
+                    }
+                    crawled.Add(node.GetHashString());
+                    var crawler = _factory.CreateFromNode(node, _dbManager, _graphClient);
+                    await foreach(var n in crawler.Crawl(node))
+                    {
+                        toCrawl.Enqueue(n);
+                    }
+                }
+                _logger.LogDebug($"Done crawling");
+            } catch (Exception ex)
             {
-                if (crawled.Contains(node.GetHashString()))
-                {
-                    continue;
-                }
-                crawled.Add(node.GetHashString());
-                var crawler = _factory.CreateFromNode(node, _dbManager, _graphClient);
-                await foreach(var n in crawler.Crawl(node))
-                {
-                    toCrawl.Enqueue(n);
-                }
+                _logger.LogError(ex, "Error crawling resources");
             }
-            _logger.LogInformation($"Done crawling");
         }
     }
 }

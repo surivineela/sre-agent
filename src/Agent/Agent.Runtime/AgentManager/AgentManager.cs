@@ -15,6 +15,7 @@ using Agent.Plugins.PeriodicMonitor;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.Models;
+using Agent.Graph.Crawler.ARM;
 
 namespace Agent.Runtime.Services
 {
@@ -65,6 +66,9 @@ namespace Agent.Runtime.Services
                 .AddTransient<Kernel>(sp => new Kernel(sp))
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
+                .AddSingleton<AzureResourceGraphClient>()
+                .AddSingleton<ArmResourceCrawlerFactory>()
+                .AddSingleton<ResourceGraphCrawler>()
                 .AddSingleton<SubscriptionPluginDefinition>()
                 .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
                 .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()

@@ -22,7 +22,7 @@ registerFeature
 registerProvider
 
 if [ "$useStack" == true ]; then
-    echo "Creating deployment with name $DEPLOYMENT_NAME..."
+    echo "Creating deployment stack with name $DEPLOYMENT_NAME..."
     az stack sub create \
         --name "$DEPLOYMENT_NAME" \
         --template-file "$TEMPLATE_FILE" \
@@ -32,7 +32,7 @@ if [ "$useStack" == true ]; then
         --deny-settings-mode none \
         --yes
 else
-    echo "Creating deployment stack with name $DEPLOYMENT_NAME..."
+    echo "Creating deployment with name $DEPLOYMENT_NAME..."
     subId=$(az account show --query id -o tsv)
     echo "You can check deployment status here: https://ms.portal.azure.com/#@microsoft.onmicrosoft.com/resource/subscriptions/$subId/resourceGroups/$RG_NAME/deployments"
     az deployment sub create \

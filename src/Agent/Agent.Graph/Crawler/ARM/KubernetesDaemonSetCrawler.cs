@@ -25,7 +25,7 @@ namespace Agent.Graph.Crawler.ARM
 
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)
         {
-            _logger.LogInformation($"Crawling Kubernetes DaemonSets in cluster: {clusterNode.ResourceId}");
+            _logger.LogDebug($"Crawling Kubernetes DaemonSets in cluster: {clusterNode.ResourceId}");
 
             var daemonSets = await _k8sClient.AppsV1.ListDaemonSetForAllNamespacesAsync(
                 allowWatchBookmarks: false,
@@ -93,7 +93,7 @@ namespace Agent.Graph.Crawler.ARM
 
                 await _dbManager.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
                 await _dbManager.AddEdgeIfNotExistsAsync(workloadNode.GetNodeId(), sqlNode.GetNodeId(), "SQL_CONNECTED");
-                _logger.LogInformation($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
+                _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
                 return sqlNode;
             }
             catch (Exception ex)

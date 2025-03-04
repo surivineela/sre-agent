@@ -11,13 +11,26 @@ namespace Agent.Runtime
 {
     public static class HostApplicationBuilderExtensions
     {
-        public static void LoadAppSettings(this IHostApplicationBuilder builder)
+        private static bool _localConfigLoaded = false;
+
+        public static void LoadLocalAppSettings(this IHostApplicationBuilder builder)
         {
             builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
-                .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); //load local settings
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
+            .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
+            .AddEnvironmentVariables();
 
-            if (builder.Environment.IsDevelopment())
+            _localConfigLoaded = true;
+        }
+
+        public static void LoadAppSettings(this IHostApplicationBuilder builder, bool loadFromAzureAppConfig = true)
+        {
+            if (!_localConfigLoaded)
+            {
+                builder.LoadLocalAppSettings();
+            }
+
+            if (loadFromAzureAppConfig)
             {
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {
@@ -35,9 +48,10 @@ namespace Agent.Runtime
                     {
                         options.SetCredential(cred);
                     });
-                }).AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
+                });
             }
 
+            builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
             builder.Configuration.AddEnvironmentVariables();
         }
 
@@ -59,7 +73,11 @@ namespace Agent.Runtime
                         var memberError = string.Join(", ", memberErrors);
                         stringErrors.Add(memberError);
                     }
-                    throw new Exception($"AppSettings validation failed: {string.Join("\n", stringErrors)}");
+                    throw new Exception(
+                        @$"AppSettings validation failed: {string.Join("\n", stringErrors)}
+If you have not already, try running the private environment deployment script again in case any settings have been added.
+Otherwise, there may be required settings which are not auto-populated by the private deployment script."
+                    );
                 }
 
                 return settings;
@@ -72,9 +90,10 @@ namespace Agent.Runtime
             where TAppSettings : AppSettings
         {
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure);
-            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.OpenAI);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.Crawler);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.CosmosDB.Graph);
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure.OpenAI);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GitHub);

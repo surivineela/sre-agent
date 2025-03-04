@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-	<PackageReference Include="Azure.AI.OpenAI" Version="2.2.0-beta.1" />
-    <PackageReference Include="ScottPlot" Version="5.0.54" />
-	<PackageReference Include="Microsoft.SemanticKernel" Version="1.37.0" />
-	<PackageReference Include="Microsoft.SemanticKernel.Abstractions" Version="1.37.0" />
-	<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" Version="1.37.0" />
-    <PackageReference Include="Octokit" Version="14.0.0" />
+	  <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="ScottPlot" />
+    <PackageReference Include="Microsoft.SemanticKernel" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
+    <PackageReference Include="Octokit" />
   </ItemGroup>
 
   <ItemGroup>

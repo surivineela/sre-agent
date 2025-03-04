@@ -37,7 +37,7 @@ namespace Agent.Graph.Crawler.ARM
 
         public virtual async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
-            _logger.LogInformation($"Crawling generic ARM resource {node.ResourceId}");
+            _logger.LogDebug($"Crawling generic ARM resource {node.ResourceId}");
             if(node.ResourceType.Contains("Microsoft.ContainerService/DaemonSet") || node.ResourceType.Contains("Microsoft.ContainerService/Deployment"))
             {
                 yield break;
@@ -108,7 +108,7 @@ namespace Agent.Graph.Crawler.ARM
                 var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
                 foreach (var link in Tranverse(jsonObj))
                 {
-                    _logger.LogInformation($"Find linked resource: {link.ResourceId}");
+                    _logger.LogDebug($"Find linked resource: {link.ResourceId}");
                     await _dbManager.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
                     await _dbManager.AddEdgeIfNotExistsAsync(node.GetNodeId(), link.GetNodeId(), "LINKED");
                     yield return link;

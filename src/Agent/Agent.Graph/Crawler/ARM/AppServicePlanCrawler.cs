@@ -22,7 +22,7 @@ namespace Agent.Graph.Crawler.ARM
 
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
-            _logger.LogInformation($"Crawling App Service Plan {node.ResourceId}");
+            _logger.LogDebug($"Crawling App Service Plan {node.ResourceId}");
 
             // Simply add or update the node in the graph.
             await _dbManager.AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());

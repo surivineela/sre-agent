@@ -33,7 +33,7 @@ namespace Agent.Graph.Crawler.ARM
 
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)
         {
-            _logger.LogInformation($"Crawling Kubernetes Deployments in cluster: {clusterNode.ResourceId}");
+            _logger.LogDebug($"Crawling Kubernetes Deployments in cluster: {clusterNode.ResourceId}");
 
             V1DeploymentList deployments = null;
             try
@@ -186,7 +186,7 @@ namespace Agent.Graph.Crawler.ARM
                     sqlNode.GetNodeId(),
                     "SQL_CONNECTED");
 
-                _logger.LogInformation($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
+                _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
                 return sqlNode;
             }
             catch (Exception ex)

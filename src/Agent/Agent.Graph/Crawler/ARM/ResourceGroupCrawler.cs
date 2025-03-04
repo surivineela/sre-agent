@@ -29,7 +29,7 @@ namespace Agent.Graph.Crawler.ARM
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             var rgNode = (ResourceGroupNode)node;
-            _logger.LogInformation($"Crawling resource group {rgNode.ResourceGroupName}");
+            _logger.LogDebug($"Crawling resource group {rgNode.ResourceGroupName}");
 
             await _dbManager.AddOrUpdateNodeAsync(
                 rgNode.GetNodeLabel(),
@@ -41,7 +41,7 @@ namespace Agent.Graph.Crawler.ARM
             var managedEnvsQuery = await _graphClient.Query(
                 new[] { rgNode.SubscriptionId },
                 $"Resources | where type =~ 'Microsoft.App/managedEnvironments' and resourceGroup =~ '{rgNode.ResourceGroupName}' | project id, type, subscriptionId, resourceGroup, name, location");
-            _logger.LogInformation($"Found {managedEnvsQuery.Count} container app environments under {rgNode.ResourceGroupName}");
+            _logger.LogDebug($"Found {managedEnvsQuery.Count} container app environments under {rgNode.ResourceGroupName}");
             var managedEnvsJson = JsonSerializer.Deserialize<JsonElement>(managedEnvsQuery.Data);
             foreach (var item in managedEnvsJson.EnumerateArray())
             {
@@ -60,7 +60,7 @@ namespace Agent.Graph.Crawler.ARM
             var appServicePlansQuery = await _graphClient.Query(
                 new[] { rgNode.SubscriptionId },
                 $"Resources | where type =~ 'Microsoft.Web/serverFarms' and resourceGroup =~ '{rgNode.ResourceGroupName}'  | project id, type, subscriptionId, resourceGroup, name, location");
-            _logger.LogInformation($"Found {appServicePlansQuery.Count} app service plans under {rgNode.ResourceGroupName}");
+            _logger.LogDebug($"Found {appServicePlansQuery.Count} app service plans under {rgNode.ResourceGroupName}");
             var plansJson = JsonSerializer.Deserialize<JsonElement>(appServicePlansQuery.Data);
             foreach (var item in plansJson.EnumerateArray())
             {
@@ -83,7 +83,7 @@ namespace Agent.Graph.Crawler.ARM
                 "| extend serverFarmId = tostring(properties.serverFarmId), virtualNetworkSubnetId = tostring(properties.virtualNetworkSubnetId) " +
                 "| project id, type, subscriptionId, resourceGroup, name, location, serverFarmId, virtualNetworkSubnetId");
 
-            _logger.LogInformation($"Found {webAppsQuery.Count} web apps under {rgNode.SubscriptionId}");
+            _logger.LogDebug($"Found {webAppsQuery.Count} web apps under {rgNode.SubscriptionId}");
             var webAppsJson = JsonSerializer.Deserialize<JsonElement>(webAppsQuery.Data);
             foreach (var item in webAppsJson.EnumerateArray())
             {
@@ -162,7 +162,7 @@ namespace Agent.Graph.Crawler.ARM
             var aksQuery = await _graphClient.Query(
                 new[] { rgNode.SubscriptionId },
                 $"Resources | where type =~ 'Microsoft.ContainerService/managedClusters' and resourceGroup =~ '{rgNode.ResourceGroupName}'  | project id, type, subscriptionId, resourceGroup, name, location");
-            _logger.LogInformation($"Found {aksQuery.Count} AKS clusters under {rgNode.ResourceGroupName}");
+            _logger.LogDebug($"Found {aksQuery.Count} AKS clusters under {rgNode.ResourceGroupName}");
             var aksJson = JsonSerializer.Deserialize<JsonElement>(aksQuery.Data);
             foreach (var item in aksJson.EnumerateArray())
             {

@@ -35,7 +35,7 @@ namespace Agent.Graph.Crawler.ARM
                 yield return n;
             }
 
-            _logger.LogInformation($"Crawling Container App {node.ResourceId}");
+            _logger.LogDebug($"Crawling Container App {node.ResourceId}");
 
             await _dbManager.AddOrUpdateNodeAsync(
                 node.GetNodeLabel(),

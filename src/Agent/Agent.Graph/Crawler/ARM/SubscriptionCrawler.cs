@@ -52,7 +52,7 @@ namespace Agent.Graph.Crawler.ARM
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             var subNode = (SubscriptionNode)node;
-            _logger.LogInformation($"Crawling for subscription {subNode.SubscriptionId}");
+            _logger.LogDebug($"Crawling for subscription {subNode.SubscriptionId}");
             await _dbManager.AddOrUpdateNodeAsync(subNode.GetNodeLabel(), subNode.GetNodeId(), subNode.GetResourceType(), subNode.GetNodeProperties());
 
             var subArmId = SubscriptionResource.CreateResourceIdentifier(subNode.SubscriptionId);

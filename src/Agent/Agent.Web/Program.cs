@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
@@ -13,18 +14,26 @@ using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
 using Agent.Runtime.Services;
-using Agent.Web;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
+using Serilog;
+using System.Configuration;
+using Agent.Seb.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.LoadAppSettings();
 builder.ValidateAndRegisterAppSettings<AppSettings>();
+
+// Configure logging
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
+    .CreateLogger();
+builder.Host.UseSerilog();
 
 bool useSessionChatService = false;
 if (args.Length > 0)
@@ -44,36 +53,40 @@ if (useSessionChatService)
     builder.Services.AddLogging();
 
     // Register plugins and their dependencies
-    builder.Services.AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
-                   .AddSingleton<SubscriptionPluginDefinition>()
-                   .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
-                   .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
-                   .AddSingleton<GraphDBPluginDefinition>()
-                   .AddSingleton<ITimePlugin, TimePlugin>()
-                   .AddSingleton<TimePluginDefinition>()
-                   .AddSingleton<IMetricsPlugin, MetricsPlugin>()
-                   .AddSingleton<MetricsPluginDefinition>()
-                   .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
-                   .AddSingleton<IMonitorPlugin, MonitorPlugin>()
-                   .AddSingleton<MonitorPluginDefinition>()
-                   .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
-                   .AddSingleton<CurrentStatePluginDefinition>()
-                   .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
-                   .AddSingleton<CodeAnalyzerPluginDefinition>()
-                   .AddSingleton<CodeAnalyzerService>()
-                   .AddSingleton<Agent.Plugins.Models.GitHubClient>()
-                   .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
-                   .AddSingleton<DiagnosePluginDefinition>()
-                   .AddSingleton<IRemediationPlugin, RemediationPlugin>()
-                   .AddSingleton<RemediationPluginDefinition>();
-
-    builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
+    builder.Services
+        .AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5073/") })
+        .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
+        .AddSingleton<SubscriptionPluginDefinition>()
+        .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
+        .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
+        .AddSingleton<GraphDBPluginDefinition>()
+        .AddSingleton<ITimePlugin, TimePlugin>()
+        .AddSingleton<TimePluginDefinition>()
+        .AddSingleton<IMetricsPlugin, MetricsPlugin>()
+        .AddSingleton<MetricsPluginDefinition>()
+        .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
+        .AddSingleton<IMonitorPlugin, MonitorPlugin>()
+        .AddSingleton<MonitorPluginDefinition>()
+        .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
+        .AddSingleton<CurrentStatePluginDefinition>()
+        .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
+        .AddSingleton<CodeAnalyzerPluginDefinition>()
+        .AddSingleton<CodeAnalyzerService>()
+        .AddSingleton<Agent.Plugins.Models.GitHubClient>()
+        .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
+        .AddSingleton<DiagnosePluginDefinition>()
+        .AddSingleton<IRemediationPlugin, RemediationPlugin>()
+        .AddSingleton<AzureResourceGraphClient>()
+        .AddSingleton<ArmResourceCrawlerFactory>()
+        .AddSingleton<ResourceGraphCrawler>()
+        .AddSingleton<RemediationPluginDefinition>()
+        .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()
                    .ConfigureAzureOpenAIClient()
                    .ConfigureIChatClient();
-    builder.Services.AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5073/") });
+
     // Register all SubAgent types
     foreach (var agentType in SubAgentDiscovery.DiscoverSubAgentTypes())
     {
@@ -83,6 +96,9 @@ if (useSessionChatService)
     // Add agent manager
     builder.Services.AddSingleton<IAgentManager, AgentManager>();
     builder.Services.AddScoped<IChatService, Agent.Web.Services.SessionChatService>();
+
+    // Kick off subprocesses
+    builder.Services.AddHostedService<TimerService>();
 }
 else
 {

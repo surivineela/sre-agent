@@ -31,7 +31,7 @@ namespace Agent.Graph.Crawler.ARM
                 yield return n;
             }
 
-            _logger.LogInformation($"Crawling App Service {node.ResourceId}");
+            _logger.LogDebug($"Crawling App Service {node.ResourceId}");
 
             await _dbManager.AddOrUpdateNodeAsync(
                 node.GetNodeLabel(),
@@ -76,7 +76,7 @@ namespace Agent.Graph.Crawler.ARM
                     appServicePlanNode.GetNodeId(),
                     "HOSTED_ON");
 
-                _logger.LogInformation($"Created bidirectional edges between App Service {node.ResourceId} and App Service Plan {webApp.Data.AppServicePlanId}");
+                _logger.LogDebug($"Created bidirectional edges between App Service {node.ResourceId} and App Service Plan {webApp.Data.AppServicePlanId}");
 
                 yield return appServicePlanNode;
             }
@@ -193,7 +193,7 @@ namespace Agent.Graph.Crawler.ARM
                         sqlNode.GetNodeId(),
                         "SQL_CONNECTED");
 
-                    _logger.LogInformation($"Linked App Service {appServiceNode.ResourceId} with SQL resource");
+                    _logger.LogDebug($"Linked App Service {appServiceNode.ResourceId} with SQL resource");
                     return sqlNode;
                 }
             }
@@ -229,7 +229,7 @@ namespace Agent.Graph.Crawler.ARM
                         redisNode.GetNodeId(),
                         "REDIS_CONNECTED");
 
-                    _logger.LogInformation($"Linked App Service {appServiceNode.ResourceId} with Redis resource");
+                    _logger.LogDebug($"Linked App Service {appServiceNode.ResourceId} with Redis resource");
                     return redisNode;
                 }
             }
@@ -281,7 +281,7 @@ namespace Agent.Graph.Crawler.ARM
                     serverBaseName = serverBaseName.Substring(0, serverBaseName.Length - azureSqlSuffix.Length);
                 }
 
-                _logger.LogInformation($"Parsed SQL server name: {serverName}, Database: {database}");
+                _logger.LogDebug($"Parsed SQL server name: {serverName}, Database: {database}");
 
                 var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/"+workloadNode.SubscriptionId));
                 await foreach (var server in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Sql/servers'"))
@@ -307,7 +307,7 @@ namespace Agent.Graph.Crawler.ARM
                             sqlNode.GetNodeId(),
                             "SQL_CONNECTED");
 
-                        _logger.LogInformation($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
+                        _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
                         return sqlNode;
                     }
                 }

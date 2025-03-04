@@ -45,7 +45,7 @@ namespace Agent.Graph.Crawler.ARM
                     serverName = serverName.Substring(0, serverName.Length - redisSuffix.Length);
                 }
 
-                _logger.LogInformation($"Parsed Redis server name: {serverName}");
+                _logger.LogDebug($"Parsed Redis server name: {serverName}");
 
                 var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/"+workloadNode.SubscriptionId));
                 await foreach (var cache in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Cache/redis'"))
@@ -66,7 +66,7 @@ namespace Agent.Graph.Crawler.ARM
                             redisNode.GetResourceType(),
                             redisNode.GetNodeProperties());
 
-                        _logger.LogInformation($"Found Redis cache {redisResourceId}");
+                        _logger.LogDebug($"Found Redis cache {redisResourceId}");
                         return redisNode;
                     }
                 }

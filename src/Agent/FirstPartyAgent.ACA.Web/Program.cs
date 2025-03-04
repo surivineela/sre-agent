@@ -17,7 +17,7 @@ public class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        builder.LoadAppSettings();
+        builder.LoadAppSettings(builder.Environment.IsDevelopment());
         builder.ValidateAndRegisterAppSettings<FirstPartyAgentAppSettings>();
 
         builder.Services.RegisterFirstPartyAppSettings();

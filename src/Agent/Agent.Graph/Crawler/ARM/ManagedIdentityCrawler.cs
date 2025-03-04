@@ -27,7 +27,7 @@ namespace Agent.Graph.Crawler.ARM
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             var identityNode = (ManagedIdentityNode)node;
-            _logger.LogInformation($"Crawling managed identity {identityNode.ResourceId}");
+            _logger.LogDebug($"Crawling managed identity {identityNode.ResourceId}");
 
             var identityId = ResourceGroupResource.CreateResourceIdentifier(identityNode.SubscriptionId, identityNode.ResourceGroupName);
             var rgResource = _armClient.GetResourceGroupResource(identityId);
@@ -74,7 +74,7 @@ namespace Agent.Graph.Crawler.ARM
             var principalId = identityNode.PrincipalId;
             var queryResult = await _graphClient.Query([], $"authorizationresources|where properties.principalId == '{principalId}'| project roleId=tostring(properties.roleDefinitionId), scope=tostring(properties.scope)");
 
-            _logger.LogInformation($"Find {queryResult.Count} explicit role assignments on for {identityNode.ResourceId}");
+            _logger.LogDebug($"Find {queryResult.Count} explicit role assignments on for {identityNode.ResourceId}");
             var jsonObj = JsonSerializer.Deserialize<JsonElement>(queryResult.Data);
             foreach (var item in jsonObj.EnumerateArray())
             {

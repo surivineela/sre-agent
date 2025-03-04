@@ -37,7 +37,7 @@ public class SqlConnectionStringHelper
                 serverName = serverName.Substring(0, commaIndex);
             }
 
-            _logger.LogInformation($"Parsed SQL server name: {serverName}, Database: {database}");
+            _logger.LogDebug($"Parsed SQL server name: {serverName}, Database: {database}");
 
             // Use the Azure Resource Graph / ARM client to find the SQL Server resource.
             // For this example, we list SQL servers in the subscription of the workload node.
@@ -59,7 +59,7 @@ public class SqlConnectionStringHelper
                     await dbManager.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
                     await dbManager.AddEdgeIfNotExistsAsync(workloadNode.GetNodeId(), sqlNode.GetNodeId(), "SQL_CONNECTED");
 
-                    _logger.LogInformation($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
+                    _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
                     return sqlNode;
                 }
             }

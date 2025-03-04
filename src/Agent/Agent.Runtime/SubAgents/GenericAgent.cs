@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
@@ -23,12 +24,24 @@ namespace Agent.Runtime.SubAgents
         protected ICurrentStatePlugin _currentStatePlugin { get; }
 
         protected ICodeAnalyzerPlugin _codeAnalyzerPlugin { get; }
-        
+
         protected IRemediationPlugin _remediationPlugin { get; }
+
+        protected ResourceGraphCrawler _crawler { get; }
 
         protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
-        public GenericAgent(ISubscriptionPlugin subscriptionPlugin, ITimePlugin timePlugin, ICodeAnalyzerPlugin codeAnalyzerPlugin, IMonitorPlugin monitorPlugin, ICurrentStatePlugin currentStatePlugin, IChatClient chatClient, IRemediationPlugin remediationPlugin, ILogger<GenericAgent> logger) : base("GenericAgent", chatClient)
+        public GenericAgent(
+            ISubscriptionPlugin subscriptionPlugin,
+            ITimePlugin timePlugin,
+            ICodeAnalyzerPlugin codeAnalyzerPlugin,
+            IMonitorPlugin monitorPlugin,
+            ICurrentStatePlugin currentStatePlugin,
+            IChatClient chatClient,
+            IRemediationPlugin remediationPlugin,
+            ResourceGraphCrawler crawler,
+            ILogger<GenericAgent> logger)
+            : base("GenericAgent", chatClient)
         {
             _logger = logger;
             _subscriptionPlugin = subscriptionPlugin;
@@ -37,6 +50,7 @@ namespace Agent.Runtime.SubAgents
             _monitorPlugin = monitorPlugin;
             _currentStatePlugin = currentStatePlugin;
             _remediationPlugin = remediationPlugin;
+            _crawler = crawler;
         }
 
         public override IList<AITool> Tools()
