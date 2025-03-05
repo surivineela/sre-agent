@@ -8,11 +8,11 @@ namespace Agent.Web.Services
 {
     public interface IChatHistoryStorage
     {
-        Task<List<ChatMessage>> GetChatHistoryAsync(string threadId, string? agentType = null);
-        Task AddMessageAsync(string threadId, ChatMessage message, string agentType);
-        Task<bool> ThreadExistsAsync(string threadId);
-        Task<List<string>> GetThreadIdsAsync();
-        Task<DateTime?> GetLastMessageTimestampAsync(string threadId);
+        Task<List<ChatMessage>> GetChatHistoryAsync(string chatId, string? agentType = null);
+        Task AddMessageAsync(string chatId, ChatMessage message, string agentType);
+        Task<bool> ThreadExistsAsync(string chatId);
+        Task<List<string>> GetChatIdsAsync();
+        Task<DateTime?> GetLastMessageTimestampAsync(string chatId);
     }
 
     public class ChatHistoryStorage : IChatHistoryStorage
@@ -27,16 +27,16 @@ namespace Agent.Web.Services
             public string AgentType { get; set; }
         }
 
-        public Task<List<ChatMessage>> GetChatHistoryAsync(string threadId, string? agentType = null)
+        public Task<List<ChatMessage>> GetChatHistoryAsync(string chatId, string? agentType = null)
         {
             lock (_lock)
             {
-                if (string.IsNullOrEmpty(threadId) || !_threadHistory.ContainsKey(threadId))
+                if (string.IsNullOrEmpty(chatId) || !_threadHistory.ContainsKey(chatId))
                 {
                     return Task.FromResult(new List<ChatMessage>());
                 }
 
-                var messages = _threadHistory[threadId];
+                var messages = _threadHistory[chatId];
 
                 // If Meta agent is requested, return all messages from Meta agent only
                 if (string.IsNullOrEmpty(agentType) || agentType.ToLower() == "meta")
@@ -67,21 +67,21 @@ namespace Agent.Web.Services
             }
         }
 
-        public Task AddMessageAsync(string threadId, ChatMessage message, string agentType)
+        public Task AddMessageAsync(string chatId, ChatMessage message, string agentType)
         {
             lock (_lock)
             {
-                if (string.IsNullOrEmpty(threadId))
+                if (string.IsNullOrEmpty(chatId))
                 {
-                    throw new ArgumentException("ThreadId cannot be null or empty", nameof(threadId));
+                    throw new ArgumentException("ChatId cannot be null or empty", nameof(chatId));
                 }
 
-                if (!_threadHistory.ContainsKey(threadId))
+                if (!_threadHistory.ContainsKey(chatId))
                 {
-                    _threadHistory[threadId] = new List<ChatMessageWithAgent>();
+                    _threadHistory[chatId] = new List<ChatMessageWithAgent>();
                 }
 
-                _threadHistory[threadId].Add(new ChatMessageWithAgent
+                _threadHistory[chatId].Add(new ChatMessageWithAgent
                 {
                     Message = message,
                     AgentType = agentType
@@ -91,15 +91,15 @@ namespace Agent.Web.Services
             }
         }
 
-        public Task<bool> ThreadExistsAsync(string threadId)
+        public Task<bool> ThreadExistsAsync(string chatId)
         {
             lock (_lock)
             {
-                return Task.FromResult(!string.IsNullOrEmpty(threadId) && _threadHistory.ContainsKey(threadId));
+                return Task.FromResult(!string.IsNullOrEmpty(chatId) && _threadHistory.ContainsKey(chatId));
             }
         }
 
-        public Task<List<string>> GetThreadIdsAsync()
+        public Task<List<string>> GetChatIdsAsync()
         {
             lock (_lock)
             {
@@ -107,16 +107,16 @@ namespace Agent.Web.Services
             }
         }
 
-        public Task<DateTime?> GetLastMessageTimestampAsync(string threadId)
+        public Task<DateTime?> GetLastMessageTimestampAsync(string chatId)
         {
             lock (_lock)
             {
-                if (string.IsNullOrEmpty(threadId) || !_threadHistory.ContainsKey(threadId) || !_threadHistory[threadId].Any())
+                if (string.IsNullOrEmpty(chatId) || !_threadHistory.ContainsKey(chatId) || !_threadHistory[chatId].Any())
                 {
                     return Task.FromResult<DateTime?>(null);
                 }
 
-                return Task.FromResult<DateTime?>(_threadHistory[threadId].Last().Message.Timestamp);
+                return Task.FromResult<DateTime?>(_threadHistory[chatId].Last().Message.Timestamp);
             }
         }
     }

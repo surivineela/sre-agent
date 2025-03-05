@@ -18,6 +18,8 @@ namespace Agent.Core.Configuration
         [Required]
         public bool OpenSupportTickets { get; set; }
 
+        public string ManagedIdentityClientId { get; set; }
+
         [Required]
         public CosmosDBSettings CosmosDB { get; set; } = new();
 

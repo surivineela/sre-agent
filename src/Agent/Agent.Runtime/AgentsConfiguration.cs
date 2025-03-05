@@ -1,6 +1,8 @@
 using System.ComponentModel;
 using Agent.Core.Configuration;
 using Agent.Runtime.SubAgents;
+using Agent.Core;
+using Agent.Core.Models;
 using Azure.AI.OpenAI;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.AI;
@@ -122,28 +124,41 @@ namespace Agent.Runtime
     public class MetaAgentPlugin
     {
         ILogger<MetaAgentPlugin> _logger;
-        IChatClient _chatClient;
         ArchitectureAgent _badArchitectureAgent;
         GenericAgent _genericAgent;
         LogsAndMetricsAgent _logsAndMetricsAgent;
-        IHttpContextAccessor _httpContextAccessor;
+        DiagnosticAgent _diagnosticAgent;
 
-        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent, LogsAndMetricsAgent logsAndMetricsAgent, IHttpContextAccessor httpContextAccessor)
+        GraphDBQueryAgent _graphDBQueryAgent;
+        IHttpContextAccessor _httpContextAccessor;
+        private ChatHistory _currentChatHistory;
+        private const string LastRespondingAgentKey = "LastRespondingAgent";
+
+        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent, LogsAndMetricsAgent logsAndMetricsAgent, DiagnosticAgent diagnosticAgent, GraphDBQueryAgent graphDBQueryAgent, IHttpContextAccessor httpContextAccessor)
         {
-            _chatClient = chatClient;
             _logger = logger;
             _badArchitectureAgent = badArchitectureAgent;
             _genericAgent = genericAgent;
             _logsAndMetricsAgent = logsAndMetricsAgent;
+            _diagnosticAgent = diagnosticAgent;
+            _graphDBQueryAgent = graphDBQueryAgent;
             _httpContextAccessor = httpContextAccessor;
+            _currentChatHistory = new ChatHistory();
         }
 
-        [KernelFunction("launch_architecture_agent")]
+        public void UpdateChatHistory(ChatHistory history)
+        {
+            _currentChatHistory = history;
+        }
+
+        [KernelFunction("architecture_agent")]
         [Description("This agent will answer questions relating to the architecture of a service.")]
-        public async Task<string> LaunchBadArchitectureAgentAsync(string question)
+        public async Task<string> LaunchBadArchitectureAgentAsync(
+             [Description("The question to ask the agent, please include the brief summary to the chat history but be accurate for information like 'id', 'name', 'type', 'url', 'timestamp', etc that directly helps to query from external system.")]
+             string question)
         {
             _logger.LogInformation("Invoking architecture agent");
-            string answer = await _badArchitectureAgent.Ask(question);
+            string answer = await _badArchitectureAgent.Ask(question, _currentChatHistory);
             _logger.LogInformation($"Architecture agent responded with: {answer}");
 
             if (_httpContextAccessor?.HttpContext?.Items != null)
@@ -154,36 +169,148 @@ namespace Agent.Runtime
             return answer;
         }
 
-        [KernelFunction("launch_generic_agent")]
+        [KernelFunction("generic_agent")]
         [Description("If you can't find a better agent, try this agent")]
-        public async Task<string> LaunchGenericAgentAsync(string question)
+        public async Task<string> LaunchGenericAgentAsync(
+             [Description("The question to ask the agent, please include the brief summary to the chat history but be accurate for information like 'id', 'name', 'type', 'url', 'timestamp', etc that directly helps to query from external system.")]
+            string question)
         {
             _logger.LogInformation("Invoking generic agent");
-            string answer = await _genericAgent.Ask(question);
+
+            // Pass the current chat history to the subagent
+            string answer = await _genericAgent.Ask(question, _currentChatHistory);
+
             _logger.LogInformation($"Generic agent responded with: {answer}");
 
             if (_httpContextAccessor?.HttpContext?.Items != null)
             {
-                _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "Generic";
+                const string AgentType = "Generic";
+
+                _logger.LogInformation($"Setting {LastRespondingAgentKey} to '{AgentType}'");
+                _httpContextAccessor.HttpContext.Items[LastRespondingAgentKey] = AgentType;
+            }
+            else
+            {
+                _logger.LogWarning("HttpContextAccessor or HttpContext is null, cannot set LastRespondingAgent");
             }
 
             return answer;
         }
 
-        [KernelFunction("analyze_logs_and_metrics")]
-        [Description("This agent will answer questions relating to logs and metrics of a service.")]
-        public async Task<string> LaunchLogsAndMetricsAgentAsync(string question)
+        [KernelFunction("logs_and_metrics_agent")]
+        [Description("This agent will answer questions relating to fetch and analyze logs and metrics of a service.")]
+        public async Task<string> LaunchLogsAndMetricsAgentAsync(
+             [Description("The question to ask the agent, please include the brief summary to the chat history but be accurate for information like 'id', 'name', 'type', 'url', 'timestamp', etc that directly helps to query from external system.")]
+            string question)
         {
             _logger.LogInformation("Invoking LogsAndMetrics agent");
-            string answer = await _logsAndMetricsAgent.Ask(question);
+
+            // Pass the current chat history to the subagent
+            string answer = await _logsAndMetricsAgent.Ask(question, _currentChatHistory);
+
             _logger.LogInformation($"LogsAndMetrics agent responded with: {answer}");
 
             if (_httpContextAccessor?.HttpContext?.Items != null)
             {
-                _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "LogsAndMetrics";
+                const string AgentType = "LogsAndMetrics";
+
+                _logger.LogInformation($"Setting {LastRespondingAgentKey} to '{AgentType}'");
+                _httpContextAccessor.HttpContext.Items[LastRespondingAgentKey] = AgentType;
+            }
+            else
+            {
+                _logger.LogWarning("HttpContextAccessor or HttpContext is null, cannot set LastRespondingAgent");
             }
 
             return answer;
         }
+
+        [KernelFunction("diagnose_agent")]
+        [Description("This agent will answer questions relating to the diagnosis of a service.")]
+        public async Task<string> LaunchDiagnosticAgentAsync(
+             [Description("The question to ask the agent, please include the brief summary to the chat history but be accurate for information like 'id', 'name', 'type', 'url', 'timestamp', etc that directly helps to query from external system.")]
+            string question)
+        {
+            _logger.LogInformation("Invoking Diagnostic agent");
+
+            // Pass the current chat history to the subagent
+            string answer = await _diagnosticAgent.Ask(question, _currentChatHistory);
+
+            _logger.LogInformation($"Diagnostic agent responded with: {answer}");
+
+            if (_httpContextAccessor?.HttpContext?.Items != null)
+            {
+                const string AgentType = "Diagnostic";
+
+                _logger.LogInformation($"Setting {LastRespondingAgentKey} to '{AgentType}'");
+                _httpContextAccessor.HttpContext.Items[LastRespondingAgentKey] = AgentType;
+            }
+            else
+            {
+                _logger.LogWarning("HttpContextAccessor or HttpContext is null, cannot set LastRespondingAgent");
+            }
+
+            return answer;
+        }
+
+        [KernelFunction("graphdbquery_agent")]
+        [Description("This agent will answer questions relating to the graph database.")]
+        public async Task<string> LaunchGraphDBQueryAgentAsync(
+             [Description("The question to ask the agent, please include the brief summary to the chat history but be accurate for information like 'id', 'name', 'type', 'url', 'timestamp', etc that directly helps to query from external system.")]
+            string question)
+        {
+            _logger.LogInformation("Invoking GraphDBQuery agent");
+
+            // Pass the current chat history to the subagent
+            string answer = await _graphDBQueryAgent.Ask(question, _currentChatHistory);
+
+            _logger.LogInformation($"GraphDBQuery agent responded with: {answer}");
+
+            if (_httpContextAccessor?.HttpContext?.Items != null)
+            {
+                const string AgentType = "GraphDBQuery";
+
+                _logger.LogInformation($"Setting {LastRespondingAgentKey} to '{AgentType}'");
+                _httpContextAccessor.HttpContext.Items[LastRespondingAgentKey] = AgentType;
+            }
+            else
+            {
+                _logger.LogWarning("HttpContextAccessor or HttpContext is null, cannot set LastRespondingAgent");
+            }
+
+            return answer;
+        }
+    }
+}
+
+public class ApprovalPlugin
+{
+    [KernelFunction("start_approval_process")]
+    [Description("To start a new approval process for user to approve a specific remediation operation for a given resource.")]
+    public ApprovalStatus StartApprovalProcess(
+        [Description("The resource ID of the App Service.")]
+        string resourceId,
+        [Description("The name of remediation operation that to be approved.")]
+        string operationName,
+        [Description("The concise description of what the operation is doing to be displayed on the approval page")]
+        string operationDescription)
+    {
+        var guid = Guid.NewGuid();
+        return GlobalStatic.ApprovalStatus.GetOrAdd(
+            new ApprovalDescriptor(resourceId, operationName),
+            new ApprovalStatus(guid.ToString(), DateTime.Now, null, null, null, operationDescription));
+    }
+
+    [KernelFunction("get_approval_status")]
+    [Description("To get the status of an approval, returns null if the approval process hasn't started.")]
+    public ApprovalStatus? GetApprovalStatus(
+        [Description("The resource ID of the App Service.")]
+        string resourceId,
+        [Description("The name of remediation operation that to be approved.")]
+        string operationName)
+    {
+        return GlobalStatic.ApprovalStatus.TryGetValue(new ApprovalDescriptor(resourceId, operationName), out var status)
+            ? status
+            : null;
     }
 }

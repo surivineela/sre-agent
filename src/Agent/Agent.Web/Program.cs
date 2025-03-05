@@ -23,6 +23,9 @@ using OpenTelemetry.Trace;
 using Serilog;
 using System.Configuration;
 using Agent.Seb.Services;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Connector.Authentication;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -54,7 +57,6 @@ if (useSessionChatService)
 
     // Register plugins and their dependencies
     builder.Services
-        .AddScoped(sp => new HttpClient { BaseAddress = new Uri("http://localhost:5073/") })
         .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
         .AddSingleton<SubscriptionPluginDefinition>()
         .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
@@ -80,17 +82,28 @@ if (useSessionChatService)
         .AddSingleton<ArmResourceCrawlerFactory>()
         .AddSingleton<ResourceGraphCrawler>()
         .AddSingleton<RemediationPluginDefinition>()
-        .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
+        .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>()
+        .AddSingleton<ApprovalPlugin>();
+
+    builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()
                    .ConfigureAzureOpenAIClient()
                    .ConfigureIChatClient();
 
+    // Register HttpClientService and configure HttpClient with proper BaseAddress
+    builder.Services.AddSingleton<HttpClientService>();
+    builder.Services.AddSingleton<HttpClient>(serviceProvider =>
+    {
+        var httpClientService = serviceProvider.GetRequiredService<HttpClientService>();
+        return httpClientService.CreateHttpClient();
+    });
+
     // Register all SubAgent types
     foreach (var agentType in SubAgentDiscovery.DiscoverSubAgentTypes())
     {
-        builder.Services.AddScoped(agentType);
+        builder.Services.AddSingleton(agentType);
     }
 
     // Add agent manager
@@ -99,11 +112,36 @@ if (useSessionChatService)
 
     // Kick off subprocesses
     builder.Services.AddHostedService<TimerService>();
+
+    // Add Teams Connector only if configuration is valid
+    var teamsBotConfig = builder.Configuration.GetSection("TeamsBot").Get<TeamsBotSettings>();
+    bool teamsConfigValid = teamsBotConfig != null &&
+                           !string.IsNullOrEmpty(teamsBotConfig.AppId);
+
+    if (teamsConfigValid)
+    {
+        builder.Configuration["MicrosoftAppType"] = teamsBotConfig.AppType;
+        builder.Configuration["MicrosoftAppId"] = teamsBotConfig.AppId;
+        builder.Configuration["MicrosoftAppPassword"] = teamsBotConfig.PasswordKey;
+        builder.Configuration["MicrosoftAppTenantId"] = teamsBotConfig.TenantId;
+        builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+        builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
+        builder.Services.AddSingleton<IBot, TeamsBot>();
+
+        // Store the flag for later use when mapping endpoints
+        builder.Services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = true });
+    }
+    else
+    {
+        // Log warning about missing Teams configuration
+        Console.WriteLine("Warning: TeamsBot configuration is missing or invalid. Teams integration will be disabled.");
+        builder.Services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = false });
+    }
 }
 else
 {
     SemanticKernelHelper.ConfigService(builder.Services);
-    builder.Services.AddScoped<IChatService, LegacyChatService>();
+    builder.Services.AddSingleton<IChatService, LegacyChatService>();
 }
 
 // Register TeamsConnector service
@@ -136,7 +174,9 @@ app.UseHttpsRedirection();
 // Serve static files from wwwroot
 app.UseStaticFiles();
 app.UseRouting();
+
 app.MapControllers();
+
 app.MapBlazorHub();
 
 // Finally, map the fallback page

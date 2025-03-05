@@ -18,17 +18,17 @@ window.autoAdjustHeight = function (element) {
 };
 
 // Session persistence functions
-window.saveThreadId = function (threadId) {
-    if (threadId) {
-        console.log('Saving thread ID to localStorage:', threadId);
-        localStorage.setItem('currentThreadId', threadId);
+window.saveChatId = function (chatId) {
+    if (chatId) {
+        console.log('Saving thread ID to localStorage:', chatId);
+        localStorage.setItem('currentChatId', chatId);
     }
 };
 
-window.loadThreadId = function () {
-    const threadId = localStorage.getItem('currentThreadId');
-    console.log('Loading thread ID from localStorage:', threadId);
-    return threadId || '';
+window.loadChatId = function () {
+    const chatId = localStorage.getItem('currentChatId');
+    console.log('Loading thread ID from localStorage:', chatId);
+    return chatId || '';
 };
 
 window.saveCurrentPath = function (path) {
@@ -46,7 +46,7 @@ window.loadCurrentPath = function () {
 
 // Clear session data
 window.clearSessionData = function () {
-    localStorage.removeItem('currentThreadId');
+    localStorage.removeItem('currentChatId');
     localStorage.removeItem('currentPath');
     console.log('Cleared session data from localStorage');
     return true;
@@ -94,22 +94,22 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 // Custom dropdown functionality
-window.initializeCustomDropdowns = function() {
+window.initializeCustomDropdowns = function () {
     // Get all dropdown toggles
     const toggles = document.querySelectorAll('.custom-dropdown-toggle');
-    
+
     // Add click handlers to all toggles
     toggles.forEach(toggle => {
-        toggle.addEventListener('click', function(e) {
+        toggle.addEventListener('click', function (e) {
             e.preventDefault();
             e.stopPropagation();
-            
+
             // Get the dropdown menu
             const dropdown = this.nextElementSibling;
-            
+
             // Toggle the 'show' class
             dropdown.classList.toggle('show');
-            
+
             // Close other dropdowns
             toggles.forEach(otherToggle => {
                 if (otherToggle !== toggle) {
@@ -121,9 +121,9 @@ window.initializeCustomDropdowns = function() {
             });
         });
     });
-    
+
     // Close dropdowns when clicking outside
-    document.addEventListener('click', function(e) {
+    document.addEventListener('click', function (e) {
         const dropdowns = document.querySelectorAll('.custom-dropdown-menu');
         dropdowns.forEach(dropdown => {
             if (dropdown.classList.contains('show') && !dropdown.contains(e.target)) {

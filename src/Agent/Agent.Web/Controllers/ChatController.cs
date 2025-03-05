@@ -19,14 +19,14 @@ namespace Agent.Web.Controllers
         }
 
         [HttpGet("GetHistory")]
-        public async Task<IActionResult> GetHistory([FromQuery] string threadId)
+        public async Task<IActionResult> GetHistory([FromQuery] string chatId)
         {
             try
             {
-                if (string.IsNullOrEmpty(threadId))
+                if (string.IsNullOrEmpty(chatId))
                 {
-                    _logger.LogWarning("GetHistory called with null or empty threadId");
-                    return BadRequest("ThreadId is required");
+                    _logger.LogWarning("GetHistory called with null or empty chatId");
+                    return BadRequest("ChatId is required");
                 }
 
                 // Get the agent type from the request header
@@ -34,23 +34,23 @@ namespace Agent.Web.Controllers
                 if (Request.Headers.TryGetValue("AgentType", out var agentTypeValues))
                 {
                     agentType = agentTypeValues.FirstOrDefault();
-                    _logger.LogInformation($"Getting history for thread: {threadId} with agent type: {agentType}");
+                    _logger.LogInformation($"Getting history for thread: {chatId} with agent type: {agentType}");
                 }
                 else
                 {
-                    _logger.LogInformation($"Getting history for thread: {threadId} (no agent type specified)");
+                    _logger.LogInformation($"Getting history for thread: {chatId} (no agent type specified)");
                 }
 
                 // Pass the agent type explicitly to the chat service
                 var historyStorage = HttpContext.RequestServices.GetRequiredService<IChatHistoryStorage>();
-                var history = await historyStorage.GetChatHistoryAsync(threadId, agentType);
+                var history = await historyStorage.GetChatHistoryAsync(chatId, agentType);
 
                 _logger.LogInformation($"Found {history.Count} messages for agent type: {agentType ?? "Meta"}");
                 return Ok(history);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting history for thread {threadId}");
+                _logger.LogError(ex, $"Error getting history for thread {chatId}");
                 return StatusCode(500, $"Error retrieving chat history: {ex.Message}");
             }
         }
@@ -60,12 +60,12 @@ namespace Agent.Web.Controllers
         {
             try
             {
-                if (request == null || string.IsNullOrEmpty(request.ThreadId))
+                if (request == null || string.IsNullOrEmpty(request.ChatId))
                 {
-                    return BadRequest("ThreadId is required");
+                    return BadRequest("ChatID is required");
                 }
 
-                await _chatService.SetThreadAsync(request.ThreadId);
+                await _chatService.SetThreadAsync(request.ChatId);
                 return Ok();
             }
             catch (Exception ex)
@@ -85,7 +85,7 @@ namespace Agent.Web.Controllers
                     return BadRequest("Path is required");
                 }
 
-                await _chatService.SwitchAgent(request.Path, request.ThreadId ?? "");
+                await _chatService.SwitchAgent(request.Path, request.ChatId ?? "");
                 return Ok();
             }
             catch (Exception ex)
@@ -116,13 +116,13 @@ namespace Agent.Web.Controllers
             if (request == null)
                 return BadRequest("Request body was null.");
 
-            // Attempt to create a new thread using the given path and threadId
-            var threadId = await _chatService.CreateThreadAsync(request.Path, request.ThreadId);
-            if (string.IsNullOrEmpty(threadId))
-                return BadRequest("Thread creation failed or returned an empty threadId.");
+            // Attempt to create a new thread using the given path and chatId
+            var chatId = await _chatService.StartThreadAsync(request.Path, request.ChatId);
+            if (string.IsNullOrEmpty(chatId))
+                return BadRequest("Thread creation failed or returned an empty chatId.");
 
             // Return a well-formed JSON response
-            return Ok(new CreateThreadResponse { ThreadId = threadId });
+            return Ok(new CreateThreadResponse { ChatId = chatId });
         }
 
         [HttpPost("ProcessMessage")]
@@ -135,7 +135,7 @@ namespace Agent.Web.Controllers
                     return BadRequest("Message is required");
                 }
 
-                var response = await _chatService.ProcessMessageAsync(request.Message, request.ThreadId);
+                var response = await _chatService.ProcessMessageAsync(request.Message, request.ChatId);
                 return Ok(response);
             }
             catch (Exception ex)
@@ -147,29 +147,29 @@ namespace Agent.Web.Controllers
 
         public class SetThreadRequest
         {
-            public string ThreadId { get; set; } = "";
+            public string ChatId { get; set; } = "";
         }
 
         public class SwitchAgentRequest
         {
             public string Path { get; set; } = "";
-            public string ThreadId { get; set; } = "";
+            public string ChatId { get; set; } = "";
         }
 
         public class CreateThreadRequest
         {
             public string Path { get; set; } = string.Empty;
-            public string ThreadId { get; set; } = string.Empty;
+            public string ChatId { get; set; } = string.Empty;
         }
         public class CreateThreadResponse
         {
-            public string ThreadId { get; set; } = string.Empty;
+            public string ChatId { get; set; } = string.Empty;
         }
 
         public class ProcessMessageRequest
         {
             public string Message { get; set; } = "";
-            public string ThreadId { get; set; } = "";
+            public string ChatId { get; set; } = "";
         }
     }
 }

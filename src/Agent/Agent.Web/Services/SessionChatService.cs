@@ -2,6 +2,8 @@ namespace Agent.Web.Services;
 
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
+using System.Text;
 using System.Threading.Tasks;
 using Agent.Core.Models;
 using Agent.Runtime;
@@ -16,7 +18,7 @@ public class SessionChatService : IChatService
     private readonly IAgentManager _agentManager;
     private readonly IHttpContextAccessor _httpContextAccessor;
     private readonly IChatHistoryStorage _chatHistoryStorage;
-    private string? _currentThreadId;
+    private string? _currentChatId;
     private string _currentPath = "/";
 
     public SessionChatService(
@@ -35,17 +37,17 @@ public class SessionChatService : IChatService
             .Build();
     }
 
-    public async Task SwitchAgent(string path, string threadId)
+    public async Task SwitchAgent(string path, string chatId)
     {
         try
         {
-            _logger.LogInformation($"SwitchAgent called with path: {path}, threadId: {threadId}");
+            _logger.LogInformation($"SwitchAgent called with path: {path}, chatId: {chatId}");
 
-            // Create new thread if threadId is empty
-            if (string.IsNullOrEmpty(threadId))
+            // Create new thread if chatId is empty
+            if (string.IsNullOrEmpty(chatId))
             {
-                threadId = Guid.NewGuid().ToString();
-                _logger.LogInformation($"Created new threadId: {threadId}");
+                chatId = Guid.NewGuid().ToString();
+                _logger.LogInformation($"Created new chatId: {chatId}");
             }
 
             // Normalize path
@@ -55,11 +57,11 @@ public class SessionChatService : IChatService
                 path = "";
             }
             _currentPath = "/" + path;
-            _currentThreadId = threadId;  // Set the current thread ID
+            _currentChatId = chatId;  // Set the current thread ID
 
             _logger.LogInformation($"Chat path set to: {_currentPath}");
 
-            await _agentManager.StartChatThread(_currentPath, threadId);
+            await _agentManager.StartChatThread(_currentPath, chatId);
 
             _logger.LogInformation($"Successfully switched to agent: {path}");
         }
@@ -68,34 +70,34 @@ public class SessionChatService : IChatService
             _logger.LogError(ex, $"Error switching to agent path: {path}. Falling back to root agent.");
             _currentPath = "/";
 
-            // Ensure we have a valid threadId even in error case
-            if (string.IsNullOrEmpty(_currentThreadId))
+            // Ensure we have a valid chatId even in error case
+            if (string.IsNullOrEmpty(_currentChatId))
             {
-                _currentThreadId = Guid.NewGuid().ToString();
+                _currentChatId = Guid.NewGuid().ToString();
             }
 
-            await _agentManager.StartChatThread("/", _currentThreadId);
+            await _agentManager.StartChatThread("/", _currentChatId);
         }
     }
 
-    public async Task<string> CreateThreadAsync(string path, string threadId)
+    public async Task<string> StartThreadAsync(string path, string chatId)
     {
         try
         {
-            // threadId can be empty, in which case a new thread will be created
-            if (string.IsNullOrEmpty(threadId))
+            // chatId can be empty, in which case a new thread will be created
+            if (string.IsNullOrEmpty(chatId))
             {
-                threadId = Guid.NewGuid().ToString();
+                chatId = Guid.NewGuid().ToString();
             }
-            await _agentManager.StartChatThread(path, threadId);
-            _logger.LogInformation($"Created new thread: {threadId} with path: {path}");
-            return threadId;
+            await _agentManager.StartChatThread(path, chatId);
+            _logger.LogInformation($"Created new thread: {chatId} with path: {path}");
+            return chatId;
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error creating thread with path: {path}. Creating with root agent.");
-            await _agentManager.StartChatThread("/", threadId);
-            return threadId;
+            await _agentManager.StartChatThread("/", chatId);
+            return chatId;
         }
     }
 
@@ -116,17 +118,17 @@ public class SessionChatService : IChatService
         return results.ToList();
     }
 
-    public async Task SetThreadAsync(string threadId)
+    public async Task SetThreadAsync(string chatId)
     {
-        if (_currentThreadId == threadId)
+        if (_currentChatId == chatId)
         {
             return;
         }
-        _logger.LogInformation($"Switching to thread: {threadId} from {_currentThreadId}");
-        _currentThreadId = threadId;
+        _logger.LogInformation($"Switching to thread: {chatId} from {_currentChatId}");
+        _currentChatId = chatId;
 
         // Get the thread's associated path from AgentManager
-        var thread = _agentManager.GetChatThreads().FirstOrDefault(t => t.Id == threadId);
+        var thread = _agentManager.GetChatThreads().FirstOrDefault(t => t.Id == chatId);
         if (thread != null && !string.IsNullOrEmpty(thread.AgentType))
         {
             // Convert agent type to path
@@ -135,26 +137,26 @@ public class SessionChatService : IChatService
         }
 
         // Start the chat thread with the current path
-        await _agentManager.StartChatThread(_currentPath, threadId);
+        await _agentManager.StartChatThread(_currentPath, chatId);
     }
 
-    public async Task<string?> GetCurrentThreadIdAsync()
+    public async Task<string?> GetCurrentChatIdAsync()
     {
-        return _currentThreadId;
+        return _currentChatId;
     }
 
-    public async Task<ChatMessage> ProcessMessageAsync(string message, string? threadId)
+    public async Task<ChatMessage> ProcessMessageAsync(string message, string? chatId)
     {
         try
         {
-            // Use provided threadId if available
-            if (!string.IsNullOrEmpty(threadId))
+            // Use provided chatId if available
+            if (!string.IsNullOrEmpty(chatId))
             {
-                _currentThreadId = threadId;
-                _logger.LogInformation($"Using provided threadId: {threadId}");
+                _currentChatId = chatId;
+                _logger.LogInformation($"Using provided chatId: {chatId}");
 
                 // Important: Also set the correct path for this thread
-                var thread = _agentManager.GetChatThreads().FirstOrDefault(t => t.Id == threadId);
+                var thread = _agentManager.GetChatThreads().FirstOrDefault(t => t.Id == chatId);
                 if (thread != null && !string.IsNullOrEmpty(thread.AgentType))
                 {
                     // Convert agent type to path
@@ -164,25 +166,15 @@ public class SessionChatService : IChatService
             }
             else
             {
-                _logger.LogInformation($"No threadId provided, using current threadId: {_currentThreadId}");
+                _logger.LogInformation($"No chatId provided, using current chatId: {_currentChatId}");
             }
 
             _logger.LogInformation($"Processing message for path: {_currentPath}");
 
-            // If we still don't have a threadId, create a new one
-            if (_currentThreadId == null)
-            {
-                _currentThreadId = await CreateThreadAsync(_currentPath, "");
-                _logger.LogInformation($"Created new thread: {_currentThreadId}");
-            }
+            // StartThreadAsync will create new chatId if not exist
+            _currentChatId = await StartThreadAsync(_currentPath, _currentChatId ?? "");
 
             _logger.LogInformation("User > " + message);
-
-            // Make sure we start the chat thread with the CORRECT path
-            if (!string.IsNullOrEmpty(_currentThreadId))
-            {
-                await _agentManager.StartChatThread(_currentPath, _currentThreadId);
-            }
 
             // Create user message
             var userMessage = new ChatMessage
@@ -193,10 +185,10 @@ public class SessionChatService : IChatService
             };
 
             // Always add to Meta agent's history 
-            await _chatHistoryStorage.AddMessageAsync(_currentThreadId, userMessage, "Meta");
+            await _chatHistoryStorage.AddMessageAsync(_currentChatId, userMessage, "Meta");
 
             // Process the message
-            var response = await _agentManager.TrackChatThread(_currentThreadId, message);
+            var response = await _agentManager.TrackChatThread(_currentChatId, message);
 
             _logger.LogInformation("Assistant > " + response.Message);
 
@@ -220,13 +212,13 @@ public class SessionChatService : IChatService
             };
 
             // Add to Meta agent's history
-            await _chatHistoryStorage.AddMessageAsync(_currentThreadId, htmlResponse, "Meta");
+            await _chatHistoryStorage.AddMessageAsync(_currentChatId, htmlResponse, "Meta");
 
             // If a specific sub-agent responded, add to that agent's history too
             if (respondingAgentType != "Meta")
             {
-                await _chatHistoryStorage.AddMessageAsync(_currentThreadId, userMessage, respondingAgentType);
-                await _chatHistoryStorage.AddMessageAsync(_currentThreadId, htmlResponse, respondingAgentType);
+                await _chatHistoryStorage.AddMessageAsync(_currentChatId, userMessage, respondingAgentType);
+                await _chatHistoryStorage.AddMessageAsync(_currentChatId, htmlResponse, respondingAgentType);
             }
 
             return htmlResponse;
@@ -238,7 +230,110 @@ public class SessionChatService : IChatService
         }
     }
 
-    public async Task<List<ChatMessage>> GetChatHistoryAsync(string threadId)
+    public async IAsyncEnumerable<string> ProcessMessageStreamAsync(
+    string message,
+    string? chatId,
+    [EnumeratorCancellation] CancellationToken cancellationToken = default)
+    {
+        // Thread and path handling
+        if (!string.IsNullOrEmpty(chatId))
+        {
+            _currentChatId = chatId;
+            _logger.LogInformation($"Using provided chatId: {chatId}");
+
+            // Set the correct path for this thread
+            var thread = _agentManager.GetChatThreads().FirstOrDefault(t => t.Id == chatId);
+            if (thread != null && !string.IsNullOrEmpty(thread.AgentType))
+            {
+                // Convert agent type to path
+                _currentPath = thread.AgentType.ToLower() == "meta" ? "/" : $"/{thread.AgentType.ToLower()}";
+                _logger.LogInformation($"Setting current path to: {_currentPath} based on agent type: {thread.AgentType}");
+            }
+        }
+        else
+        {
+            _logger.LogInformation($"No chatId provided, using current chatId: {_currentChatId}");
+        }
+
+        _logger.LogInformation($"Processing message for path: {_currentPath}");
+
+        // StartThreadAsync will create new chatId if not exist
+        _currentChatId = await StartThreadAsync(_currentPath, _currentChatId ?? "");
+
+        _logger.LogInformation("User > " + message);
+
+        // Record user message in history
+        var userMessage = new ChatMessage
+        {
+            Message = message,
+            IsUser = true,
+            Timestamp = DateTime.Now
+        };
+
+        // Always add to Meta agent's history 
+        await _chatHistoryStorage.AddMessageAsync(_currentChatId, userMessage, "Meta");
+
+        // Prepare for tracking which agent responds
+        string respondingAgentType = "Meta";
+
+        // Use a StringBuilder to accumulate the complete response
+        StringBuilder responseBuilder = new StringBuilder();
+
+        // Stream each chunk without markdown processing
+        await foreach (var chunk in _agentManager.StreamChatThread(_currentChatId, message, cancellationToken))
+        {
+            // Add to complete response
+            responseBuilder.Append(chunk);
+
+            // Stream chunk without markdown processing
+            yield return chunk;
+        }
+
+        // After streaming is complete, check which agent responded
+        if (_httpContextAccessor?.HttpContext?.Items != null &&
+            _httpContextAccessor.HttpContext.Items.ContainsKey("LastRespondingAgent"))
+        {
+            var respondingAgent = _httpContextAccessor.HttpContext.Items["LastRespondingAgent"]?.ToString();
+
+            // Fix: Ensure we don't get an empty string - print what we're getting for debugging
+            _logger.LogInformation($"Raw LastRespondingAgent value: '{respondingAgent}'");
+
+            if (!string.IsNullOrEmpty(respondingAgent))
+            {
+                respondingAgentType = respondingAgent;
+                _logger.LogInformation($"Message was handled by {respondingAgentType} agent");
+            }
+        }
+        else
+        {
+            _logger.LogWarning("LastRespondingAgent not found in HttpContext.Items");
+        }
+
+        // Convert the full response to markdown for storage
+        string fullResponse = responseBuilder.ToString();
+        string htmlResponse = Markdown.ToHtml(fullResponse, _markdownPipeline);
+
+        // Save the complete response
+        var completeResponse = new ChatMessage
+        {
+            Message = htmlResponse,  // Store as HTML in history
+            IsUser = false,
+            Timestamp = DateTime.Now
+        };
+
+        // Add to Meta agent's history
+        await _chatHistoryStorage.AddMessageAsync(_currentChatId, completeResponse, "Meta");
+
+        // If a specific sub-agent responded, add to that agent's history too
+        if (respondingAgentType != "Meta")
+        {
+            _logger.LogInformation($"Adding message to {respondingAgentType}'s history as well");
+            await _chatHistoryStorage.AddMessageAsync(_currentChatId, userMessage, respondingAgentType);
+            await _chatHistoryStorage.AddMessageAsync(_currentChatId, completeResponse, respondingAgentType);
+        }
+    }
+
+    public async Task<List<ChatMessage>> GetChatHistoryAsync(string chatId)
     {
         // Get the current agent type based on the current path
         string agentType = "Meta";
@@ -247,13 +342,13 @@ public class SessionChatService : IChatService
         {
             // Extract agent type from path
             agentType = _currentPath.TrimStart('/');
-            _logger.LogInformation($"Getting history for thread {threadId} filtered by agent type: {agentType}");
+            _logger.LogInformation($"Getting history for thread {chatId} filtered by agent type: {agentType}");
         }
         else
         {
-            _logger.LogInformation($"Getting all history for thread {threadId} (Meta agent view)");
+            _logger.LogInformation($"Getting all history for thread {chatId} (Meta agent view)");
         }
 
-        return await _chatHistoryStorage.GetChatHistoryAsync(threadId, agentType);
+        return await _chatHistoryStorage.GetChatHistoryAsync(chatId, agentType);
     }
 }

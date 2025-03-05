@@ -1,14 +1,21 @@
-using Agent.Core.Models;
+using System.Collections.Concurrent;
+using System.Runtime.CompilerServices;
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Models;
+using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
+using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime.SubAgents;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
-using Agent.Core.Configuration;
-using Agent.Plugins;
 using Microsoft.SemanticKernel;
-using Agent.Data.DatabaseManagers.GraphDatabase;
 using AIMessage = Microsoft.Extensions.AI.ChatMessage;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.PeriodicMonitor;
@@ -22,7 +29,7 @@ namespace Agent.Runtime.Services
     public class AgentManager : IAgentManager, IDisposable
     {
         private const string ROOT_AGENT_PATH = "/";
-        private readonly Dictionary<string, Session> _sessions = new();
+        private readonly ConcurrentDictionary<string, Session> _sessions = new();
         private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<AgentManager> _logger;
         private readonly Dictionary<string, Type> _subAgentPathMapping;
@@ -89,7 +96,8 @@ namespace Agent.Runtime.Services
                 .AddSingleton<GitHubClient>()
                 .AddSingleton<CodeAnalyzerService>()
                 .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
-                .AddSingleton<RemediationPluginDefinition>() 
+                .AddSingleton<RemediationPluginDefinition>()
+                .AddSingleton<ApprovalPlugin>()
                 // Register all SubAgent types as singletons
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<GraphDBQueryAgent>()
@@ -104,11 +112,14 @@ namespace Agent.Runtime.Services
                 {
                     var agent = new Agent(
                         "main",
-                        @"You are SRE Agent. You must delegate to specific agents based on the question:
-                        - For architecture-related questions, use launch_architecture_agent
-                        - For logs and metrics related questions, use analyze_logs_and_metrics
-                        - For questions that cannot be answered by all other agents, use launch_generic_agent
-                        Always delegate to the appropriate agent rather than trying to answer directly.",
+                        @"You are SRE Agent with a bunch of sub-agents that have specific skills and tools.
+                        You are responsible for planning and use these sub-agents to get detailed information and make final decision.
+                        For these specific sub-agents, you need to invoke registered functions to use them, these functions have one input for question and the output is the answer from subagent to this question. For example:
+                        - logs_and_metrics_agent: it is the sub-agent which contains skill to fetch and analysis logs and metrics.
+                        - diagnose_agent: it is the sub-agent which contains skill to diagnose app service apps.
+                        - generic_agent: it is the most powerful sub-agent for general questions including get approval, get current time, scale/restart appservice, collect memory dump for app service, etc. Always try to ask questions to generic_agent if other agents can't give you the good answer.
+                        You can even ask these sub-agents about what they can do.
+                        Try to ask questions to appropriate sub-agent to gather as more information as possible if you don't have access, permissions or just feel answer is not perfect to user's questions.",
                         s.GetRequiredService<Kernel>(),
                         s.GetRequiredService<OpenAISettings>(),
                         s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
@@ -150,7 +161,7 @@ namespace Agent.Runtime.Services
             return new[] { ROOT_AGENT_PATH }.Concat(_subAgentPathMapping.Keys);
         }
 
-        public Task<string> StartChatThread(string path, string threadId)
+        public Task<string> StartChatThread(string path, string chatId)
         {
             try
             {
@@ -159,9 +170,9 @@ namespace Agent.Runtime.Services
                 Type expectedAgentType = path == ROOT_AGENT_PATH ? typeof(Agent) : _subAgentPathMapping[path];
 
                 // Check if thread exists
-                if (_sessions.TryGetValue(threadId, out var existingSession))
+                if (_sessions.TryGetValue(chatId, out var existingSession))
                 {
-                    _logger.LogInformation($"Found existing thread '{threadId}'");
+                    _logger.LogInformation($"Found existing thread '{chatId}'");
                     session = existingSession;
 
                     // Store the current path in the session
@@ -174,7 +185,7 @@ namespace Agent.Runtime.Services
                         if (agent.GetType() == expectedAgentType)
                         {
                             _logger.LogInformation($"Reusing existing agent of type {expectedAgentType.Name}");
-                            return Task.FromResult(threadId);
+                            return Task.FromResult(chatId);
                         }
                         _logger.LogInformation($"Agent type mismatch. Expected: {expectedAgentType.Name}, Found: {agent.GetType().Name}");
                     }
@@ -188,7 +199,7 @@ namespace Agent.Runtime.Services
                     {
                         session.SetCurrentAgent(session.GetAgentByType(expectedAgentType.Name).Name);
                         _logger.LogInformation($"Reusing existing agent of type {expectedAgentType.Name}");
-                        return Task.FromResult(threadId);
+                        return Task.FromResult(chatId);
                     }
 
                     // Create new agent for existing session
@@ -196,14 +207,14 @@ namespace Agent.Runtime.Services
                     agent = CreateAgentByType(path);
                     session.AddAgent(agent);
                     session.SetCurrentAgent(agent.Name);
-                    return Task.FromResult(threadId);
+                    return Task.FromResult(chatId);
                 }
 
                 // If thread doesn't exist, create a new one
                 _logger.LogInformation($"Starting new chat thread for path: '{path}'");
                 session = new Session(_logger);
-                session.ConfigureSession(id: threadId);
-                _sessions[threadId] = session;
+                session.ConfigureSession(id: chatId);
+                _sessions.TryAdd(chatId, session);
 
                 // Create the appropriate agent based on path
                 agent = CreateAgentByType(path);
@@ -211,12 +222,48 @@ namespace Agent.Runtime.Services
                 session.AddAgent(agent);
                 session.SetCurrentAgent(agent.Name);
 
-                return Task.FromResult(threadId);
+                return Task.FromResult(chatId);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error starting chat thread for path '{path}'");
                 throw;
+            }
+        }
+
+        public async IAsyncEnumerable<string> StreamChatThread(
+    string chatId, string message,
+    [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            if (!_sessions.TryGetValue(chatId, out var session))
+            {
+                _logger.LogError($"Chat '{chatId}' not found");
+                yield return $"Error: Chat '{chatId}' not found";
+                yield break;
+            }
+
+            var messageTime = session.AddUserMessage(message);
+
+            // Make sure we're using the correct agent type before processing
+            var currentAgent = session.GetCurrentAgent();
+            _logger.LogInformation($"Processing streaming message with agent: {currentAgent.Name} of type {currentAgent.GetType().Name}");
+
+            // Stream from the agent through the session's ProcessStreamAsync method
+            await foreach (var chunk in session.ProcessStreamAsync(cancellationToken))
+            {
+                yield return chunk;
+            }
+
+            // Get the LastRespondingAgentType from the session and set it in HttpContext
+            var httpContextAccessor = _agentServiceProvider.GetService<IHttpContextAccessor>();
+            if (httpContextAccessor?.HttpContext?.Items != null &&
+        httpContextAccessor.HttpContext.Items.TryGetValue("LastRespondingAgent", out var finalAgent))
+            {
+                _logger.LogInformation($"Final LastRespondingAgent set in HttpContext: {finalAgent}");
+            }
+            else
+            {
+                _logger.LogWarning("No LastRespondingAgent set in HttpContext after processing");
             }
         }
 
@@ -259,14 +306,14 @@ namespace Agent.Runtime.Services
             }
         }
 
-        public async Task<Core.Models.ChatMessage> TrackChatThread(string threadId, string message)
+        public async Task<Core.Models.ChatMessage> TrackChatThread(string chatId, string message)
         {
             try
             {
-                if (!_sessions.TryGetValue(threadId, out var session))
+                if (!_sessions.TryGetValue(chatId, out var session))
                 {
-                    _logger.LogError($"Thread '{threadId}' not found");
-                    throw new KeyNotFoundException($"Thread '{threadId}' not found");
+                    _logger.LogError($"Thread '{chatId}' not found");
+                    throw new KeyNotFoundException($"Thread '{chatId}' not found");
                 }
 
                 var messageTime = session.AddUserMessage(message);
@@ -299,7 +346,7 @@ namespace Agent.Runtime.Services
 
         public List<ChatThreadInfo> GetChatThreads()
         {
-            var threads = _sessions
+            var chats = _sessions
                 .Select(s =>
                 {
                     string agentType;
@@ -310,7 +357,7 @@ namespace Agent.Runtime.Services
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Error getting agent type for session {SessionId}, defaulting to Meta", s.Key);
+                        _logger.LogWarning(ex, "Error getting agent type for session {ChatId}, defaulting to Meta", s.Key);
                         agentType = "Meta";
                     }
 
@@ -324,13 +371,13 @@ namespace Agent.Runtime.Services
                 })
                 .ToList();
 
-            _logger.LogInformation("Retrieved {Count} chat threads", threads.Count);
-            foreach (var thread in threads)
+            _logger.LogInformation("Retrieved {Count} chat threads", chats.Count);
+            foreach (var chat in chats)
             {
-                _logger.LogDebug("Thread: {Id} - {Name} - {AgentType}", thread.Id, thread.Name, thread.AgentType);
+                _logger.LogDebug("Chat: {Id} - {Name} - {AgentType}", chat.Id, chat.Name, chat.AgentType);
             }
 
-            return threads;
+            return chats;
         }
 
         public void Dispose()

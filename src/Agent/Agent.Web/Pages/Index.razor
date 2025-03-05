@@ -24,7 +24,7 @@
                 <div class="custom-dropdown-menu">
                     @foreach (var thread in threads)
                     {
-                        <button class="custom-dropdown-item @(thread.Id == currentThreadId ? "active" : "")"
+                        <button class="custom-dropdown-item @(thread.Id == currentChatId ? "active" : "")"
                                 @onclick="async () => await SelectThread(thread.Id)">
                             <div class="d-flex justify-content-between align-items-center">
                                 <span>@thread.Name</span>
@@ -127,7 +127,7 @@
     private string currentPath = "/";
     private List<string> availablePaths = new();
     private List<ChatThread> threads = new();
-    private string? currentThreadId;
+    private string? currentChatId;
     private bool hasError = false;
     private string errorMessage = "";
 
@@ -142,7 +142,7 @@
             {
                 currentPath = value;
                 // Call API to switch agent.
-                _ = SwitchAgentAsync(currentPath, currentThreadId ?? "");
+                _ = SwitchAgentAsync(currentPath, currentChatId ?? "");
                 messages.Clear();
                 StateHasChanged();
                 Navigation.NavigateTo(currentPath);
@@ -151,12 +151,12 @@
         }
     }
 
-    private async Task SwitchAgentAsync(string path, string threadId)
+    private async Task SwitchAgentAsync(string path, string chatId)
     {
         try
         {
-            Console.WriteLine($"Switching agent to path: {path}, threadId: {threadId}");
-            var response = await Http.PostAsJsonAsync("/Chat/SwitchAgent", new { Path = path, ThreadId = threadId });
+            Console.WriteLine($"Switching agent to path: {path}, chatId: {chatId}");
+            var response = await Http.PostAsJsonAsync("/Chat/SwitchAgent", new { Path = path, ChatId = chatId });
 
             if (!response.IsSuccessStatusCode)
             {
@@ -169,9 +169,9 @@
             {
                 Console.WriteLine("Agent switched successfully");
                 // If we have a thread ID, load its history
-                if (!string.IsNullOrEmpty(threadId))
+                if (!string.IsNullOrEmpty(chatId))
                 {
-                    await SetThreadAndLoadHistory(threadId);
+                    await SetThreadAndLoadHistory(chatId);
                 }
             }
         }
@@ -185,18 +185,18 @@
 
     private async Task HandleSubmit()
     {
-        Console.WriteLine($"HandleSubmit called with currentThreadId: {currentThreadId}");
+        Console.WriteLine($"HandleSubmit called with currentChatId: {currentChatId}");
         if (string.IsNullOrWhiteSpace(currentMessage))
         {
             Console.WriteLine("Message is empty, not submitting");
             return;
         }
 
-        if (string.IsNullOrEmpty(currentThreadId))
+        if (string.IsNullOrEmpty(currentChatId))
         {
             // If no thread is selected, create one first
             await CreateNewThreadAndRefresh();
-            if (string.IsNullOrEmpty(currentThreadId))
+            if (string.IsNullOrEmpty(currentChatId))
             {
                 messages.Add(new ChatMessage
                     {
@@ -222,7 +222,7 @@
             StateHasChanged();
 
             // Call API to process message with the CURRENT thread ID
-            var response = await Http.PostAsJsonAsync("/Chat/ProcessMessage", new { Message = tempMessage, ThreadId = currentThreadId });
+            var response = await Http.PostAsJsonAsync("/Chat/ProcessMessage", new { Message = tempMessage, ChatId = currentChatId });
 
             isTyping = false;
 
@@ -345,19 +345,19 @@
         try
         {
             // Try to get saved session from localStorage
-            var savedThreadId = await JS.InvokeAsync<string>("loadThreadId");
+            var savedChatId = await JS.InvokeAsync<string>("loadChatId");
             var savedPath = await JS.InvokeAsync<string>("loadCurrentPath");
 
-            Console.WriteLine($"Loaded saved session: ThreadId={savedThreadId}, Path={savedPath}");
+            Console.WriteLine($"Loaded saved session: ChatId={savedChatId}, Path={savedPath}");
 
-            if (!string.IsNullOrEmpty(savedThreadId))
+            if (!string.IsNullOrEmpty(savedChatId))
             {
                 // Check if this thread exists in our list
-                var threadExists = threads.Any(t => t.Id == savedThreadId);
+                var threadExists = threads.Any(t => t.Id == savedChatId);
 
                 if (threadExists)
                 {
-                    currentThreadId = savedThreadId;
+                    currentChatId = savedChatId;
 
                     // If we also have a saved path, set it
                     if (!string.IsNullOrEmpty(savedPath) && availablePaths.Contains(savedPath))
@@ -366,7 +366,7 @@
                     }
 
                     // Load the history for this thread
-                    await SetThreadAndLoadHistory(currentThreadId);
+                    await SetThreadAndLoadHistory(currentChatId);
                     StateHasChanged();
                 }
                 else
@@ -375,8 +375,8 @@
                     // If the thread doesn't exist, select the first one
                     if (threads.Any())
                     {
-                        currentThreadId = threads[0].Id;
-                        await SetThreadAndLoadHistory(currentThreadId);
+                        currentChatId = threads[0].Id;
+                        await SetThreadAndLoadHistory(currentChatId);
                     }
                     else
                     {
@@ -388,18 +388,18 @@
             else if (threads.Any())
             {
                 // No saved thread, select the first one
-                currentThreadId = threads[0].Id;
-                await SetThreadAndLoadHistory(currentThreadId);
+                currentChatId = threads[0].Id;
+                await SetThreadAndLoadHistory(currentChatId);
             }
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error loading saved session: {ex.Message}");
             // Fall back to default behavior
-            if (threads.Any() && string.IsNullOrEmpty(currentThreadId))
+            if (threads.Any() && string.IsNullOrEmpty(currentChatId))
             {
-                currentThreadId = threads[0].Id;
-                await SetThreadAndLoadHistory(currentThreadId);
+                currentChatId = threads[0].Id;
+                await SetThreadAndLoadHistory(currentChatId);
             }
         }
     }
@@ -408,10 +408,10 @@
     {
         try
         {
-            if (!string.IsNullOrEmpty(currentThreadId))
+            if (!string.IsNullOrEmpty(currentChatId))
             {
-                Console.WriteLine($"Saving session: ThreadId={currentThreadId}, Path={currentPath}");
-                await JS.InvokeVoidAsync("saveThreadId", currentThreadId);
+                Console.WriteLine($"Saving session: ChatId={currentChatId}, Path={currentPath}");
+                await JS.InvokeVoidAsync("saveChatId", currentChatId);
                 await JS.InvokeVoidAsync("saveCurrentPath", currentPath);
             }
         }
@@ -451,21 +451,21 @@
     }
 
     // Set current thread and load its history.
-    private async Task SetThreadAndLoadHistory(string threadId)
+    private async Task SetThreadAndLoadHistory(string chatId)
     {
         try
         {
-            if (string.IsNullOrEmpty(threadId))
+            if (string.IsNullOrEmpty(chatId))
             {
-                Console.WriteLine("Warning: Empty threadId passed to SetThreadAndLoadHistory");
+                Console.WriteLine("Warning: Empty chatId passed to SetThreadAndLoadHistory");
                 return;
             }
 
-            Console.WriteLine($"Setting thread and loading history: {threadId}");
-            currentThreadId = threadId;
+            Console.WriteLine($"Setting thread and loading history: {chatId}");
+            currentChatId = chatId;
 
             // Set the current thread
-            var setResponse = await Http.PostAsJsonAsync("/Chat/SetThread", new { ThreadId = threadId });
+            var setResponse = await Http.PostAsJsonAsync("/Chat/SetThread", new { ChatId = chatId });
             if (!setResponse.IsSuccessStatusCode)
             {
                 var error = await setResponse.Content.ReadAsStringAsync();
@@ -475,7 +475,7 @@
 
             // IMPORTANT: Pass the agent type in the request
             // Create a request message to add the custom header
-            using var request = new HttpRequestMessage(HttpMethod.Get, $"/Chat/GetHistory?threadId={threadId}");
+            using var request = new HttpRequestMessage(HttpMethod.Get, $"/Chat/GetHistory?chatId={chatId}");
             
             // Extract the agent type from the current path
             string agentType = "Meta";
@@ -500,7 +500,7 @@
             else
             {
                 messages = await historyResponse.Content.ReadFromJsonAsync<List<ChatMessage>>() ?? new List<ChatMessage>();
-                Console.WriteLine($"Loaded {messages.Count} messages for thread {threadId} with agent type {agentType}");
+                Console.WriteLine($"Loaded {messages.Count} messages for thread {chatId} with agent type {agentType}");
             }
 
             SaveCurrentSession();
@@ -524,7 +524,7 @@
             StateHasChanged();
 
             // Call API to create a new thread
-            var response = await Http.PostAsJsonAsync("/Chat/CreateThread", new { Path = currentPath, ThreadId = "" });
+            var response = await Http.PostAsJsonAsync("/Chat/CreateThread", new { Path = currentPath, ChatId = "" });
 
             if (!response.IsSuccessStatusCode)
             {
@@ -546,10 +546,10 @@
 
                 // First try to deserialize to the thread response
                 var threadResponse = await response.Content.ReadFromJsonAsync<CreateThreadResponse>();
-                if (threadResponse != null && !string.IsNullOrEmpty(threadResponse.ThreadId))
+                if (threadResponse != null && !string.IsNullOrEmpty(threadResponse.ChatId))
                 {
-                    currentThreadId = threadResponse.ThreadId;
-                    Console.WriteLine($"Thread created successfully. ThreadId from response: {currentThreadId}");
+                    currentChatId = threadResponse.ChatId;
+                    Console.WriteLine($"Thread created successfully. ChatId from response: {currentChatId}");
                 }
                 else
                 {
@@ -557,8 +557,8 @@
                     var thread = await response.Content.ReadFromJsonAsync<ChatThread>();
                     if (thread != null && !string.IsNullOrEmpty(thread.Id))
                     {
-                        currentThreadId = thread.Id;
-                        Console.WriteLine($"Thread created successfully. ThreadId from thread: {currentThreadId}");
+                        currentChatId = thread.Id;
+                        Console.WriteLine($"Thread created successfully. ChatId from thread: {currentChatId}");
                     }
                     else
                     {
@@ -578,7 +578,7 @@
                 await RefreshThreadsList();
 
                 // Load the thread history (which should be empty for a new thread)
-                await SetThreadAndLoadHistory(currentThreadId);
+                await SetThreadAndLoadHistory(currentChatId);
                 SaveCurrentSession();
             }
             catch (Exception ex)
@@ -608,16 +608,16 @@
 
     private string GetCurrentThreadDisplay()
     {
-        var currentThread = threads.FirstOrDefault(t => t.Id == currentThreadId);
+        var currentThread = threads.FirstOrDefault(t => t.Id == currentChatId);
         return currentThread != null ? currentThread.Name : "Select Thread";
     }
 
-    private async Task SelectThread(string threadId)
+    private async Task SelectThread(string chatId)
     {
-        if (threadId != currentThreadId)
+        if (chatId != currentChatId)
         {
-            Console.WriteLine($"Selecting thread: {threadId}");
-            await SetThreadAndLoadHistory(threadId);
+            Console.WriteLine($"Selecting thread: {chatId}");
+            await SetThreadAndLoadHistory(chatId);
             StateHasChanged();
         }
     }
@@ -631,6 +631,6 @@
     // Helper class to match the controller response
     private class CreateThreadResponse
     {
-        public string ThreadId { get; set; } = string.Empty;
+        public string ChatId { get; set; } = string.Empty;
     }
 }

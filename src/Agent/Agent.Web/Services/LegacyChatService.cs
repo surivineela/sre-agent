@@ -18,13 +18,13 @@ public class LegacyChatService : IChatService
     private readonly MarkdownPipeline _markdownPipeline;
     private readonly OpenAISettings _openAISettings;
 
-    public async Task<string> CreateThreadAsync(string path, string threadId) => "";
+    public async Task<string> StartThreadAsync(string path, string chatId) => "";
 
     public async Task<List<ChatThread>> GetThreadsAsync() => new List<ChatThread>();
 
-    public async Task SetThreadAsync(string threadId) { }
+    public async Task SetThreadAsync(string chatId) { }
 
-    public async Task<string?> GetCurrentThreadIdAsync() => null;
+    public async Task<string?> GetCurrentChatIdAsync() => null;
 
 
     public LegacyChatService(
@@ -41,7 +41,7 @@ public class LegacyChatService : IChatService
             .Build();
     }
 
-    public async Task<ChatMessage> ProcessMessageAsync(string message, string? threadId)
+    public async Task<ChatMessage> ProcessMessageAsync(string message, string? chatId)
     {
         return await ChatHistoryPersistency.ChatHistoryTransition(
                 async chatHistory =>
@@ -111,13 +111,18 @@ public class LegacyChatService : IChatService
                 });
     }
 
-    public Task SwitchAgent(string path, string threadId)
+    public Task SwitchAgent(string path, string chatId)
     {
         // No-op for legacy service
         return Task.CompletedTask;
     }
 
-    public Task<List<ChatMessage>> GetChatHistoryAsync(string threadId)
+    public Task<List<ChatMessage>> GetChatHistoryAsync(string chatId)
+    {
+        throw new NotImplementedException();
+    }
+
+    public IAsyncEnumerable<string> ProcessMessageStreamAsync(string message, string chatId, CancellationToken cancellationToken = default)
     {
         throw new NotImplementedException();
     }

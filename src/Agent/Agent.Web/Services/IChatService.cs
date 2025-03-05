@@ -8,13 +8,14 @@ namespace Agent.Web.Services;
 
 public interface IChatService
 {
-    Task<ChatMessage> ProcessMessageAsync(string message, string? threadId);
-    Task<List<ChatMessage>> GetChatHistoryAsync(string threadId);
-    Task SwitchAgent(string path, string threadId);  // SwitchAgent to switch between chat threads and agent type by path.
-    Task<string> CreateThreadAsync(string path, string threadId);
+    IAsyncEnumerable<string> ProcessMessageStreamAsync(string message, string chatId, CancellationToken cancellationToken = default);
+    Task<ChatMessage> ProcessMessageAsync(string message, string? chatId);
+    Task<List<ChatMessage>> GetChatHistoryAsync(string chatId);
+    Task SwitchAgent(string path, string chatId);  // SwitchAgent to switch between chat threads and agent type by path.
+    Task<string> StartThreadAsync(string path, string chatId);
     Task<List<ChatThread>> GetThreadsAsync();
-    Task SetThreadAsync(string threadId);
-    Task<string?> GetCurrentThreadIdAsync();
+    Task SetThreadAsync(string chatId);
+    Task<string?> GetCurrentChatIdAsync();
 }
 
 public class ChatThread

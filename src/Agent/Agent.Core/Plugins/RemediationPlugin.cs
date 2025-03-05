@@ -19,9 +19,15 @@ public class RemediationPlugin
     public static RemediationResult? IsOperationNotApproved(
         string operationName,
         string resourceId,
-        out ApprovalStatus? approvalStatus)
+        out ApprovalStatus? approvalStatus,
+        string approvalBaseLink = null)
     {
         approvalStatus = null;
+        if (string.IsNullOrEmpty(approvalBaseLink))
+        {
+            // Use the default approval link
+            approvalBaseLink = "https://approval-app-affhfqdfcfc8gkgq.westus-01.azurewebsites.net";
+        }
 
         var approvalDescriptor = new ApprovalDescriptor(
             resourceId,
@@ -29,6 +35,51 @@ public class RemediationPlugin
 
         if (!GlobalStatic.ApprovalStatus.TryGetValue(approvalDescriptor, out approvalStatus))
         {
+            // If approvalBaseLink is provided, try to check remote approval status
+            if (!string.IsNullOrEmpty(approvalBaseLink))
+            {
+                try
+                {
+                    var remoteApprovalTask = ApprovalHelper.PullApprovalResult(approvalBaseLink, $"{operationName}_{resourceId.GetHashCode()}");
+                    var remoteApproval = remoteApprovalTask.GetAwaiter().GetResult();
+
+                    if (remoteApproval != null)
+                    {
+                        // Create a new approval status from the remote result while respecting the existing structure
+                        approvalStatus = new ApprovalStatus(
+                            OperationId: remoteApproval.Id,
+                            StartTime: DateTime.Now.AddMinutes(-5), // Assuming approval started a bit earlier
+                            ApprovedTime: remoteApproval.IsApproved ? DateTime.Now : null,
+                            DecisionMaker: remoteApproval.IsApproved ? remoteApproval.ApproverName : null,
+                            ProcessedTime: null,
+                            description: $"Remote approval for operation {operationName} on resource {resourceId}"
+                        );
+
+                        // Update the cache
+                        GlobalStatic.ApprovalStatus[approvalDescriptor] = approvalStatus;
+
+                        // If approved, return null to proceed with operation
+                        if (approvalStatus.IsApproved)
+                        {
+                            return null;
+                        }
+
+                        // If not approved, return the not approved message
+                        return new RemediationResult(
+                            Success: false,
+                            Action: "No action taken because this operation is not approved yet",
+                            Details: "Ask the user to approve the operation by going through the approval process",
+                            OperationId: approvalStatus.OperationId,
+                            FinishedTime: DateTime.Now);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error checking remote approval status: {ex.Message}");
+                }
+            }
+
+            // If no remote approval was found or checked
             return new RemediationResult(
                 Success: false,
                 Action: "No action taken because approval process hasn't started",

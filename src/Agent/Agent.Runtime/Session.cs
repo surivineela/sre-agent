@@ -1,6 +1,8 @@
-﻿using Agent.Core.Models;
-using Microsoft.SemanticKernel.ChatCompletion;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
+using Agent.Core.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace Agent.Runtime
 {
@@ -14,8 +16,8 @@ namespace Agent.Runtime
         public string LastRespondingAgentType { get; set; } = "Meta";
         public string CurrentPath { get; set; } = "/";
         private string? _sessionName;
-        private string? _sessionId;
-        private readonly Lazy<string> _lazySessionId;
+        private string? _chatId;
+        private readonly Lazy<string> _lazyChatId;
 
         // TODO: session Name should be a good summary of the first question/answer in the session. 
         public string Name => _sessionName ?? $"Session-{DateTime.Now:yyyyMMddHHmmss}";
@@ -26,20 +28,20 @@ namespace Agent.Runtime
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _messages = new List<ChatMessage>();
             _agents = new Dictionary<string, IAgent>();
-            _lazySessionId = new Lazy<string>(() => Guid.NewGuid().ToString());
+            _lazyChatId = new Lazy<string>(() => Guid.NewGuid().ToString());
             _logger.LogInformation("Session initialized");
         }
 
         public void ConfigureSession(string? name = null, string? id = null)
         {
             _sessionName = string.IsNullOrEmpty(name) ? $"Session-{DateTime.Now:yyyyMMddHHmmss}" : name;
-            _sessionId = id;
+            _chatId = id;
             _logger.LogInformation("Session configured with Name: {Name}, Id: {Id}", _sessionName, id ?? "default");
         }
 
-        public string GetSessionId()
+        public string GetChatId()
         {
-            return _sessionId ?? _lazySessionId.Value;
+            return _chatId ?? _lazyChatId.Value;
         }
 
         public string GetSessionName()
@@ -122,7 +124,7 @@ namespace Agent.Runtime
         {
             try
             {
-                _logger.LogInformation("Starting ProcessAsync to agent {AgentName} for session {SessionId}", GetCurrentAgent().Name, GetSessionId());
+                _logger.LogInformation("Starting ProcessAsync to agent {AgentName} for session {ChatId}", GetCurrentAgent().Name, GetChatId());
 
                 if (_chatHistory.Count == 0)
                 {
@@ -130,7 +132,7 @@ namespace Agent.Runtime
                     return;
                 }
                 // print _chatHistory
-                
+
                 foreach (var chatMessage in _chatHistory)
                 {
                     _logger.LogInformation("ChatMessage: {ChatMessage}", chatMessage.Content);
@@ -158,7 +160,7 @@ namespace Agent.Runtime
                     result = await currentAgent.Ask(lastChatMessage.Content);
                 }
 
-                _logger.LogInformation("Agent {AgentName} processing completed successfully for session {SessionId}", GetCurrentAgent().Name, GetSessionId());
+                _logger.LogInformation("Agent {AgentName} processing completed successfully for Chat {ChatId}", GetCurrentAgent().Name, GetChatId());
 
                 _messages.Add(new ChatMessage()
                 {
@@ -172,6 +174,52 @@ namespace Agent.Runtime
                 _logger.LogError(ex, "Error in ProcessAsync");
                 throw;
             }
+        }
+
+        public async IAsyncEnumerable<string> ProcessStreamAsync([EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Starting ProcessStreamAsync to agent {AgentName} for session {ChatId}", GetCurrentAgent().Name, GetChatId());
+
+            if (_chatHistory.Count == 0)
+            {
+                _logger.LogInformation("Chat history is empty, skipping processing");
+                yield break;
+            }
+
+            foreach (var chatMessage in _chatHistory)
+            {
+                _logger.LogInformation("ChatMessage: {ChatMessage}", chatMessage.Content);
+            }
+
+            var lastChatMessage = _chatHistory.Last();
+            if (lastChatMessage.Role != AuthorRole.User)
+            {
+                _logger.LogInformation("Last message is not from user, skipping processing");
+                yield break;
+            }
+
+            var currentAgent = GetCurrentAgent();
+
+            // Use a StringBuilder to accumulate the complete response
+            StringBuilder responseBuilder = new StringBuilder();
+
+            // Always pass the _chatHistory to all agents, whether they're main or sub agents
+            await foreach (var chunk in currentAgent.StreamResponseAsync(lastChatMessage.Content, _chatHistory, cancellationToken))
+            {
+                responseBuilder.Append(chunk);
+                yield return chunk;
+            }
+
+            _logger.LogInformation("Agent {AgentName} streaming completed successfully for chat {ChatId}", GetCurrentAgent().Name, GetChatId());
+
+            // Add the complete response to messages
+            string fullResponse = responseBuilder.ToString();
+            _messages.Add(new ChatMessage()
+            {
+                Message = fullResponse,
+                IsUser = false,
+                Timestamp = DateTime.Now
+            });
         }
 
         public string GetCurrentAgentType()

@@ -1,0 +1,110 @@
+{
+    "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.19/MicrosoftTeams.schema.json",
+    "manifestVersion": "1.19",
+    "version": "1.2.0",
+    "id": "bfc4d2c9-11b1-4c8b-97ce-66fde6c9286e",
+    "developer": {
+        "name": "Teams App, Inc.",
+        "websiteUrl": "https://www.example.com",
+        "privacyUrl": "https://www.example.com/privacy",
+        "termsOfUseUrl": "https://www.example.com/termofuse"
+    },
+    "icons": {
+        "color": "color.png",
+        "outline": "outline.png"
+    },
+    "name": {
+        "short": "SREAgent",
+        "full": "SRE Agent"
+    },
+    "description": {
+        "short": "SRE Agent that can handle operational tasks",
+        "full": "SRE Agent that can handle operational tasks powered by AI"
+    },
+    "accentColor": "#FFFFFF",
+    "bots": [
+        {
+            "botId": "a9a4c1ae-0dd3-4294-8df2-1a7db9a87a39",
+            "scopes": [
+                "personal",
+                "team",
+                "groupChat"
+            ],
+            "supportsFiles": false,
+            "isNotificationOnly": false,
+            "commandLists": []
+        }
+    ],
+    "composeExtensions": [],
+    "configurableTabs": [],
+    "staticTabs": [],
+    "permissions": [
+        "identity",
+        "messageTeamMembers"
+    ],
+    "authorization": {
+        "permissions": {
+            "resourceSpecific": [
+                {
+                    "name": "Channel.Create.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "Channel.Delete.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelMeeting.ReadBasic.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelMeetingNotification.Send.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelMember.Read.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelMessage.Read.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelMessage.Send.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelSettings.Read.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChannelSettings.ReadWrite.Group",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChatMessage.Send.Chat",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChatMessage.Read.Chat",
+                    "type": "Application"
+                },
+                {
+                    "name": "ChatMember.Read.Chat",
+                    "type": "Application"
+                },
+                {
+                    "name": "Chat.ManageDeletion.Chat",
+                    "type": "Application"
+                },
+                {
+                    "name": "Chat.Manage.Chat",
+                    "type": "Application"
+                }
+            ]
+        }
+    },
+    "validDomains": [
+        "proxy.nicewave-3e03357c.australiaeast.azurecontainerapps.io"
+    ]
+}

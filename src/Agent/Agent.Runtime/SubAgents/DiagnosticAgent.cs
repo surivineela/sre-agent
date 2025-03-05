@@ -16,7 +16,7 @@ namespace Agent.Runtime.SubAgents
         protected IDiagnosePlugin _diagnosePlugin { get; }
 
         protected override string SystemPrompt { get; } =
-            $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
+            $@"You have a bunch of tools at your disposal to diagnose app services. Do your best to use them to satisfy the user's ask.";
 
         public DiagnosticAgent(
             IDiagnosePlugin diagnosePlugin,

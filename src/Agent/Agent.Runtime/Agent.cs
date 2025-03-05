@@ -1,12 +1,13 @@
-﻿using Microsoft.SemanticKernel.ChatCompletion;
-using Microsoft.SemanticKernel.Connectors.OpenAI;
-using Microsoft.SemanticKernel;
-using Microsoft.Extensions.Options;
+﻿using System.Runtime.CompilerServices;
+using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.AI;
 using Agent.Core.Models;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
 
 namespace Agent.Runtime
 {
@@ -76,7 +77,7 @@ namespace Agent.Runtime
             return [];
         }
 
-        public virtual async Task<string> Ask(string question)
+        public virtual async Task<string> Ask(string question, ChatHistory? history)
         {
             await DoWork(question);
 
@@ -107,6 +108,9 @@ namespace Agent.Runtime
                 var plugins = _kernel.Plugins;
                 _logger.LogInformation($"Found {plugins.Count()} plugins for Agent: {_name}");
 
+                // Update MetaAgentPlugin with current chat history, the instructions shouldn't be added to the history for sub-agents as it's specific to this agent only.
+                UpdateSubAgentChatHistoryForMetaAgent(history);
+
 
                 var agentChatHistory = new ChatHistory();
                 agentChatHistory.AddSystemMessage(_instructions);
@@ -132,11 +136,6 @@ namespace Agent.Runtime
                     executionSettings,
                     _kernel);
 
-                for (int i = originalCount - 1; i < agentChatHistory.Count; i++)
-                {
-                    history.Add(agentChatHistory[i]);
-                }
-
                 history.Add(chatResult);
 
                 return chatResult;
@@ -149,6 +148,92 @@ namespace Agent.Runtime
                     _logger.LogError(ex.InnerException, "Inner exception details");
                 }
                 throw;
+            }
+        }
+
+        public async IAsyncEnumerable<string> StreamResponseAsync(
+        string message, ChatHistory history,
+        [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            _logger.LogInformation("Starting StreamResponseAsync for message: {Message}", message);
+
+            // Log plugin functions for debugging
+            var plugins = _kernel.Plugins;
+            _logger.LogInformation($"Found {plugins.Count()} plugins for Agent: {_name}");
+
+            // Update MetaAgentPlugin with current chat history, the instructions shouldn't be added to the history for sub-agents as it's specific to this agent only.
+            UpdateSubAgentChatHistoryForMetaAgent(history);
+
+            // Create a chat history for this interaction, similar to RunFullTurnAsync
+            var streamChatHistory = new ChatHistory();
+            streamChatHistory.AddSystemMessage(_instructions);
+            streamChatHistory.AddRange(history);
+            var originalCount = streamChatHistory.Count;
+
+            // Create execution settings, same as in RunFullTurnAsync
+            var executionSettings = new OpenAIPromptExecutionSettings();
+
+            if (ModelSelectionHelper.IsReasoningModel(_openAISettings.LLMDeploymentName))
+            {
+                executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
+#pragma warning disable SKEXP0010
+                executionSettings.ReasoningEffort = "high";
+#pragma warning restore SKEXP0010
+            }
+            else
+            {
+                executionSettings.FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(autoInvoke: true);
+            }
+
+            // Create a StringBuilder to accumulate the full response
+            StringBuilder fullResponseBuilder = new StringBuilder();
+
+            // Get streaming response
+            var streamingResponse = _chatCompletionService.GetStreamingChatMessageContentsAsync(
+                streamChatHistory,
+                executionSettings,
+                _kernel,
+                cancellationToken);
+
+            // Process each update
+            await foreach (var update in streamingResponse.WithCancellation(cancellationToken))
+            {
+                if (!string.IsNullOrEmpty(update.Content))
+                {
+                    fullResponseBuilder.Append(update.Content);
+                    yield return update.Content;
+                }
+            }
+
+            // Update chat history
+            string fullResponse = fullResponseBuilder.ToString();
+
+            // Log the full response
+            Console.WriteLine($"Under agent Complete response ({fullResponse.Length} characters): {fullResponse}");
+
+            // Create a chat message content from the full response
+            var chatResult = new ChatMessageContent(AuthorRole.Assistant, fullResponse);
+            history.Add(chatResult);
+        }
+
+        /// <summary>
+        /// Updates the MetaAgentPlugin with the current chat history, should only be used by meta agent.
+        /// </summary>
+        private void UpdateSubAgentChatHistoryForMetaAgent(ChatHistory history)
+        {
+            try
+            {
+                // Get the MetaAgentPlugin instance via dependency injection from the service provider
+                var metaPlugin = _kernel.Services.GetService(typeof(MetaAgentPlugin)) as MetaAgentPlugin;
+                if (metaPlugin != null)
+                {
+                    metaPlugin.UpdateChatHistory(history);
+                    _logger.LogInformation("Updated MetaAgentPlugin with current chat history");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error updating MetaAgentPlugin chat history");
             }
         }
     }
