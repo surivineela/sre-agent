@@ -51,7 +51,9 @@ namespace Agent.Graph.Crawler.ARM
                     resourceName: ds.Metadata.Name);
 
                 await _dbManager.AddOrUpdateNodeAsync(dsNode.GetNodeLabel(), dsNode.GetNodeId(), dsNode.GetResourceType(), dsNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(clusterNode.GetNodeId(), dsNode.GetNodeId(), "CONTAINS");
+
+                var edge = new ArmResourceEdge(clusterNode.GetNodeId(), dsNode.GetNodeId(), Constants.Relationships.Contains);
+                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                 if (ds.Spec?.Template?.Spec?.Containers != null)
                 {
@@ -92,7 +94,10 @@ namespace Agent.Graph.Crawler.ARM
                     resourceName: workloadNode.ResourceName);
 
                 await _dbManager.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(workloadNode.GetNodeId(), sqlNode.GetNodeId(), "SQL_CONNECTED");
+
+                var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+
                 _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
                 return sqlNode;
             }

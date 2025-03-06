@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Schema;
+using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
@@ -13,8 +14,8 @@ namespace Agent.Graph.Crawler.ARM
         private readonly K8sDeploymentCrawler _deploymentCrawler;
         private readonly K8sDaemonSetCrawler _daemonSetCrawler;
 
-        public K8sClusterCrawler(ILogger<K8sClusterCrawler> logger, IGraphDatabaseManager dbManager, ILoggerFactory loggerFactory)
-            : base(logger, dbManager)
+        public K8sClusterCrawler(ILogger<K8sClusterCrawler> logger, IGraphDatabaseManager dbManager, ILoggerFactory loggerFactory, ArmClient armClient)
+            : base(logger, dbManager, armClient, false)
         {
             _logger = logger;
             _dbManager = dbManager;

@@ -1,31 +1,19 @@
 ﻿using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Crawler.ARM;
 using Azure.Core;
+using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
 public class ArmResourceCrawlerFactory
 {
     private readonly ILoggerFactory _loggerFactory;
 
-    private const string SubscriptionType = "Subscription";
-    private const string ResourceGroupType = "ResourceGroup";
-    private const string ContainerAppType = "Microsoft.App/containerApps";
-    private const string ContainerAppEnvironmentType = "Microsoft.App/managedEnvironments";
-    private const string VirtualNetworkType = "Microsoft.Network/virtualNetworks";
-    private const string LoadBalancerType = "Microsoft.Network/loadBalancers";
-    private const string ManagedClusterType = "Microsoft.ContainerService/managedClusters";
-    private const string UserAssignedManagedIdentityType = "Microsoft.ManagedIdentity/userAssignedIdentities";
-
-    // New constants for App Service Web/Function Apps and App Service Plans.
-    private const string AppServiceType = "Microsoft.Web/sites";
-    private const string AppServicePlanType = "Microsoft.Web/serverFarms";
-
     public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory)
     {
         _loggerFactory = loggerFactory;
     }
 
-    public IArmResourceCrawler CreateFromNode(ArmResourceNode node, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient)
+    public IArmResourceCrawler CreateFromNode(ArmResourceNode node, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient, ArmClient armClient)
     {
         if (node == null)
         {
@@ -44,60 +32,64 @@ public class ArmResourceCrawlerFactory
         }
 
         // Filter by known resource type
-        if (SubscriptionType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.SubscriptionType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new SubscriptionCrawler(_loggerFactory.CreateLogger<SubscriptionCrawler>(), dbManager, _loggerFactory);
+            return new SubscriptionCrawler(_loggerFactory.CreateLogger<SubscriptionCrawler>(), dbManager, armClient);
         }
 
-        if (ResourceGroupType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.ResourceGroupType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), dbManager, graphClient);
         }
 
-        if (ContainerAppEnvironmentType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.ContainerAppEnvironmentType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new ContainerAppEnvironmentCrawler(_loggerFactory.CreateLogger<ContainerAppEnvironmentCrawler>(), dbManager, graphClient);
+            return new ContainerAppEnvironmentCrawler(_loggerFactory.CreateLogger<ContainerAppEnvironmentCrawler>(), dbManager, graphClient, armClient);
         }
 
-        if (ContainerAppType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.ContainerAppType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), dbManager);
+            return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), dbManager, armClient);
         }
 
-        if (VirtualNetworkType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.VirtualNetworkType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new VirtualNetworkCrawler(_loggerFactory.CreateLogger<VirtualNetworkCrawler>(), dbManager);
+            return new VirtualNetworkCrawler(_loggerFactory.CreateLogger<VirtualNetworkCrawler>(), dbManager, armClient);
         }
 
-        if (LoadBalancerType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.LoadBalancerType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new LoadBalancerCrawler(_loggerFactory.CreateLogger<LoadBalancerCrawler>(), dbManager);
+            return new LoadBalancerCrawler(_loggerFactory.CreateLogger<LoadBalancerCrawler>(), dbManager, armClient);
         }
 
-        if (AppServiceType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.AppServiceType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new AppServiceARMCrawler(_loggerFactory.CreateLogger<AppServiceARMCrawler>(), dbManager);
+            return new AppServiceARMCrawler(_loggerFactory.CreateLogger<AppServiceARMCrawler>(), dbManager, armClient);
         }
 
-        if (AppServicePlanType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.AppServicePlanType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new AppServicePlanCrawler(_loggerFactory.CreateLogger<AppServicePlanCrawler>(), dbManager);
         }
 
-        if (ManagedClusterType.Equals(node.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.ManagedClusterType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), dbManager, _loggerFactory);
+            return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), dbManager, _loggerFactory, armClient);
         }
 
-        return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), dbManager);
+        return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), dbManager, armClient);
     }
 
     public static ArmResourceNode CreateResourceNodeFromResourceIdentifier(string resourceId)
     {
-        var id = new ResourceIdentifier(resourceId);
-        if (id == null)
+        if(string.IsNullOrEmpty(resourceId))
         {
-            throw new ArgumentNullException(nameof(id));
+            return null;
+        }
+        var id = new ResourceIdentifier(resourceId);
+        if (id == null || string.IsNullOrEmpty(id.SubscriptionId))
+        {
+            return null;
         }
 
         if (!string.IsNullOrEmpty(id.SubscriptionId) && string.IsNullOrEmpty(id.ResourceGroupName))
@@ -110,7 +102,7 @@ public class ArmResourceCrawlerFactory
             return new ResourceGroupNode(id.SubscriptionId, id.ResourceGroupName);
         }
 
-        if (ContainerAppEnvironmentType.Equals(id.ResourceType, StringComparison.InvariantCultureIgnoreCase))
+        if (Constants.ContainerAppEnvironmentType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new ContainerAppEnvironmentNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }

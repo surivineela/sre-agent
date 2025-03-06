@@ -1,4 +1,6 @@
-﻿namespace Agent.Data.DatabaseManagers.GraphDatabase
+﻿using System.Text.RegularExpressions;
+
+namespace Agent.Data.DatabaseManagers.GraphDatabase
 {
     public interface IArmResourceGraphNode
     {
@@ -8,7 +10,16 @@
         public IDictionary<string, object> GetNodeProperties();
     }
 
-    public class KubernetesResourceNode : IArmResourceGraphNode
+    public abstract class GraphNode : IArmResourceGraphNode
+    {
+        public long UpdateTs { get; set; }
+        public abstract string GetNodeId();
+        public abstract string GetNodeLabel();
+        public abstract IDictionary<string, object> GetNodeProperties();
+        public abstract string GetResourceType();
+    }
+
+    public class KubernetesResourceNode : GraphNode
     {
         public string ResourceType { get; set; }
         public string ResourceId { get; set; }
@@ -30,53 +41,55 @@
             string kind,
             string apiVersion)
         {
-            ResourceType = resourceType;
-            ResourceId = resourceId;
-            SubscriptionId = subscriptionId;
-            Namespace = @namespace;
-            ResourceGroupName = @namespace;
-            ResourceName = resourceName;
-            Kind = kind;
-            ApiVersion = apiVersion;
+            UpdateTs = DateTime.UtcNow.Ticks;
+            ResourceType = resourceType.ToLowerInvariant();
+            ResourceId = resourceId.ToLowerInvariant();
+            SubscriptionId = subscriptionId.ToLowerInvariant();
+            Namespace = @namespace.ToLowerInvariant();
+            ResourceGroupName = @namespace.ToLowerInvariant();
+            ResourceName = resourceName.ToLowerInvariant();
+            Kind = kind.ToLowerInvariant();
+            ApiVersion = apiVersion.ToLowerInvariant();
         }
 
-        public string GetNodeLabel()
+        public override string GetNodeLabel()
         {
             // Return a standardized label combining resource type and kind
             return $"K8s_{Kind}";
         }
 
-        public string GetNodeId()
+        public override string GetNodeId()
         {
             // Using ResourceId as the unique identifier
             // This should already be in the format: {clusterResourceId}/{kind}/{namespace}/{name}
             return ResourceId;
         }
 
-        public string GetResourceType()
+        public override string GetResourceType()
         {
             // Return the Kubernetes resource type in a standardized format
             return $"K8s/{Kind}";
         }
 
-        public IDictionary<string, object> GetNodeProperties()
+        public override IDictionary<string, object> GetNodeProperties()
         {
             // Return all relevant properties as a dictionary
             return new Dictionary<string, object>
-        {
-            { "resourceType", ResourceType },
-            { "resourceId", ResourceId },
-            { "subscriptionId", SubscriptionId },
-            { "resourceGroupName", ResourceGroupName },
-            { "resourceName", ResourceName },
-            { "namespace", Namespace },
-            { "kind", Kind },
-            { "apiVersion", ApiVersion }
-        };
+            {
+                { "updateTs", UpdateTs},
+                { "resourceType", ResourceType },
+                { "resourceId", ResourceId },
+                { "subscriptionId", SubscriptionId },
+                { "resourceGroupName", ResourceGroupName },
+                { "resourceName", ResourceName },
+                { "namespace", Namespace },
+                { "kind", Kind },
+                { "apiVersion", ApiVersion }
+            };
         }
     }
 
-    public class ArmResourceNode : IArmResourceGraphNode
+    public class ArmResourceNode : GraphNode
     {
         public string ResourceType { get; set; }
         public string ResourceId { get; set; }
@@ -93,36 +106,41 @@
             string resourceName,
             bool systemMI = false)
         {
-            ResourceType = resourceType;
-            ResourceId = resourceId;
-            SubscriptionId = subscriptionId;
-            ResourceGroupName = resourceGroupName;
-            ResourceName = resourceName;
+            UpdateTs = DateTime.UtcNow.Ticks;
+            ResourceType = resourceType?.ToLowerInvariant();
+            ResourceId = resourceId?.ToLowerInvariant();
+            SubscriptionId = subscriptionId?.ToLowerInvariant();
+            ResourceGroupName = resourceGroupName?.ToLowerInvariant();
+            ResourceName = resourceName?.ToLowerInvariant();
             SystemMI = systemMI;
         }
 
-        public virtual string GetNodeLabel()
+        public override string GetNodeLabel()
         {
-            var parts = ResourceType.Split('/');
-            return parts[parts.Length - 1].ToLowerInvariant();
+            //var parts = ResourceType.Split('/');
+            //return parts[parts.Length - 1];
+
+            // use full arm type to avoid potential conflict
+            return ResourceType;
         }
 
-        public virtual string GetNodeId()
+        public override string GetNodeId()
         {
-            return ResourceId.ToLowerInvariant();
+            return ResourceId;
         }
 
-        public virtual string GetResourceType()
+        public override string GetResourceType()
         {
             return ResourceType;
         }
 
-        public virtual IDictionary<string, object> GetNodeProperties()
+        public override IDictionary<string, object> GetNodeProperties()
         {
             return new Dictionary<string, object>
             {
                 // resourceType is partition key, cannot be updated
                 //{ "resourceType", ResourceType },
+                { "updateTs", UpdateTs },
                 { "resourceId", ResourceId },
                 { "subscriptionId", SubscriptionId },
                 { "resourceGroupName", ResourceGroupName },
@@ -144,10 +162,10 @@
 
         public SubscriptionNode(string subscriptionId) : base()
         {
-            ResourceType = "Subscription";
-            SubscriptionId = subscriptionId;
-            ResourceName = subscriptionId;
-            ResourceId = $"/subscriptions/{subscriptionId}";
+            ResourceType = "subscription";
+            SubscriptionId = subscriptionId.ToLowerInvariant();
+            ResourceName = subscriptionId.ToLowerInvariant();
+            ResourceId = $"/subscriptions/{SubscriptionId}";
         }
 
         public override IDictionary<string, object> GetNodeProperties()
@@ -167,11 +185,11 @@
             string subscriptionId,
             string resoureGroupName) : base()
         {
-            ResourceType = "ResourceGroup";
-            SubscriptionId = subscriptionId;
-            ResourceName = resoureGroupName;
-            ResourceId = $"/subscriptions/{subscriptionId}/resourceGroups/{resoureGroupName}";
-            ResourceGroupName = resoureGroupName;
+            ResourceType = "resourcegroup";
+            SubscriptionId = subscriptionId.ToLowerInvariant();
+            ResourceName = resoureGroupName.ToLowerInvariant();
+            ResourceGroupName = resoureGroupName.ToLowerInvariant();
+            ResourceId = $"/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}";
         }
 
         public override IDictionary<string, object> GetNodeProperties()
@@ -202,7 +220,7 @@
             string? lbId = null)
             : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
         {
-            Location = location;
+            Location = location.NormalizeLocation();
             VnetId = vnetId;
             LbId = lbId;
         }
@@ -270,5 +288,21 @@
             }
             return props;
         }
+    }
+
+    public static partial class LocationExtensions
+    {
+        public static string NormalizeLocation(this string location)
+        {
+            if (string.IsNullOrEmpty(location))
+            {
+                throw new ArgumentNullException(nameof(location));
+            }
+
+            return LocationNormalizationRegex().Replace(location, string.Empty).ToLowerInvariant();
+        }
+
+        [GeneratedRegex("[^a-zA-Z\\d]")]
+        private static partial Regex LocationNormalizationRegex();
     }
 }

@@ -17,7 +17,7 @@ namespace Agent.Graph
             _inMemoryGraphManager = inMemoryGraphManager;
         }
 
-        public Task<bool> AddEdgeIfNotExistsAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties)
+        public Task<bool> AddOrUpdateEdgeAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties)
         {
             _logger.LogInformation($"Adding edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}'.");
             var sourceNode = _inMemoryGraphManager.GetNode(sourceNodeId) ?? throw new ArgumentException($"Source node with ID '{sourceNodeId}' does not exist.");
@@ -42,7 +42,7 @@ namespace Agent.Graph
             return Task.CompletedTask;
         }
 
-        public Task<ResultSet<dynamic>> Query(string query)
+        public Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 20000)
         {
             throw new NotImplementedException();
         }

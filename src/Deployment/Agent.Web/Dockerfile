@@ -11,4 +11,4 @@ ENV DOTNET_RUNNING_IN_CONTAINER=true
 EXPOSE 8080
 
 # Run the application
-ENTRYPOINT ["dotnet", "Agent.Web.dll"]
+ENTRYPOINT ["dotnet", "Agent.Web.dll", "--session"]

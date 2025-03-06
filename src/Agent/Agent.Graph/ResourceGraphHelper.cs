@@ -58,7 +58,7 @@ namespace Agent.Graph
 
             foreach (var edge in edges)
             {
-                await graphDatabaseManager.AddEdgeIfNotExistsAsync(
+                await graphDatabaseManager.AddOrUpdateEdgeAsync(
                     sourceNodeId: edge.SourceNodeId,
                     targetNodeId: edge.TargetNodeId,
                     relationshipType: edge.RelationshipType);

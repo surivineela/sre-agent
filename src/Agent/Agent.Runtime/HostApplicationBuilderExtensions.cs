@@ -13,24 +13,28 @@ namespace Agent.Runtime
     {
         private static bool _localConfigLoaded = false;
 
-        public static void LoadLocalAppSettings(this IHostApplicationBuilder builder)
+        public static void LoadLocalAppSettings(this IHostApplicationBuilder builder, bool isDevelopment)
         {
             builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
-            .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
-            .AddEnvironmentVariables();
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); //load base settings
+
+            if (isDevelopment)
+            {
+                builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
+            }
+            builder.Configuration.AddEnvironmentVariables();
 
             _localConfigLoaded = true;
         }
 
-        public static void LoadAppSettings(this IHostApplicationBuilder builder, bool loadFromAzureAppConfig = true)
+        public static void LoadAppSettings(this IHostApplicationBuilder builder, bool isDevelopment = true)
         {
             if (!_localConfigLoaded)
             {
-                builder.LoadLocalAppSettings();
+                builder.LoadLocalAppSettings(isDevelopment);
             }
 
-            if (loadFromAzureAppConfig)
+            if (isDevelopment)
             {
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {
@@ -51,7 +55,10 @@ namespace Agent.Runtime
                 });
             }
 
-            builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
+            if (isDevelopment)
+            {
+                builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
+            }
             builder.Configuration.AddEnvironmentVariables();
         }
 
@@ -71,7 +78,7 @@ namespace Agent.Runtime
                     foreach ((string member, string[] memberErrors) in validationErrors)
                     {
                         var memberError = string.Join(", ", memberErrors);
-                        stringErrors.Add(memberError);
+                        stringErrors.Add(member + ": " + memberError);
                     }
                     throw new Exception(
                         @$"AppSettings validation failed: {string.Join("\n", stringErrors)}

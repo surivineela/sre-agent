@@ -10,11 +10,12 @@ namespace Agent.Core.Configuration
     public class CrawlerSettings
     {
         [Required]
-        public string TenantId { get; set; } = "72f988bf-86f1-41af-91ab-2d7cd011db47";
-
+        public string TenantId { get; set; } = string.Empty;
         [Required]
-        public string SubscriptionId { get; set; } = string.Empty;
-
+        public string CrawlRoot { get; set; } = string.Empty;
+        public string IdentityClientId { get; set; } = string.Empty;
+        [Required]
+        public int MaxParallelism { get; set; } = 4096;
         public bool SkipCrawl { get; set; } = false;
     }
 }

@@ -23,6 +23,8 @@ using Agent.Plugins.Implementation;
 using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.Models;
 using Agent.Graph.Crawler.ARM;
+using Azure.Identity;
+using Azure.ResourceManager;
 
 namespace Agent.Runtime.Services
 {
@@ -128,6 +130,18 @@ namespace Agent.Runtime.Services
                     agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
                     return agent;
                 });
+
+            // register arm client for crawler
+            services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
+            {
+                var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
+                var credOptions = new DefaultAzureCredentialOptions();
+                if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
+                {
+                    credOptions.ManagedIdentityClientId = crawlerSettings.IdentityClientId;
+                }
+                return new ArmClient(new DefaultAzureCredential(credOptions));
+            });
         }
 
         private record SubAgentInfo(Type AgentType, string Name);

@@ -60,8 +60,7 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _crawlerTimerIsRunning = true;
-                var node = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier($"/subscriptions/{_settings.SubscriptionId}");
-                await _crawler.Crawl([node], cancellationToken);
+                await _crawler.Crawl(_settings.CrawlRoot, cancellationToken: cancellationToken);
                 _crawlerFinishedOnce = true;
             }
             finally

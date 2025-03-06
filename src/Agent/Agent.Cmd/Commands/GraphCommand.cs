@@ -1,9 +1,8 @@
 ﻿using System.Text.Json;
 using System.Xml;
+using Agent.Core.Configuration;
 using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Graph.Crawler.ARM;
 using Gremlin.Net.Driver;
-using Kusto.Data;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -13,23 +12,13 @@ namespace Agent.Cmd
 {
     public class GraphCommand
     {
-        private readonly ILogger _logger;
-        private readonly IServiceProvider _sp;
-        private readonly string _cosmosName;
-        private readonly string _accountKey;
-        private readonly string _database;
-        private readonly string _collection;
+        private readonly ILogger<GraphCommand> _logger;
+        private readonly CosmosDBSettings _cosmosDBSettings;
 
-        public GraphCommand(ILogger logger, IServiceProvider sp)
+        public GraphCommand(ILogger<GraphCommand> logger, CosmosDBSettings cosmosDBSettings)
         {
             _logger = logger;
-            _sp = sp;
-
-            IConfiguration configuration = sp.GetRequiredService<IConfiguration>();
-            _cosmosName = configuration["Azure:Gremlin:AccountName"];
-            _accountKey = configuration["Azure:Gremlin:AccountKey"];
-            _database = configuration["Azure:Gremlin:Database"];
-            _collection = configuration["Azure:Gremlin:Collection"];
+            _cosmosDBSettings = cosmosDBSettings;
         }
 
         public void ExportGraph(CommandLineApplication command)
@@ -48,9 +37,9 @@ namespace Agent.Cmd
 
         private async Task Export(string path)
         {
-            using (var gremlinClient = new GremlinClient(new GremlinServer($"{_cosmosName}.gremlin.cosmos.azure.com", 443, enableSsl: true,
-                    username: $"/dbs/{_database}/colls/{_collection}",
-                    password: _accountKey), messageSerializer: new Gremlin.Net.Structure.IO.GraphSON.GraphSON2MessageSerializer()))
+            using (var gremlinClient = new GremlinClient(new GremlinServer($"{_cosmosDBSettings.Graph.AccountName}.gremlin.cosmos.azure.com", 443, enableSsl: true,
+                    username: $"/dbs/{_cosmosDBSettings.Graph.Database}/colls/{_cosmosDBSettings.Graph.Collection}",
+                    password: _cosmosDBSettings.Graph.ApiKey), messageSerializer: new Gremlin.Net.Structure.IO.GraphSON.GraphSON2MessageSerializer(new CustomGraphSON2Reader())))
             {
                 try
                 {
@@ -69,8 +58,9 @@ namespace Agent.Cmd
 
                     // Create root element
                     var gexf = doc.CreateElement("gexf");
-                    gexf.SetAttribute("xmlns", "http://www.gexf.net/1.2draft");
-                    gexf.SetAttribute("version", "1.2");
+                    gexf.SetAttribute("xmlns", "http://gexf.net/1.3");
+                    gexf.SetAttribute("xmlns:viz", "http://www.gephi.org/gexf/viz");
+                    gexf.SetAttribute("version", "1.3");
                     doc.AppendChild(gexf);
 
                     // Create graph element
@@ -78,6 +68,12 @@ namespace Agent.Cmd
                     graph.SetAttribute("mode", "static");
                     graph.SetAttribute("defaultedgetype", "directed");
                     gexf.AppendChild(graph);
+
+                    var attributes = doc.CreateElement("attributes");
+                    attributes.SetAttribute("class", "node");
+                    attributes.SetAttribute("mode", "static");
+                    graph.AppendChild(attributes);
+                    HashSet<string> attrs = new HashSet<string>();
 
                     // Create nodes element
                     var nodes = doc.CreateElement("nodes");
@@ -99,6 +95,15 @@ namespace Agent.Cmd
                             if (prop.Name != "id" && prop.Name != "label")
                             {
                                 var attvalue = doc.CreateElement("attvalue");
+                                if (!attrs.Contains(prop.Name))
+                                {
+                                    var attr = doc.CreateElement("attribute");
+                                    attr.SetAttribute("id", prop.Name);
+                                    attr.SetAttribute("title", prop.Name);
+                                    attr.SetAttribute("type", "string");
+                                    attributes.AppendChild(attr);
+                                    attrs.Add(prop.Name);
+                                }
                                 attvalue.SetAttribute("for", prop.Name);
                                 // Assuming it's an array
                                 attvalue.SetAttribute("value", string.Join(',', prop.Value.EnumerateArray().ToArray()));

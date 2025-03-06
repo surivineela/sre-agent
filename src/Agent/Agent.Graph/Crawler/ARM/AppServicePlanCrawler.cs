@@ -11,13 +11,11 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<AppServicePlanCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
-        private readonly ArmClient _armClient;
 
         public AppServicePlanCrawler(ILogger<AppServicePlanCrawler> logger, IGraphDatabaseManager dbManager)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
         }
 
         public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)

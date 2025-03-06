@@ -18,14 +18,14 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             IDictionary<string, object> properties);
 
         /// <summary>
-        /// Adds an edge to the graph if it does not already exist.
+        /// Adds or updates an edge in the graph.
         /// </summary>
         /// <param name="sourceNodeId">The unique identifier of the source node.</param>
         /// <param name="targetNodeId">The unique identifier of the target node.</param>
         /// <param name="relationshipType">The type of relationship between the nodes.</param>
         /// <param name="properties">edge properties.</param>
         /// <returns>A boolean indicating whether the edge was added (true) or already existed (false).</returns>
-        Task<bool> AddEdgeIfNotExistsAsync(
+        Task<bool> AddOrUpdateEdgeAsync(
             string sourceNodeId,
             string targetNodeId,
             string relationshipType,
@@ -41,6 +41,6 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         /// Queries the graph.
         /// </summary>
         /// <returns></returns>
-        Task<ResultSet<dynamic>> Query(string query);
+        Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 20000);
     }
 }

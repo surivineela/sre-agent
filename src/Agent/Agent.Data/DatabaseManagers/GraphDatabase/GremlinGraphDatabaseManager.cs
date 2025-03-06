@@ -1,13 +1,14 @@
-﻿using Agent.Core.Configuration;
+﻿using System.Text.Json;
+using Agent.Core.Configuration;
 using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using System.Security.AccessControl;
-using System.Text.Json;
+using Polly;
 
 namespace Agent.Data.DatabaseManagers.GraphDatabase
 {
+    // workaround for Numberic types
+    // https://stackoverflow.com/questions/68092798/gremlin-net-deserialize-number-property/72316108#72316108
     public class CustomGraphSON2Reader : GraphSON2Reader
     {
         public override dynamic ToObject(JsonElement graphSon) =>
@@ -29,6 +30,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         private static readonly object _lock = new object();
         private readonly GraphSettings _graphSettings;
         private readonly ILogger<GremlinGraphDatabaseManager> _logger;
+        private readonly AsyncPolicy _retryPolicy;
 
         public GremlinGraphDatabaseManager(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseManager> logger)
         {
@@ -46,6 +48,25 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
                     }
                 }
             }
+
+            _retryPolicy = Policy
+                .Handle<Gremlin.Net.Driver.Exceptions.ResponseException>(ex => ex.StatusAttributes.ContainsKey("x-ms-status-code") && ex.StatusAttributes["x-ms-status-code"].ToString() == "429")
+                .WaitAndRetryAsync(100,
+                    sleepDurationProvider: (int retryAttempt, Exception ex, Context context) =>
+                    {
+                        var respEx = (Gremlin.Net.Driver.Exceptions.ResponseException)ex;
+                        if (respEx == null || !respEx.StatusAttributes.ContainsKey("x-ms-retry-after-ms"))
+                        {
+                            return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                        }
+
+                        return TimeSpan.Parse(respEx.StatusAttributes["x-ms-retry-after-ms"].ToString());
+                    },
+                    onRetryAsync: (ex, ts, retryCount, context) =>
+                    {
+                        _logger.LogWarning($"Retry {retryCount} after {ts.TotalMilliseconds} milliseconds");
+                        return Task.CompletedTask;
+                    });
         }
 
         private GremlinClient CreateGremlinClient()
@@ -75,48 +96,69 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             var query = $"g.V('{sanitizedNodeId}').fold().coalesce(unfold()";
             foreach (var property in properties)
             {
-                query += $".property('{property.Key}', '{property.Value}')";
+                query += $".property('{property.Key}', {getValue(property.Value)})";
             }
             query += $", addV('{nodelabel}').property(id, '{sanitizedNodeId}').property('resourceType', '{resourceType}')";
             foreach (var property in properties)
             {
-                query += $".property('{property.Key}', '{property.Value}')";
+                query += $".property('{property.Key}', {getValue(property.Value)})";
             }
             query += ")";
 
             _logger.LogTrace($"AddOrUpdateNodeAsync: query: {query}");
 
-            var result = await _gremlinClient!.SubmitAsync<dynamic>(query);
-            return result.Count > 0;
+            try
+            {
+                var result = await SubmitWithRetry(query);
+                return result.Count > 0;
+            }
+            catch (Gremlin.Net.Driver.Exceptions.ResponseException ex) when (ex.StatusAttributes["x-ms-status-code"].ToString() == "429")
+            {
+                _logger.LogError(ex, $"429. Query: {query}");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error add/update node: {ex.Message}. Query: {query}");
+                return false;
+            }
         }
 
-        public async Task<bool> AddEdgeIfNotExistsAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties = null)
+        public async Task<bool> AddOrUpdateEdgeAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties = null)
         {
             var sanitizedSourceNodeId = GetSanitizedCosmosDBId(sourceNodeId);
             var sanitizedTargetNodeId = GetSanitizedCosmosDBId(targetNodeId);
             var edgeId = GetSanitizedCosmosDBId($"{sanitizedSourceNodeId}_{relationshipType}_{sanitizedTargetNodeId}");
 
-            var query = $"g.V('{sanitizedSourceNodeId}').as('a').V('{sanitizedTargetNodeId}').as('b').coalesce(outE('{relationshipType}').where(inV().is('b')), addE('{relationshipType}').property(id, '{edgeId}')";
-
-            if (properties != null) {
+            var query = $"g.V('{sanitizedSourceNodeId}').as('a').V('{sanitizedTargetNodeId}').as('b').coalesce(__.select('a').outE('{relationshipType}').where(inV().as('b')).limit(1)";
+            if (properties != null)
+            {
                 foreach (var property in properties)
                 {
-                    query += $".property('{property.Key}', '{property.Value}')";
+                    query += $".property('{property.Key}', {getValue(property.Value)})";
                 }
             }
 
-            query += ".from('a').to('b'))";
+            query += $", __.select('a').addE('{relationshipType}').to('b').property(id, '{edgeId}')";
+            if (properties != null)
+            {
+                foreach (var property in properties)
+                {
+                    query += $".property('{property.Key}', {getValue(property.Value)})";
+                }
+            }
+            query += ")";
 
             _logger.LogTrace($"AddEdgeIfNotExistsAsync: query: {query}");
 
             try
             {
-                var result = await _gremlinClient!.SubmitAsync<dynamic>(query);
+                var result = await SubmitWithRetry(query);
                 return result.Count > 0;
             }
-            catch (Gremlin.Net.Driver.Exceptions.ResponseException ex) when (ex.StatusAttributes["x-ms-status-code"].ToString() == "409")
+            catch (Exception ex)
             {
-                // Handle conflict exception (edge already exists)
+                _logger.LogError(ex, $"Error add/update edge: {ex.Message}. Query: {query}");
                 return false;
             }
         }
@@ -124,24 +166,25 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         public async Task Clear()
         {
             string query = "g.V().drop()";
-            await _gremlinClient!.SubmitAsync<dynamic>(query);
+            await SubmitWithRetry(query);
         }
 
-        public async Task<ResultSet<dynamic>> Query(string query)
+        public async Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 20000)
         {
-            _logger.LogDebug($"Executing Gremlin query: {query}");
+            _logger.LogTrace($"Executing Gremlin query: {query}");
 
             try
             {
-                var res = await _gremlinClient!.SubmitAsync<dynamic>(query);
+                var res = await SubmitWithRetry(query);
                 int messageSize = JsonSerializer.Serialize(res).Count();
-                if (messageSize > 20000)
+                if (maxMessageSize > 0 && messageSize > maxMessageSize)
                 {
                     return new ResultSet<dynamic>(new string[] { "Too many results" }, null);
                 }
 
                 return res;
-            } catch (Exception e)
+            }
+            catch (Exception e)
             {
                 return new ResultSet<dynamic>(new string[] { $"Exception: {e.Message}" }, null);
             }
@@ -150,6 +193,28 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
         private static string GetSanitizedCosmosDBId(string id)
         {
             return id.Replace("/", "_").Replace(":", "_").Replace(" ", "_");
+        }
+
+        private string getValue(object val)
+        {
+            switch (val)
+            {
+                case int i:
+                    return i.ToString();
+                case long l:
+                    return l.ToString();
+                // TODO: handle more types
+                default:
+                    return $"'{val}'";
+            }
+        }
+
+        private async Task<ResultSet<dynamic>> SubmitWithRetry(string query)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                return await _gremlinClient!.SubmitAsync<dynamic>(query);
+            });
         }
     }
 }

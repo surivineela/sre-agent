@@ -1,12 +1,13 @@
-﻿using System.Text.Json;
+﻿using System.ComponentModel.DataAnnotations;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
-using Microsoft.Extensions.Logging;
-using Microsoft.Data.SqlClient;
-using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.AppService;
+using Azure.ResourceManager.Resources;
+using Microsoft.Data.SqlClient;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
 {
@@ -14,14 +15,12 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<AppServiceARMCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
-        private readonly ArmClient _armClient;
 
-        public AppServiceARMCrawler(ILogger<AppServiceARMCrawler> logger, IGraphDatabaseManager dbManager)
-            : base(logger, dbManager, false)
+        public AppServiceARMCrawler(ILogger<AppServiceARMCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
+            : base(logger, dbManager, armClient, false)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
         }
 
         public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
@@ -66,19 +65,43 @@ namespace Agent.Graph.Crawler.ARM
                     appServicePlanNode.GetNodeProperties());
 
                 // Create bidirectional edges
-                await _dbManager.AddEdgeIfNotExistsAsync(
-                    appServicePlanNode.GetNodeId(),
-                    node.GetNodeId(),
-                    "HOSTS");
+                var edge1 = new ArmResourceEdge(appServicePlanNode.GetNodeId(), node.GetNodeId(), Constants.Relationships.Hosts);
+                await _dbManager.AddOrUpdateEdgeAsync(edge1.GetSourceNodeId(), edge1.GetTargetNodeId(), edge1.GetRelationship(), edge1.GetEdgeProperties());
 
-                await _dbManager.AddEdgeIfNotExistsAsync(
-                    node.GetNodeId(),
-                    appServicePlanNode.GetNodeId(),
-                    "HOSTED_ON");
+                var edge2 = new ArmResourceEdge(node.GetNodeId(), appServicePlanNode.GetNodeId(), Constants.Relationships.HostedOn);
+                await _dbManager.AddOrUpdateEdgeAsync(edge2.GetSourceNodeId(), edge2.GetTargetNodeId(), edge2.GetRelationship(), edge2.GetEdgeProperties());
 
                 _logger.LogDebug($"Created bidirectional edges between App Service {node.ResourceId} and App Service Plan {webApp.Data.AppServicePlanId}");
 
                 yield return appServicePlanNode;
+            }
+
+            if (!string.IsNullOrEmpty(webApp.Data.VirtualNetworkSubnetId))
+            {
+                var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
+                var subnetNode = new ArmResourceNode(
+                    resourceType: subnetId.ResourceType,
+                    resourceId: webApp.Data.VirtualNetworkSubnetId,
+                    subscriptionId: subnetId.SubscriptionId,
+                    resourceGroupName: subnetId.ResourceGroupName,
+                    resourceName: subnetId.Name);
+
+                await _dbManager.AddOrUpdateNodeAsync( subnetNode.GetNodeLabel(), subnetNode.GetNodeId(), subnetNode.GetResourceType(), subnetNode.GetNodeProperties());
+
+                // add bidirectional edges for network connections
+                var edge1 = new ArmResourceEdge(node.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
+                edge1.AddNetworkEgressEdgeProperties();
+                await _dbManager.AddOrUpdateEdgeAsync(edge1.GetSourceNodeId(), edge1.GetTargetNodeId(), edge1.GetRelationship(), edge1.GetEdgeProperties());
+
+                var edge2 = new ArmResourceEdge(subnetNode.GetNodeId(), node.GetNodeId(), Constants.Relationships.Connected);
+                edge2.AddNetworkIngressEdgeProperties();
+                await _dbManager.AddOrUpdateEdgeAsync(edge2.GetSourceNodeId(), edge2.GetTargetNodeId(), edge2.GetRelationship(), edge2.GetEdgeProperties());
+
+                var vnetResourceId = subnetId.Parent;
+                var vnetNode = new ArmResourceNode(vnetResourceId.ResourceType, vnetResourceId.ToString(), vnetResourceId.SubscriptionId, vnetResourceId.ResourceGroupName, vnetResourceId.Name);
+                await _dbManager.AddOrUpdateNodeAsync(vnetNode.GetNodeLabel(), vnetNode.GetNodeId(), vnetNode.GetResourceType(), vnetNode.GetNodeProperties());
+                // crawl the whole vnet
+                yield return vnetNode;
             }
 
             var appSettingsResponse = await siteResponse.Value.GetApplicationSettingsAsync();
@@ -109,10 +132,8 @@ namespace Agent.Graph.Crawler.ARM
                             sqlNode.GetResourceType(),
                             properties);
 
-                        await _dbManager.AddEdgeIfNotExistsAsync(
-                            node.GetNodeId(),
-                            sqlNode.GetNodeId(),
-                            "SQL_CONNECTED");
+                        var edge = new ArmResourceEdge(node.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                        await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                         yield return sqlNode;
                     }
@@ -136,10 +157,8 @@ namespace Agent.Graph.Crawler.ARM
                             redisNode.GetResourceType(),
                             properties);
 
-                        await _dbManager.AddEdgeIfNotExistsAsync(
-                            node.GetNodeId(),
-                            redisNode.GetNodeId(),
-                            "REDIS_CONNECTED");
+                        var edge = new ArmResourceEdge(node.GetNodeId(), redisNode.GetNodeId(), Constants.Relationships.RedisConnected);
+                        await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                         yield return redisNode;
                     }
@@ -150,7 +169,7 @@ namespace Agent.Graph.Crawler.ARM
         private bool IsSqlConnectionString(string value)
         {
             if (string.IsNullOrEmpty(value)) return false;
-            
+
             // Common SQL connection string indicators
             return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
                    value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
@@ -160,10 +179,10 @@ namespace Agent.Graph.Crawler.ARM
         private bool IsRedisConnectionString(string value)
         {
             if (string.IsNullOrEmpty(value)) return false;
-            
+
             // Common Redis connection string indicators
             return value.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase) ||
-                   value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) && 
+                   value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) &&
                    (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
                     value.Contains("password=", StringComparison.OrdinalIgnoreCase));
         }
@@ -188,10 +207,8 @@ namespace Agent.Graph.Crawler.ARM
                         sqlNode.GetResourceType(),
                         properties);
 
-                    await _dbManager.AddEdgeIfNotExistsAsync(
-                        appServiceNode.GetNodeId(),
-                        sqlNode.GetNodeId(),
-                        "SQL_CONNECTED");
+                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                     _logger.LogDebug($"Linked App Service {appServiceNode.ResourceId} with SQL resource");
                     return sqlNode;
@@ -224,10 +241,8 @@ namespace Agent.Graph.Crawler.ARM
                         redisNode.GetResourceType(),
                         properties);
 
-                    await _dbManager.AddEdgeIfNotExistsAsync(
-                        appServiceNode.GetNodeId(),
-                        redisNode.GetNodeId(),
-                        "REDIS_CONNECTED");
+                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), redisNode.GetNodeId(), Constants.Relationships.RedisConnected);
+                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                     _logger.LogDebug($"Linked App Service {appServiceNode.ResourceId} with Redis resource");
                     return redisNode;
@@ -241,101 +256,5 @@ namespace Agent.Graph.Crawler.ARM
         }
     }
 
-    public class SqlConnectionStringHelper
-    {
-        private readonly ILogger _logger;
-        private readonly ArmClient _armClient;
-        private const string azureSqlSuffix = ".database.windows.net";
 
-        public SqlConnectionStringHelper(ILogger logger, ArmClient armClient)
-        {
-            _logger = logger;
-            _armClient = armClient;
-        }
-
-        public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(
-            IGraphDatabaseManager dbManager,
-            ArmResourceNode workloadNode,
-            string connectionString)
-        {
-            try
-            {
-                var builder = new SqlConnectionStringBuilder(connectionString);
-                var rawServer = builder.DataSource;
-                var database = builder.InitialCatalog;
-
-                var serverName = rawServer;
-                if (serverName.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
-                {
-                    serverName = serverName.Substring(4);
-                }
-                int commaIndex = serverName.IndexOf(",");
-                if (commaIndex > 0)
-                {
-                    serverName = serverName.Substring(0, commaIndex);
-                }
-
-                var serverBaseName = serverName;
-                if (serverBaseName.EndsWith(azureSqlSuffix, StringComparison.OrdinalIgnoreCase))
-                {
-                    serverBaseName = serverBaseName.Substring(0, serverBaseName.Length - azureSqlSuffix.Length);
-                }
-
-                _logger.LogDebug($"Parsed SQL server name: {serverName}, Database: {database}");
-
-                var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/"+workloadNode.SubscriptionId));
-                await foreach (var server in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Sql/servers'"))
-                {
-                    // Compare names (adjust for case or domain differences as needed).
-                    if (server.Data.Name.Equals(serverBaseName, StringComparison.OrdinalIgnoreCase))
-                    {
-                        var sqlResourceId = server.Data.Id.ToString();
-                        var sqlNode = new ArmResourceNode(
-                            resourceType: "Microsoft.Sql/servers",
-                            resourceId: sqlResourceId,
-                            subscriptionId: workloadNode.SubscriptionId,
-                            resourceGroupName: ExtractResourceGroupName(server.Data.Id),
-                            resourceName: server.Data.Name);
-
-                        await dbManager.AddOrUpdateNodeAsync(
-                            sqlNode.GetNodeLabel(),
-                            sqlNode.GetNodeId(),
-                            sqlNode.GetResourceType(),
-                            sqlNode.GetNodeProperties());
-                        await dbManager.AddEdgeIfNotExistsAsync(
-                            workloadNode.GetNodeId(),
-                            sqlNode.GetNodeId(),
-                            "SQL_CONNECTED");
-
-                        _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
-                        return sqlNode;
-                    }
-                }
-
-                _logger.LogWarning($"SQL server with name {serverName} was not found in the subscription.");
-                return null;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Error processing connection string: {ex.Message}");
-                return null;
-            }
-        }
-
-
-        private string ExtractResourceGroupName(string resourceId)
-        {
-            var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < segments.Length - 1; i++)
-            {
-                if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
-                {
-                    return segments[i + 1];
-                }
-            }
-            return string.Empty;
-        }
-    }
 }
-
-

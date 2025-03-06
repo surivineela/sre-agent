@@ -1,16 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
-using Microsoft.Data.SqlClient;
-using Azure.Core;
 
 namespace Agent.Graph.Crawler.ARM
 {
@@ -18,17 +12,15 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<ContainerAppCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
-        private readonly ArmClient _armClient;
 
-        public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseManager dbManager)
-            : base(logger, dbManager)
+        public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
+            : base(logger, dbManager, armClient)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
         }
 
-        public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+        public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             await foreach (var n in base.Crawl(node))
             {
@@ -44,13 +36,14 @@ namespace Agent.Graph.Crawler.ARM
                 node.GetNodeProperties());
 
             var resourceIdentifier = new ResourceIdentifier(node.ResourceId);
-            var resource = _armClient.GetGenericResource(resourceIdentifier);
-            if (resource == null || !resource.HasData)
+            var resp = await _armClient.GetGenericResource(resourceIdentifier).GetAsync();
+            if (resp == null || !resp.Value.HasData)
             {
                 _logger.LogWarning($"Failed to get resource details for: {node.ResourceId}");
                 yield break;
             }
 
+            var resource = resp.Value;
             var jsonObj = JsonSerializer.Deserialize<JsonElement>(resource.Data.Properties);
 
             // Check template.containers array
@@ -117,9 +110,9 @@ namespace Agent.Graph.Crawler.ARM
         }
 
         private async IAsyncEnumerable<ArmResourceNode> ProcessConnectionString(
-            ArmResourceNode node, 
-            string name, 
-            string value, 
+            ArmResourceNode node,
+            string name,
+            string value,
             string sourceType)
         {
             // Look for SQL connection strings
@@ -130,8 +123,8 @@ namespace Agent.Graph.Crawler.ARM
                 if (sqlNode != null)
                 {
                     var properties = sqlNode.GetNodeProperties();
-                    properties["authType"] = value.Contains("Authentication=Active Directory Managed Identity", StringComparison.OrdinalIgnoreCase) 
-                        ? "managedIdentity" 
+                    properties["authType"] = value.Contains("Authentication=Active Directory Managed Identity", StringComparison.OrdinalIgnoreCase)
+                        ? "managedIdentity"
                         : "connectionString";
                     properties["source"] = $"containerApp:{sourceType}:{name}";
 
@@ -152,8 +145,8 @@ namespace Agent.Graph.Crawler.ARM
                 if (redisNode != null)
                 {
                     var properties = redisNode.GetNodeProperties();
-                    properties["authType"] = value.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase) 
-                        ? "managedIdentity" 
+                    properties["authType"] = value.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase)
+                        ? "managedIdentity"
                         : "connectionString";
                     properties["source"] = $"containerApp:{sourceType}:{name}";
 
@@ -171,7 +164,7 @@ namespace Agent.Graph.Crawler.ARM
         private bool IsSqlConnectionString(string value)
         {
             if (string.IsNullOrEmpty(value)) return false;
-            
+
             return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
                    value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
                    value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
@@ -180,9 +173,9 @@ namespace Agent.Graph.Crawler.ARM
         private bool IsRedisConnectionString(string value)
         {
             if (string.IsNullOrEmpty(value)) return false;
-            
+
             return value.Contains(".redis.cache.windows.net", StringComparison.OrdinalIgnoreCase) ||
-                   value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) && 
+                   value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) &&
                    (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
                     value.Contains("password=", StringComparison.OrdinalIgnoreCase));
         }

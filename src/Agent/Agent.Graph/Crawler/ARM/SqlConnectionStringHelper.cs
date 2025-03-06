@@ -1,6 +1,6 @@
 ﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Graph.Crawler.ARM;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
@@ -9,23 +9,25 @@ public class SqlConnectionStringHelper
 {
     private readonly ILogger _logger;
     private readonly ArmClient _armClient;
+    private const string azureSqlSuffix = ".database.windows.net";
 
-    public SqlConnectionStringHelper(ILogger logger)
+    public SqlConnectionStringHelper(ILogger logger, ArmClient armClient)
     {
         _logger = logger;
-        _armClient = new ArmClient(new DefaultAzureCredential());
+        _armClient = armClient;
     }
 
-    public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(IGraphDatabaseManager dbManager, ArmResourceNode workloadNode, string connectionString)
+    public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(
+        IGraphDatabaseManager dbManager,
+        ArmResourceNode workloadNode,
+        string connectionString)
     {
         try
         {
-            // Use SqlConnectionStringBuilder to parse the connection string.
             var builder = new SqlConnectionStringBuilder(connectionString);
-            var rawServer = builder.DataSource; // e.g. "tcp:myserver.database.windows.net,1433"
+            var rawServer = builder.DataSource;
             var database = builder.InitialCatalog;
 
-            // Normalize server name: remove "tcp:" prefix and any port numbers.
             var serverName = rawServer;
             if (serverName.StartsWith("tcp:", StringComparison.OrdinalIgnoreCase))
             {
@@ -37,16 +39,19 @@ public class SqlConnectionStringHelper
                 serverName = serverName.Substring(0, commaIndex);
             }
 
+            var serverBaseName = serverName;
+            if (serverBaseName.EndsWith(azureSqlSuffix, StringComparison.OrdinalIgnoreCase))
+            {
+                serverBaseName = serverBaseName.Substring(0, serverBaseName.Length - azureSqlSuffix.Length);
+            }
+
             _logger.LogDebug($"Parsed SQL server name: {serverName}, Database: {database}");
 
-            // Use the Azure Resource Graph / ARM client to find the SQL Server resource.
-            // For this example, we list SQL servers in the subscription of the workload node.
-            var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier(workloadNode.SubscriptionId));
-            var sqlServers = subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Sql/servers'");
-            await foreach (var server in sqlServers)
+            var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/" + workloadNode.SubscriptionId));
+            await foreach (var server in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Sql/servers'"))
             {
-                // Compare names (you might need to adjust for case or domain differences).
-                if (server.Data.Name.Equals(serverName, StringComparison.OrdinalIgnoreCase))
+                // Compare names (adjust for case or domain differences as needed).
+                if (server.Data.Name.Equals(serverBaseName, StringComparison.OrdinalIgnoreCase))
                 {
                     var sqlResourceId = server.Data.Id.ToString();
                     var sqlNode = new ArmResourceNode(
@@ -56,8 +61,14 @@ public class SqlConnectionStringHelper
                         resourceGroupName: ExtractResourceGroupName(server.Data.Id),
                         resourceName: server.Data.Name);
 
-                    await dbManager.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
-                    await dbManager.AddEdgeIfNotExistsAsync(workloadNode.GetNodeId(), sqlNode.GetNodeId(), "SQL_CONNECTED");
+                    await dbManager.AddOrUpdateNodeAsync(
+                        sqlNode.GetNodeLabel(),
+                        sqlNode.GetNodeId(),
+                        sqlNode.GetResourceType(),
+                        sqlNode.GetNodeProperties());
+
+                    var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                    await dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                     _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
                     return sqlNode;
@@ -73,6 +84,7 @@ public class SqlConnectionStringHelper
             return null;
         }
     }
+
 
     private string ExtractResourceGroupName(string resourceId)
     {

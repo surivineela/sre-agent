@@ -72,10 +72,8 @@ namespace Agent.Graph.Crawler.ARM
                         depNode.GetResourceType(),
                         depNode.GetNodeProperties());
 
-                    await _dbManager.AddEdgeIfNotExistsAsync(
-                        clusterNode.GetNodeId(),
-                        depNode.GetNodeId(),
-                        "CONTAINS");
+                    var edge = new ArmResourceEdge(clusterNode.GetNodeId(), depNode.GetNodeId(), Constants.Relationships.Contains);
+                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                 }
                 catch (Exception ex)
                 {
@@ -118,10 +116,8 @@ namespace Agent.Graph.Crawler.ARM
                                                     sqlNode.GetResourceType(),
                                                     properties);
 
-                                                await _dbManager.AddEdgeIfNotExistsAsync(
-                                                    depNode.GetNodeId(),
-                                                    sqlNode.GetNodeId(),
-                                                    "SQL_CONNECTED");
+                                                var edge = new ArmResourceEdge(depNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                                                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                                             }
                                         }
                                         else if (env.Value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
@@ -181,10 +177,8 @@ namespace Agent.Graph.Crawler.ARM
                     sqlNode.GetResourceType(),
                     properties);
 
-                await _dbManager.AddEdgeIfNotExistsAsync(
-                    workloadNode.GetNodeId(),
-                    sqlNode.GetNodeId(),
-                    "SQL_CONNECTED");
+                var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                 _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
                 return sqlNode;

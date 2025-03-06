@@ -12,6 +12,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.ManagedServiceIdentities;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Resources;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
@@ -24,21 +25,27 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger _logger;
         private readonly IGraphDatabaseManager _dbManager;
-        private readonly ArmClient _armClient;
         private readonly bool _crawlLinkedResource = true;
 
-        public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseManager dbManager, bool crawlLinkedResource = true)
+        protected readonly ArmClient _armClient;
+
+        private static HashSet<string> _skipPath = new()
+        {
+            ".identity", // skip identity section because it is explicitly crawled
+        };
+
+        public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseManager dbManager, ArmClient armClient, bool crawlLinkedResource = true)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
+            _armClient = armClient;
             _crawlLinkedResource = crawlLinkedResource;
         }
 
         public virtual async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
         {
             _logger.LogDebug($"Crawling generic ARM resource {node.ResourceId}");
-            if(node.ResourceType.Contains("Microsoft.ContainerService/DaemonSet") || node.ResourceType.Contains("Microsoft.ContainerService/Deployment"))
+            if(node.ResourceType.Contains("microsoft.containerservice/daemonSet") || node.ResourceType.Contains("microsoft.containerservice/deployment"))
             {
                 yield break;
             }
@@ -96,7 +103,9 @@ namespace Agent.Graph.Crawler.ARM
                         var resourceId = new ResourceIdentifier(identityResourceId);
                         var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
                         await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
-                        await _dbManager.AddEdgeIfNotExistsAsync(node.GetNodeId(), identityNode.GetNodeId(), "HAS_IDENTITY");
+
+                        var edge = new ArmResourceEdge(node.GetNodeId(), identityNode.GetNodeId(), Constants.Relationships.HasIdentity);
+                        await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                         yield return identityNode;
                     }
@@ -106,36 +115,46 @@ namespace Agent.Graph.Crawler.ARM
             if (_crawlLinkedResource)
             {
                 var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
-                foreach (var link in Tranverse(jsonObj))
+                foreach (var link in Tranverse(jsonObj, "."))
                 {
                     _logger.LogDebug($"Find linked resource: {link.ResourceId}");
                     await _dbManager.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
-                    await _dbManager.AddEdgeIfNotExistsAsync(node.GetNodeId(), link.GetNodeId(), "LINKED");
+
+                    var edge = new ArmResourceEdge(node.GetNodeId(), link.GetNodeId(), Constants.Relationships.Linked);
+                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+
                     yield return link;
                 }
             }
         }
 
-        private IEnumerable<ArmResourceNode> Tranverse(JsonElement root)
+        private IEnumerable<ArmResourceNode> Tranverse(JsonElement root, string path)
         {
+            if (_skipPath.Contains(path.ToLowerInvariant()))
+            {
+                yield break;
+            }
+
             switch (root.ValueKind)
             {
                 case JsonValueKind.Object:
                     foreach (var property in root.EnumerateObject())
                     {
-                        foreach (var node in Tranverse(property.Value))
+                        foreach (var node in Tranverse(property.Value, $".{property.Name}"))
                         {
                             yield return node;
                         }
                     }
                     break;
                 case JsonValueKind.Array:
+                    int idx = 0;
                     foreach (var element in root.EnumerateArray())
                     {
-                        foreach (var node in Tranverse(element))
+                        foreach (var node in Tranverse(element, $"[{idx}]"))
                         {
                             yield return node;
                         }
+                        idx++;
                     }
                     break;
                 case JsonValueKind.String:

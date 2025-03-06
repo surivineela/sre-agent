@@ -9,6 +9,7 @@
   <ItemGroup>
     <PackageReference Include="Gremlin.Net" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Polly" />
   </ItemGroup>
 
   <ItemGroup>

@@ -16,11 +16,11 @@ namespace Agent.Graph.Crawler.ARM
         private readonly IGraphDatabaseManager _dbManager;
         private readonly ArmClient _armClient;
 
-        public SubscriptionCrawler(ILogger<SubscriptionCrawler> logger, IGraphDatabaseManager dbManager, ILoggerFactory loggerFactory)
+        public SubscriptionCrawler(ILogger<SubscriptionCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
+            _armClient = armClient;
         }
 
         public static async Task<List<Node>> CrawlAllSubscriptions(InMemoryGraphManager inMemoryGraphManager)
@@ -62,7 +62,10 @@ namespace Agent.Graph.Crawler.ARM
             {
                 var rgNode = new ResourceGroupNode(subNode.SubscriptionId, rg.Data.Name);
                 await _dbManager.AddOrUpdateNodeAsync(rgNode.GetNodeLabel(), rgNode.GetNodeId(), rgNode.GetResourceType(), rgNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(subNode.GetNodeId(), rgNode.GetNodeId(), "CONTAINS");
+
+                var edge = new ArmResourceEdge(subNode.GetNodeId(), rgNode.GetNodeId(), Constants.Relationships.Contains);
+                edge.AddOrUpdateEdgeProperty(Constants.RbacPath, Constants.RbacPathInherited);
+                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                 yield return rgNode;
             }

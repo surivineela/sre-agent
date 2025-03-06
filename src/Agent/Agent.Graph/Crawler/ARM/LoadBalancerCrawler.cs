@@ -14,14 +14,12 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<LoadBalancerCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
-        private readonly ArmClient _armClient;
 
-        public LoadBalancerCrawler(ILogger<LoadBalancerCrawler> logger, IGraphDatabaseManager dbManager)
-            : base(logger, dbManager)
+        public LoadBalancerCrawler(ILogger<LoadBalancerCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
+            : base(logger, dbManager, armClient)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
         }
 
         public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)

@@ -8,29 +8,29 @@ using Agent.Core.Models;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
+using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
-using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
 using Agent.Runtime.Services;
+using Agent.Seb.Services;
 using Agent.Web.Services;
+using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using Azure.ResourceManager;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Connector.Authentication;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using System.Configuration;
-using Agent.Seb.Services;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Connector.Authentication;
-using Agent.Runtime.SubAgents;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.LoadAppSettings();
+builder.LoadAppSettings(builder.Environment.IsDevelopment());
 builder.ValidateAndRegisterAppSettings<AppSettings>();
 
 // Configure logging
@@ -85,6 +85,18 @@ if (useSessionChatService)
         .AddSingleton<RemediationPluginDefinition>()
         .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>()
         .AddSingleton<ApprovalPlugin>();
+
+    // register arm client for crawler
+    builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
+    {
+        var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
+        var credOptions = new DefaultAzureCredentialOptions();
+        if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
+        {
+            credOptions.ManagedIdentityClientId = crawlerSettings.IdentityClientId;
+        }
+        return new ArmClient(new DefaultAzureCredential(credOptions));
+    });
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 

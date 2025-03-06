@@ -85,10 +85,11 @@ namespace Agent.Graph.Crawler.ARM
                 ArmResourceNode targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
 
                 await _dbManager.AddOrUpdateNodeAsync(targetResourceNode.GetNodeLabel(), targetResourceNode.GetNodeId(), targetResourceNode.GetResourceType(), targetResourceNode.GetNodeProperties());
-                await _dbManager.AddEdgeIfNotExistsAsync(identityNode.GetNodeId(), targetResourceNode.GetNodeId(), "HAS_ROLE_ON", new Dictionary<string, object>
-                {
-                    { "roleId", roleId },
-                });
+
+                var edge = new ArmResourceEdge(identityNode.GetNodeId(), targetResourceNode.GetNodeId(), Constants.Relationships.HasRole);
+                edge.AddRbacExplicitEdgeProperties()
+                    .AddOrUpdateEdgeProperty(Constants.RoleAssignmentIdKey, roleId);
+                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                 yield return targetResourceNode;
             }

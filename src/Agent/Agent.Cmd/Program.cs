@@ -1,14 +1,14 @@
-﻿using System;
-using System.Reflection;
+﻿using Agent.Core.Configuration;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Crawler.ARM;
-using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
-using Agent.Core.Configuration;
-using Microsoft.Extensions.Hosting;
 using Agent.Runtime;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Microsoft.Extensions.Azure;
+using Microsoft.Extensions.CommandLineUtils;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Cmd
 {
@@ -28,24 +28,42 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
             builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
             builder.Services.AddSingleton<AzureResourceGraphClient>();
-            builder.Services.AddScoped<ResourceGraphCrawler>();
+            builder.Services.AddSingleton<ResourceGraphCrawler>();
+            builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
+            {
+                var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
+                var credOptions = new DefaultAzureCredentialOptions();
+                if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
+                {
+                    credOptions.ManagedIdentityClientId = crawlerSettings.IdentityClientId;
+                }
+                return new ArmClient(new DefaultAzureCredential(credOptions));
+            });
+
+            builder.Services.AddSingleton<CrawlerCommand>();
+            builder.Services.AddSingleton<GraphCommand>();
 
             var host = builder.Build();
-            ILogger logger = host.Services.GetService<ILogger<Program>>();
             CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
             commandLineApplication.HelpOption("-?|-h|--help");
 
             commandLineApplication.Command("Crawl",
                 (command) =>
                 {
-                    var cmd = new CrawlerCommand(logger, host.Services);
-                    cmd.CrawlSubscription(command);
+                    var cmd = host.Services.GetRequiredService<CrawlerCommand>();
+                    cmd.CrawlResourceId(command);
+                });
+            commandLineApplication.Command("CleanUp",
+                (command) =>
+                {
+                    var cmd = host.Services.GetRequiredService<CrawlerCommand>();
+                    cmd.CleanUp(command);
                 });
 
             commandLineApplication.Command("ExportGraph",
                 (command) =>
                 {
-                    var cmd = new GraphCommand(logger, host.Services);
+                    var cmd = host.Services.GetRequiredService<GraphCommand>();
                     cmd.ExportGraph(command);
                 });
 

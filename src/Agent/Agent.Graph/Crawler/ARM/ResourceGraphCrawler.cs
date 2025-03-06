@@ -1,10 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Collections;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseManagers.GraphDatabase;
+using Azure.ResourceManager;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM
@@ -15,18 +16,28 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ArmResourceCrawlerFactory _factory;
         private readonly IGraphDatabaseManager _dbManager;
         private readonly AzureResourceGraphClient _graphClient;
+        private readonly ArmClient _armClient;
         private readonly CrawlerSettings _crawlerSettings;
+        private readonly object _lockObj;
 
-        public ResourceGraphCrawler(CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient, ILogger<ResourceGraphCrawler> logger)
+        public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient, [FromKeyedServices("CrawlerArmClient")] ArmClient armClient)
         {
             _logger = logger;
             _factory = factory;
             _dbManager = dbManager;
             _graphClient = graphClient;
+            _armClient = armClient;
             _crawlerSettings = crawlerSettings;
+            _lockObj = new();
         }
 
-        public async Task Crawl(IList<ArmResourceNode> nodes, CancellationToken? cancellationToken = null)
+        public async Task Crawl(string rootId, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
+        {
+            ArmResourceNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
+            await Crawl(new List<ArmResourceNode>() { rootNode }, filters);
+        }
+
+        public async Task Crawl(IList<ArmResourceNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
         {
             if (_crawlerSettings.SkipCrawl)
             {
@@ -36,32 +47,117 @@ namespace Agent.Graph.Crawler.ARM
 
             try
             {
-                HashSet<string> crawled = new();
-                Queue<ArmResourceNode> toCrawl = new();
-
-                foreach (var node in nodes)
+                lock (_lockObj)
                 {
-                    toCrawl.Enqueue(node);
-                }
+                    HashSet<string> crawled = new();
+                    Queue queue = new();
+                    Queue toCrawl = Queue.Synchronized(queue);
+                    ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
 
-                while (toCrawl.TryDequeue(out var node))
-                {
-                    if (crawled.Contains(node.GetHashString()))
+                    var startTS = DateTime.UtcNow.Ticks;
+                    var sw = new Stopwatch();
+                    sw.Start();
+
+                    foreach (var node in nodes)
                     {
-                        continue;
+                        if (filters == null || filters.Contains(node.GetType()))
+                        {
+                            toCrawl.Enqueue(node);
+                        }
                     }
-                    crawled.Add(node.GetHashString());
-                    var crawler = _factory.CreateFromNode(node, _dbManager, _graphClient);
-                    await foreach(var n in crawler.Crawl(node))
+
+                    while (toCrawl.Count > 0 || tasks.Count > 0)
                     {
-                        toCrawl.Enqueue(n);
+                        while (toCrawl.Count > 0 && tasks.Count < _crawlerSettings.MaxParallelism)
+                        {
+                            var node = toCrawl.Dequeue() as ArmResourceNode;
+                            if (node == null)
+                            {
+                                continue;
+                            }
+
+                            if (crawled.Contains(node.GetHashString()))
+                            {
+                                continue;
+                            }
+
+                            crawled.Add(node.GetHashString());
+
+                            tasks.Add(Task.Run(async () =>
+                            {
+                                var crawler = _factory.CreateFromNode(node, _dbManager, _graphClient, _armClient);
+                                await foreach (var n in crawler.Crawl(node))
+                                {
+                                    if (filters == null || filters.Contains(n.GetType()))
+                                    {
+                                        toCrawl.Enqueue(n);
+                                    }
+                                }
+
+                                _logger.LogDebug($"Cleaning up stale edges from {node.ResourceId} (older than {startTS})");
+                                await _dbManager.Query($"g.V('{GetSanitizedCosmosDBId(node.ResourceId)}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
+                            }));
+                        }
+
+                        if (tasks.Count == 0)
+                        {
+                            continue;
+                        }
+
+                        Task.WhenAny(tasks).Wait();
+                        var newTasks = new ConcurrentBag<Task>();
+                        foreach (var task in tasks)
+                        {
+                            if (!task.IsCompleted)
+                            {
+                                newTasks.Add(task);
+                            }
+                        }
+                        tasks = newTasks;
                     }
+
+                    sw.Stop();
+                    _logger.LogInformation($"Done crawling. Time taken: {sw.ElapsedMilliseconds}ms.");
                 }
-                _logger.LogDebug($"Done crawling");
-            } catch (Exception ex)
+            }
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error crawling resources");
             }
+        }
+
+        // Crawl the whole subscription and remove all nodes that does not have any in edge (no longer exists)
+        public async Task CleanUp(string subscription)
+        {
+            ArmResourceNode subNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier($"/subscriptions/{subscription}");
+
+            // crawl for all resources to resource group level to refresh in edges
+            _logger.LogInformation($"Crawling subscription {subscription} for resources");
+            await Crawl([subNode], new HashSet<Type>() { typeof(SubscriptionNode), typeof(ResourceGroupNode) });
+            _logger.LogInformation($"Done crawling. Start to cleanup orphan nodes under subscription {subscription} (no inE)");
+
+            var query = $"g.V().not(hasLabel('subscription')).has('subscriptionId', '{subscription}').where(__.inE().count().is(0))";
+            var result = await _dbManager.Query(query, maxMessageSize: 0);
+            int count = result.Count;
+            while (count > 0)
+            {
+                _logger.LogInformation($"Will drop {count} orphan nodes");
+                await _dbManager.Query($"{query}.drop()");
+                result = await _dbManager.Query(query, maxMessageSize: 0);
+                count = result.Count;
+            }
+            _logger.LogInformation($"Done cleanup orphan nodes under subscription {subscription} (no inE)");
+
+            _logger.LogInformation($"Start to cleanup orphan nodes in graph (no edges)");
+            await _dbManager.Query($"g.V().not(hasLabel('subscription')).where(__.bothE().count().is(0)).drop()");
+            _logger.LogInformation($"Done cleanup orphan nodes in graph (no edges)");
+
+            _logger.LogInformation($"Done cleaning up");
+        }
+
+        private static string GetSanitizedCosmosDBId(string id)
+        {
+            return id.Replace("/", "_").Replace(":", "_").Replace(" ", "_");
         }
     }
 }
