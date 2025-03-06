@@ -11,7 +11,10 @@ namespace Agent.Core.Configuration
     {
         [Required]
         public string TenantId { get; set; } = "72f988bf-86f1-41af-91ab-2d7cd011db47";
+
         [Required]
         public string SubscriptionId { get; set; } = string.Empty;
+
+        public bool SkipCrawl { get; set; } = false;
     }
 }

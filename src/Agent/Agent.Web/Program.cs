@@ -26,6 +26,7 @@ using Agent.Seb.Services;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
+using Agent.Runtime.SubAgents;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -110,7 +111,7 @@ if (useSessionChatService)
     builder.Services.AddSingleton<IAgentManager, AgentManager>();
     builder.Services.AddScoped<IChatService, Agent.Web.Services.SessionChatService>();
 
-    // Kick off subprocesses
+    // Kick off background processes
     builder.Services.AddHostedService<TimerService>();
 
     // Add Teams Connector only if configuration is valid

@@ -129,7 +129,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
 
         public async Task<ResultSet<dynamic>> Query(string query)
         {
-            _logger.LogInformation($"Executing Gremlin query: {query}");
+            _logger.LogDebug($"Executing Gremlin query: {query}");
 
             try
             {

@@ -1,7 +1,6 @@
+using Agent.Core.Models;
 using Agent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace Agent.Web.Controllers
 {

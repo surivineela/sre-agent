@@ -14,5 +14,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public ExternalSettings External { get; set; } = new();
+
+        [Required]
+        public TimerSettings Timer { get; set; } = new();
     }
 }
