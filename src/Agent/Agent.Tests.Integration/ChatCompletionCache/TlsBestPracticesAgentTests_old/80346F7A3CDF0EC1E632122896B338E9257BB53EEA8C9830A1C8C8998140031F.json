@@ -1,0 +1,38 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_N93utcgWeY1ayFFRoEk0DLw9",
+          "name": "SetMinimumTlsVersion",
+          "arguments": {
+            "appResourceId": "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites/app1",
+            "minimumTlsVersion": "1.2"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-B5eaqOLga3j1g53zETaSSXGWxZ69w",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-02-27T20:16:20+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 2336,
+    "outputTokenCount": 63,
+    "totalTokenCount": 2399,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_b705f0c291"
+  }
+}

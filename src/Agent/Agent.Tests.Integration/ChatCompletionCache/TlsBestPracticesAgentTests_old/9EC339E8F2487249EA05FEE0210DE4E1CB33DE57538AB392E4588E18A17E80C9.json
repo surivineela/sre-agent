@@ -1,0 +1,37 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_V0g305qaIVgDvSZ6hk4qqMRs",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "▶️ Starting update for App 2: /subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites/app2."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-B5eb5ALLIQkcqQPimBy8h3xBU3PqJ",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-02-27T20:16:35+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 3301,
+    "outputTokenCount": 61,
+    "totalTokenCount": 3362,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_b705f0c291"
+  }
+}

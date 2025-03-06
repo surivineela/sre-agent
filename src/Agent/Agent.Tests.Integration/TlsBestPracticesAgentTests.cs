@@ -1,14 +1,14 @@
-﻿using System.Net;
-using Agent.Core.Models;
+﻿using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
+using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.Core;
+using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Integration.Fixtures;
 using Azure.AI.OpenAI;
-using Azure.Identity;
-using DurableTask.Core;
-using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
@@ -19,7 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Xunit.Abstractions;
-using static System.Net.WebRequestMethods;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Tests.Integration
 {
@@ -30,10 +30,16 @@ namespace Agent.Tests.Integration
         private ILogger _logger;
         private IHost _host;
         private DurableTaskClient _durableTaskClient;
+        private TlsBestPracticeAgentFactory _agentFactory;
         private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
 
+        private MockApprovalPlugin _mockApprovalPlugin;
         private MockArmPlugin _mockArmPlugin;
         private MockMetricsPlugin _mockMetricsPlugin;
+        private MockGithubWorkflowTriggerPlugin _mockGithubPlugin;
+        private MockTimePlugin _mockTimePlugin;
+        private MockMIConfigurationCheckPlugin _mockMIConfigurationCheckPlugin;
+        private MockAppIdentityUpdatePlugin _mockAppIdentityUpdatePlugin;
 
         private List<TlsStatus> _testApps = new List<TlsStatus>
         {
@@ -62,27 +68,49 @@ namespace Agent.Tests.Integration
                     });
 
                     var openAISettings = config.AzureSettings.OpenAI;
-                    var openAIClient = new AzureOpenAIClient(new Uri(openAISettings.Endpoint), new DefaultAzureCredential());
+                    var openAIClient = new AzureOpenAIClient(new Uri(openAISettings.Endpoint), new System.ClientModel.ApiKeyCredential(config.AzureSettings.OpenAI.ApiKey));
 
                     var diskCache = new TestCachingChatClientBuilderExtensions.DiskCache(cacheDir);
 
-                    var durableConnectionString = config.AzureSettings.DTS.ConnectionString;
+                    var durableConnectionString = "";// "Endpoint=https://scheduler1-cqczc8d2dhhj.northcentralus.durabletask.io;TaskHub=taskhub1;Authentication=DefaultAzure";
+                    //var durableConnectionString = "Endpoint=https://scheduler1-enekctgzbtbj.northcentralus.durabletask.io;TaskHub=taskhub1;Authentication=DefaultAzure";//"Endpoint=https://sanmeht-dts-a0bgg6eafjd2.westus2.durabletask.io;Authentication=DefaultAzure;TaskHub=sanmeht-dts-hub";
                     if (string.IsNullOrEmpty(durableConnectionString))
                     {
                         durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
                     }
-                    
 
                     services.AddSingleton(openAIClient);
 
-                    services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName))                        
+                    services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+                        .UseAgenticLogging()
+                        .UseDistributedCache(diskCache);
+
+                    // if we want, we can have different chat clients, some with function invocation enabled
+                    services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
                         .UseAgenticLogging()
                         .UseDistributedCache(diskCache)
                         .UseFunctionInvocation();
 
-                    services.AddKeyedChatClient("no-function-invocation", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName))
-                        .UseAgenticLogging()
-                        .UseDistributedCache(diskCache);
+                    // -- test specific
+                    _mockApprovalPlugin = new MockApprovalPlugin();
+                    _mockArmPlugin = new MockArmPlugin(_timeProvider, _mockApprovalPlugin);
+                    _mockArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
+                    _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
+                    _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);
+                    _mockTimePlugin = new MockTimePlugin(_timeProvider);
+                    _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
+                    _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
+
+                    services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
+                    services.AddSingleton<IArmPlugin>(_mockArmPlugin);
+                    services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
+                    services.AddSingleton<IGithubWorkflowTriggerPlugin>(_mockGithubPlugin);
+                    services.AddSingleton<ITimePlugin>(_mockTimePlugin);
+                    services.AddSingleton<IMIConfigurationCheckPlugin>(_mockMIConfigurationCheckPlugin);
+                    services.AddSingleton<IAppIdentityUpdatePlugin>(_mockAppIdentityUpdatePlugin);
+                    services.AddSingleton<ToolsRepository>();
+                    services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
+                    services.AddSingleton<TlsBestPracticeAgentFactory>();
 
                     services.AddDurableTaskWorker(builder =>
                     {
@@ -98,27 +126,17 @@ namespace Agent.Tests.Integration
                         builder.UseDurableTaskScheduler(durableConnectionString);
                     });
 
-                    // -- test specific
-
-                    _mockArmPlugin = new MockArmPlugin(_timeProvider, _testApps);                    
-                    _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
-
-                    services.AddSingleton<IArmPlugin>(_mockArmPlugin);
-                    services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
-                    services.AddSingleton<TlsBestPracticesAgentTools>();
-
-                    
                 })
                 .Build();
 
             _durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
+            _agentFactory = _host.Services.GetRequiredService<TlsBestPracticeAgentFactory>();
         }
 
         public async Task DisposeAsync()
         {
-            // TODO - cleanup doesnt work against emulator, following up with DTS team
-            // in meantime might need to terminate orphan orchestrations in dashboard
-            //await CleanupAsync();
+            // TODO - cleanup doesnt work against emulator, following up with DTS team            
+            await CleanupAsync();
 
             await _host.StopAsync();
             _host.Dispose();
@@ -127,7 +145,7 @@ namespace Agent.Tests.Integration
         public async Task InitializeAsync()
         {
             await _host.StartAsync();
-            //await CleanupAsync();
+            await CleanupAsync();
         }
 
         private async Task CleanupAsync()
@@ -143,11 +161,45 @@ namespace Agent.Tests.Integration
 
             await foreach (var instance in instances.Where(x => x.Name == nameof(TlsBestPracticesAgent)))
             {
-                await _durableTaskClient.TerminateInstanceAsync(instance.InstanceId, "Test cleanup");
+                await _durableTaskClient.TerminateInstanceAsync(instance.InstanceId, new TerminateInstanceOptions { Output = "Test cleanup", Recursive = true });
                 await _durableTaskClient.WaitForInstanceCompletionAsync(instance.InstanceId);
             }
         }
 
+        private async Task DoApproval(string instanceID, CancellationTokenSource approvalSource)
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), approvalSource.Token);
+                var orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, getInputsAndOutputs: true);
+
+                if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
+                {
+                    Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
+                }
+
+                if (orchestrationMetadata.SerializedCustomStatus == null)
+                {
+                    continue;
+                }
+
+                var orchestrationStatus = orchestrationMetadata.ReadCustomStatusAs<string>();
+
+                if (orchestrationStatus.StartsWith("Pending approval:"))
+                {
+                    var approvalId = orchestrationStatus.Split(":")[1];
+                    var approvalStatus = new ApprovalStatus(approvalId, _timeProvider.GetUtcNow().DateTime, _timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null);
+                    await _durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
+                    break;
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Cleanup()
+        {
+            // Need to chat with DTS folks about the best way to do this. 
+        }
 
         [Fact]
         public async Task UpdateHealthyApps()
@@ -162,7 +214,11 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(input);
+                instanceID = await _agentFactory.StartOrchestration(input);
+
+                await Task.Delay(TimeSpan.FromSeconds(3));
+                await DoApproval(instanceID, tokenSource);
+
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
@@ -171,7 +227,7 @@ namespace Agent.Tests.Integration
 
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
 
-                foreach(var app in _testApps)
+                foreach (var app in _testApps)
                 {
                     Assert.Equal("1.2", app.MinimumTlsVersion);
                 }
@@ -184,13 +240,12 @@ namespace Agent.Tests.Integration
             {
                 if (!string.IsNullOrEmpty(instanceID))
                 {
-                    await _durableTaskClient.TerminateInstanceAsync(instanceID, "Test timeout");
+                    await _durableTaskClient.TerminateInstanceAsync(instanceID, new TerminateInstanceOptions { Output = "test cleanup", Recursive = true });
                 }
                 Assert.Fail("Orchestration timed out");
             }
 
         }
-
 
         [Fact]
         public async Task RollbackUnhealthyApp()
@@ -205,7 +260,9 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(input);
+                instanceID = await _agentFactory.StartOrchestration(input);
+                await DoApproval(instanceID, tokenSource);
+
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: false, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
@@ -225,11 +282,63 @@ namespace Agent.Tests.Integration
             }
             catch (TaskCanceledException)
             {
-                if(!string.IsNullOrEmpty(instanceID))
+                if (!string.IsNullOrEmpty(instanceID))
                 {
                     await _durableTaskClient.TerminateInstanceAsync(instanceID, "Test timeout");
                 }
-                
+
+                Assert.Fail("Orchestration timed out");
+            }
+
+        }
+
+        [Fact]
+        public async Task AbortOnUnhealthy()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+
+            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
+
+            var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
+            string? instanceID = "";
+
+            try
+            {
+                instanceID = await _agentFactory.StartOrchestration(input);
+
+                await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+                {
+                    Role = ChatRole.User,
+                    Text = "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
+                });
+
+                await DoApproval(instanceID, tokenSource);
+
+                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: false, tokenSource.Token);
+                if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
+                {
+                    Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
+                }
+
+                Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
+                Assert.Equal("1.2", _testApps[0].MinimumTlsVersion);
+                Assert.Equal("1.0", _testApps[1].MinimumTlsVersion);
+                Assert.Equal("1.0", _testApps[2].MinimumTlsVersion);
+                Assert.Equal("1.0", _testApps[3].MinimumTlsVersion);
+                Assert.Equal("1.0", _testApps[4].MinimumTlsVersion);
+            }
+            catch (Grpc.Core.RpcException ex)
+            {
+                Assert.Fail($"Make sure you have the DTS emulator running (run-durable-emulator.ps1) or your appsettings.development.json has a valid Durable Task Scheduler connection string.{Environment.NewLine} {ex}");
+            }
+            catch (TaskCanceledException)
+            {
+                if (!string.IsNullOrEmpty(instanceID))
+                {
+                    await _durableTaskClient.TerminateInstanceAsync(instanceID, "Test timeout");
+                }
+
                 Assert.Fail("Orchestration timed out");
             }
 

@@ -7,5 +7,6 @@ namespace Agent.Plugins
     public interface ITimePlugin
     {
         DateTime GetCurrentUtcTime();
+        string GetAppTimeZone(string resourceId);
     }
 }

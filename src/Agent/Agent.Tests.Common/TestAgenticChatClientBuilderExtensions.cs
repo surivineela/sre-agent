@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -24,13 +28,19 @@ namespace Agent.Tests.Common
 
         public class AgenticLoggingChatClient : IChatClient
         {
-            private bool _first = true;
+            private HashSet<string> _hashes = new HashSet<string>();
+            private ConcurrentDictionary<string,ChatMessage> _debugTracking = new ConcurrentDictionary<string, ChatMessage>();
             private IChatClient _innerClient;
             private ILogger<AgenticLoggingChatClient> _logger;
+            private JsonSerializerOptions _hashingOptions;
+
             public AgenticLoggingChatClient(IChatClient innerClient, ILogger<AgenticLoggingChatClient> logger)
             {
                 _innerClient = innerClient;
                 _logger = logger;
+                _hashingOptions = new JsonSerializerOptions();
+                _hashingOptions.TypeInfoResolver = new DefaultJsonTypeInfoResolver();
+                _hashingOptions.MakeReadOnly();
             }
 
             public void Dispose()
@@ -40,28 +50,33 @@ namespace Agent.Tests.Common
 
             public async Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
             {
-                // TODO - this doesnt work, logs are still duplicated, might be due to IChatClient lifetime
-                // maybe just store a hash for each message and log any message that we haven't stored.
                 
-                if (_first)
+                string hash = null;
+                  
+                foreach (var chatMessage in chatMessages)
                 {
-                    _first = false;
-                    foreach (var chatMessage in chatMessages.SkipLast(1))
+                    hash = CachingHelpers.GetCacheKey([chatMessage], _hashingOptions);
+                    if (_hashes.Contains(hash))
+                    {
+                        continue;
+                    }
+                    _hashes.Add(hash);
+
+                    _debugTracking[hash] = chatMessage;
+
+
+
+                    //var last = chatMessages.Last();
+
+                    foreach (var functionResultContent in chatMessage.Contents.OfType<FunctionResultContent>())
+                    {
+                        _logger.LogTrace($"Function call {functionResultContent.CallId} completed with result {functionResultContent.Result}");
+                    }
+
+                    if (!string.IsNullOrEmpty(chatMessage.Text))
                     {
                         _logger.LogTrace($"{chatMessage.Role}: {chatMessage.Text}");
                     }
-                }
-
-                var last = chatMessages.Last();
-
-                foreach (var functionResultContent in last.Contents.OfType<FunctionResultContent>())
-                {
-                    _logger.LogTrace($"Function call {functionResultContent.CallId} completed with result {functionResultContent.Result}");
-                }
-
-                if (!string.IsNullOrEmpty(last.Text))
-                {
-                    _logger.LogTrace($"{last.Role}: {last.Text}");
                 }
 
                 var res = await _innerClient.GetResponseAsync(chatMessages, options, cancellationToken);
@@ -86,6 +101,11 @@ namespace Agent.Tests.Common
                 {
                     _logger.LogTrace($"{res.Message.Role}: {res.Message.Text}");
                 }
+
+                hash = CachingHelpers.GetCacheKey([res.Message], _hashingOptions);
+                _hashes.Add(hash);
+                _debugTracking[hash] = res.Message;
+
 
                 return res;
             }

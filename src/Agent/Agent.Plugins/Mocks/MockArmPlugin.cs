@@ -1,38 +1,46 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Agent.Core.Models;
-using Kusto.Data.Common.Impl;
+﻿using Agent.Core.Models;
+using System.Collections.Immutable;
 
 namespace Agent.Plugins.Mocks
 {
     public class MockArmPlugin : IArmPlugin
     {
         private readonly TimeProvider _timeProvider;
-        public readonly Dictionary<string, TlsStatus> TlsStatuses = new();
+        private readonly MockApprovalPlugin _approvalPlugin;
+        private IReadOnlyDictionary<string, TlsStatus> _tlsStatuses = ImmutableDictionary<string, TlsStatus>.Empty;
 
-        public MockArmPlugin(TimeProvider timeProvider)
+        public MockArmPlugin(TimeProvider timeProvider, MockApprovalPlugin approvalPlugin)
         {
             _timeProvider = timeProvider;
+            _approvalPlugin = approvalPlugin;
         }
 
-        public MockArmPlugin(TimeProvider timeProvider, List<TlsStatus> tlsStatuses) : this(timeProvider)
+        public void ConfigureTlsStatus(
+            IReadOnlyDictionary<string, TlsStatus> tlsStatuses)
         {
-            TlsStatuses = tlsStatuses.ToDictionary(k => k.ResourceId);
+            _tlsStatuses = tlsStatuses;
         }
 
         public Task<string> SetMinimumTlsVersion(string appResourceId, string minimumTlsVersion)
         {
-            if (!TlsStatuses.ContainsKey(appResourceId))
+            if (!_tlsStatuses.ContainsKey(appResourceId))
             {
                 throw new ArgumentException($"Resource {appResourceId} not found");
             }
 
-            TlsStatuses[appResourceId].MinimumTlsVersion = minimumTlsVersion;
+            if (!_approvalPlugin.ApprovedOperations.Contains("UpdateTls"))
+            {
+                throw new Exception("No approval found for TLS update for resource {appResourceId}.");
+            }
+
+            _tlsStatuses[appResourceId].MinimumTlsVersion = minimumTlsVersion;
             var msg = $"Resource {appResourceId} updated with minimum TLS version set to {minimumTlsVersion} at {_timeProvider.GetUtcNow():o}";
             return Task.FromResult(msg);
+        }
+
+        public Task<bool> RestartWebApp(string appResourceId)
+        {
+            return Task.FromResult(true);
         }
     }
 }

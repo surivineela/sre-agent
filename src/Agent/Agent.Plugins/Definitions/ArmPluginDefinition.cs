@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel;
 
 namespace Agent.Plugins
 {
@@ -25,6 +20,16 @@ namespace Agent.Plugins
             )
         {
             return await _armPlugin.SetMinimumTlsVersion(appResourceId, minimumTlsVersion);
+        }
+
+        [Description("Restart an AppService app")]
+        public async Task<string> RestartWebApp(
+            [Description("The resource ID of the AppService app.")]
+            string appResourceId)
+        {
+            return await _armPlugin.RestartWebApp(appResourceId)
+                ? "Restart succeeded"
+                : "Restart failed";
         }
     }
 }

@@ -89,7 +89,6 @@ Otherwise, there may be required settings which are not auto-populated by the pr
 
                 return settings;
             });
-
             builder.Services.RegisterInnerAppSettings<TAppSettings>();
         }
 

@@ -22,5 +22,12 @@ namespace Agent.Plugins
         {
             return _timePlugin.GetCurrentUtcTime();
         }
+
+        [KernelFunction("get_app_timezone")]
+        [Description("Returns the timezone string for an app hosted in various Azure data centers")]
+        public string GetAppTimeZone([Description("Azure ResourceId of the app")] string resourceId)
+        {
+            return _timePlugin.GetAppTimeZone(resourceId);
+        }
     }
 }

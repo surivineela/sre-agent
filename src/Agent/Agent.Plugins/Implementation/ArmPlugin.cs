@@ -21,8 +21,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> SetMinimumTlsVersion(
             string appResourceId,
-            string minimumTlsVersion
-)
+            string minimumTlsVersion)
         {
             var status = (await ArmHelper.GetTlsSettings([appResourceId])).SingleOrDefault();
             bool success = false;
@@ -41,6 +40,12 @@ namespace Agent.Plugins.Implementation
 
             _logger?.LogInformation(message);
             return message;
+        }
+
+        public async Task<bool> RestartWebApp(
+            string appResourceId)
+        {
+            return await ArmHelper.RestartWebAppAsync(appResourceId);
         }
     }
 }

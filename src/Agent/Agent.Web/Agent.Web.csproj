@@ -7,6 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="appsettings.development.json" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" />
