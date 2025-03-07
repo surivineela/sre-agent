@@ -75,8 +75,7 @@ namespace FirstPartyAgent.Plugins
 
         private async Task<TeamsPostMessageResponse?> SendTeamsRequestAsync(object body)
         {
-            // TODO: HOWANG
-            var triggerUrl = string.Empty; // _icmSettings.PostIncidentDiscussionUrl;
+            var triggerUrl = Environment.GetEnvironmentVariable("AppSettings__Core__External__ICMWorkflow__PostIncidentDiscussionUrl") ?? string.Empty;
             if (string.IsNullOrEmpty(triggerUrl))
             {
                 throw new Exception("ICM:PostIncidentDiscussionUrl is not configured.");

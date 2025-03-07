@@ -49,7 +49,7 @@ Your response should only return a structured JSON format without markdown synta
 - Region: The extracted Region
 - SubscriptionId: The extracted SubscriptionId
 - TargetQuotaLimit: The extracted TargetQuotaLimit
-- ApprovedQuotaLimit: The approved quota limit
+- ApprovedQuotaLimit: The approved quota limit, it should be an integer value
 - OfferType: The offer type of the subscription
 
 IMPORTANT THINGS TO NOTE:

@@ -193,7 +193,7 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
         env: union(
           [
             {
-              name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
+              name: 'AppSettings__Core__Azure__AppInsights__ConnectionString'
               value: monitoring.outputs.applicationInsightsConnectionString
             }
             {
@@ -205,16 +205,16 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
               value: '8080'
             }
             {
-              name: 'Azure__OpenAI__DeploymentName'
+              name: 'AppSettings__Core__Azure__OpenAI__LLMDeploymentName'
               value: 'gpt-4o'
             }
             {
-              name: 'Azure__OpenAI__Endpoint'
+              name: 'AppSettings__Core__Azure__OpenAI__Endpoint'
               value: openai.properties.endpoint
             }
             // TODO: put API key in key vault
             {
-              name: 'Azure__OpenAI__ApiKey'
+              name: 'AppSettings__Core__Azure__OpenAI__ApiKey'
               // value: openai.listKeys().key1
               secretRef: openaiApiKeySecretName
             }
@@ -223,23 +223,19 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
               value: '/mnt/task-storage/tasks.json'
             }
             {
-              name: 'Kusto__ManagedIdentityClientId'
+              name: 'AppSettings__Core__External__Kusto_Auth__ManagedIdentityClientId'
               value: agentWebIdentity.outputs.clientId
             }
             {
-              name: 'ICM__ServiceId'
-              value: 'f7c85136-4f1f-417c-bb3d-d540a26746c8'
+              name: 'AppSettings__Core__External__ICMWorkflow__WorkflowsEndpoint'
+              value: 'https://resource-provider.genevaautomation.ms/icm/services/f7c85136-4f1f-417c-bb3d-d540a26746c8/workflows'
             }
             {
-              name: 'ICM__CertificateFilePath'
+              name: 'AppSettings__Core__External__ICMWorkflow__CertificateFilePath'
               value: 'base64:/mnt/icm-automation/client-cert.pfx'
             }
-            {
-              name: 'ICM__WorkflowNames__FetchICMIncidentInfo'
-              value: 'Workflow-GetIncidentInfo'
-            }
             {              
-              name: 'ICM__PostIncidentDiscussionUrl'
+              name: 'AppSettings__Core__External__ICMWorkflow__PostIncidentDiscussionUrl'
               secretRef: 'logicapp-post-incident-discussion-url'
             }
           ],

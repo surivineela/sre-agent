@@ -182,7 +182,7 @@ public class QuotaAgentService : IQuotaAgentService
 
         state.IsNewRequest = false;
 
-        if (state.QuotaType != null && !state.QuotaType.Contains("GPU", StringComparison.OrdinalIgnoreCase))
+        if ( !string.IsNullOrEmpty(state.QuotaType) && !state.QuotaType.Contains("GPU", StringComparison.OrdinalIgnoreCase))
         {
             state.ApprovalResult = ApprovalState.NotSupported;
             return state;
@@ -217,6 +217,12 @@ public class QuotaAgentService : IQuotaAgentService
                 throw new Exception("Failed to get messageId from Teams.");
             }
 
+            if ( state?.ConversationContext is null)
+            {
+                state.ConversationContext = new ConversationContext();
+                state.ConversationContext.IncidentId = state.Incident?.IncidentId;
+            }
+
             state.ConversationContext.TeamsMessageId = teamsResp.MessageId;
         }
         else
@@ -243,7 +249,7 @@ public class QuotaAgentService : IQuotaAgentService
 
                 resolveIncident = true;
                 _logger.LogInformation("Quota request approved and geneva action executed.");
-                logMsg = $"Quota request approved and geneva action executed. Incident resolved. {result}.";
+                logMsg = $"Quota request approved and geneva action executed. Incident resolved. <br/> {result}.";
             }
             catch (Exception ex)
             {

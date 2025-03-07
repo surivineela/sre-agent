@@ -7,6 +7,7 @@ namespace FirstPartyAgent.Core.Configuration
         [Required]
         public string WorkflowsEndpoint { get; set; } = string.Empty;
         public string CertificateSubjectName { get; set; } = string.Empty;
+        public string CertificateFilePath { get; set; } = string.Empty;
         public string UserToken { get; set; } = string.Empty;
         public bool UseFunctionApp { get; set; } = false;
         public string FunctionAppEndpoint { get; set; } = string.Empty;

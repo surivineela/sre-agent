@@ -2,6 +2,7 @@
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Helpers;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Hosting;
@@ -42,9 +43,9 @@ namespace FirstPartyAgent.Core.Services
                 {
                     throw new Exception("The environment variable 'ICMWorkflows:WorkflowsEndpoint' is not set.");
                 }
-                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName))
+                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
                 {
-                    throw new Exception("The environment variable 'ICMWorkflows:CertificateSubjectName' is not set.");
+                    throw new Exception("The environment variable 'ICMWorkflows:CertificateSubjectName' or 'ICMWorkflows:CertificateFilePath' is not set.");
                 }
                 if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken))
                 {
@@ -80,20 +81,28 @@ namespace FirstPartyAgent.Core.Services
                 {
                     var handler = new HttpClientHandler();
 
-                    // Open the "My" certificate store in the current user's context.
-                    using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
+                    if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName))
                     {
-                        store.Open(OpenFlags.ReadOnly);
-
-                        // Locate the certificate by matching the subject name.
-                        var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, _icmWorkflowSettings.CertificateSubjectName, validOnly: false);
-                        if (certificates == null || certificates.Count == 0)
+                        // Open the "My" certificate store in the current user's context.
+                        using (var store = new X509Store(StoreName.My, StoreLocation.CurrentUser))
                         {
-                            throw new Exception($"Certificate with subject matching '{_icmWorkflowSettings.CertificateSubjectName}' not found.");
-                        }
+                            store.Open(OpenFlags.ReadOnly);
 
-                        // Use the first matching certificate.
-                        handler.ClientCertificates.Add(certificates[0]);
+                            // Locate the certificate by matching the subject name.
+                            var certificates = store.Certificates.Find(X509FindType.FindBySubjectName, _icmWorkflowSettings.CertificateSubjectName, validOnly: false);
+                            if (certificates == null || certificates.Count == 0)
+                            {
+                                throw new Exception($"Certificate with subject matching '{_icmWorkflowSettings.CertificateSubjectName}' not found.");
+                            }
+
+                            // Use the first matching certificate.
+                            handler.ClientCertificates.Add(certificates[0]);
+                        }
+                    }
+                    else
+                    {
+                        var certificate = CertLoader.LoadCertFromFile(_icmWorkflowSettings.CertificateFilePath);
+                        handler.ClientCertificates.Add(certificate);
                     }
 
                     _httpClient = new HttpClient(handler)
@@ -175,7 +184,7 @@ namespace FirstPartyAgent.Core.Services
             return await SendICMWorkflowRequest<Incident>(_icmWorkflowSettings.GetIncidentWorkflowName, new { incidentId });
         }
 
-        public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
+        public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
             if (_icmWorkflowSettings.UseFunctionApp)
             {
@@ -194,7 +203,12 @@ namespace FirstPartyAgent.Core.Services
             }
             else
             {
-                var payload = JsonSerializer.Serialize(new { incidentId });
+                // if queryFrom is not provided, then only query for the last 30 days
+                if (!queryFrom.HasValue)
+                {
+                    queryFrom = DateTimeOffset.UtcNow.AddDays(-30);
+                }
+                var payload = JsonSerializer.Serialize(new { IncidentId = incidentId, QueryFrom = queryFrom?.ToString("s", System.Globalization.CultureInfo.InvariantCulture) });
                 var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentDiscussionEntriesWorkflowName, payload);
                 if (response.IsSuccessStatusCode)
                 {
@@ -304,7 +318,7 @@ namespace FirstPartyAgent.Core.Services
             {
                 return "Success. ICM Plugin is in ReadOnly mode.";
             }
-            var payload = JsonSerializer.Serialize(new { incidentId, discussionEntry });
+            var payload = JsonSerializer.Serialize(new { IncidentId = incidentId, Message = discussionEntry });
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.ResolveIncidentWorkflowName, payload);
             if (response.IsSuccessStatusCode)
             {
@@ -323,7 +337,7 @@ namespace FirstPartyAgent.Core.Services
             {
                 return "Success. ICM Plugin is in ReadOnly mode.";
             }
-            var payload = JsonSerializer.Serialize(new { incidentId, discussionEntry });
+            var payload = JsonSerializer.Serialize(new { incidentId = incidentId, text = discussionEntry });
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.PostIncidentDiscussionWorkflowName, payload);
             if (response.IsSuccessStatusCode)
             {
