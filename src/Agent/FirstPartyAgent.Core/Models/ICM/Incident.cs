@@ -24,6 +24,7 @@ namespace FirstPartyAgent.Models
         public string Severity { get; set; }
         public string Title { get; set; }
         public string Summary { get; set; }
+        public List<string> Tags { get; set; }
         public string DiscussionEntry { get; set; }
     }
 

@@ -116,10 +116,10 @@ namespace FirstPartyAgent.Plugins
         public async Task<string> TransferIncident(
                [Description("Incident ID")] string incidentId,
                [Description("Discussion Entry - reason for transferring the incident")] string discussionEntry,
-               [Description("Tenant of the team to transfer the incident to")] string tenantName,
-               [Description("Owning Team to transfer the incident to")] string owningTeam)
+               [Description("Tenant ID of the team to transfer the incident to")] string tenantId,
+               [Description("Team ID of the team to transfer the incident to")] string teamId)
         {
-            return await _icmWorkflowClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
+            return _icmApiClient.IsEnabled() ? await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantId, teamId) : await _icmWorkflowClient.TransferIncidentAsync(incidentId, discussionEntry, tenantId, teamId);
         }
 
         [KernelFunction("mitigate_icm_incident")]
@@ -128,7 +128,7 @@ namespace FirstPartyAgent.Plugins
            [Description("Incident ID")] string incidentId,
            [Description("Discussion Entry - reason for mitigating the incident")] string discussionEntry)
         {
-            return await _icmWorkflowClient.MitigateIncidentAsync(incidentId, discussionEntry);
+            return _icmApiClient.IsEnabled() ? await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.MitigateIncidentAsync(incidentId, discussionEntry);
         }
 
         [KernelFunction("downgrade_sev2_incident_to_sev3")]
@@ -137,7 +137,7 @@ namespace FirstPartyAgent.Plugins
             [Description("Incident ID")] string incidentId,
             [Description("Discussion Entry - reason for downgrading the incident")] string discussionEntry)
         {
-            return await _icmWorkflowClient.DowngradeSeverityAsync(incidentId, discussionEntry);
+            return _icmApiClient.IsEnabled() ? await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry) : await _icmWorkflowClient.DowngradeSeverityAsync(incidentId, discussionEntry);
         }
 
         [KernelFunction("transfer_icm_incident_to_human_intervention")]
@@ -155,7 +155,7 @@ namespace FirstPartyAgent.Plugins
                [Description("Incident ID")] string incidentId,
                [Description("Discussion Entry - reason for resolving the incident")] string discussionEntry)
         {
-            return await _icmWorkflowClient.ResolveIncidentAsync(incidentId, discussionEntry);
+            return _icmApiClient.IsEnabled() ? await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.ResolveIncidentAsync(incidentId, discussionEntry);
         }
 
         [KernelFunction("post_icm_discussion_entry")]
@@ -164,7 +164,7 @@ namespace FirstPartyAgent.Plugins
            [Description("Incident ID")] string incidentId,
            [Description("Discussion Entry")] string discussionEntry)
         {
-            return await _icmWorkflowClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
+            return _icmApiClient.IsEnabled() ? await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry) : await _icmWorkflowClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         }
 
         [KernelFunction("mark_subscription_as_first_party")]
@@ -189,7 +189,7 @@ namespace FirstPartyAgent.Plugins
             [Description("Id of the incident")] string incidentId,
             [Description("Tag to add")] string tag)
         {
-            return await _icmWorkflowClient.AddTagToIncident(incidentId, tag);
+            return _icmApiClient.IsEnabled() ? await _icmApiClient.AddTagToIncident(incidentId, tag) : await _icmWorkflowClient.AddTagToIncident(incidentId, tag);
         }
 
         [KernelFunction("get_icm_incidents_by_team")]
@@ -199,6 +199,19 @@ namespace FirstPartyAgent.Plugins
         [Description("Comma-separated list of metrics to include")] string metrics)
         {
             return new List<Incident>();
+        }
+
+        // acknowledge_icm_incident using ICM API
+        [KernelFunction("acknowledge_icm_incident")]
+        [Description("Acknowledges an ICM incident")]
+        public async Task<string> AcknowledgeIncident(
+            [Description("Incident ID")] string incidentId)
+        {
+            if (!_icmApiClient.IsEnabled())
+            {
+                throw new InvalidOperationException("ICM API client is not enabled.");
+            }
+            return await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
         }
     }
 }
