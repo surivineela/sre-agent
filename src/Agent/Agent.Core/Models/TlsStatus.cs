@@ -10,11 +10,8 @@ using System.Threading.Tasks;
 
 namespace Agent.Core.Models;
 
-public class TlsStatus
-{
-
-    public string ResourceId { get; set; }
-    public string Name { get; set; }
-    public string Location { get; set; }
-    public string MinimumTlsVersion { get; set; }
-}
+public sealed record TlsStatus(
+    string ResourceId,
+    string Name,
+    string Location,
+    string MinimumTlsVersion);

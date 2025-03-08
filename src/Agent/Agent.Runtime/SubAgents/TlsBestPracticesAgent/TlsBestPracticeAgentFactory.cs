@@ -3,6 +3,9 @@ using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
 using Agent.Core.Models;
+using Agent.Runtime.SubAgents.ManagedIdentityMigration;
+using System.Text.Json;
+using Agent.Core;
 
 namespace Agent.Runtime.SubAgents.TlsBestPractices;
 
@@ -11,6 +14,8 @@ public sealed class TlsBestPracticeAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+
+    public const string OrchestrationInstanceIdPrefix = nameof(TlsBestPracticesAgent);
 
     public TlsBestPracticeAgentFactory(
         IMetricsPlugin metricsPlugin,
@@ -44,6 +49,12 @@ public sealed class TlsBestPracticeAgentFactory
         return await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(
             new TlsBestPracticesAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures));
+                ToolSignatures: _toolSignatures),
+            new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
+    }
+
+    public TlsBestPracticesInput DeserializeInput(string serializedOrchestraionInput)
+    {
+        return JsonSerializer.Deserialize<TlsBestPracticesAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
     }
 }

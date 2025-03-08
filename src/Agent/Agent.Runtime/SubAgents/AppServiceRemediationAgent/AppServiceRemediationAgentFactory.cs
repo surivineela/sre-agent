@@ -11,6 +11,8 @@ public sealed class AppServiceRemediationAgentFactory
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
 
+    public const string OrchestrationInstanceIdPrefix = nameof(AppServiceRemediationAgent);
+
     public AppServiceRemediationAgentFactory(
         IMetricsPlugin metricsPlugin,
         IArmPlugin armPlugin,
@@ -45,6 +47,7 @@ public sealed class AppServiceRemediationAgentFactory
         return await _durableTaskClient.ScheduleNewAppServiceRemediationAgentInstanceAsync(
             new AppServiceRemediationAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures));
+                ToolSignatures: _toolSignatures),
+            new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 }

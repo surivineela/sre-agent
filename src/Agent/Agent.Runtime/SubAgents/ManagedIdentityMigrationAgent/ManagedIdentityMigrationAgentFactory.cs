@@ -3,6 +3,8 @@ using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
 using Agent.Core.Models;
+using Agent.Core;
+using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.ManagedIdentityMigration;
 
@@ -10,6 +12,8 @@ public sealed class ManagedIdentityMigrationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+
+    public const string OrchestrationInstanceIdPrefix = nameof(ManagedIdentityMigrationAgent);
 
     public ManagedIdentityMigrationAgentFactory(
         IMetricsPlugin metricsPlugin,
@@ -62,6 +66,12 @@ public sealed class ManagedIdentityMigrationAgentFactory
         return await _durableTaskClient.ScheduleNewManagedIdentityMigrationAgentInstanceAsync(
             new ManagedIdentityMigrationAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures));
+                ToolSignatures: _toolSignatures),
+            new StartOrchestrationOptions(InstanceId: $"{nameof(ManagedIdentityMigrationAgent)}-{Guid.NewGuid()}"));
+    }
+
+    public ManagedIdentityMigrationInput DeserializeInput(string serializedOrchestraionInput)
+    {
+        return JsonSerializer.Deserialize<ManagedIdentityMigrationAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
     }
 }

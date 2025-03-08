@@ -494,18 +494,16 @@ public static class ArmHelper
         string responseJson = await response.Content.ReadAsStringAsync();
         var jsonObject = JObject.Parse(responseJson);
 
-        var tlsStatus = new TlsStatus
-        {
-            ResourceId = resourceId,
-            Name = resourceId.Split('/').Last(),
-            Location = jsonObject["location"]?.ToString(),
-        };
-
         var properties = jsonObject["properties"];
-        if (properties != null)
-        {
-            tlsStatus.MinimumTlsVersion = properties["minTlsVersion"]?.ToString();
-        }
+        var minimumTlsVersion = properties != null
+            ? properties["minTlsVersion"]?.ToString()
+            : null;
+
+        var tlsStatus = new TlsStatus(
+            ResourceId: resourceId,
+            Name: resourceId.Split('/').Last(),
+            Location: jsonObject["location"]?.ToString(),
+            MinimumTlsVersion: minimumTlsVersion);
 
         return tlsStatus;
     }

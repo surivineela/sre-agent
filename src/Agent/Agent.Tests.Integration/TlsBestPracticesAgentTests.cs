@@ -8,6 +8,7 @@ using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Integration.Fixtures;
+using Agent.Tests.Integration.Helpers;
 using Azure.AI.OpenAI;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
@@ -43,11 +44,11 @@ namespace Agent.Tests.Integration
 
         private List<TlsStatus> _testApps = new List<TlsStatus>
         {
-            new TlsStatus { MinimumTlsVersion = "1.0", Name = "app1", ResourceId = $"{BaseResourceId}/app1" },
-            new TlsStatus { MinimumTlsVersion = "1.0", Name = "app2", ResourceId = $"{BaseResourceId}/app2" },
-            new TlsStatus { MinimumTlsVersion = "1.0", Name = "app3", ResourceId = $"{BaseResourceId}/app3" },
-            new TlsStatus { MinimumTlsVersion = "1.0", Name = "app4", ResourceId = $"{BaseResourceId}/app4" },
-            new TlsStatus { MinimumTlsVersion = "1.0", Name = "app5", ResourceId = $"{BaseResourceId}/app5" },
+            new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app1", ResourceId : $"{BaseResourceId}/app1", Location:"eastus" ),
+            new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app2", ResourceId : $"{BaseResourceId}/app2", Location:"eastus" ),
+            new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app3", ResourceId : $"{BaseResourceId}/app3", Location:"eastus" ),
+            new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app4", ResourceId : $"{BaseResourceId}/app4", Location:"eastus" ),
+            new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app5", ResourceId : $"{BaseResourceId}/app5", Location:"eastus" ),
         };
 
         public TlsBestPracticesAgentTests(CombinedFixture fixture, ITestOutputHelper testOutputHelper)
@@ -135,8 +136,8 @@ namespace Agent.Tests.Integration
 
         public async Task DisposeAsync()
         {
-            // TODO - cleanup doesnt work against emulator, following up with DTS team            
-            await CleanupAsync();
+            // TODO - cleanup doesnt work against emulator, following up with DTS team    
+            await Helper.CleanupAllOrchestration<TlsBestPracticesAgent>(_durableTaskClient);
 
             await _host.StopAsync();
             _host.Dispose();
@@ -145,54 +146,7 @@ namespace Agent.Tests.Integration
         public async Task InitializeAsync()
         {
             await _host.StartAsync();
-            await CleanupAsync();
-        }
-
-        private async Task CleanupAsync()
-        {
-            // todo - this might cause problems once we have tests running in parallel
-
-            var query = new OrchestrationQuery
-            {
-                Statuses = [OrchestrationRuntimeStatus.Running, OrchestrationRuntimeStatus.Pending]
-            };
-
-            var instances = _durableTaskClient.GetAllInstancesAsync(query);
-
-            await foreach (var instance in instances.Where(x => x.Name == nameof(TlsBestPracticesAgent)))
-            {
-                await _durableTaskClient.TerminateInstanceAsync(instance.InstanceId, new TerminateInstanceOptions { Output = "Test cleanup", Recursive = true });
-                await _durableTaskClient.WaitForInstanceCompletionAsync(instance.InstanceId);
-            }
-        }
-
-        private async Task DoApproval(string instanceID, CancellationTokenSource approvalSource)
-        {
-            while (true)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(500), approvalSource.Token);
-                var orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, getInputsAndOutputs: true);
-
-                if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
-                {
-                    Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
-                }
-
-                if (orchestrationMetadata.SerializedCustomStatus == null)
-                {
-                    continue;
-                }
-
-                var orchestrationStatus = orchestrationMetadata.ReadCustomStatusAs<string>();
-
-                if (orchestrationStatus.StartsWith("Pending approval:"))
-                {
-                    var approvalId = orchestrationStatus.Split(":")[1];
-                    var approvalStatus = new ApprovalStatus(approvalId, _timeProvider.GetUtcNow().DateTime, _timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null);
-                    await _durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
-                    break;
-                }
-            }
+            await Helper.CleanupAllOrchestration<TlsBestPracticesAgent>(_durableTaskClient);
         }
 
         [Fact]
@@ -217,7 +171,11 @@ namespace Agent.Tests.Integration
                 instanceID = await _agentFactory.StartOrchestration(input);
 
                 await Task.Delay(TimeSpan.FromSeconds(3));
-                await DoApproval(instanceID, tokenSource);
+                await Helper.DoApproval(
+                    _durableTaskClient,
+                    _timeProvider,
+                    instanceID,
+                    tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
@@ -261,7 +219,11 @@ namespace Agent.Tests.Integration
             try
             {
                 instanceID = await _agentFactory.StartOrchestration(input);
-                await DoApproval(instanceID, tokenSource);
+                await Helper.DoApproval(
+                    _durableTaskClient,
+                    _timeProvider,
+                    instanceID,
+                    tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: false, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
@@ -313,7 +275,11 @@ namespace Agent.Tests.Integration
                     Text = "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
                 });
 
-                await DoApproval(instanceID, tokenSource);
+                await Helper.DoApproval(
+                    _durableTaskClient,
+                    _timeProvider,
+                    instanceID,
+                    tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: false, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)

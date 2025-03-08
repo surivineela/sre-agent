@@ -1,5 +1,5 @@
 ﻿using Agent.Core.Models;
-using System.Collections.Immutable;
+using Kusto.Cloud.Platform.Utils;
 
 namespace Agent.Plugins.Mocks
 {
@@ -7,7 +7,7 @@ namespace Agent.Plugins.Mocks
     {
         private readonly TimeProvider _timeProvider;
         private readonly MockApprovalPlugin _approvalPlugin;
-        private IReadOnlyDictionary<string, TlsStatus> _tlsStatuses = ImmutableDictionary<string, TlsStatus>.Empty;
+        private readonly Dictionary<string, TlsStatus> _tlsStatuses = new();
 
         public MockArmPlugin(TimeProvider timeProvider, MockApprovalPlugin approvalPlugin)
         {
@@ -18,7 +18,8 @@ namespace Agent.Plugins.Mocks
         public void ConfigureTlsStatus(
             IReadOnlyDictionary<string, TlsStatus> tlsStatuses)
         {
-            _tlsStatuses = tlsStatuses;
+            _tlsStatuses.Clear();
+            _tlsStatuses.AddOrSetRange(tlsStatuses);
         }
 
         public Task<string> SetMinimumTlsVersion(string appResourceId, string minimumTlsVersion)
@@ -33,7 +34,10 @@ namespace Agent.Plugins.Mocks
                 throw new Exception("No approval found for TLS update for resource {appResourceId}.");
             }
 
-            _tlsStatuses[appResourceId].MinimumTlsVersion = minimumTlsVersion;
+            _tlsStatuses[appResourceId] = _tlsStatuses[appResourceId] with
+            {
+                MinimumTlsVersion = minimumTlsVersion
+            };
             var msg = $"Resource {appResourceId} updated with minimum TLS version set to {minimumTlsVersion} at {_timeProvider.GetUtcNow():o}";
             return Task.FromResult(msg);
         }
