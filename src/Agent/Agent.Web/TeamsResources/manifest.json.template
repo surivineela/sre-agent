@@ -14,8 +14,8 @@
         "outline": "outline.png"
     },
     "name": {
-        "short": "SREAgent",
-        "full": "SRE Agent"
+        "short": "SREAgent-0308",
+        "full": "SRE Agent-0308"
     },
     "description": {
         "short": "SRE Agent that can handle operational tasks",
@@ -24,7 +24,7 @@
     "accentColor": "#FFFFFF",
     "bots": [
         {
-            "botId": "${{BOT_ID}}",
+            "botId": "${{AAD_APP_CLIENT_ID}}",
             "scopes": [
                 "personal",
                 "team",
@@ -105,6 +105,6 @@
         }
     },
     "validDomains": [
-        "proxy.nicewave-3e03357c.australiaeast.azurecontainerapps.io"
+        "${{BOT_DOMAIN}}"
     ]
 }
