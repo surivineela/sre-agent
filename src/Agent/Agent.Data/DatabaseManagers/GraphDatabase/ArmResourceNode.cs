@@ -204,7 +204,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
 
     public sealed class ContainerAppEnvironmentNode : ArmResourceNode
     {
-        public string Location { get; set; }
+        public string? Location { get; set; }
         public string? VnetId { get; set; }
         public string? LbId { get; set; }
 
@@ -220,7 +220,7 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             string? lbId = null)
             : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
         {
-            Location = location.NormalizeLocation();
+            Location = location?.NormalizeLocation();
             VnetId = vnetId;
             LbId = lbId;
         }
@@ -285,6 +285,42 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             if (ClientId != null)
             {
                 props.Add("clientId", ClientId);
+            }
+            return props;
+        }
+    }
+
+    public class AppServiceNode : ArmResourceNode
+    {
+        public string? Location { get; set; }
+        public string? VnetId { get; set; }
+        public string? MinTlsVersion { get; set; }
+        public AppServiceNode() : base() { }
+        public AppServiceNode(string resourceType,
+            string resourceId,
+            string subscriptionId,
+            string resourceGroupName,
+            string resourceName,
+            string location = null,
+            string? vnetId = null,
+            string? tlsVersion = null)
+            : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
+        {
+            Location = location?.NormalizeLocation();
+            VnetId = vnetId;
+            MinTlsVersion = tlsVersion;
+        }
+        public override IDictionary<string, object> GetNodeProperties()
+        {
+            var props = base.GetNodeProperties();
+            props.Add("location", Location);
+            if (VnetId != null)
+            {
+                props.Add("vnetId", VnetId);
+            }
+            if (MinTlsVersion != null)
+            {
+                props.Add("minTlsVersion", MinTlsVersion);
             }
             return props;
         }
