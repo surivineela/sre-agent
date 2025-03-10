@@ -19,6 +19,11 @@ using Agent.Plugins.Models;
 using Agent.Graph.Crawler.ARM;
 using Azure.Identity;
 using Azure.ResourceManager;
+using Agent.Core.Services;
+using Microsoft.Bot.Builder.Integration.AspNet.Core;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Connector.Authentication;
+using Microsoft.Extensions.Configuration;
 
 namespace Agent.Runtime.Services
 {
@@ -31,11 +36,13 @@ namespace Agent.Runtime.Services
         private readonly Dictionary<string, Type> _subAgentPathMapping;
         private readonly Agent _rootAgent;
         private readonly ServiceProvider _agentServiceProvider;
+        private readonly IConfiguration _configuration;
 
-        public AgentManager(IServiceProvider serviceProvider, AppSettings appSettings, AzureSettings azureSettings, ExternalSettings externalSettings)
+        public AgentManager(IServiceProvider serviceProvider, AppSettings appSettings, AzureSettings azureSettings, ExternalSettings externalSettings, TeamsBotSettings teamsBotSettings, IConfiguration configuration)
         {
             _serviceProvider = serviceProvider;
             _logger = _serviceProvider.GetRequiredService<ILogger<AgentManager>>();
+            _configuration = configuration;
 
             // Create a new ServiceCollection and configure it
             IServiceCollection services = new ServiceCollection();
@@ -45,6 +52,8 @@ namespace Agent.Runtime.Services
             services.AddSingleton(appSettings);
             services.AddSingleton(azureSettings);
             services.AddSingleton(externalSettings);
+            services.AddSingleton(teamsBotSettings);
+
             services.RegisterInnerAppSettings<AppSettings>();
 
             // Configure agent-specific services
@@ -61,6 +70,20 @@ namespace Agent.Runtime.Services
 
         private void ConfigureAgentServices(IServiceCollection services)
         {
+
+            services.AddSingleton<IConfiguration>(_configuration);
+            // Register a default ConversationReference that can be injected into PostToTeamsPlugin
+            services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
+
+            services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+            services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
+            services.AddSingleton<IBot, TeamsBot>();
+            services.AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>();
+
+
+            // Store the flag for later use when mapping endpoints
+            // services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = true });
+
             _ = services
                 .ConfigureIChatCompletionService()
                 .ConfigureAzureOpenAIClient()
@@ -94,6 +117,8 @@ namespace Agent.Runtime.Services
                 .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
                 .AddSingleton<RemediationPluginDefinition>()
                 .AddSingleton<ApprovalPlugin>()
+                .AddSingleton<PostToTeamsPluginDefinition>()
+                .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
                 // Register all SubAgent types as singletons
                 .AddSingleton<MetaAgentPlugin>()
                 .AddSingleton<GraphDBQueryAgent>()
@@ -240,8 +265,8 @@ namespace Agent.Runtime.Services
         }
 
         public async IAsyncEnumerable<string> StreamChatThread(
-    string chatId, string message,
-    [EnumeratorCancellation] CancellationToken cancellationToken = default)
+            string chatId, string message,
+            [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             if (!_sessions.TryGetValue(chatId, out var session))
             {

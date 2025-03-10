@@ -2,6 +2,7 @@
 @page "/{*path}"
 @using Agent.Core.Models
 @using System.Net.Http.Json
+@using Agent.Core.Services
 @using Agent.Web.Services
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
@@ -34,6 +35,9 @@
                                 <small class="text-muted">Created: @thread.CreatedAt.ToLocalTime().ToString("MMM d, h:mm tt")</small>
                                 <small class="text-muted">
                                     • Last message: @thread.LastMessageAt.ToLocalTime().ToString("MMM d, h:mm tt")
+                                </small>
+                                <small class="text-muted">
+                                    • Agent Type: @thread.AgentType
                                 </small>
                             </div>
                         </button>

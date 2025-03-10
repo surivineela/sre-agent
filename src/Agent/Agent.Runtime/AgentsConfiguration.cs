@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using Agent.Plugins.Definitions;
 
 namespace Agent.Runtime
 {
@@ -283,7 +284,7 @@ namespace Agent.Runtime
     }
 }
 
-public class ApprovalPlugin
+public class ApprovalPlugin : IApprovalPlugin
 {
     [KernelFunction("start_approval_process")]
     [Description("To start a new approval process for user to approve a specific remediation operation for a given resource.")]
@@ -312,5 +313,15 @@ public class ApprovalPlugin
         return GlobalStatic.ApprovalStatus.TryGetValue(new ApprovalDescriptor(resourceId, operationName), out var status)
             ? status
             : null;
+    }
+
+    public Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId)
+    {
+        var guid = Guid.NewGuid();
+        var status = GlobalStatic.ApprovalStatus.GetOrAdd(
+            new ApprovalDescriptor(approvalId, "new-approval-flow"),
+            new ApprovalStatus(guid.ToString(), DateTime.Now, null, null, null, "new"));
+
+        return Task.FromResult(new LongRunningOperationStatus(guid.ToString(), status.ToString()));
     }
 }

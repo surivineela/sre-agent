@@ -1,5 +1,6 @@
 ﻿using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
@@ -11,6 +12,8 @@ namespace Agent.Runtime.SubAgents
         internal ILogger<GraphDBQueryAgent> _logger { get; }
 
         internal GraphDBPluginDefinition _def { get; }
+
+        internal IPostToTeamsPlugin _teamsPlugin { get; }
 
         bool _fetchedPrelimData = false;
 
@@ -33,22 +36,27 @@ TIPS:
     its resource id contains that sub id.
 - If your query contains a limit, know that there could be more actual results
 - If a web app uses a managed identity, there will be an edge between a web app and that managed identity
+- If a web app uses a specific tls version, it would be specified in webapp's properties. You could use this to notify apps not using TLS 1.3
 - Don't presume a specific label or direction when querying edges (e.g. outE, inE). Prefer querying biderectionally and with no specific label (bothE(), both())
 - Assume that if a user is asking if something exists, it is more likely to exist than not. Therefore, prove through multiple queries that it does not
 - Try to keep your queries as simple as possible
 - Try to not use specific ids in your queries
+
+IMPORTANT: If you find apps not following best practices, call the 'postToTeams' tool to notify the end user with a descriptive message.
 ";
 
-        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger) : base("GraphDBQueryAgent", chatClient)
+        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger, IPostToTeamsPlugin teamsPlugin) : base("GraphDBQueryAgent", chatClient)
         {
             _logger = logger;
             _def = def;
+            _teamsPlugin = teamsPlugin;
         }
 
         public override IList<AITool> Tools()
         {
             return [
                 AIFunctionFactory.Create(_def.Query),
+                AIFunctionFactory.Create(_teamsPlugin.PostAsync)
             ];
         }
 

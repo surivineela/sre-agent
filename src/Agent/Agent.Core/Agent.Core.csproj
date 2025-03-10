@@ -35,5 +35,7 @@
 		<PackageReference Include="ScottPlot" />
 		<PackageReference Include="System.Linq.Async" />
 		<PackageReference Include="System.Runtime.Caching" />
+		<PackageReference Include="Microsoft.Bot.Builder" />
+		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
 	</ItemGroup>
 </Project>

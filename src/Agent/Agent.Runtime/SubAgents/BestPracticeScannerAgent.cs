@@ -40,10 +40,11 @@ namespace Agent.Runtime.SubAgents
         /// Figure out which best practices were not met. If any weren't met, pass a message to the user.
         /// We should spin up a BestPracticeAgent subchat, but notify the user in the main chat.
         /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
+        /// <param name="additionalBestPractices">Additional best practices to check</param>
+        /// <param name="cancellationToken">Cancellation token</param>
+        /// <returns>Message about unmet best practices, or null if all practices are met</returns>
         [Description("Scans for best practices. ")]
-        public async Task Scan(
+        public async Task<string?> Scan(
             [Description("Keep empty unless the user specifies additional things to check")] List<string> additionalBestPractices,
             [Description("Keep null")] CancellationToken? cancellationToken = null)
         {
@@ -73,7 +74,10 @@ namespace Agent.Runtime.SubAgents
             {
                 string? message = (await _chatClient.GetResponseAsync([new(ChatRole.User, "Explain all the best practices which weren't met: " + string.Join('\n', unmetConditionAnswers))])).Message.Text;
                 _logger.LogCritical(message);
+                return message;
             }
+
+            return null;
         }
     }
 }

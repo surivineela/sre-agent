@@ -4,7 +4,7 @@
 
 using Agent.Core.Models;
 
-namespace Agent.Web.Services;
+namespace Agent.Core.Services;
 
 public interface IChatService
 {

@@ -10,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Agent.Core.Configuration;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Agent.Core.Services;
 
 public class LegacyChatService : IChatService
 {

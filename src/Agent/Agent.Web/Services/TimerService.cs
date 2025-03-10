@@ -2,6 +2,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Graph.Crawler.ARM;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
 using System.Text;
 
@@ -9,6 +10,7 @@ public class TimerService : IHostedService, IDisposable
 {
     private readonly ILogger<TimerService> _logger;
     private readonly ResourceGraphCrawler _crawler;
+    private readonly IPostToTeamsPlugin _teamsPlugin;
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
     private BestPracticeScannerAgent _bestPracticeScannerAgent;
@@ -20,13 +22,23 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
 
-    public TimerService(ResourceGraphCrawler crawler, CrawlerSettings settings, TimerSettings timerSettings, BestPracticeScannerAgent bestPracticeScannerAgent, ILogger<TimerService> logger)
+    private const int MaxRetries = 100;
+    private const int RetryDelayMs = 10000;
+
+    public TimerService(
+        ResourceGraphCrawler crawler,
+        CrawlerSettings settings,
+        TimerSettings timerSettings,
+        BestPracticeScannerAgent bestPracticeScannerAgent,
+        IPostToTeamsPlugin teamsPlugin,
+        ILogger<TimerService> logger)
     {
         _logger = logger;
         _crawler = crawler;
         _settings = settings;
         _timerSettings = timerSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
+        _teamsPlugin = teamsPlugin;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -34,7 +46,11 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting background services...");
 
         StartCrawlerTimer(cancellationToken);
+
+        _logger.LogInformation($"Starting best practice timer...");
         StartBestPracticeTimer(cancellationToken);
+
+        _logger.LogInformation($"Finished starting background services");
 
         return Task.CompletedTask;
     }
@@ -44,6 +60,7 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation("Stopping background services...");
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
+        _bestPracticeTimer?.Change(Timeout.Infinite, 0); // Stop the best practice timer
 
         return Task.CompletedTask;
     }
@@ -71,7 +88,7 @@ public class TimerService : IHostedService, IDisposable
     }
 
     /// <summary>
-    /// Kicks off the crawler every 30 minutes on a different thread
+    /// Kicks off the best practice scanner and posts issues to Teams
     /// </summary>
     public void StartBestPracticeTimer(CancellationToken cancellationToken)
     {
@@ -84,19 +101,67 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _bestPracticeTimerIsRunning = true;
-                await _bestPracticeScannerAgent.Scan([], cancellationToken);
+                string? issues = await _bestPracticeScannerAgent.Scan([], cancellationToken);
+
+                _logger.LogInformation("Best practice issues detected: {Issues}", issues);
+                // If issues were found, post them to Teams
+                if (!string.IsNullOrEmpty(issues))
+                {
+                    string messageToPost = $"⚠️ Best Practice Issues Detected ⚠️\n\n{issues}";
+                    await PostToTeamsWithRetry(messageToPost);
+                }
+                else
+                {
+                    _logger.LogInformation("No best practice issues detected");
+                    await PostToTeamsWithRetry("All best practices are met! 🎉");
+                }
+
             }
             finally
             {
-                _bestPracticeTimerIsRunning = false; // Ensure flag resets even if CrawlAsync() fails
+                _bestPracticeTimerIsRunning = false; // Ensure flag resets even if scan fails
             }
         }, null, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(_timerSettings.BestPracticeScanIntervalInMinutes));
+    }
+
+    /// <summary>
+    /// Posts a message to Teams with retry logic
+    /// </summary>
+    private async Task PostToTeamsWithRetry(string message)
+    {
+        int retryCount = 0;
+        bool success = false;
+
+        while (!success && retryCount < MaxRetries)
+        {
+            try
+            {
+                await _teamsPlugin.PostAsync(message);
+                success = true;
+                _logger.LogInformation("Successfully posted best practice issues to Teams");
+            }
+            catch (Exception ex)
+            {
+                retryCount++;
+                if (retryCount >= MaxRetries)
+                {
+                    _logger.LogError(ex, "Failed to post best practice issues to Teams after {RetryCount} attempts", MaxRetries);
+                    break;
+                }
+
+                _logger.LogWarning(ex, "Attempt {RetryCount} to post to Teams failed. Retrying in {DelayMs}ms",
+                    retryCount, RetryDelayMs);
+
+                await Task.Delay(RetryDelayMs);
+            }
+        }
     }
 
     public void Dispose()
     {
         _logger.LogInformation("Disposing Azure Resource Crawler Worker");
-        
+
         _crawlerTimer?.Dispose();
+        _bestPracticeTimer?.Dispose();
     }
 }

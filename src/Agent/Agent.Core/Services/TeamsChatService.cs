@@ -1,10 +1,8 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using System.Xml;
-using Agent.Web.Models.Streaming;
+using Agent.Core.Models.Streaming;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -12,16 +10,21 @@ using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
 
-namespace Agent.Web.Services;
+namespace Agent.Core.Services;
 
 public class TeamsBot : TeamsActivityHandler
 {
     private readonly IChatService _chatService;
     private readonly ILogger<TeamsBot> _logger;
     private readonly Dictionary<string, string> _conversationThreadMapping;
+    public static Dictionary<string, ConversationReference> ConversationReferences = new();
+    private readonly IBotFrameworkHttpAdapter _teamsAdapter;
+
+    string welcomeMessage = "## 👋 Hi, I'm your new Azure SRE Partner!\n\nI'm here to help monitor your applications and keep everything running smoothly.\n\nI've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.\n\nThink of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!\n\n### ⚙️ **Autopilot Mode**:\n\nI'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.\n\n### **How to get started**:\n\nIf you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:\n\n- \"Monitor my application performance\"\n- \"Check on my app's metrics\"\n- \"Create a app migration plan\"\n- \"Help diagnose why my service is slow\"\n\nNo fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.\n\nLooking forward to working together and keeping your systems running at their best!";
 
     // Teams has strict limitation for activities per second: https://learn.microsoft.com/en-us/microsoftteams/platform/bots/how-to/rate-limit#per-bot-per-thread-limit
     // Constants for optimization
@@ -32,16 +35,27 @@ public class TeamsBot : TeamsActivityHandler
     // 60 per 30s
     // 1800 per 3600s
     private const int UPDATE_INTERVAL_MS = 300; // Send updates every 300ms, 
-
-    public TeamsBot(IChatService chatService, ILogger<TeamsBot> logger)
+    public TeamsBot(IChatService chatService, ILogger<TeamsBot> logger, IBotFrameworkHttpAdapter teamsAdapter)
     {
         _chatService = chatService;
         _logger = logger;
         _conversationThreadMapping = new Dictionary<string, string>();
+        _teamsAdapter = teamsAdapter;
     }
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
+        var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
+        var serviceUrl = turnContext.Activity.ServiceUrl;
+        var conversationReference = turnContext.Activity.GetConversationReference();
+        conversationReference.ServiceUrl = serviceUrl;
+        conversationReference.ChannelId = teamsChannelId;
+        _logger.LogInformation($"Teams Conversation: Received message from Teams channel {teamsChannelId}, service URL: {serviceUrl}");
+        //lock (ConversationReferences)
+        //  {
+        ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
+        //}
+
         string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
         if (string.IsNullOrEmpty(messageText))
         {
@@ -59,7 +73,7 @@ public class TeamsBot : TeamsActivityHandler
         if (messageText.ToLowerInvariant() == "hello")
         {
             // If the user says "hello", respond with a greeting quickly without using AI backend
-            await turnContext.SendActivityAsync(MessageFactory.Text("Hello! I'm your SRE agent assistant. How can I help you today?"), cancellationToken);
+            await turnContext.SendActivityAsync(MessageFactory.Text(welcomeMessage), cancellationToken);
             return;
         }
         if (turnContext.Activity.Conversation.IsGroup.GetValueOrDefault())
@@ -156,6 +170,95 @@ public class TeamsBot : TeamsActivityHandler
         {
             _logger.LogError(ex, "Error in Teams bot message processing");
             await turnContext.SendActivityAsync($"Error process the request: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// Get or create a thread ID for this conversation,
+    /// and proactively create a new Teams thread (post) in the channel with a message.
+    /// </summary>
+    private string CreateChatWithTeamsPost(string conversationId, string message)
+    {
+        lock (_conversationThreadMapping)
+        {
+            if (!_conversationThreadMapping.TryGetValue(conversationId, out string chatId))
+            {
+                // Create a new internal thread ID.
+                string newChatId = Guid.NewGuid().ToString();
+                _conversationThreadMapping[conversationId] = newChatId;
+
+                // Retrieve the first stored conversation reference.
+                if (!ConversationReferences.TryGetValue(conversationId, out var conversationReference))
+                {
+                    // If not found, select any available reference.
+                    conversationReference = ConversationReferences.Values.FirstOrDefault();
+                    if (conversationReference == null)
+                    {
+                        _logger.LogWarning("No conversation reference available for proactive messaging.");
+                        return newChatId;
+                    }
+                }
+
+                // Extract necessary details from the conversation reference.
+                var serviceUrl = conversationReference.ServiceUrl;
+                var continuationActivity = conversationReference.GetContinuationActivity();
+                var teamsChannelData = continuationActivity.GetChannelData<TeamsChannelData>();
+                string channelId = teamsChannelData?.Channel?.Id;
+                string teamId = teamsChannelData?.Team?.Id;
+
+                if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
+                {
+                    _logger.LogWarning("Missing channelId or serviceUrl in stored conversation reference.");
+                    return newChatId;
+                }
+
+                var adapter = _teamsAdapter as CloudAdapter;
+                if (adapter == null)
+                {
+                    _logger.LogError("Adapter is not a CloudAdapter instance.");
+                    return newChatId;
+                }
+
+                // Fire-and-forget task to create a new thread on Teams.
+                Task.Run(async () =>
+                {
+                    try
+                    {
+                        var conversationParameters = new ConversationParameters
+                        {
+                            IsGroup = true,
+                            ChannelData = new TeamsChannelData
+                            {
+                                Team = new TeamInfo { Id = teamId },
+                                Channel = new ChannelInfo { Id = channelId }
+                            },
+                            Activity = MessageFactory.Text(message)
+                        };
+
+                        await adapter.CreateConversationAsync(
+                            botAppId: null, // Use null if the bot's App ID is configured in the adapter.
+                            serviceUrl: serviceUrl,
+                            channelId: channelId,
+                            audience: null,
+                            conversationParameters: conversationParameters,
+                            callback: async (turnContext, ct) =>
+                            {
+                                await turnContext.SendActivityAsync("New conversation thread created.", cancellationToken: ct);
+                            },
+                            cancellationToken: CancellationToken.None);
+
+                        _logger.LogInformation($"Created new thread with Teams post {newChatId} for conversation {conversationId}");
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Failed to create thread with Teams post for conversation {conversationId}");
+                    }
+                });
+
+                return newChatId;
+            }
+
+            return chatId;
         }
     }
 
@@ -266,12 +369,23 @@ public class TeamsBot : TeamsActivityHandler
     // Welcome message handler
     protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
     {
-        var welcomeText = "Hello! I'm your SRE agent assistant. How can I help you today?";
+        var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
+        var serviceUrl = turnContext.Activity.ServiceUrl;
+        var conversationReference = turnContext.Activity.GetConversationReference();
+        conversationReference.ServiceUrl = serviceUrl;
+        // TODO: we need to get the channel id here, it's empty for now.
+        conversationReference.ChannelId = teamsChannelId;
+        _logger.LogInformation($"Teams Conversation (OnMembersAddedAsync): Received message from Teams channel {teamsChannelId}, service URL: {serviceUrl}");
+        //lock (ConversationReferences)
+        //  {
+        //  ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
+        //}
+
         foreach (var member in membersAdded)
         {
             if (member.Id != turnContext.Activity.Recipient.Id)
             {
-                await turnContext.SendActivityAsync(MessageFactory.Text(welcomeText), cancellationToken);
+                await turnContext.SendActivityAsync(MessageFactory.Text(welcomeMessage), cancellationToken);
             }
         }
     }
@@ -310,7 +424,6 @@ public class TeamsBot : TeamsActivityHandler
 
         await turnContext.SendActivityAsync(replyActivity, cancellationToken);
     }
-
 }
 
 public class AdapterWithErrorHandler : CloudAdapter

@@ -6,6 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using Agent.Core.Models;
+using Agent.Core.Services;
 using Markdig;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;

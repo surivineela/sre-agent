@@ -5,15 +5,22 @@
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using Agent.Core.Services;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
 using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Plugins.Mocks;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
+using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.Core;
+using Agent.Runtime.SubAgents.ManagedIdentityMigration;
+using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Seb.Services;
 using Agent.Web.Services;
 using Azure.Identity;
@@ -22,11 +29,16 @@ using Azure.ResourceManager;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
+using Microsoft.DurableTask.Client;
+using Microsoft.DurableTask.Client.AzureManaged;
+using Microsoft.DurableTask.Worker;
+using Microsoft.DurableTask.Worker.AzureManaged;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using System.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,8 +68,15 @@ if (useSessionChatService)
 
     builder.Services.AddLogging();
 
+    builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
+
+    // Register a default ConversationReference that can be injected into PostToTeamsPlugin
+    // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
+
     // Register plugins and their dependencies
     builder.Services
+        .AddSingleton<MetaAgent>()
         .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
         .AddSingleton<SubscriptionPluginDefinition>()
         .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
@@ -84,7 +103,23 @@ if (useSessionChatService)
         .AddSingleton<ResourceGraphCrawler>()
         .AddSingleton<RemediationPluginDefinition>()
         .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>()
-        .AddSingleton<ApprovalPlugin>();
+        .AddSingleton<ManagedIdentityMigrationPlugin>()
+        .AddSingleton<TlsBestPracticesPlugin>()
+        .AddSingleton<ManagedIdentityMigrationAgentFactory>()
+        .AddSingleton<TlsBestPracticeAgentFactory>()
+        .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
+        .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
+        .AddSingleton<IArmPlugin, ArmPlugin>()
+        .AddSingleton<IGithubWorkflowTriggerPlugin, GithubWorkflowTriggerPlugin>()
+        .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
+        .AddSingleton<IAppIdentityUpdatePlugin, AppIdentityUpdatePlugin>()
+        .AddSingleton<ITimePlugin, TimePlugin>()
+        .AddSingleton<ToolsRepository>()
+        .AddSingleton<Octokit.IGitHubClient>(provider =>
+        {
+            var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("AzureSreAgent"));
+            return client;
+        });
 
     // register arm client for crawler
     builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
@@ -121,7 +156,7 @@ if (useSessionChatService)
 
     // Add agent manager
     builder.Services.AddSingleton<IAgentManager, AgentManager>();
-    builder.Services.AddScoped<IChatService, Agent.Web.Services.SessionChatService>();
+    builder.Services.AddSingleton<IChatService, Agent.Web.Services.SessionChatService>(); // Changed from AddScoped to AddSingleton
 
     // Kick off background processes
     builder.Services.AddHostedService<TimerService>();
@@ -131,15 +166,21 @@ if (useSessionChatService)
     bool teamsConfigValid = teamsBotConfig != null &&
                            !string.IsNullOrEmpty(teamsBotConfig.AppId);
 
+    builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+
     if (teamsConfigValid)
     {
         builder.Configuration["MicrosoftAppType"] = teamsBotConfig.AppType;
         builder.Configuration["MicrosoftAppId"] = teamsBotConfig.AppId;
         builder.Configuration["MicrosoftAppPassword"] = teamsBotConfig.PasswordKey;
         builder.Configuration["MicrosoftAppTenantId"] = teamsBotConfig.TenantId;
+
+
+        builder.Services.AddSingleton<TeamsBotSettings>(teamsBotConfig);
         builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
         builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
         builder.Services.AddSingleton<IBot, TeamsBot>();
+        builder.Services.AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>();
 
         // Store the flag for later use when mapping endpoints
         builder.Services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = true });
@@ -150,6 +191,26 @@ if (useSessionChatService)
         Console.WriteLine("Warning: TeamsBot configuration is missing or invalid. Teams integration will be disabled.");
         builder.Services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = false });
     }
+
+    var durableConnectionString = "";
+    if (string.IsNullOrEmpty(durableConnectionString))
+    {
+        durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+    }
+
+    builder.Services.AddDurableTaskWorker(builder =>
+    {
+        builder.AddTasks(r =>
+        {
+            DurableHelper.AddAllGeneratedTasks(r);
+        });
+        builder.UseDurableTaskScheduler(durableConnectionString);
+    });
+
+    builder.Services.AddDurableTaskClient(builder =>
+    {
+        builder.UseDurableTaskScheduler(durableConnectionString);
+    });
 }
 else
 {

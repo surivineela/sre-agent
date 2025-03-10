@@ -29,8 +29,6 @@ namespace Agent.Runtime.SubAgents
 
         protected ResourceGraphCrawler _crawler { get; }
 
-        protected ApprovalPlugin _approvalPlugin { get; }
-
         protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
         public GenericAgent(
@@ -42,7 +40,6 @@ namespace Agent.Runtime.SubAgents
             IChatClient chatClient,
             IRemediationPlugin remediationPlugin,
             ResourceGraphCrawler crawler,
-            ApprovalPlugin approvalPlugin,
             ILogger<GenericAgent> logger)
             : base("GenericAgent", chatClient)
         {
@@ -54,7 +51,6 @@ namespace Agent.Runtime.SubAgents
             _currentStatePlugin = currentStatePlugin;
             _remediationPlugin = remediationPlugin;
             _crawler = crawler;
-            _approvalPlugin = approvalPlugin;
         }
 
         public override IList<AITool> Tools()
@@ -80,9 +76,6 @@ namespace Agent.Runtime.SubAgents
                 AIFunctionFactory.Create(_remediationPlugin.CollectMemoryDump),
                 AIFunctionFactory.Create(_remediationPlugin.CalculateScalingCost),
                 AIFunctionFactory.Create(_remediationPlugin.SuggestNextSku),
-
-                AIFunctionFactory.Create(_approvalPlugin.StartApprovalProcess),
-                AIFunctionFactory.Create(_approvalPlugin.GetApprovalStatus),
             };
         }
     }
