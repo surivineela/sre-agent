@@ -15,12 +15,14 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<AppServiceARMCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
+        private readonly ArmClient _armClient;
 
         public AppServiceARMCrawler(ILogger<AppServiceARMCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
             : base(logger, dbManager, armClient, false)
         {
             _logger = logger;
             _dbManager = dbManager;
+            _armClient = armClient;
         }
 
         public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
@@ -33,11 +35,9 @@ namespace Agent.Graph.Crawler.ARM
             var appServiceNode = (AppServiceNode)node;
             _logger.LogDebug($"Crawling App Service {appServiceNode.ResourceId}");
 
-            var credential = new DefaultAzureCredential();
-            var armClient = new ArmClient(credential);
             var armResourceId = new ResourceIdentifier(appServiceNode.ResourceId);
             var resourceGroupId = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
-            var resourceGroup = armClient.GetResourceGroupResource(resourceGroupId);
+            var resourceGroup = _armClient.GetResourceGroupResource(resourceGroupId);
             var siteResponse = await resourceGroup.GetWebSiteAsync(armResourceId.Name);
             var webApp = siteResponse.Value;
 

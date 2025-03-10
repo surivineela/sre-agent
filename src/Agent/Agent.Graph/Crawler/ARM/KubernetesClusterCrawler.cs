@@ -11,6 +11,7 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<K8sClusterCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
+        private readonly ArmClient _armClient;
         private readonly K8sDeploymentCrawler _deploymentCrawler;
         private readonly K8sDaemonSetCrawler _daemonSetCrawler;
 
@@ -19,8 +20,9 @@ namespace Agent.Graph.Crawler.ARM
         {
             _logger = logger;
             _dbManager = dbManager;
-            _deploymentCrawler = new K8sDeploymentCrawler(loggerFactory.CreateLogger<K8sDeploymentCrawler>(), dbManager);
-            _daemonSetCrawler = new K8sDaemonSetCrawler(loggerFactory.CreateLogger<K8sDaemonSetCrawler>(), dbManager);
+            _armClient = armClient;
+            _deploymentCrawler = new K8sDeploymentCrawler(loggerFactory.CreateLogger<K8sDeploymentCrawler>(), dbManager, armClient);
+            _daemonSetCrawler = new K8sDaemonSetCrawler(loggerFactory.CreateLogger<K8sDaemonSetCrawler>(), dbManager, armClient);
         }
 
         public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)

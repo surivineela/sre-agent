@@ -16,11 +16,11 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ArmClient _armClient;
         private readonly AzureResourceGraphClient _graphClient;
 
-        public ManagedIdentityCrawler(ILogger<ManagedIdentityCrawler> logger, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient)
+        public ManagedIdentityCrawler(ILogger<ManagedIdentityCrawler> logger, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient, ArmClient armClient)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
+            _armClient = armClient;
             _graphClient = graphClient;
         }
 

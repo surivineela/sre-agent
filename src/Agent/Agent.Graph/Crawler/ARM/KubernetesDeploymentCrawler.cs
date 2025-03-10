@@ -19,11 +19,11 @@ namespace Agent.Graph.Crawler.ARM
         private readonly ArmClient _armClient;
         private readonly SqlConnectionStringHelper _sqlHelper;
 
-        public K8sDeploymentCrawler(ILogger<K8sDeploymentCrawler> logger, IGraphDatabaseManager dbManager)
+        public K8sDeploymentCrawler(ILogger<K8sDeploymentCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
         {
             _logger = logger;
             _dbManager = dbManager;
-            _armClient = new ArmClient(new DefaultAzureCredential());
+            _armClient = armClient;
             _sqlHelper = new SqlConnectionStringHelper(logger, _armClient);
 
             // Initialize Kubernetes client using the default configuration

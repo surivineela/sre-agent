@@ -28,7 +28,7 @@ public class ArmResourceCrawlerFactory
         // For system managed identity the resource id is the actual resource
         if (node is ManagedIdentityNode)
         {
-            return new ManagedIdentityCrawler(_loggerFactory.CreateLogger<ManagedIdentityCrawler>(), dbManager, graphClient);
+            return new ManagedIdentityCrawler(_loggerFactory.CreateLogger<ManagedIdentityCrawler>(), dbManager, graphClient, armClient);
         }
 
         // Filter by known resource type

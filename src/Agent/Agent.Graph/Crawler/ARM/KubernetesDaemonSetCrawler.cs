@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Agent.Data.DatabaseManagers.GraphDatabase;
 using Azure.Core;
+using Azure.ResourceManager;
 using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
@@ -13,12 +14,14 @@ namespace Agent.Graph.Crawler.ARM
     {
         private readonly ILogger<K8sDaemonSetCrawler> _logger;
         private readonly IGraphDatabaseManager _dbManager;
+        private readonly ArmClient _armClient;
         private readonly IKubernetes _k8sClient;
 
-        public K8sDaemonSetCrawler(ILogger<K8sDaemonSetCrawler> logger, IGraphDatabaseManager dbManager)
+        public K8sDaemonSetCrawler(ILogger<K8sDaemonSetCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
         {
             _logger = logger;
             _dbManager = dbManager;
+            _armClient = armClient;
             var config = KubernetesClientConfiguration.BuildDefaultConfig();
             _k8sClient = new Kubernetes(config);
         }

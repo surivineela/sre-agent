@@ -48,8 +48,7 @@ namespace Agent.Graph.Crawler.ARM
                 // Container App Environments
                 if(Constants.ContainerAppEnvironmentType.Equals(type, StringComparison.OrdinalIgnoreCase))
                 {
-                    var envNode = CreateNodeFromJson(resource, (resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location) =>
-                        new ContainerAppEnvironmentNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location));
+                    var envNode = CreateNodeFromJson(resource);
                     if (envNode != null)
                     {
                         await _dbManager.AddOrUpdateNodeAsync(
@@ -62,8 +61,7 @@ namespace Agent.Graph.Crawler.ARM
                     }
                 }
                 else if(Constants.AppServicePlanType.Equals(type, StringComparison.OrdinalIgnoreCase)){
-                    var planNode = CreateNodeFromJson(resource, (resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location) =>
-                        new ArmResourceNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName));
+                    var planNode = CreateNodeFromJson(resource);
                     if (planNode != null)
                     {
                         await _dbManager.AddOrUpdateNodeAsync(
@@ -77,8 +75,7 @@ namespace Agent.Graph.Crawler.ARM
                 }
                 else if(Constants.AppServiceType.Equals(type, StringComparison.OrdinalIgnoreCase))
                 {
-                    var webAppNode = CreateNodeFromJson(resource, (rt, id, subId, rg, name, loc) =>
-                        new ArmResourceNode(rt, id, subId, rg, name));
+                    var webAppNode = CreateNodeFromJson(resource);
                     if (webAppNode != null)
                     {
                         await _dbManager.AddOrUpdateNodeAsync(webAppNode.GetNodeLabel(), webAppNode.GetNodeId(), webAppNode.GetResourceType(), webAppNode.GetNodeProperties());
@@ -91,8 +88,7 @@ namespace Agent.Graph.Crawler.ARM
                 }
                 else if (Constants.AzureKubernetesServiceType.Equals(type, StringComparison.OrdinalIgnoreCase))
                 {
-                    var aksNode = CreateNodeFromJson(resource, (rt, id, subId, rg, name, loc) =>
-                        new ArmResourceNode(rt, id, subId, rg, name));
+                    var aksNode = CreateNodeFromJson(resource);
                     if (aksNode != null)
                     {
                         await _dbManager.AddOrUpdateNodeAsync(aksNode.GetNodeLabel(), aksNode.GetNodeId(), aksNode.GetResourceType(), aksNode.GetNodeProperties());
@@ -105,8 +101,7 @@ namespace Agent.Graph.Crawler.ARM
                 }
                 else
                 {
-                    var genericNode = CreateNodeFromJson(resource, (rt, id, subId, rg, name, loc) =>
-                        new ArmResourceNode(rt, id, subId, rg, name));
+                    var genericNode = CreateNodeFromJson(resource);
                     if (genericNode != null)
                     {
                         await _dbManager.AddOrUpdateNodeAsync(genericNode.GetResourceType(), genericNode.GetNodeId(), genericNode.GetResourceType(), genericNode.GetNodeProperties());
@@ -121,17 +116,13 @@ namespace Agent.Graph.Crawler.ARM
         }
 
         // Helper to create an ArmResourceNode from a JSON element using the provided factory function.
-        private ArmResourceNode CreateNodeFromJson(JsonElement item, Func<string, string, string, string, string, string, ArmResourceNode> factory)
+        private ArmResourceNode CreateNodeFromJson(JsonElement item)
         {
             try
             {
                 var resourceId = item.GetProperty("id").GetString();
-                var resourceType = item.GetProperty("type").GetString();
-                var subscriptionId = item.GetProperty("subscriptionId").GetString();
-                var resourceGroupName = item.GetProperty("resourceGroup").GetString();
-                var resourceName = item.GetProperty("name").GetString();
-                var location = item.GetProperty("location").GetString();
-                return factory(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location);
+
+                return ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(resourceId);
             }
             catch (Exception ex)
             {
