@@ -294,11 +294,11 @@ extends:
             displayName: 'Build Docker image for Agent.Web'
             inputs:
               registry: k8seprod.azurecr.io
-              repositoryName: public/k8se/aca-agent-web
+              repositoryName: public/k8se/sre-agent-web
               dockerFileRelPath: src/Deployment/Agent.Web/Dockerfile
               dockerFileContextPath: drop_build_main
-              saveImageToPath: 'images/aca-agent-web.tar.gz'
-              saveMetadataToPath: 'images/aca-agent-web-metadata.json'
+              saveImageToPath: 'images/sre-agent-web.tar.gz'
+              saveMetadataToPath: 'images/sre-agent-web-metadata.json'
               enable_service_tree_acr_path: false
               build_tag: $(Build.BuildNumber)
               enable_acr_push: true
