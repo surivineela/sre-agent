@@ -35,6 +35,7 @@ namespace FirstPartyAgent.Models
         public string ChangedBy { get; set; }
         public string Text { get; set; }
         public bool IsHtml { get; set; }
+        public string? Cause { get; set; }
     }
 
     public class ODataResponse<T>
