@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -7,7 +11,6 @@ using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace Agent.Plugins.Implementation
 {

@@ -8,8 +8,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Octokit;
-using System.Net.Http;
 
 namespace Agent.Core.Helpers;
 
@@ -18,13 +16,10 @@ public static class SemanticKernelHelper
 {
     public static void ConfigService(IServiceCollection serviceCollection)
     {
-        serviceCollection.AddScoped<AppIdentityUpdatePlugin>();
         serviceCollection.AddScoped<ChartPlugin>();
         serviceCollection.AddScoped<SubscriptionPlugin>();
         serviceCollection.AddScoped<TlsPlugin>();
 
-        //serviceCollection.AddScoped<CodeAnalyzerPlugin>();
-        //serviceCollection.AddSingleton<CodeAnalyzerService>();
         serviceCollection.AddSingleton<TeamsConnector>();
 
         // Configure Semantic Kernel
@@ -59,12 +54,6 @@ public static class SemanticKernelHelper
 
             var subscriptionPlugin = sp.GetRequiredService<SubscriptionPlugin>();
             kernelBuilder.Plugins.AddFromObject(subscriptionPlugin, "SubscriptionPlugin");
-
-            // var repoPlugin = sp.GetRequiredService<CodeAnalyzerPlugin>();
-            // kernelBuilder.Plugins.AddFromObject(repoPlugin, "CodeAnalyzerPlugin");
-
-            var appIdentityUpdatePlugin = sp.GetRequiredService<AppIdentityUpdatePlugin>();
-            kernelBuilder.Plugins.AddFromObject(appIdentityUpdatePlugin, "AppIdentityUpdatePlugin");
 
             var chartPlugin = sp.GetRequiredService<ChartPlugin>();
             kernelBuilder.Plugins.AddFromObject(chartPlugin, "ChartPlugin");

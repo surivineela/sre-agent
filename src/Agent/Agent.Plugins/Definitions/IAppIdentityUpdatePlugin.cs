@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace Agent.Plugins
 {
     public interface IAppIdentityUpdatePlugin
@@ -8,4 +6,4 @@ namespace Agent.Plugins
         Task<string> MigrateSqlToManagedIdentityAsync(string resourceId, string sqlServer, string database);
         Task<string> EnableSqlAdAuthAsync(string resourceId, string servicePrincipalId);
     }
-} 
+}

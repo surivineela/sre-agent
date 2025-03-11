@@ -1,4 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
+using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
@@ -52,4 +57,4 @@ namespace Agent.Plugins
             return await _appIdentityUpdatePlugin.EnableSqlAdAuthAsync(resourceId, servicePrincipalId);
         }
     }
-} 
+}
