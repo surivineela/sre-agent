@@ -39,6 +39,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using System.Configuration;
+using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -107,6 +108,7 @@ if (useSessionChatService)
         .AddSingleton<TlsBestPracticesPlugin>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
+        .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
         .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
         .AddSingleton<IArmPlugin, ArmPlugin>()
@@ -114,12 +116,20 @@ if (useSessionChatService)
         .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
         .AddSingleton<IAppIdentityUpdatePlugin, AppIdentityUpdatePlugin>()
         .AddSingleton<ITimePlugin, TimePlugin>()
+           .AddSingleton<MetaAgentPlugin>()
         .AddSingleton<ToolsRepository>()
         .AddSingleton<Octokit.IGitHubClient>(provider =>
         {
             var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("AzureSreAgent"));
             return client;
-        });
+        })
+        .AddTransient<Kernel>(sp => new Kernel(sp))
+        // Register all SubAgent types as singletons
+        .AddSingleton<GraphDBQueryAgent>()
+        .AddSingleton<ArchitectureAgent>()
+        .AddSingleton<GenericAgent>()
+        .AddSingleton<LogsAndMetricsAgent>()
+        .AddSingleton<DiagnosticAgent>();
 
     // register arm client for crawler
     builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
@@ -154,43 +164,17 @@ if (useSessionChatService)
         builder.Services.AddSingleton(agentType);
     }
 
-    // Add agent manager
     builder.Services.AddSingleton<IAgentManager, AgentManager>();
-    builder.Services.AddSingleton<IChatService, Agent.Web.Services.SessionChatService>(); // Changed from AddScoped to AddSingleton
+
+    builder.Services.AddSingleton<IChatService, SessionChatService>();
 
     // Kick off background processes
     builder.Services.AddHostedService<TimerService>();
 
-    // Add Teams Connector only if configuration is valid
-    var teamsBotConfig = builder.Configuration.GetSection("TeamsBot").Get<TeamsBotSettings>();
-    bool teamsConfigValid = teamsBotConfig != null &&
-                           !string.IsNullOrEmpty(teamsBotConfig.AppId);
+    builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
+    builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
+    builder.Services.AddSingleton<IBot, TeamsBot>();
 
-    builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-
-    if (teamsConfigValid)
-    {
-        builder.Configuration["MicrosoftAppType"] = teamsBotConfig.AppType;
-        builder.Configuration["MicrosoftAppId"] = teamsBotConfig.AppId;
-        builder.Configuration["MicrosoftAppPassword"] = teamsBotConfig.PasswordKey;
-        builder.Configuration["MicrosoftAppTenantId"] = teamsBotConfig.TenantId;
-
-
-        builder.Services.AddSingleton<TeamsBotSettings>(teamsBotConfig);
-        builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
-        builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-        builder.Services.AddSingleton<IBot, TeamsBot>();
-        builder.Services.AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>();
-
-        // Store the flag for later use when mapping endpoints
-        builder.Services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = true });
-    }
-    else
-    {
-        // Log warning about missing Teams configuration
-        Console.WriteLine("Warning: TeamsBot configuration is missing or invalid. Teams integration will be disabled.");
-        builder.Services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = false });
-    }
 
     var durableConnectionString = "";
     if (string.IsNullOrEmpty(durableConnectionString))
@@ -222,7 +206,7 @@ else
 builder.Services.AddSingleton<TeamsConnector>();
 
 // Add services to the container.
-builder.Services.AddHttpContextAccessor(); // Add this line
+builder.Services.AddHttpContextAccessor();
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {

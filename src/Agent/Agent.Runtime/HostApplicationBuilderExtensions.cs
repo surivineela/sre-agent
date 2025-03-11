@@ -89,10 +89,10 @@ Otherwise, there may be required settings which are not auto-populated by the pr
 
                 return settings;
             });
-            builder.Services.RegisterInnerAppSettings<TAppSettings>();
+            builder.Services.RegisterInnerAppSettings<TAppSettings>(builder.Configuration);
         }
 
-        public static void RegisterInnerAppSettings<TAppSettings>(this IServiceCollection sc)
+        public static void RegisterInnerAppSettings<TAppSettings>(this IServiceCollection sc, IConfiguration configuration)
             where TAppSettings : AppSettings
         {
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Azure);
@@ -104,7 +104,21 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External);
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.GitHub);
 
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.External.TeamsBot);
+            ConvertSettingsForTeamsBot(sc, configuration);
+
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Timer);
+        }
+
+        private static void ConvertSettingsForTeamsBot(this IServiceCollection sc, IConfiguration configuration)
+        {
+            var serviceProvider = sc.BuildServiceProvider();
+            var teamsBotConfig = serviceProvider.GetRequiredService<TeamsBotSettings>();
+            configuration["MicrosoftAppType"] = teamsBotConfig.AppType;
+            configuration["MicrosoftAppId"] = teamsBotConfig.AppId;
+            configuration["MicrosoftAppPassword"] = teamsBotConfig.PasswordKey;
+            configuration["MicrosoftAppTenantId"] = teamsBotConfig.TenantId;
+            sc.AddSingleton(configuration);
         }
     }
 }

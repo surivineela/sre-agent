@@ -54,6 +54,13 @@ namespace Agent.Runtime
             try
             {
                 _logger.LogInformation("Adding agent: {AgentName}", agent.Name);
+
+                if (_agents.ContainsKey(agent.Name))
+                {
+                    _logger.LogInformation("Agent with name {AgentName} already exists", agent.Name);
+                    return; // Skip adding if already exists
+                }
+
                 _agents.Add(agent.Name, agent);
 
                 if (_currentAgent == null)

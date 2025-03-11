@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Agent.Web.Services;
+using Agent.Core.Configuration;
 
 namespace Agent.Web.Controllers;
 
@@ -13,20 +14,20 @@ public class BotController : ControllerBase
 {
     private readonly IBotFrameworkHttpAdapter Adapter;
     private readonly IBot Bot;
-    private readonly ITeamsBotConfigStatus _configStatus;
+    private readonly TeamsBotSettings _setting;
 
-    public BotController(IBotFrameworkHttpAdapter adapter, IBot bot, ITeamsBotConfigStatus configStatus)
+    public BotController(IBotFrameworkHttpAdapter adapter, IBot bot, TeamsBotSettings setting)
     {
         Adapter = adapter;
         Bot = bot;
-        _configStatus = configStatus;
+        _setting = setting;
     }
 
     [HttpPost, HttpGet]
     public async Task PostAsync()
     {
         // First verify Teams configuration is valid
-        if (!_configStatus.IsConfigured)
+        if (string.IsNullOrEmpty(_setting.AppId) || string.Equals(_setting.AppId, "dummy", StringComparison.OrdinalIgnoreCase))
         {
             Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
             await Response.WriteAsync("Teams bot functionality is not configured properly");

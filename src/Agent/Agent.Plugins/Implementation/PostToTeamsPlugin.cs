@@ -20,7 +20,6 @@ namespace Agent.Plugins.Implementation
 
         private readonly string _appId;
         private readonly string _tenantId;
-        //private readonly ConversationReference _defaultConversationReference;
 
         /// <summary>
         /// The default conversation reference should be captured from a known Teams channel
@@ -36,7 +35,6 @@ namespace Agent.Plugins.Implementation
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             _appId = teamsBot.AppId;
             _tenantId = teamsBot.TenantId;
-            //   _defaultConversationReference = defaultConversationReference ?? throw new ArgumentNullException(nameof(defaultConversationReference));
         }
 
         public async Task<string> PostAsync(string message)

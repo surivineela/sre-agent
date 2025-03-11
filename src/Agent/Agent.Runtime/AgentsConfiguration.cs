@@ -18,69 +18,6 @@ namespace Agent.Runtime
 {
     public static class AgentsConfigurationExtensions
     {
-        /*
-       public static void ConfigureAgents(this IServiceCollection services)
-        {
-            _ = services
-                .ConfigureIChatCompletionService()
-                .ConfigureAzureOpenAIClient()
-                .ConfigureIChatClient()
-                .AddTransient<Kernel>(sp =>
-                {
-                    return new Kernel(sp);
-                })
-
-                // Add plugins
-                .AddSingleton<MetaAgentPlugin>()
-                .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
-                .AddSingleton<SubscriptionPluginDefinition>()
-                .AddSingleton<MonitorPluginDefinition>()
-                .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
-                .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
-                .AddSingleton<IMonitorPlugin, MonitorPlugin>()
-                .AddSingleton<GraphDBPluginDefinition>()
-                .AddSingleton<ITimePlugin, TimePlugin>()
-                .AddSingleton<TimePluginDefinition>()
-                .AddSingleton<IMetricsPlugin, MetricsPlugin>()
-                .AddSingleton<MetricsPluginDefinition>()
-                .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
-                .AddSingleton<DiagnosePluginDefinition>()  
-                .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
-                .AddSingleton<CurrentStatePluginDefinition>()
-
-                // Add agents
-                .AddSingleton<GenericAgent>()
-                .AddSingleton<GraphDBQueryAgent>()
-                .AddSingleton<ArchitectureAgent>()
-                .AddSingleton<LogsAndMetricsAgent>()
-                .AddSingleton<DiagnosticAgent>()
-                .AddSingleton<IRemediationPlugin, RemediationPlugin>()
-                .AddSingleton<RemediationPluginDefinition>()
-                // Agent is defined by its name, instructions, and the plugins it uses
-                // In future we load the agent and conversation from a data store. For now it is all in memory
-                .AddSingleton(s =>
-                {
-                    var agent = new Agent(
-                        "main",
-                        //IssueFinderAgent.SystemMessage,
-                        @"You are SRE Agent. You must delegate to other agents",
-                        s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<IOptions<AzureSettings>>(),
-                        s.GetRequiredService<ILogger<Agent>>());  // Add logger parameter
-
-                    //agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<SubscriptionPluginDefinition>(), "SubscriptionPlugin");
-                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
-
-                    return agent;
-                })
-                .AddSingleton<Session>(s =>
-                {
-                    var conversation = new Session();
-                    conversation.AddAgent(s.GetRequiredService<Agent>());
-                    return conversation;
-                });
-        }
-*/
         public static IServiceCollection ConfigureIChatCompletionService(this IServiceCollection services)
         {
             return services

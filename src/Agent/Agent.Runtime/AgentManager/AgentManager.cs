@@ -3,27 +3,10 @@ using System.Runtime.CompilerServices;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
-using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Plugins;
-using Agent.Plugins.Definitions;
-using Agent.Plugins.Implementation;
-using Agent.Plugins.PeriodicMonitor;
-using Agent.Runtime.SubAgents;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Agent.Plugins.CodeAnalyzer;
-using Agent.Plugins.Models;
-using Agent.Graph.Crawler.ARM;
-using Azure.Identity;
-using Azure.ResourceManager;
-using Agent.Core.Services;
-using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Microsoft.Bot.Builder;
-using Microsoft.Bot.Connector.Authentication;
-using Microsoft.Extensions.Configuration;
 
 namespace Agent.Runtime.Services
 {
@@ -31,107 +14,33 @@ namespace Agent.Runtime.Services
     {
         private const string ROOT_AGENT_PATH = "/";
         private readonly ConcurrentDictionary<string, Session> _sessions = new();
-        private readonly IServiceProvider _serviceProvider;
         private readonly ILogger<AgentManager> _logger;
         private readonly Dictionary<string, Type> _subAgentPathMapping;
         private readonly Agent _rootAgent;
-        private readonly ServiceProvider _agentServiceProvider;
-        private readonly IConfiguration _configuration;
+        private readonly IEnumerable<SubAgent> _subAgents;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private ConcurrentDictionary<Type, SubAgent> _subAgentRegistry;
+        private Dictionary<string, IAgent> _agentInstances;
 
-        public AgentManager(IServiceProvider serviceProvider, AppSettings appSettings, AzureSettings azureSettings, ExternalSettings externalSettings, TeamsBotSettings teamsBotSettings, IConfiguration configuration)
+        public AgentManager(
+            ILogger<AgentManager> logger,
+            Kernel kernel,
+            ILoggerFactory loggerFactory,
+            IChatClient chatClient,
+            MetaAgentPlugin metaAgentPlugin,
+            OpenAISettings openAISettings,
+            IHttpContextAccessor httpContextAccessor,
+            IEnumerable<SubAgent> subAgents)
         {
-            _serviceProvider = serviceProvider;
-            _logger = _serviceProvider.GetRequiredService<ILogger<AgentManager>>();
-            _configuration = configuration;
-
-            // Create a new ServiceCollection and configure it
-            IServiceCollection services = new ServiceCollection();
-            services.AddLogging(builder => builder.AddProvider(_serviceProvider.GetRequiredService<ILoggerProvider>()));
-
-            // Pass through configurations from parent service collection
-            services.AddSingleton(appSettings);
-            services.AddSingleton(azureSettings);
-            services.AddSingleton(externalSettings);
-            services.AddSingleton(teamsBotSettings);
-
-            services.RegisterInnerAppSettings<AppSettings>();
-
-            // Configure agent-specific services
-            ConfigureAgentServices(services);
-
-            // Build the service provider for agents
-            _agentServiceProvider = services.BuildServiceProvider();
-
+            _logger = logger;
+            _httpContextAccessor = httpContextAccessor;
+            _subAgents = subAgents;
             _subAgentPathMapping = DiscoverSubAgentPaths();
-            // Get the pre-configured root agent from the new service provider
-            _rootAgent = _agentServiceProvider.GetRequiredService<Agent>();
-            _logger.LogInformation("Retrieved singleton root Agent instance from service provider");
-        }
+            _subAgentRegistry = new ConcurrentDictionary<Type, SubAgent>();
+            _agentInstances = new Dictionary<string, IAgent>(StringComparer.OrdinalIgnoreCase);
 
-        private void ConfigureAgentServices(IServiceCollection services)
-        {
-
-            services.AddSingleton<IConfiguration>(_configuration);
-            // Register a default ConversationReference that can be injected into PostToTeamsPlugin
-            services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
-
-            services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
-            services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-            services.AddSingleton<IBot, TeamsBot>();
-            services.AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>();
-
-
-            // Store the flag for later use when mapping endpoints
-            // services.AddSingleton<ITeamsBotConfigStatus>(new TeamsBotConfigStatus { IsConfigured = true });
-
-            _ = services
-                .ConfigureIChatCompletionService()
-                .ConfigureAzureOpenAIClient()
-                .ConfigureIChatClient()
-                .AddHttpContextAccessor()
-                .AddTransient<Kernel>(sp => new Kernel(sp))
-                .AddSingleton<MetaAgentPlugin>()
-                .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
-                .AddSingleton<AzureResourceGraphClient>()
-                .AddSingleton<ArmResourceCrawlerFactory>()
-                .AddSingleton<ResourceGraphCrawler>()
-                .AddSingleton<SubscriptionPluginDefinition>()
-                .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
-                .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
-                .AddSingleton<GraphDBPluginDefinition>()
-                .AddSingleton<ITimePlugin, TimePlugin>()
-                .AddSingleton<TimePluginDefinition>()
-                .AddSingleton<IMetricsPlugin, MetricsPlugin>()
-                .AddSingleton<MetricsPluginDefinition>()
-                .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
-                .AddSingleton<DiagnosePluginDefinition>()
-                .AddSingleton<IMonitorPlugin, MonitorPlugin>()
-                .AddSingleton<MonitorPluginDefinition>()
-                .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
-                .AddSingleton<ICurrentStatePlugin, CurrentStatePlugin>()
-                .AddSingleton<CurrentStatePluginDefinition>()
-                .AddSingleton<IRemediationPlugin, RemediationPlugin>()
-                .AddSingleton<TeamsConnector>()
-                .AddSingleton<GitHubClient>()
-                .AddSingleton<CodeAnalyzerService>()
-                .AddSingleton<ICodeAnalyzerPlugin, CodeAnalyzerPlugin>()
-                .AddSingleton<RemediationPluginDefinition>()
-                .AddSingleton<ApprovalPlugin>()
-                .AddSingleton<PostToTeamsPluginDefinition>()
-                .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
-                // Register all SubAgent types as singletons
-                .AddSingleton<MetaAgentPlugin>()
-                .AddSingleton<GraphDBQueryAgent>()
-                .AddSingleton<ArchitectureAgent>()
-                .AddSingleton<GenericAgent>()
-                .AddSingleton<LogsAndMetricsAgent>()
-                .AddSingleton<DiagnosticAgent>()
-                // Add logger factory from parent service provider
-                .AddSingleton(_serviceProvider.GetRequiredService<ILoggerFactory>())
-                // Register the root Agent with explicit logger
-                .AddSingleton(s =>
-                {
-                    var agent = new Agent(
+            // Get the pre-configured root agent
+            _rootAgent = new Agent(
                         "main",
                         @"You are SRE Agent with a bunch of sub-agents that have specific skills and tools.
                         You are responsible for planning and use these sub-agents to get detailed information and make final decision.
@@ -141,27 +50,82 @@ namespace Agent.Runtime.Services
                         - generic_agent: it is the most powerful sub-agent for general questions including get approval, get current time, scale/restart appservice, collect memory dump for app service, etc. Always try to ask questions to generic_agent if other agents can't give you the good answer.
                         You can even ask these sub-agents about what they can do.
                         Try to ask questions to appropriate sub-agent to gather as more information as possible if you don't have access, permissions or just feel answer is not perfect to user's questions.",
-                        s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<OpenAISettings>(),
-                        s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
-                        s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent>());
+                        kernel,
+                        openAISettings,
+                        chatClient,
+                        loggerFactory.CreateLogger<Agent>());
 
-                    agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<MetaAgentPlugin>(), "MetaAgentPlugin");
-                    return agent;
-                });
+            _rootAgent.Kernel.Plugins.AddFromObject(metaAgentPlugin, "MetaAgentPlugin");
+            _logger.LogInformation("Retrieved singleton root Agent instance");
 
-            // register arm client for crawler
-            services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
-            {
-                var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
-                var credOptions = new DefaultAzureCredentialOptions();
-                if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
-                {
-                    credOptions.ManagedIdentityClientId = crawlerSettings.IdentityClientId;
-                }
-                return new ArmClient(new DefaultAzureCredential(credOptions));
-            });
+            // Add root agent to instances
+            _agentInstances[ROOT_AGENT_PATH] = _rootAgent;
+
+            // Initialize all subagents
+            InitializeSubAgents();
         }
+
+        private void InitializeSubAgents()
+        {
+
+            // Register all available subagents by their type (moved from SubAgentRegistry)
+            foreach (var agent in _subAgents)
+            {
+                var type = agent.GetType();
+                if (_subAgentRegistry.TryAdd(type, agent))
+                {
+                    _logger.LogInformation($"Registered SubAgent of type {type.Name}");
+                }
+                else
+                {
+                    _logger.LogWarning($"Failed to register SubAgent of type {type.Name} - duplicate registration");
+                }
+            }
+
+            _logger.LogInformation($"Agent registry initialized with {_subAgentRegistry.Count} agents");
+
+            _logger.LogInformation("Initializing all subagent instances from registry...");
+
+            foreach (var pathTypePair in _subAgentPathMapping)
+            {
+                try
+                {
+                    var path = pathTypePair.Key;
+                    var subAgentType = pathTypePair.Value;
+
+                    var agent = GetSubAgent(subAgentType);
+                    if (agent == null)
+                    {
+                        _logger.LogError($"Failed to get SubAgent instance for type {subAgentType.FullName} from registry");
+                        continue;
+                    }
+
+                    _agentInstances[path] = agent;
+                    _logger.LogInformation($"Added SubAgent instance of type {subAgentType.Name} for path {path}");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error getting agent from registry for path: {pathTypePair.Key}");
+                }
+            }
+
+            _logger.LogInformation($"Successfully initialized {_agentInstances.Count - 1} subagent instances from registry");
+        }
+
+        // Moved from SubAgentRegistry
+        private SubAgent GetSubAgent(Type subAgentType)
+        {
+            if (_subAgentRegistry.TryGetValue(subAgentType, out var agent))
+            {
+                return agent;
+            }
+
+            _logger.LogWarning($"No SubAgent found for type {subAgentType.FullName}");
+            return null;
+        }
+
+        // Moved from SubAgentRegistry
+        public IEnumerable<SubAgent> GetAllAgents() => _subAgentRegistry.Values;
 
         private record SubAgentInfo(Type AgentType, string Name);
 
@@ -288,9 +252,8 @@ namespace Agent.Runtime.Services
             }
 
             // Get the LastRespondingAgentType from the session and set it in HttpContext
-            var httpContextAccessor = _agentServiceProvider.GetService<IHttpContextAccessor>();
-            if (httpContextAccessor?.HttpContext?.Items != null &&
-        httpContextAccessor.HttpContext.Items.TryGetValue("LastRespondingAgent", out var finalAgent))
+            if (_httpContextAccessor?.HttpContext?.Items != null &&
+                _httpContextAccessor.HttpContext.Items.TryGetValue("LastRespondingAgent", out var finalAgent))
             {
                 _logger.LogInformation($"Final LastRespondingAgent set in HttpContext: {finalAgent}");
             }
@@ -304,29 +267,10 @@ namespace Agent.Runtime.Services
         {
             try
             {
-                if (path == ROOT_AGENT_PATH)
+                if (_agentInstances.TryGetValue(path, out var agent))
                 {
-                    _logger.LogInformation("Using singleton root Agent instance");
-                    return _rootAgent;
-                }
-
-                if (_subAgentPathMapping.TryGetValue(path, out var subAgentType))
-                {
-                    try
-                    {
-                        var agent = ActivatorUtilities.CreateInstance(_agentServiceProvider, subAgentType) as SubAgent;
-                        if (agent == null)
-                        {
-                            throw new InvalidOperationException($"Failed to create SubAgent instance for type {subAgentType.FullName}");
-                        }
-                        _logger.LogInformation($"Created SubAgent instance of type {subAgentType.Name}");
-                        return agent;
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error creating agent for path: {path}. Falling back to root agent.");
-                        return _rootAgent;
-                    }
+                    _logger.LogInformation($"Using cached agent instance for path: {path}");
+                    return agent;
                 }
 
                 _logger.LogWarning($"No agent registered for path: {path}. Using root agent.");
@@ -416,8 +360,13 @@ namespace Agent.Runtime.Services
         public void Dispose()
         {
             _sessions.Clear();
-            (_rootAgent as IDisposable)?.Dispose();
-            _agentServiceProvider?.Dispose();
+
+            // Dispose all agent instances
+            foreach (var agent in _agentInstances.Values)
+            {
+                (agent as IDisposable)?.Dispose();
+            }
+            _agentInstances.Clear();
         }
     }
 }

@@ -22,7 +22,7 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
 
-    private const int MaxRetries = 100;
+    private const int MaxRetries = 20;
     private const int RetryDelayMs = 10000;
 
     public TimerService(
