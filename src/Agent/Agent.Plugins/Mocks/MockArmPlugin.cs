@@ -22,6 +22,16 @@ namespace Agent.Plugins.Mocks
             _tlsStatuses.AddOrSetRange(tlsStatuses);
         }
 
+        public string GetTlsStatus(string appResourceId)
+        {
+            if (!_tlsStatuses.ContainsKey(appResourceId))
+            {
+                throw new ArgumentException($"Resource {appResourceId} not found");
+            }
+            var status = _tlsStatuses[appResourceId];
+            return status.MinimumTlsVersion;
+        }
+
         public Task<string> SetMinimumTlsVersion(string appResourceId, string minimumTlsVersion)
         {
             if (!_tlsStatuses.ContainsKey(appResourceId))

@@ -73,8 +73,7 @@ namespace Agent.Tests.Integration
 
                     var diskCache = new TestCachingChatClientBuilderExtensions.DiskCache(cacheDir);
 
-                    var durableConnectionString = "";// "Endpoint=https://scheduler1-cqczc8d2dhhj.northcentralus.durabletask.io;TaskHub=taskhub1;Authentication=DefaultAzure";
-                    //var durableConnectionString = "Endpoint=https://scheduler1-enekctgzbtbj.northcentralus.durabletask.io;TaskHub=taskhub1;Authentication=DefaultAzure";//"Endpoint=https://sanmeht-dts-a0bgg6eafjd2.westus2.durabletask.io;Authentication=DefaultAzure;TaskHub=sanmeht-dts-hub";
+                    var durableConnectionString = config.AzureSettings.DTS.ConnectionString;
                     if (string.IsNullOrEmpty(durableConnectionString))
                     {
                         durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
@@ -187,7 +186,7 @@ namespace Agent.Tests.Integration
 
                 foreach (var app in _testApps)
                 {
-                    Assert.Equal("1.2", app.MinimumTlsVersion);
+                    Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(app.ResourceId));
                 }
             }
             catch (Grpc.Core.RpcException ex)
@@ -225,18 +224,18 @@ namespace Agent.Tests.Integration
                     instanceID,
                     tokenSource.Token);
 
-                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: false, tokenSource.Token);
+                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-                Assert.Equal("1.2", _testApps[0].MinimumTlsVersion);
-                Assert.Equal("1.0", _testApps[1].MinimumTlsVersion);
-                Assert.Equal("1.2", _testApps[2].MinimumTlsVersion);
-                Assert.Equal("1.2", _testApps[3].MinimumTlsVersion);
-                Assert.Equal("1.2", _testApps[4].MinimumTlsVersion);
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
+                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
             }
             catch (Grpc.Core.RpcException ex)
             {
@@ -281,18 +280,18 @@ namespace Agent.Tests.Integration
                     instanceID,
                     tokenSource.Token);
 
-                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: false, tokenSource.Token);
+                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-                Assert.Equal("1.2", _testApps[0].MinimumTlsVersion);
-                Assert.Equal("1.0", _testApps[1].MinimumTlsVersion);
-                Assert.Equal("1.0", _testApps[2].MinimumTlsVersion);
-                Assert.Equal("1.0", _testApps[3].MinimumTlsVersion);
-                Assert.Equal("1.0", _testApps[4].MinimumTlsVersion);
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
+                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
+                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
+                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
+                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
             }
             catch (Grpc.Core.RpcException ex)
             {
