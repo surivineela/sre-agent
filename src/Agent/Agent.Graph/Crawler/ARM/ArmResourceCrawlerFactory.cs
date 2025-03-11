@@ -4,6 +4,8 @@ using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
+namespace Agent.Graph.Crawler.ARM;
+
 public class ArmResourceCrawlerFactory
 {
     private readonly ILoggerFactory _loggerFactory;
@@ -64,7 +66,7 @@ public class ArmResourceCrawlerFactory
 
         if (Constants.AppServiceType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
-            return new AppServiceARMCrawler(_loggerFactory.CreateLogger<AppServiceARMCrawler>(), dbManager, armClient);
+            return new AppServiceCrawler(_loggerFactory.CreateLogger<AppServiceCrawler>(), dbManager, armClient);
         }
 
         if (Constants.AppServicePlanType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
@@ -82,7 +84,7 @@ public class ArmResourceCrawlerFactory
 
     public static ArmResourceNode CreateResourceNodeFromResourceIdentifier(string resourceId)
     {
-        if(string.IsNullOrEmpty(resourceId))
+        if (string.IsNullOrEmpty(resourceId))
         {
             return null;
         }

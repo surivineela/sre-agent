@@ -1,7 +1,6 @@
 ﻿using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Graph.Crawler.ARM;
 
-namespace Agent.Graph
+namespace Agent.Graph.Crawler.Legacy
 {
     public class ResourceGraphHelper
     {

@@ -1,9 +1,14 @@
-﻿using Agent.Graph.Schema;
+﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Graph.Schema;
+using Gremlin.Net.Driver;
+using Microsoft.Extensions.Logging;
 
-namespace Agent.Graph
+namespace Agent.Graph.Crawler.Legacy
 {
-    public class InMemoryGraphManager
+    public class InMemoryGraphManager : IGraphDatabaseManager
     {
+        private readonly ILogger<InMemoryGraphManager> _logger;
+
         private readonly Dictionary<string, Node> _nodes = new();
         private readonly Dictionary<string, Edge> _edges = new();
 
@@ -78,10 +83,36 @@ namespace Agent.Graph
             return _edges.Values.ToList();
         }
 
-        public void Clear()
+        public Task Clear()
         {
             _edges.Clear();
             _nodes.Clear();
+
+            return Task.CompletedTask;
+        }
+
+        public Task<bool> AddOrUpdateEdgeAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties)
+        {
+            _logger.LogInformation($"Adding edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}'.");
+            var sourceNode = GetNode(sourceNodeId) ?? throw new ArgumentException($"Source node with ID '{sourceNodeId}' does not exist.");
+            var targetNode = GetNode(targetNodeId) ?? throw new ArgumentException($"Target node with ID '{targetNodeId}' does not exist.");
+            var edgeAdded = AddDirectedEdgeIfNotExists(sourceNode, targetNode, relationshipType, properties);
+            _logger.LogInformation($"Edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}' added: {edgeAdded}.");
+            return Task.FromResult(edgeAdded);
+        }
+
+        public Task<bool> AddOrUpdateNodeAsync(string nodeLabel, string nodeId, string resourceType, IDictionary<string, object> properties)
+        {
+            _logger.LogInformation($"Adding or updating node with ID '{nodeId}'.");
+            var node = new Node(nodeId, nodeLabel, resourceType, properties);
+            var nodeAdded = AddOrUpdateNode(node);
+            _logger.LogInformation($"Node with ID '{nodeId}' added or updated: {nodeAdded}.");
+            return Task.FromResult(nodeAdded);
+        }
+
+        public Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 20000)
+        {
+            throw new NotImplementedException();
         }
     }
 }

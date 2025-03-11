@@ -1,6 +1,6 @@
 ﻿using Agent.Graph.Schema;
 
-namespace Agent.Graph.Crawler.ARM
+namespace Agent.Graph.Crawler.Legacy
 {
     public class MockCrawler
     {
@@ -93,7 +93,7 @@ namespace Agent.Graph.Crawler.ARM
                 sourceNode: badRgNode,
                 targetNode: badSqlServerNode,
                 relationshipType: "contains");
-            
+
             // Web Apps
 
             const string App1 = nameof(App1);

@@ -1,9 +1,10 @@
 ﻿using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
 using Microsoft.Extensions.Logging;
+
+namespace Agent.Graph.Crawler.ARM;
 
 public class SqlConnectionStringHelper
 {

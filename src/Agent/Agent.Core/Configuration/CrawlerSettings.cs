@@ -11,11 +11,9 @@ namespace Agent.Core.Configuration
     {
         [Required]
         public string TenantId { get; set; } = string.Empty;
-        [Required]
         public string CrawlRoot { get; set; } = string.Empty;
         public string IdentityClientId { get; set; } = string.Empty;
         [Required]
         public int MaxParallelism { get; set; } = 4096;
-        public bool SkipCrawl { get; set; } = false;
     }
 }

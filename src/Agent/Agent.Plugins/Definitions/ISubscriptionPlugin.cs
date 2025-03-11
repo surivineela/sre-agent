@@ -1,5 +1,4 @@
-﻿using Agent.Graph;
-using Gremlin.Net.Driver;
+﻿using Agent.Graph.Crawler.Legacy;
 
 namespace Agent.Plugins
 {

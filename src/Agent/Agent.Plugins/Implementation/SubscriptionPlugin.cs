@@ -1,12 +1,11 @@
-﻿using Azure.Core;
+﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Graph.Crawler.Legacy;
 using Azure;
+using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
-using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.AppService;
-using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Graph;
-using Gremlin.Net.Driver;
+using Azure.ResourceManager.Resources;
 
 namespace Agent.Plugins
 {
