@@ -1,0 +1,19 @@
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Agent.Web.Models.v1
+{
+    public record Thread(
+        Guid Id,
+        string Title,
+        Message StartMessage,
+        DateTime CreatedTimestamp,
+        DateTime ModifiedTimestamp);
+
+    public record CreateThreadRequest(
+        [Required] CreateMessageRequest StartMessage
+    );
+
+    public record CreateMessageRequest(
+        [Required] string Text
+    );
+}

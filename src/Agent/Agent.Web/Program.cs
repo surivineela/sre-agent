@@ -210,6 +210,8 @@ builder.Services.AddControllersWithViews()
     {
         // Allow HTML in JSON responses
         options.JsonSerializerOptions.Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping;
+        // Convert enum values as strings
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
     });
 
 // Add Blazor services

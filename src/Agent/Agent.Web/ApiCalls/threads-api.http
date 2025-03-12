@@ -1,0 +1,45 @@
+﻿### Get threads
+GET https://{{ApiHostname}}/api/v1/threads
+Content-Type: application/json
+Accept: application/json
+
+### Get a thread
+GET https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111
+Content-Type: application/json
+Accept: application/json
+
+
+### Create a new thread
+POST https://{{ApiHostname}}/api/v1/threads
+Content-Type: application/json
+Accept: application/json
+
+{
+  "startMessage": {
+    "text": "Hello, this is a new thread"
+  }
+}
+
+### Get thread messages
+GET https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111/messages
+Content-Type: application/json
+Accept: application/json
+
+### Get a thread message
+GET https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111/messages/aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa
+Content-Type: application/json
+Accept: application/json
+
+### Add a message to a thread
+POST https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111/messages
+Content-Type: application/json
+Accept: application/json
+
+{
+  "text": "Hello, can you tell me which subscriptions I have access to?"
+}
+
+### Get thread actions
+GET https://{{ApiHostname}}/api/v1/threads/22222222-2222-2222-2222-222222222222/actions
+Content-Type: application/json
+Accept: application/json
