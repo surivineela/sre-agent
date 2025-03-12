@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ManagedServiceIdentities;
@@ -11,14 +11,14 @@ namespace Agent.Graph.Crawler.ARM;
 public class ManagedIdentityCrawler : IArmResourceCrawler
 {
     private readonly ILogger<ManagedIdentityCrawler> _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ArmClient _armClient;
     private readonly AzureResourceGraphClient _graphClient;
 
-    public ManagedIdentityCrawler(ILogger<ManagedIdentityCrawler> logger, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient, ArmClient armClient)
+    public ManagedIdentityCrawler(ILogger<ManagedIdentityCrawler> logger, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, ArmClient armClient)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _graphDbClient = graphDbClient;
         _armClient = armClient;
         _graphClient = graphClient;
     }
@@ -44,7 +44,7 @@ public class ManagedIdentityCrawler : IArmResourceCrawler
             identityNode.PrincipalId = identity.PrincipalId.ToString();
             identityNode.ClientId = identity.ClientId.ToString();
 
-            await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
         }
         else
         {
@@ -67,7 +67,7 @@ public class ManagedIdentityCrawler : IArmResourceCrawler
             identityNode.TenantId = identity.TenantId.ToString();
             identityNode.PrincipalId = identity.PrincipalId.ToString();
             identityNode.ClientId = identity.ClientId.ToString();
-            await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
         }
 
         var principalId = identityNode.PrincipalId;
@@ -83,12 +83,12 @@ public class ManagedIdentityCrawler : IArmResourceCrawler
             // TODO: better logic to handle scope
             ArmResourceNode targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
 
-            await _dbManager.AddOrUpdateNodeAsync(targetResourceNode.GetNodeLabel(), targetResourceNode.GetNodeId(), targetResourceNode.GetResourceType(), targetResourceNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(targetResourceNode.GetNodeLabel(), targetResourceNode.GetNodeId(), targetResourceNode.GetResourceType(), targetResourceNode.GetNodeProperties());
 
             var edge = new ArmResourceEdge(identityNode.GetNodeId(), targetResourceNode.GetNodeId(), Constants.Relationships.HasRole);
             edge.AddRbacExplicitEdgeProperties()
                 .AddOrUpdateEdgeProperty(Constants.RoleAssignmentIdKey, roleId);
-            await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
             yield return targetResourceNode;
         }

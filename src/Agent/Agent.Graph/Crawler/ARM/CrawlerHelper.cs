@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Graph.Crawler.ARM;
 

@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using k8s;
@@ -10,15 +10,15 @@ namespace Agent.Graph.Crawler.ARM;
 public class K8sDeploymentCrawler : IArmResourceCrawler
 {
     private readonly ILogger<K8sDeploymentCrawler> _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IKubernetes _k8sClient;
     private readonly ArmClient _armClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
 
-    public K8sDeploymentCrawler(ILogger<K8sDeploymentCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
+    public K8sDeploymentCrawler(ILogger<K8sDeploymentCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _graphDbClient = graphDbClient;
         _armClient = armClient;
         _sqlHelper = new SqlConnectionStringHelper(logger, _armClient);
 
@@ -62,14 +62,14 @@ public class K8sDeploymentCrawler : IArmResourceCrawler
                     resourceGroupName: dep.Metadata.NamespaceProperty,
                     resourceName: dep.Metadata.Name);
 
-                await _dbManager.AddOrUpdateNodeAsync(
+                await _graphDbClient.AddOrUpdateNodeAsync(
                     depNode.GetNodeLabel(),
                     depNode.GetNodeId(),
                     depNode.GetResourceType(),
                     depNode.GetNodeProperties());
 
                 var edge = new ArmResourceEdge(clusterNode.GetNodeId(), depNode.GetNodeId(), Constants.Relationships.Contains);
-                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
             }
             catch (Exception ex)
             {
@@ -93,7 +93,7 @@ public class K8sDeploymentCrawler : IArmResourceCrawler
                                     if (IsSqlConnectionString(env.Value))
                                     {
                                         sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(
-                                            _dbManager,
+                                            _graphDbClient,
                                             depNode,
                                             env.Value);
 
@@ -106,14 +106,14 @@ public class K8sDeploymentCrawler : IArmResourceCrawler
                                                     : "connectionString";
                                             properties["source"] = $"k8s:deployment:env:{env.Name}";
 
-                                            await _dbManager.AddOrUpdateNodeAsync(
+                                            await _graphDbClient.AddOrUpdateNodeAsync(
                                                 sqlNode.GetNodeLabel(),
                                                 sqlNode.GetNodeId(),
                                                 sqlNode.GetResourceType(),
                                                 properties);
 
                                             var edge = new ArmResourceEdge(depNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-                                            await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                                         }
                                     }
                                     else if (env.Value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
@@ -167,14 +167,14 @@ public class K8sDeploymentCrawler : IArmResourceCrawler
             properties["source"] = $"k8s:deployment:env:{envName}";
             properties["authType"] = "resourceId";
 
-            await _dbManager.AddOrUpdateNodeAsync(
+            await _graphDbClient.AddOrUpdateNodeAsync(
                 sqlNode.GetNodeLabel(),
                 sqlNode.GetNodeId(),
                 sqlNode.GetResourceType(),
                 properties);
 
             var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-            await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
             _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
             return sqlNode;

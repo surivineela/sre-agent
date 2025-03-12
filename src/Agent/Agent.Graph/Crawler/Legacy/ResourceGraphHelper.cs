@@ -1,24 +1,24 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Graph.Crawler.Legacy
 {
     public class ResourceGraphHelper
     {
-        public static async Task<InMemoryGraphManager> ConstructResourceGraphAndPersistAsync(IGraphDatabaseManager graphDatabaseManager)
+        public static async Task<InMemoryGraphManager> ConstructResourceGraphAndPersistAsync(IGraphDatabaseClient graphDbClient)
         {
             var inMemoryGraphManager = await ConstructResourceGraphInMemoryAsync();
             await PersistResourceGraphAsync(
-                graphDatabaseManager: graphDatabaseManager,
+                graphDbClient: graphDbClient,
                 resourceGraph: inMemoryGraphManager);
 
             return inMemoryGraphManager;
         }
 
-        public static async Task<InMemoryGraphManager> ConstructMockResourceGraphAndPersistAsync(IGraphDatabaseManager graphDatabaseManager)
+        public static async Task<InMemoryGraphManager> ConstructMockResourceGraphAndPersistAsync(IGraphDatabaseClient graphDbClient)
         {
             var inMemoryGraphManager = await ConstructResourceGraphInMemoryAsync();
             await PersistResourceGraphAsync(
-                graphDatabaseManager: graphDatabaseManager,
+                graphDbClient: graphDbClient,
                 resourceGraph: inMemoryGraphManager);
 
             return inMemoryGraphManager;
@@ -40,7 +40,7 @@ namespace Agent.Graph.Crawler.Legacy
         }
 
         public static async Task PersistResourceGraphAsync(
-            IGraphDatabaseManager graphDatabaseManager,
+            IGraphDatabaseClient graphDbClient,
             InMemoryGraphManager resourceGraph)
         {
             var nodes = resourceGraph.GetAllNodes();
@@ -48,7 +48,7 @@ namespace Agent.Graph.Crawler.Legacy
 
             foreach (var node in nodes)
             {
-                await graphDatabaseManager.AddOrUpdateNodeAsync(
+                await graphDbClient.AddOrUpdateNodeAsync(
                     nodeLabel: "node",
                     nodeId: node.Id,
                     resourceType: node.Type,
@@ -57,7 +57,7 @@ namespace Agent.Graph.Crawler.Legacy
 
             foreach (var edge in edges)
             {
-                await graphDatabaseManager.AddOrUpdateEdgeAsync(
+                await graphDbClient.AddOrUpdateEdgeAsync(
                     sourceNodeId: edge.SourceNodeId,
                     targetNodeId: edge.TargetNodeId,
                     relationshipType: edge.RelationshipType);

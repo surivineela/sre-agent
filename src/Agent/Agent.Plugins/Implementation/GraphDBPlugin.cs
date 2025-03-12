@@ -1,5 +1,5 @@
 using System.ComponentModel;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -8,11 +8,11 @@ namespace Agent.Plugins
 {
     public class GraphDBPlugin : IGraphDBPlugin
     {
-        public IGraphDatabaseManager GraphDatabaseManager { get; }
+        public IGraphDatabaseClient GraphDbClient { get; }
         public ILogger<GraphDBPlugin> _logger { get; }
-        public GraphDBPlugin(IGraphDatabaseManager graphDatabaseManager, ILogger<GraphDBPlugin> logger)
+        public GraphDBPlugin(IGraphDatabaseClient graphDbClient, ILogger<GraphDBPlugin> logger)
         {
-            GraphDatabaseManager = graphDatabaseManager;
+            GraphDbClient = graphDbClient;
             _logger = logger;
         }
 
@@ -23,7 +23,7 @@ namespace Agent.Plugins
         [Description("Run a generic query against the graph database. Do NOT perform any write operations.")]
         public async Task<ResultSet<dynamic>> Query(string query)
         {
-            return await GraphDatabaseManager.Query(query);
+            return await GraphDbClient.Query(query);
         }
     }
 } 

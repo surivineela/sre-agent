@@ -2,7 +2,7 @@
 using System.Collections.Concurrent;
 using System.Diagnostics;
 using Agent.Core.Configuration;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.ResourceManager;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -13,17 +13,17 @@ public class ResourceGraphCrawler
 {
     private readonly ILogger<ResourceGraphCrawler> _logger;
     private readonly ArmResourceCrawlerFactory _factory;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private readonly AzureResourceGraphClient _graphClient;
     private readonly ArmClient _armClient;
     private readonly CrawlerSettings _crawlerSettings;
     private readonly object _lockObj;
 
-    public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient, [FromKeyedServices("CrawlerArmClient")] ArmClient armClient)
+    public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, [FromKeyedServices("CrawlerArmClient")] ArmClient armClient)
     {
         _logger = logger;
         _factory = factory;
-        _dbManager = dbManager;
+        _graphDbClient = graphDbClient;
         _graphClient = graphClient;
         _armClient = armClient;
         _crawlerSettings = crawlerSettings;
@@ -78,7 +78,7 @@ public class ResourceGraphCrawler
 
                         tasks.Add(Task.Run(async () =>
                         {
-                            var crawler = _factory.CreateFromNode(node, _dbManager, _graphClient, _armClient);
+                            var crawler = _factory.CreateFromNode(node, _graphDbClient, _graphClient, _armClient);
                             await foreach (var n in crawler.Crawl(node))
                             {
                                 if (filters == null || filters.Contains(n.GetType()))
@@ -88,7 +88,7 @@ public class ResourceGraphCrawler
                             }
 
                             _logger.LogDebug($"Cleaning up stale edges from {node.ResourceId} (older than {startTS})");
-                            await _dbManager.Query($"g.V('{GetSanitizedCosmosDBId(node.ResourceId)}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
+                            await _graphDbClient.Query($"g.V('{GetSanitizedCosmosDBId(node.ResourceId)}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
                         }));
                     }
 
@@ -130,19 +130,19 @@ public class ResourceGraphCrawler
         _logger.LogInformation($"Done crawling. Start to cleanup orphan nodes under subscription {subscription} (no inE)");
 
         var query = $"g.V().not(hasLabel('subscription')).has('subscriptionId', '{subscription}').where(__.inE().count().is(0))";
-        var result = await _dbManager.Query(query, maxMessageSize: 0);
+        var result = await _graphDbClient.Query(query, maxMessageSize: 0);
         int count = result.Count;
         while (count > 0)
         {
             _logger.LogInformation($"Will drop {count} orphan nodes");
-            await _dbManager.Query($"{query}.drop()");
-            result = await _dbManager.Query(query, maxMessageSize: 0);
+            await _graphDbClient.Query($"{query}.drop()");
+            result = await _graphDbClient.Query(query, maxMessageSize: 0);
             count = result.Count;
         }
         _logger.LogInformation($"Done cleanup orphan nodes under subscription {subscription} (no inE)");
 
         _logger.LogInformation($"Start to cleanup orphan nodes in graph (no edges)");
-        await _dbManager.Query($"g.V().not(hasLabel('subscription')).where(__.bothE().count().is(0)).drop()");
+        await _graphDbClient.Query($"g.V().not(hasLabel('subscription')).where(__.bothE().count().is(0)).drop()");
         _logger.LogInformation($"Done cleanup orphan nodes in graph (no edges)");
 
         _logger.LogInformation($"Done cleaning up");

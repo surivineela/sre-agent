@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime;
 using Agent.Runtime.SubAgents;
@@ -29,7 +29,7 @@ namespace Agent.Tests.Integration
             services.AddLogging();
             services.AddSingleton(_config);
             services.AddScoped<ITestOutputHelper>(_ => _output);
-            services.AddScoped<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
+            services.AddScoped<IGraphDatabaseClient, GremlinGraphDatabaseClient>();
             services.AddScoped<GraphDBPluginDefinition>();
             services.AddScoped<IGraphDBPlugin, GraphDBPlugin>();
             services.AddScoped<GraphDBQueryAgent>();

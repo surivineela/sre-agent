@@ -1,11 +1,11 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Legacy
 {
-    public class InMemoryGraphManager : IGraphDatabaseManager
+    public class InMemoryGraphManager : IGraphDatabaseClient
     {
         private readonly ILogger<InMemoryGraphManager> _logger;
 

@@ -1,11 +1,15 @@
-﻿using System.Text.Json;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.Extensions.Logging;
 using Polly;
 
-namespace Agent.Data.DatabaseManagers.GraphDatabase
+namespace Agent.Data.DatabaseClients.GraphDbClient
 {
     // workaround for Numberic types
     // https://stackoverflow.com/questions/68092798/gremlin-net-deserialize-number-property/72316108#72316108
@@ -24,15 +28,15 @@ namespace Agent.Data.DatabaseManagers.GraphDatabase
             };
     }
 
-    public class GremlinGraphDatabaseManager : IGraphDatabaseManager
+    public class GremlinGraphDatabaseClient : IGraphDatabaseClient
     {
         private static GremlinClient? _gremlinClient;
         private static readonly object _lock = new object();
         private readonly GraphSettings _graphSettings;
-        private readonly ILogger<GremlinGraphDatabaseManager> _logger;
+        private readonly ILogger<GremlinGraphDatabaseClient> _logger;
         private readonly AsyncPolicy _retryPolicy;
 
-        public GremlinGraphDatabaseManager(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseManager> logger)
+        public GremlinGraphDatabaseClient(GraphSettings graphSettings, ILogger<GremlinGraphDatabaseClient> logger)
         {
             _graphSettings = graphSettings;
             _logger = logger;

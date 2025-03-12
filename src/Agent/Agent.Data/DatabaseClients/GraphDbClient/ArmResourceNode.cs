@@ -1,6 +1,10 @@
-﻿using System.Text.RegularExpressions;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
-namespace Agent.Data.DatabaseManagers.GraphDatabase
+using System.Text.RegularExpressions;
+
+namespace Agent.Data.DatabaseClients.GraphDbClient
 {
     public interface IArmResourceGraphNode
     {

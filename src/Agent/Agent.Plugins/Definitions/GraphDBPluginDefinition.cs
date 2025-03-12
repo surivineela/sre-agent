@@ -1,7 +1,5 @@
 using System.ComponentModel;
-using Agent.Data.DatabaseManagers.GraphDatabase;
 using Gremlin.Net.Driver;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins

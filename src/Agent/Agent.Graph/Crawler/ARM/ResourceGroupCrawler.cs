@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Threading.Tasks;
-using Agent.Data.DatabaseManagers.GraphDatabase;
-using Azure.Identity;
-using Azure.ResourceManager;
+﻿using System.Text.Json;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -14,13 +7,13 @@ namespace Agent.Graph.Crawler.ARM;
 public class ResourceGroupCrawler : IArmResourceCrawler
 {
     private readonly ILogger<ResourceGroupCrawler> _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private readonly AzureResourceGraphClient _graphClient;
 
-    public ResourceGroupCrawler(ILogger<ResourceGroupCrawler> logger, IGraphDatabaseManager dbManager, AzureResourceGraphClient graphClient)
+    public ResourceGroupCrawler(ILogger<ResourceGroupCrawler> logger, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _graphDbClient = graphDbClient;
         _graphClient = graphClient;
     }
 
@@ -29,7 +22,7 @@ public class ResourceGroupCrawler : IArmResourceCrawler
         var rgNode = (ResourceGroupNode)node;
         _logger.LogDebug($"Crawling resource group {rgNode.ResourceGroupName}");
 
-        await _dbManager.AddOrUpdateNodeAsync(
+        await _graphDbClient.AddOrUpdateNodeAsync(
             rgNode.GetNodeLabel(),
             rgNode.GetNodeId(),
             rgNode.GetResourceType(),
@@ -51,12 +44,12 @@ public class ResourceGroupCrawler : IArmResourceCrawler
                 var envNode = CreateNodeFromJson(resource);
                 if (envNode != null)
                 {
-                    await _dbManager.AddOrUpdateNodeAsync(
+                    await _graphDbClient.AddOrUpdateNodeAsync(
                         envNode.GetNodeLabel(), envNode.GetNodeId(), envNode.GetResourceType(), envNode.GetNodeProperties());
 
                     var edge = new ArmResourceEdge(rgNode.GetNodeId(), envNode.GetNodeId(), Constants.Relationships.Contains);
                     edge.AddRbacInheritedEdgeProperties();
-                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                     yield return envNode;
                 }
             }
@@ -64,12 +57,12 @@ public class ResourceGroupCrawler : IArmResourceCrawler
                 var planNode = CreateNodeFromJson(resource);
                 if (planNode != null)
                 {
-                    await _dbManager.AddOrUpdateNodeAsync(
+                    await _graphDbClient.AddOrUpdateNodeAsync(
                         planNode.GetNodeLabel(), planNode.GetNodeId(), planNode.GetResourceType(), planNode.GetNodeProperties());
 
                     var edge = new ArmResourceEdge(rgNode.GetNodeId(), planNode.GetNodeId(), Constants.Relationships.Contains);
                     edge.AddRbacInheritedEdgeProperties();
-                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                     yield return planNode;
                 }
             }
@@ -78,11 +71,11 @@ public class ResourceGroupCrawler : IArmResourceCrawler
                 var webAppNode = CreateNodeFromJson(resource);
                 if (webAppNode != null)
                 {
-                    await _dbManager.AddOrUpdateNodeAsync(webAppNode.GetNodeLabel(), webAppNode.GetNodeId(), webAppNode.GetResourceType(), webAppNode.GetNodeProperties());
+                    await _graphDbClient.AddOrUpdateNodeAsync(webAppNode.GetNodeLabel(), webAppNode.GetNodeId(), webAppNode.GetResourceType(), webAppNode.GetNodeProperties());
 
                     var edge = new ArmResourceEdge(rgNode.GetNodeId(), webAppNode.GetNodeId(), Constants.Relationships.Contains);
                     edge.AddRbacInheritedEdgeProperties();
-                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                     yield return webAppNode;
                 }
             }
@@ -91,11 +84,11 @@ public class ResourceGroupCrawler : IArmResourceCrawler
                 var aksNode = CreateNodeFromJson(resource);
                 if (aksNode != null)
                 {
-                    await _dbManager.AddOrUpdateNodeAsync(aksNode.GetNodeLabel(), aksNode.GetNodeId(), aksNode.GetResourceType(), aksNode.GetNodeProperties());
+                    await _graphDbClient.AddOrUpdateNodeAsync(aksNode.GetNodeLabel(), aksNode.GetNodeId(), aksNode.GetResourceType(), aksNode.GetNodeProperties());
 
                     var edge = new ArmResourceEdge(rgNode.GetNodeId(), aksNode.GetNodeId(), Constants.Relationships.Contains);
                     edge.AddRbacInheritedEdgeProperties();
-                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                     yield return aksNode;
                 }
             }
@@ -104,11 +97,11 @@ public class ResourceGroupCrawler : IArmResourceCrawler
                 var genericNode = CreateNodeFromJson(resource);
                 if (genericNode != null)
                 {
-                    await _dbManager.AddOrUpdateNodeAsync(genericNode.GetResourceType(), genericNode.GetNodeId(), genericNode.GetResourceType(), genericNode.GetNodeProperties());
+                    await _graphDbClient.AddOrUpdateNodeAsync(genericNode.GetResourceType(), genericNode.GetNodeId(), genericNode.GetResourceType(), genericNode.GetNodeProperties());
 
                     var edge = new ArmResourceEdge(rgNode.GetNodeId(), genericNode.GetNodeId(), Constants.Relationships.Contains);
                     edge.AddRbacInheritedEdgeProperties();
-                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
                 }
                 // do not return node because we only crawl specific resource types here
             }

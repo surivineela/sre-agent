@@ -1,11 +1,9 @@
 ﻿using System.Text.Json;
 using System.Xml;
 using Agent.Core.Configuration;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Cmd

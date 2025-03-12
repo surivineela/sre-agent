@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
@@ -19,7 +19,7 @@ public class SqlConnectionStringHelper
     }
 
     public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(
-        IGraphDatabaseManager dbManager,
+        IGraphDatabaseClient dbManager,
         ArmResourceNode workloadNode,
         string connectionString)
     {

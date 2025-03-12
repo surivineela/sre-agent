@@ -1,4 +1,4 @@
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
@@ -18,7 +18,7 @@ public class RedisConnectionStringHelper
     }
 
     public async Task<ArmResourceNode> GetRedisResourceFromConnectionStringAsync(
-        IGraphDatabaseManager dbManager,
+        IGraphDatabaseClient graphDbClient,
         ArmResourceNode workloadNode,
         string connectionString)
     {
@@ -60,7 +60,7 @@ public class RedisConnectionStringHelper
                         resourceGroupName: ExtractResourceGroupName(cache.Data.Id),
                         resourceName: cache.Data.Name);
 
-                    await dbManager.AddOrUpdateNodeAsync(
+                    await graphDbClient.AddOrUpdateNodeAsync(
                         redisNode.GetNodeLabel(),
                         redisNode.GetNodeId(),
                         redisNode.GetResourceType(),

@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using k8s;
@@ -9,14 +9,14 @@ namespace Agent.Graph.Crawler.ARM;
 public class K8sDaemonSetCrawler : IArmResourceCrawler
 {
     private readonly ILogger<K8sDaemonSetCrawler> _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ArmClient _armClient;
     private readonly IKubernetes _k8sClient;
 
-    public K8sDaemonSetCrawler(ILogger<K8sDaemonSetCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
+    public K8sDaemonSetCrawler(ILogger<K8sDaemonSetCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _graphDbClient = graphDbClient;
         _armClient = armClient;
         var config = KubernetesClientConfiguration.BuildDefaultConfig();
         _k8sClient = new Kubernetes(config);
@@ -49,10 +49,10 @@ public class K8sDaemonSetCrawler : IArmResourceCrawler
                 resourceGroupName: ds.Metadata.NamespaceProperty,
                 resourceName: ds.Metadata.Name);
 
-            await _dbManager.AddOrUpdateNodeAsync(dsNode.GetNodeLabel(), dsNode.GetNodeId(), dsNode.GetResourceType(), dsNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(dsNode.GetNodeLabel(), dsNode.GetNodeId(), dsNode.GetResourceType(), dsNode.GetNodeProperties());
 
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), dsNode.GetNodeId(), Constants.Relationships.Contains);
-            await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
             if (ds.Spec?.Template?.Spec?.Containers != null)
             {
@@ -92,10 +92,10 @@ public class K8sDaemonSetCrawler : IArmResourceCrawler
                 resourceGroupName: workloadNode.ResourceGroupName,
                 resourceName: workloadNode.ResourceName);
 
-            await _dbManager.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
 
             var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-            await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
             _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
             return sqlNode;

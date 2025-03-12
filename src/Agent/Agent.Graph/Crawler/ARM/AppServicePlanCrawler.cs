@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -6,12 +6,12 @@ namespace Agent.Graph.Crawler.ARM;
 public class AppServicePlanCrawler : IArmResourceCrawler
 {
     private readonly ILogger<AppServicePlanCrawler> _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _dbGraphDbClient;
 
-    public AppServicePlanCrawler(ILogger<AppServicePlanCrawler> logger, IGraphDatabaseManager dbManager)
+    public AppServicePlanCrawler(ILogger<AppServicePlanCrawler> logger, IGraphDatabaseClient dbGraphDbClient)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _dbGraphDbClient = dbGraphDbClient;
     }
 
     public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
@@ -19,7 +19,7 @@ public class AppServicePlanCrawler : IArmResourceCrawler
         _logger.LogDebug($"Crawling App Service Plan {node.ResourceId}");
 
         // Simply add or update the node in the graph.
-        await _dbManager.AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());
+        await _dbGraphDbClient.AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());
         Thread.Sleep(1000);
         yield break;
     }

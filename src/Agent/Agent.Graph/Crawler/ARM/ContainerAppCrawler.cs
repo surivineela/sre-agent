@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
@@ -9,13 +9,13 @@ namespace Agent.Graph.Crawler.ARM;
 public class ContainerAppCrawler : GenericArmResourceCrawler
 {
     private readonly ILogger<ContainerAppCrawler> _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
 
-    public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseManager dbManager, ArmClient armClient)
-        : base(logger, dbManager, armClient)
+    public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient)
+        : base(logger, graphDbClient, armClient)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _graphDbClient = graphDbClient;
     }
 
     public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
@@ -27,7 +27,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
 
         _logger.LogDebug($"Crawling Container App {node.ResourceId}");
 
-        await _dbManager.AddOrUpdateNodeAsync(
+        await _graphDbClient.AddOrUpdateNodeAsync(
             node.GetNodeLabel(),
             node.GetNodeId(),
             node.GetResourceType(),
@@ -117,7 +117,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         if (IsSqlConnectionString(value))
         {
             var sqlHelper = new SqlConnectionStringHelper(_logger, _armClient);
-            var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_dbManager, node, value);
+            var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_graphDbClient, node, value);
             if (sqlNode != null)
             {
                 var properties = sqlNode.GetNodeProperties();
@@ -126,7 +126,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                     : "connectionString";
                 properties["source"] = $"containerApp:{sourceType}:{name}";
 
-                await _dbManager.AddOrUpdateNodeAsync(
+                await _graphDbClient.AddOrUpdateNodeAsync(
                     sqlNode.GetNodeLabel(),
                     sqlNode.GetNodeId(),
                     sqlNode.GetResourceType(),
@@ -139,7 +139,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         else if (IsRedisConnectionString(value))
         {
             var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
-            var redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_dbManager, node, value);
+            var redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_graphDbClient, node, value);
             if (redisNode != null)
             {
                 var properties = redisNode.GetNodeProperties();
@@ -148,7 +148,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                     : "connectionString";
                 properties["source"] = $"containerApp:{sourceType}:{name}";
 
-                await _dbManager.AddOrUpdateNodeAsync(
+                await _graphDbClient.AddOrUpdateNodeAsync(
                     redisNode.GetNodeLabel(),
                     redisNode.GetNodeId(),
                     redisNode.GetResourceType(),

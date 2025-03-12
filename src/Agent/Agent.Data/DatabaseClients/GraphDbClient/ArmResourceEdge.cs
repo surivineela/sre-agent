@@ -1,4 +1,8 @@
-﻿namespace Agent.Data.DatabaseManagers.GraphDatabase
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Data.DatabaseClients.GraphDbClient
 {
     public interface IArmResourceGraphEdge
     {

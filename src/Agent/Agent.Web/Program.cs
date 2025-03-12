@@ -6,13 +6,12 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Services;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
 using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
-using Agent.Plugins.Mocks;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
 using Agent.Runtime.MetaAgent;
@@ -33,13 +32,12 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
+using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using System.Configuration;
-using Microsoft.SemanticKernel;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -80,7 +78,7 @@ if (useSessionChatService)
         .AddSingleton<MetaAgent>()
         .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
         .AddSingleton<SubscriptionPluginDefinition>()
-        .AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>()
+        .AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>()
         .AddSingleton<IGraphDBPlugin, GraphDBPlugin>()
         .AddSingleton<GraphDBPluginDefinition>()
         .AddSingleton<ITimePlugin, TimePlugin>()

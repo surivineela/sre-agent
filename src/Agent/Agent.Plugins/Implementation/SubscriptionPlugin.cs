@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
+﻿using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Legacy;
 using Azure;
 using Azure.Core;
@@ -11,11 +11,11 @@ namespace Agent.Plugins
 {
     public class SubscriptionPlugin : ISubscriptionPlugin
     {
-        private readonly IGraphDatabaseManager _graphDatabaseManager;
+        private readonly IGraphDatabaseClient _graphDbClient;
 
-        public SubscriptionPlugin(IGraphDatabaseManager graphDatabaseManager)
+        public SubscriptionPlugin(IGraphDatabaseClient graphDatabaseManager)
         {
-            _graphDatabaseManager = graphDatabaseManager;
+            _graphDbClient = graphDatabaseManager;
         }
 
         public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync()
@@ -117,12 +117,12 @@ namespace Agent.Plugins
 
         public async Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync()
         {
-            return await ResourceGraphHelper.ConstructResourceGraphAndPersistAsync(_graphDatabaseManager);
+            return await ResourceGraphHelper.ConstructResourceGraphAndPersistAsync(_graphDbClient);
         }
 
         public async Task<InMemoryGraphManager> BuildMockResourceGraphForAllSubscriptionsAsync()
         {
-            return await ResourceGraphHelper.ConstructMockResourceGraphAndPersistAsync(_graphDatabaseManager);
+            return await ResourceGraphHelper.ConstructMockResourceGraphAndPersistAsync(_graphDbClient);
         }
     }
 }

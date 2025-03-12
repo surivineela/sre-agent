@@ -1,7 +1,5 @@
-﻿using Agent.Data.DatabaseManagers.GraphDatabase;
-using Agent.Graph.Crawler.ARM;
+﻿using Agent.Graph.Crawler.ARM;
 using Microsoft.Extensions.CommandLineUtils;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Cmd

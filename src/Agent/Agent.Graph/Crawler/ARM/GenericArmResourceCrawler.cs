@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -12,12 +12,12 @@ namespace Agent.Graph.Crawler.ARM;
 
 /// <summary>
 /// This crawler does not have prior knowledge
-/// It just finds potential arm resource indentifier within the payload
+/// It just finds potential arm resource identifier within the payload
 /// </summary>
 public class GenericArmResourceCrawler : IArmResourceCrawler
 {
     private readonly ILogger _logger;
-    private readonly IGraphDatabaseManager _dbManager;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private readonly bool _crawlLinkedResource = true;
 
     protected readonly ArmClient _armClient;
@@ -27,10 +27,10 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         ".identity", // skip identity section because it is explicitly crawled
     };
 
-    public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseManager dbManager, ArmClient armClient, bool crawlLinkedResource = true)
+    public GenericArmResourceCrawler(ILogger logger, IGraphDatabaseClient dbManager, ArmClient armClient, bool crawlLinkedResource = true)
     {
         _logger = logger;
-        _dbManager = dbManager;
+        _graphDbClient = dbManager;
         _armClient = armClient;
         _crawlLinkedResource = crawlLinkedResource;
     }
@@ -83,7 +83,7 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
                 var identityResourceId = resp.Value.Id;
                 var resourceId = new ResourceIdentifier(identityResourceId);
                 var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
-                await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
 
                 yield return identityNode;
             }
@@ -95,10 +95,10 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
                     var identityResourceId = uami.Key;
                     var resourceId = new ResourceIdentifier(identityResourceId);
                     var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
-                    await _dbManager.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+                    await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
 
                     var edge = new ArmResourceEdge(node.GetNodeId(), identityNode.GetNodeId(), Constants.Relationships.HasIdentity);
-                    await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                     yield return identityNode;
                 }
@@ -111,10 +111,10 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
             foreach (var link in Tranverse(jsonObj, "."))
             {
                 _logger.LogDebug($"Find linked resource: {link.ResourceId}");
-                await _dbManager.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
 
                 var edge = new ArmResourceEdge(node.GetNodeId(), link.GetNodeId(), Constants.Relationships.Linked);
-                await _dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
                 yield return link;
             }

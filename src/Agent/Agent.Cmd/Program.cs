@@ -1,10 +1,9 @@
 ﻿using Agent.Core.Configuration;
-using Agent.Data.DatabaseManagers.GraphDatabase;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Runtime;
 using Azure.Identity;
 using Azure.ResourceManager;
-using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -25,7 +24,7 @@ namespace Agent.Cmd
             {
                 loggingBuilder.AddConsole();
             });
-            builder.Services.AddSingleton<IGraphDatabaseManager, GremlinGraphDatabaseManager>();
+            builder.Services.AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>();
             builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
             builder.Services.AddSingleton<AzureResourceGraphClient>();
             builder.Services.AddSingleton<ResourceGraphCrawler>();
