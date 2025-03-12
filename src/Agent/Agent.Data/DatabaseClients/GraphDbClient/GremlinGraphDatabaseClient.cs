@@ -54,12 +54,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
 
             _retryPolicy = Policy
-                .Handle<Gremlin.Net.Driver.Exceptions.ResponseException>(ex => ex.StatusAttributes.ContainsKey("x-ms-status-code") && ex.StatusAttributes["x-ms-status-code"].ToString() == "429")
+                .Handle<Gremlin.Net.Driver.Exceptions.ResponseException>(ex => IsRetriableException(ex))
                 .WaitAndRetryAsync(100,
                     sleepDurationProvider: (int retryAttempt, Exception ex, Context context) =>
                     {
-                        var respEx = (Gremlin.Net.Driver.Exceptions.ResponseException)ex;
-                        if (respEx == null || !respEx.StatusAttributes.ContainsKey("x-ms-retry-after-ms"))
+                        var respEx = ex as Gremlin.Net.Driver.Exceptions.ResponseException;
+                        if (respEx == null
+                          || !respEx.StatusAttributes.ContainsKey("x-ms-retry-after-ms")
+                          || respEx.StatusAttributes["x-ms-retry-after-ms"] == null)
                         {
                             return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
                         }
@@ -68,7 +70,17 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                     },
                     onRetryAsync: (ex, ts, retryCount, context) =>
                     {
-                        _logger.LogWarning($"Retry {retryCount} after {ts.TotalMilliseconds} milliseconds");
+                        var gremlinEx = ex as Gremlin.Net.Driver.Exceptions.ResponseException;
+                        if (gremlinEx != null)
+                        {
+                            _logger.LogDebug($"Retry {retryCount} after {ts.TotalMilliseconds} milliseconds. Gremlin exception: {gremlinEx.StatusAttributes["x-ms-status-code"]}");
+                        }
+                        else
+                        {
+                            _logger.LogDebug($"Retry {retryCount} after {ts.TotalMilliseconds} milliseconds");
+                        }
+
+                        _logger.LogTrace($"Exception: {ex.Message}");
                         return Task.CompletedTask;
                     });
         }
@@ -219,6 +231,28 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 return await _gremlinClient!.SubmitAsync<dynamic>(query);
             });
+        }
+
+        private bool IsRetriableException(Gremlin.Net.Driver.Exceptions.ResponseException ex)
+        {
+            if (ex.StatusAttributes is null)
+            {
+                return false;
+            }
+
+            // ToManyRequest
+            if (ex.StatusAttributes.ContainsKey("x-ms-status-code") && ex.StatusAttributes["x-ms-status-code"].ToString() == "429")
+            {
+                return true;
+            }
+
+            // PreConditionFailed
+            if (ex.StatusAttributes.ContainsKey("x-ms-status-code") && ex.StatusAttributes["x-ms-status-code"].ToString() == "412")
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

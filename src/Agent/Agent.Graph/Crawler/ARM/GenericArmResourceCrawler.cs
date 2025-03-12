@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Net;
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure;
 using Azure.Core;
@@ -52,10 +53,33 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         Response<GenericResource> resp = null;
         try
         {
-            // TODO
-            // /subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/zhenqxu-rg/providers/Microsoft.Network/virtualNetworks/zhenqxu-vnet-ncu/subnets/zhenqxu-wpenv-ncu-2
-            // Invalid resource type Microsoft.Network/virtualNetworks/subnets
             resp = await _armClient.GetGenericResource(id).GetAsync();
+        }
+        catch (RequestFailedException ex)
+        {
+            if (ex.Status == (int)HttpStatusCode.Unauthorized)
+            {
+                _logger.LogDebug($"Agent MI does not have permission on {node.ResourceId}");
+            }
+            else if (ex.Status == (int)HttpStatusCode.BadRequest)
+            {
+                if (ex.ErrorCode == "NoRegisteredProviderFound")
+                {
+                    _logger.LogDebug($"No registered provider found: {node.ResourceId}, {ex}");
+                }
+                else
+                {
+                    _logger.LogWarning($"Failed to get resource: {node.ResourceId}, {ex}");
+                }
+            }
+            yield break;
+        }
+        catch (InvalidOperationException ex)
+        {
+            // Usually this is because some properties linked some non-ARM resources
+            // Remove the logs to avoid noises
+            _logger.LogDebug($"Invalid node resource type: {node.ResourceId}, {ex}");
+            yield break;
         }
         catch (Exception ex)
         {

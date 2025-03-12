@@ -1,5 +1,4 @@
 ﻿using System.Collections;
-using System.Collections.Concurrent;
 using System.Diagnostics;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -17,7 +16,7 @@ public class ResourceGraphCrawler
     private readonly AzureResourceGraphClient _graphClient;
     private readonly ArmClient _armClient;
     private readonly CrawlerSettings _crawlerSettings;
-    private readonly object _lockObj;
+    private readonly SemaphoreSlim _semaphore;
 
     public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, [FromKeyedServices("CrawlerArmClient")] ArmClient armClient)
     {
@@ -27,7 +26,7 @@ public class ResourceGraphCrawler
         _graphClient = graphClient;
         _armClient = armClient;
         _crawlerSettings = crawlerSettings;
-        _lockObj = new();
+        _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task Crawl(string rootId, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
@@ -38,45 +37,69 @@ public class ResourceGraphCrawler
 
     public async Task Crawl(IList<ArmResourceNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
+        await _semaphore.WaitAsync(cancellationToken ?? CancellationToken.None);
         try
         {
-            lock (_lockObj)
+            HashSet<string> crawled = new();
+            Queue queue = new();
+            Queue toCrawl = Queue.Synchronized(queue);
+            IList<Task> tasks = new List<Task>();
+
+            int crawledCount = 0;
+            int crawlingCount = 0;
+            int pendingCount = 0;
+
+            var startTS = DateTime.UtcNow.Ticks;
+            var sw = new Stopwatch();
+            sw.Start();
+
+            foreach (var node in nodes)
             {
-                HashSet<string> crawled = new();
-                Queue queue = new();
-                Queue toCrawl = Queue.Synchronized(queue);
-                ConcurrentBag<Task> tasks = new ConcurrentBag<Task>();
-
-                var startTS = DateTime.UtcNow.Ticks;
-                var sw = new Stopwatch();
-                sw.Start();
-
-                foreach (var node in nodes)
+                if (filters == null || filters.Contains(node.GetType()))
                 {
-                    if (filters == null || filters.Contains(node.GetType()))
-                    {
-                        toCrawl.Enqueue(node);
-                    }
+                    toCrawl.Enqueue(node);
+                    Interlocked.Increment(ref pendingCount);
                 }
+            }
 
-                while (toCrawl.Count > 0 || tasks.Count > 0)
+            var cts = new CancellationTokenSource();
+            var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken ?? CancellationToken.None);
+            Task.Run(async () =>
+            {
+                while (!linkedCts.IsCancellationRequested)
                 {
-                    while (toCrawl.Count > 0 && tasks.Count < _crawlerSettings.MaxParallelism)
+                    _logger.LogInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+                    await Task.Delay(5 * 1000);
+                }
+                _logger.LogInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+            });
+
+            while (toCrawl.Count > 0 || tasks.Count > 0)
+            {
+                while (toCrawl.Count > 0 && tasks.Count < _crawlerSettings.MaxParallelism)
+                {
+                    var node = toCrawl.Dequeue() as ArmResourceNode;
+                    Interlocked.Decrement(ref pendingCount);
+                    Interlocked.Increment(ref crawlingCount);
+                    if (node == null)
                     {
-                        var node = toCrawl.Dequeue() as ArmResourceNode;
-                        if (node == null)
-                        {
-                            continue;
-                        }
+                        Interlocked.Decrement(ref crawlingCount);
+                        Interlocked.Increment(ref crawledCount);
+                        continue;
+                    }
 
-                        if (crawled.Contains(node.GetHashString()))
-                        {
-                            continue;
-                        }
+                    if (crawled.Contains(node.GetHashString()))
+                    {
+                        Interlocked.Decrement(ref crawlingCount);
+                        Interlocked.Increment(ref crawledCount);
+                        continue;
+                    }
 
-                        crawled.Add(node.GetHashString());
+                    crawled.Add(node.GetHashString());
 
-                        tasks.Add(Task.Run(async () =>
+                    tasks.Add(Task.Run(async () =>
+                    {
+                        try
                         {
                             var crawler = _factory.CreateFromNode(node, _graphDbClient, _graphClient, _armClient);
                             await foreach (var n in crawler.Crawl(node))
@@ -84,34 +107,41 @@ public class ResourceGraphCrawler
                                 if (filters == null || filters.Contains(n.GetType()))
                                 {
                                     toCrawl.Enqueue(n);
+                                    Interlocked.Increment(ref pendingCount);
                                 }
                             }
 
                             _logger.LogDebug($"Cleaning up stale edges from {node.ResourceId} (older than {startTS})");
                             await _graphDbClient.Query($"g.V('{GetSanitizedCosmosDBId(node.ResourceId)}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
-                        }));
-                    }
-
-                    if (tasks.Count == 0)
-                    {
-                        continue;
-                    }
-
-                    Task.WhenAny(tasks).Wait();
-                    var newTasks = new ConcurrentBag<Task>();
-                    foreach (var task in tasks)
-                    {
-                        if (!task.IsCompleted)
-                        {
-                            newTasks.Add(task);
                         }
-                    }
-                    tasks = newTasks;
+                        finally
+                        {
+                            Interlocked.Decrement(ref crawlingCount);
+                            Interlocked.Increment(ref crawledCount);
+                        }
+                    }));
                 }
 
-                sw.Stop();
-                _logger.LogInformation($"Done crawling. Time taken: {sw.ElapsedMilliseconds}ms.");
+                if (tasks.Count == 0)
+                {
+                    continue;
+                }
+
+                await Task.WhenAny(tasks);
+                var newTasks = new List<Task>();
+                foreach (var task in tasks)
+                {
+                    if (!task.IsCompleted)
+                    {
+                        newTasks.Add(task);
+                    }
+                }
+                tasks = newTasks;
             }
+
+            sw.Stop();
+            cts.Cancel();
+            _logger.LogInformation($"Done crawling. Time taken: {sw.ElapsedMilliseconds}ms. Total unique crawled resources: {crawled.Count}");
         }
         catch (Exception ex)
         {
