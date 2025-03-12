@@ -4,7 +4,6 @@ using Agent.Core.Configuration;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
-using System.Text;
 
 public class TimerService : IHostedService, IDisposable
 {
@@ -21,9 +20,8 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
+    private int _bestPracticeTimerIntervalInMinutes = 5;
 
-    private const int MaxRetries = 20;
-    private const int RetryDelayMs = 10000;
 
     public TimerService(
         ResourceGraphCrawler crawler,
@@ -39,6 +37,7 @@ public class TimerService : IHostedService, IDisposable
         _timerSettings = timerSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
+        _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -108,12 +107,21 @@ public class TimerService : IHostedService, IDisposable
                 if (!string.IsNullOrEmpty(issues))
                 {
                     string messageToPost = $"⚠️ Best Practice Issues Detected ⚠️\n\n{issues}";
-                    await PostToTeamsWithRetry(messageToPost);
+                    var succeed = await _teamsPlugin.PostToTeamsWithRetry(messageToPost);
+                    if (succeed)
+                    {
+                        _bestPracticeTimerIntervalInMinutes = 60 * 24; // Set to 1 day
+                        _logger.LogInformation("Best practice issues posted to Teams, will set the interval to 1 day");
+                    }
+                    else
+                    {
+                        _logger.LogError("Failed to post best practice issues to Teams");
+                    }
                 }
                 else
                 {
                     _logger.LogInformation("No best practice issues detected");
-                    await PostToTeamsWithRetry("All best practices are met! 🎉");
+                    await _teamsPlugin.PostToTeamsWithRetry("All best practices are met! 🎉");
                 }
 
             }
@@ -121,41 +129,10 @@ public class TimerService : IHostedService, IDisposable
             {
                 _bestPracticeTimerIsRunning = false; // Ensure flag resets even if scan fails
             }
-        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(_timerSettings.BestPracticeScanIntervalInMinutes));
+        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
     }
 
-    /// <summary>
-    /// Posts a message to Teams with retry logic
-    /// </summary>
-    private async Task PostToTeamsWithRetry(string message)
-    {
-        int retryCount = 0;
-        bool success = false;
 
-        while (!success && retryCount < MaxRetries)
-        {
-            try
-            {
-                await _teamsPlugin.PostAsync(message);
-                success = true;
-                _logger.LogInformation("Successfully posted best practice issues to Teams");
-            }
-            catch (Exception ex)
-            {
-                retryCount++;
-                if (retryCount >= MaxRetries)
-                {
-                    _logger.LogError(ex, "Failed to post best practice issues to Teams after {RetryCount} attempts", MaxRetries);
-                    break;
-                }
-
-                _logger.LogWarning(ex, "Attempt {RetryCount} to post to Teams failed. Retrying in {DelayMs}ms",
-                    retryCount, RetryDelayMs);
-
-                await Task.Delay(RetryDelayMs);
-            }
-        }
-    }
 
     public void Dispose()
     {

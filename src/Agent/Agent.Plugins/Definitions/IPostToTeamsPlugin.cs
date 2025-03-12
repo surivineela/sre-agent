@@ -9,5 +9,6 @@ namespace Agent.Plugins.Definitions
     public interface IPostToTeamsPlugin
     {
         Task<string> PostAsync(string message);
+        Task<bool> PostToTeamsWithRetry(string message);
     }
 }

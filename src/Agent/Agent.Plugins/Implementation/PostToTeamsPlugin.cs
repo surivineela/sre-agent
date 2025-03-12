@@ -20,6 +20,8 @@ namespace Agent.Plugins.Implementation
 
         private readonly string _appId;
         private readonly string _tenantId;
+        private const int MaxRetries = 20;
+        private const int RetryDelayMs = 10000;
 
         /// <summary>
         /// The default conversation reference should be captured from a known Teams channel
@@ -52,7 +54,7 @@ namespace Agent.Plugins.Implementation
             if (string.IsNullOrEmpty(serviceUrl) || string.IsNullOrEmpty(channelId))
             {
                 _logger.LogError($"Service URL or Channel Id in default conversation reference is empty. ServiceUrl: {serviceUrl}, Channel ID: {channelId}");
-                throw new Exception("Missing service URL in default conversation reference.");
+                return "Error posting message to Teams.";
             }
 
             // Build conversation parameters for proactive thread creation.
@@ -89,6 +91,42 @@ namespace Agent.Plugins.Implementation
                 _logger.LogError(ex, "Error posting message to Teams.");
                 throw;
             }
+        }
+
+        /// <summary>
+        /// Posts a message to Teams with retry logic
+        /// </summary>
+        public async Task<bool> PostToTeamsWithRetry(string message)
+        {
+            for (int attempt = 1; attempt <= MaxRetries; attempt++)
+            {
+                try
+                {
+                    var result = await PostAsync(message);
+                    if (result == "Message posted successfully.")
+                    {
+                        _logger.LogInformation("Successfully posted message to Teams");
+                        return true; // Success, exit method
+                    }
+
+                    _logger.LogWarning("Attempt {Attempt} failed with result: {Result}", attempt, result);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Attempt {Attempt} failed with exception", attempt);
+                }
+
+                // Only delay if we're going to retry again
+                if (attempt < MaxRetries)
+                {
+                    await Task.Delay(RetryDelayMs);
+                }
+                else
+                {
+                    _logger.LogError("Failed to post message to Teams after {MaxRetries} attempts", MaxRetries);
+                }
+            }
+            return false; // Failure after all attempts
         }
     }
 }
