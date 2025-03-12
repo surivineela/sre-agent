@@ -20,7 +20,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     private bool _reconnectTimerIsRunning;
     private ConcurrentHashSet<string> _connectedMCPServers = new ConcurrentHashSet<string>();
     private ConcurrentHashSet<string> _disconnectedMCPServers = new ConcurrentHashSet<string>();
-    private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_\\.\\-]", RegexOptions.Compiled);
+    private static Regex _unsafeToolNameChars = new Regex("[^a-zA-Z0-9_]", RegexOptions.Compiled);
     private ConcurrentDictionary<string, string> _mcpServers = new ConcurrentDictionary<string, string>();
 
     public MCPMetaAgentManagementService(
@@ -41,7 +41,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
 
             foreach(string url in _mcpSettings.Servers)
             {
-                string key = _unsafeToolNameChars.Replace(url, "");
+                string key = _unsafeToolNameChars.Replace(url, "_");
                 _mcpServers[key] = url;
                 _disconnectedMCPServers.Add(key);
             }
