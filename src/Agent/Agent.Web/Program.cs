@@ -25,6 +25,9 @@ using Agent.Web.Services;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Azure.ResourceManager;
+using McpDotNet.Client;
+using McpDotNet.Configuration;
+using McpDotNet.Extensions.AI;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -32,6 +35,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -168,6 +172,10 @@ if (useSessionChatService)
 
     // Kick off background processes
     builder.Services.AddHostedService<TimerService>();
+
+    // Kick off MCP Server Initializer
+    builder.Services.AddSingleton<MCPMetaAgent>();
+    builder.Services.AddHostedService<MCPMetaAgentManagementService>();
 
     builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
     builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();

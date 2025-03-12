@@ -17,7 +17,7 @@ namespace Agent.Runtime.SubAgents
 
         bool _fetchedPrelimData = false;
 
-        protected override string SystemPrompt { get; } = $@"You are an agent that will explore an unexplored graph database.
+        public override string SystemPrompt { get; protected set; } = $@"You are an agent that will explore an unexplored graph database.
 You will have to procedurally generate queries to help you answer the question, with each one building on
  the next. Never directly query more than 10 nodes, however if you are calling groupCount, you can ignore the limit.
 

@@ -59,6 +59,7 @@ namespace Agent.Runtime
                 }));
         }
     }
+
     public class MetaAgentPlugin
     {
         ILogger<MetaAgentPlugin> _logger;
@@ -66,13 +67,23 @@ namespace Agent.Runtime
         GenericAgent _genericAgent;
         LogsAndMetricsAgent _logsAndMetricsAgent;
         DiagnosticAgent _diagnosticAgent;
+        MCPMetaAgent _mcpMetaAgent;
 
         GraphDBQueryAgent _graphDBQueryAgent;
         IHttpContextAccessor _httpContextAccessor;
         private ChatHistory _currentChatHistory;
         private const string LastRespondingAgentKey = "LastRespondingAgent";
 
-        public MetaAgentPlugin(IChatClient chatClient, ILogger<MetaAgentPlugin> logger, ArchitectureAgent badArchitectureAgent, GenericAgent genericAgent, LogsAndMetricsAgent logsAndMetricsAgent, DiagnosticAgent diagnosticAgent, GraphDBQueryAgent graphDBQueryAgent, IHttpContextAccessor httpContextAccessor)
+        public MetaAgentPlugin(
+            IChatClient chatClient,
+            ArchitectureAgent badArchitectureAgent,
+            GenericAgent genericAgent,
+            LogsAndMetricsAgent logsAndMetricsAgent,
+            DiagnosticAgent diagnosticAgent,
+            GraphDBQueryAgent graphDBQueryAgent,
+            MCPMetaAgent mcpMetaAgent,
+            IHttpContextAccessor httpContextAccessor,
+            ILogger<MetaAgentPlugin> logger)
         {
             _logger = logger;
             _badArchitectureAgent = badArchitectureAgent;
@@ -80,6 +91,7 @@ namespace Agent.Runtime
             _logsAndMetricsAgent = logsAndMetricsAgent;
             _diagnosticAgent = diagnosticAgent;
             _graphDBQueryAgent = graphDBQueryAgent;
+            _mcpMetaAgent = mcpMetaAgent;
             _httpContextAccessor = httpContextAccessor;
             _currentChatHistory = new ChatHistory();
         }
@@ -102,6 +114,29 @@ namespace Agent.Runtime
             if (_httpContextAccessor?.HttpContext?.Items != null)
             {
                 _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "Architecture";
+            }
+
+            return answer;
+        }
+
+        [KernelFunction("mcp_meta_agent")]
+        [Description(
+            @"MCP stands for 'Model Context Protocol' which is is an open protocol that enables seamless
+integration between LLM applications and external data sources and tools.This agent will delegate to agents
+which have the functionality of customer MCP servers. If you ever find can't find a tool to call, first check
+with this meta agent to see if it can find the tool."
+        )]
+        public async Task<string> LaunchMcpServerAgentAsync(
+             [Description("The question to ask the agent")]
+             string question)
+        {
+            _logger.LogInformation("Invoking mcp agent");
+            string answer = await _mcpMetaAgent.Ask(question, _currentChatHistory);
+            _logger.LogInformation($"Mcp agent responded with: {answer}");
+
+            if (_httpContextAccessor?.HttpContext?.Items != null)
+            {
+                _httpContextAccessor.HttpContext.Items["LastRespondingAgent"] = "Mcp";
             }
 
             return answer;

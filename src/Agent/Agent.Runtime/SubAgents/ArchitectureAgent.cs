@@ -17,7 +17,7 @@ namespace Agent.Runtime.SubAgents
 
         protected GraphDBQueryAgent _queryAgent { get; }
 
-        protected override string SystemPrompt { get; } = $@"Use the tools at your disposal to answer questions relating to the architecture of a services.
+        public override string SystemPrompt { get; protected set; } = $@"Use the tools at your disposal to answer questions relating to the architecture of a services.
 
 If asked about bad practices, and example that you should search for is not using managed identity to talk to SQL if a webapp is associated with a Sql server.
 To do so, confirm:

@@ -9,7 +9,7 @@ namespace Agent.Runtime.SubAgents
 {
     public class BestPracticeScannerAgent : SubAgent
     {
-        protected override string SystemPrompt { get; } = $@"You are an agent that will explore an unexplored graph database.";
+        public override string SystemPrompt { get; protected set; } = $@"You are an agent that will explore an unexplored graph database.";
         private GraphDBQueryAgent _graphDBQueryAgent { get; }
         private ILogger<BestPracticeScannerAgent> _logger { get; }
 

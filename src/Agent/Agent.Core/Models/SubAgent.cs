@@ -8,7 +8,7 @@ namespace Agent.Core.Models
 {
     public abstract class SubAgent : IAgent
     {
-        protected abstract string SystemPrompt { get; }
+        public abstract string SystemPrompt { get; protected set; }
         protected IChatClient _chatClient { get; }
         public IList<Microsoft.Extensions.AI.ChatMessage> ChatHistory { get; private set; }
         public string Name { get; }

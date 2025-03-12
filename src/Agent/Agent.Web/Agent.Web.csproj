@@ -7,10 +7,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="appsettings.development.json" />
-  </ItemGroup>
-
-  <ItemGroup>
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.AspNetCore.OData" />
@@ -24,6 +20,8 @@
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Microsoft.Bot.Builder" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
+	<PackageReference Include="McpDotNet" />
+	<PackageReference Include="McpDotNet.Extensions.AI" />
   </ItemGroup>
 
   <ItemGroup>

@@ -29,7 +29,7 @@ namespace Agent.Runtime.SubAgents
 
         protected ResourceGraphCrawler _crawler { get; }
 
-        protected override string SystemPrompt { get; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
+        public override string SystemPrompt { get; protected set; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
         public GenericAgent(
             ISubscriptionPlugin subscriptionPlugin,

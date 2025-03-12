@@ -132,8 +132,6 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
     }
 
-
-
     public void Dispose()
     {
         _logger.LogInformation("Disposing Azure Resource Crawler Worker");
