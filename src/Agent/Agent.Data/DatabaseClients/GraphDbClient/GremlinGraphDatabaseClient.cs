@@ -87,17 +87,12 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         private GremlinClient CreateGremlinClient()
         {
-            var accountName = _graphSettings.AccountName;
-            var accountKey = _graphSettings.ApiKey;
-            var database = _graphSettings.Database;
-            var collection = _graphSettings.Collection;
-
             var gremlinServer = new GremlinServer(
-                hostname: $"{accountName}.gremlin.cosmos.azure.com",
+                hostname: $"{_graphSettings.AccountName}.{_graphSettings.DomainSuffix}",
                 port: 443,
                 enableSsl: true,
-                username: $"/dbs/{database}/colls/{collection}",
-                password: accountKey
+                username: $"/dbs/{_graphSettings.Database}/colls/{_graphSettings.Collection}",
+                password: _graphSettings.ApiKey
             );
 
             return new GremlinClient(

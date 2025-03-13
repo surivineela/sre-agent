@@ -1,4 +1,5 @@
-﻿using Agent.Data.Repositories;
+﻿using Agent.Core.Configuration;
+using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,10 +12,11 @@ public static class AgentDataConfiguration
 
     public static IServiceCollection AddCosmosClient(this IServiceCollection serviceCollection, IConfiguration configuration)
     {
-        var cosmosAccountEndpoint = configuration["AppSettings:Core:Azure:CosmosDB:Docs:AccountEndpoint"];
+        var cosmosAccountName = configuration["AppSettings:Core:Azure:CosmosDB:Docs:AccountName"];
         var cosmosAccountApiKey = configuration["AppSettings:Core:Azure:CosmosDB:Docs:ApiKey"];
+        var domainSuffix = configuration["AppSettings:Core:Azure:CosmosDB:Docs:DomainSuffix"];
 
-        var cosmosConnectionString = $"AccountEndpoint={cosmosAccountEndpoint};AccountKey={cosmosAccountApiKey};";
+        var cosmosConnectionString = $"AccountEndpoint=https://{cosmosAccountName}.{domainSuffix};AccountKey={cosmosAccountApiKey};";
 
         var cosmosDatabaseName = configuration["AppSettings:Core:Azure:CosmosDB:Docs:Database"];
 
