@@ -191,6 +191,7 @@ public class QuotaAgentService : IQuotaAgentService
         var messageContent = state?.ToString();
         if (state?.ApprovalResult == ApprovalState.Pending && state.SubscriptionId != null)
         {
+            state.HasBeenPended = true;
             StringBuilder referenceBuilder = new StringBuilder();
             AppendReferenceInformation(referenceBuilder, state.SubscriptionId);
             messageContent += referenceBuilder.ToString();
@@ -241,6 +242,8 @@ public class QuotaAgentService : IQuotaAgentService
 
         bool resolveIncident = false;
 
+        await _icmPlugin.AddTag(state.Incident.IncidentId, "ai agent");
+
         if (state.ApprovalResult == ApprovalState.Approved)
         {
             try
@@ -250,6 +253,9 @@ public class QuotaAgentService : IQuotaAgentService
                 resolveIncident = true;
                 _logger.LogInformation("Quota request approved and geneva action executed.");
                 logMsg = $"Quota request approved and geneva action executed. Incident resolved. <br/> {result}.";
+
+                string approveTag = state.HasBeenPended ? "manual approve" : "auto approve";
+                await _icmPlugin.AddTag(state.Incident.IncidentId, approveTag);
             }
             catch (Exception ex)
             {
@@ -262,6 +268,9 @@ public class QuotaAgentService : IQuotaAgentService
             resolveIncident = true;
             _logger.LogInformation("Quota request rejected.");
             logMsg = $"Quota request rejected. Incident resolved. <br/>- Region: {state.Region} <br/>- Quota Type: {state.QuotaType} <br/>- Approved Quota: {state.ApprovedQuotaLimit} <br/>- Reason: {state.Summary}.";
+
+            string rejectTag = state.HasBeenPended ? "manual reject" : "auto reject";
+            await _icmPlugin.AddTag(state.Incident.IncidentId, rejectTag);
         }
 
         var successfullyResolved = false;

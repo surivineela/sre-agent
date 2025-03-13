@@ -13,5 +13,6 @@ namespace FirstPartyAgent.Plugins
         public Task<bool> ResolveIncident(string incidentId, string reason);
         public Task<List<DiscussionEntry>?> GetDiscussionEntries(string incidentId, DateTimeOffset queryFrom);
         public Task<bool> AddDiscussionEntry(string incidentId, string text);
+        public Task<bool> AddTag(string incidentId, string tag);
     }
 }

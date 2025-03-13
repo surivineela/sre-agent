@@ -33,6 +33,8 @@ namespace FirstPartyAgent.Models
 
         public bool IsNewRequest { get; set; } = true;
 
+        public bool HasBeenPended { get; set; } = false;
+
         public void UpdateFrom(QuotaIncidentState state)
         {
             if (state == null)

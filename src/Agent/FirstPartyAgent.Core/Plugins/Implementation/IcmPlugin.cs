@@ -94,5 +94,12 @@ The return value is a boolean value for indicating if the operation is successfu
         {
             return await _icmAutomationClient.PostDiscussionEntryAsync(incidentId, text) == "Success";
         }
+
+        public async Task<bool> AddTag(
+            [Description("Incident ID")] string incidentId,
+            [Description("Tag to add")] string tag)
+        {
+            return await _icmAutomationClient.AddTagToIncident(incidentId, tag) == "Success";
+        }
     }
 }
