@@ -1,4 +1,4 @@
-﻿namespace Agent.Web.Models.v1;
+﻿namespace Agent.Core.Models.Api.v1;
 
 public record Message(
     Guid Id,

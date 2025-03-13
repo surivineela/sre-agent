@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Services;
+using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
@@ -28,6 +29,7 @@ using Azure.ResourceManager;
 using McpDotNet.Client;
 using McpDotNet.Configuration;
 using McpDotNet.Extensions.AI;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -201,6 +203,8 @@ if (useSessionChatService)
     {
         builder.UseDurableTaskScheduler(durableConnectionString);
     });
+
+    builder.Services.AddCosmosClient(builder.Configuration);
 }
 else
 {
@@ -250,6 +254,8 @@ app.MapFallbackToPage("/_Host");
 
 var azureSettings = builder.Configuration.GetSection("Azure").Get<AzureSettings>();
 var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
+
+await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);
 
 app.Run();
 

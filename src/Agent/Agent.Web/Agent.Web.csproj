@@ -26,6 +26,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
+    <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
   </ItemGroup>
 </Project>

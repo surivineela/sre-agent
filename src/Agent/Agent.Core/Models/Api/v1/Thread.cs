@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace Agent.Web.Models.v1
+namespace Agent.Core.Models.Api.v1
 {
     public record Thread(
         Guid Id,

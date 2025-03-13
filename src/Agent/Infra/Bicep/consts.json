@@ -3,10 +3,14 @@
     "resourceGroupNameSuffix": "-operations-agent-3p-rg",
     "location": "westus",
 
-    // Cosmos
+    // Cosmos account for graph databases
     "cosmosAccountNameSuffix": "-cosmosdb-graph",
     "cosmosDatabaseName": "resourcegraph",
     "cosmosGraphName": "configuration",
+
+    // Cosmos account for document databases
+    "cosmosDocDbAccountNameSuffix": "-cosmosdb-docs",
+    "cosmosDocDbDatabaseName": "dbagent",
 
     // OpenAI
     "openAIAccountNameSuffix": "-openai",

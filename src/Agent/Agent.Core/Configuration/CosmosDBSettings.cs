@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Core.Configuration
 {
@@ -11,5 +6,8 @@ namespace Agent.Core.Configuration
     {
         [Required]
         public GraphSettings Graph { get; set; } = new();
+
+        [Required]
+        public DocsSettings Docs { get; set; } = new();
     }
 }

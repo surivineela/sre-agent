@@ -4,7 +4,7 @@ Content-Type: application/json
 Accept: application/json
 
 ### Get a thread
-GET https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111
+GET https://{{ApiHostname}}/api/v1/threads/12d2b28c-65f5-4014-aece-233404a8a4c5
 Content-Type: application/json
 Accept: application/json
 
@@ -21,7 +21,7 @@ Accept: application/json
 }
 
 ### Get thread messages
-GET https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111/messages
+GET https://{{ApiHostname}}/api/v1/threads/12d2b28c-65f5-4014-aece-233404a8a4c5/messages
 Content-Type: application/json
 Accept: application/json
 
@@ -31,7 +31,7 @@ Content-Type: application/json
 Accept: application/json
 
 ### Add a message to a thread
-POST https://{{ApiHostname}}/api/v1/threads/11111111-1111-1111-1111-111111111111/messages
+POST https://{{ApiHostname}}/api/v1/threads/12d2b28c-65f5-4014-aece-233404a8a4c5/messages
 Content-Type: application/json
 Accept: application/json
 

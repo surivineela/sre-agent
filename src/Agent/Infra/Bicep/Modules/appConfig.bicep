@@ -41,6 +41,17 @@ module cosmosdbGraphModule 'cosmosdbGraph.bicep' = {
   ]
 }
 
+module cosmosDbDocModule 'cosmosdbDocs.bicep' = {
+  name: 'comsosdbDocsDeployment'
+  params: {
+    namePrefix: namePrefix
+  }
+  dependsOn: [
+    appConfig
+    keyVault
+  ]
+}
+
 module monitoring 'monitoring.bicep' = {
   name: 'monitoringDeployment'
   params: {
