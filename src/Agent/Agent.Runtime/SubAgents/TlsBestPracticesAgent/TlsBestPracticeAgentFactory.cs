@@ -44,12 +44,14 @@ public sealed class TlsBestPracticeAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-        TlsBestPracticesInput input)
+        TlsBestPracticesInput input,
+        string threadId = "")
     {
         return await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(
             new TlsBestPracticesAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures),
+                ToolSignatures: _toolSignatures,
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

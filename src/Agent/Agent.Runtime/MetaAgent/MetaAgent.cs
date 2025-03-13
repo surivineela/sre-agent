@@ -1,10 +1,12 @@
-﻿using Agent.Core;
+﻿using System.Text.Json;
+using Agent.Core;
 using Microsoft.Extensions.AI;
+using Agent.Data.Repositories;
 
 namespace Agent.Runtime.MetaAgent;
 
 // [Export]
-public sealed class MetaAgent
+public sealed class MetaAgent : IAgent
 {
     private const string SystemPrompt = @"# Azure SRE Agent
 
@@ -48,6 +50,7 @@ Format all responses according to Microsoft Teams markdown support:
 
 DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
+    private readonly IThreadRepository _repository;
     private readonly List<ChatMessage> _chatHistory = new();
     private readonly List<AIFunction> _aiTools = new();
     private readonly AsyncReaderWriterLock _lock = new();
@@ -56,10 +59,12 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
     public MetaAgent(
         IChatClient chatClient,
+        IThreadRepository repository,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         TlsBestPracticesPlugin tlsBestPracticesPlugin)
     {
         _chatClient = chatClient;
+        _repository = repository;
         _chatHistory.Add(new ChatMessage(ChatRole.System, SystemPrompt));
 
         _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.ListManagedIdentityMigrations));
@@ -70,12 +75,17 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.StartTlsBestPracticeAgent));
     }
 
-    public async Task<string> ProcessUserMessage(
-        string userMessage)
+    // TODO: the userMessage is not needed as we are using the repository to get the messages
+    public async Task<string> ProcessUserMessage(string userMessage, string threadId)
     {
         using var _ = await _lock.AcquireWriterAsync();
-
-        _chatHistory.Add(new ChatMessage(ChatRole.User, userMessage));
+        Guid threadGuid = Guid.Parse(threadId);
+        var threadMessages = await _repository.GetMessagesAsync(threadGuid);
+        foreach (var msg in threadMessages)
+        {
+            ChatRole role = msg.Author.Role == Core.Models.Api.v1.Role.User ? ChatRole.User : ChatRole.Assistant;
+            _chatHistory.Add(new ChatMessage(role, msg.Text));
+        }
 
         while (true)
         {
@@ -88,17 +98,32 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         ["AllowParallelToolCalls"] = true,
+                        ["ThreadId"] = threadId, // Pass threadId in additional properties
                     }
                 });
+
             // Add model response back to ChatHistory
+            // TODO: do we add the intermediate responses to the repository?
             _chatHistory.Add(response.Message);
 
             var results = new List<AIContent>();
             foreach (var fnCall in response.Message.Contents.OfType<FunctionCallContent>())
             {
                 var matchingTool = _aiTools.Single(x => x.Name == fnCall.Name);
-                // Invoke function call if model decided so
-                var invokeResult = await matchingTool.InvokeAsync(fnCall.Arguments);
+
+                // Create a new dictionary with the thread ID if needed
+                IDictionary<string, object?> arguments = fnCall.Arguments;
+                if (!string.IsNullOrEmpty(threadId))
+                {
+                    // Make a copy of the arguments and add the threadId
+                    arguments = new Dictionary<string, object?>(fnCall.Arguments);
+
+                    // Inject threadId to the arguments to avoid hallucination
+                    arguments["threadId"] = threadId;
+                }
+
+                // Invoke function call with potentially modified arguments
+                var invokeResult = await matchingTool.InvokeAsync(arguments);
                 var result = new FunctionResultContent(fnCall.CallId, invokeResult);
                 results.Add(result);
             }
@@ -106,12 +131,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             if (results.Count > 0)
             {
                 // Add function call response, and re-evaluate the ChatHistory with model
+                // TODO: do we add the intermediate tools responses to the repository?
                 _chatHistory.Add(new ChatMessage(ChatRole.Tool, results));
             }
             else
             {
                 // When model has no function call response, we assume it's a single text response
                 // We return this response to user
+                // This response will be added to repository outside of this method
                 return response.Message.Contents.OfType<TextContent>().Single().Text;
             }
         }

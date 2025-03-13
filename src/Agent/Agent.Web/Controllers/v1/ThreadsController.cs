@@ -1,9 +1,11 @@
 ﻿using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
+using Agent.Runtime.Communication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using System.Collections.Concurrent;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -12,6 +14,14 @@ namespace Agent.Web.Controllers.v1
     public class ThreadsController(IThreadRepository repository) : ControllerBase
     {
         private readonly IThreadRepository _repository = repository;
+        // In a real implementation, you would inject repositories or services here
+        private readonly UserMessageService _userMessageService;
+
+        public ThreadsController(UserMessageService userMessageService, ICommunicationService communicationService, IThreadRepository repository)
+            : this(repository)
+        {
+            _userMessageService = userMessageService;
+        }
 
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<Thread> queryOptions)
@@ -118,14 +128,35 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
+            var userId = "TestUserId";
+            if (request.UserId != null)
+            {
+                userId = request.UserId;
+            }
+
             var message = new Message(
                 Id: Guid.NewGuid(),
                 TimeStamp: DateTime.UtcNow,
-                Author: new Author(Role.User, "TestUser", "Test User"),
+                Author: new Author(Role.User, userId, request.UserName ?? "Test User"),
                 Text: request.Text
             );
 
             message = await _repository.AddMessageAsync(threadId, message);
+
+            // Forward to the user message service
+            string response = await _userMessageService.ProcessUserMessageAsync(new ThreadMessage
+            (
+                ThreadId: threadId.ToString(),
+                Message: request.Text,
+                UserId: userId,
+                Timestamp: DateTime.UtcNow
+            ));
+            message = await _repository.AddMessageAsync(threadId, new Message(
+                Id: Guid.NewGuid(),
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+                Text: request.Text
+            ));
 
             return CreatedAtAction(
                 nameof(GetMessage),
@@ -152,6 +183,25 @@ namespace Agent.Web.Controllers.v1
         {
             // In a real application, we will use LLM to generate a title
             return message.Length <= 50 ? message : message.Substring(0, 47) + "...";
+        }
+
+        private void HandleAgentMessage(AgentMessage agentMessage)
+        {
+            // Convert threadId from string to Guid
+            if (!Guid.TryParse(agentMessage.ThreadId, out var threadId))
+            {
+                return;
+            }
+
+            // Create a message from the agent response
+            var message = new Message(
+                Id: Guid.NewGuid(),
+                TimeStamp: agentMessage.Timestamp,
+                Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+                Text: agentMessage.Message
+            );
+
+            _repository.AddMessageAsync(threadId, message);
         }
     }
 }

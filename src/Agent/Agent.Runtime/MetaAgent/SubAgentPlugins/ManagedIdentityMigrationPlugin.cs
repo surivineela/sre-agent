@@ -60,10 +60,11 @@ public class ManagedIdentityMigrationPlugin
     [KernelFunction("start_managed_identity_migration_workflow")]
     [Description("Start the workflow to migrate multiple apps to use managed identity when connecting to Azure SQL.")]
     public async Task<string> StartManagedIdentityMigrationAgent(
-        [Description("The list of apps to be migrated")] ManagedIdentityMigrationInput input)
+        [Description("The list of apps to be migrated")] ManagedIdentityMigrationInput input,
+        string threadId)
     {
 
-        var instanceId = await _managedIdentityMigrationAgentFactory.StartOrchestration(input);
+        var instanceId = await _managedIdentityMigrationAgentFactory.StartOrchestration(input, threadId);
         return $"A workflow has been started to migrate managed identity, the workflow instance id is: {instanceId}";
     }
 }

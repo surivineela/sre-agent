@@ -61,10 +61,11 @@ public class TlsBestPracticesPlugin
     [KernelFunction("start_tls_best_practice_workflow")]
     [Description("Start the workflow to migrate multiple apps to adopt tls best practice.")]
     public async Task<string> StartTlsBestPracticeAgent(
-        [Description("The list of apps to be migrated")] TlsBestPracticesInput input)
+        [Description("The list of apps to be migrated")] TlsBestPracticesInput input,
+        string threadId)
     {
 
-        var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input);
+        var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, threadId);
         return $"A workflow has been started to adopt tls best practice, the workflow instance id is: {instanceId}";
     }
 }

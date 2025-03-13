@@ -24,7 +24,8 @@ If user approves your remediation plan, you go ahead apply the fix.";
         chatHistory = await RunReasoningLoopAsync(
             context,
             chatHistory,
-            agentInput.ToolSignatures);
+            agentInput.ToolSignatures,
+            agentInput.ThreadId);
 
         return "success";
     }

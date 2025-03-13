@@ -26,9 +26,10 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
 
             // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
             chatHistory = await RunReasoningLoopAsync(
-                context, 
+                context,
                 chatHistory,
-                agentInput.ToolSignatures);
+                agentInput.ToolSignatures,
+                agentInput.ThreadId);
 
             return "success";
         }

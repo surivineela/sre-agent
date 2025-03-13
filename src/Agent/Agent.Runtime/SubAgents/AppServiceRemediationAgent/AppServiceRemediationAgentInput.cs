@@ -2,4 +2,5 @@
 
 public sealed record AppServiceRemediationAgentInput(
     AppServiceRemediationInput Input,
-    IReadOnlyList<string> ToolSignatures);
+    IReadOnlyList<string> ToolSignatures,
+    string ThreadId);

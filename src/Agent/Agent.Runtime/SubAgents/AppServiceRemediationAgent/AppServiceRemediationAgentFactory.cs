@@ -42,12 +42,14 @@ public sealed class AppServiceRemediationAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-        AppServiceRemediationInput input)
+        AppServiceRemediationInput input,
+        string threadId = "")
     {
         return await _durableTaskClient.ScheduleNewAppServiceRemediationAgentInstanceAsync(
             new AppServiceRemediationAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures),
+                ToolSignatures: _toolSignatures,
+                threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 }

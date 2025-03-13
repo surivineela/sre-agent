@@ -61,12 +61,14 @@ public sealed class ManagedIdentityMigrationAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-        ManagedIdentityMigrationInput input)
+        ManagedIdentityMigrationInput input,
+        string threadId = "")
     {
         return await _durableTaskClient.ScheduleNewManagedIdentityMigrationAgentInstanceAsync(
             new ManagedIdentityMigrationAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures),
+                ToolSignatures: _toolSignatures,
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{nameof(ManagedIdentityMigrationAgent)}-{Guid.NewGuid()}"));
     }
 

@@ -21,6 +21,7 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
+using Agent.Runtime.Communication;
 using Agent.Seb.Services;
 using Agent.Web.Services;
 using Azure.Identity;
@@ -81,7 +82,7 @@ if (useSessionChatService)
 
     // Register plugins and their dependencies
     builder.Services
-        .AddSingleton<MetaAgent>()
+        .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
         .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
         .AddSingleton<SubscriptionPluginDefinition>()
         .AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>()
@@ -120,8 +121,15 @@ if (useSessionChatService)
         .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
         .AddSingleton<IAppIdentityUpdatePlugin, AppIdentityUpdatePlugin>()
         .AddSingleton<ITimePlugin, TimePlugin>()
-           .AddSingleton<MetaAgentPlugin>()
+        .AddSingleton<MetaAgentPlugin>()
         .AddSingleton<ToolsRepository>()
+        .AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>()
+        .AddSingleton<ICommunicationService, CommunicationService>()
+        .AddSingleton<UserMessageService>()
+
+        // Register the communication activities
+        .AddSingleton<SendMessageActivity>()
+        .AddSingleton<NotifyCompletionActivity>()
         .AddSingleton<Octokit.IGitHubClient>(provider =>
         {
             var client = new Octokit.GitHubClient(new Octokit.ProductHeaderValue("AzureSreAgent"));

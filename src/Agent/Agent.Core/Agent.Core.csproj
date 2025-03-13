@@ -37,5 +37,8 @@
 		<PackageReference Include="System.Runtime.Caching" />
 		<PackageReference Include="Microsoft.Bot.Builder" />
 		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
+		<PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" />
+		<PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" />
+		<PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />
 	</ItemGroup>
 </Project>

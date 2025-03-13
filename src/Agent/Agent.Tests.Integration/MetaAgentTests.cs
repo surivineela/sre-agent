@@ -95,7 +95,7 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<ToolsRepository>();
                 services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
                 services.AddSingleton<TlsBestPracticeAgentFactory>();
-                services.AddSingleton<MetaAgent>();
+                services.AddSingleton<Runtime.MetaAgent.IAgent, MetaAgent>();
                 services.AddSingleton<ManagedIdentityMigrationPlugin>();
                 services.AddSingleton<TlsBestPracticesPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
@@ -128,12 +128,17 @@ public class MetaAgentTests : IAsyncLifetime
     [Fact]
     public async Task StartTlsBestPracticeAgent()
     {
+
+        // generate threadId for this background task
+        var threadId = Guid.NewGuid().ToString();
+
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
 
         var resp = await metaAgent.ProcessUserMessage(
-            userMessage: $"Help me to apply tls best practice. Here are my apps: {JsonSerializer.Serialize(_testApps)}, I want to upgrade TLS version to 1.2");
+            userMessage: $"Help me to apply tls best practice. Here are my apps: {JsonSerializer.Serialize(_testApps)}, I want to upgrade TLS version to 1.2",
+            threadId: threadId);
 
         var tlsOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
         {

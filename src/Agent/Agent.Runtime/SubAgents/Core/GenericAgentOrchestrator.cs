@@ -1,9 +1,7 @@
 ﻿using Agent.Plugins.Definitions;
-using Agent.Plugins;
-using Agent.Runtime;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using Agent.Runtime.SubAgents.Core;
+using Agent.Plugins;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -13,7 +11,8 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
     protected async Task<List<ChatMessage>> RunReasoningLoopAsync(
         TaskOrchestrationContext context,
         List<ChatMessage> chatHistory,
-        IReadOnlyList<string> toolSignatures)
+        IReadOnlyList<string> toolSignatures,
+        string threadId)
     {
         int stepCount = 0;
         bool done = false;
@@ -28,7 +27,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         {
             stepCount++;
 
-            // If there’s an active wait task, then wait for it or for a new chat message
+            // If there's an active wait task, then wait for it or for a new chat message
             if (waitTask is not null)
             {
                 var tasksToWaitFor = new List<Task>();
@@ -106,16 +105,34 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             }
             else if (functionCall.Name == nameof(ControlFlowPluginDefinition.NotifyUser))
             {
+                // Fix: Extract message from the arguments dictionary
+                string message = string.Empty;
+                if (functionCall.Arguments.TryGetValue("message", out var messageObj) && messageObj != null)
+                {
+                    message = messageObj.ToString() ?? string.Empty;
+                }
+
+                // Call the communication activity
+                await context.CallSendMessageActivityAsync(new SendMessageInput(
+                    ThreadId: threadId,
+                    Message: message
+                ));
+
                 var resultContent = new FunctionResultContent(functionCall.CallId, "User notified.");
-                // call some service where it can push user
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
             }
             else if (functionCall.Name == nameof(ApprovalPluginDefinition.StartApprovalFlow))
             {
-                var operationName = functionCall.Arguments["operationName"].ToString();
+                var operationName = functionCall.Arguments["operationName"]?.ToString() ?? "operation";
                 var approvalInput = new ApprovalInput(context.InstanceId, operationName);
                 var approvalInstanceId = context.NewGuid().ToString();
                 context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
+
+                // Notify user about approval
+                await context.CallSendMessageActivityAsync(new SendMessageInput(
+                    ThreadId: threadId,
+                    Message: $"Approval required for: {operationName}"
+                ));
 
                 // Start the approval suborchestration
                 waitTask = context.CallSubOrchestratorAsync(
@@ -144,6 +161,14 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 }
             }
         }
+
+        // Notify completion when done - use explicit call to activity
+        await context.CallNotifyCompletionActivityAsync(new NotifyCompletionInput(
+            ThreadId: threadId,
+            InstanceId: context.InstanceId,
+            Status: "Completed",
+            Summary: "Task completed successfully"
+        ));
 
         return chatHistory;
     }

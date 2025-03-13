@@ -10,6 +10,8 @@ namespace Agent.Runtime.SubAgents.ManagedIdentityMigration
     {
         public override async Task<string> RunAsync(TaskOrchestrationContext context, ManagedIdentityMigrationAgentInput agentInput)
         {
+            string threadId = agentInput.ThreadId;
+
             // Initial planning phase: generate plan
             List<ChatMessage> chatHistory = await context.CallManagedIdentityPlanActivityAsync(agentInput.Input);
 
@@ -24,9 +26,10 @@ namespace Agent.Runtime.SubAgents.ManagedIdentityMigration
 
             // Run the generic reasoning loop to get actions and process function calls until the plan is complete
             chatHistory = await RunReasoningLoopAsync(
-                context, 
+                context,
                 chatHistory,
-                agentInput.ToolSignatures);
+                agentInput.ToolSignatures,
+                threadId);
 
             return "success";
         }
