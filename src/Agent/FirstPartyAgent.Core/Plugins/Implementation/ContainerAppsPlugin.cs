@@ -239,7 +239,7 @@ namespace FirstPartyAgent.Plugins
 
             public const string QuotaTypeNotSupported = @"Quota type {0} is not supported. The valid quota types are SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus. Ask the user to provide the correct quota type.";
 
-            public const string NorthEuropeNotSupported = "We have run out of SubscriptionNCA100Gpus in northeurope. Ask the user if the customer can switch to westus3, or use SubscriptionConsumptionNCA100Gpus or SubscriptionConsumptionT4Gpus instead.";
+            public const string NorthEuropeNotSupported = "There is no SubscriptionNCA100Gpus quota available in NorthEurope. Please ask the user if the customer can use SubscriptionConsumptionNCA100Gpus/SubscriptionConsumptionT4Gpus in WestUS3/SwedenCentral/AustraliaEast or SubscriptionNCA100Gpus in WestUS3.";
 
             public const string AutoApproved = @"Auto approved {0} quota for {1} offer type with limit less than or equal to {2}.";
 
