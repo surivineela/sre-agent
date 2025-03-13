@@ -98,7 +98,7 @@ resource cosmosCollectionSetting 'Microsoft.AppConfiguration/configurationStores
 // Secret Settings
 var cosmosApiKey = cosmosdbAccount.listKeys().primaryMasterKey
 resource cosmosApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
-  name: 'cosmos-api-key'
+  name: 'graph-cosmos-api-key'
   parent: kv
   properties: {
     value: cosmosApiKey

@@ -37,10 +37,10 @@ resource database 'Microsoft.DocumentDB/databaseAccounts/sqlDatabases@2024-02-15
 
 // Settings
 resource cosmosAccountNameSetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
-  name: 'AppSettings:Core:Azure:CosmosDB:Docs:AccountEndpoint'
+  name: 'AppSettings:Core:Azure:CosmosDB:Docs:AccountName'
   parent: appConfig
   properties: {
-    value: cosmosdbAccount.properties.documentEndpoint
+    value: cosmosdbAccount.name
   }
 }
 
@@ -55,7 +55,7 @@ resource cosmosDatabaseSetting 'Microsoft.AppConfiguration/configurationStores/k
 // Secret Settings
 var cosmosApiKey = cosmosdbAccount.listKeys().primaryMasterKey
 resource cosmosApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
-  name: 'cosmos-api-key'
+  name: 'docs-cosmos-api-key'
   parent: kv
   properties: {
     value: cosmosApiKey
