@@ -10,18 +10,21 @@ public static class AgentDataConfiguration
 {
     public const string ContainerName = "documents";
 
-    public static IServiceCollection AddCosmosClient(this IServiceCollection serviceCollection, IConfiguration configuration)
+    public static IServiceCollection AddCosmosClient(this IServiceCollection serviceCollection)
     {
-        var cosmosAccountName = configuration["AppSettings:Core:Azure:CosmosDB:Docs:AccountName"];
-        var cosmosAccountApiKey = configuration["AppSettings:Core:Azure:CosmosDB:Docs:ApiKey"];
-        var domainSuffix = configuration["AppSettings:Core:Azure:CosmosDB:Docs:DomainSuffix"];
-
-        var cosmosConnectionString = $"AccountEndpoint=https://{cosmosAccountName}.{domainSuffix};AccountKey={cosmosAccountApiKey};";
-
-        var cosmosDatabaseName = configuration["AppSettings:Core:Azure:CosmosDB:Docs:Database"];
-
         serviceCollection.AddSingleton(serviceProvider =>
         {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+
+            var cosmosAccountName = cosmosDbSettings.Docs.AccountName;
+            var cosmosAccountApiKey = cosmosDbSettings.Docs.ApiKey;
+            var domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
+
+            var cosmosConnectionString = $"AccountEndpoint=https://{cosmosAccountName}.{domainSuffix};AccountKey={cosmosAccountApiKey};";
+
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+
             return new CosmosClient(cosmosConnectionString, new CosmosClientOptions
             {
                 SerializerOptions = new CosmosSerializationOptions
@@ -34,6 +37,9 @@ public static class AgentDataConfiguration
         // Register the repository
         serviceCollection.AddSingleton<IThreadRepository>(serviceProvider =>
         {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, ContainerName);
         });
@@ -46,8 +52,9 @@ public static class AgentDataConfiguration
         using var scope = serviceProvider.CreateScope();
 
         var cosmosClient = scope.ServiceProvider.GetRequiredService<CosmosClient>();
+        var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
 
-        var cosmosDatabaseName = configuration["AppSettings:Core:Azure:CosmosDB:Docs:Database"];
+        var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
         // Ensure database exists
         DatabaseResponse database = await cosmosClient.CreateDatabaseIfNotExistsAsync(cosmosDatabaseName);
 

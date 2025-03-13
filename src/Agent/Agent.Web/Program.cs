@@ -204,7 +204,7 @@ if (useSessionChatService)
         builder.UseDurableTaskScheduler(durableConnectionString);
     });
 
-    builder.Services.AddCosmosClient(builder.Configuration);
+    builder.Services.AddCosmosClient();
 }
 else
 {
