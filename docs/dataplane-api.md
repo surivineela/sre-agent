@@ -1,6 +1,6 @@
 # Data plane APIs
 
-## threads APIs
+## Threads APIs
 
 A thread is roughly equivalent to a post in a Team's channel or a conversation thread in ChatGPT UI. The main difference with ChatGPT UI is that the Agent can start a thread.
 
@@ -14,33 +14,42 @@ Response:
 
 ```yaml
 value:
-  - id: guid
+  - id: id
     title: 'Welcome'
     startMessage:
-        id: guid
-        timeStamp: '2025-03-01'
-        role: SREAgent
+        id: id
+        timestamp: '2025-03-01'
+        author:
+            role: SREAgent
+            userId: 'agent-123'
+            displayName: 'SRE Agent'
         text: "Hello, I am an SRE agent, blah blah blah"
     createdTimestamp: '2025-03-01' 
-    modifiedTimestamp: '2024-03-11'
-  - id: guid
-    title: 'Updating TSL settings'
+    modifiedTimestamp: '2025-03-11'
+  - id: id
+    title: 'Updating TLS settings'
     startMessage:
-        id: guid
-        timeStamp: '2025-03-01'
-        role: SREAgent
+        id: id
+        timestamp: '2025-03-01'
+        author:
+            role: SREAgent
+            userId: 'agent-456'
+            displayName: 'SRE Agent'
         text: "I have detected the following apps have TLS settings set to an older version. Do you want me to fix that?"
     createdTimestamp: '2025-03-01' 
-    modifiedTimestamp: '2024-03-11'
-  - id: guid
+    modifiedTimestamp: '2025-03-11'
+  - id: id
     title: 'Current status update'
     startMessage:
-        id: guid
-        timeStamp: '2025-03-11'
-        role: User
+        id: id
+        timestamp: '2025-03-11'
+        author:
+            role: User
+            userId: 'user-789'
+            displayName: 'Paul'
         text: "What is going on with my apps right now?"
     createdTimestamp: '2025-03-01' 
-    modifiedTimestamp: '2024-03-11'
+    modifiedTimestamp: '2025-03-11'
 ```
 
 ### Create a thread
@@ -51,26 +60,29 @@ Request:
 
 ```yaml
 startMessage:
-    text: "Hello, can you tell me which subscriptions I have an access to?"
+    text: "Hello, can you tell me which subscriptions I have access to?"
 ```
 
 Response:
 
 ```yaml
-id: guid
+id: id
 title: 'Current status update'
 startMessage: 
-    id: guid
-    timeStamp: '2025-03-12'
-    role: User
-    text: "Hello, can you tell me which subscriptions I have an access to?"
+    id: id
+    timestamp: '2025-03-12'
+    author:
+        role: User
+        userId: 'user-789'
+        displayName: 'Paul'
+    text: "Hello, can you tell me which subscriptions I have access to?"
 createdTimestamp: '2025-03-12' 
-modifiedTimestamp: '2024-03-12'
+modifiedTimestamp: '2025-03-12'
 ```
 
 ## Messages
 
-Messages represent the conversation history between agent and user. All messages posted by user will have the role property set to `User`. Posting a message with role `SREAgent` will result in an error.
+Messages represent the conversation history between the agent and user. All messages posted by a user will have an `author` object with role `User`. Posting a message with role `SREAgent` will result in an error.
 
 ### Send message to an existing thread
 
@@ -85,9 +97,12 @@ text: "What apps do I have in this subscription?"
 Response:
 
 ```yaml
-id: guid
-timeStamp: '2025-03-12'
-role: User
+id: id
+timestamp: '2025-03-12'
+author:
+    role: User
+    userId: 'user-789'
+    displayName: 'Paul'
 text: "What apps do I have in this subscription?"
 ```
 
@@ -99,17 +114,26 @@ The API is pageable with ODATA filter. It is possible to get a specific message 
 
 ```yaml
 value:
-  - id: guid
-    timeStamp: '2025-03-12'
-    role: User
-    text: "Hello, can you tell me which subscriptions I have an access to?"
-  - id: guid
-    timeStamp: '2025-03-12'
-    role: SREAgent
+  - id: id
+    timestamp: '2025-03-12'
+    author:
+        role: User
+        userId: 'user-789'
+        displayName: 'Paul'
+    text: "Hello, can you tell me which subscriptions I have access to?"
+  - id: id
+    timestamp: '2025-03-12'
+    author:
+        role: SREAgent
+        userId: 'agent-123'
+        displayName: 'SRE Agent'
     text: "You have access to the following subscriptions ..."
-  - id: guid
-    timeStamp: '2025-03-12'
-    role: User
+  - id: id
+    timestamp: '2025-03-12'
+    author:
+        role: User
+        userId: 'user-789'
+        displayName: 'Paul'
     text: "What apps do I have in this subscription 'My Subscription'?"
 ```
 
@@ -123,12 +147,11 @@ Response:
 
 ```yaml
 value:
-  - id: guid
-    title: "Applied TLS configuration change to an app service named myapservice1"
-    timeStamp: '2025-03-10'
+  - id: id
+    title: "Applied TLS configuration change to an app service named myappservice1"
+    timestamp: '2025-03-10'
     status: Completed
-  - id: guid
-    title: "Applied TLS configuration change to an app service named myapservice2"
-    timeStamp: '2025-03-11'
+  - id: id
+    title: "Applied TLS configuration change to an app service named myappservice2"
+    timestamp: '2025-03-11'
     status: Completed
-```
