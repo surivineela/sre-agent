@@ -1,0 +1,37 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_FvTo5P6KiRT8DIm97fdcrzCj",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "The approval flow has timed out again. Please let me know if you'd like to restart it or if there are any concerns delaying approval!"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BB6ECdo0bpJ11qCnTFUYOtg73xwEu",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-03-14T20:47:28+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 2848,
+    "outputTokenCount": 38,
+    "totalTokenCount": 2886,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 1664,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ded0d14823"
+  }
+}

@@ -20,7 +20,7 @@ public class TlsPlanActivity : TaskActivity<TlsBestPracticesInput, List<Microsof
         var existingAppsDetails = string.Join(Environment.NewLine,
             input.AppsInViolation.Select(x => $"{x.ResourceId} has a current minimum TLS version of {x.MinimumTlsVersion}"));
 
-        var path = Path.Combine("SubAgents", "TlsBestPracticesAgent", "TlsBestPracticesPlan.txt");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "TlsBestPracticesAgent", "TlsBestPracticesPlan.txt");
         var systemPrompt = File.ReadAllText(path).Replace("{{desiredVersion}}", input.DesiredVersion);
         var userMessage = $"Here are the apps that need updating: {existingAppsDetails}";
 
