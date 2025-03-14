@@ -41,7 +41,20 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> PostAsync(string message)
         {
+            // Check if ConversationReferences dictionary is empty
+            if (TeamsBot.ConversationReferences == null || !TeamsBot.ConversationReferences.Any())
+            {
+                _logger.LogError("No conversation references available. The bot hasn't received any messages yet.");
+                return "Error: No Teams channels available to post message. The bot needs to receive at least one message first.";
+            }
+
             var defaultConversation = TeamsBot.ConversationReferences.Values.FirstOrDefault();
+            if (defaultConversation == null)
+            {
+                _logger.LogError("Failed to get a valid conversation reference from available references.");
+                return "Error: Failed to find a valid Teams channel to post message.";
+            }
+
             // Extract the service URL from the stored conversation reference.
             var serviceUrl = defaultConversation.ServiceUrl;
 
