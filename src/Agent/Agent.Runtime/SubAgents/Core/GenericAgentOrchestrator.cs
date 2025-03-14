@@ -113,8 +113,10 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 }
 
                 // Call the communication activity
-                await context.CallSendMessageActivityAsync(new SendMessageInput(
+                await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
                     ThreadId: threadId,
+                    // Figure out how to get the agent ID
+                    AgentId: "agent-default",
                     Message: message
                 ));
 
@@ -129,8 +131,9 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
 
                 // Notify user about approval
-                await context.CallSendMessageActivityAsync(new SendMessageInput(
+                await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
                     ThreadId: threadId,
+                    AgentId: "agent-default",
                     Message: $"Approval required for: {operationName}"
                 ));
 
@@ -165,6 +168,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         // Notify completion when done - use explicit call to activity
         await context.CallNotifyCompletionActivityAsync(new NotifyCompletionInput(
             ThreadId: threadId,
+            AgentId: "agent-default",
             InstanceId: context.InstanceId,
             Status: "Completed",
             Summary: "Task completed successfully"

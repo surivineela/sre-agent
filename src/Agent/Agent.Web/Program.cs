@@ -124,11 +124,11 @@ if (useSessionChatService)
         .AddSingleton<MetaAgentPlugin>()
         .AddSingleton<ToolsRepository>()
         .AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>()
-        .AddSingleton<ICommunicationService, CommunicationService>()
-        .AddSingleton<UserMessageService>()
+        .AddSingleton<ISubAgentInboundCommunicationService, CommunicationService>()
+        .AddSingleton<ISubAgentOutboundCommunicationService, CommunicationService>()
 
         // Register the communication activities
-        .AddSingleton<SendMessageActivity>()
+        .AddSingleton<UpdateThreadWithAgentMessageActivity>()
         .AddSingleton<NotifyCompletionActivity>()
         .AddSingleton<Octokit.IGitHubClient>(provider =>
         {

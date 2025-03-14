@@ -9,12 +9,12 @@ namespace Agent.Runtime.SubAgents.Core;
 public class SendSummaryAndStartActivity : TaskActivity<GetNextActionInput, List<ChatMessage>>
 {
     private readonly IChatClient _chatClient;
-    private readonly ICommunicationService _communicationService;
+    private readonly ISubAgentOutboundCommunicationService _communicationService;
     private readonly ILogger<SendSummaryAndStartActivity> _logger;
 
     public SendSummaryAndStartActivity(
         IChatClient chatClient,
-        ICommunicationService communicationService,
+        ISubAgentOutboundCommunicationService communicationService,
         ILogger<SendSummaryAndStartActivity> logger)
     {
         _chatClient = chatClient;

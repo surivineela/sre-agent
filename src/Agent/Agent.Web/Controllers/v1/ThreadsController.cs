@@ -12,11 +12,11 @@ namespace Agent.Web.Controllers.v1
     [ApiController]
     [Route("api/v1/[controller]")]
     public class ThreadsController(
-        UserMessageService userMessageService, 
+        ISubAgentInboundCommunicationService subAgentInboundCommunicationService, 
         IThreadRepository repository) : ControllerBase
     {
         private readonly IThreadRepository _repository = repository;
-        private readonly UserMessageService _userMessageService = userMessageService;
+        private readonly ISubAgentInboundCommunicationService _subAgentInboundCommunicationService = subAgentInboundCommunicationService;
 
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<Thread> queryOptions)
@@ -132,8 +132,8 @@ namespace Agent.Web.Controllers.v1
 
             message = await _repository.AddMessageAsync(threadId, message);
 
-            // Forward to the user message service
-            string response = await _userMessageService.ProcessUserMessageAsync(new ThreadMessage
+            // Forward to sub-agent
+            string response = await _subAgentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: threadId.ToString(),
                 Message: request.Text,

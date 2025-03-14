@@ -1,31 +1,38 @@
 using Microsoft.DurableTask;
 using Agent.Runtime.Communication;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents.Core;
 
-public record SendMessageInput(
+public record UpdateThreadWithAgentMessageInput(
     string ThreadId,
+    string AgentId,
     string Message);
 
 [DurableTask]
-public class SendMessageActivity : TaskActivity<SendMessageInput, string>
+public class UpdateThreadWithAgentMessageActivity : TaskActivity<UpdateThreadWithAgentMessageInput, string>
 {
-    private readonly ICommunicationService _communicationService;
+    private readonly ISubAgentOutboundCommunicationService _subAgentOutboundCommunicationService;
 
-    public SendMessageActivity(ICommunicationService communicationService)
+    public UpdateThreadWithAgentMessageActivity(ISubAgentOutboundCommunicationService subAgentOutboundCommunicationService)
     {
-        _communicationService = communicationService;
+        _subAgentOutboundCommunicationService = subAgentOutboundCommunicationService;
     }
 
-    public override async Task<string> RunAsync(TaskActivityContext context, SendMessageInput input)
+    public override async Task<string> RunAsync(TaskActivityContext context, UpdateThreadWithAgentMessageInput input)
     {
-        await _communicationService.SendMessageAsync(input.ThreadId, input.Message);
+        await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+            input.ThreadId,
+            input.AgentId,
+            new ChatMessage(ChatRole.Assistant, input.Message));
+
         return "Message sent";
     }
 }
 
 public record NotifyCompletionInput(
     string ThreadId,
+    string AgentId,
     string InstanceId,
     string Status,
     string? Summary = null);
@@ -33,9 +40,9 @@ public record NotifyCompletionInput(
 [DurableTask]
 public class NotifyCompletionActivity : TaskActivity<NotifyCompletionInput, string>
 {
-    private readonly ICommunicationService _communicationService;
+    private readonly ISubAgentOutboundCommunicationService _communicationService;
 
-    public NotifyCompletionActivity(ICommunicationService communicationService)
+    public NotifyCompletionActivity(ISubAgentOutboundCommunicationService communicationService)
     {
         _communicationService = communicationService;
     }
@@ -43,7 +50,7 @@ public class NotifyCompletionActivity : TaskActivity<NotifyCompletionInput, stri
     public override async Task<string> RunAsync(TaskActivityContext context, NotifyCompletionInput input)
     {
         await _communicationService.NotifyCompletionAsync(
-            input.ThreadId, input.InstanceId, input.Status, input.Summary);
+            input.ThreadId, input.AgentId, input.Status, input.Summary);
         return "Completion notification sent";
     }
 }
