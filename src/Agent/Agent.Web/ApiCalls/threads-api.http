@@ -16,7 +16,9 @@ Accept: application/json
 
 {
   "startMessage": {
-    "text": "Hello, this is a new thread"
+    "text": "Hello, this is a new thread",
+    "userId": "ruslany",
+    "displayName": "Ruslan Y"
   }
 }
 

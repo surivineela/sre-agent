@@ -11,17 +11,12 @@ namespace Agent.Web.Controllers.v1
 {
     [ApiController]
     [Route("api/v1/[controller]")]
-    public class ThreadsController(IThreadRepository repository) : ControllerBase
+    public class ThreadsController(
+        UserMessageService userMessageService, 
+        IThreadRepository repository) : ControllerBase
     {
         private readonly IThreadRepository _repository = repository;
-        // In a real implementation, you would inject repositories or services here
-        private readonly UserMessageService _userMessageService;
-
-        public ThreadsController(UserMessageService userMessageService, ICommunicationService communicationService, IThreadRepository repository)
-            : this(repository)
-        {
-            _userMessageService = userMessageService;
-        }
+        private readonly UserMessageService _userMessageService = userMessageService;
 
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<Thread> queryOptions)
@@ -68,7 +63,7 @@ namespace Agent.Web.Controllers.v1
                 StartMessage: new Message(
                     Id: Guid.NewGuid(),
                     TimeStamp: DateTime.UtcNow,
-                    Author: new Author(Role.User, "TestUser", "Test User"),
+                    Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
                     Text: request.StartMessage.Text
                 ),
                 CreatedTimestamp: DateTime.UtcNow,
@@ -126,18 +121,12 @@ namespace Agent.Web.Controllers.v1
             var thread = await _repository.GetThreadAsync(threadId);
 
             if (thread == null)
-                return NotFound();
-
-            var userId = "TestUserId";
-            if (request.UserId != null)
-            {
-                userId = request.UserId;
-            }
+                return NotFound();           
 
             var message = new Message(
                 Id: Guid.NewGuid(),
                 TimeStamp: DateTime.UtcNow,
-                Author: new Author(Role.User, userId, request.UserName ?? "Test User"),
+                Author: new Author(Role.User, request.UserId, request.DisplayName),
                 Text: request.Text
             );
 
@@ -148,7 +137,7 @@ namespace Agent.Web.Controllers.v1
             (
                 ThreadId: threadId.ToString(),
                 Message: request.Text,
-                UserId: userId,
+                UserId: request.UserId,
                 Timestamp: DateTime.UtcNow
             ));
             message = await _repository.AddMessageAsync(threadId, new Message(
