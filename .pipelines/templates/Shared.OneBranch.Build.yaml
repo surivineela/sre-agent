@@ -94,6 +94,7 @@ extends:
           # Constants (because there is no better way to do it in YAML)
           #
           BuildSolution: .\src\Agent\Agent.sln
+          BuildSolutionOutputPath: $(Build.SourcesDirectory)\sln_output
           BuildConfiguration: Release
           BuildNugetConfigPath: .\src\nuget.config
 
@@ -159,6 +160,7 @@ extends:
             targetType: 'inline'
             script: |
               New-Item $(ob_outputDirectory) -ItemType Directory -Force
+              New-Item $(BuildSolutionOutputPath) -ItemType Directory -Force
         
         #
         # Just start the build process
@@ -192,7 +194,7 @@ extends:
           inputs:
             command: build
             projects: '$(BuildSolution)'
-            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            arguments: '--no-restore --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
 
         - task: DotNetCoreCLI@2
@@ -200,10 +202,10 @@ extends:
           inputs:
             command: 'publish'
             publishWebProjects: false
-            projects: |
-              **/*/Agent.Web.csproj
-            arguments: '--no-restore --output $(ob_outputDirectory)/Agent.Web -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
+            projects: '.\src\Agent\Agent.Web\Agent.Web.csproj'
+            arguments: '--no-restore --output $(ob_outputDirectory) -c $(BuildConfiguration) -p:Version=$(Build.BuildNumber)'
             includeNuGetOrg: false
+            zipAfterPublish: false
 
             
 
@@ -246,7 +248,7 @@ extends:
           inputs:
             command: 'test'
             projects: '$(BuildSolution)'
-            arguments: '--no-build --output $(ob_outputDirectory) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests' 
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName\!~Agent.Tests' 
             publishTestResults: false
 
         #
