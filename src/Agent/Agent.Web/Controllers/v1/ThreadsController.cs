@@ -12,11 +12,11 @@ namespace Agent.Web.Controllers.v1
     [ApiController]
     [Route("api/v1/[controller]")]
     public class ThreadsController(
-        ISubAgentInboundCommunicationService subAgentInboundCommunicationService,
+        IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository) : ControllerBase
     {
         private readonly IThreadRepository _repository = repository;
-        private readonly ISubAgentInboundCommunicationService _subAgentInboundCommunicationService = subAgentInboundCommunicationService;
+        private readonly IAgentInboundCommunicationService _agentInboundCommunicationService = agentInboundCommunicationService;
 
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<Thread> queryOptions)
@@ -72,6 +72,15 @@ namespace Agent.Web.Controllers.v1
 
             thread = await _repository.CreateThreadAsync(thread);
 
+            var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+            (
+                ThreadId: thread.Id,
+                Message: request.StartMessage.Text,
+                UserId: request.StartMessage.UserId,
+                DisplayName: request.StartMessage.DisplayName,
+                Timestamp: DateTime.UtcNow
+            ));
+
             return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
         }
 
@@ -123,34 +132,24 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
-            var message = new Message(
-                Id: Guid.NewGuid(),
-                TimeStamp: DateTime.UtcNow,
-                Author: new Author(Role.User, request.UserId, request.DisplayName),
-                Text: request.Text
-            );
 
-            message = await _repository.AddMessageAsync(threadId, message);
-
-            // Forward to sub-agent
-            string response = await _subAgentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+            var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
-                ThreadId: threadId.ToString(),
+                ThreadId: threadId,
                 Message: request.Text,
                 UserId: request.UserId,
+                DisplayName: request.DisplayName,
                 Timestamp: DateTime.UtcNow
-            ));
-            message = await _repository.AddMessageAsync(threadId, new Message(
-                Id: Guid.NewGuid(),
-                TimeStamp: DateTime.UtcNow,
-                Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-                Text: request.Text
             ));
 
             return CreatedAtAction(
                 nameof(GetMessage),
-                new { threadId, messageId = message.Id },
-                message
+                new { threadId, messageId = response.MessageId },
+                new Message(
+                    Id: response.MessageId,
+                    TimeStamp: DateTime.UtcNow,
+                    Author: new Author(Role.User, request.UserId, request.DisplayName),
+                    Text: request.Text)
             );
         }
 
@@ -185,25 +184,6 @@ namespace Agent.Web.Controllers.v1
         {
             // In a real application, we will use LLM to generate a title
             return message.Length <= 50 ? message : message.Substring(0, 47) + "...";
-        }
-
-        private void HandleAgentMessage(AgentMessage agentMessage)
-        {
-            // Convert threadId from string to Guid
-            if (!Guid.TryParse(agentMessage.ThreadId, out var threadId))
-            {
-                return;
-            }
-
-            // Create a message from the agent response
-            var message = new Message(
-                Id: Guid.NewGuid(),
-                TimeStamp: agentMessage.Timestamp,
-                Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-                Text: agentMessage.Message
-            );
-
-            _repository.AddMessageAsync(threadId, message);
         }
     }
 }

@@ -2,6 +2,8 @@
 using Agent.Core;
 using Microsoft.Extensions.AI;
 using Agent.Data.Repositories;
+using Microsoft.Extensions.Logging;
+using Agent.Runtime.Communication;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -51,22 +53,35 @@ Format all responses according to Microsoft Teams markdown support:
 DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
     private readonly IThreadRepository _repository;
+    private readonly IThreadOrchestrationManager _mappingManager;
+    private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
     private readonly List<ChatMessage> _chatHistory = new();
     private readonly List<AIFunction> _aiTools = new();
     private readonly AsyncReaderWriterLock _lock = new();
 
     private readonly IChatClient _chatClient;
+    private readonly ILogger<MetaAgent> _log;
 
     public MetaAgent(
         IChatClient chatClient,
+        ILogger<MetaAgent> logger,
         IThreadRepository repository,
+        IThreadOrchestrationManager mappingManager,
+        IAgentOutboundCommunicationService outboundCommunicationService,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         TlsBestPracticesPlugin tlsBestPracticesPlugin)
     {
         _chatClient = chatClient;
         _repository = repository;
+        _mappingManager = mappingManager;
+        _outboundCommunicationService = outboundCommunicationService;
+        _log = logger;
         _chatHistory.Add(new ChatMessage(ChatRole.System, SystemPrompt));
 
+        // Please make sure you categorize the output of these tools correctly below into:
+        // - NewOrchestration
+        // - ReusingOrchestration
+        // - General questions to be answered by the meta-agent or list all orchestrations
         _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.ListManagedIdentityMigrations));
         _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.SummarizeManagedIdentityMigration));
         _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent));
@@ -78,6 +93,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     // TODO: the userMessage is not needed as we are using the repository to get the messages
     public async Task<string> ProcessUserMessage(string userMessage, string threadId)
     {
+        _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", threadId, userMessage);
         using var _ = await _lock.AcquireWriterAsync();
         Guid threadGuid = Guid.Parse(threadId);
         var threadMessages = await _repository.GetMessagesAsync(threadGuid);
@@ -102,6 +118,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                     }
                 });
 
+            _log.LogInformation("[ChatThreadId {threadId}] Getting intermediate response: {Message}", threadId, response.Message);
+
             // Add model response back to ChatHistory
             // TODO: do we add the intermediate responses to the repository?
             _chatHistory.Add(response.Message);
@@ -110,6 +128,30 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             foreach (var fnCall in response.Message.Contents.OfType<FunctionCallContent>())
             {
                 var matchingTool = _aiTools.Single(x => x.Name == fnCall.Name);
+
+                var category = "unknown";
+                switch (fnCall.Name)
+                {
+                    // Category 1: NewOrchestration - return value is always orchestration id
+                    case nameof(ManagedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent):
+                    case nameof(TlsBestPracticesPlugin.StartTlsBestPracticeAgent):
+                        category = "NewOrchestration";
+                        break;
+
+                    // Category 2: ReusingOrchestration - requires instanceId (orchestration id) as parameter
+                    case nameof(ManagedIdentityMigrationPlugin.SummarizeManagedIdentityMigration):
+                    case nameof(TlsBestPracticesPlugin.SummarizeTlsBestPractice):
+                        category = "ReusingOrchestration";
+                        break;
+
+                    // Category 3: General questions - handled by meta-agent or list all orchestrations
+                    case nameof(ManagedIdentityMigrationPlugin.ListManagedIdentityMigrations):
+                    case nameof(TlsBestPracticesPlugin.ListTlsBestPracticeWorkflows):
+                    default:
+                        category = "General";
+                        break;
+                }
+
 
                 // Create a new dictionary with the thread ID if needed
                 IDictionary<string, object?> arguments = fnCall.Arguments;
@@ -120,12 +162,44 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
                     // Inject threadId to the arguments to avoid hallucination
                     arguments["threadId"] = threadId;
+
+                    if (category == "ReusingOrchestration")
+                    {
+                        if (arguments["instanceId"] == null)
+                        {
+                            _log.LogError("[ChatThreadId {threadId}] ReusingOrchestration function call: {Name} requires instanceId, but it's not provided. Inject the default one to avoid exception.", threadId, fnCall.Name);
+                            var mapping = await _mappingManager.GetMappingsByThreadIdAsync(threadId);
+                            var instanceId = mapping.FirstOrDefault()?.OrchestrationInstanceId;
+                            if (instanceId == null)
+                            {
+                                _log.LogError("[ChatThreadId {threadId}] ReusingOrchestration function call: {Name} requires instanceId, but orchestration found in the thread.", threadId, fnCall.Name);
+                                continue;
+                            }
+                            else
+                            {
+                                arguments["instanceId"] = instanceId;
+                            }
+                        }
+                    }
                 }
 
                 // Invoke function call with potentially modified arguments
                 var invokeResult = await matchingTool.InvokeAsync(arguments);
                 var result = new FunctionResultContent(fnCall.CallId, invokeResult);
+
+                if (category == "NewOrchestration")
+                {
+                    // Extract instanceId from the result
+                    var resString = invokeResult?.ToString() ?? string.Empty;
+                    var instanceId = resString.Split(' ').Last();
+                    _log.LogInformation("[ChatThreadId {threadId}] NewOrchestration function call: {Name}, Orchestration ID: {result}", threadId, fnCall.Name, instanceId);
+                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, instanceId, new ChatMessage(ChatRole.Assistant, $"This request has been delegated to a specialized sub-agent with orchestration instance ID: {instanceId}."));
+                }
+
                 results.Add(result);
+
+                _log.LogInformation("[ChatThreadId {threadId}] Getting function call [{Name}] in [category {category}] response: {Message}", threadId, fnCall.Name, category, response.Message);
+
             }
 
             if (results.Count > 0)
@@ -138,7 +212,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             {
                 // When model has no function call response, we assume it's a single text response
                 // We return this response to user
-                // This response will be added to repository outside of this method
+                _log.LogInformation("[ChatThreadId {threadId}] Resolved with final response: {Message}", threadId, response.Message.Contents.OfType<TextContent>().Single().Text);
                 return response.Message.Contents.OfType<TextContent>().Single().Text;
             }
         }

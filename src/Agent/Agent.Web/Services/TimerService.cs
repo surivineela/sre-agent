@@ -111,6 +111,7 @@ public class TimerService : IHostedService, IDisposable
                     if (succeed)
                     {
                         _bestPracticeTimerIntervalInMinutes = 60 * 24; // Set to 1 day
+                        _bestPracticeTimer?.Change(TimeSpan.Zero, TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
                         _logger.LogInformation("Best practice issues posted to Teams, will set the interval to 1 day");
                     }
                     else

@@ -3,7 +3,7 @@ POST https://{{ApiHostname}}/api/v1/threads
 Content-Type: application/json
 {
   "startMessage": {
-    "text": "Hello, this is a new thread",
+    "text": "Hello, please start TlsBestPractice Agent to apply the TLS best practices for all my apps, resource ID: /xxxs1, location: West US, TLS1.2",
     "userId": "ruslany",
     "displayName": "Ruslan Y"
   }
@@ -42,7 +42,17 @@ Content-Type: application/json
 {
   "UserId": "ruslany",
   "DisplayName": "Ruslan Y",
-  "text": "Hello, can you tell me which subscriptions I have access to?"
+  "text": "I confirm all message are accurate, please proceed with the TLS best practices for my app xx"
+}
+HTTP 201
+
+### Add a message to a thread
+POST https://{{ApiHostname}}/api/v1/threads/{{threadId}}/messages
+Content-Type: application/json
+{
+  "UserId": "ruslany",
+  "DisplayName": "Ruslan Y",
+  "text": "Please report the status of the TLS best practices workflow result"
 }
 HTTP 201
 

@@ -1,7 +1,14 @@
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Data.Repositories;
+using Agent.Runtime.Communication;
 using Agent.Web.Services;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.OData.Edm;
+using System;
+using System.Threading.Tasks;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Web.Controllers
 {
@@ -9,13 +16,20 @@ namespace Agent.Web.Controllers
     [Route("[controller]")]
     public class ChatController : ControllerBase
     {
-        private readonly IChatService _chatService;
         private readonly ILogger<ChatController> _logger;
+        private readonly IThreadRepository _threadRepository;
+        private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
+        private string _currentThread;
 
-        public ChatController(IChatService chatService, ILogger<ChatController> logger)
+        public ChatController(
+            IChatService chatService,
+            ILogger<ChatController> logger,
+            IThreadRepository threadRepository,
+            IAgentInboundCommunicationService agentInboundCommunicationService)
         {
-            _chatService = chatService;
             _logger = logger;
+            _threadRepository = threadRepository;
+            _agentInboundCommunicationService = agentInboundCommunicationService;
         }
 
         [HttpGet("GetHistory")]
@@ -41,12 +55,32 @@ namespace Agent.Web.Controllers
                     _logger.LogInformation($"Getting history for thread: {chatId} (no agent type specified)");
                 }
 
-                // Pass the agent type explicitly to the chat service
-                var historyStorage = HttpContext.RequestServices.GetRequiredService<IChatHistoryStorage>();
-                var history = await historyStorage.GetChatHistoryAsync(chatId, agentType);
+                // Try to parse the chatId as a GUID for the new API
+                if (Guid.TryParse(chatId, out Guid threadId))
+                {
+                    // Use the new API
+                    var messages = await _threadRepository.GetMessagesAsync(threadId, null, null, null);
 
-                _logger.LogInformation($"Found {history.Count} messages for agent type: {agentType ?? "Meta"}");
-                return Ok(history);
+                    // Convert messages to the format expected by the current API
+                    var history = messages.Select(m => new ChatMessage
+                    {
+                        Message = m.Text,
+                        IsUser = m.Author.Role == Role.User,
+                        Timestamp = m.TimeStamp
+                    }).ToList();
+
+                    _logger.LogInformation($"Found {history.Count} messages for thread ID: {threadId}");
+                    return Ok(history);
+                }
+                else
+                {
+                    // Fall back to the old implementation
+                    var historyStorage = HttpContext.RequestServices.GetRequiredService<IChatHistoryStorage>();
+                    var history = await historyStorage.GetChatHistoryAsync(chatId, agentType);
+
+                    _logger.LogInformation($"Found {history.Count} messages for agent type: {agentType ?? "Meta"}");
+                    return Ok(history);
+                }
             }
             catch (Exception ex)
             {
@@ -64,8 +98,7 @@ namespace Agent.Web.Controllers
                 {
                     return BadRequest("ChatID is required");
                 }
-
-                await _chatService.SetThreadAsync(request.ChatId);
+                _currentThread = request.ChatId;
                 return Ok();
             }
             catch (Exception ex)
@@ -80,12 +113,8 @@ namespace Agent.Web.Controllers
         {
             try
             {
-                if (request == null || string.IsNullOrEmpty(request.Path))
-                {
-                    return BadRequest("Path is required");
-                }
-
-                await _chatService.SwitchAgent(request.Path, request.ChatId ?? "");
+                // TODO: Implement the new API for switching orchestration for debugging
+                // For now, just return OK
                 return Ok();
             }
             catch (Exception ex)
@@ -100,8 +129,18 @@ namespace Agent.Web.Controllers
         {
             try
             {
-                var threads = await _chatService.GetThreadsAsync();
-                return Ok(threads);
+                // Use the new repository to get threads
+                var threads = await _threadRepository.GetThreadsAsync(null, null, null);
+
+                // Convert threads to the format expected by the current API
+                var threadResponses = threads.Select(t => new ThreadInfo
+                {
+                    Id = t.Id.ToString(),
+                    Title = t.Title,
+                    CreatedTime = t.CreatedTimestamp
+                }).ToList();
+
+                return Ok(threadResponses);
             }
             catch (Exception ex)
             {
@@ -116,13 +155,38 @@ namespace Agent.Web.Controllers
             if (request == null)
                 return BadRequest("Request body was null.");
 
-            // Attempt to create a new thread using the given path and chatId
-            var chatId = await _chatService.StartThreadAsync(request.Path, request.ChatId);
-            if (string.IsNullOrEmpty(chatId))
-                return BadRequest("Thread creation failed or returned an empty chatId.");
+            try
+            {
+                // Create a new thread using the new API
+                var startMessage = new CreateMessageRequest(
+                    Text: "",
+                    UserId: "web-client-user",
+                    DisplayName: "Web Client User"
+                );
+                var threadId = Guid.NewGuid();
+                var thread = new Thread(
+                    Id: threadId,
+                    Title: threadId.ToString(),
+                    StartMessage: new Message(
+                        Id: Guid.NewGuid(),
+                        TimeStamp: DateTime.UtcNow,
+                        Author: new Author(Role.User, startMessage.UserId, startMessage.DisplayName),
+                        Text: startMessage.Text
+                    ),
+                    CreatedTimestamp: DateTime.UtcNow,
+                    ModifiedTimestamp: DateTime.UtcNow
+                );
 
-            // Return a well-formed JSON response
-            return Ok(new CreateThreadResponse { ChatId = chatId });
+                thread = await _threadRepository.CreateThreadAsync(thread);
+
+                // Return the thread ID as chatId for compatibility
+                return Ok(new CreateThreadResponse { ChatId = thread.Id.ToString() });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error creating thread: {ex.Message}");
+                return StatusCode(500, $"Error creating thread: {ex.Message}");
+            }
         }
 
         [HttpPost("ProcessMessage")]
@@ -135,14 +199,56 @@ namespace Agent.Web.Controllers
                     return BadRequest("Message is required");
                 }
 
-                var response = await _chatService.ProcessMessageAsync(request.Message, request.ChatId);
-                return Ok(response);
+                // Try to parse the chatId as a GUID for the new API
+                if (Guid.TryParse(request.ChatId, out Guid threadId))
+                {
+                    // Process message using the new API
+                    var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
+                        ThreadId: threadId,
+                        Message: request.Message,
+                        UserId: "user",
+                        DisplayName: "User",
+                        Timestamp: DateTime.UtcNow
+                    ));
+
+                    // Get the message that was just created
+                    var message = await _threadRepository.GetMessageAsync(threadId, response.MessageId);
+
+                    // Create response in the expected format
+                    var chatResponse = new ChatResponse
+                    {
+                        MessageId = response.MessageId.ToString(),
+                        Content = message?.Text ?? "No response",
+                        ThreadId = threadId.ToString()
+                    };
+
+                    return Ok(chatResponse);
+                }
+                else
+                {
+                    return BadRequest("Invalid chatId");
+                }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error processing message: {ex.Message}");
                 return StatusCode(500, $"Error processing message: {ex.Message}");
             }
+        }
+
+        // Define models needed for the response
+        public class ThreadInfo
+        {
+            public string Id { get; set; } = "";
+            public string Title { get; set; } = "";
+            public DateTime CreatedTime { get; set; }
+        }
+
+        public class ChatResponse
+        {
+            public string MessageId { get; set; } = "";
+            public string Content { get; set; } = "";
+            public string ThreadId { get; set; } = "";
         }
 
         public class SetThreadRequest

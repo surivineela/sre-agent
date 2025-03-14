@@ -2,10 +2,10 @@ namespace Agent.Runtime.Communication;
 
 public interface IThreadOrchestrationManager
 {
-    Task<ThreadOrchestrationMapping?> GetMappingByThreadIdAsync(string threadId);
+    Task<IEnumerable<ThreadOrchestrationMapping>> GetMappingsByThreadIdAsync(string threadId);
     Task<ThreadOrchestrationMapping?> GetMappingByInstanceIdAsync(string instanceId);
     Task AddMappingAsync(ThreadOrchestrationMapping mapping);
-    Task UpdateMappingAsync(ThreadOrchestrationMapping mapping);
     Task RemoveMappingAsync(string threadId);
+    Task RemoveMappingAsync(string threadId, string orchestrationInstanceId);
     Task<IEnumerable<ThreadOrchestrationMapping>> GetAllMappingsAsync();
 }

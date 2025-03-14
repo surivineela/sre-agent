@@ -124,8 +124,8 @@ if (useSessionChatService)
         .AddSingleton<MetaAgentPlugin>()
         .AddSingleton<ToolsRepository>()
         .AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>()
-        .AddSingleton<ISubAgentInboundCommunicationService, CommunicationService>()
-        .AddSingleton<ISubAgentOutboundCommunicationService, CommunicationService>()
+        .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
+        .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()
