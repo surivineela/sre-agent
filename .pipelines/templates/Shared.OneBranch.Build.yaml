@@ -277,7 +277,7 @@ extends:
             inputs:
               command: 'sign'
               signing_profile: 'internal_azure_service'
-              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1'
+              files_to_sign: '**/*.exe;**/*.dll;**/*.ps1;**/*.js;**/*.css;**/*.html'
               search_root: '$(ob_outputDirectory)'
 
     - ${{ if parameters.isOfficialBuild }}:
