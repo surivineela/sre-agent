@@ -20,7 +20,7 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
-    private int _bestPracticeTimerIntervalInMinutes = 5;
+    private int _bestPracticeTimerIntervalInMinutes = 10;
 
 
     public TimerService(

@@ -12,7 +12,7 @@ namespace Agent.Web.Controllers.v1
     [ApiController]
     [Route("api/v1/[controller]")]
     public class ThreadsController(
-        ISubAgentInboundCommunicationService subAgentInboundCommunicationService, 
+        ISubAgentInboundCommunicationService subAgentInboundCommunicationService,
         IThreadRepository repository) : ControllerBase
     {
         private readonly IThreadRepository _repository = repository;
@@ -121,7 +121,7 @@ namespace Agent.Web.Controllers.v1
             var thread = await _repository.GetThreadAsync(threadId);
 
             if (thread == null)
-                return NotFound();           
+                return NotFound();
 
             var message = new Message(
                 Id: Guid.NewGuid(),
@@ -166,6 +166,19 @@ namespace Agent.Web.Controllers.v1
             var actions = await _repository.GetActionsAsync(threadId, skip, top);
 
             return Ok(new PagedResponse<Action>(actions));
+        }
+
+        [HttpDelete("{threadId}")]
+        public async Task<IActionResult> DeleteThread(Guid threadId)
+        {
+            var thread = await _repository.GetThreadAsync(threadId);
+
+            if (thread == null)
+                return NotFound();
+
+            await _repository.DeleteThreadAsync(threadId);
+
+            return NoContent();
         }
 
         private static string GenerateTitle(string message)

@@ -20,7 +20,7 @@ namespace Agent.Plugins.Implementation
 
         private readonly string _appId;
         private readonly string _tenantId;
-        private const int MaxRetries = 20;
+        private const int MaxRetries = 3;
         private const int RetryDelayMs = 10000;
 
         /// <summary>
