@@ -9,7 +9,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Tests.Integration.Mocks
 {
-    public class MockCommunicationService : ISubAgentOutboundCommunicationService
+    public class MockCommunicationService : IAgentOutboundCommunicationService
     {
         private readonly ILogger _logger;
         public MockCommunicationService(ILogger logger)

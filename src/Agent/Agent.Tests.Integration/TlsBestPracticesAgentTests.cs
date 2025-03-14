@@ -115,7 +115,7 @@ namespace Agent.Tests.Integration
                     services.AddSingleton<ToolsRepository>();
                     services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
                     services.AddSingleton<TlsBestPracticeAgentFactory>();
-                    services.AddSingleton<ISubAgentOutboundCommunicationService>(_mockCommunicationService);
+                    services.AddSingleton<IAgentOutboundCommunicationService>(_mockCommunicationService);
 
                     services.AddDurableTaskWorker(builder =>
                     {
