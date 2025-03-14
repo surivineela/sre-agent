@@ -2,6 +2,7 @@
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
+using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
@@ -9,6 +10,7 @@ using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Integration.Fixtures;
 using Agent.Tests.Integration.Helpers;
+using Agent.Tests.Integration.Mocks;
 using Azure.AI.OpenAI;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
@@ -41,6 +43,7 @@ namespace Agent.Tests.Integration
         private MockTimePlugin _mockTimePlugin;
         private MockMIConfigurationCheckPlugin _mockMIConfigurationCheckPlugin;
         private MockAppIdentityUpdatePlugin _mockAppIdentityUpdatePlugin;
+        private MockCommunicationService _mockCommunicationService;
 
         private List<TlsStatus> _testApps = new List<TlsStatus>
         {
@@ -100,6 +103,7 @@ namespace Agent.Tests.Integration
                     _mockTimePlugin = new MockTimePlugin(_timeProvider);
                     _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
                     _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
+                    _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
 
                     services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
                     services.AddSingleton<IArmPlugin>(_mockArmPlugin);
@@ -111,6 +115,7 @@ namespace Agent.Tests.Integration
                     services.AddSingleton<ToolsRepository>();
                     services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
                     services.AddSingleton<TlsBestPracticeAgentFactory>();
+                    services.AddSingleton<ISubAgentOutboundCommunicationService>(_mockCommunicationService);
 
                     services.AddDurableTaskWorker(builder =>
                     {
