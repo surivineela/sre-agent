@@ -122,7 +122,7 @@ namespace Agent.Runtime
         [KernelFunction("mcp_meta_agent")]
         [Description(
             @"MCP stands for 'Model Context Protocol' which is is an open protocol that enables seamless
-integration between LLM applications and external data sources and tools.This agent will delegate to agents
+integration between LLM applications and external data sources and tools. This agent will delegate to agents
 which have the functionality of customer MCP servers. If you ever find can't find a tool to call, first check
 with this meta agent to see if it can find the tool."
         )]

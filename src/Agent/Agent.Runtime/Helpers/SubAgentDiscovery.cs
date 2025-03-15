@@ -1,10 +1,16 @@
 using Agent.Core.Models;
+using Agent.Runtime.SubAgents;
 using System.Reflection;
 
 namespace Agent.Core.Helpers
 {
     public static class SubAgentDiscovery
     {
+        private static HashSet<string> _internalAgents =
+        [
+            nameof(MCPAgent),
+            nameof(MCPMetaAgent)
+        ];
         public static IEnumerable<Type> DiscoverSubAgentTypes()
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -24,7 +30,8 @@ namespace Agent.Core.Helpers
                 })
                 .Where(t => !t.IsAbstract &&
                            t.IsClass &&
-                           typeof(SubAgent).IsAssignableFrom(t))
+                           typeof(SubAgent).IsAssignableFrom(t) &&
+                           !_internalAgents.Contains(t.Name))
                 .Distinct();
         }
 

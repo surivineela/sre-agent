@@ -1,12 +1,14 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Agent.Core.Helpers
 {
-    public class ConcurrentHashSet<T> : IDisposable
+    public class ConcurrentHashSet<T> : IDisposable, IEnumerable<T>, IEnumerable
     {
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private readonly HashSet<T> _hashSet = new HashSet<T>();
@@ -80,6 +82,23 @@ namespace Agent.Core.Helpers
             }
         }
         #endregion
+
+        // Add IEnumerable<T> implementation
+        public IEnumerator<T> GetEnumerator()
+        {
+            _lock.EnterReadLock();
+            try
+            {
+                var snapshot = _hashSet.ToList(); // create a copy for safe enumeration
+                return snapshot.GetEnumerator();
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
+        }   
+        
+        IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
         #region Dispose
         public void Dispose()

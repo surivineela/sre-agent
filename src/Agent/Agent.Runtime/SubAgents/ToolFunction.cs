@@ -23,6 +23,12 @@ public sealed class ToolFunction200 : IToolFunction
     {
         _execFunction = AIFunctionFactory.Create(executeFunction);
     }
+
+    public ToolFunction200(
+        AIFunction func)
+    {
+        _execFunction = func;
+    }
 }
 
 public sealed class ToolFunction202 : IToolFunction

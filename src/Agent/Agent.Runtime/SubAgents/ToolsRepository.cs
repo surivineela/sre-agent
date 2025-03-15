@@ -8,13 +8,19 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
+using Agent.Runtime.Interfaces;
+using Agent.Runtime.Models;
+using Agent.Core.Helpers;
+using System.Collections.Concurrent;
+using Agent.Runtime.SubAgents.Core;
 
 namespace Agent.Runtime.SubAgents;
 
 // [Export]
-public sealed class ToolsRepository
+public sealed class ToolsRepository : IMcpConnectable
 {
     private readonly Dictionary<string, IToolFunction> _aiFunctions = new();
+    private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
 
     public ToolsRepository(
         IMetricsPlugin metricsPlugin,
@@ -134,5 +140,44 @@ public sealed class ToolsRepository
         }
 
         throw new ArgumentOutOfRangeException(nameof(selector));
+    }
+
+    private string GetAIFunctionSignature(
+        McpConnection connection,
+        AITool tool)
+    {
+        return $"{connection} {tool}";
+    }
+
+    /// <inheritdoc />
+    public void TryAddServer(McpConnection connection)
+    {
+        List<string> toolSignatures = [];
+
+        foreach (AIFunction tool in connection.Tools)
+        {
+            string sig = GetAIFunctionSignature(connection, tool);
+            toolSignatures.Add(sig);
+            _aiFunctions.TryAdd(sig, new ToolFunction200(tool));
+        }
+
+        _connectionToToolSignatures.TryAdd(connection, toolSignatures.AsReadOnly());
+    }
+
+    /// <inheritdoc />
+    public void TryRemoveServer(McpConnection connection)
+    {
+        if (_connectionToToolSignatures.TryRemove(connection, out IReadOnlyList<string>? toolSignatures))
+        {
+            foreach (string sig in toolSignatures)
+            {
+                _aiFunctions.Remove(sig);
+            }
+        }
+    }
+
+    public IReadOnlyList<string> GetAllTools(IReadOnlyList<string> localTools)
+    {
+        return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
     }
 }

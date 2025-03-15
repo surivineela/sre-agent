@@ -2,11 +2,13 @@ using System.Collections.Concurrent;
 using System.Runtime.CompilerServices;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Core.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Agent.Core.Models;
+
+using CoreModels = Agent.Core.Models;
 
 namespace Agent.Runtime.Services
 {
@@ -47,7 +49,10 @@ namespace Agent.Runtime.Services
                         For these specific sub-agents, you need to invoke registered functions to use them, these functions have one input for question and the output is the answer from subagent to this question. For example:
                         - logs_and_metrics_agent: it is the sub-agent which contains skill to fetch and analysis logs and metrics.
                         - diagnose_agent: it is the sub-agent which contains skill to diagnose app service apps.
-                        - generic_agent: it is the most powerful sub-agent for general questions including get approval, get current time, scale/restart appservice, collect memory dump for app service, etc. Always try to ask questions to generic_agent if other agents can't give you the good answer.
+                        - mcp_meta_agent: This agent can delegate to subagents which call tools on customer tool servers. If you are ever asked to do something and you don't know how, check to see if there is a tool that can do it for you. Check here
+                            before you attempt to call generic_agent
+                        - generic_agent: It is the most powerful sub-agent for general questions including get approval, get current time, scale/restart appservice, collect memory dump for app service, etc.
+                            Always try to ask questions to generic_agent if other agents can't give you the good answer, but only after first checking with mcp_meta_agent
                         You can even ask these sub-agents about what they can do.
                         Try to ask questions to appropriate sub-agent to gather as more information as possible if you don't have access, permissions or just feel answer is not perfect to user's questions.",
                         kernel,
@@ -283,7 +288,7 @@ namespace Agent.Runtime.Services
             }
         }
 
-        public async Task<Core.Models.ChatMessage> TrackChatThread(string chatId, string message)
+        public async Task<CoreModels.ChatMessage> TrackChatThread(string chatId, string message)
         {
             try
             {
@@ -307,7 +312,7 @@ namespace Agent.Runtime.Services
                     _logger.LogWarning("No response received from agent");
                 }
 
-                return response.FirstOrDefault() ?? new Core.Models.ChatMessage
+                return response.FirstOrDefault() ?? new CoreModels.ChatMessage
                 {
                     Message = "No response from agent",
                     IsUser = false,

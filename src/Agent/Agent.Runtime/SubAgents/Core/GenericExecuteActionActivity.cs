@@ -19,7 +19,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         TaskActivityContext context,
         ExecuteActionInput input)
     {
-        var aiFunctions = input.ToolSignatures.Select(_toolsRepository.FindAiFunction);
+        var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
         var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name);
         var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
         var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);

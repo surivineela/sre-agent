@@ -20,8 +20,6 @@
     <PackageReference Include="Serilog.Sinks.Console" />
     <PackageReference Include="Microsoft.Bot.Builder" />
     <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
-	<PackageReference Include="McpDotNet" />
-	<PackageReference Include="McpDotNet.Extensions.AI" />
   </ItemGroup>
 
   <ItemGroup>

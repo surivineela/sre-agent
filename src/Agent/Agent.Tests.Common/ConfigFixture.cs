@@ -9,17 +9,20 @@ namespace Agent.Tests.Common
     public class ConfigFixture
     {
         public IConfiguration Configuration { get; }
-        public AzureSettings AzureSettings { get; }
+        public AzureSettings AzureSettings { get; } = new();
+        public HostApplicationBuilder Builder { get; }
 
         public ConfigFixture()
         {
-            IHostApplicationBuilder builder = Host.CreateApplicationBuilder();
-            builder.LoadAppSettings();
-            builder.ValidateAndRegisterAppSettings<AppSettings>();
+            Builder = Host.CreateApplicationBuilder();
+            Builder.LoadAppSettings();
+            Builder.ValidateAndRegisterAppSettings<AppSettings>();
+            Builder.Services.ConfigureAzureOpenAIClient();
+            Builder.Services.ConfigureIChatClient();
 
-            var sp = builder.Services.BuildServiceProvider();
+            var sp = Builder.Services.BuildServiceProvider();
 
-            Configuration = builder.Configuration;
+            Configuration = Builder.Configuration;
             AzureSettings = sp.GetRequiredService<AzureSettings>();
         }
     }

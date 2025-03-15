@@ -21,7 +21,7 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
         TaskActivityContext context,
         ExecuteActionInput input)
     {
-        var aiFunctions = input.ToolSignatures.Select(_toolsRepository.FindAiFunction);
+        var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
         var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name) as ToolFunction202;
         if (matchingTool is null)
         {
