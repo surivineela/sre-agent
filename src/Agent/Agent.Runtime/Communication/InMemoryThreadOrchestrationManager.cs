@@ -1,3 +1,4 @@
+using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
@@ -8,7 +9,6 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
     // Changed to store multiple mappings per thread
     private readonly ConcurrentDictionary<string, List<ThreadOrchestrationMapping>> _mappingsByThread = new();
     // Secondary index for quick lookups by orchestration ID
-    private readonly ConcurrentDictionary<string, ThreadOrchestrationMapping> _mappingsByOrchestration = new();
     private readonly ILogger<InMemoryThreadOrchestrationManager> _logger;
 
     public InMemoryThreadOrchestrationManager(ILogger<InMemoryThreadOrchestrationManager> logger)
@@ -21,12 +21,6 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
     {
         _mappingsByThread.TryGetValue(threadId, out var mappings);
         return Task.FromResult(mappings?.AsEnumerable() ?? Enumerable.Empty<ThreadOrchestrationMapping>());
-    }
-
-    public Task<ThreadOrchestrationMapping?> GetMappingByInstanceIdAsync(string instanceId)
-    {
-        _mappingsByOrchestration.TryGetValue(instanceId, out var mapping);
-        return Task.FromResult(mapping);
     }
 
     public Task AddMappingAsync(ThreadOrchestrationMapping mapping)
@@ -55,15 +49,16 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
                 }
                 else
                 {
-                    mapping.CreatedAt = DateTime.UtcNow;
-                    existingMappings.Add(mapping);
+                    var updatedMapping = mapping with
+                    {
+                        CreatedTimestamp = DateTime.UtcNow,
+                        ModifiedTimestamp = DateTime.UtcNow
+                    };
+                    existingMappings.Add(updatedMapping);
                 }
 
                 return existingMappings;
             });
-
-        // Update the orchestration index
-        _mappingsByOrchestration[mapping.OrchestrationInstanceId] = mapping;
 
         return Task.CompletedTask;
     }
@@ -76,7 +71,6 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
             if (mapping != null)
             {
                 mappings.Remove(mapping);
-                _mappingsByOrchestration.TryRemove(orchestrationInstanceId, out _);
 
                 // If no mappings left for this thread, remove the thread entry
                 if (mappings.Count == 0)
@@ -92,15 +86,7 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
     // For backward compatibility
     public Task RemoveMappingAsync(string threadId)
     {
-        if (_mappingsByThread.TryRemove(threadId, out var mappings))
-        {
-            // Remove all orchestration mappings associated with this thread
-            foreach (var mapping in mappings)
-            {
-                _mappingsByOrchestration.TryRemove(mapping.OrchestrationInstanceId, out _);
-            }
-        }
-
+        _mappingsByThread.TryRemove(threadId, out _);
         return Task.CompletedTask;
     }
 

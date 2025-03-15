@@ -44,6 +44,19 @@ public static class AgentDataConfiguration
             return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, ContainerName);
         });
 
+        // Add Thread Orchestration Mapping repository registration
+        serviceCollection.AddSingleton<IThreadOrchestrationMappingRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+
+            return new CosmosDbThreadOrchestrationMappingRepository(
+                cosmosClient,
+                cosmosDatabaseName,
+                ContainerName); // Use the same container as the thread repository
+        });
+
         return serviceCollection;
     }
 

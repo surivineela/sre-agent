@@ -123,7 +123,7 @@ if (useSessionChatService)
         .AddSingleton<ITimePlugin, TimePlugin>()
         .AddSingleton<MetaAgentPlugin>()
         .AddSingleton<ToolsRepository>()
-        .AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>()
+        .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
         .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
         .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
 

@@ -26,11 +26,14 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         var agentId = "sre-agent";
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
-            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping
-            {
-                ThreadId = threadId,
-                OrchestrationInstanceId = orchestrationInstanceId
-            });
+            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
+                Id: $"mapping_{threadId}",
+                ThreadId: threadId,
+                OrchestrationInstanceId: orchestrationInstanceId,
+                CreatedTimestamp: DateTime.UtcNow,
+                ModifiedTimestamp: DateTime.UtcNow
+                )
+            );
             agentId = orchestrationInstanceId;
         }
         _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
