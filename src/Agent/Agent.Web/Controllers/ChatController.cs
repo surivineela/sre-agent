@@ -4,6 +4,7 @@ using Agent.Core.Services;
 using Agent.Data.Repositories;
 using Agent.Runtime.Communication;
 using Agent.Web.Services;
+using Markdig;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.OData.Edm;
 using System;
@@ -19,7 +20,7 @@ namespace Agent.Web.Controllers
         private readonly ILogger<ChatController> _logger;
         private readonly IThreadRepository _threadRepository;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
-        private string _currentThread;
+        private readonly MarkdownPipeline _markdownPipeline;
 
         public ChatController(
             IChatService chatService,
@@ -30,6 +31,10 @@ namespace Agent.Web.Controllers
             _logger = logger;
             _threadRepository = threadRepository;
             _agentInboundCommunicationService = agentInboundCommunicationService;
+            _markdownPipeline = new MarkdownPipelineBuilder()
+                .UseAdvancedExtensions()
+                .DisableHtml()           // Disable HTML parsing
+                .Build();
         }
 
         [HttpGet("GetHistory")]
@@ -68,6 +73,10 @@ namespace Agent.Web.Controllers
                         IsUser = m.Author.Role == Role.User,
                         Timestamp = m.TimeStamp
                     }).ToList();
+                    foreach (var chat in history)
+                    {
+                        chat.Message = Markdown.ToHtml(chat.Message, _markdownPipeline);
+                    }
 
                     _logger.LogInformation($"Found {history.Count} messages for thread ID: {threadId}");
                     return Ok(history);
@@ -77,6 +86,10 @@ namespace Agent.Web.Controllers
                     // Fall back to the old implementation
                     var historyStorage = HttpContext.RequestServices.GetRequiredService<IChatHistoryStorage>();
                     var history = await historyStorage.GetChatHistoryAsync(chatId, agentType);
+                    foreach (var chat in history)
+                    {
+                        chat.Message = Markdown.ToHtml(chat.Message, _markdownPipeline);
+                    }
 
                     _logger.LogInformation($"Found {history.Count} messages for agent type: {agentType ?? "Meta"}");
                     return Ok(history);
@@ -86,25 +99,6 @@ namespace Agent.Web.Controllers
             {
                 _logger.LogError(ex, $"Error getting history for thread {chatId}");
                 return StatusCode(500, $"Error retrieving chat history: {ex.Message}");
-            }
-        }
-
-        [HttpPost("SetThread")]
-        public async Task<IActionResult> SetThread([FromBody] SetThreadRequest request)
-        {
-            try
-            {
-                if (request == null || string.IsNullOrEmpty(request.ChatId))
-                {
-                    return BadRequest("ChatID is required");
-                }
-                _currentThread = request.ChatId;
-                return Ok();
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error setting thread: {ex.Message}");
-                return StatusCode(500, $"Error setting thread: {ex.Message}");
             }
         }
 
@@ -221,7 +215,7 @@ namespace Agent.Web.Controllers
                         Content = message?.Text ?? "No response",
                         ThreadId = threadId.ToString()
                     };
-
+                    chatResponse.Content = Markdown.ToHtml(chatResponse.Content, _markdownPipeline);
                     return Ok(chatResponse);
                 }
                 else

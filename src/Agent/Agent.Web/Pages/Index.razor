@@ -229,6 +229,7 @@
             var response = await Http.PostAsJsonAsync("/Chat/ProcessMessage", new { Message = tempMessage, ChatId = currentChatId });
 
             isTyping = false;
+            StateHasChanged();
 
             if (!response.IsSuccessStatusCode)
             {
@@ -243,16 +244,46 @@
             }
             else
             {
-                var chatResponse = await response.Content.ReadFromJsonAsync<ChatMessage>();
+                var chatResponse = await response.Content.ReadFromJsonAsync<ChatResponse>();
                 if (chatResponse != null)
-                    messages.Add(chatResponse);
-                else
-                    messages.Add(new ChatMessage
+                {
+                    // Check if the response is a placeholder message
+                    if (chatResponse.Content == "The agent is processing your request...")
+                    {
+                        // If it's a placeholder, we need to poll for the real response
+                        messages.Add(new ChatMessage
                         {
-                            Message = "Received empty response from server.",
+                            Message = "Processing your request...",
                             IsUser = false,
                             Timestamp = DateTime.Now
                         });
+                        StateHasChanged();
+                        
+                        // Poll for the real response
+                        await PollForResponse(chatResponse.ThreadId);
+                    }
+                    else
+                    {
+                        // If it's a real response, add it to the messages
+                        messages.Add(new ChatMessage
+                        {
+                            Message = chatResponse.Content,
+                            IsUser = false,
+                            Timestamp = DateTime.Now
+                        });
+                        StateHasChanged();
+                    }
+                }
+                else
+                {
+                    messages.Add(new ChatMessage
+                    {
+                        Message = "Received empty response from server.",
+                        IsUser = false,
+                        Timestamp = DateTime.Now
+                    });
+                    StateHasChanged();
+                }
             }
 
             // Refresh threads list to update LastMessageAt
@@ -293,6 +324,7 @@
         {
             // Initialize dropdowns with Bootstrap JS
             await JS.InvokeVoidAsync("initializeCustomDropdowns");
+            await LoadSavedSession();
             await ScrollToBottom();
         }
         await JS.InvokeVoidAsync("autoAdjustHeight", textAreaRef);
@@ -632,9 +664,103 @@
         return string.IsNullOrWhiteSpace(name) ? "Meta Agent" : char.ToUpper(name[0]) + name[1..] + " Agent";
     }
 
-    // Helper class to match the controller response
+    // Helper classes to match the controller responses
     private class CreateThreadResponse
     {
         public string ChatId { get; set; } = string.Empty;
+    }
+
+    private class ChatResponse
+    {
+        public string MessageId { get; set; } = "";
+        public string Content { get; set; } = "";
+        public string ThreadId { get; set; } = "";
+    }
+
+    // Helper method to poll for a response
+    private async Task PollForResponse(string threadId)
+    {
+        try
+        {
+            // Poll for up to 60 seconds (15 attempts, 4 seconds apart)
+            for (int i = 0; i < 15; i++)
+            {
+                // Wait 3 seconds between polls
+                await Task.Delay(4000);
+                
+                // Get the latest messages
+                var historyResponse = await Http.GetAsync($"/Chat/GetHistory?chatId={threadId}");
+                if (historyResponse.IsSuccessStatusCode)
+                {
+                    var history = await historyResponse.Content.ReadFromJsonAsync<List<ChatMessage>>();
+                    if (history != null && history.Any())
+                    {
+                        // Get the latest non-user message
+                        var latestAgentMessage = history.Where(m => !m.IsUser).OrderByDescending(m => m.Timestamp).FirstOrDefault();
+                        if (latestAgentMessage != null)
+                        {
+                            var processingMessage2 = messages.LastOrDefault(m => !m.IsUser && m.Message == "Processing your request...");
+                            if (processingMessage2 != null)
+                            {
+                                int index = messages.IndexOf(processingMessage2);
+                                if (index >= 0)
+                                {
+                                    messages[index] = latestAgentMessage;
+                                    StateHasChanged();
+                                    await ScrollToBottom();
+                                    return;
+                                }
+                            }
+                            else
+                            {
+                                // If we can't find the processing message, just add the new one
+                                messages.Add(latestAgentMessage);
+                                StateHasChanged();
+                                await ScrollToBottom();
+                                return;
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // If we get here, we timed out waiting for a response
+            var processingMessage = messages.LastOrDefault(m => !m.IsUser && m.Message == "Processing your request...");
+            if (processingMessage != null)
+            {
+                int index = messages.IndexOf(processingMessage);
+                if (index >= 0)
+                {
+                    messages[index] = new ChatMessage
+                    {
+                        Message = "The agent did not respond in time. Please try again.",
+                        IsUser = false,
+                        Timestamp = DateTime.Now
+                    };
+                    StateHasChanged();
+                    await ScrollToBottom();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error polling for response: {ex.Message}");
+            var processingMessage = messages.LastOrDefault(m => !m.IsUser && m.Message == "Processing your request...");
+            if (processingMessage != null)
+            {
+                int index = messages.IndexOf(processingMessage);
+                if (index >= 0)
+                {
+                    messages[index] = new ChatMessage
+                    {
+                        Message = $"Error getting response: {ex.Message}",
+                        IsUser = false,
+                        Timestamp = DateTime.Now
+                    };
+                    StateHasChanged();
+                    await ScrollToBottom();
+                }
+            }
+        }
     }
 }

@@ -42,6 +42,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             await _repository.AddMessageAsync(message.ThreadId, aiMessage);
             string orchestrationInstanceId = "";
+            Guid responseMessageId = Guid.Empty;
+            
             // Check if an orchestration already exists for this thread
             var mappings = await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString());
             if (mappings == null || !mappings.Any())
@@ -52,8 +54,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 string agentResponse = await _metaAgent.ProcessUserMessage(
                     message.Message,
                     message.ThreadId.ToString());
+                responseMessageId = Guid.NewGuid();
                 var responseMessage = new Message(
-                    Id: Guid.NewGuid(),
+                    Id: responseMessageId,
                     TimeStamp: DateTime.UtcNow,
                     Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
                     Text: agentResponse);
@@ -75,7 +78,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                 orchestrationInstanceId = mapping.OrchestrationInstanceId;
             }
-            return new InboundServiceResponse(message.ThreadId, aiMessage.Id, orchestrationInstanceId);
+            return new InboundServiceResponse(message.ThreadId, responseMessageId, orchestrationInstanceId);
         }
         catch (Exception ex)
         {

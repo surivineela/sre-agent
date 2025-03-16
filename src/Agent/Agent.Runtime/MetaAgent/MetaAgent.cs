@@ -1,9 +1,9 @@
-﻿using System.Text.Json;
-using Agent.Core;
+﻿using Agent.Core;
 using Microsoft.Extensions.AI;
 using Agent.Data.Repositories;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Communication;
+using Agent.Plugins;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -23,6 +23,7 @@ Handoffs are achieved by calling a handoff function, generally named `start<agen
 Transfers between agents are handled seamlessly in the background; do not mention or draw attention to these transfers in your conversation with the user.
 
 ## Primary Capabilities
+- **App Service Remediation**: If there is any issue with Azure WebApps or Azure Function apps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 
@@ -77,7 +78,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IThreadOrchestrationManager mappingManager,
         IAgentOutboundCommunicationService outboundCommunicationService,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
-        TlsBestPracticesPlugin tlsBestPracticesPlugin)
+        TlsBestPracticesPlugin tlsBestPracticesPlugin,
+        AppServiceRemediationPlugin appServiceRemediationPlugin,
+        ISubscriptionPlugin subscriptionPlugin)
     {
         _chatClient = chatClient;
         _repository = repository;
@@ -96,6 +99,11 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.ListTlsBestPracticeWorkflows));
         _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.SummarizeTlsBestPractice));
         _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.StartTlsBestPracticeAgent));
+        _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.StartAppServiceRemediationAgent));
+        _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.SummarizeAppServiceRemidiationWorkflow));
+        _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.ListAppServiceRemediationWorkflows));
+        _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAllSubscriptionsAsync));
+        _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAppServicesAsync));
     }
 
     // TODO: the userMessage is not needed as we are using the repository to get the messages
@@ -143,18 +151,21 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                     // Category 1: NewOrchestration - return value is always orchestration id
                     case nameof(ManagedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent):
                     case nameof(TlsBestPracticesPlugin.StartTlsBestPracticeAgent):
+                    case nameof(AppServiceRemediationPlugin.StartAppServiceRemediationAgent):
                         category = "NewOrchestration";
                         break;
 
                     // Category 2: ReusingOrchestration - requires instanceId (orchestration id) as parameter
                     case nameof(ManagedIdentityMigrationPlugin.SummarizeManagedIdentityMigration):
                     case nameof(TlsBestPracticesPlugin.SummarizeTlsBestPractice):
+                    case nameof(AppServiceRemediationPlugin.SummarizeAppServiceRemidiationWorkflow):
                         category = "ReusingOrchestration";
                         break;
 
                     // Category 3: General questions - handled by meta-agent or list all orchestrations
                     case nameof(ManagedIdentityMigrationPlugin.ListManagedIdentityMigrations):
                     case nameof(TlsBestPracticesPlugin.ListTlsBestPracticeWorkflows):
+                    case nameof(AppServiceRemediationPlugin.ListAppServiceRemediationWorkflows):
                     default:
                         category = "General";
                         break;

@@ -18,7 +18,7 @@ If user approves your remediation plan, you go ahead apply the fix.";
     {
         List<ChatMessage> chatHistory = [
             new ChatMessage(ChatRole.System, SystemPrompt),
-            new ChatMessage(ChatRole.User, $"My AppService resource id is: {agentInput.Input.AppServiceResourceId}")];
+            new ChatMessage(ChatRole.User, $"Here's more context about the apps and the issue: {agentInput.Input}")];
 
         // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
         chatHistory = await RunReasoningLoopAsync(

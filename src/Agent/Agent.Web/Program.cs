@@ -45,6 +45,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Agent.Runtime.SubAgents.AppServiceRemediation;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,6 +112,8 @@ if (useSessionChatService)
         .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>()
         .AddSingleton<ManagedIdentityMigrationPlugin>()
         .AddSingleton<TlsBestPracticesPlugin>()
+        .AddSingleton<AppServiceRemediationPlugin>()
+        .AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<PostToTeamsPluginDefinition>()

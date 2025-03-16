@@ -1,6 +1,6 @@
 ﻿namespace Agent.Runtime.SubAgents.AppServiceRemediation;
 
 public sealed record AppServiceRemediationAgentInput(
-    AppServiceRemediationInput Input,
+    string Input,
     IReadOnlyList<string> ToolSignatures,
     string ThreadId);

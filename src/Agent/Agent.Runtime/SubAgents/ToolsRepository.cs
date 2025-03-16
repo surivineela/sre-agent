@@ -29,7 +29,8 @@ public sealed class ToolsRepository : IMcpConnectable
         ITimePlugin timePlugin,
         IMIConfigurationCheckPlugin miMigrationPlugin,
         IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
-        IAppIdentityUpdatePlugin appIdentityUpdatePlugin)
+        IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
+        IRemediationPlugin remediationPlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
@@ -59,6 +60,13 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => githubWorkflowTriggerPluginDefinition.CheckPullRequestMergeStatus);
         Register200(() => githubWorkflowTriggerPluginDefinition.TriggerWorkflow);
         Register200(() => githubWorkflowTriggerPluginDefinition.TrackWorkflow);
+
+        var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
+        Register200(() => remediationPluginDefinition.ScaleAppServicePlanVertically);
+        Register200(() => remediationPluginDefinition.SuggestNextSku);
+        Register200(() => remediationPluginDefinition.CalculateScalingCost);
+        Register200(() => remediationPluginDefinition.RestartWebApp);
+        Register200(() => remediationPluginDefinition.CollectMemoryDump);
 
         var appIdentityUpdatePluginDefinition = new AppIdentityUpdatePluginDefinition(appIdentityUpdatePlugin);
         Register200(() => appIdentityUpdatePluginDefinition.GetAppManagedIdentityAsync);
