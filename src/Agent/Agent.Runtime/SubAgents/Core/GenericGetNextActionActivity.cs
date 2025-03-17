@@ -19,7 +19,7 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
     {
         var chatOptions = new ChatOptions
         {
-            Tools = input.ToolSignatures.Select<string, AITool>(sig => _toolsRepository.FindAiFunction(sig).ToolFunction).ToList(),
+            Tools = _toolsRepository.GetAllTools(input.ToolSignatures).Select<string, AITool>(sig => _toolsRepository.FindAiFunction(sig).ToolFunction).ToList(),
             ToolMode = ChatToolMode.RequireAny,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
@@ -27,9 +27,11 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
             }
         };
 
+        var allMessages = _toolsRepository.MCPServerInstructions.Concat(input.ChatMessages).ToList();
+
         try
         {
-            var response = await ChatClient.GetResponseAsync(input.ChatMessages, chatOptions);
+            var response = await ChatClient.GetResponseAsync(allMessages, chatOptions);
             return response.Message;
         }
         catch (Exception ex)

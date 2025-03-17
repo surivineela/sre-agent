@@ -22,6 +22,11 @@ public sealed class ToolsRepository : IMcpConnectable
     private readonly Dictionary<string, IToolFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
 
+    /// <summary>
+    /// Returns a chat message for each connected server with instructions on how to use the tools being exposed.
+    /// </summary>
+    public IEnumerable<ChatMessage> MCPServerInstructions => _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
+
     public ToolsRepository(
         IMetricsPlugin metricsPlugin,
         IArmPlugin armPlugin,
