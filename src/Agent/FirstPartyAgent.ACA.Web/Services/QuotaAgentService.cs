@@ -195,7 +195,8 @@ public class QuotaAgentService : IQuotaAgentService
         {
             state.HasBeenPended = true;
             StringBuilder referenceBuilder = new StringBuilder();
-            AppendReferenceInformation(referenceBuilder, state.SubscriptionId);
+            await AppendSubscriptionUsageInformation(referenceBuilder, state.SubscriptionId);
+            AppendReferenceInformation(referenceBuilder, state.SubscriptionId);           
             messageContent += referenceBuilder.ToString();
         }
 
@@ -364,6 +365,32 @@ public class QuotaAgentService : IQuotaAgentService
         string refDocLink = $"https://eng.ms/docs/cloud-ai-platform/devdiv/serverless-paas-balam/serverless-paas-vikr/azure-container-apps/container-apps-on-call-process-tsg/troubleshooting/tsg/tsg-capps-quota-008";
         messageBuilder.AppendLine("<br/>You can find the general guidelines for GPU quota request handling from:");
         messageBuilder.AppendLine($"<a href=\"{refDocLink}\">GPU quota handling guidelines</a>");
+    }
+
+    public async Task AppendSubscriptionUsageInformation(StringBuilder messageBuilder, string subscriptionId)
+    {
+        AcaSubscriptionUsage? usage = null;
+        try
+        {
+            usage = await _cappPlugin.GetSubscriptionUsage(subscriptionId);
+            messageBuilder.AppendLine("<br/>");
+            messageBuilder.AppendLine($"-------- Subscription Usage Information--------<br/>");
+            if (usage != null && (!string.IsNullOrEmpty(usage.TrustLevel) || !string.IsNullOrEmpty(usage.NumberOfEnvironments) || !string.IsNullOrEmpty(usage.NumberOfContainerApps) || !string.IsNullOrEmpty(usage.NumberOfJobs)))
+            {
+                messageBuilder.AppendLine($"- Trust Level: {usage.TrustLevel}<br/>");
+                messageBuilder.AppendLine($"- Number Of Environments: {usage.NumberOfEnvironments}<br/>");
+                messageBuilder.AppendLine($"- Number Of ContainerApps: {usage.NumberOfContainerApps}<br/>");
+                messageBuilder.AppendLine($"- Number Of Jobs: {usage.NumberOfJobs}<br/>");
+            }
+            else
+            {
+                messageBuilder.AppendLine($"Cannot find Azure Container Apps Environment/App/Job usage record for subscription {subscriptionId}.<br/>");
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to get subscription usage information for {subscriptionId}.");
+        }
     }
 }
 

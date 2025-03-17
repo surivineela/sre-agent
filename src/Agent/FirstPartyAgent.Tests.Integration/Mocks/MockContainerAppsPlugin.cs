@@ -42,6 +42,12 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             return await Task.FromResult(subscriptionDetail);
         }
 
+        public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId)
+        {
+            var subscriptionUsage = new AcaSubscriptionUsage();
+            return await Task.FromResult(subscriptionUsage);
+        }
+
         public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
             return await Task.FromResult(string.Empty);

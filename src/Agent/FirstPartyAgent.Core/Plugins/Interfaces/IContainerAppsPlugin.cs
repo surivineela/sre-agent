@@ -12,6 +12,8 @@ namespace FirstPartyAgent.Plugins
     {
         public Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId);
 
+        public Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subscriptionId);
+
         public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
 
         public Task<TeamsPostMessageResponse?> PostTeamsDiscussionAsync(string incidentId, string title, string content);

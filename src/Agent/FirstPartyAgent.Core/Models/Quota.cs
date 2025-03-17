@@ -131,6 +131,15 @@ namespace FirstPartyAgent.Models
         public string Message { get; set; }
     }
 
+    public class AcaSubscriptionUsage
+    {
+        public string? SubscriptionId { get; set; }
+        public string? NumberOfEnvironments { get; set; }
+        public string? NumberOfContainerApps { get; set; }
+        public string? NumberOfJobs { get; set; }
+        public string? TrustLevel { get; set; }
+    }
+
     [JsonConverter(typeof(JsonStringEnumConverter<ConversationSource>))]
     public enum ConversationSource
     {

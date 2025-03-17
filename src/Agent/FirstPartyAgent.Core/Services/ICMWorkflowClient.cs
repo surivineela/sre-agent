@@ -405,6 +405,11 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
+        public async Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId)
+        {
+            return await SendICMWorkflowRequest<AcaSubscriptionUsage>(_icmWorkflowSettings.SubscriptionUsageWorkflowName, new { SubscriptionId = subscriptionId });
+        }
+
         public void Dispose()
         {
             _httpClient?.Dispose();

@@ -31,6 +31,11 @@ namespace FirstPartyAgent.Plugins
             return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
         }
 
+        public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subsriptionId)
+        { 
+            return await _icmWorkflowClient.GetSubscriptionUsage(subsriptionId);
+        }
+
         public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
             const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";

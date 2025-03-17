@@ -23,6 +23,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string MarkSubscriptionFirstPartyWorkflowName { get; set; } = string.Empty;
         public string GetSubscriptionWorkflowName { get; set; } = string.Empty;
         public string SubscriptionDetailWorkflowName { get; set; } = string.Empty;
+        public string SubscriptionUsageWorkflowName { get; set; } = string.Empty;
         public string AddIncidentTagWorkflowName { get; set; } = string.Empty;
         public string ApplensPluginWorkflowName { get; set; } = string.Empty;
         public string HumanInterventionServiceName { get; set; } = string.Empty;
