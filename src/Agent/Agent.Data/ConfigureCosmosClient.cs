@@ -1,4 +1,5 @@
-﻿using Agent.Core.Configuration;
+﻿using Agent.Core.Interfaces;
+using Agent.Core.Configuration;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;

@@ -41,4 +41,5 @@
 		<PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" />
 		<PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />
 	</ItemGroup>
+
 </Project>

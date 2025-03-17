@@ -1,6 +1,7 @@
+using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 
-namespace Agent.Runtime.Communication;
+namespace Agent.Core.Interfaces;
 
 /// <summary>
 /// Interface for processing messages from users to agents/orchestrations

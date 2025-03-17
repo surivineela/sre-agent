@@ -46,6 +46,7 @@ using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
+using Agent.Core.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 

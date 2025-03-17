@@ -1,9 +1,11 @@
 ﻿using Agent.Core;
+using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 using Agent.Data.Repositories;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Communication;
 using Agent.Plugins;
+using Agent.Core.Interfaces;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -115,7 +117,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         var threadMessages = await _repository.GetMessagesAsync(threadGuid);
         foreach (var msg in threadMessages)
         {
-            ChatRole role = msg.Author.Role == Core.Models.Api.v1.Role.User ? ChatRole.User : ChatRole.Assistant;
+            ChatRole role = msg.Author.Role == Role.User ? ChatRole.User : ChatRole.Assistant;
             _chatHistory.Add(new ChatMessage(role, msg.Text));
         }
 

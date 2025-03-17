@@ -1,3 +1,5 @@
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Runtime.MetaAgent;
@@ -43,7 +45,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             await _repository.AddMessageAsync(message.ThreadId, aiMessage);
             string orchestrationInstanceId = "";
             Guid responseMessageId = Guid.Empty;
-            
+
             // Check if an orchestration already exists for this thread
             var mappings = await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString());
             if (mappings == null || !mappings.Any())

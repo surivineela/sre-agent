@@ -1,4 +1,4 @@
-namespace Agent.Runtime.Communication;
+namespace Agent.Core.Models.Api.v1;
 
 public record ThreadMessage(
     Guid ThreadId,

@@ -1,4 +1,5 @@
 ﻿using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Data.DataModels;
 

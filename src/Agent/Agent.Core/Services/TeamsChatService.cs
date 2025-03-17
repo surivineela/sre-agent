@@ -1,8 +1,12 @@
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 using System.Threading;
 using System.Xml;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
+using Agent.Core.Configuration;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -10,6 +14,7 @@ using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
@@ -18,11 +23,25 @@ namespace Agent.Core.Services;
 
 public class TeamsBot : TeamsActivityHandler
 {
-    private readonly IChatService _chatService;
     private readonly ILogger<TeamsBot> _logger;
     private readonly Dictionary<string, string> _conversationThreadMapping;
+    private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
+    private readonly IThreadRepository _threadRepository;
     public static Dictionary<string, ConversationReference> ConversationReferences = new();
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
+
+    // Track all posted message IDs per thread to prevent duplicate postings
+    private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _postedMessageIds = new();
+    // Track last poll timestamp per thread to limit fetching window
+    private readonly ConcurrentDictionary<Guid, DateTime> _lastPollTimestamps = new();
+
+    private readonly CancellationTokenSource _pollingCancellationSource = new();
+    private bool _isPollingStarted = false;
+    private readonly string _appId;
+    // Increased polling interval to reduce frequency
+    private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
+    // Rate limiting for messages posted per poll cycle
+    private const int MAX_MESSAGES_PER_POLL = 50;
 
     string welcomeMessage = "## 👋 Hi, I'm your new Azure SRE Partner!\n\nI'm here to help monitor your applications and keep everything running smoothly.\n\nI've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.\n\nThink of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!\n\n### ⚙️ **Autopilot Mode**:\n\nI'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.\n\n### **How to get started**:\n\nIf you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:\n\n- \"Monitor my application performance\"\n- \"Check on my app's metrics\"\n- \"Create a app migration plan\"\n- \"Help diagnose why my service is slow\"\n\nNo fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.\n\nLooking forward to working together and keeping your systems running at their best!";
 
@@ -34,13 +53,27 @@ public class TeamsBot : TeamsActivityHandler
     // 8 per 2s
     // 60 per 30s
     // 1800 per 3600s
-    private const int UPDATE_INTERVAL_MS = 300; // Send updates every 300ms, 
-    public TeamsBot(IChatService chatService, ILogger<TeamsBot> logger, IBotFrameworkHttpAdapter teamsAdapter)
+    private const int UPDATE_INTERVAL_MS = 300; // Send updates every 300ms,
+    public TeamsBot(
+        ILogger<TeamsBot> logger,
+        IBotFrameworkHttpAdapter teamsAdapter,
+        IAgentInboundCommunicationService agentInboundCommunicationService,
+        IThreadRepository threadRepository,
+        TeamsBotSettings teamsBot)
     {
-        _chatService = chatService;
         _logger = logger;
         _conversationThreadMapping = new Dictionary<string, string>();
         _teamsAdapter = teamsAdapter;
+        _agentInboundCommunicationService = agentInboundCommunicationService;
+        _threadRepository = threadRepository;
+
+        // Initialize credentials from configuration
+        _appId = teamsBot.AppId;
+
+        // Log credential information (without exposing the actual password)
+        _logger.LogInformation($"TeamsBot initialized with AppId: {(_appId != null ? "Configured" : "Not Configured, disable sending proactive messages")}");
+
+        StartMessagePolling();
     }
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
@@ -51,10 +84,12 @@ public class TeamsBot : TeamsActivityHandler
         conversationReference.ServiceUrl = serviceUrl;
         conversationReference.ChannelId = teamsChannelId;
         _logger.LogInformation($"Teams Conversation: Received message from Teams channel {teamsChannelId}, service URL: {serviceUrl}");
-        //lock (ConversationReferences)
-        //  {
-        ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
-        //}
+
+        // Store conversation reference for later proactive messaging
+        lock (ConversationReferences)
+        {
+            ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
+        }
 
         string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
         if (string.IsNullOrEmpty(messageText))
@@ -64,9 +99,12 @@ public class TeamsBot : TeamsActivityHandler
         }
 
         string conversationId = turnContext.Activity.Conversation.Id;
+        string senderName = turnContext.Activity.From?.Name ?? "Unknown User";
+        string userId = turnContext.Activity.From?.Id ?? "teams-user";
 
-        // Get or create thread ID for this conversation using a more efficient method
+        // Get or create thread ID for this conversation
         string chatId = GetOrCreateChatId(conversationId);
+        Guid chatIdGuid = Guid.Parse(chatId);
 
         _logger.LogInformation($"[Teams Conversation: {conversationId}][Thread: {chatId}]\nSending message to agent: {messageText}");
 
@@ -76,95 +114,25 @@ public class TeamsBot : TeamsActivityHandler
             await turnContext.SendActivityAsync(MessageFactory.Text(welcomeMessage), cancellationToken);
             return;
         }
-        if (turnContext.Activity.Conversation.IsGroup.GetValueOrDefault())
+        try
         {
+            // Teams channel and chat group don't support streaming API for now.
+            // The new DTS integration don't support streaming API as well.
             var channelDataObj = turnContext.Activity.ChannelData as JObject;
             if (channelDataObj != null && channelDataObj["team"] != null)
             {
                 // Teams channel response is slow, add this to tell user that the bot is processing the request
-                await turnContext.SendActivityAsync(MessageFactory.Text("got, processing your request"), cancellationToken).ConfigureAwait(false);
-            }
-            var response = await _chatService.ProcessMessageAsync(messageText, chatId);
-            // Send non-streaming response back to Teams Channel or Chat Group due to Teams limitation.
-            // Once teams support streaming API for them, we can use the unified way below.
-            await turnContext.SendActivityAsync(MessageFactory.Text(response.Message), cancellationToken);
-            return;
-        }
-        try
-        {
-            // Initialize variables
-            StringBuilder contentBuilder = new(1024); // Pre-allocate buffer for better performance
-            int streamSequence = 1;
-            Stopwatch lastUpdateTime = Stopwatch.StartNew();
-
-            // Batch collection for chunks
-            List<string> chunkBatch = new(BATCH_SIZE);
-
-            // Send initial typing indicator
-            ChannelData channelData = new ChannelData
-            {
-                StreamType = StreamType.Informative,
-                StreamSequence = streamSequence++
-            };
-
-            // Send initial message and get streamId
-            string streamId = await BuildAndSendStreamingActivity(
-                turnContext,
-                cancellationToken,
-                "Processing...",
-                channelData).ConfigureAwait(false);
-
-            // Process chunks with batching and enforced minimum wait time
-            await foreach (var chunk in _chatService.ProcessMessageStreamAsync(messageText, chatId, cancellationToken))
-            {
-                contentBuilder.Append(chunk);
-                chunkBatch.Add(chunk);
-
-                // Check if it's time to send an update, but ALWAYS ensure minimum time has elapsed
-                if (chunkBatch.Count >= BATCH_SIZE && lastUpdateTime.ElapsedMilliseconds > UPDATE_INTERVAL_MS)
-                {
-                    // Update with current content
-                    channelData = new ChannelData
-                    {
-                        StreamType = StreamType.Streaming,
-                        StreamSequence = streamSequence++,
-                        StreamId = streamId
-                    };
-
-                    await BuildAndSendStreamingActivity(
-                        turnContext,
-                        cancellationToken,
-                        contentBuilder.ToString(),
-                        channelData);
-
-                    // Reset batch and timer
-                    chunkBatch.Clear();
-                    lastUpdateTime.Restart();
-                }
+                await turnContext.SendActivityAsync(MessageFactory.Text("The Agent is processing your request..."), cancellationToken).ConfigureAwait(false);
             }
 
-            // Ensure we wait the minimum interval before sending final messages
-            int remainingWaitTime = UPDATE_INTERVAL_MS - (int)lastUpdateTime.ElapsedMilliseconds;
-            if (remainingWaitTime > 0)
-            {
-                await Task.Delay(remainingWaitTime, cancellationToken);
-            }
-
-            // Send final message, remaining content will be included
-            channelData = new ChannelData
-            {
-                StreamType = StreamType.Final,
-                StreamSequence = streamSequence,
-                StreamId = streamId
-            };
-
-            await BuildAndSendStreamingActivity(
-                turnContext,
-                cancellationToken,
-                contentBuilder.ToString(),
-                channelData);
-
-            _logger.LogInformation($"Completed streaming response for message: {messageText}");
+            // Process the message using the Threads API
+            var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
+                ThreadId: chatIdGuid,
+                Message: messageText,
+                UserId: userId,
+                DisplayName: senderName,
+                Timestamp: DateTime.UtcNow
+            ));
         }
         catch (Exception ex)
         {
@@ -236,7 +204,7 @@ public class TeamsBot : TeamsActivityHandler
                         };
 
                         await adapter.CreateConversationAsync(
-                            botAppId: null, // Use null if the bot's App ID is configured in the adapter.
+                            botAppId: _appId,
                             serviceUrl: serviceUrl,
                             channelId: channelId,
                             audience: null,
@@ -269,39 +237,16 @@ public class TeamsBot : TeamsActivityHandler
     {
         lock (_conversationThreadMapping)
         {
-            if (!_conversationThreadMapping.TryGetValue(conversationId, out string chatId))
+            if (!_conversationThreadMapping.TryGetValue(conversationId, out string threadId))
             {
-                // Create thread asynchronously but return immediately with a new ID
-                // This avoids blocking the main thread
-                string newChatId = Guid.NewGuid().ToString();
-                _conversationThreadMapping[conversationId] = newChatId;
+                // Create a new thread ID for this conversation
+                string newThreadId = Guid.NewGuid().ToString();
+                _conversationThreadMapping[conversationId] = newThreadId;
 
-                // Fire and forget task to create the thread
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        string createdChatId = await _chatService.StartThreadAsync("/", newChatId);
-                        // If IDs don't match, update the mapping
-                        if (createdChatId != newChatId)
-                        {
-                            lock (_conversationThreadMapping)
-                            {
-                                _conversationThreadMapping[conversationId] = createdChatId;
-                            }
-                        }
-                        _logger.LogInformation($"Created new thread {createdChatId} for Teams conversation {conversationId}");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Failed to create thread for conversation {conversationId}");
-                    }
-                });
-
-                return newChatId;
+                return newThreadId;
             }
 
-            return chatId;
+            return threadId;
         }
     }
 
@@ -373,13 +318,13 @@ public class TeamsBot : TeamsActivityHandler
         var serviceUrl = turnContext.Activity.ServiceUrl;
         var conversationReference = turnContext.Activity.GetConversationReference();
         conversationReference.ServiceUrl = serviceUrl;
-        // TODO: we need to get the channel id here, it's empty for now.
         conversationReference.ChannelId = teamsChannelId;
         _logger.LogInformation($"Teams Conversation (OnMembersAddedAsync): Received message from Teams channel {teamsChannelId}, service URL: {serviceUrl}");
-        //lock (ConversationReferences)
-        //  {
-        //  ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
-        //}
+
+        lock (ConversationReferences)
+        {
+            ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
+        }
 
         foreach (var member in membersAdded)
         {
@@ -389,20 +334,15 @@ public class TeamsBot : TeamsActivityHandler
             }
         }
     }
+
     // This function can help us send the "typing" indicator to the user, it's not useful in streaming API which has the "processing" indicator, but it's useful in non-streaming API scenario such as teams channel or chat group.
     public async override Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
-
         ITypingActivity replyActivity = Activity.CreateTypingActivity();
-
         await turnContext.SendActivityAsync((Activity)replyActivity).ConfigureAwait(false);
-
         await Task.Delay(200);
-
         await base.OnTurnAsync(turnContext, cancellationToken);
-
     }
-
 
     //-----Subscribe to Conversation Events in Bot integration
     protected override async Task OnTeamsChannelCreatedAsync(ChannelInfo channelInfo, TeamInfo teamInfo, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
@@ -423,6 +363,196 @@ public class TeamsBot : TeamsActivityHandler
         replyActivity.Entities = new List<Entity> { mention };
 
         await turnContext.SendActivityAsync(replyActivity, cancellationToken);
+    }
+
+    // Polling logic starts here
+    public void StartMessagePolling()
+    {
+        if (_isPollingStarted)
+            return;
+
+        _isPollingStarted = true;
+        _logger.LogInformation("Starting Teams message polling");
+
+        // Run polling in a background task
+        Task.Run(async () =>
+        {
+            while (!_pollingCancellationSource.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    await PollForNewMessages();
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error in Teams message polling");
+                }
+
+                // Wait before polling again
+                await Task.Delay(_pollInterval, _pollingCancellationSource.Token);
+            }
+        }, _pollingCancellationSource.Token);
+    }
+
+    private async Task PollForNewMessages()
+    {
+        // Make a copy of the current mapping to avoid locking issues during enumeration
+        var currentMappings = new Dictionary<string, string>();
+        lock (_conversationThreadMapping)
+        {
+            foreach (var kvp in _conversationThreadMapping)
+            {
+                currentMappings[kvp.Key] = kvp.Value;
+            }
+        }
+
+        foreach (var mapping in currentMappings)
+        {
+            try
+            {
+                string teamsConversationId = mapping.Key;
+                string threadId = mapping.Value;
+
+                if (!Guid.TryParse(threadId, out Guid threadGuid))
+                {
+                    _logger.LogWarning($"Invalid thread ID format: {threadId}");
+                    continue;
+                }
+
+                // Get the current time for this poll cycle
+                DateTime currentPollTime = DateTime.UtcNow;
+
+                // Get the last poll time for this thread, or use a default (10 minutes ago)
+                DateTime lastPollTime = _lastPollTimestamps.GetValueOrDefault(
+                    threadGuid,
+                    DateTime.UtcNow.AddMinutes(-10));
+
+                // Ensure we're not querying too far back
+                if (currentPollTime.Subtract(lastPollTime).TotalHours > 1)
+                {
+                    lastPollTime = currentPollTime.AddHours(-1);
+                }
+
+                // Update the last poll time for next cycle
+                _lastPollTimestamps[threadGuid] = currentPollTime;
+
+                // Get already posted message IDs for this thread
+                HashSet<Guid> postedMessageIds = _postedMessageIds.GetOrAddValue(
+                    threadGuid,
+                    () => new HashSet<Guid>());
+
+                // Get recent agent messages from the thread with a specific time window
+                var messages = await _threadRepository.GetMessagesAsync(
+                    threadGuid); // Limit to 50 most recent messages
+
+                // Filter to get only new messages that haven't been posted yet
+                var newMessages = messages
+                    .Where(m => m.Author.Role == Role.SREAgent && !postedMessageIds.Contains(m.Id))
+                    .OrderBy(m => m.TimeStamp)
+                    .Take(MAX_MESSAGES_PER_POLL) // Rate limit: only post up to MAX_MESSAGES_PER_POLL messages per poll cycle
+                    .ToList();
+
+                if (newMessages.Any())
+                {
+                    _logger.LogInformation($"Found {newMessages.Count} new messages to post to Teams for thread {threadId}");
+
+                    // Post messages to Teams
+                    await PostMessagesToTeams(teamsConversationId, newMessages);
+
+                    // Track all posted message IDs to prevent re-posting
+                    lock (postedMessageIds)
+                    {
+                        foreach (var message in newMessages)
+                        {
+                            postedMessageIds.Add(message.Id);
+                        }
+                    }
+
+                    // Log how many message IDs we're now tracking for this thread
+                    _logger.LogInformation($"Now tracking {postedMessageIds.Count} posted message IDs for thread {threadId}");
+                }
+                else
+                {
+                    _logger.LogDebug($"No new messages to post for thread {threadId}. Total tracked messages: {postedMessageIds.Count}");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error polling messages for conversation {mapping.Key}");
+            }
+        }
+    }
+
+    private async Task PostMessagesToTeams(string conversationId, List<Message> messages)
+    {
+        try
+        {
+            // Get the Teams conversation reference
+            if (!ConversationReferences.TryGetValue(conversationId, out var conversationReference))
+            {
+                _logger.LogWarning($"No conversation reference found for conversation {conversationId}");
+                return;
+            }
+
+            // Ensure we have the necessary credentials
+            if (string.IsNullOrEmpty(_appId))
+            {
+                _logger.LogError("AppId is not configured. Cannot send proactive messages.");
+                return;
+            }
+
+            // Get correctly typed adapter
+            var adapter = _teamsAdapter as CloudAdapter;
+            if (adapter == null)
+            {
+                _logger.LogError("Adapter is not a CloudAdapter instance. Cannot send proactive messages.");
+                return;
+            }
+
+            foreach (var message in messages)
+            {
+                try
+                {
+                    // Create message activity
+                    var activity = MessageFactory.Text(message.Text);
+
+                    // Send the message using ContinueConversationAsync
+                    await adapter.ContinueConversationAsync(
+                        _appId,
+                        conversationReference,
+                        async (turnContext, ct) =>
+                        {
+                            await turnContext.SendActivityAsync(activity, ct);
+                        },
+                        CancellationToken.None);
+
+                    _logger.LogInformation($"Posted message {message.Id} to Teams conversation {conversationId}");
+
+                    // Respect Teams rate limits (7 messages per second)
+                    await Task.Delay(200);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error posting message {message.Id} to Teams conversation {conversationId}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error in PostMessagesToTeams for conversation {conversationId}");
+        }
+    }
+}
+
+// Helper extension method for ConcurrentDictionary
+public static class ConcurrentDictionaryExtensions
+{
+    public static TValue GetOrAddValue<TKey, TValue>(
+        this ConcurrentDictionary<TKey, TValue> dictionary,
+        TKey key,
+        Func<TValue> valueFactory)
+    {
+        return dictionary.GetOrAdd(key, _ => valueFactory());
     }
 }
 

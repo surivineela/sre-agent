@@ -6,6 +6,8 @@ using System.Net;
 using Container = Microsoft.Azure.Cosmos.Container;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Action = Agent.Core.Models.Api.v1.Action;
+using Agent.Core.Models.Api.v1;
+using Agent.Core.Interfaces;
 
 namespace Agent.Data.Repositories;
 
