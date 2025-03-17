@@ -100,11 +100,6 @@ public class CosmosDbThreadRepository : IThreadRepository
                 StartMessage = thread.StartMessage with { Id = Guid.NewGuid() }
             };
 
-        // Create the message first
-        string threadIdStr = thread.Id.ToString();
-        MessageDocument messageDoc = MessageDocument.FromDomainModel(thread.StartMessage, threadIdStr);
-        await _container.CreateItemAsync(messageDoc, new PartitionKey(messageDoc.PartitionKey));
-
         // Then create the thread
         ThreadDocument threadDoc = ThreadDocument.FromDomainModel(thread);
         await _container.CreateItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
