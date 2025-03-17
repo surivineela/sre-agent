@@ -102,13 +102,15 @@ public class QuotaAgentService : IQuotaAgentService
 
         bool needProcess = true;
         int retry = 0;
+        QuotaIncidentState? newState = null;
+
         do
         {
             ChatMessageContent result = await chatService.GetChatMessageContentAsync(chatHistory, settings, _kernel).ConfigureAwait(false);
 
             retry++;
             needProcess = true;
-
+            
             if (result is null)
             {
                 _logger.LogError($"No result is returned from Agent. Retry = {retry}");
@@ -122,8 +124,6 @@ public class QuotaAgentService : IQuotaAgentService
             else
             {
                 chatHistory.AddAssistantMessage(_logger, result.Content ?? string.Empty);
-
-                QuotaIncidentState? newState;
 
                 try
                 {
@@ -172,14 +172,16 @@ public class QuotaAgentService : IQuotaAgentService
                         continue;
                     }
 
-                    state.UpdateFrom(newState);
-
                     needProcess = false;
                 }
             }
         }
         while (needProcess && retry < 5);
 
+        if (newState != null) {
+            state.UpdateFrom(newState);
+        }
+        
         state.IsNewRequest = false;
 
         if ( !string.IsNullOrEmpty(state.QuotaType) && !state.QuotaType.Contains("GPU", StringComparison.OrdinalIgnoreCase))
