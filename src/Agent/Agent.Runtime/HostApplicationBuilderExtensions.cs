@@ -39,14 +39,23 @@ namespace Agent.Runtime
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {
                     string envPrefix = builder.Configuration.GetValue<string>("AppSettings:EnvPrefix");
+                    string ManagedIdentityClientId = builder.Configuration.GetValue<string>("AppSettings:ManagedIdentityClientId");
 
                     if (string.IsNullOrEmpty(envPrefix))
                     {
                         throw new ConfigurationErrorsException("AppSettings:EnvPrefix not set. Please set so we can automatically fetch private environment settings. For more info, check readme.");
                     }
 
-                    string endpoint = $"https://{builder.Configuration.GetValue<string>("AppSettings:EnvPrefix")}-appconfig.azconfig.io";
-                    DefaultAzureCredential cred = new DefaultAzureCredential(new DefaultAzureCredentialOptions() { ExcludeInteractiveBrowserCredential = !builder.Environment.IsDevelopment() });
+                    string endpoint = $"https://{envPrefix}-appconfig.azconfig.io";
+                    var credOptions = new DefaultAzureCredentialOptions()
+                    {
+                        ExcludeInteractiveBrowserCredential = !builder.Environment.IsDevelopment()
+                    };
+                    if (!string.IsNullOrEmpty(ManagedIdentityClientId))
+                    {
+                        credOptions.ManagedIdentityClientId = ManagedIdentityClientId;
+                    }
+                    DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
                     options.Connect(new Uri(endpoint), cred);
                     options.ConfigureKeyVault(options =>
                     {

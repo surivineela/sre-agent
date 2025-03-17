@@ -20,7 +20,7 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
-    private int _bestPracticeTimerIntervalInMinutes = 10;
+    private int _bestPracticeTimerIntervalInMinutes = 24 * 60;
 
 
     public TimerService(
@@ -111,7 +111,9 @@ public class TimerService : IHostedService, IDisposable
                     if (succeed)
                     {
                         _bestPracticeTimerIntervalInMinutes = 60 * 24; // Set to 1 day
-                        _bestPracticeTimer?.Change(TimeSpan.Zero, TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
+                        _bestPracticeTimer?.Change(
+                            TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes),
+                            TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
                         _logger.LogInformation("Best practice issues posted to Teams, will set the interval to 1 day");
                     }
                     else
@@ -130,7 +132,9 @@ public class TimerService : IHostedService, IDisposable
             {
                 _bestPracticeTimerIsRunning = false; // Ensure flag resets even if scan fails
             }
-        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
+        }, null,
+        TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes), // Initial delay before first execution
+        TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes)); // Interval between subsequent executions
     }
 
     public void Dispose()
