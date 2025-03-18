@@ -52,6 +52,7 @@ public sealed class ToolsRepository : IMcpConnectable
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         Register200(() => armPluginDefinition.SetMinimumTlsVersion);
         Register200(() => armPluginDefinition.RestartWebApp);
+        Register200(() => armPluginDefinition.GetTlsSettings);
 
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
         Register200(() => timePluginDefinition.GetCurrentUtcTime);

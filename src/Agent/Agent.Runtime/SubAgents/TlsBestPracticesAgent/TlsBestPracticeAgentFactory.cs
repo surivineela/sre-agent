@@ -30,6 +30,7 @@ public sealed class TlsBestPracticeAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.SetMinimumTlsVersion));
+        // toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetTlsSettings));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));

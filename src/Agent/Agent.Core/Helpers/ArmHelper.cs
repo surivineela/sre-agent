@@ -4,11 +4,13 @@
 
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
+using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Newtonsoft.Json.Linq;
+using OpenTelemetry.Resources;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -447,7 +449,21 @@ public static class ArmHelper
         return output;
     }
 
-    public static async Task<bool> UpdateMinimumTlsVersion(TlsStatus tlsStatus, string desiredTlsVersion)
+    public static async Task<bool> CheckIfResourceExistsAsync(string resourceId)
+    {
+        try
+        {
+            var resource = await armClient.GetGenericResource(new ResourceIdentifier(resourceId)).GetAsync();
+            return resource != null;
+        }
+        catch(RequestFailedException ex) when (ex.Status == 404)
+        {
+            // Resource not found
+            return false;
+        }
+    }
+
+    public static async Task<(bool, string)> UpdateMinimumTlsVersion(TlsStatus tlsStatus, string desiredTlsVersion)
     {
         if (tlsStatus == null || string.IsNullOrWhiteSpace(tlsStatus.ResourceId))
             throw new ArgumentException("Resource ID is required");
@@ -475,7 +491,15 @@ public static class ArmHelper
 
         var response = await httpClient.PutAsync(tlsUpdateUrl, content);
 
-        return response.IsSuccessStatusCode;
+        if (response.IsSuccessStatusCode)
+        {
+            return (true, string.Empty);
+        }
+        else
+        {
+            string responseBody = await response.Content.ReadAsStringAsync();
+            return (false, $"Http status code: {response.StatusCode}, body: {responseBody}");
+        }
     }
 
 

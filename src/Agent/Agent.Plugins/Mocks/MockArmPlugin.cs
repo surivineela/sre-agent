@@ -56,5 +56,15 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult(true);
         }
+
+        public Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> CheckIfResourceExists(string appResourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
