@@ -29,7 +29,6 @@ using Agent.Web.Services;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Azure.ResourceManager;
-using Kusto.Cloud.Platform.Utils;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -159,8 +158,6 @@ if (useSessionChatService)
         {
             return new ArmClient(new DefaultAzureCredential());
         }
-
-
 
     });
 

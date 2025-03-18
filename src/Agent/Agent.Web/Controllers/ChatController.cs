@@ -1,16 +1,10 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
-using Agent.Data.Repositories;
-using Agent.Runtime.Communication;
 using Agent.Web.Services;
 using Markdig;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.OData.Edm;
-using System;
-using System.Threading.Tasks;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Web.Controllers

@@ -1,12 +1,8 @@
 ﻿using Agent.Core.Models.Api.v1;
-using Agent.Data.Repositories;
-using Agent.Runtime.Communication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
-using System.Collections.Concurrent;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 
 namespace Agent.Web.Controllers.v1
