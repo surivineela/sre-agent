@@ -152,10 +152,16 @@ if (useSessionChatService)
         if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
         {
             mi = ManagedIdentityId.FromUserAssignedClientId(crawlerSettings.IdentityClientId);
+            var credOptions = new ManagedIdentityCredentialOptions(mi);
+            return new ArmClient(new ManagedIdentityCredential(credOptions));
         }
-        var credOptions = new ManagedIdentityCredentialOptions(mi);
+        else
+        {
+            return new ArmClient(new DefaultAzureCredential());
+        }
 
-        return new ArmClient(new ManagedIdentityCredential(credOptions));
+
+
     });
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
