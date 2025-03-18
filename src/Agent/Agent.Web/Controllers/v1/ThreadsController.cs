@@ -15,11 +15,9 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
-        IThreadRepository repository) : ControllerBase
+        IThreadRepository repository,
+        ILogger<ThreadsController> logger) : ControllerBase
     {
-        private readonly IThreadRepository _repository = repository;
-        private readonly IAgentInboundCommunicationService _agentInboundCommunicationService = agentInboundCommunicationService;
-
         [HttpGet]
         public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<Thread> queryOptions)
         {
@@ -36,7 +34,7 @@ namespace Agent.Web.Controllers.v1
 
             // In a full implementation, you would parse queryOptions.Filter into a format 
             // that your repository can understand
-            var threads = await _repository.GetThreadsAsync(filter, skip, take);
+            var threads = await repository.GetThreadsAsync(filter, skip, take);
 
             // Apply OData filtering and pagination
             return Ok(new PagedResponse<Thread>(threads));
@@ -45,10 +43,14 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("{id}")]
         public async Task<ActionResult<Thread>> GetThread(Guid id)
         {
-            var thread = await _repository.GetThreadAsync(id);
+            logger.LogInformation("Trying to get thread: {Id}", id);
+            var thread = await repository.GetThreadAsync(id);
 
             if (thread == null)
+            {
+                logger.LogInformation("Thread not found: {Id}", id);
                 return NotFound();
+            }
 
             return Ok(thread);
         }
@@ -72,11 +74,12 @@ namespace Agent.Web.Controllers.v1
                 ModifiedTimestamp: DateTime.UtcNow
             );
 
-            thread = await _repository.CreateThreadAsync(thread);
+            thread = await repository.CreateThreadAsync(thread);
 
-            var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+            var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: thread.Id,
+                MessageId: thread.StartMessage.Id,
                 Message: request.StartMessage.Text,
                 UserId: request.StartMessage.UserId,
                 DisplayName: request.StartMessage.DisplayName,
@@ -90,7 +93,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<ActionResult<PagedResponse<Message>>> GetMessages(Guid threadId, ODataQueryOptions<Message> queryOptions)
         {
             // First check if thread exists
-            var thread = await _repository.GetThreadAsync(threadId);
+            var thread = await repository.GetThreadAsync(threadId);
 
             if (thread == null)
                 return NotFound();
@@ -106,7 +109,7 @@ namespace Agent.Web.Controllers.v1
             if (queryOptions.Top != null)
                 take = queryOptions.Top.Value;
 
-            var messages = await _repository.GetMessagesAsync(threadId, filter, skip, take);
+            var messages = await repository.GetMessagesAsync(threadId, filter, skip, take);
 
             return Ok(new PagedResponse<Message>(messages));
         }
@@ -114,7 +117,7 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("{threadId}/messages/{messageId}")]
         public async Task<ActionResult<Message>> GetMessage(Guid threadId, Guid messageId)
         {
-            var message = await _repository.GetMessageAsync(threadId, messageId);
+            var message = await repository.GetMessageAsync(threadId, messageId);
 
             if (message == null)
                 return NotFound();
@@ -129,15 +132,16 @@ namespace Agent.Web.Controllers.v1
                 return BadRequest(ModelState);
 
             // First check if thread exists
-            var thread = await _repository.GetThreadAsync(threadId);
+            var thread = await repository.GetThreadAsync(threadId);
 
             if (thread == null)
                 return NotFound();
 
 
-            var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
+            var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: threadId,
+                MessageId: Guid.NewGuid(),
                 Message: request.Text,
                 UserId: request.UserId,
                 DisplayName: request.DisplayName,
@@ -159,12 +163,12 @@ namespace Agent.Web.Controllers.v1
         public async Task<ActionResult<PagedResponse<Action>>> GetActions(Guid threadId, int? skip = null, int? top = null)
         {
             // First check if thread exists
-            var thread = await _repository.GetThreadAsync(threadId);
+            var thread = await repository.GetThreadAsync(threadId);
 
             if (thread == null)
                 return NotFound();
 
-            var actions = await _repository.GetActionsAsync(threadId, skip, top);
+            var actions = await repository.GetActionsAsync(threadId, skip, top);
 
             return Ok(new PagedResponse<Action>(actions));
         }
@@ -172,12 +176,12 @@ namespace Agent.Web.Controllers.v1
         [HttpDelete("{threadId}")]
         public async Task<IActionResult> DeleteThread(Guid threadId)
         {
-            var thread = await _repository.GetThreadAsync(threadId);
+            var thread = await repository.GetThreadAsync(threadId);
 
             if (thread == null)
                 return NotFound();
 
-            await _repository.DeleteThreadAsync(threadId);
+            await repository.DeleteThreadAsync(threadId);
 
             return NoContent();
         }

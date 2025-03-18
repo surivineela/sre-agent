@@ -4,6 +4,7 @@ using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Data;
 
@@ -42,7 +43,8 @@ public static class AgentDataConfiguration
             var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
 
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
-            return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, ContainerName);
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbThreadRepository>>();
+            return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, ContainerName, logger);
         });
 
         // Add Thread Orchestration Mapping repository registration

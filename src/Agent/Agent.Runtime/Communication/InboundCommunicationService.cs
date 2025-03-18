@@ -36,7 +36,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         try
         {
             var aiMessage = new Message(
-                Id: Guid.NewGuid(),
+                Id: message.MessageId,
                 TimeStamp: DateTime.UtcNow,
                 Author: new Author(Role.User, message.UserId, message.DisplayName),
                 Text: message.Message

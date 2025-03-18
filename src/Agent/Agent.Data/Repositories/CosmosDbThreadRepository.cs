@@ -6,8 +6,8 @@ using System.Net;
 using Container = Microsoft.Azure.Cosmos.Container;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Action = Agent.Core.Models.Api.v1.Action;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Data.Repositories;
 
@@ -15,16 +15,19 @@ namespace Agent.Data.Repositories;
 public class CosmosDbThreadRepository : IThreadRepository
 {
     private readonly Container _container;
+    private readonly ILogger<CosmosDbThreadRepository> _logger;
 
-    public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, string containerName)
+    public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, string containerName, ILogger<CosmosDbThreadRepository> logger)
     {
         _container = cosmosClient.GetContainer(databaseName, containerName);
+        _logger = logger;
     }
 
     #region Thread Operations
 
     public async Task<Thread> GetThreadAsync(Guid threadId)
     {
+        _logger.LogInformation("Trying to get thread: {Id}", threadId);
         try
         {
             // First get the thread document
@@ -32,13 +35,19 @@ public class CosmosDbThreadRepository : IThreadRepository
             ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
 
             if (threadDoc == null)
+            {
+                _logger.LogInformation("Thread not found: {Id}", threadId);
                 return null;
+            }
 
             // Then get the start message
             MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(threadDoc.MessageId, threadIdStr);
 
             if (startMessageDoc == null)
+            {
+                _logger.LogInformation("Start message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadId);
                 return null;
+            }
 
             // Convert to domain model
             return threadDoc.ToDomainModel(startMessageDoc.ToDomainModel());

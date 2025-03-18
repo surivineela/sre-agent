@@ -201,6 +201,7 @@ namespace Agent.Web.Controllers
                     // Process message using the new API
                     var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
                         ThreadId: threadId,
+                        MessageId: Guid.NewGuid(),
                         Message: request.Message,
                         UserId: "user",
                         DisplayName: "User",

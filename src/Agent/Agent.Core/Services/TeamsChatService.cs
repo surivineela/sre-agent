@@ -128,6 +128,7 @@ public class TeamsBot : TeamsActivityHandler
             // Process the message using the Threads API
             var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
                 ThreadId: chatIdGuid,
+                MessageId: Guid.NewGuid(),
                 Message: messageText,
                 UserId: userId,
                 DisplayName: senderName,
