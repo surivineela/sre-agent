@@ -105,6 +105,8 @@ namespace Agent.Tests.Integration
             _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
 
+            services.AddSingleton<TimeProvider>(_timeProvider);
+            services.AddSingleton<IRemediationPlugin, MockRemediationPlugin>();
             services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
             services.AddSingleton<IArmPlugin>(_mockArmPlugin);
             services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
