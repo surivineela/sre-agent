@@ -28,5 +28,7 @@ namespace Agent.Core.Configuration
 
         [Required]
         public CrawlerSettings Crawler { get; set; } = new();
+
+        public FederationSettings Federation { get; set; } = new();
     }
 }

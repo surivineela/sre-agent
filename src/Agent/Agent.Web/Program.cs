@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Data;
@@ -15,22 +16,20 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
+using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
-using Agent.Runtime.Communication;
 using Agent.Seb.Services;
 using Agent.Web.Services;
 using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Azure.ResourceManager;
-using McpDotNet.Client;
-using McpDotNet.Configuration;
-using McpDotNet.Extensions.AI;
-using Microsoft.Azure.Cosmos;
+using Kusto.Cloud.Platform.Utils;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -38,15 +37,12 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
-using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Agent.Runtime.SubAgents.AppServiceRemediation;
-using Agent.Core.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -152,12 +148,14 @@ if (useSessionChatService)
     builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
     {
         var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
-        var credOptions = new DefaultAzureCredentialOptions();
+        ManagedIdentityId mi = null;
         if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
         {
-            credOptions.ManagedIdentityClientId = crawlerSettings.IdentityClientId;
+            mi = ManagedIdentityId.FromUserAssignedClientId(crawlerSettings.IdentityClientId);
         }
-        return new ArmClient(new DefaultAzureCredential(credOptions));
+        var credOptions = new ManagedIdentityCredentialOptions(mi);
+
+        return new ArmClient(new ManagedIdentityCredential(credOptions));
     });
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
@@ -196,25 +194,77 @@ if (useSessionChatService)
     builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
     builder.Services.AddSingleton<IBot, TeamsBot>();
 
-
-    var durableConnectionString = "";
-    if (string.IsNullOrEmpty(durableConnectionString))
+    builder.Services.AddDurableTaskWorker(b =>
     {
-        durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-    }
-
-    builder.Services.AddDurableTaskWorker(builder =>
-    {
-        builder.AddTasks(r =>
+        b.AddTasks(r =>
         {
             DurableHelper.AddAllGeneratedTasks(r);
         });
-        builder.UseDurableTaskScheduler(durableConnectionString);
+
+        var azureSettings = builder.Configuration.GetSection("AppSettings")
+                     .GetSection("Core")
+                     .GetSection("Azure")
+                     .Get<AzureSettings>();
+
+        var durableConnectionString = azureSettings?.DTS.ConnectionString;
+        if (string.IsNullOrEmpty(durableConnectionString))
+        {
+            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+        }
+
+        if (!string.IsNullOrEmpty(azureSettings?.Federation.ClientId))
+        {
+            var credOptions = new WorkloadIdentityCredentialOptions()
+            {
+                ClientId = azureSettings.Federation.ClientId,
+                TenantId = azureSettings.Federation.TenantId,
+                AuthorityHost = new Uri(azureSettings.Federation.AuthorityHost),
+            };
+            var credential = new WorkloadIdentityCredential(credOptions);
+            b.UseDurableTaskScheduler(durableConnectionString, options =>
+            {
+                options.Credential = credential;
+                options.TaskHubName = "Default"; // TODO: change to agent specific
+            });
+        }
+        else
+        {
+            b.UseDurableTaskScheduler(durableConnectionString);
+        }
     });
 
-    builder.Services.AddDurableTaskClient(builder =>
+    builder.Services.AddDurableTaskClient(b =>
     {
-        builder.UseDurableTaskScheduler(durableConnectionString);
+        var azureSettings = builder.Configuration.GetSection("AppSettings")
+                     .GetSection("Core")
+                     .GetSection("Azure")
+                     .Get<AzureSettings>();
+
+        var durableConnectionString = azureSettings?.DTS.ConnectionString;
+        if (string.IsNullOrEmpty(durableConnectionString))
+        {
+            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+        }
+
+        if (!string.IsNullOrEmpty(azureSettings?.Federation.ClientId))
+        {
+            var credOptions = new WorkloadIdentityCredentialOptions()
+            {
+                ClientId = azureSettings.Federation.ClientId,
+                TenantId = azureSettings.Federation.TenantId,
+                AuthorityHost = new Uri(azureSettings.Federation.AuthorityHost),
+            };
+            var credential = new WorkloadIdentityCredential(credOptions);
+            b.UseDurableTaskScheduler(durableConnectionString, options =>
+            {
+                options.Credential = credential;
+                options.TaskHubName = "Default"; // TODO: change to agent specific
+            });
+        }
+        else
+        {
+            b.UseDurableTaskScheduler(durableConnectionString);
+        }
     });
 
     builder.Services.AddCosmosClient();
@@ -346,12 +396,12 @@ ILoggerFactory GetLoggerFactory(ResourceBuilder resourceBuilder, AzureSettings a
 // Helper method to get Azure Portal domains
 static string[] GetAzurePortalDomains(IConfiguration configuration)
 {
-    string azurePortalDomains = "";    
+    string azurePortalDomains = "";
     var configDomains = configuration.GetValue<string>("AppSettings:AzurePortalDomains");
     if (!string.IsNullOrEmpty(configDomains))
     {
         azurePortalDomains = configDomains;
     }
-    
+
     return azurePortalDomains.Split(',');
 }

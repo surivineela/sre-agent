@@ -5,6 +5,7 @@ using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Azure.Identity;
 
 namespace Agent.Data;
 
@@ -17,23 +18,39 @@ public static class AgentDataConfiguration
         serviceCollection.AddSingleton(serviceProvider =>
         {
             var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var federationSettings = serviceProvider.GetRequiredService<FederationSettings>();
 
             var cosmosAccountName = cosmosDbSettings.Docs.AccountName;
             var cosmosAccountApiKey = cosmosDbSettings.Docs.ApiKey;
             var domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
-
-            var cosmosConnectionString = $"AccountEndpoint=https://{cosmosAccountName}.{domainSuffix};AccountKey={cosmosAccountApiKey};";
-
+            var endpoint = $"https://{cosmosAccountName}.{domainSuffix}";
             var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
 
-
-            return new CosmosClient(cosmosConnectionString, new CosmosClientOptions
+            var cosmosOptions = new CosmosClientOptions
             {
                 SerializerOptions = new CosmosSerializationOptions
                 {
                     PropertyNamingPolicy = CosmosPropertyNamingPolicy.CamelCase
                 }
-            });
+            };
+
+            if (string.IsNullOrEmpty(federationSettings.ClientId))
+            {
+                var cosmosConnectionString = $"AccountEndpoint={endpoint};AccountKey={cosmosAccountApiKey};";
+                return new CosmosClient(cosmosConnectionString, cosmosOptions);
+            }
+            else
+            {
+                var credOptions = new WorkloadIdentityCredentialOptions()
+                {
+                    ClientId = federationSettings.ClientId,
+                    TenantId = federationSettings.TenantId,
+                    AuthorityHost = new Uri(federationSettings.AuthorityHost),
+                };
+
+                var credential = new WorkloadIdentityCredential(credOptions);
+                return new CosmosClient(endpoint, credential, cosmosOptions);
+            }
         });
 
         // Register the repository
