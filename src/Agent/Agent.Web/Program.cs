@@ -251,6 +251,12 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Add CORS support for Azure Portal domains
+app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(builder.Configuration))
+                  .AllowAnyHeader()
+                  .AllowCredentials()
+                  .SetIsOriginAllowedToAllowWildcardSubdomains());
+
 app.UseHttpsRedirection();
 
 // Serve static files from wwwroot
@@ -334,4 +340,17 @@ ILoggerFactory GetLoggerFactory(ResourceBuilder resourceBuilder, AzureSettings a
             options.IncludeScopes = true;
         });
     });
+}
+
+// Helper method to get Azure Portal domains
+static string[] GetAzurePortalDomains(IConfiguration configuration)
+{
+    string azurePortalDomains = "";    
+    var configDomains = configuration.GetValue<string>("AppSettings:AzurePortalDomains");
+    if (!string.IsNullOrEmpty(configDomains))
+    {
+        azurePortalDomains = configDomains;
+    }
+    
+    return azurePortalDomains.Split(',');
 }
