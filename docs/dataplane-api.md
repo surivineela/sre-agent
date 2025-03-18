@@ -155,3 +155,39 @@ value:
     title: "Applied TLS configuration change to an app service named myappservice2"
     timestamp: '2025-03-11'
     status: Completed
+```
+
+## Approvals
+
+
+### List Approvals
+
+- `GET  /api/v1/approvals?filter`
+
+The API is pageable with ODATA filter. It is possible to get a specific approval by using this: `GET /api/v1/approvals/<id>`
+
+Response:
+
+```yaml
+value:
+  - id: id
+    title: "TLS configuration setting update"
+    createdTimestamp: '2025-03-10'
+    decisionTimestamp: '2025-03-10'
+    status: Approved
+    decisionUserId: 'user-789'
+  - id: id
+    title: "Always On configuration setting update"
+    createdTimestamp: '2025-03-17'    
+    status: Pending    
+```
+
+### Submit an Approval Decision
+
+- `POST api/v1/approvals/<id>/decision`
+
+```yaml
+value:
+  status: Approved  
+```
+

@@ -1,0 +1,13 @@
+﻿### Get threads
+GET https://{{ApiHostname}}/api/v1/approvals
+Content-Type: application/json
+Accept: application/json
+
+### Submit an approval
+POST https://{{ApiHostname}}/api/v1/approvals/123/decision
+Content-Type: application/json
+Accept: application/json
+
+{
+  "status": "Approved"
+}

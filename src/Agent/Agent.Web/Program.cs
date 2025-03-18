@@ -130,6 +130,7 @@ if (useSessionChatService)
         .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
         .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
         .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
+        .AddSingleton<IApprovalService, DurableApprovalService>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()
