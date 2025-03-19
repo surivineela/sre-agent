@@ -215,10 +215,6 @@ if (useSessionChatService)
                      .Get<AzureSettings>();
 
         var durableConnectionString = azureSettings?.DTS.ConnectionString;
-        if (string.IsNullOrEmpty(durableConnectionString))
-        {
-            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-        }
 
         if (!string.IsNullOrEmpty(azureSettings?.Federation.ClientId))
         {
@@ -236,6 +232,7 @@ if (useSessionChatService)
         }
         else
         {
+            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
             b.UseDurableTaskScheduler(durableConnectionString);
         }
     });
@@ -248,10 +245,6 @@ if (useSessionChatService)
                      .Get<AzureSettings>();
 
         var durableConnectionString = azureSettings?.DTS.ConnectionString;
-        if (string.IsNullOrEmpty(durableConnectionString))
-        {
-            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-        }
 
         if (!string.IsNullOrEmpty(azureSettings?.Federation.ClientId))
         {
@@ -269,6 +262,7 @@ if (useSessionChatService)
         }
         else
         {
+            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
             b.UseDurableTaskScheduler(durableConnectionString);
         }
     });
