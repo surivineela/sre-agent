@@ -24,6 +24,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
         private readonly TlsBestPracticeAgentFactory _tlsBestPracticeAgentFactory;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly IGraphDatabaseClient _graphDatabaseClient;
+        private readonly ArmHelper _armHelper;
 
         public TlsBestPracticesScanner(
             DurableTaskClient durableTaskClient,
@@ -31,8 +32,8 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             TlsBestPracticeAgentFactory tlsBestPracticeAgentFactory,
             ILogger<TlsBestPracticesScanner> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
-            IGraphDatabaseClient graphDatabaseClient
-            )
+            IGraphDatabaseClient graphDatabaseClient,
+            ArmHelper armHelper)
         {
             _logger = logger;
             _durableTaskClient = durableTaskClient;
@@ -40,6 +41,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             _tlsBestPracticeAgentFactory = tlsBestPracticeAgentFactory;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
+            _armHelper = armHelper;
         }
 
 
@@ -66,7 +68,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             // some temp filtering because Paul has too many resources
             resources.RemoveAll(x => x.StartsWith("/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/", StringComparison.InvariantCultureIgnoreCase) && !x.Contains("-demo", StringComparison.InvariantCultureIgnoreCase));
 
-            var tlsSettings = await ArmHelper.GetTlsSettings(resources);
+            var tlsSettings = await _armHelper.GetTlsSettings(resources);
             var appsInViolation = tlsSettings.Where(x => new Version(x.MinimumTlsVersion) < new Version("1.2"))
                 .ToList();
 
