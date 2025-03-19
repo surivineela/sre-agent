@@ -42,7 +42,7 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
     {
         if (string.IsNullOrEmpty(mapping.ThreadId) || string.IsNullOrEmpty(mapping.OrchestrationInstanceId))
         {
-            throw new ArgumentException("ThreadId and OrchestrationInstanceId cannot be null or empty.");
+            throw new ArgumentException("ThreadId and OrchestrationInstanceId cannot be null or empty");
         }
 
         try

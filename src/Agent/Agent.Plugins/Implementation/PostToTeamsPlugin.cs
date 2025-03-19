@@ -2,7 +2,6 @@
 using System.Threading;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
-using Agent.Core.Services;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -10,6 +9,7 @@ using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.Logging;
 using Microsoft.Bot.Connector;
+using Agent.Data.Repositories;
 
 namespace Agent.Plugins.Implementation
 {
@@ -17,6 +17,7 @@ namespace Agent.Plugins.Implementation
     {
         private readonly IBotFrameworkHttpAdapter _adapter;
         private readonly ILogger<PostToTeamsPlugin> _logger;
+        private readonly IThreadTeamsMappingRepository _threadTeamsMappingRepository;
 
         private readonly string _appId;
         private readonly string _tenantId;
@@ -30,39 +31,30 @@ namespace Agent.Plugins.Implementation
         public PostToTeamsPlugin(
             IBotFrameworkHttpAdapter adapter,
             ILogger<PostToTeamsPlugin> logger,
-            TeamsBotSettings teamsBot)
-        // ConversationReference defaultConversationReference)
+            TeamsBotSettings teamsBot,
+            IThreadTeamsMappingRepository threadTeamsMappingRepository)
         {
             _adapter = adapter ?? throw new ArgumentNullException(nameof(adapter));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _threadTeamsMappingRepository = threadTeamsMappingRepository ?? throw new ArgumentNullException(nameof(threadTeamsMappingRepository));
             _appId = teamsBot.AppId;
             _tenantId = teamsBot.TenantId;
         }
 
         public async Task<string> PostAsync(string message)
         {
-            // Check if ConversationReferences dictionary is empty
-            if (TeamsBot.ConversationReferences == null || !TeamsBot.ConversationReferences.Any())
+            // Get a valid Teams channel from the repository
+            var defaultChannel = await _threadTeamsMappingRepository.GetFirstOrDefaultChannel();
+
+            if (defaultChannel == null)
             {
-                _logger.LogError("No conversation references available. The bot hasn't received any messages yet.");
-                return "Error: No Teams channels available to post message. The bot needs to receive at least one message first.";
+                _logger.LogError("No conversation references available in the repository. The bot hasn't registered any Teams channels yet.");
+                return "Error: No Teams channels available to post message. The bot needs to register at least one Teams channel first.";
             }
 
-            var defaultConversation = TeamsBot.ConversationReferences.Values.FirstOrDefault();
-            if (defaultConversation == null)
-            {
-                _logger.LogError("Failed to get a valid conversation reference from available references.");
-                return "Error: Failed to find a valid Teams channel to post message.";
-            }
-
-            // Extract the service URL from the stored conversation reference.
-            var serviceUrl = defaultConversation.ServiceUrl;
-
-            // Create a continuation activity to extract Teams channel data.
-            var continuationActivity = defaultConversation.GetContinuationActivity();
-            var teamsChannelData = continuationActivity.GetChannelData<TeamsChannelData>();
-
-            string channelId = defaultConversation.ChannelId;
+            // Extract the service URL and channel ID from the mapping
+            var serviceUrl = defaultChannel.ServiceUrl;
+            var channelId = defaultChannel.ChannelId;
 
             if (string.IsNullOrEmpty(serviceUrl) || string.IsNullOrEmpty(channelId))
             {

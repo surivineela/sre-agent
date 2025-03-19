@@ -95,6 +95,7 @@ if ! az containerapp show --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} 
         --environment ${ENVIRONMENT_NAME} \
         --image ${FULL_IMAGE_NAME} \
         --target-port 8080 --ingress external \
+        --min-replicas 1 \
         --env-vars AppSettings__EnvPrefix=$PRIVATE_STAMP_ENV_PREFIX \
         ASPNETCORE_ENVIRONMENT=Development \
         AppSettings__ManagedIdentityClientId=$MI_CLIENT_ID \
@@ -108,6 +109,7 @@ else
     az containerapp update \
         --name ${APP_NAME} \
         --resource-group ${RESOURCE_GROUP} \
+        --min-replicas 1 \
         --set-env-vars AppSettings__EnvPrefix=$PRIVATE_STAMP_ENV_PREFIX \
         ASPNETCORE_ENVIRONMENT=Development \
         AppSettings__ManagedIdentityClientId=$MI_CLIENT_ID \
@@ -117,38 +119,15 @@ else
         --image ${FULL_IMAGE_NAME}
 fi
 
-echo "Deployment completed successfully!"
-echo "Monitor the deployment with: az containerapp show -n ${APP_NAME} -g ${RESOURCE_GROUP} --query properties.latestRevisionName"
+# Define colors for better readability
+GREEN='\033[0;32m'
+BLUE='\033[0;34m'
+YELLOW='\033[0;33m'
+BOLD='\033[1m'
+RESET='\033[0m'
 
-# Wait for Container App to be ready
-echo "Waiting for Container App to be ready..."
-TIMEOUT=30 # 30 seconds timeout
-INTERVAL=3 # 3 seconds interval
-ELAPSED=0
-
-while [ $ELAPSED -lt $TIMEOUT ]; do
-    # Get deployment status
-    APP_STATUS=$(az containerapp show --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} \
-        --query "properties.latestRevisionStatus" -o tsv 2>/dev/null)
-
-    # Check if app is ready
-    if [[ "$APP_STATUS" == "Running" ]]; then
-        echo "Container App is running and ready!"
-        break
-    fi
-
-    # If we've reached the timeout, exit with error
-    if [ $ELAPSED -ge $TIMEOUT ]; then
-        echo "Error: Timed out waiting for Container App to be ready."
-        echo "Current status: $APP_STATUS"
-        echo "Check the app with: az containerapp show -n ${APP_NAME} -g ${RESOURCE_GROUP}"
-        exit 1
-    fi
-
-    echo "Waiting for Container App to be ready... (${ELAPSED}s/${TIMEOUT}s)"
-    sleep $INTERVAL
-    ELAPSED=$((ELAPSED + INTERVAL))
-done
+echo -e "${GREEN}${BOLD}Deployment completed successfully!${RESET}"
+echo -e "${BLUE}Monitor the deployment with:${RESET} ${YELLOW}az containerapp show -n ${APP_NAME} -g ${RESOURCE_GROUP} --query properties.latestRevisionName${RESET}"
 
 # Get the FQDN of the Container App
 APP_URL=$(az containerapp show --name ${APP_NAME} --resource-group ${RESOURCE_GROUP} \
@@ -159,15 +138,17 @@ LATEST_REVISION=$(az containerapp show --name ${APP_NAME} --resource-group ${RES
     --query "properties.latestRevisionName" -o tsv)
 
 if [ ! -z "$APP_URL" ]; then
-    echo "Service is accessible at: https://${APP_URL}"
-    echo "Note: It may take a few minutes for the service to be fully available"
-    echo "View all container logs: az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP}"
-    echo "View logs for specific revision: az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP} --revision ${LATEST_REVISION}"
-    echo "List all replicas: az containerapp revision list-replicas -n ${APP_NAME} -g ${RESOURCE_GROUP} --revision ${LATEST_REVISION}"
+    echo -e "${GREEN}${BOLD}Service is accessible at:${RESET} ${GREEN}https://${APP_URL}${RESET}"
+    echo -e "${BLUE}Note: It may take a few minutes for the service to be fully available${RESET}"
+    echo -e "\n${BOLD}Useful commands:${RESET}"
+    echo -e "${BLUE}View all container logs:${RESET} ${YELLOW}az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP}${RESET}"
+    echo -e "${BLUE}View logs for specific revision:${RESET} ${YELLOW}az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP} --revision ${LATEST_REVISION} --follow${RESET}"
+    echo -e "${BLUE}List all replicas:${RESET} ${YELLOW}az containerapp revision list-replicas -n ${APP_NAME} -g ${RESOURCE_GROUP} --revision ${LATEST_REVISION}${RESET}"
 else
-    echo "Could not determine Container App URL. Once deployment is complete,"
-    echo "you can view the URL with: az containerapp show -n ${APP_NAME} -g ${RESOURCE_GROUP} --query properties.configuration.ingress.fqdn"
-    echo "View all container logs: az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP}"
-    echo "View logs for specific revision: az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP} --revision ${LATEST_REVISION}"
-    echo "List all revisions: az containerapp revision list -n ${APP_NAME} -g ${RESOURCE_GROUP}"
+    echo -e "${BLUE}Could not determine Container App URL. Once deployment is complete,${RESET}"
+    echo -e "${BLUE}you can view the URL with:${RESET} ${YELLOW}az containerapp show -n ${APP_NAME} -g ${RESOURCE_GROUP} --query properties.configuration.ingress.fqdn${RESET}"
+    echo -e "\n${BOLD}Useful commands:${RESET}"
+    echo -e "${BLUE}View all container logs:${RESET} ${YELLOW}az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP}${RESET}"
+    echo -e "${BLUE}View logs for specific revision:${RESET} ${YELLOW}az containerapp logs show -n ${APP_NAME} -g ${RESOURCE_GROUP} --revision ${LATEST_REVISION}${RESET}"
+    echo -e "${BLUE}List all revisions:${RESET} ${YELLOW}az containerapp revision list -n ${APP_NAME} -g ${RESOURCE_GROUP}${RESET}"
 fi

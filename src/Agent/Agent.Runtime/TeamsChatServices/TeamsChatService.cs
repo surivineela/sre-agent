@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Core.Configuration;
+using Agent.Data.Repositories;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -18,21 +19,20 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
+using Microsoft.Bot.Connector;
+using System.Threading.Tasks;
 
-namespace Agent.Core.Services;
+namespace Agent.Runtime.TeamsChatServices;
 
 public class TeamsBot : TeamsActivityHandler
 {
     private readonly ILogger<TeamsBot> _logger;
-    private readonly Dictionary<string, string> _conversationThreadMapping;
+    private readonly IThreadTeamsMappingRepository _conversationThreadMapping;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
-    public static Dictionary<string, ConversationReference> ConversationReferences = new();
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
 
-    // Track all posted message IDs per thread to prevent duplicate postings
-    private readonly ConcurrentDictionary<Guid, HashSet<Guid>> _postedMessageIds = new();
-    // Track last poll timestamp per thread to limit fetching window
+    // Keeping track of last poll timestamp per thread to limit fetching window
     private readonly ConcurrentDictionary<Guid, DateTime> _lastPollTimestamps = new();
 
     private readonly CancellationTokenSource _pollingCancellationSource = new();
@@ -59,10 +59,11 @@ public class TeamsBot : TeamsActivityHandler
         IBotFrameworkHttpAdapter teamsAdapter,
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository threadRepository,
+        IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot)
     {
         _logger = logger;
-        _conversationThreadMapping = new Dictionary<string, string>();
+        _conversationThreadMapping = threadTeamsMappingRepository;
         _teamsAdapter = teamsAdapter;
         _agentInboundCommunicationService = agentInboundCommunicationService;
         _threadRepository = threadRepository;
@@ -83,13 +84,10 @@ public class TeamsBot : TeamsActivityHandler
         var conversationReference = turnContext.Activity.GetConversationReference();
         conversationReference.ServiceUrl = serviceUrl;
         conversationReference.ChannelId = teamsChannelId;
-        _logger.LogInformation($"Teams Conversation: Received message from Teams channel {teamsChannelId}, service URL: {serviceUrl}");
 
-        // Store conversation reference for later proactive messaging
-        lock (ConversationReferences)
-        {
-            ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
-        }
+        // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
+        string threadId = await GetOrCreateChatId(turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, conversationReference);
+        Guid chatIdGuid = Guid.Parse(threadId);
 
         string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
         if (string.IsNullOrEmpty(messageText))
@@ -102,11 +100,8 @@ public class TeamsBot : TeamsActivityHandler
         string senderName = turnContext.Activity.From?.Name ?? "Unknown User";
         string userId = turnContext.Activity.From?.Id ?? "teams-user";
 
-        // Get or create thread ID for this conversation
-        string chatId = GetOrCreateChatId(conversationId);
-        Guid chatIdGuid = Guid.Parse(chatId);
 
-        _logger.LogInformation($"[Teams Conversation: {conversationId}][Thread: {chatId}]\nSending message to agent: {messageText}");
+        _logger.LogInformation($"[Teams Conversation: {conversationId}][Thread: {threadId}]\nSending message to agent: {messageText}");
 
         if (messageText.ToLowerInvariant() == "hello")
         {
@@ -118,12 +113,6 @@ public class TeamsBot : TeamsActivityHandler
         {
             // Teams channel and chat group don't support streaming API for now.
             // The new DTS integration don't support streaming API as well.
-            var channelDataObj = turnContext.Activity.ChannelData as JObject;
-            if (channelDataObj != null && channelDataObj["team"] != null)
-            {
-                // Teams channel response is slow, add this to tell user that the bot is processing the request
-                await turnContext.SendActivityAsync(MessageFactory.Text("The Agent is processing your request..."), cancellationToken).ConfigureAwait(false);
-            }
 
             // Process the message using the Threads API
             var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
@@ -146,109 +135,110 @@ public class TeamsBot : TeamsActivityHandler
     /// Get or create a thread ID for this conversation,
     /// and proactively create a new Teams thread (post) in the channel with a message.
     /// </summary>
-    private string CreateChatWithTeamsPost(string conversationId, string message)
+    private async Task<string> CreateChatWithTeamsPost(string conversationId, string message)
     {
-        lock (_conversationThreadMapping)
+
+        var mapping = await _conversationThreadMapping.GetFirstOrDefaultChannel();
+        if (mapping == null)
         {
-            if (!_conversationThreadMapping.TryGetValue(conversationId, out string chatId))
-            {
-                // Create a new internal thread ID.
-                string newChatId = Guid.NewGuid().ToString();
-                _conversationThreadMapping[conversationId] = newChatId;
-
-                // Retrieve the first stored conversation reference.
-                if (!ConversationReferences.TryGetValue(conversationId, out var conversationReference))
-                {
-                    // If not found, select any available reference.
-                    conversationReference = ConversationReferences.Values.FirstOrDefault();
-                    if (conversationReference == null)
-                    {
-                        _logger.LogWarning("No conversation reference available for proactive messaging.");
-                        return newChatId;
-                    }
-                }
-
-                // Extract necessary details from the conversation reference.
-                var serviceUrl = conversationReference.ServiceUrl;
-                var continuationActivity = conversationReference.GetContinuationActivity();
-                var teamsChannelData = continuationActivity.GetChannelData<TeamsChannelData>();
-                string channelId = teamsChannelData?.Channel?.Id;
-                string teamId = teamsChannelData?.Team?.Id;
-
-                if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
-                {
-                    _logger.LogWarning("Missing channelId or serviceUrl in stored conversation reference.");
-                    return newChatId;
-                }
-
-                var adapter = _teamsAdapter as CloudAdapter;
-                if (adapter == null)
-                {
-                    _logger.LogError("Adapter is not a CloudAdapter instance.");
-                    return newChatId;
-                }
-
-                // Fire-and-forget task to create a new thread on Teams.
-                Task.Run(async () =>
-                {
-                    try
-                    {
-                        var conversationParameters = new ConversationParameters
-                        {
-                            IsGroup = true,
-                            ChannelData = new TeamsChannelData
-                            {
-                                Team = new TeamInfo { Id = teamId },
-                                Channel = new ChannelInfo { Id = channelId }
-                            },
-                            Activity = MessageFactory.Text(message)
-                        };
-
-                        await adapter.CreateConversationAsync(
-                            botAppId: _appId,
-                            serviceUrl: serviceUrl,
-                            channelId: channelId,
-                            audience: null,
-                            conversationParameters: conversationParameters,
-                            callback: async (turnContext, ct) =>
-                            {
-                                await turnContext.SendActivityAsync("New conversation thread created.", cancellationToken: ct);
-                            },
-                            cancellationToken: CancellationToken.None);
-
-                        _logger.LogInformation($"Created new thread with Teams post {newChatId} for conversation {conversationId}");
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Failed to create thread with Teams post for conversation {conversationId}");
-                    }
-                });
-
-                return newChatId;
-            }
-
-            return chatId;
+            _logger.LogError($"Failed to create thread and send proactive message with Teams post due to conversation {conversationId} not found");
+            return "";
         }
+
+        var serviceUrl = mapping.ServiceUrl;
+        string channelId = mapping.ChannelId;
+
+        if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
+        {
+            _logger.LogWarning("Missing channelId or serviceUrl in stored conversation reference, probably this is from Teams private chat or chat group, please make sure this is from teams channel.");
+            return mapping.Id;
+        }
+
+        var adapter = _teamsAdapter as CloudAdapter;
+        if (adapter == null)
+        {
+            _logger.LogError("Adapter is not a CloudAdapter instance.");
+            return mapping.Id;
+        }
+        var newThreadId = Guid.NewGuid();
+
+        // Fire-and-forget task to create a new thread on Teams.
+        await Task.Run(async () =>
+        {
+            try
+            {
+                var conversationParameters = new ConversationParameters
+                {
+                    IsGroup = true,
+                    ChannelData = new TeamsChannelData
+                    {
+                        Channel = new ChannelInfo { Id = channelId }
+                    },
+                    Activity = MessageFactory.Text(message)
+                };
+
+                await adapter.CreateConversationAsync(
+                    botAppId: _appId,
+                    serviceUrl: serviceUrl,
+                    channelId: Channels.Msteams,
+                    audience: null,
+                    conversationParameters: conversationParameters,
+                    callback: async (turnContext, ct) =>
+                    {
+                        var conversationId = turnContext.Activity.Conversation.Id;
+                        await _conversationThreadMapping.AddMappingAsync(new ThreadTeamsMapping(
+                            $"teams_{newThreadId}",
+                            newThreadId.ToString(),
+                            conversationId,
+                            channelId,
+                            serviceUrl,
+                            DateTime.UtcNow,
+                            DateTime.UtcNow,
+                            turnContext.Activity.GetConversationReference(),
+                            new List<string>()
+                        ));
+
+                        _logger.LogInformation($"Created new thread with Teams post {newThreadId} for conversation {conversationId}");
+                        await turnContext.SendActivityAsync("New conversation thread created.", cancellationToken: ct);
+                    },
+                    cancellationToken: CancellationToken.None);
+
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Failed to create thread with Teams post for conversation {conversationId}");
+            }
+        });
+
+        return mapping.Id;
     }
 
     /// <summary>
     /// Get or create a thread ID for this conversation with improved performance
     /// </summary>
-    private string GetOrCreateChatId(string conversationId)
+    private async Task<string> GetOrCreateChatId(string conversationId, string serviceUrl, string channelId, ConversationReference reference = null)
     {
-        lock (_conversationThreadMapping)
+        _logger.LogInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
+        var mapping = await _conversationThreadMapping.GetMappingByConversationIdAsync(conversationId);
+        if (mapping != null)
         {
-            if (!_conversationThreadMapping.TryGetValue(conversationId, out string threadId))
-            {
-                // Create a new thread ID for this conversation
-                string newThreadId = Guid.NewGuid().ToString();
-                _conversationThreadMapping[conversationId] = newThreadId;
-
-                return newThreadId;
-            }
-
-            return threadId;
+            _logger.LogInformation($"Found existing thread ID {mapping.ThreadId} for conversation {conversationId}");
+            return mapping.ThreadId;
         }
+        string newThreadId = Guid.NewGuid().ToString();
+        await _conversationThreadMapping.AddMappingAsync(new ThreadTeamsMapping(
+            $"teams_{newThreadId}",
+            newThreadId,
+            conversationId,
+            channelId,
+            serviceUrl,
+            DateTime.UtcNow,
+            DateTime.UtcNow,
+            reference,
+            new List<string>()
+        ));
+        _logger.LogInformation($"Created new thread ID {newThreadId} for conversation {conversationId}");
+        return newThreadId;
     }
 
     /// <summary>
@@ -320,12 +310,9 @@ public class TeamsBot : TeamsActivityHandler
         var conversationReference = turnContext.Activity.GetConversationReference();
         conversationReference.ServiceUrl = serviceUrl;
         conversationReference.ChannelId = teamsChannelId;
-        _logger.LogInformation($"Teams Conversation (OnMembersAddedAsync): Received message from Teams channel {teamsChannelId}, service URL: {serviceUrl}");
+        // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
+        await GetOrCreateChatId(turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, conversationReference);
 
-        lock (ConversationReferences)
-        {
-            ConversationReferences[conversationReference.Conversation.Id] = conversationReference;
-        }
 
         foreach (var member in membersAdded)
         {
@@ -339,6 +326,7 @@ public class TeamsBot : TeamsActivityHandler
     // This function can help us send the "typing" indicator to the user, it's not useful in streaming API which has the "processing" indicator, but it's useful in non-streaming API scenario such as teams channel or chat group.
     public async override Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
+        _logger.LogInformation($"Sending typing indicator for conversation {turnContext.Activity.Conversation.Id}, channel {turnContext.Activity.ChannelId}, service URL: {turnContext.Activity.ServiceUrl}, channel data info: {turnContext.Activity.GetChannelData<TeamsChannelData>()?.Channel?.Id ?? "N/A"}");
         ITypingActivity replyActivity = Activity.CreateTypingActivity();
         await turnContext.SendActivityAsync((Activity)replyActivity).ConfigureAwait(false);
         await Task.Delay(200);
@@ -395,24 +383,46 @@ public class TeamsBot : TeamsActivityHandler
         }, _pollingCancellationSource.Token);
     }
 
+    // Helper method to parse Teams conversation ID
+    private string ParseTeamsConversationId(string fullConversationId)
+    {
+        if (string.IsNullOrEmpty(fullConversationId))
+        {
+            return string.Empty;
+        }
+
+        // Teams conversation IDs often have format like "19:xxx@thread.tacv2;messageid=yyy"
+        // Extract the conversation part (before the semicolon)
+        int semicolonIndex = fullConversationId.IndexOf(';');
+        if (semicolonIndex > 0)
+        {
+            return fullConversationId.Substring(0, semicolonIndex);
+        }
+
+        return fullConversationId;
+    }
+
     private async Task PollForNewMessages()
     {
         // Make a copy of the current mapping to avoid locking issues during enumeration
-        var currentMappings = new Dictionary<string, string>();
-        lock (_conversationThreadMapping)
-        {
-            foreach (var kvp in _conversationThreadMapping)
-            {
-                currentMappings[kvp.Key] = kvp.Value;
-            }
-        }
+        var currentMappings = await _conversationThreadMapping.ListActiveConversationsAsync();
 
         foreach (var mapping in currentMappings)
         {
             try
             {
-                string teamsConversationId = mapping.Key;
-                string threadId = mapping.Value;
+                string rawTeamsConversationId = mapping.ConversationId;
+                if (string.IsNullOrEmpty(rawTeamsConversationId))
+                {
+                    _logger.LogWarning($"Empty conversation ID found for thread {mapping.ThreadId}");
+                    continue;
+                }
+
+                // Parse the conversation ID to handle Teams format
+                string teamsConversationId = ParseTeamsConversationId(rawTeamsConversationId);
+                _logger.LogInformation($"Processing conversation: Raw ID={rawTeamsConversationId}, Parsed ID={teamsConversationId}, thread ID={mapping.ThreadId}");
+
+                string threadId = mapping.ThreadId;
 
                 if (!Guid.TryParse(threadId, out Guid threadGuid))
                 {
@@ -437,14 +447,14 @@ public class TeamsBot : TeamsActivityHandler
                 // Update the last poll time for next cycle
                 _lastPollTimestamps[threadGuid] = currentPollTime;
 
-                // Get already posted message IDs for this thread
-                HashSet<Guid> postedMessageIds = _postedMessageIds.GetOrAddValue(
-                    threadGuid,
-                    () => new HashSet<Guid>());
+                // Get already posted message IDs for this thread from the database
+                var postedMessages = await _conversationThreadMapping.GetPostedMessagesAsync(threadId);
+                HashSet<Guid> postedMessageIds = new HashSet<Guid>(
+                    postedMessages.Where(m => Guid.TryParse(m, out _))
+                               .Select(m => Guid.Parse(m)));
 
                 // Get recent agent messages from the thread with a specific time window
-                var messages = await _threadRepository.GetMessagesAsync(
-                    threadGuid); // Limit to 50 most recent messages
+                var messages = await _threadRepository.GetMessagesAsync(threadGuid);
 
                 // Filter to get only new messages that haven't been posted yet
                 var newMessages = messages
@@ -458,19 +468,7 @@ public class TeamsBot : TeamsActivityHandler
                     _logger.LogInformation($"Found {newMessages.Count} new messages to post to Teams for thread {threadId}");
 
                     // Post messages to Teams
-                    await PostMessagesToTeams(teamsConversationId, newMessages);
-
-                    // Track all posted message IDs to prevent re-posting
-                    lock (postedMessageIds)
-                    {
-                        foreach (var message in newMessages)
-                        {
-                            postedMessageIds.Add(message.Id);
-                        }
-                    }
-
-                    // Log how many message IDs we're now tracking for this thread
-                    _logger.LogInformation($"Now tracking {postedMessageIds.Count} posted message IDs for thread {threadId}");
+                    await PostMessagesToTeams(teamsConversationId, newMessages, threadId, mapping.Reference);
                 }
                 else
                 {
@@ -479,19 +477,19 @@ public class TeamsBot : TeamsActivityHandler
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error polling messages for conversation {mapping.Key}");
+                _logger.LogError(ex, $"Error polling messages for conversation {mapping.ConversationId} thread {mapping.Id}");
             }
         }
     }
 
-    private async Task PostMessagesToTeams(string conversationId, List<Message> messages)
+    private async Task PostMessagesToTeams(string conversationId, List<Message> messages, string threadId, ConversationReference conversationReference)
     {
         try
         {
             // Get the Teams conversation reference
-            if (!ConversationReferences.TryGetValue(conversationId, out var conversationReference))
+            if (conversationReference == null)
             {
-                _logger.LogWarning($"No conversation reference found for conversation {conversationId}");
+                _logger.LogWarning($"No conversation reference found for conversation {conversationId}, thread {threadId}");
                 return;
             }
 
@@ -510,6 +508,9 @@ public class TeamsBot : TeamsActivityHandler
                 return;
             }
 
+            // Track successfully posted messages to update the database
+            List<string> postedMessageIds = new List<string>();
+
             foreach (var message in messages)
             {
                 try
@@ -527,6 +528,8 @@ public class TeamsBot : TeamsActivityHandler
                         },
                         CancellationToken.None);
 
+                    // Add to our local collection of successfully posted messages
+                    postedMessageIds.Add(message.Id.ToString());
                     _logger.LogInformation($"Posted message {message.Id} to Teams conversation {conversationId}");
 
                     // Respect Teams rate limits (7 messages per second)
@@ -536,6 +539,18 @@ public class TeamsBot : TeamsActivityHandler
                 {
                     _logger.LogError(ex, $"Error posting message {message.Id} to Teams conversation {conversationId}");
                 }
+            }
+
+            // Update the database with all successfully posted message IDs
+            if (postedMessageIds.Any())
+            {
+                _logger.LogInformation($"About to update database with {postedMessageIds.Count} posted message IDs for thread {threadId}");
+                var success = await _conversationThreadMapping.AddPostedMessagesAsync(threadId, postedMessageIds);
+                _logger.LogInformation($"Database update for thread {threadId} was {(success ? "successful" : "unsuccessful")}");
+
+                // Verify the update was successful by reading back the data
+                var updatedMessages = await _conversationThreadMapping.GetPostedMessagesAsync(threadId);
+                _logger.LogInformation($"After update, thread {threadId} has {updatedMessages.Count} posted messages");
             }
         }
         catch (Exception ex)

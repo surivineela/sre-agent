@@ -66,7 +66,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IThreadRepository _repository;
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private readonly List<ChatMessage> _chatHistory = new();
     private readonly List<AIFunction> _aiTools = new();
     private readonly AsyncReaderWriterLock _lock = new();
 
@@ -89,7 +88,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _mappingManager = mappingManager;
         _outboundCommunicationService = outboundCommunicationService;
         _log = logger;
-        _chatHistory.Add(new ChatMessage(ChatRole.System, SystemPrompt));
 
         // Please make sure you categorize the output of these tools correctly below into:
         // - NewOrchestration
@@ -115,6 +113,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         using var _ = await _lock.AcquireWriterAsync();
         Guid threadGuid = Guid.Parse(threadId);
         var threadMessages = await _repository.GetMessagesAsync(threadGuid);
+        List<ChatMessage> _chatHistory = new();
+        _chatHistory.Add(new ChatMessage(ChatRole.System, SystemPrompt));
         foreach (var msg in threadMessages)
         {
             ChatRole role = msg.Author.Role == Role.User ? ChatRole.User : ChatRole.Assistant;

@@ -18,7 +18,7 @@ public interface IChatService
     Task<string?> GetCurrentChatIdAsync();
 }
 
-public class ChatThread
+public record ChatThread
 {
     public string Id { get; set; } = "";
     public string Name { get; set; } = "";

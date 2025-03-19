@@ -24,6 +24,8 @@ using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
+using Agent.Runtime.Communication;
+using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
 using Agent.Web.Services;
 using Azure.Identity;
