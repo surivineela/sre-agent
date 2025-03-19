@@ -17,13 +17,15 @@ public class TlsPlugin
 
     private readonly ILogger<TlsPlugin> _logger;
     private readonly AntiSSRFPolicy _policy;
+    private readonly ArmHelper _armHelper;
 
-    public TlsPlugin(ILogger<TlsPlugin> logger)
+    public TlsPlugin(ILogger<TlsPlugin> logger, ArmHelper armHelper)
     {
         _logger = logger;
 
         _policy = new AntiSSRFPolicy();
         _policy.SetDefaults();
+        _armHelper = armHelper;
     }
 
     [KernelFunction("get_tls_settings")]
@@ -32,7 +34,7 @@ public class TlsPlugin
         [Description("List of resource IDs to check the TLS minimum version for")]
             List<string> resourceIds)
     {
-        return await ArmHelper.GetTlsSettings(resourceIds);
+        return await _armHelper.GetTlsSettings(resourceIds);
     }
 
     [KernelFunction("validate_connection")]

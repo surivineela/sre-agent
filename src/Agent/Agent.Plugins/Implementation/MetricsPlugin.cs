@@ -9,6 +9,11 @@ namespace Agent.Plugins
 {
     public class MetricsPlugin : IMetricsPlugin
     {
+        private readonly ArmHelper _armHelper;
+        public MetricsPlugin(ArmHelper armHelper)
+        {
+            _armHelper = armHelper;
+        }
         public async Task<IReadOnlyList<CpuTimeSeriesData>> GetWebAppCpuMetrics(
             string resourceId)
         {
@@ -20,7 +25,7 @@ namespace Agent.Plugins
                 // new Metric { Name = "MemoryWorkingSet", Unit = "", Aggregation = "Average" }
             };
 
-            var metricsData = await ArmHelper.FetchMetricsAsync(
+            var metricsData = await _armHelper.FetchMetricsAsync(
                 resourceId.ToString(),
                 metrics);
 
@@ -58,7 +63,7 @@ namespace Agent.Plugins
                 new Metric { Name = "Http2xx", Unit = "Count", Aggregation = "Total" },
             };
 
-            var metricsData = await ArmHelper.FetchMetricsAsync(
+            var metricsData = await _armHelper.FetchMetricsAsync(
                 resourceId.ToString(),
                 metrics);
 
@@ -80,7 +85,7 @@ namespace Agent.Plugins
                 new Metric { Name = "Http5xx", Unit = "count", Aggregation = "Total" }
             };
 
-            var metricsData = await ArmHelper.FetchMetricsAsync(
+            var metricsData = await _armHelper.FetchMetricsAsync(
                 resourceId.ToString(),
                 metrics);
 
@@ -114,7 +119,7 @@ namespace Agent.Plugins
                 new Metric { Name = "MemoryWorkingSet", Unit = "Bytes", Aggregation = "Average" },
             };
 
-            var metricsData = await ArmHelper.FetchMetricsAsync(
+            var metricsData = await _armHelper.FetchMetricsAsync(
                 resourceId.ToString(),
                 metrics);
 

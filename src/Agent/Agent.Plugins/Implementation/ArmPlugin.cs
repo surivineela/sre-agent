@@ -14,23 +14,25 @@ namespace Agent.Plugins.Implementation
     public class ArmPlugin : IArmPlugin
     {
         private readonly ILogger<ArmPlugin> _logger;
+        private readonly ArmHelper _armHelper;
 
-        public ArmPlugin(ILogger<ArmPlugin> logger)
+        public ArmPlugin(ILogger<ArmPlugin> logger, ArmHelper armHelper)
         {
             _logger = logger;
+            _armHelper = armHelper;
         }
 
         public async Task<string> SetMinimumTlsVersion(
             string appResourceId,
             string minimumTlsVersion)
         {
-            var status = (await ArmHelper.GetTlsSettings([appResourceId])).SingleOrDefault();
+            var status = (await _armHelper.GetTlsSettings([appResourceId])).SingleOrDefault();
             bool success = false;
             string reason = string.Empty;
 
             if (status != null)
             {
-                var response = await ArmHelper.UpdateMinimumTlsVersion(status, minimumTlsVersion);
+                var response = await _armHelper.UpdateMinimumTlsVersion(status, minimumTlsVersion);
                 success = response.Item1;
                 reason = response.Item2;
             }
@@ -52,19 +54,19 @@ namespace Agent.Plugins.Implementation
         }
         public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
         {
-            return await ArmHelper.GetTlsSettings(resourceIds);
+            return await _armHelper.GetTlsSettings(resourceIds);
         }
 
 
         public async Task<bool> RestartWebApp(
             string appResourceId)
         {
-            return await ArmHelper.RestartWebAppAsync(appResourceId);
+            return await _armHelper.RestartWebAppAsync(appResourceId);
         }
 
         public async Task<bool> CheckIfResourceExists(string appResourceId)
         {
-            return await ArmHelper.CheckIfResourceExistsAsync(appResourceId);
+            return await _armHelper.CheckIfResourceExistsAsync(appResourceId);
         }
     }
 }

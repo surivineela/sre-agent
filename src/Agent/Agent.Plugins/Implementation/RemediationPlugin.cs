@@ -17,6 +17,7 @@ namespace Agent.Plugins.Implementation
     public class RemediationPlugin : IRemediationPlugin
     {
         private readonly ILogger? _logger;
+        private readonly ArmHelper _armHelper;
         private static readonly Dictionary<string, decimal> HourlyRates = new(StringComparer.OrdinalIgnoreCase)
         {
             {"F1", 0}, {"D1", 0},
@@ -26,9 +27,10 @@ namespace Agent.Plugins.Implementation
             {"Premium0v3", 0.078M}, {"Premium1v3", 0.252M}, {"Premium2v3", 0.504M}, {"Premium3v3", 1.008M},
         };
 
-        public RemediationPlugin(ILogger<RemediationPlugin> logger)
+        public RemediationPlugin(ILogger<RemediationPlugin> logger, ArmHelper armHelper)
         {
             _logger = logger;
+            _armHelper = armHelper;
         }
 
         public async Task<RemediationResult> CalculateScalingCost(string resourceId, string direction, string currentSku, string targetSku)
@@ -36,7 +38,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 Console.WriteLine($"[calculate_scaling_cost] Invoked with resourceId: {resourceId}, direction: {direction}, currentSku: {currentSku}, targetSku: {targetSku}");
-                var appServicePlanId = await ArmHelper.GetAppServicePlanNameAsync(resourceId);
+                var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
 
                 if (!HourlyRates.TryGetValue(currentSku, out var currentRate))
                     return new RemediationResult(false,
@@ -93,7 +95,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 _logger?.LogInformation($"[collect_memory_dump] Invoked with resourceId: {resourceId}");
-                var dumpPath = await ArmHelper.TakeMemoryDumpAsync(resourceId);
+                var dumpPath = await _armHelper.TakeMemoryDumpAsync(resourceId);
 
                 return new RemediationResult(
                     Success: !string.IsNullOrEmpty(dumpPath),
@@ -175,11 +177,11 @@ namespace Agent.Plugins.Implementation
             try
             {
                 // Get App Service Plan ID from Web App
-                var appServicePlanId = await ArmHelper.GetAppServicePlanNameAsync(resourceId);
+                var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
                 _logger?.LogInformation("[ScaleAppServicePlanVertically] Retrieved App Service Plan ID: {AppServicePlanId}", appServicePlanId);
 
                 // Get current SKU
-                var currentSku = await ArmHelper.GetCurrentSkuAsync(appServicePlanId);
+                var currentSku = await _armHelper.GetCurrentSkuAsync(appServicePlanId);
                 _logger?.LogInformation("[ScaleAppServicePlanVertically] Current SKU: {CurrentSku}", currentSku.Name);
 
                 // Get next SKU in progression
@@ -187,7 +189,7 @@ namespace Agent.Plugins.Implementation
                 _logger?.LogInformation("[ScaleAppServicePlanVertically] Target SKU for scaling: {TargetSku}", targetSku.Name);
 
                 // Perform scaling operation
-                var success = await ArmHelper.ScaleUpAppServicePlanByNameAsync(
+                var success = await _armHelper.ScaleUpAppServicePlanByNameAsync(
                     appServicePlanId,
                     targetSku);
 
@@ -225,7 +227,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 _logger?.LogInformation($"[possible_next_sku] Invoked with resourceId: {resourceId}, direction: {direction}, currentSku: {currentSku}");
-                var appServicePlanId = await ArmHelper.GetAppServicePlanNameAsync(resourceId);
+                var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
 
                 // Validate current SKU exists
                 if (!HourlyRates.TryGetValue(currentSku, out var currentRate))

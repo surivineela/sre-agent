@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
@@ -9,6 +10,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json.Linq;
 using OpenTelemetry.Resources;
 using System.Net.Http.Headers;
@@ -17,36 +19,39 @@ using System.Text.Json;
 
 namespace Agent.Core.Helpers;
 
-public static class ArmHelper
-
+public class ArmHelper
 {
-    private static readonly ArmClient? armClient;
-    private static readonly TokenCredential credential;
-    private static readonly HttpClient httpClient;
+    private readonly ArmClient _armClient;
+    private readonly TokenCredential _credential;
+    private readonly HttpClient _httpClient;
 
-    static ArmHelper()
+    // Crawler MI is used for production environment as current solution
+    public ArmHelper([FromKeyedServices("CrawlerArmClient")] ArmClient armClient, HttpClient httpClient, CrawlerSettings crawlerSettings)
     {
         var environment = Environment.GetEnvironmentVariable("Environment") ?? "Development";
 
         if (environment.Equals("Production", StringComparison.OrdinalIgnoreCase))
         {
-            credential = new ManagedIdentityCredential();
+            ManagedIdentityId mi = ManagedIdentityId.FromUserAssignedClientId(crawlerSettings.IdentityClientId);
+            ManagedIdentityCredentialOptions options = new ManagedIdentityCredentialOptions(mi);
+            _credential = new ManagedIdentityCredential(options);
+            _armClient = armClient;
         }
         else
         {
-            credential = new DefaultAzureCredential();
+            _credential = new DefaultAzureCredential();
+            _armClient = new ArmClient(_credential);
         }
 
-        armClient = new ArmClient(credential);
-        httpClient = new HttpClient();
+        _httpClient = httpClient;
     }
 
-    public static async Task<List<AzureSubscription>> GetSubscriptionsAsync()
+    public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
     {
         List<AzureSubscription> allSubs = [];
-        if (armClient == null) return allSubs;
+        if (_armClient == null) return allSubs;
 
-        await foreach (SubscriptionResource subscription in armClient.GetSubscriptions().GetAllAsync())
+        await foreach (SubscriptionResource subscription in _armClient.GetSubscriptions().GetAllAsync())
         {
             allSubs.Add(new AzureSubscription(subscription.Data.SubscriptionId, subscription.Data.DisplayName, null));
         }
@@ -54,7 +59,7 @@ public static class ArmHelper
         return allSubs;
     }
 
-    public static async Task<List<string>> GetAllResourceUriAsync(string subscriptionId)
+    public async Task<List<string>> GetAllResourceUriAsync(string subscriptionId)
     {
         List<string> resourceUrls = new List<string>();
         if (string.IsNullOrWhiteSpace(subscriptionId))
@@ -62,9 +67,10 @@ public static class ArmHelper
 
         string armUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/resources?api-version=2021-04-01";
         string token = await GetAccessTokenAsync();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, armUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        HttpResponseMessage response = await httpClient.GetAsync(armUrl);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
         {
@@ -89,13 +95,12 @@ public static class ArmHelper
         }
     }
 
-    public static async Task<List<BasicAuthStatus>> CheckBasicAuth(List<string> resourceIds)
+    public async Task<List<BasicAuthStatus>> CheckBasicAuth(List<string> resourceIds)
     {
         var output = new List<BasicAuthStatus>();
         if (resourceIds == null) return output;
 
         string token = await GetAccessTokenAsync();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         foreach (string resourceId in resourceIds)
         {
@@ -106,7 +111,9 @@ public static class ArmHelper
             };
 
             string basicAuthCheckUrl = $"https://management.azure.com{resourceId}/basicPublishingCredentialsPolicies?api-version=2021-02-01";
-            var response = await httpClient.GetAsync(basicAuthCheckUrl);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, basicAuthCheckUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 string responseJson = await response.Content.ReadAsStringAsync();
@@ -141,12 +148,11 @@ public static class ArmHelper
         return output;
     }
 
-    public static async Task<bool> DisableBasicAuth(BasicAuthStatus appInViolation)
+    public async Task<bool> DisableBasicAuth(BasicAuthStatus appInViolation)
     {
         if (appInViolation == null || string.IsNullOrWhiteSpace(appInViolation.ResourceId)) return false;
 
         string token = await GetAccessTokenAsync();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         List<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
         if (appInViolation.FtpBasicAuthAllowed)
@@ -164,7 +170,12 @@ public static class ArmHelper
                 }
             };
             string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-            tasks.Add(httpClient.PutAsync(ftpUrl, new StringContent(jsonBody, Encoding.UTF8, "application/json")));
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, ftpUrl)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            tasks.Add(_httpClient.SendAsync(request));
         }
 
         if (appInViolation.ScmBasicAuthAllowed)
@@ -183,7 +194,13 @@ public static class ArmHelper
             };
 
             string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-            tasks.Add(httpClient.PutAsync(scmUrl, new StringContent(jsonBody, Encoding.UTF8, "application/json")));
+            
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, scmUrl)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            tasks.Add(_httpClient.SendAsync(request));
         }
 
         if (tasks.Count == 0) return true;
@@ -192,12 +209,12 @@ public static class ArmHelper
         return result.All(p => p.IsSuccessStatusCode);
     }
 
-    public static async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics)
+    public async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics)
     {
         return await FetchMetricsAsync(resourceId, metrics, CancellationToken.None);
     }
 
-    public static async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics, CancellationToken cancellationToken)
+    public async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics, CancellationToken cancellationToken)
     {
         var timeSeriesData = new List<TimeSeriesData>();
         if (metrics == null) return timeSeriesData;
@@ -208,11 +225,11 @@ public static class ArmHelper
         string aggregationsString = string.Join(",", metrics.Select(m => m.Aggregation));
         string requestUri = $"https://management.azure.com{resourceId}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames={metricNamesString}&aggregation={aggregationsString}&timespan=PT30M";
 
-        // Set the authorization header with the access token
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         // Send the GET request
-        HttpResponseMessage response = await httpClient.GetAsync(requestUri, cancellationToken);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
         if (!response.IsSuccessStatusCode)
         {
             throw new Exception($"Failed to fetch metrics: {response.ReasonPhrase}");
@@ -247,9 +264,8 @@ public static class ArmHelper
         return timeSeriesData;
     }
 
-    public static async Task<string> GetAppServicePlanNameAsync(string appServiceResourceId)
+    public async Task<string> GetAppServicePlanNameAsync(string appServiceResourceId)
     {
-        var httpClient = new HttpClient();
         // Construct the request URL to get the App Service details
         string requestUrl = $"https://management.azure.com/{appServiceResourceId}?api-version=2021-02-01";
         string accessToken = await GetAccessTokenAsync();
@@ -258,7 +274,7 @@ public static class ArmHelper
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         // Send the request
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
         string jsonResponse = await response.Content.ReadAsStringAsync();
 
         if (!response.IsSuccessStatusCode)
@@ -274,10 +290,8 @@ public static class ArmHelper
         return appServicePlanId;
     }
 
-    public static async Task<AppPlanSku> GetCurrentSkuAsync(string appServicePlanResourceId)
+    public async Task<AppPlanSku> GetCurrentSkuAsync(string appServicePlanResourceId)
     {
-        var httpClient = new HttpClient();
-
         // Construct the request URL to get the App Service Plan details
         string requestUrl = $"https://management.azure.com{appServicePlanResourceId}?api-version=2021-02-01";
         string accessToken = await GetAccessTokenAsync();
@@ -286,7 +300,7 @@ public static class ArmHelper
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
         // Send the request
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -343,7 +357,7 @@ public static class ArmHelper
         };
     }
 
-    public static async Task<bool> ScaleUpAppServicePlanByNameAsync(string appServicePlanResourceId, AppPlanSku targetSku)
+    public async Task<bool> ScaleUpAppServicePlanByNameAsync(string appServicePlanResourceId, AppPlanSku targetSku)
     {
         string requestUrl = $"https://management.azure.com{appServicePlanResourceId}?api-version=2021-02-01";
         string accessToken = await GetAccessTokenAsync();
@@ -368,11 +382,11 @@ public static class ArmHelper
         };
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
 
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
 
-    public static async Task<string> TakeMemoryDumpAsync(string appServiceResource)
+    public async Task<string> TakeMemoryDumpAsync(string appServiceResource)
     {
         try
         {
@@ -396,8 +410,10 @@ public static class ArmHelper
 
             var content = new StringContent(JObject.FromObject(payload).ToString(), Encoding.UTF8, "application/json");
 
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var response = await httpClient.PostAsync(requestUrl, content);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            request.Content = content;
+            var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -413,17 +429,17 @@ public static class ArmHelper
         }
     }
 
-    public static async Task<bool> RestartWebAppAsync(string appResourceId)
+    public async Task<bool> RestartWebAppAsync(string appResourceId)
     {
         string accessToken = await GetAccessTokenAsync();
         string requestUrl = $"https://management.azure.com{appResourceId}/restart?api-version=2024-04-01";
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        HttpResponseMessage response = await httpClient.SendAsync(request);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
 
-    public static async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
+    public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
     {
         var output = new List<TlsStatus>();
         if (resourceIds == null || resourceIds.Count == 0) return output;
@@ -449,11 +465,11 @@ public static class ArmHelper
         return output;
     }
 
-    public static async Task<bool> CheckIfResourceExistsAsync(string resourceId)
+    public async Task<bool> CheckIfResourceExistsAsync(string resourceId)
     {
         try
         {
-            var resource = await armClient.GetGenericResource(new ResourceIdentifier(resourceId)).GetAsync();
+            var resource = await _armClient.GetGenericResource(new ResourceIdentifier(resourceId)).GetAsync();
             return resource != null;
         }
         catch(RequestFailedException ex) when (ex.Status == 404)
@@ -463,14 +479,12 @@ public static class ArmHelper
         }
     }
 
-    public static async Task<(bool, string)> UpdateMinimumTlsVersion(TlsStatus tlsStatus, string desiredTlsVersion)
+    public async Task<(bool, string)> UpdateMinimumTlsVersion(TlsStatus tlsStatus, string desiredTlsVersion)
     {
         if (tlsStatus == null || string.IsNullOrWhiteSpace(tlsStatus.ResourceId))
             throw new ArgumentException("Resource ID is required");
 
         string token = await GetAccessTokenAsync();
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
 
         string tlsUpdateUrl = $"https://management.azure.com{tlsStatus.ResourceId}/config/web?api-version=2022-03-01";
 
@@ -488,8 +502,11 @@ public static class ArmHelper
 
         string jsonBody = JsonSerializer.Serialize(requestBody);
         var content = new StringContent(jsonBody, Encoding.UTF8, "application/json");
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, tlsUpdateUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+        request.Content = content;
 
-        var response = await httpClient.PutAsync(tlsUpdateUrl, content);
+        var response = await _httpClient.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
         {
@@ -503,13 +520,13 @@ public static class ArmHelper
     }
 
 
-    private static async Task<TlsStatus> FetchTlsStatusAsync(string resourceId, string token)
+    private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId, string token)
     {
-        // Make sure we have the latest token on each call
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
         string tlsCheckUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2022-03-01";
-        var response = await httpClient.GetAsync(tlsCheckUrl);
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tlsCheckUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
+
+        var response = await _httpClient.GetAsync(tlsCheckUrl);
         if (!response.IsSuccessStatusCode)
         {
             return null;
@@ -534,10 +551,10 @@ public static class ArmHelper
 
     #region Private Methods
 
-    private static async Task<string> GetAccessTokenAsync()
+    private async Task<string> GetAccessTokenAsync()
     {
         var tokenRequestContext = new TokenRequestContext(["https://management.azure.com/.default"]);
-        AccessToken accessToken = await credential.GetTokenAsync(tokenRequestContext, default);
+        AccessToken accessToken = await _credential.GetTokenAsync(tokenRequestContext, default);
         return accessToken.Token;
     }
 
@@ -591,12 +608,13 @@ public static class ArmHelper
         };
     }
 
-    private static async Task<string[]> GetAppServiceInstanceMachineNamesAsync(string appServiceResource, string accessToken)
+    private async Task<string[]> GetAppServiceInstanceMachineNamesAsync(string appServiceResource, string accessToken)
     {
         var requestUrl = $"https://management.azure.com{appServiceResource}/instances?api-version=2021-02-01";
 
-        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        var response = await httpClient.GetAsync(requestUrl);
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        var response = await _httpClient.GetAsync(requestUrl);
 
         if (!response.IsSuccessStatusCode)
         {
@@ -610,15 +628,16 @@ public static class ArmHelper
         return machineNames;
     }
 
-    private static async Task<string> WaitForDaaSSessionCompletionAsync(string appServiceResource, string accessToken, string sessionId)
+    private async Task<string> WaitForDaaSSessionCompletionAsync(string appServiceResource, string accessToken, string sessionId)
     {
         sessionId = sessionId.Replace("\"", "");
         var requestUrl = $"https://management.azure.com/{appServiceResource}/extensions/daas/sessions/{sessionId}?api-version=2015-08-01";
 
         while (true)
         {
-            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-            var response = await httpClient.PostAsync(requestUrl, null);
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+            var response = await _httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
             {
