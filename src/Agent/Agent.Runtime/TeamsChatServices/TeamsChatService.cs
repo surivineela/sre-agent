@@ -20,29 +20,28 @@ using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
 using Microsoft.Bot.Connector;
-using System.Threading.Tasks;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.TeamsChatServices;
 
 public class TeamsBot : TeamsActivityHandler
 {
     private readonly ILogger<TeamsBot> _logger;
+    private readonly IChatClient _chatClient;
     private readonly IThreadTeamsMappingRepository _conversationThreadMapping;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
 
-    // Keeping track of last poll timestamp per thread to limit fetching window
-    private readonly ConcurrentDictionary<Guid, DateTime> _lastPollTimestamps = new();
-
     private readonly CancellationTokenSource _pollingCancellationSource = new();
     private bool _isPollingStarted = false;
     private readonly string _appId;
-    // Increased polling interval to reduce frequency
-    private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
+    // TODO(jianbosun): we should use activity to send out messages immediately instead of polling, set the interval to 1 for now
+    private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(1);
     // Rate limiting for messages posted per poll cycle
     private const int MAX_MESSAGES_PER_POLL = 50;
 
+    string prompt = "You're in the front of SRE agent, the blew question will be answered by SRE agent, but the SRE agent is slow, please help give some responses to the user, so that they know SRE agent is resolving the issue and the user won't lose patience easily. You shouldn't not directly say SRE agent is slow, you can try to say SRE agent is fetching information, or analyses the question based on the input from user. please always keep yourself brief, no more than 20 words. If user is just to say hello or ask a simple general question that agent don't need to fetch additional info or execute long, just return the word: SKIP.";
     string welcomeMessage = "## 👋 Hi, I'm your new Azure SRE Partner!\n\nI'm here to help monitor your applications and keep everything running smoothly.\n\nI've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.\n\nThink of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!\n\n### ⚙️ **Autopilot Mode**:\n\nI'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.\n\n### **How to get started**:\n\nIf you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:\n\n- \"Monitor my application performance\"\n- \"Check on my app's metrics\"\n- \"Create a app migration plan\"\n- \"Help diagnose why my service is slow\"\n\nNo fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.\n\nLooking forward to working together and keeping your systems running at their best!";
 
     // Teams has strict limitation for activities per second: https://learn.microsoft.com/en-us/microsoftteams/platform/bots/how-to/rate-limit#per-bot-per-thread-limit
@@ -60,9 +59,11 @@ public class TeamsBot : TeamsActivityHandler
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository threadRepository,
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
-        TeamsBotSettings teamsBot)
+        TeamsBotSettings teamsBot,
+        IChatClient chatClient)
     {
         _logger = logger;
+        _chatClient = chatClient;
         _conversationThreadMapping = threadTeamsMappingRepository;
         _teamsAdapter = teamsAdapter;
         _agentInboundCommunicationService = agentInboundCommunicationService;
@@ -111,11 +112,35 @@ public class TeamsBot : TeamsActivityHandler
         }
         try
         {
-            // Teams channel and chat group don't support streaming API for now.
-            // The new DTS integration don't support streaming API as well.
+            // Create tasks to run in parallel
+            List<Task> tasks = new List<Task>();
 
-            // Process the message using the Threads API
-            var response = await _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
+            // Task 1: Generate quick response for Teams channel
+            Task quickResponseTask = null;
+            var channelDataObj = turnContext.Activity.ChannelData as JObject;
+            if (channelDataObj != null && channelDataObj["team"] != null)
+            {
+                // Teams channel response is slow, add this to tell user that the bot is processing the request
+                quickResponseTask = Task.Run(async () =>
+                {
+                    var _chats = new List<ChatMessage>
+                    {
+                        new ChatMessage(ChatRole.System, prompt),
+                        new ChatMessage(ChatRole.User, messageText)
+                    };
+                    var quickResponse = await _chatClient.GetResponseAsync(_chats);
+                    var text = quickResponse.Message.Text;
+                    if (text == null || text.Contains("SKIP"))
+                    {
+                        return;
+                    }
+                    await turnContext.SendActivityAsync(MessageFactory.Text(quickResponse.Message.Text), cancellationToken).ConfigureAwait(false);
+                });
+                tasks.Add(quickResponseTask);
+            }
+
+            // Task 2: Process the message using the Threads API
+            var processMessageTask = _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
                 ThreadId: chatIdGuid,
                 MessageId: Guid.NewGuid(),
                 Message: messageText,
@@ -123,6 +148,13 @@ public class TeamsBot : TeamsActivityHandler
                 DisplayName: senderName,
                 Timestamp: DateTime.UtcNow
             ));
+            tasks.Add(processMessageTask);
+
+            // Wait for all tasks to complete
+            await Task.WhenAll(tasks);
+
+            // Get the result from process message task
+            var response = await processMessageTask;
         }
         catch (Exception ex)
         {
@@ -326,11 +358,24 @@ public class TeamsBot : TeamsActivityHandler
     // This function can help us send the "typing" indicator to the user, it's not useful in streaming API which has the "processing" indicator, but it's useful in non-streaming API scenario such as teams channel or chat group.
     public async override Task OnTurnAsync(ITurnContext turnContext, CancellationToken cancellationToken = default)
     {
-        _logger.LogInformation($"Sending typing indicator for conversation {turnContext.Activity.Conversation.Id}, channel {turnContext.Activity.ChannelId}, service URL: {turnContext.Activity.ServiceUrl}, channel data info: {turnContext.Activity.GetChannelData<TeamsChannelData>()?.Channel?.Id ?? "N/A"}");
+        _logger.LogDebug($"Sending typing indicator for conversation {turnContext.Activity.Conversation.Id}, channel {turnContext.Activity.ChannelId}, service URL: {turnContext.Activity.ServiceUrl}, channel data info: {turnContext.Activity.GetChannelData<TeamsChannelData>()?.Channel?.Id ?? "N/A"}");
         ITypingActivity replyActivity = Activity.CreateTypingActivity();
         await turnContext.SendActivityAsync((Activity)replyActivity).ConfigureAwait(false);
-        await Task.Delay(200);
         await base.OnTurnAsync(turnContext, cancellationToken);
+    }
+
+    private bool IsTeamsChannel(ITurnContext turnContext)
+    {
+        if (turnContext.Activity.Conversation.IsGroup.GetValueOrDefault())
+        {
+            // it's teams channel or chat group
+            var channelDataObj = turnContext.Activity.ChannelData as JObject;
+            if (channelDataObj != null && channelDataObj["team"] != null)
+            {
+                return true;
+            }
+        }
+        return false;
     }
 
     //-----Subscribe to Conversation Events in Bot integration
@@ -420,7 +465,7 @@ public class TeamsBot : TeamsActivityHandler
 
                 // Parse the conversation ID to handle Teams format
                 string teamsConversationId = ParseTeamsConversationId(rawTeamsConversationId);
-                _logger.LogInformation($"Processing conversation: Raw ID={rawTeamsConversationId}, Parsed ID={teamsConversationId}, thread ID={mapping.ThreadId}");
+                _logger.LogDebug($"Processing conversation: Raw ID={rawTeamsConversationId}, Parsed ID={teamsConversationId}, thread ID={mapping.ThreadId}");
 
                 string threadId = mapping.ThreadId;
 
@@ -429,23 +474,6 @@ public class TeamsBot : TeamsActivityHandler
                     _logger.LogWarning($"Invalid thread ID format: {threadId}");
                     continue;
                 }
-
-                // Get the current time for this poll cycle
-                DateTime currentPollTime = DateTime.UtcNow;
-
-                // Get the last poll time for this thread, or use a default (10 minutes ago)
-                DateTime lastPollTime = _lastPollTimestamps.GetValueOrDefault(
-                    threadGuid,
-                    DateTime.UtcNow.AddMinutes(-10));
-
-                // Ensure we're not querying too far back
-                if (currentPollTime.Subtract(lastPollTime).TotalHours > 1)
-                {
-                    lastPollTime = currentPollTime.AddHours(-1);
-                }
-
-                // Update the last poll time for next cycle
-                _lastPollTimestamps[threadGuid] = currentPollTime;
 
                 // Get already posted message IDs for this thread from the database
                 var postedMessages = await _conversationThreadMapping.GetPostedMessagesAsync(threadId);
@@ -460,12 +488,12 @@ public class TeamsBot : TeamsActivityHandler
                 var newMessages = messages
                     .Where(m => m.Author.Role == Role.SREAgent && !postedMessageIds.Contains(m.Id))
                     .OrderBy(m => m.TimeStamp)
-                    .Take(MAX_MESSAGES_PER_POLL) // Rate limit: only post up to MAX_MESSAGES_PER_POLL messages per poll cycle
+                    .Take(MAX_MESSAGES_PER_POLL)
                     .ToList();
 
                 if (newMessages.Any())
                 {
-                    _logger.LogInformation($"Found {newMessages.Count} new messages to post to Teams for thread {threadId}");
+                    _logger.LogDebug($"Found {newMessages.Count} new messages to post to Teams for thread {threadId}");
 
                     // Post messages to Teams
                     await PostMessagesToTeams(teamsConversationId, newMessages, threadId, mapping.Reference);
@@ -544,13 +572,8 @@ public class TeamsBot : TeamsActivityHandler
             // Update the database with all successfully posted message IDs
             if (postedMessageIds.Any())
             {
-                _logger.LogInformation($"About to update database with {postedMessageIds.Count} posted message IDs for thread {threadId}");
                 var success = await _conversationThreadMapping.AddPostedMessagesAsync(threadId, postedMessageIds);
-                _logger.LogInformation($"Database update for thread {threadId} was {(success ? "successful" : "unsuccessful")}");
-
-                // Verify the update was successful by reading back the data
-                var updatedMessages = await _conversationThreadMapping.GetPostedMessagesAsync(threadId);
-                _logger.LogInformation($"After update, thread {threadId} has {updatedMessages.Count} posted messages");
+                _logger.LogInformation($"Database update for thread {threadId} with {postedMessageIds.Count} posted messages was {(success ? "successful" : "unsuccessful")}");
             }
         }
         catch (Exception ex)

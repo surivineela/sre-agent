@@ -81,7 +81,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 .WithParameter("@documentType", "ThreadTeamsMapping")
                 .WithParameter("@conversationId", conversationId);
 
-            _logger.LogInformation("GetMappingByConversationIdAsync Query: {0}", query.QueryText);
+            _logger.LogDebug("GetMappingByConversationIdAsync Query: {0}", query.QueryText);
             using FeedIterator<ThreadTeamsMappingDocument> resultSet = _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(
                 query,
                 requestOptions: new QueryRequestOptions { MaxItemCount = 1 }
@@ -110,7 +110,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 "SELECT * FROM c WHERE c.documentType = @documentType AND c.threadId != '' AND c.serviceUrl != '' AND c.channelId != ''")
                 .WithParameter("@documentType", "ThreadTeamsMapping");
 
-            _logger.LogInformation("GetFirstOrDefaultChannel Query: {0}", query.QueryText);
+            _logger.LogDebug("GetFirstOrDefaultChannel Query: {0}", query.QueryText);
             using FeedIterator<ThreadTeamsMappingDocument> resultSet = _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(
                 query,
                 requestOptions: new QueryRequestOptions { MaxItemCount = 1 }
@@ -131,26 +131,70 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         }
     }
 
-    // TODO(jianbosun): currently it just return all the mappings, need to add filtering logic for "Active" state
+    // Instead of querying message counts one by one, we'll get all counts in one query
     public async Task<IEnumerable<ThreadTeamsMapping>> ListActiveConversationsAsync()
     {
         try
         {
+            // Get all active thread mappings first
             QueryDefinition query = new QueryDefinition(
                 "SELECT * FROM c WHERE c.documentType = @documentType AND c.threadId != '' AND c.conversationId != '' AND c.serviceUrl != ''")
                 .WithParameter("@documentType", "ThreadTeamsMapping");
 
-            _logger.LogInformation("ListActiveConversationsAsync Query: {0}", query.QueryText);
-            List<ThreadTeamsMapping> mappings = new List<ThreadTeamsMapping>();
+            _logger.LogDebug("ListActiveConversationsAsync Query: {0}", query.QueryText);
+            List<ThreadTeamsMapping> allMappings = new List<ThreadTeamsMapping>();
             using FeedIterator<ThreadTeamsMappingDocument> resultSet = _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(query);
 
             while (resultSet.HasMoreResults)
             {
                 FeedResponse<ThreadTeamsMappingDocument> response = await resultSet.ReadNextAsync();
-                mappings.AddRange(response.Select(doc => doc.ToDomainModel()));
+                allMappings.AddRange(response.Select(doc => doc.ToDomainModel()));
             }
 
-            return mappings;
+            if (!allMappings.Any())
+            {
+                return Enumerable.Empty<ThreadTeamsMapping>();
+            }
+
+            // Query for all message counts in a single operation, author.role = 1 indicates a bot
+            QueryDefinition countQuery = new QueryDefinition(
+                "SELECT c.threadId, COUNT(1) as messageCount FROM c WHERE c.documentType = 'Message' AND c.author.role = 1 GROUP BY c.threadId");
+
+            _logger.LogDebug("Message counts query: {0}", countQuery.QueryText);
+
+            Dictionary<string, int> messageCounts = new Dictionary<string, int>();
+            using FeedIterator<dynamic> countIterator = _container.GetItemQueryIterator<dynamic>(countQuery);
+
+            while (countIterator.HasMoreResults)
+            {
+                FeedResponse<dynamic> countResponse = await countIterator.ReadNextAsync();
+                foreach (var item in countResponse)
+                {
+                    string threadId = item.threadId.ToString();
+                    int count = (int)item.messageCount;
+                    messageCounts[threadId] = count;
+                }
+            }
+
+            // Find mappings with unposted messages by joining the results in memory
+            List<ThreadTeamsMapping> mappingsWithUnpostedMessages = new List<ThreadTeamsMapping>();
+
+            foreach (var mapping in allMappings)
+            {
+                // Get message count for this thread, or 0 if not found
+                int totalMessages = messageCounts.TryGetValue(mapping.ThreadId, out int count) ? count : 0;
+                int postedMessages = mapping.PostedMessages?.Count ?? 0;
+
+                // If there are more messages than have been posted, this thread has unposted messages
+                if (totalMessages > postedMessages)
+                {
+                    _logger.LogInformation("Thread {0} has unposted messages: {1} total, {2} posted",
+                        mapping.ThreadId, totalMessages, postedMessages);
+                    mappingsWithUnpostedMessages.Add(mapping);
+                }
+            }
+
+            return mappingsWithUnpostedMessages;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -224,6 +268,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
+            _logger.LogError(ex, "Failed to add posted messages for thread {ThreadId}", threadId);
             return false;
         }
     }

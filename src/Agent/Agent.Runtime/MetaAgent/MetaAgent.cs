@@ -113,8 +113,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         using var _ = await _lock.AcquireWriterAsync();
         Guid threadGuid = Guid.Parse(threadId);
         var threadMessages = await _repository.GetMessagesAsync(threadGuid);
-        List<ChatMessage> _chatHistory = new();
-        _chatHistory.Add(new ChatMessage(ChatRole.System, SystemPrompt));
+        var _chatHistory = new List<ChatMessage> { new ChatMessage(ChatRole.System, SystemPrompt) };
         foreach (var msg in threadMessages)
         {
             ChatRole role = msg.Author.Role == Role.User ? ChatRole.User : ChatRole.Assistant;
