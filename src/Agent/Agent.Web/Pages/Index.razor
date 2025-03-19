@@ -15,129 +15,218 @@
 @inject IAgentManager AgentManager
 @inject IJSRuntime JS
 
-<div class="chat-container">
+<div class="app-container">
+    <!-- 
+    <div class="status-bar">
+        <div class="connection-status">
+            <span class="connection-indicator"></span>
+            <span>Connected</span>
+        </div>
+        <div class="agent-selector">
+            <select @bind="CurrentPath" class="form-select">
+                @foreach (var path in availablePaths)
+                {
+                    <option value="@path">@FormatAgentName(path)</option>
+                }
+            </select>
+        </div>
+        <div class="user-menu">
+            <button class="btn btn-icon">
+                <i class="bi bi-person-circle"></i>
+            </button>
+        </div>
+    </div>
+    -->
+    <!-- Main Content Area -->
+    <div class="main-content" style="margin-top:-10px">
+        <!-- Left Sidebar - Threads List -->
+        <aside class="threads-sidebar">
+            <div class="sidebar-header">
+                <button class="btn btn-blue new-chat-button" @onclick="@(async () => await CreateNewThreadAndRefresh())">
+                    <i class="bi bi-plus-lg"></i> New Thread
+                </button>
+            </div>
+
+            <div class="threads-list">
+                @foreach (var thread in threads)
+                {
+                    <div class="thread-item @(thread.Id == currentChatId ? "active" : "")"
+                         @onclick="async () => await SelectThread(thread.Id)">
+                        <div class="thread-title">@thread.Name</div>
+                        <div class="thread-metadata">
+                            <span class="thread-created-at" title="Created on @thread.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")">
+                                @thread.CreatedAt.ToLocalTime().ToString("MMM d")
+                            </span>
+                            <span class="thread-last-message" title="Last active on @thread.LastMessageAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")">
+                                @thread.LastMessageAt.ToLocalTime().ToString("h:mm tt")
+                            </span>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="btn btn-danger purge-button" @onclick="@(async () => await ShowPurgeConfirmation())">
+                    <i class="bi bi-trash"></i> Purge All
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-main">
+            <!-- Chat Header -->
+            <div class="chat-header">
+                <h2>@GetCurrentThreadDisplay()</h2>
+                <div class="chat-actions">
+                    <button class="btn btn-icon" title="Download Messages" @onclick="DownloadMessages">
+                        <i class="bi bi-download"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Messages Container -->
+            <div class="messages-container" @ref="messagesDiv">
+                @if (!messages.Any() && !isTyping)
+                {
+                    <div class="empty-chat">
+                        <div class="empty-chat-icon">
+                            <i class="bi bi-chat-square-text"></i>
+                        </div>
+                        <h3>Start a new conversation</h3>
+                        <p>Send a message to begin chatting with the @FormatAgentName(currentPath)</p>
+                    </div>
+                }
+                else
+                {
+                    @foreach (var message in messages)
+                    {
+                        <div class="message @(message.IsUser ? "user-message" : "assistant-message")">
+                            <div class="message-avatar">
+                                <i class="@(message.IsUser ? "bi bi-person-circle" : "bi bi-robot")"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-sender">
+                                    @(message.IsUser ? "You" : FormatAgentName(currentPath))
+                                </div>
+                                <div class="markdown-content">
+                                    @((MarkupString)message.FormattedMessage)
+                                </div>
+                                <div class="message-timestamp">@message.Timestamp.ToString("HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+
+                    @if (isTyping)
+                    {
+                        <div class="message assistant-message">
+                            <div class="message-avatar">
+                                <i class="bi bi-robot"></i>
+                            </div>
+                            <div class="message-content">
+                                <div class="message-sender">
+                                    @FormatAgentName(currentPath)
+                                </div>
+                                <div class="typing-animation">
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                    <span class="typing-dot"></span>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                }
+            </div>
+
+            <!-- Chat Input -->
+            <div class="chat-input-container">
+                <form @onsubmit="HandleSubmit" @onsubmit:preventDefault class="chat-form">
+                    <textarea rows="1"
+                              @bind="currentMessage"
+                              @bind:event="oninput"
+                              @onkeydown="HandleKeyPress"
+                              placeholder="Message the AI..."
+                              @ref="textAreaRef"
+                              class="chat-textarea">
+                    </textarea>
+                    <button type="submit" class="send-button" disabled="@(string.IsNullOrWhiteSpace(currentMessage))">
+                        <i class="bi bi-send-fill"></i>
+                    </button>
+                </form>
+                <div class="input-footer">
+                    <small>AI responses may not always be accurate. Consider checking important information.</small>
+                </div>
+            </div>
+        </main>
+
+        <!-- Right Sidebar - Actions Pane -->
+        <aside class="actions-sidebar">
+            <div class="actions-header">
+                <h3>Actions</h3>
+            </div>
+
+            <div class="actions-content">
+                @if (!string.IsNullOrEmpty(currentChatId) && actions.Any())
+                {
+                    @foreach (var action in actions)
+                    {
+                        <div class="action-card @GetActionStatusClass(action.Status)">
+                            <i class="@GetActionIcon(action.Status)"></i>
+                            <div class="action-content">
+                                <span class="action-title">@action.Title</span>
+                                <span class="action-timestamp">@action.TimeStamp.ToLocalTime().ToString("MMM d, h:mm tt")</span>
+                            </div>
+                            <div class="action-status">
+                                <span class="status-badge @action.Status.ToString().ToLower()">@action.Status</span>
+                            </div>
+                        </div>
+                    }
+                }
+                else if (!string.IsNullOrEmpty(currentChatId))
+                {
+                    <div class="empty-actions">
+                        <i class="bi bi-info-circle"></i>
+                        <p>No actions available for this conversation.</p>
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-actions">
+                        <i class="bi bi-info-circle"></i>
+                        <p>Select a conversation to view available actions.</p>
+                    </div>
+                }
+            </div>
+
+            <div class="actions-footer">
+                <span>Agent Type: @GetAgentTypeFromPath(currentPath)</span>
+            </div>
+        </aside>
+    </div>
+
+    <!-- Footer -->
+    <footer class="app-footer">
+        <div>Lightweight Tool Built for Internal Testing of SRE Agent</div>
+    </footer>
+
     <!-- Confirmation Dialog -->
     @if (showPurgeConfirmation)
     {
-        <div class="confirmation-modal">
+        <div class="modal-overlay">
             <div class="confirmation-dialog">
-                <div class="confirmation-title">Confirm Purge</div>
-                <div class="confirmation-message">Are you sure you want to delete all conversations? This action cannot be undone.</div>
-                <div class="confirmation-buttons">
+                <div class="dialog-header">
+                    <h4>Confirm Purge</h4>
+                    <button class="btn-close" @onclick="CancelPurge"></button>
+                </div>
+                <div class="dialog-body">
+                    <p>Are you sure you want to delete all conversations? This action cannot be undone.</p>
+                </div>
+                <div class="dialog-footer">
                     <button class="btn btn-secondary" @onclick="CancelPurge">Cancel</button>
                     <button class="btn btn-danger" @onclick="PurgeAllThreads">Delete All</button>
                 </div>
             </div>
         </div>
     }
-
-    <!-- Header Controls -->
-    <div class="chat-controls">
-        <!-- Thread Selector Dropdown -->
-        <div>
-            <div class="control-label">Session</div>
-            <div class="custom-dropdown">
-                <button type="button" class="custom-dropdown-toggle">
-                    @GetCurrentThreadDisplay()
-                </button>
-                <div class="custom-dropdown-menu">
-                    @foreach (var thread in threads)
-                    {
-                        <button class="custom-dropdown-item @(thread.Id == currentChatId ? "active" : "")"
-                                @onclick="async () => await SelectThread(thread.Id)">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <span>@thread.Name</span>
-                                <span class="badge bg-secondary">@thread.AgentType</span>
-                            </div>
-                            <div class="thread-metadata">
-                                <small class="text-muted">Created: @thread.CreatedAt.ToLocalTime().ToString("MMM d, h:mm tt")</small>
-                                <small class="text-muted">
-                                    • Last message: @thread.LastMessageAt.ToLocalTime().ToString("MMM d, h:mm tt")
-                                </small>
-                                <small class="text-muted">
-                                    • Agent Type: @thread.AgentType
-                                </small>
-                            </div>
-                        </button>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <!-- RIGHT: Agent Selection + New Chat + Purge -->
-        <div>
-            <div class="control-label">Agent</div>
-            <div class="d-flex align-items-center">
-                <select @bind="CurrentPath" class="form-select" style="min-width: 200px;">
-                    @foreach (var path in availablePaths)
-                    {
-                        <option value="@path">@FormatAgentName(path)</option>
-                    }
-                </select>
-                <button class="btn btn-primary ms-2" type="button" @onclick="@(async () => await CreateNewThreadAndRefresh())">
-                    <i class="bi bi-plus-lg me-1"></i> New Chat
-                </button>
-                <button class="btn btn-danger ms-2" type="button" @onclick="@(async () => await ShowPurgeConfirmation())">
-                    <i class="bi bi-trash me-1"></i> Purge All
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <div class="messages-container" @ref="messagesDiv">
-        @if (!messages.Any() && !isTyping)
-        {
-            <div class="empty-chat">
-                <div class="empty-chat-icon">
-                    <i class="bi bi-chat-square-text"></i>
-                </div>
-                <h3>Start a new conversation</h3>
-                <p>Send a message to begin chatting with the @FormatAgentName(currentPath)</p>
-            </div>
-        }
-        else
-        {
-            @foreach (var message in messages)
-            {
-                <div class="message @(message.IsUser ? "user-message" : "assistant-message")">
-                    <div class="markdown-content">
-                        @((MarkupString)message.FormattedMessage)
-                    </div>
-                    <div class="message-timestamp">@message.Timestamp.ToString("HH:mm")</div>
-                </div>
-            }
-
-            @if (isTyping)
-            {
-                <div class="message assistant-message">
-                    <div class="message-content">
-                        <span class="typing-animation">
-                            <span class="typing-dot"></span>
-                            <span class="typing-dot"></span>
-                            <span class="typing-dot"></span>
-                        </span>
-                    </div>
-                    <div class="message-timestamp">@DateTime.Now.ToString("HH:mm")</div>
-                </div>
-            }
-        }
-    </div>
-
-    <!-- Chat Input -->
-    <div class="chat-input">
-        <form @onsubmit="HandleSubmit" @onsubmit:preventDefault>
-            <textarea rows="1"
-                      @bind="currentMessage"
-                      @bind:event="oninput"
-                      @onkeydown="HandleKeyPress"
-                      placeholder="Type a message..."
-                      @ref="textAreaRef">
-            </textarea>
-            <button type="submit" disabled="@(string.IsNullOrWhiteSpace(currentMessage))">
-                <i class="bi bi-send-fill"></i>
-            </button>
-        </form>
-    </div>
 </div>
 
 @code {
@@ -153,6 +242,7 @@
     private bool hasError = false;
     private string errorMessage = "";
     private bool showPurgeConfirmation = false;
+    private List<Action> actions = new();
 
     private readonly MarkdownPipeline _markdownPipeline = new MarkdownPipelineBuilder()
             .UseAdvancedExtensions()
@@ -176,6 +266,37 @@
                 Navigation.NavigateTo(currentPath);
                 SaveCurrentSession();
             }
+        }
+    }
+
+    private async Task DownloadMessages()
+    {
+        try
+        {
+            // Format the messages for download
+            string content = "# Conversation: " + GetCurrentThreadDisplay() + "\n\n";
+
+            foreach (var message in messages)
+            {
+                string sender = message.IsUser ? "You" : FormatAgentName(currentPath);
+                content += $"## {sender} - {message.Timestamp.ToString("yyyy-MM-dd HH:mm:ss")}\n\n";
+                content += message.Message + "\n\n";
+            }
+
+            // Generate a filename based on the conversation title and date
+            string fileName = $"{GetCurrentThreadDisplay().Replace(" ", "_")}_{DateTime.Now.ToString("yyyyMMdd_HHmmss")}.md";
+
+            // Create a data URI for the file download
+            byte[] bytes = System.Text.Encoding.UTF8.GetBytes(content);
+            string base64 = Convert.ToBase64String(bytes);
+            string dataUrl = $"data:text/markdown;base64,{base64}";
+
+            // Trigger the download
+            await JS.InvokeVoidAsync("downloadFile", fileName, dataUrl);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading messages: {ex.Message}");
         }
     }
 
@@ -297,16 +418,47 @@
         }
     }
 
+    private IJSObjectReference? _layoutManager;
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
         {
-            // Initialize dropdowns with Bootstrap JS
-            await JS.InvokeVoidAsync("initializeCustomDropdowns");
-            await LoadSavedSession();
-            await ScrollToBottom();
+            try
+            {
+                // Initialize layout manager
+                _layoutManager = await JS.InvokeAsync<IJSObjectReference>("initializeChatLayout");
+
+                // Load saved session data
+                await LoadSavedSession();
+
+                // Scroll to bottom of messages
+                await ScrollToBottom();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error in OnAfterRenderAsync: {ex.Message}");
+            }
         }
+
+        // Auto-adjust textarea height
         await JS.InvokeVoidAsync("autoAdjustHeight", textAreaRef);
+    }
+
+    // Be sure to dispose the JS reference when component is disposed
+    public async ValueTask DisposeAsync()
+    {
+        try
+        {
+            if (_layoutManager != null)
+            {
+                await _layoutManager.DisposeAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error disposing layout manager: {ex.Message}");
+        }
     }
 
     private async Task ScrollToBottom()
@@ -552,6 +704,9 @@
                         messages = new List<ChatMessage>();
                     }
                 }
+
+                // Load actions for this thread
+                await LoadActionsForThread(threadId);
             }
             else
             {
@@ -568,6 +723,45 @@
             Console.WriteLine($"Exception in SetThreadAndLoadHistory: {ex.Message}");
             messages = new List<ChatMessage>();
             StateHasChanged();
+        }
+    }
+
+    private async Task LoadActionsForThread(Guid threadId)
+    {
+        try
+        {
+            // Get actions using ThreadsApiController
+            var response = await Http.GetAsync($"/api/v1/Threads/{threadId}/actions");
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error getting actions: {response.StatusCode} - {error}");
+                actions = new List<Action>();
+            }
+            else
+            {
+                var options = new JsonSerializerOptions
+                    {
+                        PropertyNameCaseInsensitive = true,
+                        Converters = { new JsonStringEnumConverter() }
+                    };
+                var apiResponse = await response.Content.ReadFromJsonAsync<ActionsResponse>(options);
+                var actionsList = apiResponse?.Value;
+                if (actionsList != null)
+                {
+                    actions = actionsList.ToList();
+                    Console.WriteLine($"Loaded {actions.Count} actions for thread {threadId}");
+                }
+                else
+                {
+                    actions = new List<Action>();
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Exception in LoadActionsForThread: {ex.Message}");
+            actions = new List<Action>();
         }
     }
 
@@ -640,7 +834,7 @@
     private string GetCurrentThreadDisplay()
     {
         var currentThread = threads.FirstOrDefault(t => t.Id == currentChatId);
-        return currentThread != null ? currentThread.Name : "Select Thread";
+        return currentThread != null ? currentThread.Name : "New Conversation";
     }
 
     private async Task SelectThread(string chatId)
@@ -655,6 +849,30 @@
     {
         var name = path.TrimStart('/');
         return string.IsNullOrWhiteSpace(name) ? "Meta Agent" : char.ToUpper(name[0]) + name[1..] + " Agent";
+    }
+
+    private string GetActionStatusClass(ActionStatus status)
+    {
+        return status switch
+        {
+            ActionStatus.Pending => "status-pending",
+            ActionStatus.InProgress => "status-inprogress",
+            ActionStatus.Completed => "status-completed",
+            ActionStatus.Failed => "status-failed",
+            _ => string.Empty
+        };
+    }
+
+    private string GetActionIcon(ActionStatus status)
+    {
+        return status switch
+        {
+            ActionStatus.Pending => "bi bi-clock",
+            ActionStatus.InProgress => "bi bi-arrow-repeat",
+            ActionStatus.Completed => "bi bi-check-circle",
+            ActionStatus.Failed => "bi bi-exclamation-triangle",
+            _ => "bi bi-question-circle"
+        };
     }
 
     // Helper method to poll for a response
@@ -826,6 +1044,26 @@
     {
         public List<Message> Value { get; set; } = new();
     }
+
+    public class ActionsResponse
+    {
+        public List<Action> Value { get; set; } = new();
+    }
+
+    public enum ActionStatus
+    {
+        Pending,
+        InProgress,
+        Completed,
+        Failed
+    }
+
+    public record Action(
+        Guid Id,
+        string Title,
+        DateTime TimeStamp,
+        ActionStatus Status
+    );
 
     // Methods for handling thread purging
     private async Task ShowPurgeConfirmation()
