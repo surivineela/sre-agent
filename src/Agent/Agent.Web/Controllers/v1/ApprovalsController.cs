@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 //using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Runtime.SubAgents.TlsBestPractices;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
+using Octokit;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -15,11 +18,16 @@ namespace Agent.Web.Controllers.v1
     {
         private readonly IApprovalService _approvalService;
         private readonly ILogger<ApprovalsController> _logger;
+        private readonly DurableTaskClient _durableTaskClient;
 
-        public ApprovalsController(IApprovalService approvalService, ILogger<ApprovalsController> logger)
+        public ApprovalsController(
+            IApprovalService approvalService, 
+            ILogger<ApprovalsController> logger,
+            DurableTaskClient durableTaskClient)
         {
-            _approvalService = approvalService ?? throw new ArgumentNullException(nameof(approvalService));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _approvalService = approvalService;
+            _logger = logger;
+            _durableTaskClient = durableTaskClient;
         }
 
         /// <summary>
@@ -32,26 +40,32 @@ namespace Agent.Web.Controllers.v1
         {
             // TODO: Implement pagination and filtering logic
             _logger.LogInformation("GET approvals requested with filter: {Filter}", filter);
-            
-            // Stub implementation - Return sample data
-            var approvals = new List<Approval>
+
+
+            var approvalOrchestrations = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
             {
-                new Approval(
-                    Id: Guid.NewGuid().ToString(),
-                    Title: "Sample TLS configuration setting update",
-                    Status: ApprovalDecision.Approved,
-                    CreatedTimestamp: DateTime.UtcNow.AddDays(-7),
-                    DecisionTimestamp: DateTime.UtcNow.AddDays(-6),
-                    decisionUserId: "user-789"),
-                new Approval(
+                Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                InstanceIdPrefix = "approval"
+            }).ToListAsync();
+
+            var approvals = new List<Approval>();
+
+            if (approvalOrchestrations.Count == 0)
+            {
+                approvals.Add(new Approval(
                     Id: Guid.NewGuid().ToString(),
                     Title: "Sample Always On configuration setting update",
                     Status: ApprovalDecision.Pending,
                     CreatedTimestamp: DateTime.UtcNow,
                     DecisionTimestamp: null,
-                    decisionUserId: null)
-            };
-            
+                    decisionUserId: null
+                ));
+            }
+
+            approvals.AddRange(approvalOrchestrations
+                .Select(x => new Approval(x.InstanceId, "placeholder title", ApprovalDecision.Pending, x.CreatedAt.DateTime, null, null))
+                .ToList());
+
             return Ok(approvals);
         }
 

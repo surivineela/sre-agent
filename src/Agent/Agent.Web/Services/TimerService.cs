@@ -1,9 +1,12 @@
 ﻿namespace Agent.Seb.Services;
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
+using Microsoft.DurableTask.Client;
 
 public class TimerService : IHostedService, IDisposable
 {
@@ -13,6 +16,7 @@ public class TimerService : IHostedService, IDisposable
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
     private BestPracticeScannerAgent _bestPracticeScannerAgent;
+    private TlsBestPracticesScanner _tlsBestPracticesScanner;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -22,6 +26,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _bestPracticeTimerIsRunning = false;
     private int _bestPracticeTimerIntervalInMinutes = 24 * 60;
 
+    private Timer? _tlsTimer = null;
+    private bool _tlsTimerIsRunning = false;
+    private TimeSpan _tlsTimerInterval = TimeSpan.FromMinutes(1);
+
 
     public TimerService(
         ResourceGraphCrawler crawler,
@@ -29,6 +37,7 @@ public class TimerService : IHostedService, IDisposable
         TimerSettings timerSettings,
         BestPracticeScannerAgent bestPracticeScannerAgent,
         IPostToTeamsPlugin teamsPlugin,
+        TlsBestPracticesScanner tlsBestPracticesScanner,
         ILogger<TimerService> logger)
     {
         _logger = logger;
@@ -37,6 +46,7 @@ public class TimerService : IHostedService, IDisposable
         _timerSettings = timerSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
+        _tlsBestPracticesScanner = tlsBestPracticesScanner;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
     }
 
@@ -47,7 +57,10 @@ public class TimerService : IHostedService, IDisposable
         StartCrawlerTimer(cancellationToken);
 
         _logger.LogInformation($"Starting best practice timer...");
-        StartBestPracticeTimer(cancellationToken);
+        //StartBestPracticeTimer(cancellationToken);
+
+        _logger.LogInformation($"Starting TLS timer...");
+        StartTlsTimer(cancellationToken);
 
         _logger.LogInformation($"Finished starting background services");
 
@@ -84,6 +97,25 @@ public class TimerService : IHostedService, IDisposable
                 _crawlerTimerIsRunning = false; // Ensure flag resets even if CrawlAsync() fails
             }
         }, null, TimeSpan.Zero, TimeSpan.FromMinutes(_timerSettings.BackgroundCrawlIntervalInMinutes));
+    }
+
+    public void StartTlsTimer(CancellationToken cancellationToken)
+    {
+        _tlsTimer = new Timer(async _ =>
+        {
+            if (!_crawlerFinishedOnce) return;  // Wait for the first crawl to finish
+            if (_tlsTimerIsRunning) return; // Prevent overlapping executions
+            try
+            {
+                _tlsTimerIsRunning = true;
+                await _tlsBestPracticesScanner.Scan(cancellationToken);
+            }
+            finally
+            {
+                _tlsTimerIsRunning = false; 
+            }
+        }, null, TimeSpan.Zero, _tlsTimerInterval);
+
     }
 
     /// <summary>

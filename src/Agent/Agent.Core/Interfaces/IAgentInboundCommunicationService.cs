@@ -9,6 +9,13 @@ namespace Agent.Core.Interfaces;
 public interface IAgentInboundCommunicationService
 {
     /// <summary>
+    /// Used for any proactive scenario, where some code has run and determined that we need to create a new thread for an agent to work from
+    /// </summary>
+    /// <param name="title"></param>
+    /// <returns></returns>
+    Task<Models.Api.v1.Thread> CreateAgentThread(string title, string message);
+
+    /// <summary>
     /// Processes a user message, determining if it should be routed to an existing orchestration 
     /// or handled by the meta-agent to potentially start a new orchestration
     /// </summary>

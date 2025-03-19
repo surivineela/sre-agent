@@ -31,6 +31,31 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _logger = logger;
     }
 
+    public async Task<Core.Models.Api.v1.Thread> CreateAgentThread(string title, string message)
+    {
+        var now = DateTime.UtcNow;
+        var thread = new Core.Models.Api.v1.Thread
+        (
+            Id: Guid.NewGuid(),
+            Title: title,
+            new Message
+            (
+                Guid.NewGuid(),
+                now,
+                new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+                message
+            ),
+            now,
+            now
+        );
+
+        // TODO - how should we share implementation with process user message and make sure fan out occurs?
+        await _repository.CreateThreadAsync(thread);
+        await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+
+        return thread;
+    }
+
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message)
     {
         try
@@ -88,4 +113,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             throw;
         }
     }
+
+
 }
