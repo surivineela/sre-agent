@@ -24,7 +24,7 @@ using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
-using Agent.Runtime.Communication;
+using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
 using Agent.Web.Services;
@@ -44,9 +44,6 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
-using Agent.Runtime.SubAgents.AppServiceRemediation;
-using Agent.Core.Interfaces;
-using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -235,7 +232,6 @@ if (useSessionChatService)
             b.UseDurableTaskScheduler(durableConnectionString, options =>
             {
                 options.Credential = credential;
-                options.TaskHubName = "Default"; // TODO: change to agent specific
             });
         }
         else
@@ -269,7 +265,6 @@ if (useSessionChatService)
             b.UseDurableTaskScheduler(durableConnectionString, options =>
             {
                 options.Credential = credential;
-                options.TaskHubName = "Default"; // TODO: change to agent specific
             });
         }
         else
