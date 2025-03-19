@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using Agent.Runtime.Communication;
 using Agent.Plugins;
 using Agent.Core.Interfaces;
+using System.Text.Json;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -145,6 +146,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             foreach (var fnCall in response.Message.Contents.OfType<FunctionCallContent>())
             {
                 var matchingTool = _aiTools.Single(x => x.Name == fnCall.Name);
+                _log.LogInformation("[ChatThreadId {threadId}] Found a matching tool [{Name}]", threadId, fnCall.Name);
 
                 var category = "unknown";
                 switch (fnCall.Name)
@@ -172,7 +174,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                         break;
                 }
 
-
                 // Create a new dictionary with the thread ID if needed
                 IDictionary<string, object?> arguments = fnCall.Arguments;
                 if (!string.IsNullOrEmpty(threadId))
@@ -181,7 +182,11 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                     arguments = new Dictionary<string, object?>(fnCall.Arguments);
 
                     // Inject threadId to the arguments to avoid hallucination
-                    arguments["threadId"] = threadId;
+                    if (category != "General")
+                    {
+                        // The List* tools doesn't take threadId as parameter. Injecting it will raise exception on invocation.
+                        arguments["threadId"] = threadId;
+                    }
 
                     if (category == "ReusingOrchestration")
                     {
@@ -205,6 +210,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
                 // Invoke function call with potentially modified arguments
                 var invokeResult = await matchingTool.InvokeAsync(arguments);
+                _log.LogInformation("[ChatThreadId {threadId}] Invoking function call [{Name}] with arguments: {Arguments}", threadId, fnCall.Name, JsonSerializer.Serialize(arguments));
                 var result = new FunctionResultContent(fnCall.CallId, invokeResult);
 
                 if (category == "NewOrchestration")
@@ -226,7 +232,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             {
                 // Add function call response, and re-evaluate the ChatHistory with model
                 // TODO: do we add the intermediate tools responses to the repository?
-                _chatHistory.Add(new ChatMessage(ChatRole.Tool, results));
+                var toolCallResponseMessage = new ChatMessage(ChatRole.Tool, results);
+                _chatHistory.Add(toolCallResponseMessage);
+                _log.LogInformation("[ChatThreadId {threadId}] Getting function call response: {toolCallResponseMessage}", threadId, toolCallResponseMessage);
             }
             else
             {

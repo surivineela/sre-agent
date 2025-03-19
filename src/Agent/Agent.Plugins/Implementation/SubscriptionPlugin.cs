@@ -6,49 +6,61 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
+using Castle.Core.Logging;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins
 {
     public class SubscriptionPlugin : ISubscriptionPlugin
     {
         private readonly IGraphDatabaseClient _graphDbClient;
+        private readonly ILogger<SubscriptionPlugin> _logger;
 
-        public SubscriptionPlugin(IGraphDatabaseClient graphDatabaseManager)
+        public SubscriptionPlugin(IGraphDatabaseClient graphDatabaseManager, ILogger<SubscriptionPlugin> logger)
         {
             _graphDbClient = graphDatabaseManager;
+            _logger = logger;
         }
 
         public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync()
         {
-            Console.WriteLine($"[list_azure_subscriptions] Invoked");
-
-            // TODO: This is to limit the output of subscriptions. Update this values as needed. Will need to read it from appsettings.development.json
-            string[] displayNameFilter = ["Container Apps Test Resources", "ruslany", "sanmeht", "yanche", "shgup", "pbatum", "mikarmar"];
-
-            var ret = new List<SubscriptionDescriptor>();
-            // Authenticate using DefaultAzureCredential
-            var credential = new DefaultAzureCredential();
-            // Create an instance of the ArmClient to interact with Azure
-            var armClient = new ArmClient(credential);
-            // Get all subscriptions
-            await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
+            try
             {
-                if (displayNameFilter != null && displayNameFilter.Length > 0 &&
-                    !displayNameFilter.Any(filter => subscription.Data.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-                {
-                    continue;
-                }
+                Console.WriteLine($"[list_azure_subscriptions] Invoked");
 
-                ret.Add(new SubscriptionDescriptor(
-                    Id: subscription.Data.Id,
-                    DisplayName: subscription.Data.DisplayName));
+                // TODO: This is to limit the output of subscriptions. Update this values as needed. Will need to read it from appsettings.development.json
+                string[] displayNameFilter = ["Container Apps Test Resources", "ruslany", "sanmeht", "yanche", "shgup", "pbatum", "mikarmar"];
+
+                var ret = new List<SubscriptionDescriptor>();
+                // Authenticate using DefaultAzureCredential
+                var credential = new DefaultAzureCredential();
+                // Create an instance of the ArmClient to interact with Azure
+                var armClient = new ArmClient(credential);
+                // Get all subscriptions
+                await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
+                {
+                    if (displayNameFilter != null && displayNameFilter.Length > 0 &&
+                        !displayNameFilter.Any(filter => subscription.Data.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    ret.Add(new SubscriptionDescriptor(
+                        Id: subscription.Data.Id,
+                        DisplayName: subscription.Data.DisplayName));
+                }
+                return ret;
             }
-            return ret;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error in ListAllSubscriptionsAsync");
+                return [];
+            }
         }
 
         public async Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId)
         {
-            Console.WriteLine($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
+            _logger.LogInformation($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
 
             var appServices = new List<AppServiceDescriptor>();
             string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg", "mikarmar-msha"];
@@ -102,14 +114,13 @@ namespace Agent.Plugins
             }
             catch (RequestFailedException ex) when (ex.Status == 404)
             {
-                Console.Error.WriteLine($"Subscription with ID '{subscriptionId}' not found.");
-                // Depending on requirements, you might choose to return an empty list or rethrow the exception
-                throw;
+                _logger.LogInformation($"Subscription with ID '{subscriptionId}' not found.");
+                return [];
             }
             catch (Exception ex)
             {
-                Console.Error.WriteLine($"Error in ListAppServicesAsync: {ex}");
-                throw;
+                _logger.LogError(ex, $"Error in ListAppServicesAsync with subscription {subscriptionId}");
+                return [];
             }
 
             return appServices;
