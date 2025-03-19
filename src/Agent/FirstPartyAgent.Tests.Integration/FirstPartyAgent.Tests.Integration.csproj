@@ -53,6 +53,9 @@
     <None Update="TestData\ACA_Quota_ManualReject.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="TestData\ACA_Quota_WrongSubId.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="TestData\ACA_Quota_UnsupportedQuotaType.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

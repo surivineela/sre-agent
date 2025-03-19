@@ -20,6 +20,6 @@ namespace FirstPartyAgent.Plugins
 
         public Task<TeamsPostMessageResponse?> ReplyTeamsDiscussionAsync(string incidentId, string messageId, string content);
 
-        public Task<string> ValidateQuotaRequest(string quotaType, string offerType, string region, string targetQuotaLimit);
+        public Task<string> ValidateQuotaRequest(string quotaType, string subscriptionId, string region, string targetQuotaLimit);
     }
 }

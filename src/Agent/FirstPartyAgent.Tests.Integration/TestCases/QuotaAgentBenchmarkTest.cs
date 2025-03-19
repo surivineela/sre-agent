@@ -100,6 +100,7 @@ namespace FirstPartyAgent.Tests.Integration.TestCases
                 yield return new object[] { "ACA_Quota_ManualReject.html" };
                 yield return new object[] { "ACA_Quota_WrongRegion.html" };
                 yield return new object[] { "ACA_Quota_WrongQuotaType.html" };
+                yield return new object[] { "ACA_Quota_WrongSubId.html" };
                 yield return new object[] { "ACA_Quota_ManualApproveT4.html" };
                 yield return new object[] { "ACA_Quota_AutoApproveT4.html" };
                 yield return new object[] { "ACA_Quota_MissSubId.html" };

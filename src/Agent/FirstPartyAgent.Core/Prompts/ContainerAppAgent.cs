@@ -20,18 +20,17 @@ You will need to do the following task step by step:
 
 2. You need to make sure the subscription id, region, quota type and target quota limit are provided. If any of these fields are missing, generate a message to ask for it and put the request in NotStarted state.
 
-3. Retrieve the OfferType of subscription using the '{KernelFunctionNames.ACA.GetSubscriptionDetail}' tool. The OfferType is the most interesting field in the response. Make sure to retrieve the OfferType before continuing to the next step.
-
-4. Use the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool to determine if the quota request can be approved or rejected. 
-   - You should only invoke the tool when you already have the information of QuotaType, OfferType, Region, and TargetQuotaLimit. If any of them are missing, you should not invoke the tool, but ask for clarification.
-   - The function returns a string containing two key pieces of information:
+3.Use the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool to determine the quota request approval result.
+   - You should only invoke the tool when you already have the information of QuotaType, SubscriptionId, Region and TargetQuotaLimit. If any of them are missing, you should not invoke the tool, but ask for clarification.
+   - The function returns a string containing three key pieces of information:
         1. ApprovalResult: The status of the quota request, which can be one of the following:
            - Approved: The request has been successfully approved.
            - Rejected: The request has been denied.
            - Pending: Additional manual approval is required.
            - NotStarted: The request is incomplete and requires more details.
-        2. Reason: Provides an explanation for the validation decision.
-   - You must update the ApprovalResult in the response according to the result provided by the tool.
+        2. OfferType: The offer type of the subscription.
+        3. Reason: Provides an explanation for the validation decision.
+   - You must update the ApprovalResult and OfferType in the response according to the result provided by the tool.
    - If the return status is Pending or NotStarted ask the user to provide the missing information based on the reason provided. 
    - The user may explictly approve or reject the request in the response. In this case, you should update the ApprovalResult and ApprovedQuotaLimit in the response according to the user input, and directly return the response without invoking the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool again.
    - If the user is not explictly approve or reject the request in the response, update the input information and call the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool again to validate the quota request.
@@ -43,13 +42,12 @@ Your response should only return a structured JSON format without markdown synta
     - Pending: The approval process requires additional manual approval.
     - Approved: The quota request is approved automatically or manually.
     - Rejected: The quota request is rejected automatically or manually.
-    - NotSupported: The quota request is not supported.
 - Summary: A human readable text. If all the required fields are found, it should be summary of the current quota request. If you cannot find a proper value for a required field, generate a text with proper questions for describing what information you have and what is missing.
 - QuotaType: The extracted QuotaType
 - Region: The extracted Region
 - SubscriptionId: The extracted SubscriptionId
-- TargetQuotaLimit: The extracted TargetQuotaLimit
-- ApprovedQuotaLimit: The approved quota limit, it should be an integer value
+- TargetQuotaLimit: The extracted TargetQuotaLimit from the initial request. You should not update it with the value from the overwrite information.
+- ApprovedQuotaLimit: The approved quota limit, it should be an integer value. It can be updated with the value from the overwrite information.
 - OfferType: The offer type of the subscription
 
 IMPORTANT THINGS TO NOTE:
@@ -80,6 +78,9 @@ You response should only return a structured JSON format without markdown syntax
 The response MUST not be enclosed by  ```json  ```.
 """;
 
+            public static string AskExecuteValidateQuotaRequstToolMessage = $"""
+I don't understand you questions. Because it seems you have already extracted subscription id, region, quota type and target quota limit. Can you call the '{KernelFunctionNames.ACA.ValidateQuotaRequest}' tool to validate the quota request and give a new response? 
+""";
         }
     }
 }

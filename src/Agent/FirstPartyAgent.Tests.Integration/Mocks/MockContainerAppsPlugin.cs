@@ -6,38 +6,22 @@ using Agent.Core.Models;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Tests.End2End.Helpers;
+using Newtonsoft.Json;
 using System.ComponentModel;
+using static FirstPartyAgent.Plugins.ContainerAppsPlugin;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
 {
     public class MockContainerAppsPlugin : IContainerAppsPlugin
     {
-        private readonly ContainerAppsPlugin containerAppsPlugin;
-
-        public MockContainerAppsPlugin(ContainerAppsPlugin containerAppsPlugin)
-        {
-            this.containerAppsPlugin = containerAppsPlugin;
-        }
-
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId)
         {
             var subscriptionInfoReaderHelper = new SubscriptionInfoReaderHelper();
-            var offerInfo = subscriptionInfoReaderHelper.GetOfferTypeBySubscriptionId(subscriptionId);
+            var offerType = subscriptionInfoReaderHelper.GetOfferTypeBySubscriptionId(subscriptionId);
             var quotaId = subscriptionInfoReaderHelper.GetQoutaIdBySubscriptionId(subscriptionId);
 
             var subscriptionDetail = new SubscriptionDetail();
-            //(
-            //    SubscriptionId: subscriptionId,
-            //    BillingType: "",
-            //    OfferType: offerInfo,
-            //    OfferName: quotaId,
-            //    TPId: 12345,
-            //    BillableAcctId: "",
-            //    CloudCustomerGuid: "",
-            //    ClassifiedTypeV2: "",
-            //    QuotaId: "",
-            //    OrganizationName: ""
-            //);
+            subscriptionDetail.OfferType = offerType;
 
             return await Task.FromResult(subscriptionDetail);
         }
@@ -71,12 +55,33 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
 
         public async Task<string> ValidateQuotaRequest(
             [Description("The quota type of the quota request")] string quotaType,
-            [Description("The offer type of the subscription")] string offerType,
+            [Description("The subscription id of the quota request")] string subscriptionId,
             [Description("The region of the quota request")] string region,
             [Description("The target quota limit of the quota request")] string targetQuotaLimit
             )
         {
-            return await containerAppsPlugin.ValidateQuotaRequest(quotaType, offerType, region, targetQuotaLimit);
+            var mockSubscriptionDetails = await this.GetSubscriptionDetail(subscriptionId);
+            var offerType = mockSubscriptionDetails?.OfferType;
+            if (string.IsNullOrEmpty(offerType))
+            {
+                return JsonConvert.SerializeObject(new
+                {
+                    ApproveResult = ApprovalState.NotStarted.ToString(),
+                    OfferType = "Unknown",
+                    Reason = string.Format(MessageTemplates.SubscriptionInformationMissing, "offer type")
+                });
+            }
+            var validationResult = ContainerAppsPlugin.ValidateQuotaRule(targetQuotaLimit, quotaType, region.ToLowerInvariant(), offerType);
+            var approvalResult = validationResult.approvalState.ToString();
+
+            string result = JsonConvert.SerializeObject(new
+            {
+                ApproveResult = approvalResult,
+                OfferType = offerType,
+                Reason = validationResult.reason
+            });
+
+            return result;
         }
     }
 }

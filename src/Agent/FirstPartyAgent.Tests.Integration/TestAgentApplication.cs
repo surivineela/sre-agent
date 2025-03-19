@@ -63,15 +63,7 @@ namespace FirstPartyAgent.Tests.Integration
 
 
             services.Replace<IIcmPlugin, IcmPlugin>(ServiceLifetime.Singleton, provider => new MockIcmPlugin());
-
-            //services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Scoped,
-            //    provider =>
-            //    {
-            //        var icmSettingsOptionsMock = new Mock<IOptions<ICMSettings>>();
-            //        icmSettingsOptionsMock.Setup(o => o.Value).Returns(() => null);
-            //        var containerAppsPlugin = new Mock<ContainerAppsPlugin>(icmSettingsOptionsMock.Object, null);
-            //        return new MockContainerAppsPlugin(containerAppsPlugin.Object);
-            //    });
+            services.Replace<IContainerAppsPlugin, ContainerAppsPlugin>(ServiceLifetime.Singleton, provider => new MockContainerAppsPlugin());
 
             var _taskStorageServiceMock = new Mock<ITaskStorageService>();
             services.Replace<ITaskStorageService, FileBasedStorageService>(ServiceLifetime.Singleton, provider => _taskStorageServiceMock.Object);

@@ -167,11 +167,10 @@ public class QuotaAgentService : IQuotaAgentService
                         !string.IsNullOrEmpty(newState.SubscriptionId) &&
                         newState.TargetQuotaLimit != null)
                     {
-                        // For some reason, the AI didn't get the offer type. But all the information is extracted. It is usually because it is asking some studio question.
-                        chatHistory.AddUserMessage(_logger, "I don't understand you questions. Because it seems you have already extracted the information you needed. Can you please re-process the request and give a new response? ");
+                        // For some reason, the AI didn't call the ValidateQuotaRequest tool after collecting all the required information. It is usually because the agent extracted quota grant policy information from the ICM summary message, so trying to ask for non-mandatory information before call the the ValidateQuotaRequest tool. 
+                        chatHistory.AddUserMessage(_logger, ContainerAppAgent.GpuQuota.AskExecuteValidateQuotaRequstToolMessage);
                         continue;
                     }
-
                     needProcess = false;
                 }
             }
