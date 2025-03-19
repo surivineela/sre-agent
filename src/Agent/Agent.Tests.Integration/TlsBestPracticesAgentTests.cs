@@ -38,6 +38,7 @@ namespace Agent.Tests.Integration
         private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
 
         private MockApprovalPlugin _mockApprovalPlugin;
+        private MockRecordActionsPlugin _mockRecordActionsPlugin;
         private MockArmPlugin _mockArmPlugin;
         private MockMetricsPlugin _mockMetricsPlugin;
         private MockGithubWorkflowTriggerPlugin _mockGithubPlugin;
@@ -104,10 +105,12 @@ namespace Agent.Tests.Integration
             _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
             _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
+            _mockRecordActionsPlugin = new MockRecordActionsPlugin(testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
             services.AddSingleton<TimeProvider>(_timeProvider);
             services.AddSingleton<IRemediationPlugin, MockRemediationPlugin>();
             services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
+            services.AddSingleton<IRecordActionsPlugin>(_mockRecordActionsPlugin);
             services.AddSingleton<IArmPlugin>(_mockArmPlugin);
             services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
             services.AddSingleton<IGithubWorkflowTriggerPlugin>(_mockGithubPlugin);
@@ -178,7 +181,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input);
+                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
 
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 await Helper.DoApproval(
@@ -228,7 +231,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input);
+                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
                 await Helper.DoApproval(
                     _durableTaskClient,
                     _timeProvider,
@@ -277,7 +280,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input);
+                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 {

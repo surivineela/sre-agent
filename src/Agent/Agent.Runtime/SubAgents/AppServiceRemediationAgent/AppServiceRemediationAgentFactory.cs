@@ -24,6 +24,7 @@ public sealed class AppServiceRemediationAgentFactory
         IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
         IRemediationPlugin remediationPlugin,
+        IRecordActionsPlugin recordActionsPlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
@@ -43,6 +44,10 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.CalculateScalingCost));
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApp));
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
+
+        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.RestartWebApp));

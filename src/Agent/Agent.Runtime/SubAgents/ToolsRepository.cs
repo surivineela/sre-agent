@@ -35,7 +35,8 @@ public sealed class ToolsRepository : IMcpConnectable
         IMIConfigurationCheckPlugin miMigrationPlugin,
         IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
-        IRemediationPlugin remediationPlugin)
+        IRemediationPlugin remediationPlugin,
+        IRecordActionsPlugin recordActionsPlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
@@ -48,6 +49,10 @@ public sealed class ToolsRepository : IMcpConnectable
             submitFunctionSelector: () => metricsPluginDefinition.StartGetMemoryMetrics,
             executeFunctionSelector: () => metricsPluginDefinition.GetMemoryMetrics);
         Register200(() => metricsPluginDefinition.GetFunctionAppRequestAvailability);
+
+        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
+        Register200(() => recordActionsPluginDefinition.RecordAction);
+        Register200(() => recordActionsPluginDefinition.GetActionDetails);
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         Register200(() => armPluginDefinition.SetMinimumTlsVersion);

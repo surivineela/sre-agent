@@ -330,6 +330,41 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         return action;
     }
+    public async Task<Action> GetActionAsync(Guid threadId, Guid actionId)
+    {
+        string threadIdStr = threadId.ToString();
+        string actionIdStr = actionId.ToString();
+
+        try
+        {
+            // Query for the specific action by its ID and thread ID
+            var query = _container.GetItemLinqQueryable<ActionDocument>()
+                .Where(a => a.DocumentType == "Action" &&
+                      a.ThreadId == threadIdStr &&
+                      a.Id == actionIdStr);
+
+            using var iterator = query.ToFeedIterator();
+
+            if (iterator.HasMoreResults)
+            {
+                var results = await iterator.ReadNextAsync();
+                var actionDoc = results.FirstOrDefault();
+
+                if (actionDoc != null)
+                {
+                    return actionDoc.ToDomainModel();
+                }
+            }
+
+            // No action found with the given ID in the thread
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
+            throw;
+        }
+    }
 
     #endregion
 

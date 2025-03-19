@@ -1,0 +1,63 @@
+﻿using System;
+using System.Threading.Tasks;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Definitions;
+using Microsoft.Extensions.Logging;
+using Action = Agent.Core.Models.Api.v1.Action;
+
+
+namespace Agent.Plugins
+{
+    public class RecordActionsPlugin : IRecordActionsPlugin
+    {
+        private readonly IThreadRepository _repository;
+        private readonly ILogger<RecordActionsPlugin> _logger;
+
+        public RecordActionsPlugin(IThreadRepository repository, ILogger<RecordActionsPlugin> logger)
+        {
+            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
+            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        }
+
+        public async Task<Action> RecordAction(Guid threadId, string title, ActionStatus status = ActionStatus.Pending)
+        {
+            // Check if thread exists
+            var thread = await _repository.GetThreadAsync(threadId);
+            if (thread == null)
+            {
+                _logger.LogWarning("Attempted to record action for non-existent thread: {ThreadId}", threadId);
+                throw new ArgumentException($"Thread with ID {threadId} does not exist", nameof(threadId));
+            }
+
+            // Create new action
+            var action = new Action(
+                Id: Guid.NewGuid(),
+                Title: title,
+                TimeStamp: DateTime.UtcNow,
+                Status: status
+            );
+
+            // Store the action
+            await _repository.AddActionAsync(threadId, action);
+
+            _logger.LogInformation("Recorded action: {ActionId} - {Title} for thread {ThreadId}",
+                action.Id, action.Title, threadId);
+
+            return action;
+        }
+
+        public async Task<Action> GetAction(Guid threadId, Guid actionId)
+        {
+            var action = await _repository.GetActionAsync(threadId, actionId);
+            if (action == null)
+            {
+                _logger.LogWarning("Attempted to retrieve non-existent action: {ActionId} in thread {ThreadId}",
+                    actionId, threadId);
+                throw new ArgumentException($"Action with ID {actionId} does not exist in thread {threadId}");
+            }
+
+            return action;
+        }
+    }
+}

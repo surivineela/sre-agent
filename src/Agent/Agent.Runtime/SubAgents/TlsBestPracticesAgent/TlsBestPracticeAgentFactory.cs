@@ -21,6 +21,7 @@ public sealed class TlsBestPracticeAgentFactory
         IMetricsPlugin metricsPlugin,
         IArmPlugin armPlugin,
         IApprovalPlugin approvalPlugin,
+        IRecordActionsPlugin recordActionsPlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
@@ -31,6 +32,10 @@ public sealed class TlsBestPracticeAgentFactory
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.SetMinimumTlsVersion));
         // toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetTlsSettings));
+
+        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));

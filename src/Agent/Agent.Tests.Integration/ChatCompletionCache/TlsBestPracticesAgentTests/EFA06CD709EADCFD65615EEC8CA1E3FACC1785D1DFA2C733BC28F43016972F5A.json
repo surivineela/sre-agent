@@ -1,0 +1,39 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_EhL1cYr11T3YpoC02NHJdga8",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "TLS-Update",
+            "title": "Update Minimum TLS Version for App1",
+            "status": "Pending"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BChTvRnn3l5FoWmInjnlh9RpWkHsY",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-03-19T06:46:19+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 2877,
+    "outputTokenCount": 30,
+    "totalTokenCount": 2907,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 2688,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ded0d14823"
+  }
+}

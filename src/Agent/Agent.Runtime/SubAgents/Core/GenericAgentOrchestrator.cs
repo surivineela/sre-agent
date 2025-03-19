@@ -2,6 +2,7 @@
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Agent.Plugins;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -102,6 +103,82 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 waitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), waitTokenSource.Token);
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Wait operation submitted.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+            }
+            else if (functionCall.Name == nameof(RecordActionsPluginDefinition.RecordAction))
+            {
+                string title = string.Empty;
+                ActionStatus status = ActionStatus.Pending;
+
+                if (functionCall.Arguments.TryGetValue("title", out var titleObj) && titleObj != null)
+                {
+                    title = titleObj.ToString() ?? string.Empty;
+                }
+
+                if (functionCall.Arguments.TryGetValue("status", out var statusObj) && statusObj != null)
+                {
+                    if (Enum.TryParse<ActionStatus>(statusObj.ToString(), out var parsedStatus))
+                    {
+                        status = parsedStatus;
+                    }
+                }
+
+                // Call the record action activity
+                var action = await context.CallRecordActionActivityAsync(new RecordActionInput(
+                    ThreadId: Guid.Parse(threadId),
+                    Title: title,
+                    Status: status
+                ));
+
+                // Return the action details as a JSON string
+                var resultContent = new FunctionResultContent(
+                    functionCall.CallId,
+                    System.Text.Json.JsonSerializer.Serialize(action));
+                chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+            }
+            else if (functionCall.Name == nameof(RecordActionsPluginDefinition.GetActionDetails))
+            {
+                Guid actionId = Guid.Empty;
+
+                if (functionCall.Arguments.TryGetValue("actionId", out var actionIdObj) && actionIdObj != null)
+                {
+                    if (Guid.TryParse(actionIdObj.ToString(), out var parsedActionId))
+                    {
+                        actionId = parsedActionId;
+                    }
+                }
+
+                if (actionId == Guid.Empty)
+                {
+                    var errorContent = new FunctionResultContent(
+                        functionCall.CallId,
+                        "Invalid arguments. actionId is required.");
+                    chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { errorContent }));
+                }
+                else
+                {
+                    try
+                    {
+                        // Call the get action details activity
+                        var action = await context.CallGetActionDetailsActivityAsync(new GetActionDetailsInput(
+                            ThreadId: Guid.Parse(threadId),
+                            ActionId: actionId
+                        ));
+
+                        // Return the action details as a JSON string
+                        var resultContent = new FunctionResultContent(
+                            functionCall.CallId,
+                            System.Text.Json.JsonSerializer.Serialize(action));
+                        chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+                    }
+                    catch (Exception ex)
+                    {
+                        // Handle case where action is not found
+                        var errorContent = new FunctionResultContent(
+                            functionCall.CallId,
+                            $"Error retrieving action: {ex.Message}");
+                        chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { errorContent }));
+                    }
+                }
             }
             else if (functionCall.Name == nameof(ControlFlowPluginDefinition.NotifyUser))
             {

@@ -17,5 +17,6 @@ public interface IThreadRepository
     Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId);
 
     Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null);
+    Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);
 }
