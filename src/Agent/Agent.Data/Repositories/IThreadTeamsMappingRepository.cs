@@ -45,14 +45,6 @@ public interface IThreadTeamsMappingRepository
     Task<IEnumerable<ThreadTeamsMapping>> ListActiveConversationsAsync();
 
     /// <summary>
-    /// Adds a single message ID to the PostedMessages list
-    /// </summary>
-    /// <param name="threadId">The thread ID</param>
-    /// <param name="messageId">The message ID to add</param>
-    /// <returns>True if successful, false if thread not found</returns>
-    Task<bool> AddPostedMessageAsync(string threadId, string messageId);
-
-    /// <summary>
     /// Adds multiple message IDs to the PostedMessages list
     /// </summary>
     /// <param name="threadId">The thread ID</param>

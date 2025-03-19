@@ -1,5 +1,4 @@
 ﻿using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.Api.v1;
 
 namespace Agent.Data.DataModels;
 
@@ -9,7 +8,8 @@ public record MessageDocument(
     string ThreadId,
     DateTime TimeStamp,
     Author Author,
-    string Text
+    string Text,
+    Posted? Posted = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -22,7 +22,8 @@ public record MessageDocument(
             threadId,
             message.TimeStamp,
             new Author(message.Author.Role, message.Author.UserId, message.Author.DisplayName),
-            message.Text
+            message.Text,
+            message.Posted
         );
 
     public Message ToDomainModel() =>
@@ -30,6 +31,7 @@ public record MessageDocument(
             Guid.Parse(Id),
             TimeStamp,
             Author,
-            Text
+            Text,
+            Posted
         );
 }

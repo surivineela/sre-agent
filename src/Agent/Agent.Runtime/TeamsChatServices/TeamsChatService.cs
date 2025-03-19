@@ -15,12 +15,12 @@ using Microsoft.Bot.Builder.TraceExtensions;
 using Microsoft.Bot.Connector.Authentication;
 using Microsoft.Bot.Schema;
 using Microsoft.Bot.Schema.Teams;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using Activity = Microsoft.Bot.Schema.Activity;
 using Microsoft.Bot.Connector;
 using Microsoft.Extensions.AI;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.TeamsChatServices;
 
@@ -80,6 +80,14 @@ public class TeamsBot : TeamsActivityHandler
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
     {
+        string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
+        if (string.IsNullOrEmpty(messageText))
+        {
+            _logger.LogInformation("Received empty message from user");
+            await turnContext.SendActivityAsync(MessageFactory.Text("Empty message received, please tag me along with the messages."), cancellationToken).ConfigureAwait(false);
+            return;
+        }
+        var startMessageId = Guid.NewGuid();
         var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
         var serviceUrl = turnContext.Activity.ServiceUrl;
         var conversationReference = turnContext.Activity.GetConversationReference();
@@ -87,20 +95,19 @@ public class TeamsBot : TeamsActivityHandler
         conversationReference.ChannelId = teamsChannelId;
 
         // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
-        string threadId = await GetOrCreateChatId(turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, conversationReference);
+        string threadId = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, conversationReference, turnContext.Activity.From);
         Guid chatIdGuid = Guid.Parse(threadId);
-
-        string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
-        if (string.IsNullOrEmpty(messageText))
-        {
-            _logger.LogInformation("Received empty message from user");
-            return;
-        }
 
         string conversationId = turnContext.Activity.Conversation.Id;
         string senderName = turnContext.Activity.From?.Name ?? "Unknown User";
         string userId = turnContext.Activity.From?.Id ?? "teams-user";
-
+        var firstMessage = new ThreadMessage(
+                        ThreadId: chatIdGuid,
+                        MessageId: startMessageId,
+                        Message: messageText,
+                        UserId: userId,
+                        DisplayName: senderName,
+                        Timestamp: DateTime.UtcNow);
 
         _logger.LogInformation($"[Teams Conversation: {conversationId}][Thread: {threadId}]\nSending message to agent: {messageText}");
 
@@ -140,14 +147,7 @@ public class TeamsBot : TeamsActivityHandler
             }
 
             // Task 2: Process the message using the Threads API
-            var processMessageTask = _agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage(
-                ThreadId: chatIdGuid,
-                MessageId: Guid.NewGuid(),
-                Message: messageText,
-                UserId: userId,
-                DisplayName: senderName,
-                Timestamp: DateTime.UtcNow
-            ));
+            var processMessageTask = _agentInboundCommunicationService.ProcessUserMessageAsync(firstMessage);
             tasks.Add(processMessageTask);
 
             // Wait for all tasks to complete
@@ -226,8 +226,7 @@ public class TeamsBot : TeamsActivityHandler
                             serviceUrl,
                             DateTime.UtcNow,
                             DateTime.UtcNow,
-                            turnContext.Activity.GetConversationReference(),
-                            new List<string>()
+                            turnContext.Activity.GetConversationReference()
                         ));
 
                         _logger.LogInformation($"Created new thread with Teams post {newThreadId} for conversation {conversationId}");
@@ -248,7 +247,7 @@ public class TeamsBot : TeamsActivityHandler
     /// <summary>
     /// Get or create a thread ID for this conversation with improved performance
     /// </summary>
-    private async Task<string> GetOrCreateChatId(string conversationId, string serviceUrl, string channelId, ConversationReference reference = null)
+    private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, ConversationReference reference = null, ChannelAccount sender = null)
     {
         _logger.LogInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
         var mapping = await _conversationThreadMapping.GetMappingByConversationIdAsync(conversationId);
@@ -257,20 +256,35 @@ public class TeamsBot : TeamsActivityHandler
             _logger.LogInformation($"Found existing thread ID {mapping.ThreadId} for conversation {conversationId}");
             return mapping.ThreadId;
         }
-        string newThreadId = Guid.NewGuid().ToString();
+
+        string senderName = sender?.Name ?? "Unknown User";
+        string userId = sender?.Id ?? "teams-user";
+
+        Guid newThreadId = Guid.NewGuid();
+        await _threadRepository.CreateThreadAsync(new Thread(
+            Id: newThreadId,
+            Title: $"Teams-{newThreadId}",
+            StartMessage: new Message(
+                Id: startMessageId,
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(Role.User, userId, senderName),
+                Text: "-"
+            ),
+            CreatedTimestamp: DateTime.UtcNow,
+            ModifiedTimestamp: DateTime.UtcNow
+            ));
         await _conversationThreadMapping.AddMappingAsync(new ThreadTeamsMapping(
             $"teams_{newThreadId}",
-            newThreadId,
+            newThreadId.ToString(),
             conversationId,
             channelId,
             serviceUrl,
             DateTime.UtcNow,
             DateTime.UtcNow,
-            reference,
-            new List<string>()
+            reference
         ));
         _logger.LogInformation($"Created new thread ID {newThreadId} for conversation {conversationId}");
-        return newThreadId;
+        return newThreadId.ToString();
     }
 
     /// <summary>
@@ -337,15 +351,6 @@ public class TeamsBot : TeamsActivityHandler
     // Welcome message handler
     protected override async Task OnMembersAddedAsync(IList<ChannelAccount> membersAdded, ITurnContext<IConversationUpdateActivity> turnContext, CancellationToken cancellationToken)
     {
-        var teamsChannelId = turnContext.Activity.TeamsGetChannelId();
-        var serviceUrl = turnContext.Activity.ServiceUrl;
-        var conversationReference = turnContext.Activity.GetConversationReference();
-        conversationReference.ServiceUrl = serviceUrl;
-        conversationReference.ChannelId = teamsChannelId;
-        // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
-        await GetOrCreateChatId(turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, conversationReference);
-
-
         foreach (var member in membersAdded)
         {
             if (member.Id != turnContext.Activity.Recipient.Id)
@@ -471,22 +476,20 @@ public class TeamsBot : TeamsActivityHandler
 
                 if (!Guid.TryParse(threadId, out Guid threadGuid))
                 {
-                    _logger.LogWarning($"Invalid thread ID format: {threadId}");
+                    _logger.LogError($"Failed to poll Teams messages due to invalid thread ID format: {threadId}");
                     continue;
                 }
 
-                // Get already posted message IDs for this thread from the database
-                var postedMessages = await _conversationThreadMapping.GetPostedMessagesAsync(threadId);
-                HashSet<Guid> postedMessageIds = new HashSet<Guid>(
-                    postedMessages.Where(m => Guid.TryParse(m, out _))
-                               .Select(m => Guid.Parse(m)));
-
-                // Get recent agent messages from the thread with a specific time window
+                // Get messages from the thread repository 
                 var messages = await _threadRepository.GetMessagesAsync(threadGuid);
 
                 // Filter to get only new messages that haven't been posted yet
+                // Now checking the Posted.Teams property directly instead of using PostedMessages collection
+                DateTime tenMinutesAgo = DateTime.UtcNow.AddMinutes(-10);
                 var newMessages = messages
-                    .Where(m => m.Author.Role == Role.SREAgent && !postedMessageIds.Contains(m.Id))
+                    .Where(m => m.Author.Role == Role.SREAgent &&
+                           m.Posted != null && !m.Posted.Teams &&
+                           m.TimeStamp >= tenMinutesAgo)
                     .OrderBy(m => m.TimeStamp)
                     .Take(MAX_MESSAGES_PER_POLL)
                     .ToList();
@@ -500,7 +503,7 @@ public class TeamsBot : TeamsActivityHandler
                 }
                 else
                 {
-                    _logger.LogDebug($"No new messages to post for thread {threadId}. Total tracked messages: {postedMessageIds.Count}");
+                    _logger.LogDebug($"No new messages to post for thread {threadId}");
                 }
             }
             catch (Exception ex)
@@ -570,6 +573,7 @@ public class TeamsBot : TeamsActivityHandler
             }
 
             // Update the database with all successfully posted message IDs
+            // Now this will directly update the Posted field in Message documents
             if (postedMessageIds.Any())
             {
                 var success = await _conversationThreadMapping.AddPostedMessagesAsync(threadId, postedMessageIds);

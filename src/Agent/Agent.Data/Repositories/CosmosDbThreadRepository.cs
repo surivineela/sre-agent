@@ -156,6 +156,23 @@ public class CosmosDbThreadRepository : IThreadRepository
                 }
             }
 
+            // Delete all teams conversation mapping in the thread
+            var teamsQuery = _container.GetItemLinqQueryable<ThreadTeamsMappingDocument>()
+                .Where(a => a.DocumentType == "ThreadTeamsMapping" && a.ThreadId == threadIdStr);
+
+            using var teamsIterator = teamsQuery.ToFeedIterator();
+
+            while (teamsIterator.HasMoreResults)
+            {
+                foreach (var teamsMapping in await teamsIterator.ReadNextAsync())
+                {
+                    await _container.DeleteItemAsync<ThreadTeamsMappingDocument>(
+                        teamsMapping.Id,
+                        new PartitionKey(teamsMapping.PartitionKey)
+                    );
+                }
+            }
+
             // Finally delete the thread
             await _container.DeleteItemAsync<ThreadDocument>(
                 threadIdStr,
@@ -228,6 +245,8 @@ public class CosmosDbThreadRepository : IThreadRepository
             message = message with { Id = Guid.NewGuid() };
 
         string threadIdStr = threadId.ToString();
+        if (message.Posted == null)
+            message = message with { Posted = new Posted(false) };
 
         // Create the message document
         MessageDocument messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);

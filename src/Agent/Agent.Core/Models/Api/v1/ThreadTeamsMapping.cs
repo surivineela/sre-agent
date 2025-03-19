@@ -8,6 +8,5 @@ public record ThreadTeamsMapping(
     string ServiceUrl,
     DateTime CreatedTimestamp,
     DateTime ModifiedTimestamp,
-    ConversationReference? Reference = null,
-    IList<string> PostedMessages = null
+    ConversationReference? Reference = null
 );

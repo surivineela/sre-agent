@@ -11,8 +11,7 @@ public record ThreadTeamsMappingDocument(
     string ServiceUrl,
     DateTime CreatedTimestamp,
     DateTime ModifiedTimestamp,
-    ConversationReference? Reference = null,
-    IList<string> PostedMessages = null
+    ConversationReference? Reference = null
 ) : ICosmosDocument
 {
     public string DocumentType => "ThreadTeamsMapping";
@@ -27,8 +26,7 @@ public record ThreadTeamsMappingDocument(
             mapping.ServiceUrl,
             mapping.CreatedTimestamp,
             mapping.ModifiedTimestamp,
-            mapping.Reference,
-            mapping.PostedMessages ?? new List<string>()
+            mapping.Reference
         );
 
     public ThreadTeamsMapping ToDomainModel() =>
@@ -40,7 +38,6 @@ public record ThreadTeamsMappingDocument(
         ServiceUrl,
         CreatedTimestamp,
         ModifiedTimestamp,
-        Reference,
-        PostedMessages ?? new List<string>()
+        Reference
     );
 }

@@ -4,5 +4,10 @@ public record Message(
     Guid Id,
     DateTime TimeStamp,
     Author Author,
-    string Text
+    string Text,
+    Posted? Posted = null
+);
+
+public record Posted(
+    bool Teams
 );

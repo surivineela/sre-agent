@@ -1,4 +1,5 @@
 using System.Net;
+using System.Text;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
@@ -131,110 +132,117 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         }
     }
 
-    // Instead of querying message counts one by one, we'll get all counts in one query
+    // Refactored to query unposted messages first, then get relevant thread mappings
     public async Task<IEnumerable<ThreadTeamsMapping>> ListActiveConversationsAsync()
     {
         try
         {
-            // Get all active thread mappings first
-            QueryDefinition query = new QueryDefinition(
-                "SELECT * FROM c WHERE c.documentType = @documentType AND c.threadId != '' AND c.conversationId != '' AND c.serviceUrl != ''")
-                .WithParameter("@documentType", "ThreadTeamsMapping");
+            // Step 1: Find messages from the last 5 minutes that haven't been posted to Teams yet
+            DateTime cutoffTime = DateTime.UtcNow.AddMinutes(-5);
 
-            _logger.LogDebug("ListActiveConversationsAsync Query: {0}", query.QueryText);
-            List<ThreadTeamsMapping> allMappings = new List<ThreadTeamsMapping>();
-            using FeedIterator<ThreadTeamsMappingDocument> resultSet = _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(query);
+            // Query for messages not yet posted to teams
+            QueryDefinition messageQuery = new QueryDefinition(
+                @"SELECT DISTINCT c.threadId 
+                  FROM c 
+                  WHERE c.documentType = 'Message' 
+                    AND c.author.role = 1
+                    AND c.timeStamp >= @cutoffTime
+                    AND IS_DEFINED(c.posted) AND c.posted.teams = false")
+                .WithParameter("@cutoffTime", cutoffTime);
 
-            while (resultSet.HasMoreResults)
+            _logger.LogDebug("Query for unposted messages: {0}", messageQuery.QueryText);
+
+            // Get distinct thread IDs with unposted messages
+            HashSet<string> threadsWithUnpostedMessages = new HashSet<string>();
+            using FeedIterator<dynamic> messageIterator = _container.GetItemQueryIterator<dynamic>(messageQuery);
+
+            while (messageIterator.HasMoreResults)
             {
-                FeedResponse<ThreadTeamsMappingDocument> response = await resultSet.ReadNextAsync();
-                allMappings.AddRange(response.Select(doc => doc.ToDomainModel()));
+                FeedResponse<dynamic> messageResponse = await messageIterator.ReadNextAsync();
+                foreach (var item in messageResponse)
+                {
+                    string threadId = item.threadId.ToString();
+                    threadsWithUnpostedMessages.Add(threadId);
+                }
             }
 
-            if (!allMappings.Any())
+            if (!threadsWithUnpostedMessages.Any())
             {
+                _logger.LogDebug("No threads found with unposted messages in the last 30 minutes");
                 return Enumerable.Empty<ThreadTeamsMapping>();
             }
 
-            // Query for all message counts in a single operation, author.role = 1 indicates a bot
-            QueryDefinition countQuery = new QueryDefinition(
-                "SELECT c.threadId, COUNT(1) as messageCount FROM c WHERE c.documentType = 'Message' AND c.author.role = 1 GROUP BY c.threadId");
 
-            _logger.LogDebug("Message counts query: {0}", countQuery.QueryText);
+            // Step 2: Get thread mappings for only those threads that have unposted messages
+            List<ThreadTeamsMapping> mappings = new List<ThreadTeamsMapping>();
 
-            Dictionary<string, int> messageCounts = new Dictionary<string, int>();
-            using FeedIterator<dynamic> countIterator = _container.GetItemQueryIterator<dynamic>(countQuery);
+            // For optimal performance with potentially large sets of thread IDs, 
+            // process them in batches with IN operator
+            const int batchSize = 50; // Cosmos DB query has limits on parameter size
 
-            while (countIterator.HasMoreResults)
+            for (int i = 0; i < threadsWithUnpostedMessages.Count; i += batchSize)
             {
-                FeedResponse<dynamic> countResponse = await countIterator.ReadNextAsync();
-                foreach (var item in countResponse)
+                // Take a batch of thread IDs
+                string[] threadBatch = threadsWithUnpostedMessages
+                    .Skip(i)
+                    .Take(batchSize)
+                    .ToArray();
+
+                // Use a parameterized query with the IN operator
+                StringBuilder queryBuilder = new StringBuilder(
+                    "SELECT * FROM c WHERE c.documentType = @documentType " +
+                    "AND c.threadId IN (");
+
+                // Build the parameter list for the IN clause
+                for (int j = 0; j < threadBatch.Length; j++)
                 {
-                    string threadId = item.threadId.ToString();
-                    int count = (int)item.messageCount;
-                    messageCounts[threadId] = count;
+                    queryBuilder.Append($"@threadId{j}");
+                    if (j < threadBatch.Length - 1)
+                        queryBuilder.Append(", ");
+                }
+                queryBuilder.Append(") AND c.conversationId != '' AND c.serviceUrl != ''");
+
+                QueryDefinition threadQuery = new QueryDefinition(queryBuilder.ToString())
+                    .WithParameter("@documentType", "ThreadTeamsMapping");
+
+                // Add the thread ID parameters
+                for (int j = 0; j < threadBatch.Length; j++)
+                {
+                    threadQuery = threadQuery.WithParameter($"@threadId{j}", threadBatch[j]);
+
+                    _logger.LogDebug("Thread {0} has unposted messages", threadBatch[j]);
+                }
+
+                _logger.LogDebug("Thread mapping query batch {0}: {1}", i / batchSize, threadQuery.QueryText);
+
+                // Execute the query for this batch of thread IDs
+                using FeedIterator<ThreadTeamsMappingDocument> threadIterator =
+                    _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(threadQuery);
+
+                while (threadIterator.HasMoreResults)
+                {
+                    FeedResponse<ThreadTeamsMappingDocument> response = await threadIterator.ReadNextAsync();
+                    mappings.AddRange(response.Select(doc => doc.ToDomainModel()));
                 }
             }
 
-            // Find mappings with unposted messages by joining the results in memory
-            List<ThreadTeamsMapping> mappingsWithUnpostedMessages = new List<ThreadTeamsMapping>();
-
-            foreach (var mapping in allMappings)
-            {
-                // Get message count for this thread, or 0 if not found
-                int totalMessages = messageCounts.TryGetValue(mapping.ThreadId, out int count) ? count : 0;
-                int postedMessages = mapping.PostedMessages?.Count ?? 0;
-
-                // If there are more messages than have been posted, this thread has unposted messages
-                if (totalMessages > postedMessages)
-                {
-                    _logger.LogInformation("Thread {0} has unposted messages: {1} total, {2} posted",
-                        mapping.ThreadId, totalMessages, postedMessages);
-                    mappingsWithUnpostedMessages.Add(mapping);
-                }
-            }
-
-            return mappingsWithUnpostedMessages;
+            _logger.LogInformation("Found {0} active thread mappings for threads with unposted messages", mappings.Count);
+            return mappings;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
+            _logger.LogError(ex, "Error querying for active conversations");
             return Enumerable.Empty<ThreadTeamsMapping>();
         }
-    }
-
-    public async Task<bool> AddPostedMessageAsync(string threadId, string messageId)
-    {
-        if (string.IsNullOrEmpty(threadId) || string.IsNullOrEmpty(messageId))
+        catch (Exception ex)
         {
-            throw new ArgumentException("ThreadId and MessageId cannot be null or empty");
-        }
-
-        try
-        {
-            // Use a patch operation to add the message ID to the array without retrieving the entire document
-            PatchItemRequestOptions options = new PatchItemRequestOptions { FilterPredicate = "FROM c WHERE c.id = @id" };
-
-            await _container.PatchItemAsync<ThreadTeamsMappingDocument>(
-                $"teams_{threadId}",
-                new PartitionKey($"teams_{threadId}"),
-                new[]
-                { 
-                    // Use "PostedMessages" with capital P to match the C# property name
-                    PatchOperation.Add("/PostedMessages/-", messageId)
-                },
-                options);
-
-            return true;
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return false;
+            _logger.LogError(ex, "Unexpected error in ListActiveConversationsAsync");
+            return Enumerable.Empty<ThreadTeamsMapping>();
         }
     }
 
     public async Task<bool> AddPostedMessagesAsync(string threadId, IEnumerable<string> messageIds)
     {
-        var id = $"teams_{threadId}";
         if (string.IsNullOrEmpty(threadId) || messageIds == null || !messageIds.Any())
         {
             throw new ArgumentException("ThreadId cannot be null/empty and messageIds must contain items");
@@ -242,40 +250,34 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
         try
         {
-            // Get the current document to update it
-            ThreadTeamsMappingDocument document = await GetDocumentAsync<ThreadTeamsMappingDocument>(id, id);
-            if (document == null)
-                return false;
+            TransactionalBatch batch = _container.CreateTransactionalBatch(new PartitionKey(threadId));
 
-            // Initialize the list if it doesn't exist
-            var postedMessages = document.PostedMessages ?? new List<string>();
-
-            // Add the new message IDs
             foreach (var messageId in messageIds)
             {
-                if (!postedMessages.Contains(messageId))
-                {
-                    postedMessages.Add(messageId);
-                }
+                batch.PatchItem(messageId, new[] { PatchOperation.Add("/posted/teams", true) });
             }
 
-            // Create a patched document with the updated list
-            var updatedDoc = document with { PostedMessages = postedMessages };
+            TransactionalBatchResponse response = await batch.ExecuteAsync();
 
-            // Save the updated document
-            await _container.ReplaceItemAsync(updatedDoc, id, new PartitionKey(id));
-            return true;
+            if (response.IsSuccessStatusCode)
+            {
+                return true;
+            }
+            else
+            {
+                _logger.LogError("Failed to patch items in batch for thread {ThreadId}", threadId);
+                return false;
+            }
         }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to add posted messages for thread {ThreadId}", threadId);
+            _logger.LogError(ex, "Error updating posted messages for thread {ThreadId}", threadId);
             return false;
         }
     }
 
     public async Task<IList<string>> GetPostedMessagesAsync(string threadId)
     {
-        var id = $"teams_{threadId}";
         if (string.IsNullOrEmpty(threadId))
         {
             throw new ArgumentException("ThreadId cannot be null or empty");
@@ -283,8 +285,26 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
         try
         {
-            ThreadTeamsMappingDocument document = await GetDocumentAsync<ThreadTeamsMappingDocument>(id, id);
-            return document?.PostedMessages ?? new List<string>();
+            // Query for messages that are marked as posted to Teams
+            QueryDefinition query = new QueryDefinition(
+                "SELECT c.id FROM c WHERE c.documentType = @documentType AND c.threadId = @threadId AND IS_DEFINED(c.Posted) AND c.Posted.Teams = true")
+                .WithParameter("@documentType", "Message")
+                .WithParameter("@threadId", threadId);
+
+            _logger.LogDebug("GetPostedMessagesAsync Query: {0}", query.QueryText);
+            List<string> postedMessageIds = new List<string>();
+            using FeedIterator<dynamic> resultSet = _container.GetItemQueryIterator<dynamic>(query);
+
+            while (resultSet.HasMoreResults)
+            {
+                FeedResponse<dynamic> response = await resultSet.ReadNextAsync();
+                foreach (var item in response)
+                {
+                    postedMessageIds.Add(item.id.ToString());
+                }
+            }
+
+            return postedMessageIds;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
