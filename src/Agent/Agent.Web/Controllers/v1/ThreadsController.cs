@@ -63,7 +63,7 @@ namespace Agent.Web.Controllers.v1
             var threadId = Guid.NewGuid();
             var messageId = Guid.NewGuid();
 
-            string temporaryTitle = "Conversation title...";
+            string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
 
             var thread = new Thread(
                 Id: threadId,

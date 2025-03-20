@@ -270,7 +270,7 @@ public class TeamsBot : TeamsActivityHandler
         string senderName = sender?.Name ?? "Unknown User";
         string userId = sender?.Id ?? "teams-user";
 
-        string temporaryTitle = "Conersation title...";
+        string temporaryTitle = "Conversation title...";
 
         Guid newThreadId = Guid.NewGuid();
         var thread = await _threadRepository.CreateThreadAsync(new Thread(
