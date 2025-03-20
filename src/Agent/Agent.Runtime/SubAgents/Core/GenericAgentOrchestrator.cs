@@ -205,12 +205,20 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 var approvalInput = new ApprovalInput(context.InstanceId, operationName);
                 var approvalInstanceId = $"approval-{context.NewGuid()}";
                 context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
+                var description = functionCall.Arguments["description"]?.ToString() ?? "Pending approval";
+                context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
 
-                // Notify user about approval
+                // Generate approval link with the new activity
+                string approvalLink = await context.CallActivityAsync<string>(
+                    nameof(GenerateApprovalLinkActivity),
+                    (approvalInstanceId, operationName, description)
+                );
+
+                // Notify user about approval with the generated link
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
                     ThreadId: threadId,
                     InstanceId: context.InstanceId,
-                    Message: $"Approval required for: {operationName}, approval ID: {approvalInstanceId}"
+                    Message: $"Approval required for: {operationName}. [Click here to approve]({approvalLink})"
                 ));
 
                 // Start the approval suborchestration

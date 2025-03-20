@@ -22,7 +22,7 @@ namespace Agent.Core.Services
         }
 
 
-        public async Task SubmitApprovalDecision(string approvalId, ApprovalDecision status)
+        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status)
         {
             _logger.LogInformation($"Processing approval decision for {approvalId} with status {status}");
 
@@ -33,7 +33,7 @@ namespace Agent.Core.Services
                     approvalId,
                     StartTime: DateTime.UtcNow,
                     ApprovedTime: DateTime.UtcNow,
-                    DecisionMaker: "someone",
+                    DecisionMaker: user,
                     ProcessedTime: null
                     );
 

@@ -12,7 +12,7 @@ namespace Agent.Plugins.Mocks
     {
         public readonly List<string> ApprovedOperations = new List<string>();
 
-        public Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId)
+        public Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId, string description)
         {
             throw new NotImplementedException();
             //Approvals[approvalId] = new LongRunningOperationStatus(approvalId, "Approval pending");

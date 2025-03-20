@@ -287,7 +287,7 @@ public class ApprovalPlugin : IApprovalPlugin
             : null;
     }
 
-    public Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId)
+    public Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId, string description)
     {
         var guid = Guid.NewGuid();
         var status = GlobalStatic.ApprovalStatus.GetOrAdd(

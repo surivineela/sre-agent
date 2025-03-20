@@ -9,7 +9,6 @@ namespace Agent.Core.Services
 {
     public interface IApprovalService
     {
-        // TODO, add user information
-        Task SubmitApprovalDecision(string approvalId, ApprovalDecision status);
+        Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status);
     }
 }

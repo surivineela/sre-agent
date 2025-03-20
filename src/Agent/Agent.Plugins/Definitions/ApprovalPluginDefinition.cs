@@ -18,10 +18,12 @@ namespace Agent.Plugins.Definitions
 
         [Description("Starts an approval flow. You will be notified when the approval happens.")]
         public async Task<LongRunningOperationStatus> StartApprovalFlow(
-            [Description("For a TLS update, use the operationName `UpdateTls`")]
-            string operationName)
+            [Description("Short name for operation for which the approval is being asked for. For a TLS update, use the operationName `UpdateTls`")]
+            string operationName,
+            [Description("The concise description of what the operation is doing to be displayed on the approval page")]
+            string description)
         {
-            return await _approvalPlugin.StartApprovalFlow(operationName);
+            return await _approvalPlugin.StartApprovalFlow(operationName, description);
         }
     }
 }

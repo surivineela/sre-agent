@@ -55,7 +55,7 @@ namespace Agent.Tests.Integration.Helpers
                 if (orchestrationStatus.StartsWith("Pending approval:"))
                 {
                     var approvalId = orchestrationStatus.Split(":")[1];
-                    var approvalStatus = new ApprovalStatus(approvalId, timeProvider.GetUtcNow().DateTime, timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null);
+                    var approvalStatus = new ApprovalStatus(approvalId, timeProvider.GetUtcNow().DateTime, timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null, "description");
                     await durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
                     break;
                 }

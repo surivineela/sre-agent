@@ -9,6 +9,6 @@ namespace Agent.Plugins.Definitions
 {
     public interface IApprovalPlugin
     {
-        Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId);
+        Task<LongRunningOperationStatus> StartApprovalFlow(string approvalId, string description);
     }
 }

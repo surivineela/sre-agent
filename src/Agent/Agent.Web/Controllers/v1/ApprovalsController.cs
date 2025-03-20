@@ -1,14 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-//using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
+﻿using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
-using Agent.Runtime.SubAgents.TlsBestPractices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
-using Microsoft.Extensions.Logging;
-using Octokit;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -109,7 +102,7 @@ namespace Agent.Web.Controllers.v1
                 return BadRequest(new { error = $"Invalid status value: {request.Status}" });
             }
 
-            await _approvalService.SubmitApprovalDecision(id, approvalStatus);
+            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus);
 
             return Ok();
         }
@@ -120,6 +113,7 @@ namespace Agent.Web.Controllers.v1
         public class ApprovalDecisionRequest
         {
             public string Status { get; set; }
+            public string User { get; set; }
         }
     }
 }

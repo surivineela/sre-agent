@@ -1,0 +1,33 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "text",
+          "text": "Got it! The plan is laid out, and I will proceed with it when instructed. Let me know when to move to execution mode!"
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BCyO94j4akq22tySqrKOKsS0u34bi",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-03-20T00:49:29+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 2489,
+    "outputTokenCount": 29,
+    "totalTokenCount": 2518,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_b705f0c291"
+  }
+}
