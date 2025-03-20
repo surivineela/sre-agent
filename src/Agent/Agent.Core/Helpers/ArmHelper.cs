@@ -526,11 +526,8 @@ public class ArmHelper
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tlsCheckUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
-        var response = await _httpClient.GetAsync(tlsCheckUrl);
-        if (!response.IsSuccessStatusCode)
-        {
-            return null;
-        }
+        var response = await _httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
 
         string responseJson = await response.Content.ReadAsStringAsync();
         var jsonObject = JObject.Parse(responseJson);
@@ -614,7 +611,7 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
-        var response = await _httpClient.GetAsync(requestUrl);
+        var response = await _httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
         {
