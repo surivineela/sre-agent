@@ -35,12 +35,26 @@ namespace OperationalAgent.Approval.Controllers
             return View();
         }
 
-        public IActionResult RequestApproval(string action_name, string description)
+        public IActionResult RequestApproval(string data)
         {
             string userName = Request.Headers[EasyAuthUserHeader].FirstOrDefault();
             ViewData["UserName"] = string.IsNullOrEmpty(userName) ? "Unknown User" : userName;
-            ViewData["ActionName"] = action_name;
-            ViewData["Description"] = description;
+
+            if (!string.IsNullOrEmpty(data))
+            {
+                string json = Encoding.UTF8.GetString(Convert.FromBase64String(data));
+                var approvalRequest = JsonConvert.DeserializeObject<ApprovalRequest>(json);
+
+                if (approvalRequest != null)
+                {
+                    ViewData["ApprovalId"] = approvalRequest.ApprovalId;
+                    ViewData["ActionName"] = approvalRequest.Reason;
+                    ViewData["Description"] = approvalRequest.Description;
+                    ViewData["CallbackUrl"] = approvalRequest.CallbackUrl;
+                    return View();
+                }
+            }
+
             return View();
         }
 
@@ -53,22 +67,23 @@ namespace OperationalAgent.Approval.Controllers
             string nextPageMessage = string.Empty;
             string eventName = string.Empty;
 
-            var payload = new ApprovalPayload
+            //http://localhost:5073/api/v1/approvals/approval-f5751a55-bafa-5a49-918e-3ce82edb685d/decision { "status": "Approved" }.
+
+            var payload = new ApprovalDecisionRequest()
             {
-                Id = request.ActionName,
-                IsApproved = request.IsApproved,
-                ApproverName = request.ApproverName
+                Status = request.IsApproved ? "Approved" : "Rejected",
+                User = request.ApproverName
             };
 
             try
             {
                 // This posts to the SK function for durable function entrypoint
-                await this._httpClient.PostAsJsonAsync($"https://sreagentruntimesk.azurewebsites.net/api/approve/{payload.Id}", payload);
+                await this._httpClient.PostAsJsonAsync($"{request.CallbackUrl}/api/v1/approvals/{request.ApprovalId}/decision", payload);
 
                 // Store approval payload in memory cache
                 var approvals = await _memoryCache.GetOrCreateAsync(ApprovalsCacheKey, entry =>
                 {
-                    return Task.FromResult(new List<ApprovalPayload>());
+                    return Task.FromResult(new List<ApprovalDecisionRequest>());
                 });
 
                 approvals.Add(payload);
@@ -79,8 +94,8 @@ namespace OperationalAgent.Approval.Controllers
                 return BadRequest(new { redirectUrl = Url.Action("failure", new { message = "Failed to store approval decision." }) });
             }
 
-            var summaryMessage = $"Processed decision by {payload.ApproverName} for operation {payload.Id}";
-            return Ok(new { redirectUrl = Url.Action(payload.IsApproved ? "success" : "failure", new { message = summaryMessage }) });
+            var summaryMessage = $"Processed decision by {payload.User} for operation {request.ApprovalId}";
+            return Ok(new { redirectUrl = Url.Action(request.IsApproved ? "success" : "failure", new { message = summaryMessage }) });
         }
 
         [HttpGet("GetApprovals")]
@@ -108,7 +123,7 @@ namespace OperationalAgent.Approval.Controllers
                 isValid = true;
                 eventName = "DisableBasicAuthApprovalEvent";
             }
-            else if(string.Equals(request.ActionName, "MonitorAvailability_instance", StringComparison.OrdinalIgnoreCase))
+            else if (string.Equals(request.ActionName, "MonitorAvailability_instance", StringComparison.OrdinalIgnoreCase))
             {
                 isValid = true;
                 eventName = "ApproveMemoryDumpAndScaleUp";
@@ -140,7 +155,7 @@ namespace OperationalAgent.Approval.Controllers
                     approvalSuccess = false;
                     nextPageMessage = "Action Denied.";
                 }
-                string nextPage = approvalSuccess ? "Success": "Failure";
+                string nextPage = approvalSuccess ? "Success" : "Failure";
 
                 return Ok(new { redirectUrl = Url.Action(nextPage, new { message = nextPageMessage }) });
             }
@@ -165,18 +180,35 @@ namespace OperationalAgent.Approval.Controllers
         }
     }
 
+    public class ApprovalRequest
+    {
+        public string ApprovalId { get; set; }
+        public string Reason { get; set; }
+        public string Description { get; set; }
+        public string CallbackUrl { get; set; }
+    }
+
     public class ApprovalPayload
     {
         public string Id { get; set; }
         public bool IsApproved { get; set; }
         public string ApproverName { get; set; }
+        public string CallbackUrl { get; set; }
+    }
+
+    public class ApprovalDecisionRequest
+    {
+        public string Status { get; set; }
+        public string User { get; set; }
     }
 
     public class ActionRequest
     {
+        public string ApprovalId { get; set; }
         public string ActionName { get; set; }
         public bool IsApproved { get; set; }
         public string ApproverName { get; set; }
         public string Description { get; set; }
+        public string CallbackUrl { get; set; }
     }
 }

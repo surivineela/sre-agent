@@ -1,6 +1,8 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
     var actionName = ViewData["ActionName"] as string;
+    var callbackUrl = ViewData["CallbackUrl"] as string;
+    var approvalId = ViewData["ApprovalId"] as string;
     string message = "No specific action requested.";
     string userName = ViewData["UserName"] as string ?? "Unknown User";
     string operationDescription = ViewData["description"] as string ?? "";
@@ -170,11 +172,13 @@
             var actionName = '@actionName';
             var userName = '@userName';
             var request = {
+                approvalId: '@approvalId',
                 actionName: actionName,
                 isApproved: isApproved,
                 approverName: userName,
                 operationDescription: '@operationDescription',
-                initiatedBy: '@initiatedBy'
+                initiatedBy: '@initiatedBy',
+                callbackUrl: '@callbackUrl'
             };
             
             var url = (actionName === "CheckAndDisableBasicAuth_instance" || actionName === "ApproveTLSUpdate_instance") ? '/ProcessAction' : '/ProcessApprovalDecision';
