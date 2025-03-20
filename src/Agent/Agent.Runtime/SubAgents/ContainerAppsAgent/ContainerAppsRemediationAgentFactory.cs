@@ -2,23 +2,21 @@
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
-using Agent.Core.Plugins;
-using Agent.Core.Models;
-using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Plugins;
 
-namespace Agent.Runtime.SubAgents.AppServiceRemediation;
+namespace Agent.Runtime.SubAgents.ContainerAppsRemediation;
 
 // [Export]
-public sealed class AppServiceRemediationAgentFactory
+public sealed class ContainerAppsRemediationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
 
-    public const string OrchestrationInstanceIdPrefix = nameof(AppServiceRemediationAgent);
+    public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsRemediationAgent);
 
-    public AppServiceRemediationAgentFactory(
+    public ContainerAppsRemediationAgentFactory(
         IMetricsPlugin metricsPlugin,
         IArmPlugin armPlugin,
         IApprovalPlugin approvalPlugin,
@@ -39,17 +37,17 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.StartGetMemoryMetrics));
         toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
 
-        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
-
         var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.ScaleAppServicePlanVertically));
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.SuggestNextSku));
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.CalculateScalingCost));
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApp));
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
+
+        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
@@ -74,8 +72,8 @@ public sealed class AppServiceRemediationAgentFactory
         string input,
         string threadId = "")
     {
-        return await _durableTaskClient.ScheduleNewAppServiceRemediationAgentInstanceAsync(
-            new AppServiceRemediationAgentInput(
+        return await _durableTaskClient.ScheduleNewContainerAppsRemediationAgentInstanceAsync(
+            new ContainerAppsRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
                 threadId),
@@ -84,6 +82,6 @@ public sealed class AppServiceRemediationAgentFactory
 
     public string DeserializeInput(string serializedOrchestrationInput)
     {
-        return JsonSerializer.Deserialize<AppServiceRemediationAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
+        return JsonSerializer.Deserialize<ContainerAppsRemediationAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }
 }

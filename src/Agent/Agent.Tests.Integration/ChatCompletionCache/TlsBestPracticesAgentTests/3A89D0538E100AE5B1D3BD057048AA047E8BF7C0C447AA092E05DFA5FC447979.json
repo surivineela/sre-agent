@@ -1,0 +1,37 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_tP3F0mzRIW50ksaOqu5yhB85",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "⚠️ Approval for updating TLS minimum version has timed out as of `2025-03-20T04:09:35Z`. Let me know if you'd like me to re-trigger the approval or adjust the plan."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BD1Vrj7BOjOMFqBhyhxkLAXwu4wHG",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-03-20T04:09:39+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 2414,
+    "outputTokenCount": 58,
+    "totalTokenCount": 2472,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_b705f0c291"
+  }
+}

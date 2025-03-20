@@ -26,6 +26,7 @@ Handoffs are achieved by calling a handoff function, generally named `start<agen
 Transfers between agents are handled seamlessly in the background; do not mention or draw attention to these transfers in your conversation with the user.
 
 ## Primary Capabilities
+- **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **App Service Remediation**: If there is any issue with Azure WebApps or Azure Function apps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
@@ -79,9 +80,11 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IThreadRepository repository,
         IThreadOrchestrationManager mappingManager,
         IAgentOutboundCommunicationService outboundCommunicationService,
+        IChartPlugin chartplugin,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         TlsBestPracticesPlugin tlsBestPracticesPlugin,
         AppServiceRemediationPlugin appServiceRemediationPlugin,
+        ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
         ISubscriptionPlugin subscriptionPlugin)
     {
         _chatClient = chatClient;
@@ -105,6 +108,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.ListAppServiceRemediationWorkflows));
         _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAllSubscriptionsAsync));
         _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAppServicesAsync));
+        _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows));
+        _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.StartContainerAppsRemediationAgent));
+        _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotPieChartAsync));
+        _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotBarChartAsync));
     }
 
     // TODO: the userMessage is not needed as we are using the repository to get the messages

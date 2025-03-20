@@ -4,7 +4,9 @@ using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
+using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
@@ -116,6 +118,7 @@ namespace Agent.Tests.Integration
             services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
             services.AddSingleton<IGithubWorkflowTriggerPlugin>(_mockGithubPlugin);
             services.AddSingleton<ITimePlugin>(_mockTimePlugin);
+            services.AddSingleton<IChartPlugin, ChartPlugin>();
             services.AddSingleton<IMIConfigurationCheckPlugin>(_mockMIConfigurationCheckPlugin);
             services.AddSingleton<IAppIdentityUpdatePlugin>(_mockAppIdentityUpdatePlugin);
             services.AddSingleton<ToolsRepository>();

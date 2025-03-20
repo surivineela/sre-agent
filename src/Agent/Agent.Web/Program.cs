@@ -21,6 +21,7 @@ using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
+using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
@@ -112,6 +113,8 @@ if (useSessionChatService)
         .AddSingleton<ManagedIdentityMigrationPlugin>()
         .AddSingleton<TlsBestPracticesPlugin>()
         .AddSingleton<AppServiceRemediationPlugin>()
+        .AddSingleton<ContainerAppsRemediationPlugin>()
+        .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
@@ -120,6 +123,7 @@ if (useSessionChatService)
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
         .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
         .AddSingleton<IArmPlugin, ArmPlugin>()
+        .AddSingleton<IChartPlugin, ChartPlugin>()
         .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>()
         .AddSingleton<IGithubWorkflowTriggerPlugin, GithubWorkflowTriggerPlugin>()
         .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
