@@ -10,11 +10,14 @@ namespace Agent.Plugins.Mocks
     /// </summary>
     public class MockRecordActionsPlugin : IRecordActionsPlugin
     {
+        private readonly TimeProvider _timeProvider;
         private readonly ILogger<MockRecordActionsPlugin> _logger;
         private readonly Dictionary<Guid, Dictionary<Guid, Action>> _actionsByThread = new();
+        private readonly Random _random = new Random(42);
 
-        public MockRecordActionsPlugin(ILogger<MockRecordActionsPlugin> logger)
+        public MockRecordActionsPlugin(TimeProvider timeProvider, ILogger<MockRecordActionsPlugin> logger)
         {
+            _timeProvider = timeProvider;
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
@@ -26,11 +29,14 @@ namespace Agent.Plugins.Mocks
             _logger.LogInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
                 threadId, title, status);
 
+            var guidBytes = new byte[16];
+            _random.NextBytes(guidBytes);
+
             // Create action with new ID
             var action = new Action(
-                Id: Guid.NewGuid(),
+                Id: new Guid(guidBytes),
                 Title: title,
-                TimeStamp: DateTime.UtcNow,
+                TimeStamp: _timeProvider.GetUtcNow().DateTime,
                 Status: status
             );
 
