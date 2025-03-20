@@ -11,6 +11,7 @@ using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
 using OpenTelemetry.Resources;
 using System.Net.Http.Headers;
@@ -26,11 +27,11 @@ public class ArmHelper
     private readonly HttpClient _httpClient;
 
     // Crawler MI is used for production environment as current solution
-    public ArmHelper([FromKeyedServices("CrawlerArmClient")] ArmClient armClient, HttpClient httpClient, CrawlerSettings crawlerSettings)
+    public ArmHelper([FromKeyedServices("CrawlerArmClient")] ArmClient armClient, HttpClient httpClient, CrawlerSettings crawlerSettings, IHostEnvironment env)
     {
-        var environment = Environment.GetEnvironmentVariable("Environment") ?? "Development";
+        bool isProduction = env.IsProduction();
 
-        if (environment.Equals("Production", StringComparison.OrdinalIgnoreCase))
+        if (isProduction)
         {
             ManagedIdentityId mi = ManagedIdentityId.FromUserAssignedClientId(crawlerSettings.IdentityClientId);
             ManagedIdentityCredentialOptions options = new ManagedIdentityCredentialOptions(mi);

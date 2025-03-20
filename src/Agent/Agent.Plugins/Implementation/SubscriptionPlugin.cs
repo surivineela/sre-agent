@@ -31,10 +31,7 @@ namespace Agent.Plugins
         {
             try
             {
-                Console.WriteLine($"[list_azure_subscriptions] Invoked");
-
-                // TODO: This is to limit the output of subscriptions. Update this values as needed. Will need to read it from appsettings.development.json
-                string[] displayNameFilter = ["Container Apps Test Resources", "ruslany", "sanmeht", "yanche", "shgup", "pbatum", "mikarmar"];
+                _logger.LogInformation($"[list_azure_subscriptions] Invoked");
 
                 var ret = new List<SubscriptionDescriptor>();
                 // Authenticate using DefaultAzureCredential
@@ -44,12 +41,6 @@ namespace Agent.Plugins
                 // Get all subscriptions
                 await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
                 {
-                    if (displayNameFilter != null && displayNameFilter.Length > 0 &&
-                        !displayNameFilter.Any(filter => subscription.Data.DisplayName.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
                     ret.Add(new SubscriptionDescriptor(
                         Id: subscription.Data.Id,
                         DisplayName: subscription.Data.DisplayName));
@@ -68,8 +59,6 @@ namespace Agent.Plugins
             _logger.LogInformation($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
 
             var appServices = new List<AppServiceDescriptor>();
-            string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg", "mikarmar-msha"];
-
 
             try
             {
@@ -96,12 +85,6 @@ namespace Agent.Plugins
                 // Get all resource groups in the subscription
                 await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
                 {
-                    if (rgFilter != null && rgFilter.Length > 0 &&
-                        !rgFilter.Any(filter => resourceGroup.Data.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
                     await foreach (var appService in resourceGroup.GetWebSites().GetAllAsync())
                     {
                         var appDescriptor = new AppServiceDescriptor(
@@ -136,7 +119,6 @@ namespace Agent.Plugins
             _logger.LogInformation($"[list_container_app_instances] Invoked with subscription {subscriptionId}");
 
             var containerApps = new List<ContainerAppDescriptor>();
-            string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg", "mikarmar-msha"];
 
             try
             {
@@ -163,12 +145,6 @@ namespace Agent.Plugins
                 // Get all resource groups in the subscription
                 await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
                 {
-                    if (rgFilter != null && rgFilter.Length > 0 &&
-                        !rgFilter.Any(filter => resourceGroup.Data.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
-                    {
-                        continue;
-                    }
-
                     await foreach (var containerApp in resourceGroup.GetContainerApps().GetAllAsync())
                     {
                         string state = containerApp.Data.ProvisioningState.ToString() ?? "Unknown";
