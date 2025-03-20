@@ -72,7 +72,49 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            var mappings = await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString());
+            var mappings = (await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString())).ToList();
+
+            // Check for failed orchestrations
+            if (mappings != null && mappings.Any())
+            {
+                orchestrationInstanceId = mappings.First().OrchestrationInstanceId;
+                var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId, getInputsAndOutputs: true, CancellationToken.None);
+
+                if(existingOrchestration != null && existingOrchestration.IsCompleted && existingOrchestration.RuntimeStatus != OrchestrationRuntimeStatus.Completed)
+                {
+                    string failureMessage = $"Orchestration id {orchestrationInstanceId} mapped to thread {message.ThreadId} has failed with runtime status {existingOrchestration.RuntimeStatus}.";
+                    _logger.LogWarning(failureMessage);
+
+                    await _mappingManager.RemoveMappingAsync(message.ThreadId.ToString(), orchestrationInstanceId);
+
+                    // it would be much better if the meta agent had a separate context to the the thread. If so we would update that instead.
+                    await _repository.AddMessageAsync(message.ThreadId, new Message(
+                        Guid.NewGuid(),
+                        DateTime.UtcNow,
+                        new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+                        failureMessage));
+
+                    try
+                    {
+                        var finalState = existingOrchestration.ReadCustomStatusAs<string>();
+                        if(!string.IsNullOrEmpty(finalState))
+                        {
+                            _logger.LogInformation($"Final state of orchestration {orchestrationInstanceId}: {finalState}");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error reading final state of orchestration {orchestrationInstanceId}");
+                    }
+
+                    // reread the mappings
+                    mappings = (await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString())).ToList();
+                    orchestrationInstanceId = mappings?.FirstOrDefault()?.OrchestrationInstanceId ?? "";
+                }
+            }
+
+            
+
             if (mappings == null || !mappings.Any())
             {
                 // No existing orchestration, create a new one
