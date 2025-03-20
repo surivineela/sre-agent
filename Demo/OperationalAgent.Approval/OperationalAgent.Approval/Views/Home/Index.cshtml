@@ -39,8 +39,8 @@
 
             var request = {
                 actionName: actionName,
-                isApproved: isApproved,
-                approverName: userName
+                status: isApproved ? "Approved":"Denied",
+                user: userName
             };
 
             fetch('/ProcessAction', {

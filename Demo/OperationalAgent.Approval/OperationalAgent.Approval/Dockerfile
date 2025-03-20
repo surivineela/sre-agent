@@ -7,6 +7,8 @@ COPY . .
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Expose the port the app runs on
 EXPOSE 8080
 

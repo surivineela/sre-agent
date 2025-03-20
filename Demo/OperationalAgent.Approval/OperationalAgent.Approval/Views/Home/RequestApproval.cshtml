@@ -34,6 +34,13 @@
                                         <span class="info-value">@initiatedBy</span>
                                     </div>
                                 }
+                                @if (!string.IsNullOrEmpty(approvalId))
+                                {
+                                    <div class="info-item @(!string.IsNullOrEmpty(approvalId) ? "mt-2" : "")">
+                                        <span class="info-label"><i class="bi bi-info-circle"></i>Approval RequestId:</span>
+                                        <span class="info-value">@approvalId</span>
+                                    </div>
+                                }
                                 @if (!string.IsNullOrEmpty(operationDescription))
                                 {
                                     <div class="info-item @(!string.IsNullOrEmpty(operationDescription) ? "mt-2" : "")">

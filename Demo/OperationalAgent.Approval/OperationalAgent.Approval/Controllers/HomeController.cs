@@ -64,37 +64,93 @@ namespace OperationalAgent.Approval.Controllers
         [HttpPost("ProcessApprovalDecision")]
         public async Task<IActionResult> ProcessApprovalDecision([FromBody] ActionRequest request)
         {
+            // Log the incoming request
+            _logger.LogInformation($"Processing approval decision for ApprovalId: {request.ApprovalId}, IsApproved: {request.IsApproved}, ApproverName: {request.ApproverName}");
+
+            if (request == null)
+            {
+                _logger.LogError("Request object is null");
+                return BadRequest(new { redirectUrl = Url.Action("failure", new { message = "Invalid request data." }) });
+            }
+
+            if (string.IsNullOrEmpty(request.ApprovalId))
+            {
+                _logger.LogError("ApprovalId is null or empty");
+                return BadRequest(new { redirectUrl = Url.Action("failure", new { message = "ApprovalId is required." }) });
+            }
+
+            if (string.IsNullOrEmpty(request.ApproverName))
+            {
+                _logger.LogWarning("ApproverName is null or empty");
+                // Continue processing but log the warning
+            }
+
             string nextPageMessage = string.Empty;
             string eventName = string.Empty;
 
-            //http://localhost:5073/api/v1/approvals/approval-f5751a55-bafa-5a49-918e-3ce82edb685d/decision { "status": "Approved" }.
+            // Log the callback URL
+            _logger.LogInformation($"Using callback URL: {request.CallbackUrl}");
 
-            var payload = new ApprovalDecisionRequest()
+            // Create payload with camelCase property names
+            var payload = new
             {
-                Status = request.IsApproved ? "Approved" : "Rejected",
-                User = request.ApproverName
+                status = request.IsApproved ? "Approved" : "Rejected",
+                user = request.ApproverName
             };
 
             try
             {
-                // This posts to the SK function for durable function entrypoint
-                await this._httpClient.PostAsJsonAsync($"{request.CallbackUrl}/api/v1/approvals/{request.ApprovalId}/decision", payload);
+                // Log before making HTTP request
+                _logger.LogInformation($"Sending decision to SK function: {request.CallbackUrl}/api/v1/approvals/{request.ApprovalId}/decision with status: {payload.status}");
 
-                // Store approval payload in memory cache
+                // This posts to the SK function for durable function entrypoint
+                var response = await this._httpClient.PostAsJsonAsync($"{request.CallbackUrl}/api/v1/approvals/{request.ApprovalId}/decision", payload);
+
+                // Log response status
+                _logger.LogInformation($"SK function response status: {response.StatusCode}");
+
+                // Log response body
+                var responseBody = await response.Content.ReadAsStringAsync();
+                _logger.LogInformation($"SK function response body: {responseBody}");
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogError($"Error from SK function: {responseBody}");
+                    return BadRequest(new { redirectUrl = Url.Action("failure", new { message = $"Failed to process approval. Status code: {response.StatusCode}" }) });
+                }
+
+                // Log memory cache operation
+                _logger.LogInformation("Retrieving approvals from memory cache");
+
+                // Store approval payload in memory cache - using ApprovalDecisionRequest for cache storage
                 var approvals = await _memoryCache.GetOrCreateAsync(ApprovalsCacheKey, entry =>
                 {
+                    _logger.LogInformation("Creating new approvals list in memory cache");
                     return Task.FromResult(new List<ApprovalDecisionRequest>());
                 });
 
-                approvals.Add(payload);
+                // Create a cache entry with the Pascal case class since that's what existing code expects
+                var cacheEntry = new ApprovalDecisionRequest()
+                {
+                    Status = payload.status,
+                    User = payload.user
+                };
+
+                approvals.Add(cacheEntry);
+                _logger.LogInformation($"Added approval to memory cache. Total approvals count: {approvals.Count}");
+
                 _memoryCache.Set(ApprovalsCacheKey, approvals);
+                _logger.LogInformation("Updated approvals in memory cache");
             }
-            catch
+            catch (Exception ex)
             {
-                return BadRequest(new { redirectUrl = Url.Action("failure", new { message = "Failed to store approval decision." }) });
+                _logger.LogError(ex, $"Exception occurred while processing approval decision for {request.ApprovalId}");
+                return BadRequest(new { redirectUrl = Url.Action("failure", new { message = $"Failed to store approval decision. Error: {ex.Message}" }) });
             }
 
-            var summaryMessage = $"Processed decision by {payload.User} for operation {request.ApprovalId}";
+            var summaryMessage = $"Processed decision by {request.ApproverName} for operation {request.ApprovalId}";
+            _logger.LogInformation($"Successfully processed approval decision: {summaryMessage}");
+
             return Ok(new { redirectUrl = Url.Action(request.IsApproved ? "success" : "failure", new { message = summaryMessage }) });
         }
 
@@ -118,33 +174,17 @@ namespace OperationalAgent.Approval.Controllers
             string eventName = string.Empty;
             bool isValid = false;
             bool approvalSuccess = false;
-            if (string.Equals(request.ActionName, "CheckAndDisableBasicAuth_instance", StringComparison.OrdinalIgnoreCase))
-            {
-                isValid = true;
-                eventName = "DisableBasicAuthApprovalEvent";
-            }
-            else if (string.Equals(request.ActionName, "MonitorAvailability_instance", StringComparison.OrdinalIgnoreCase))
-            {
-                isValid = true;
-                eventName = "ApproveMemoryDumpAndScaleUp";
-            }
-            else if (string.Equals(request.ActionName, "ApproveTLSUpdate_instance", StringComparison.OrdinalIgnoreCase))
-            {
-                isValid = true;
-                eventName = "ApproveUpdateMinimumTLSEvent";
-            }
-
             if (isValid)
             {
                 try
                 {
                     var payload = new
                     {
-                        approvalAction = request.IsApproved,
-                        decisionMakerName = request.ApproverName
+                        status = request.IsApproved ? "Approved" : "Denied",
+                        user = request.ApproverName
                     };
 
-                    string approvalEndpoint = string.Format(_config["OperationalRuntimeSendEventEndpoint"], request.ActionName, eventName);
+                    string approvalEndpoint = request.CallbackUrl;
                     var requestBody = JsonConvert.SerializeObject(payload);
                     var response = await _httpClient.PostAsync(approvalEndpoint, new StringContent(requestBody, Encoding.UTF8, "application/json"));
                     approvalSuccess = request.IsApproved && response.IsSuccessStatusCode;
