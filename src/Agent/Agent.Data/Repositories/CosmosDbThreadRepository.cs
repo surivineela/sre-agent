@@ -187,6 +187,72 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    public async Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle)
+    {
+        string threadIdStr = threadId.ToString();
+
+        try
+        {
+            // Get the current thread document
+            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+
+            if (threadDoc == null)
+            {
+                _logger.LogWarning("Cannot update title: Thread {ThreadId} not found", threadId);
+                return null;
+            }
+
+            // Update the title and modified timestamp
+            ThreadDocument updatedThreadDoc = threadDoc with
+            {
+                Title = newTitle,
+                ModifiedTimestamp = DateTime.UtcNow
+            };
+
+            // Save the updated document
+            var response = await _container.ReplaceItemAsync(
+                updatedThreadDoc,
+                updatedThreadDoc.Id,
+                new PartitionKey(updatedThreadDoc.PartitionKey)
+            );
+
+            // Get the start message to construct the complete Thread domain model
+            MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
+                threadDoc.MessageId,
+                threadIdStr
+            );
+
+            if (startMessageDoc == null)
+            {
+                _logger.LogWarning("Start message {MessageId} not found for thread {ThreadId}",
+                    threadDoc.MessageId, threadId);
+
+                // Return a partial Thread model without the start message
+                return new Thread(
+                    Id: threadId,
+                    Title: newTitle,
+                    StartMessage: null,
+                    CreatedTimestamp: threadDoc.CreatedTimestamp,
+                    ModifiedTimestamp: updatedThreadDoc.ModifiedTimestamp
+                );
+            }
+
+            // Return the complete updated Thread domain model
+            _logger.LogInformation("Successfully updated title for thread {ThreadId}", threadId);
+            return updatedThreadDoc.ToDomainModel(startMessageDoc.ToDomainModel());
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogWarning("Cannot update title: Thread {ThreadId} not found", threadId);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating title for thread {ThreadId}", threadId);
+            throw;
+        }
+    }
+
     #endregion
 
     #region Message Operations

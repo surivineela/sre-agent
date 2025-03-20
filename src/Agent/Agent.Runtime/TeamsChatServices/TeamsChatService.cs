@@ -21,6 +21,7 @@ using Activity = Microsoft.Bot.Schema.Activity;
 using Microsoft.Bot.Connector;
 using Microsoft.Extensions.AI;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Agent.Core.Helpers;
 
 namespace Agent.Runtime.TeamsChatServices;
 
@@ -41,7 +42,7 @@ public class TeamsBot : TeamsActivityHandler
     // Rate limiting for messages posted per poll cycle
     private const int MAX_MESSAGES_PER_POLL = 50;
 
-    string prompt = "You're in the front of SRE agent, the blew question will be answered by SRE agent, but the SRE agent is slow, please help give some responses to the user, so that they know SRE agent is resolving the issue and the user won't lose patience easily. You shouldn't not directly say SRE agent is slow, you can try to say SRE agent is fetching information, or analyses the question based on the input from user. please always keep yourself brief, no more than 20 words. If user is just to say hello or ask a simple general question that agent don't need to fetch additional info or execute long, just return the word: SKIP.";
+    string prompt = "You're in the front of SRE agent, the below question will be answered by SRE agent, but the SRE agent is slow, please help give some responses to the user, so that they know SRE agent is resolving the issue and the user won't lose patience easily. You shouldn't not directly say SRE agent is slow, you can try to say SRE agent is fetching information, or analyses the question based on the input from user. please always keep yourself brief, no more than 20 words. If user is just to say hello or ask a simple general question that agent don't need to fetch additional info or execute long, just return the word: SKIP.";
     string welcomeMessage = "## 👋 Hi, I'm your new Azure SRE Partner!\n\nI'm here to help monitor your applications and keep everything running smoothly.\n\nI've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.\n\nThink of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!\n\n### ⚙️ **Autopilot Mode**:\n\nI'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.\n\n### **How to get started**:\n\nIf you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:\n\n- \"Monitor my application performance\"\n- \"Check on my app's metrics\"\n- \"Create a app migration plan\"\n- \"Help diagnose why my service is slow\"\n\nNo fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.\n\nLooking forward to working together and keeping your systems running at their best!";
 
     // Teams has strict limitation for activities per second: https://learn.microsoft.com/en-us/microsoftteams/platform/bots/how-to/rate-limit#per-bot-per-thread-limit
@@ -95,7 +96,7 @@ public class TeamsBot : TeamsActivityHandler
         conversationReference.ChannelId = teamsChannelId;
 
         // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
-        string threadId = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, conversationReference, turnContext.Activity.From);
+        string threadId = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, messageText, conversationReference, turnContext.Activity.From);
         Guid chatIdGuid = Guid.Parse(threadId);
 
         string conversationId = turnContext.Activity.Conversation.Id;
@@ -247,7 +248,7 @@ public class TeamsBot : TeamsActivityHandler
     /// <summary>
     /// Get or create a thread ID for this conversation with improved performance
     /// </summary>
-    private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, ConversationReference reference = null, ChannelAccount sender = null)
+    private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, string messageText, ConversationReference reference = null, ChannelAccount sender = null)
     {
         _logger.LogInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
         var mapping = await _conversationThreadMapping.GetMappingByConversationIdAsync(conversationId);
@@ -260,10 +261,12 @@ public class TeamsBot : TeamsActivityHandler
         string senderName = sender?.Name ?? "Unknown User";
         string userId = sender?.Id ?? "teams-user";
 
+        string temporaryTitle = "Conersation title...";
+
         Guid newThreadId = Guid.NewGuid();
-        await _threadRepository.CreateThreadAsync(new Thread(
+        var thread = await _threadRepository.CreateThreadAsync(new Thread(
             Id: newThreadId,
-            Title: $"Teams-{newThreadId}",
+            Title: temporaryTitle,
             StartMessage: new Message(
                 Id: startMessageId,
                 TimeStamp: DateTime.UtcNow,
@@ -273,6 +276,10 @@ public class TeamsBot : TeamsActivityHandler
             CreatedTimestamp: DateTime.UtcNow,
             ModifiedTimestamp: DateTime.UtcNow
             ));
+
+        // Start the background title generation task (fire and forget)
+        _ = TitleHelper.GenerateTitleAndUpdateAsync(_chatClient, _threadRepository, thread.Id, thread.StartMessage.Text);
+
         await _conversationThreadMapping.AddMappingAsync(new ThreadTeamsMapping(
             $"teams_{newThreadId}",
             newThreadId.ToString(),

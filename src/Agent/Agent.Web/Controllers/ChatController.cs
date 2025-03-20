@@ -1,11 +1,11 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Models;
-using Agent.Core.Services;
 using Agent.Web.Services;
 using Markdig;
 using Microsoft.AspNetCore.Mvc;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Agent.Core.Helpers;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Web.Controllers
 {
@@ -15,16 +15,18 @@ namespace Agent.Web.Controllers
     {
         private readonly ILogger<ChatController> _logger;
         private readonly IThreadRepository _threadRepository;
+        private readonly IChatClient _chatClient;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly MarkdownPipeline _markdownPipeline;
 
         public ChatController(
-            IChatService chatService,
+            IChatClient chatClient,
             ILogger<ChatController> logger,
             IThreadRepository threadRepository,
             IAgentInboundCommunicationService agentInboundCommunicationService)
         {
             _logger = logger;
+            _chatClient = chatClient;
             _threadRepository = threadRepository;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _markdownPipeline = new MarkdownPipelineBuilder()
@@ -63,7 +65,7 @@ namespace Agent.Web.Controllers
                     var messages = await _threadRepository.GetMessagesAsync(threadId, null, null, null);
 
                     // Convert messages to the format expected by the current API
-                    var history = messages.Select(m => new ChatMessage
+                    var history = messages.Select(m => new Core.Models.ChatMessage
                     {
                         Message = m.Text,
                         IsUser = m.Author.Role == Role.User,
@@ -153,10 +155,13 @@ namespace Agent.Web.Controllers
                     UserId: "web-client-user",
                     DisplayName: "Web Client User"
                 );
+
+                string temporaryTitle = "Conversation title...";
+
                 var threadId = Guid.NewGuid();
                 var thread = new Thread(
                     Id: threadId,
-                    Title: threadId.ToString(),
+                    Title: temporaryTitle,
                     StartMessage: new Message(
                         Id: Guid.NewGuid(),
                         TimeStamp: DateTime.UtcNow,
@@ -168,6 +173,9 @@ namespace Agent.Web.Controllers
                 );
 
                 thread = await _threadRepository.CreateThreadAsync(thread);
+
+                // Start the background title generation task (fire and forget)
+                _ = TitleHelper.GenerateTitleAndUpdateAsync(_chatClient, _threadRepository, thread.Id, startMessage.Text);
 
                 // Return the thread ID as chatId for compatibility
                 return Ok(new CreateThreadResponse { ChatId = thread.Id.ToString() });

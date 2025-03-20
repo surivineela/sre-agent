@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Core.Interfaces;
+using Microsoft.Extensions.AI;
+using Agent.Core.Helpers;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -12,6 +14,7 @@ namespace Agent.Web.Controllers.v1
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository,
+        IChatClient chatClient,
         ILogger<ThreadsController> logger) : ControllerBase
     {
         [HttpGet]
@@ -57,11 +60,16 @@ namespace Agent.Web.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            var threadId = Guid.NewGuid();
+            var messageId = Guid.NewGuid();
+
+            string temporaryTitle = "Conersation title...";
+
             var thread = new Thread(
-                Id: Guid.NewGuid(),
-                Title: GenerateTitle(request.StartMessage.Text),
+                Id: threadId,
+                Title: temporaryTitle,
                 StartMessage: new Message(
-                    Id: Guid.NewGuid(),
+                    Id: messageId,
                     TimeStamp: DateTime.UtcNow,
                     Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
                     Text: request.StartMessage.Text
@@ -71,6 +79,9 @@ namespace Agent.Web.Controllers.v1
             );
 
             thread = await repository.CreateThreadAsync(thread);
+
+            // Start the background title generation task (fire and forget)
+            _ = TitleHelper.GenerateTitleAndUpdateAsync(chatClient, repository, thread.Id, request.StartMessage.Text);
 
             var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
@@ -180,12 +191,6 @@ namespace Agent.Web.Controllers.v1
             await repository.DeleteThreadAsync(threadId);
 
             return NoContent();
-        }
-
-        private static string GenerateTitle(string message)
-        {
-            // In a real application, we will use LLM to generate a title
-            return message.Length <= 50 ? message : message.Substring(0, 47) + "...";
         }
     }
 }

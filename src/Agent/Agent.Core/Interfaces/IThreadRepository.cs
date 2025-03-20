@@ -11,6 +11,8 @@ public interface IThreadRepository
     Task<Thread> CreateThreadAsync(Thread thread);
     Task<bool> DeleteThreadAsync(Guid threadId);
 
+    Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle);
+
     Task<Message> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, string? filter = null, int? skip = null, int? take = null);
     Task<Message> AddMessageAsync(Guid threadId, Message message);
