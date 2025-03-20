@@ -1,4 +1,5 @@
 ﻿using Agent.Graph.Crawler.Legacy;
+using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -23,6 +24,12 @@ namespace Agent.Plugins
         public async Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId)
         {
             return await _subscriptionPlugin.ListAppServicesAsync(subscriptionId);
+        }
+
+        [KernelFunction("list_container_apps")]
+        public async Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(Guid subscriptionId)
+        {
+            return await _subscriptionPlugin.ListContainerAppsAsync(subscriptionId);
         }
 
         [KernelFunction("build_resource_graph_for_all_subscriptions")]

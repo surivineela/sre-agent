@@ -19,4 +19,8 @@ namespace Agent.Plugins
     public sealed record MemoryTimeSeriesData(
         DateTime TimeStamp,
         double AverageMemoryInBytes);
+
+    public sealed record RequestCountTimeSeriesData(
+        DateTime TimeStamp,
+        double Total);
 }

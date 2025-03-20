@@ -129,5 +129,26 @@ namespace Agent.Plugins
                     AverageMemoryInBytes: m.Value))
                 .ToArray();
         }
+
+        public async Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestsMetrics(
+            string resourceId)
+        {
+            Console.WriteLine($"[get_containerapp_request_count_metrics] Invoked with resourceId: {resourceId}]");
+
+            var metrics = new List<Metric>
+            {
+                new Metric { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+            };
+
+            var metricsData = await _armHelper.FetchMetricsAsync(
+                resourceId.ToString(),
+                metrics);
+
+            return metricsData
+                 .Select(m => new RequestCountTimeSeriesData(
+                     TimeStamp: m.Timestamp,
+                     Total: m.Value))
+                 .ToArray();
+        }
     }
 }

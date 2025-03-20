@@ -439,6 +439,16 @@ public class ArmHelper
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> RestartContainerAppAsync(string appResourceId, string revisionName)
+    {
+        string accessToken = await GetAccessTokenAsync();
+        string requestUrl = $"https://management.azure.com{appResourceId}/revisions/{revisionName}/restart?api-version=2024-04-01";
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+        HttpResponseMessage response = await _httpClient.SendAsync(request);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
     {
         var output = new List<TlsStatus>();

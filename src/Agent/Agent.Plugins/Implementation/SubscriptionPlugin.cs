@@ -1,12 +1,17 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Legacy;
+using Agent.Plugins.Models;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
+using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
-using Castle.Core.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins
@@ -124,6 +129,113 @@ namespace Agent.Plugins
             }
 
             return appServices;
+        }
+
+        public async Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(Guid subscriptionId)
+        {
+            _logger.LogInformation($"[list_container_app_instances] Invoked with subscription {subscriptionId}");
+
+            var containerApps = new List<ContainerAppDescriptor>();
+            string[] rgFilter = ["opagent-poc", "aks-resources", "lgn-rcp-rg-yanchelgn01", "appservices-sre-demo", "pbatum-flex-eus2-demo", "pbatum-sre-demo", "test-apps", "sample-app-rg", "mikarmar-msha"];
+
+            try
+            {
+                // Authenticate using DefaultAzureCredential
+                var credential = new DefaultAzureCredential();
+
+                // Create an instance of the ArmClient to interact with Azure
+                var armClient = new ArmClient(credential);
+
+                // Construct the Resource Identifier for the specified subscription
+                var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{subscriptionId}");
+
+                // Get the SubscriptionResource
+                SubscriptionResource subscription = armClient.GetSubscriptionResource(subscriptionResourceId);
+
+                // Verify if the subscription exists by attempting to get its data
+                var subscriptionResponse = await subscription.GetAsync();
+
+                if (subscriptionResponse.Value == null)
+                {
+                    throw new InvalidOperationException($"Subscription with ID '{subscriptionId}' not found.");
+                }
+
+                // Get all resource groups in the subscription
+                await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
+                {
+                    if (rgFilter != null && rgFilter.Length > 0 &&
+                        !rgFilter.Any(filter => resourceGroup.Data.Name.Contains(filter, StringComparison.OrdinalIgnoreCase)))
+                    {
+                        continue;
+                    }
+
+                    await foreach (var containerApp in resourceGroup.GetContainerApps().GetAllAsync())
+                    {
+                        string state = containerApp.Data.ProvisioningState.ToString() ?? "Unknown";
+
+                        string environmentId = containerApp.Data.ManagedEnvironmentId?.ToString() ?? "N/A";
+
+                        // Get revisions for this Container App
+                        var revisions = new List<RevisionInfo>();
+                        try
+                        {
+                            // Get all revisions for this Container App
+                            var revisionCollection = containerApp.GetContainerAppRevisions();
+                            await foreach (var revision in revisionCollection.GetAllAsync())
+                            {
+                                // A revision is considered active if it has traffic weight > 0
+                                int trafficWeight = revision.Data.TrafficWeight ?? 0;
+                                bool isActive = trafficWeight > 0;
+                                
+                                // Use the correct property - the revision name is usually the last part of the full name
+                                // If there's no specific RevisionName property, extract it from the Name
+                                string fullName = revision.Data.Name;
+                                string revisionName = fullName;
+                                
+                                if (fullName.Contains("--"))
+                                {
+                                    revisionName = fullName.Split("--").Last();
+                                }
+                                
+                                revisions.Add(new RevisionInfo(
+                                    RevisionName: revisionName,
+                                    IsActive: isActive,
+                                    TrafficWeight: trafficWeight));
+                            }
+                        }
+                        catch (Exception revEx)
+                        {
+                            _logger.LogWarning(revEx, $"Error fetching revisions for Container App {containerApp.Data.Name}");
+                        }
+
+                        var containerAppDescriptor = new ContainerAppDescriptor(
+                            ResourceId: containerApp.Id.ToString(),
+                            Name: containerApp.Data.Name,
+                            Kind: containerApp.Data.Kind.ToString(),
+                            Location: containerApp.Data.Location,
+                            WorkloadProfile: containerApp.Data.WorkloadProfileName,
+                            State: state,
+                            ResourceGroup: resourceGroup.Data.Name,
+                            Environment: environmentId,
+                            IsIngressEnabled: containerApp.Data.Configuration?.Ingress?.External ?? false,
+                            Revisions: revisions);
+
+                        containerApps.Add(containerAppDescriptor);
+                    }
+                }
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                _logger.LogInformation($"Subscription with ID '{subscriptionId}' not found.");
+                return [];
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in ListContainerAppsAsync with subscription {subscriptionId}");
+                return [];
+            }
+
+            return containerApps;
         }
 
         public async Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync()

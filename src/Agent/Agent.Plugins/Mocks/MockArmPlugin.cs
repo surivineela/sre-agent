@@ -66,5 +66,10 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<bool> RestartContainerApp(string appResourceId, string revisionName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

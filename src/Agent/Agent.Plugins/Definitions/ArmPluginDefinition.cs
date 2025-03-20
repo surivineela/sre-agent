@@ -48,5 +48,13 @@ namespace Agent.Plugins
                 ? "Restart succeeded"
                 : "Restart failed";
         }
+
+        public async Task<string> RestartContainerApp(
+            [Description("The resource ID of the Container App.")] 
+            string appResourceId,
+            string revisionName)
+        {
+            return await _armPlugin.RestartContainerApp(appResourceId, revisionName) ? "Restart succeeded" : "Restart failed";
+        }
     }
 }

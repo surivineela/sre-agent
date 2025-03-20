@@ -68,5 +68,10 @@ namespace Agent.Plugins.Implementation
         {
             return await _armHelper.CheckIfResourceExistsAsync(appResourceId);
         }
+
+        public async Task<bool> RestartContainerApp(string appResourceId, string revisionName)
+        {
+            return await _armHelper.RestartContainerAppAsync(appResourceId, revisionName);
+        }
     }
 }

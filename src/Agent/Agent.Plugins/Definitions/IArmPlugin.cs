@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Agent.Core.Models;
+﻿using Agent.Core.Models;
 
 namespace Agent.Plugins
 {
@@ -13,5 +8,6 @@ namespace Agent.Plugins
         Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds);
         Task<bool> CheckIfResourceExists(string appResourceId);
         Task<bool> RestartWebApp(string appResourceId);
+        Task<bool> RestartContainerApp(string appResourceId, string revisionName);
     }
 }

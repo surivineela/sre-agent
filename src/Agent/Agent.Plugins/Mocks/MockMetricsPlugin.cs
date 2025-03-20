@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 
 namespace Agent.Plugins.Mocks
 {
@@ -55,6 +54,11 @@ namespace Agent.Plugins.Mocks
         }
 
         public Task<IReadOnlyList<CpuTimeSeriesData>> GetWebAppCpuMetrics(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestsMetrics(string resourceId)
         {
             throw new NotImplementedException();
         }
