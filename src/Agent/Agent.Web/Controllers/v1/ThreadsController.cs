@@ -63,7 +63,7 @@ namespace Agent.Web.Controllers.v1
             var threadId = Guid.NewGuid();
             var messageId = Guid.NewGuid();
 
-            string temporaryTitle = "Conersation title...";
+            string temporaryTitle = "Conversation title...";
 
             var thread = new Thread(
                 Id: threadId,

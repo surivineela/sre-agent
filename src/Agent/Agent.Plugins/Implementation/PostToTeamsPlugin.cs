@@ -71,7 +71,8 @@ namespace Agent.Plugins.Implementation
                     Channel = new ChannelInfo { Id = channelId }
                 },
                 // This initial activity will appear as the first message in the new thread.
-                Activity = MessageFactory.Text(message)
+                Activity = MessageFactory.Text(message),
+                TopicName = "New Thread",
             };
 
             try
@@ -96,6 +97,46 @@ namespace Agent.Plugins.Implementation
                 _logger.LogError(ex, "Error posting message to Teams.");
                 throw;
             }
+        }
+
+        public async Task<bool> PostTeamsMessage(string threadId, Activity message)
+        {
+
+            var mapping = await _threadTeamsMappingRepository.GetMappingByThreadIdAsync(threadId);
+            if (mapping == null)
+            {
+                _logger.LogError($"Failed to post message to Teams post due to thread {threadId} don't have teams conversation exists");
+                return false;
+            }
+
+            var serviceUrl = mapping.ServiceUrl;
+            string channelId = mapping.ChannelId;
+
+            if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
+            {
+                _logger.LogError("Missing channelId or serviceUrl in stored conversation reference, probably this is from Teams private chat or chat group, please make sure this is from teams channel.");
+                return false;
+            }
+
+            var adapter = _adapter as CloudAdapter;
+            if (adapter == null)
+            {
+                _logger.LogError("Adapter is not a CloudAdapter instance.");
+                return false;
+            }
+            var newThreadId = Guid.NewGuid();
+
+            // Send the message using ContinueConversationAsync
+            await adapter.ContinueConversationAsync(
+                _appId,
+                mapping.Reference,
+                async (turnContext, ct) =>
+                {
+                    await turnContext.SendActivityAsync(message, ct);
+                },
+                CancellationToken.None);
+
+            return true;
         }
 
         /// <summary>

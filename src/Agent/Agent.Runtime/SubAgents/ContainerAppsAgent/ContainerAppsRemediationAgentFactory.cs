@@ -33,16 +33,8 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.StartGetWebAppCpuMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.StartGetMemoryMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
-
-        var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.ScaleAppServicePlanVertically));
-        toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.SuggestNextSku));
-        toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.CalculateScalingCost));
-        toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApp));
-        toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
+        // TODO: use StartGetXXX once we have DTS version of the plugin
+        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetContainerAppRequestsMetrics));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));

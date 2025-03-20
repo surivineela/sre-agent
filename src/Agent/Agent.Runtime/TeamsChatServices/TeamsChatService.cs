@@ -85,7 +85,16 @@ public class TeamsBot : TeamsActivityHandler
         if (string.IsNullOrEmpty(messageText))
         {
             _logger.LogInformation("Received empty message from user");
-            await turnContext.SendActivityAsync(MessageFactory.Text("Empty message received, please tag me along with the messages."), cancellationToken).ConfigureAwait(false);
+            var msg = MessageFactory.Text("Empty message received, please tag me along with the messages.");
+            // msg.Attachments.Add(new Attachment
+            // {
+            //     // base64 image also supported
+            //     //  ContentUrl = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAABX0lEQVQ4jY2TsUoDQRCGv9mLMaeRFJaKKQQLSxuLVHkIC1/CwkfwAaxT+QRip7WdD5DCxiCHhVhoEAKBFGeTvcRcbm8tduZgd/5v/vnnH1FVAJrNZqUoiiFwCzjgF1gCXeDTWvvuAYwx/aq+qOpQVff3qloVkXtrbdqw1vpwAMZcrLxer2+MMdcRl8vlWyD0ASrAyDn3JSKLYqRKpTIOgQTYFwBxTIJzrmeMuQXuCoGMMaeqehtyD4DkH9JORORpNBrtB4NBdgR4wDl3ULs/hO5/KjDG+CJPQqumafqilGrAVpm+rLXeF+O+IhjNzO/3ZLlOk0N6GcW2bO1YgTe/hbVgmOdkZUUluSqRe0BXRBaLxaLdbrdftdZ2SPNCnHOp9/NdrVafoX8HQUSktNhRQCmVWGvPnXMGoMIrLcVtTzP4ryuNRuOsVqvNgXPKtzADnnPnDIDZbLbJsuwD6CRJsgFmwE+SJB3gDfgFQZvuFI+/j5YAAAAASUVORK5CYII="
+            //     ContentUrl = "https://upload.wikimedia.org/wikipedia/en/a/a6/Bender_Rodriguez.png",
+            //     ContentType = "image/png",
+            //     Name = "Bender_Rodriguez.png"
+            // });
+            await turnContext.SendActivityAsync(msg, cancellationToken).ConfigureAwait(false);
             return;
         }
         var startMessageId = Guid.NewGuid();
@@ -440,25 +449,6 @@ public class TeamsBot : TeamsActivityHandler
         }, _pollingCancellationSource.Token);
     }
 
-    // Helper method to parse Teams conversation ID
-    private string ParseTeamsConversationId(string fullConversationId)
-    {
-        if (string.IsNullOrEmpty(fullConversationId))
-        {
-            return string.Empty;
-        }
-
-        // Teams conversation IDs often have format like "19:xxx@thread.tacv2;messageid=yyy"
-        // Extract the conversation part (before the semicolon)
-        int semicolonIndex = fullConversationId.IndexOf(';');
-        if (semicolonIndex > 0)
-        {
-            return fullConversationId.Substring(0, semicolonIndex);
-        }
-
-        return fullConversationId;
-    }
-
     private async Task PollForNewMessages()
     {
         // Make a copy of the current mapping to avoid locking issues during enumeration
@@ -468,16 +458,11 @@ public class TeamsBot : TeamsActivityHandler
         {
             try
             {
-                string rawTeamsConversationId = mapping.ConversationId;
-                if (string.IsNullOrEmpty(rawTeamsConversationId))
+                if (string.IsNullOrEmpty(mapping.ConversationId))
                 {
                     _logger.LogWarning($"Empty conversation ID found for thread {mapping.ThreadId}");
                     continue;
                 }
-
-                // Parse the conversation ID to handle Teams format
-                string teamsConversationId = ParseTeamsConversationId(rawTeamsConversationId);
-                _logger.LogDebug($"Processing conversation: Raw ID={rawTeamsConversationId}, Parsed ID={teamsConversationId}, thread ID={mapping.ThreadId}");
 
                 string threadId = mapping.ThreadId;
 
@@ -506,7 +491,7 @@ public class TeamsBot : TeamsActivityHandler
                     _logger.LogDebug($"Found {newMessages.Count} new messages to post to Teams for thread {threadId}");
 
                     // Post messages to Teams
-                    await PostMessagesToTeams(teamsConversationId, newMessages, threadId, mapping.Reference);
+                    await PostMessagesToTeams(mapping.ConversationId, newMessages, threadId, mapping.Reference);
                 }
                 else
                 {

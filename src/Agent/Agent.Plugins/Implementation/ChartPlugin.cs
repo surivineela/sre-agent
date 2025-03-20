@@ -8,21 +8,26 @@ using ScottPlot;
 using Agent.Core.Helpers;
 using Agent.Core.Models.Charts;
 using Agent.Core.Models;
+using Agent.Plugins.Definitions;
+using Microsoft.Bot.Builder;
+using Microsoft.Bot.Schema;
 
 namespace Agent.Plugins
 {
+    // Chat plugin can be used to generate various types of charts and post them to Teams.
     public class ChartPlugin : IChartPlugin
     {
         private readonly ILogger? _logger;
-        private readonly TeamsConnector _teamsConnector;
+        private readonly IPostToTeamsPlugin _teamsConnector;
 
-        public ChartPlugin(ILogger<ChartPlugin>? logger, TeamsConnector teamsConnector)
+        public ChartPlugin(ILogger<ChartPlugin>? logger, IPostToTeamsPlugin teamsConnector)
         {
             _logger = logger;
             _teamsConnector = teamsConnector;
         }
 
         public async Task<string> PlotTimeSeriesDataAsync(
+            string threadId,
             string title,
             string yAxisLabel,
             string yAxisMin,
@@ -48,12 +53,14 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
+                threadId,
                 () => ChartHelper.GenerateChartBase64String(input),
                 description,
                 "Failed to generate chart with ScottPlot.");
         }
 
         public async Task<string> PlotPieChartAsync(
+            string threadId,
             string chartTitle,
             string dataPoints,
             string description)
@@ -66,12 +73,14 @@ namespace Agent.Plugins
             }
 
             return await GenerateAndPostChartAsync(
+                threadId,
                 () => ChartHelper.GeneratePieChartBase64String(slices),
                 description,
                 "Failed to generate pie chart with ScottPlot.");
         }
 
         public async Task<string> PlotBarChartAsync(
+            string threadId,
             string chartTitle,
             string xAxisLabel,
             string yAxisLabel,
@@ -94,12 +103,14 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
+                threadId,
                 () => ChartHelper.GenerateBarChartBase64String(chartInput),
                 description,
                 "Failed to generate bar chart with ScottPlot.");
         }
 
         public async Task<string> PlotScatterAsync(
+            string threadId,
             string chartTitle,
             string xAxisLabel,
             string yAxisLabel,
@@ -122,6 +133,7 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
+                threadId,
                 () => ChartHelper.GenerateScatterPlotBase64String(chartInput),
                 description,
                 "Failed to generate scatter plot with ScottPlot.");
@@ -239,6 +251,7 @@ namespace Agent.Plugins
         }
 
         private async Task<string> GenerateAndPostChartAsync(
+            string threadId,
             Func<string> generateChart,
             string description,
             string errorContext)
@@ -253,7 +266,15 @@ namespace Agent.Plugins
 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
-                    await _teamsConnector.PostMessageAsync(new TeamsMessage(description, base64Image));
+                    var msg = MessageFactory.Text(description);
+                    msg.Attachments.Add(new Attachment
+                    {
+                        // we're using PNG format for the image, please modify if needed
+                        ContentType = "image/png",
+                        ContentUrl = base64Image,
+                        Name = $"{threadId}-{DateTime.Now:yyMMdd_HHmmss}.png"
+                    });
+                    await _teamsConnector.PostTeamsMessage(threadId, msg);
                 }
 
                 return "Successfully generated the chart.";

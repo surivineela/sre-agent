@@ -162,6 +162,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                     case nameof(ManagedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent):
                     case nameof(TlsBestPracticesPlugin.StartTlsBestPracticeAgent):
                     case nameof(AppServiceRemediationPlugin.StartAppServiceRemediationAgent):
+                    case nameof(ContainerAppsRemediationPlugin.StartContainerAppsRemediationAgent):
                         category = "NewOrchestration";
                         break;
 

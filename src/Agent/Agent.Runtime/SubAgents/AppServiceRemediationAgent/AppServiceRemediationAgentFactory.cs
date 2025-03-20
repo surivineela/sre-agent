@@ -35,8 +35,9 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.StartGetWebAppCpuMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.StartGetMemoryMetrics));
+        // TODO: use StartGetXXX once we have DTS version of the plugin
+        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
         toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);

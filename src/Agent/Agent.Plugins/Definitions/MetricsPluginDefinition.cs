@@ -71,7 +71,7 @@ public class MetricsPluginDefinition
     }
 
     [KernelFunction("get_containerapp_request_count_metrics")]
-    [Description("Start a background operation to get the total request cout metrics of a specific Container App instance at per minute granularity" +
+    [Description("Start a background operation to get the total request count metrics of a specific Container App instance at per minute granularity" +
         " for the past 30 minutes, Container App is healthy if all data points are at least 99.9 availability.")]
     public async Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestsMetrics(
         [Description("The resource ID of the ContainerApp resource.")] string resourceId)

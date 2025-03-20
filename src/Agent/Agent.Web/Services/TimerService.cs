@@ -112,7 +112,7 @@ public class TimerService : IHostedService, IDisposable
             }
             finally
             {
-                _tlsTimerIsRunning = false; 
+                _tlsTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _tlsTimerInterval);
 
@@ -165,7 +165,7 @@ public class TimerService : IHostedService, IDisposable
                 _bestPracticeTimerIsRunning = false; // Ensure flag resets even if scan fails
             }
         }, null,
-        TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes), // Initial delay before first execution
+        TimeSpan.FromMinutes(0), // Initial delay before first execution
         TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes)); // Interval between subsequent executions
     }
 

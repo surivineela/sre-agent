@@ -3,6 +3,11 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Agent.Plugins;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Attributes;
+using System.Reflection;
+using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
+using FunctionResultContent = Microsoft.Extensions.AI.FunctionResultContent;
+using Microsoft.SemanticKernel;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -88,6 +93,13 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
             // Extract the function call (assumes a single function call in the message)
             var functionCall = nextAction.Contents.OfType<FunctionCallContent>().Single();
+
+            // For thread specific functions, set the accurate threadId in case of LLM hallucination
+            bool isThreadSpecific = IsThreadSpecificFunction(functionCall.Name, toolSignatures);
+            if (isThreadSpecific && functionCall.Arguments != null)
+            {
+                functionCall.Arguments["threadId"] = threadId;
+            }
 
             // Process built-in control flow function calls
             if (functionCall.Name == nameof(ControlFlowPluginDefinition.MarkPlanComplete))
@@ -235,10 +247,12 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             }
             else
             {
-                // For any other function call, defer to the derived implementation
+
+                // Create execution input, including threadId if needed
                 var execInput = new ExecuteActionInput(
                     FunctionCallContent: chatHistory.Last().Contents.Single() as FunctionCallContent,
                     ToolSignatures: toolSignatures);
+
                 var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);
                 chatHistory.Add(executionResult.ChatMessage);
 
@@ -258,5 +272,26 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         ));
 
         return chatHistory;
+    }
+
+    // Helper method to check if a function has the ThreadSpecific attribute
+    private bool IsThreadSpecificFunction(string functionName, IReadOnlyList<string> toolSignatures)
+    {
+        // This is a simplified implementation. In a ideal scenario, you would need to:
+        // 1. Parse tool signatures to identify the class and method, so that we don't need to specify the class type below
+        // 2. Use reflection to check if the method has the ThreadSpecific attribute
+
+        Type chartPluginType = typeof(ChartPluginDefinition);
+        var methodInfo = chartPluginType.GetMethods()
+            .FirstOrDefault(m =>
+                m.Name.Contains(functionName, StringComparison.OrdinalIgnoreCase) ||
+                m.GetCustomAttribute<KernelFunctionAttribute>()?.Name == functionName);
+
+        if (methodInfo != null)
+        {
+            return methodInfo.GetCustomAttribute<ThreadSpecificAttribute>() != null;
+        }
+
+        return false;
     }
 }
