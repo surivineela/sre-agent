@@ -77,10 +77,5 @@ namespace Agent.Plugins
             }
             return graphManager;
         }
-
-        public Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(Guid subscriptionId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

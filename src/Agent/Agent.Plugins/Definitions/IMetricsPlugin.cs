@@ -10,6 +10,5 @@ namespace Agent.Plugins
         Task<IReadOnlyList<SuccessfulRequestVolumeTimeSeriesData>> GetSuccessfulRequestVolumeAsync(string resourceId);
         Task<IReadOnlyList<RequestAvailabilitySeriesData>> GetFunctionAppRequestAvailability(string resourceId);
         Task<IReadOnlyList<MemoryTimeSeriesData>> GetMemoryMetrics(string resourceId);
-        Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestsMetrics(string resourceId);
     }
 }

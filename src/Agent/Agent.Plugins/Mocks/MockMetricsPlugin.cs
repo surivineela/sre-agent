@@ -57,10 +57,5 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
-
-        public Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestsMetrics(string resourceId)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

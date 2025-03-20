@@ -17,7 +17,7 @@ public sealed class ContainerAppsRemediationAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsRemediationAgent);
 
     public ContainerAppsRemediationAgentFactory(
-        IMetricsPlugin metricsPlugin,
+        IContainerAppPlugin containerAppPlugin,
         IArmPlugin armPlugin,
         IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
@@ -32,9 +32,14 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
         toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
-        var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
+        var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
         // TODO: use StartGetXXX once we have DTS version of the plugin
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetContainerAppRequestsMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
+
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
@@ -44,9 +49,6 @@ public sealed class ContainerAppsRemediationAgentFactory
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
         toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
-
-        var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.RestartWebApp));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
