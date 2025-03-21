@@ -80,7 +80,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 orchestrationInstanceId = mappings.First().OrchestrationInstanceId;
                 var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId, getInputsAndOutputs: true, CancellationToken.None);
 
-                if(existingOrchestration != null && existingOrchestration.IsCompleted && existingOrchestration.RuntimeStatus != OrchestrationRuntimeStatus.Completed)
+                // orchestration mapping will be removed if the orchestration is completed or failed
+                if (existingOrchestration != null && existingOrchestration.IsCompleted && existingOrchestration.RuntimeStatus != OrchestrationRuntimeStatus.Completed)
                 {
                     string failureMessage = $"Orchestration id {orchestrationInstanceId} mapped to thread {message.ThreadId} has failed with runtime status {existingOrchestration.RuntimeStatus}.";
                     _logger.LogWarning(failureMessage);
@@ -97,7 +98,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     try
                     {
                         var finalState = existingOrchestration.ReadCustomStatusAs<string>();
-                        if(!string.IsNullOrEmpty(finalState))
+                        if (!string.IsNullOrEmpty(finalState))
                         {
                             _logger.LogInformation($"Final state of orchestration {orchestrationInstanceId}: {finalState}");
                         }
@@ -113,7 +114,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 }
             }
 
-            
+
 
             if (mappings == null || !mappings.Any())
             {
