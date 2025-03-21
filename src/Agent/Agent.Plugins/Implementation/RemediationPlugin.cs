@@ -80,18 +80,6 @@ namespace Agent.Plugins.Implementation
         public async Task<RemediationResult> CollectMemoryDump(string resourceId)
         {
             _logger?.LogInformation("[CollectMemoryDump] Starting memory dump collection for resource: {ResourceId}", resourceId);
-
-            var notApprovedResult = IsOperationNotApproved(
-                operationName: "collect_memory_dump",
-                resourceId: resourceId,
-                out var approvalStatus);
-
-            if (notApprovedResult is not null)
-            {
-                _logger?.LogWarning("[CollectMemoryDump] Operation not approved for resource: {ResourceId}", resourceId);
-                return notApprovedResult;
-            }
-
             try
             {
                 _logger?.LogInformation($"[collect_memory_dump] Invoked with resourceId: {resourceId}");
@@ -103,7 +91,7 @@ namespace Agent.Plugins.Implementation
                     Details: !string.IsNullOrEmpty(dumpPath) ?
                         $"Dump available at: {dumpPath}" :
                         "Failed to collect memory dump",
-                    OperationId: approvalStatus?.OperationId,
+                    OperationId: null,
                     FinishedTime: DateTime.Now);
             }
             catch (Exception ex)
@@ -114,19 +102,13 @@ namespace Agent.Plugins.Implementation
                     Success: false,
                     Action: "Failed to collect memory dump",
                     Details: ex.Message,
-                    OperationId: approvalStatus?.OperationId,
+                    OperationId: null,
                     FinishedTime: DateTime.Now);
             }
         }
 
         public async Task<RemediationResult> RestartWebApp(string resourceId)
         {
-            var notApprovedResult = IsOperationNotApproved(operationName: "restart_webapp", resourceId: resourceId, out var approvalStatus);
-            if (notApprovedResult is not null)
-            {
-                return notApprovedResult;
-            }
-
             try
             {
                 _logger?.LogInformation($"[restart_webapp] Invoked with resourceId: {resourceId}");
@@ -146,7 +128,7 @@ namespace Agent.Plugins.Implementation
                     Details: response.IsSuccessStatusCode ?
                         "Restart completed successfully" :
                         $"Failed to restart: {response.ReasonPhrase}",
-                    OperationId: approvalStatus?.OperationId,
+                    OperationId: null,
                     FinishedTime: DateTime.Now);
             }
             catch (Exception ex)
@@ -155,7 +137,7 @@ namespace Agent.Plugins.Implementation
                     Success: false,
                     Action: "Failed to restart Web App",
                     Details: ex.Message,
-                    OperationId: approvalStatus?.OperationId,
+                    OperationId: null,
                     FinishedTime: DateTime.Now);
             }
         }
@@ -163,17 +145,6 @@ namespace Agent.Plugins.Implementation
         public async Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId)
         {
             _logger?.LogInformation("[ScaleAppServicePlanVertically] Starting vertical scaling for resource: {ResourceId}", resourceId);
-
-            var notApprovedResult = IsOperationNotApproved(
-                operationName: "scale_app_service_plan_vertically",
-                resourceId: resourceId,
-                out var approvalStatus);
-            if (notApprovedResult is not null)
-            {
-                _logger?.LogWarning("[ScaleAppServicePlanVertically] Operation not approved for resource: {ResourceId}", resourceId);
-                return notApprovedResult;
-            }
-
             try
             {
                 // Get App Service Plan ID from Web App
@@ -206,7 +177,7 @@ namespace Agent.Plugins.Implementation
                     Success: success,
                     Action: $"Scaled App Service Plan to {targetSku.Name}",
                     Details: $"Previous tier: {currentSku.Name}",
-                    OperationId: approvalStatus.OperationId,
+                    OperationId: null,
                     FinishedTime: DateTime.Now);
             }
             catch (Exception ex)
@@ -217,7 +188,7 @@ namespace Agent.Plugins.Implementation
                     Success: false,
                     Action: "Failed to scale App Service Plan",
                     Details: ex.Message,
-                    OperationId: approvalStatus.OperationId,
+                    OperationId: null,
                     FinishedTime: DateTime.Now);
             }
         }
