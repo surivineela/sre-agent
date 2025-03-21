@@ -29,18 +29,18 @@ public class ResourceGraphCrawler
         _semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public async Task Crawl(string rootId, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
+    public async Task<int> Crawl(string rootId, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
         ArmResourceNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
-        await Crawl(new List<ArmResourceNode>() { rootNode }, filters);
+        return await Crawl(new List<ArmResourceNode>() { rootNode }, filters);
     }
 
-    public async Task Crawl(IList<ArmResourceNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
+    public async Task<int> Crawl(IList<ArmResourceNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
         await _semaphore.WaitAsync(cancellationToken ?? CancellationToken.None);
+        HashSet<string> crawled = new();
         try
         {
-            HashSet<string> crawled = new();
             Queue queue = new();
             Queue toCrawl = Queue.Synchronized(queue);
             IList<Task> tasks = new List<Task>();
@@ -149,6 +149,8 @@ public class ResourceGraphCrawler
         }
 
         _semaphore.Release();
+
+        return crawled.Count;
     }
 
     // Crawl the whole subscription and remove all nodes that does not have any in edge (no longer exists)

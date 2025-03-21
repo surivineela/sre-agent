@@ -21,6 +21,7 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
     private bool _crawlerFinishedOnce = false;
+    private int _crawlerTimerIntervalInSeconds = 30;
 
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
@@ -93,14 +94,28 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _crawlerTimerIsRunning = true;
-                await _crawler.Crawl(_settings.CrawlRoot, cancellationToken: cancellationToken);
-                _crawlerFinishedOnce = true;
+                int count = await _crawler.Crawl(_settings.CrawlRoot, cancellationToken: cancellationToken);
+
+                // Temp workaround for MVP demo
+                // the UAMI might not have permission when the agent is created
+                if (count > 1)
+                {
+                    _crawlerFinishedOnce = true;
+                    if (_crawlerTimerIntervalInSeconds != _timerSettings.BackgroundCrawlIntervalInMinutes * 60)
+                    {
+                        _logger.LogInformation("Crawled resources. Set timer to normal interval");
+                        _crawlerTimerIntervalInSeconds = _timerSettings.BackgroundCrawlIntervalInMinutes * 60;
+                        _crawlerTimer?.Change(
+                            TimeSpan.FromSeconds(_crawlerTimerIntervalInSeconds),
+                            TimeSpan.FromSeconds(_crawlerTimerIntervalInSeconds));
+                    }
+                }
             }
             finally
             {
                 _crawlerTimerIsRunning = false; // Ensure flag resets even if CrawlAsync() fails
             }
-        }, null, TimeSpan.Zero, TimeSpan.FromMinutes(_timerSettings.BackgroundCrawlIntervalInMinutes));
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_crawlerTimerIntervalInSeconds));
     }
 
     public void StartTlsTimer(CancellationToken cancellationToken)
