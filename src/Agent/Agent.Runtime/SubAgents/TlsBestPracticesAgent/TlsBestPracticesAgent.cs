@@ -4,6 +4,9 @@ using Agent.Plugins;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using Agent.Core.Helpers;
+using System.Text;
+using Agent.Runtime.Communication;
 
 namespace Agent.Runtime.SubAgents.TlsBestPractices
 {
@@ -14,6 +17,11 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
         {
             // Initial planning phase: generate plan (e.g. list of apps to update)
             List<ChatMessage> chatHistory = await context.CallTlsPlanActivityAsync(agentInput.Input);
+
+            var introMessage = await context.CallActivityAsync<ChatMessage>(new TaskName(nameof(TlsSendIntroActivity)), agentInput);
+            
+            // todo - it would be better if this message is in the context, but skipping on adding it for now in case it breaks demo flow.
+            // chatHistory.Add(introMessage);
 
             // Optionally, send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
             chatHistory = await context.CallSendSummaryAndStartActivityAsync(
@@ -32,6 +40,55 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
                 agentInput.ThreadId);
 
             return "success";
+        }
+
+        protected override async Task OnPlanComplete(TaskOrchestrationContext context, string threadId)
+        {
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "TlsBestPracticesAgent", "TlsBestPracticesInfo.txt");
+            var info = File.ReadAllText(path);
+
+            await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(threadId, context.InstanceId, info));
+        }
+    }
+
+    [DurableTask]
+    public class TlsSendIntroActivity : TaskActivity<TlsBestPracticesAgentInput, ChatMessage>
+    {
+        private readonly IAgentOutboundCommunicationService _subAgentOutboundCommunicationService;
+
+        public TlsSendIntroActivity(IAgentOutboundCommunicationService subAgentOutboundCommunicationService)
+        {
+            _subAgentOutboundCommunicationService = subAgentOutboundCommunicationService;
+        }
+
+        public override async Task<ChatMessage> RunAsync(TaskActivityContext context, TlsBestPracticesAgentInput agentInput)
+        {
+            StringBuilder introMessage = new StringBuilder("""
+                Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version. For more information on Microsoft's cryptographic recommendations see:  
+                https://learn.microsoft.com/en-us/security/engineering/cryptographic-recommendations#tlsssl-versions  
+
+                I can update these applications to require TLS 1.2 one at a time. I'll wait 30 seconds between each app and monitor its health during that time.  
+
+                #### Recommended Updates  
+
+                """);
+
+            foreach (var app in agentInput.Input.AppsInViolation)
+            {
+                introMessage.AppendLine($"**{app.Name}**: TLS {app.MinimumTlsVersion} -> TLS {agentInput.Input.DesiredVersion}  ");
+            }
+
+            introMessage.AppendLine();
+            introMessage.AppendLine("Would you like me to proceed? I can trigger an approval flow.");
+
+            var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
+
+            await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
+                agentInput.ThreadId,
+                context.InstanceId,
+                newMessage);
+
+            return newMessage;
         }
     }
 }

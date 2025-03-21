@@ -61,7 +61,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
             var queryResults = await _graphDatabaseClient.Query("g.V().has('resourceType', 'microsoft.web/sites').values('resourceId')");
 
-            var resources = queryResults.Select(x => (string) x).ToList();
+            var resources = queryResults.Select(x => (string) x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
 
             // TODO - remove.
             // some temp filtering because Paul has too many resources

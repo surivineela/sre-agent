@@ -43,7 +43,7 @@ namespace Agent.Plugins
         {
             Console.WriteLine($"[get_success_request_volume] Invoked with resourceId: {resourceId}");
 
-            if (resourceId.EndsWith("pbatum-flex-eus2-demo2"))
+            if (resourceId.EndsWith("pbatum-flex-eus2-demo2") || resourceId.Contains("fake-unhealthy"))
             {
                 // demo fakery mode activated
                 var now = DateTime.UtcNow;

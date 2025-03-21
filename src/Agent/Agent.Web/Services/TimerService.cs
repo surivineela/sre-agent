@@ -120,11 +120,6 @@ public class TimerService : IHostedService, IDisposable
     {
         _tlsTimer = new Timer(async _ =>
         {
-            if (!_crawlerFinishedOnce)
-            {
-                _logger.LogInformation("Initial cralw hasn't finished. Skip this round");
-                return;  // Wait for the first crawl to finish
-            }
             if (_tlsTimerIsRunning)
             {
                 _logger.LogInformation("Tls best practice scanner is running. Skip this round");

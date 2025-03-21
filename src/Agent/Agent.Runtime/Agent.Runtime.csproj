@@ -28,6 +28,9 @@
   </ItemGroup>
  
   <ItemGroup>
+    <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesInfo.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

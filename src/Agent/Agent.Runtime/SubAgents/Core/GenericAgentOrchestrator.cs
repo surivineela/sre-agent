@@ -138,6 +138,8 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     Message: message
                 ));
 
+                await this.OnPlanComplete(context, threadId);
+
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Plan marked as complete.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
                 logger.LogInformation("[{ThreadId}] Marking plan as complete", threadId);
@@ -325,6 +327,11 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         logger.LogInformation("[{ThreadId}] Completion notification sent", threadId);
 
         return chatHistory;
+    }
+
+    protected virtual Task OnPlanComplete(TaskOrchestrationContext context, string threadId)
+    {
+        return Task.CompletedTask;
     }
 
     // Helper method to check if a function has the ThreadSpecific attribute
