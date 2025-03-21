@@ -214,8 +214,8 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             else if (functionCall.Name == nameof(ApprovalPluginDefinition.StartApprovalFlow))
             {
                 var operationName = functionCall.Arguments["operationName"]?.ToString() ?? "operation";
-                var approvalInput = new ApprovalInput(context.InstanceId, operationName);
                 var approvalInstanceId = $"approval-{context.NewGuid()}";
+                var approvalInput = new ApprovalInput(context.InstanceId, operationName, threadId, approvalInstanceId);
                 context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
                 var description = functionCall.Arguments["description"]?.ToString() ?? "Pending approval";
                 context.SetCustomStatus($"Pending approval:{approvalInstanceId}");

@@ -1,7 +1,10 @@
 ﻿using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
+using Agent.Runtime;
+using Agent.Runtime.Communication;
+using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
+using System.Text.Json;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -12,15 +15,18 @@ namespace Agent.Web.Controllers.v1
         private readonly IApprovalService _approvalService;
         private readonly ILogger<ApprovalsController> _logger;
         private readonly DurableTaskClient _durableTaskClient;
+        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
         public ApprovalsController(
             IApprovalService approvalService, 
             ILogger<ApprovalsController> logger,
+            IAgentOutboundCommunicationService agentOutboundCommunicationService,
             DurableTaskClient durableTaskClient)
         {
             _approvalService = approvalService;
             _logger = logger;
             _durableTaskClient = durableTaskClient;
+            _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
         /// <summary>
@@ -97,13 +103,50 @@ namespace Agent.Web.Controllers.v1
             _logger.LogInformation("Submitting approval decision for ID: {Id}, Status: {Status}", 
                 id, request.Status);
 
+            var runningApprovalOrchestrations = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+            {
+                Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                InstanceIdPrefix = "approval"
+            }).ToListAsync();
+
+            var threadId = "";
+            var orchestrationId = "";
+            foreach (var orchestration in runningApprovalOrchestrations)
+            {
+                var orchestrationInstance = await _durableTaskClient.GetInstanceAsync(orchestration.InstanceId, getInputsAndOutputs: true);
+                if (orchestrationInstance is not null)
+                {
+                    try
+                    {
+                        if (!string.IsNullOrEmpty(orchestrationInstance.SerializedInput))
+                        {
+                            ApprovalInput approvalInput = JsonSerializer.Deserialize<ApprovalInput>(orchestrationInstance.SerializedInput);
+
+                            if (approvalInput != null && approvalInput.ApprovalId.Equals(id, StringComparison.OrdinalIgnoreCase))
+                            {
+                                threadId = approvalInput.ThreadId;
+                                orchestrationId = approvalInput.ParentInstanceId;
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Orchestration with empty input", orchestration.InstanceId);
+                        }
+                    }
+                    catch (JsonException ex)
+                    {
+                        _logger.LogError(ex, "Failed to deserialize input for instance {InstanceId}", orchestration.InstanceId);
+                    }
+                }
+            }
+
             if (!Enum.TryParse<ApprovalDecision>(request.Status, true, out var approvalStatus))
             {
                 return BadRequest(new { error = $"Invalid status value: {request.Status}" });
             }
 
-            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus);
-
+            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, threadId, orchestrationId);
             return Ok();
         }
 

@@ -10,7 +10,7 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 namespace Agent.Runtime
 {
 
-    public record ApprovalInput(string ParentInstanceId, string OperationName);
+    public record ApprovalInput(string ParentInstanceId, string OperationName, string ThreadId, string ApprovalId);
     
     [DurableTask]
     public class ApprovalOrchestration : TaskOrchestrator<ApprovalInput, ApprovalStatus>
