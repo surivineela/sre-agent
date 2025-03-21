@@ -84,7 +84,11 @@ public class TimerService : IHostedService, IDisposable
     {
         _crawlerTimer = new Timer(async _ =>
         {
-            if (_crawlerTimerIsRunning) return; // Prevent overlapping executions
+            if (_crawlerTimerIsRunning)
+            {
+                _logger.LogInformation("Crawler is running. Skip this round");
+                return; // Prevent overlapping executions
+            }
 
             try
             {
@@ -103,8 +107,16 @@ public class TimerService : IHostedService, IDisposable
     {
         _tlsTimer = new Timer(async _ =>
         {
-            if (!_crawlerFinishedOnce) return;  // Wait for the first crawl to finish
-            if (_tlsTimerIsRunning) return; // Prevent overlapping executions
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInformation("Initial cralw hasn't finished. Skip this round");
+                return;  // Wait for the first crawl to finish
+            }
+            if (_tlsTimerIsRunning)
+            {
+                _logger.LogInformation("Tls best practice scanner is running. Skip this round");
+                return; // Prevent overlapping executions
+            }
             try
             {
                 _tlsTimerIsRunning = true;

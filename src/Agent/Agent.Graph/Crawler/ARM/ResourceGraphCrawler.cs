@@ -64,7 +64,7 @@ public class ResourceGraphCrawler
 
             var cts = new CancellationTokenSource();
             var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken ?? CancellationToken.None);
-            Task.Run(async () =>
+            _ = Task.Run(async () =>
             {
                 while (!linkedCts.IsCancellationRequested)
                 {
@@ -147,6 +147,8 @@ public class ResourceGraphCrawler
         {
             _logger.LogError(ex, "Error crawling resources");
         }
+
+        _semaphore.Release();
     }
 
     // Crawl the whole subscription and remove all nodes that does not have any in edge (no longer exists)
