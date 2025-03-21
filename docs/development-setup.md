@@ -38,21 +38,15 @@ We use an internal NuGet source for packages. To set up:
 ### Durable Task Scheduler
 
 
-Deploy the Durable Task Scheduler service `./src/deploy-durable-task-service.ps1`
-
-Update `appsettings.Development.json` with the connection string outputted by the deployment script
+The deployment script deploys the DTS service. You can grab the connection string from the portal and update your `appsettings.Development.json`.
 
 ```
-    "DurableTaskScheduler": {
+    "DTS": {
       "ConnectionString": "<connection string>"
     },
 ```    
 
-Note - there is also a script for running the durable emulator `./src/run-durable-emulator.ps1`
-HOWEVER the emulator has issues that we are waiting for fixes:
-- GetAllInstancesAsync hangs and doesnt return orchestration instances
-- external events don't fire (context.WaitForExternalEvent)
-
-TODO - update these instructions once we have new emulator build with fixes
+Another option is to leave the connection string blank so it uses the emulator. Its convenient because every time you restart it, you start from a blank slate.
+Run the emulator using: `./src/run-durable-emulator.ps1`
 
 [Next: Running the Application](running-the-app.md) 
