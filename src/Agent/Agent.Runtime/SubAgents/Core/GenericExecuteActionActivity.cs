@@ -16,16 +16,41 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
     }
 
     public async override Task<ExecuteActionOutput> RunAsync(
-        TaskActivityContext context,
-        ExecuteActionInput input)
+    TaskActivityContext context,
+    ExecuteActionInput input)
     {
-        var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
-        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name);
-        var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
-        var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
+        try
+        {
+            // Get all tools and find matching tool
+            var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
+            var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name);
 
-        return new ExecuteActionOutput(
-            ChatMessage: new ChatMessage(ChatRole.Tool, [result]),
-            Is202Submit: matchingTool is ToolFunction202);
+            // Invoke the function
+            var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
+            var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
+
+            // Return successful result
+            return new ExecuteActionOutput(
+                ChatMessage: new ChatMessage(ChatRole.Tool, [result]),
+                Is202Submit: matchingTool is ToolFunction202);
+        }
+        catch (Exception ex)
+        {
+            // Handle all errors with a single catch
+            string errorMessage = $"Error executing {input.FunctionCallContent?.Name ?? "function"}: {ex.Message}";
+            if (ex.InnerException != null)
+            {
+                errorMessage += $" | Details: {ex.InnerException.Message}";
+            }
+
+            // Return error as function result so it appears in chat
+            var errorResult = new FunctionResultContent(
+                input.FunctionCallContent?.CallId ?? "error",
+                errorMessage);
+
+            return new ExecuteActionOutput(
+                ChatMessage: new ChatMessage(ChatRole.Tool, [errorResult]),
+                Is202Submit: false);
+        }
     }
 }
