@@ -23,7 +23,7 @@ param appGatewaySubnetPrefix string = '10.0.8.0/24'
 param logicAppSubnetPrefix string = '10.0.9.0/24'
 
 param icmClientCertName string = 'IcmClientCert'
-param icmClientCertSubject string = 'icm-client.agent.azurecontainerapps.dev'
+param icmClientCertSubject string = 'sreagent.capps-test.azure.net'
 param fileshareName string = 'aca-agent-share'
 param domainName string = 'theacaagent.net'
 
@@ -291,10 +291,11 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
 }
 
 // Create a keyvault to store secrets
+var keyvaultName = '${abbrs.keyVaultVaults}${resourceToken}'
 module keyVault 'br/public:avm/res/key-vault/vault:0.12.0' = {
   name: 'keyvault'
   params: {
-    name: '${abbrs.keyVaultVaults}${resourceToken}'
+    name: keyvaultName
     location: location
     tags: tags
     enableRbacAuthorization: false
@@ -316,7 +317,7 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.12.0' = {
       {
         objectId: deploymentScriptIdentity.outputs.principalId
         permissions: {
-          certificates: ['get', 'create']
+          certificates: ['get', 'create', 'setissuers']
         }
       }
       {
@@ -335,30 +336,31 @@ module keyVault 'br/public:avm/res/key-vault/vault:0.12.0' = {
   }
 }
 
-/*
 module GenerateIcmClientCertScript 'br/public:avm/res/resources/deployment-script:0.5.1' = {
   name: 'GenerateIcmClientCert'
+  dependsOn: [keyVault]
   params: {
     name: 'GenerateIcmClientCert'
     location: location
     kind: 'AzurePowerShell'
     azPowerShellVersion: '10.0'
-    arguments: '-name ${icmClientCertName} -keyVault ${keyVault.name} -subject ${icmClientCertSubject}'
+    arguments: '-name ${icmClientCertName} -keyVault ${keyvaultName} -subject ${icmClientCertSubject}'
     scriptContent: '''
       param(
         [Parameter(Mandatory=$true)][string] $name,  
         [Parameter(Mandatory=$true)][string] $keyVault,  
         [Parameter(Mandatory=$true)][string] $subject
       )
-      $ErrorActionPreference = 'Stop"
+      $ErrorActionPreference = "Stop"
       $DeploymentScriptOutputs = @{}
       $DeploymentScriptOutputs['text'] = $output
       Connect-AzAccount -Identity
       $Cert = Get-AzKeyVaultCertificate -VaultName "$keyVault" -Name "$name"
       if ($Cert -eq $null)
       {
-          Write-Host "No client certifate of Icm is found. Will generate a new one..."
-          $Policy = New-AzKeyVaultCertificatePolicy -SecretContentType "application/x-pkcs12" -SubjectName "CN=$subject" -IssuerName "Self" -ValidityInMonths 6 -ReuseKeyOnRenewal -DnsName "$subject"
+          Write-Host "No client certificate of Icm is found. Will generate a new one..."
+          Set-AzKeyVaultCertificateIssuer -VaultName "$keyVault" -Name "onecert" -IssuerProvider "OneCertV2-PrivateCA"
+          $Policy = New-AzKeyVaultCertificatePolicy -SecretContentType "application/x-pkcs12" -SubjectName "CN=$subject" -IssuerName "onecert" -ValidityInMonths 6 -ReuseKeyOnRenewal -DnsName "$subject" -RenewAtPercentageLifetime 50
           Add-AzKeyVaultCertificate -VaultName "$keyVault" -Name "$name" -CertificatePolicy $Policy
       }
       else
@@ -375,7 +377,6 @@ module GenerateIcmClientCertScript 'br/public:avm/res/resources/deployment-scrip
     }
   }
 }
-*/
 
 resource openai 'Microsoft.CognitiveServices/accounts@2024-10-01' = {
   name: '${abbrs.cognitiveServicesAccounts}${resourceToken}'
