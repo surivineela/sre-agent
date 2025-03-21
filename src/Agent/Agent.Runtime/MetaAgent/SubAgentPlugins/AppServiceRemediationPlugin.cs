@@ -27,11 +27,11 @@ public class AppServiceRemediationPlugin
 
     [KernelFunction("list_app_service_remediation_workflow")]
     [Description("List the information of started workflow for app service/function app remediation")]
-    public async Task<IReadOnlyList<WorkflowMetadata<string>>> ListAppServiceRemediationWorkflows()
+    public async Task<IReadOnlyList<WorkflowMetadata<AppServiceRemediationInput>>> ListAppServiceRemediationWorkflows()
     {
         try
         {
-            var list = new List<WorkflowMetadata<string>>();
+            var list = new List<WorkflowMetadata<AppServiceRemediationInput>>();
             await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
                 new OrchestrationQuery(
                     InstanceIdPrefix: AppServiceRemediationAgentFactory.OrchestrationInstanceIdPrefix,
@@ -39,7 +39,7 @@ public class AppServiceRemediationPlugin
                     FetchInputsAndOutputs: true)))
             {
                 var input = _appServiceRemediationAgentFactory.DeserializeInput(instance.SerializedInput.ThrowIfNull());
-                list.Add(new WorkflowMetadata<string>(
+                list.Add(new WorkflowMetadata<AppServiceRemediationInput>(
                     WorkflowInstanceId: instance.InstanceId,
                     Input: input));
             }
@@ -55,7 +55,7 @@ public class AppServiceRemediationPlugin
 
     [KernelFunction("summarize_app_service_remediation_workflow")]
     [Description("Summarize the status of a started app service remediation workflow")]
-    public async Task<WorkflowMetadata<string>?> SummarizeAppServiceRemidiationWorkflow(
+    public async Task<WorkflowMetadata<AppServiceRemediationInput>?> SummarizeAppServiceRemidiationWorkflow(
         string instanceId)
     {
         try
@@ -67,7 +67,7 @@ public class AppServiceRemediationPlugin
             }
 
             // TODO: how to get the chathistory of subagent and summarize a string output here
-            return new WorkflowMetadata<string>(
+            return new WorkflowMetadata<AppServiceRemediationInput>(
                 WorkflowInstanceId: instanceId,
                 Input: _appServiceRemediationAgentFactory.DeserializeInput(orche.SerializedInput.ThrowIfNull()));
         }
@@ -79,9 +79,9 @@ public class AppServiceRemediationPlugin
     }
 
     [KernelFunction("start_app_service_remediation_workflow")]
-    [Description("Start the workflow to migrate multiple apps to use managed identity when connecting to Azure SQL.")]
+    [Description("Start the workflow to remediate azure app service apps or azure function apps for memory leak, network issues, app issues etc.")]
     public async Task<string> StartAppServiceRemediationAgent(
-        [Description("The list of complete Azure Resource Id of the apps having the issue and a description of the problem")] string input,
+        [Description("The list of complete Azure Resource Id of the app service apps or function apps")] AppServiceRemediationInput input,
         string threadId)
     {
 

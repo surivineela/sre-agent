@@ -3,22 +3,24 @@ using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
-namespace Agent.Runtime.SubAgents;
+namespace Agent.Runtime.SubAgents.AppServiceRemediation;
 
 [DurableTask]
 public class AppServiceRemediationAgent : GenericAgentOrchestrator<AppServiceRemediationAgentInput, string>
 {
-    private const string SystemPrompt = @"
-You're a helpful agent to help diagnose issue and apply remediation of a Azure AppService resource.
-You should first call all diagnose tools to find potential problems.
-Then if any diagnosis implements the AppService resource is in unhealthy state, you should propose remediation to user accordingly.
-If user approves your remediation plan, you go ahead apply the fix.";
-
     public override async Task<string> RunAsync(TaskOrchestrationContext context, AppServiceRemediationAgentInput agentInput)
     {
-        List<ChatMessage> chatHistory = [
-            new ChatMessage(ChatRole.System, SystemPrompt),
-            new ChatMessage(ChatRole.User, $"Here's more context about the apps and the issue: {agentInput.Input}")];
+        // Initial planning phase: generate plan (e.g. list of apps to update)
+        List<ChatMessage> chatHistory = await context.CallAppServiceRemediationPlanActivityAsync(agentInput.Input);
+
+        // Optionally, send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
+        chatHistory = await context.CallSendSummaryAndStartActivityAsync(
+            new GetNextActionInput
+            {
+                ChatMessages = chatHistory,
+                StepCounter = 0,
+                ToolSignatures = [],
+            });
 
         // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
         chatHistory = await RunReasoningLoopAsync(

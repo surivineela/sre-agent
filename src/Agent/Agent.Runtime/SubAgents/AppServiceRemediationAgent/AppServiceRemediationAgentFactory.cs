@@ -2,9 +2,6 @@
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
-using Agent.Core.Plugins;
-using Agent.Core.Models;
-using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using System.Text.Json;
 using Agent.Core;
 
@@ -39,6 +36,7 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
         toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
         toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
+        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
@@ -72,8 +70,8 @@ public sealed class AppServiceRemediationAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-        string input,
-        string threadId = "")
+        AppServiceRemediationInput input,
+        string threadId)
     {
         return await _durableTaskClient.ScheduleNewAppServiceRemediationAgentInstanceAsync(
             new AppServiceRemediationAgentInput(
@@ -83,7 +81,7 @@ public sealed class AppServiceRemediationAgentFactory
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 
-    public string DeserializeInput(string serializedOrchestrationInput)
+    public AppServiceRemediationInput DeserializeInput(string serializedOrchestrationInput)
     {
         return JsonSerializer.Deserialize<AppServiceRemediationAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }

@@ -34,6 +34,12 @@
 	<None Update="SubAgents\ManagedIdentityMigrationAgent\ManagedIdentityMigrationPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
+  <None Update="SubAgents\AppServiceRemediationAgent\AppServiceAgent.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+  <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
   </ItemGroup>
  
 </Project>
