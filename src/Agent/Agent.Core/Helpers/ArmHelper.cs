@@ -111,7 +111,7 @@ public class ArmHelper
                 Name = resourceId.Split('/').Last()
             };
 
-            string basicAuthCheckUrl = $"https://management.azure.com{resourceId}/basicPublishingCredentialsPolicies?api-version=2021-02-01";
+            var basicAuthCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/basicPublishingCredentialsPolicies?api-version=2021-02-01");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, basicAuthCheckUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
             var response = await _httpClient.SendAsync(request);
@@ -158,7 +158,7 @@ public class ArmHelper
         List<Task<HttpResponseMessage>> tasks = new List<Task<HttpResponseMessage>>();
         if (appInViolation.FtpBasicAuthAllowed)
         {
-            string ftpUrl = $"https://management.azure.com{appInViolation.ResourceId}/basicPublishingCredentialsPolicies/ftp?api-version=2021-02-01";
+            var ftpUrl = new Uri(new Uri("https://management.azure.com"), $"{appInViolation.ResourceId}/basicPublishingCredentialsPolicies/ftp?api-version=2021-02-01");
             var requestBody = new
             {
                 id = $"{appInViolation.ResourceId}/basicPublishingCredentialsPolicies/ftp",
@@ -181,7 +181,7 @@ public class ArmHelper
 
         if (appInViolation.ScmBasicAuthAllowed)
         {
-            string scmUrl = $"https://management.azure.com{appInViolation.ResourceId}/basicPublishingCredentialsPolicies/scm?api-version=2021-02-01";
+            var scmUrl = new Uri(new Uri("https://management.azure.com"), $"{appInViolation.ResourceId}/basicPublishingCredentialsPolicies/scm?api-version=2021-02-01");
             var requestBody = new
             {
                 id = $"{appInViolation.ResourceId}/basicPublishingCredentialsPolicies/scm",
@@ -224,7 +224,8 @@ public class ArmHelper
 
         string metricNamesString = string.Join(",", metrics.Select(m => m.Name));
         string aggregationsString = string.Join(",", metrics.Select(m => m.Aggregation));
-        string requestUri = $"https://management.azure.com{resourceId}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames={metricNamesString}&aggregation={aggregationsString}&timespan=PT30M";
+
+        var requestUri = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames={metricNamesString}&aggregation={aggregationsString}&timespan=PT30M");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
@@ -294,7 +295,8 @@ public class ArmHelper
     public async Task<AppPlanSku> GetCurrentSkuAsync(string appServicePlanResourceId)
     {
         // Construct the request URL to get the App Service Plan details
-        string requestUrl = $"https://management.azure.com{appServicePlanResourceId}?api-version=2021-02-01";
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appServicePlanResourceId}?api-version=2021-02-01");
+
         string accessToken = await GetAccessTokenAsync();
         // Prepare the HTTP request
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
@@ -360,7 +362,7 @@ public class ArmHelper
 
     public async Task<bool> ScaleUpAppServicePlanByNameAsync(string appServicePlanResourceId, AppPlanSku targetSku)
     {
-        string requestUrl = $"https://management.azure.com{appServicePlanResourceId}?api-version=2021-02-01";
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appServicePlanResourceId}?api-version=2021-02-01");
         string accessToken = await GetAccessTokenAsync();
         var requestBody = new
         {
@@ -433,7 +435,8 @@ public class ArmHelper
     public async Task<bool> RestartWebAppAsync(string appResourceId)
     {
         string accessToken = await GetAccessTokenAsync();
-        string requestUrl = $"https://management.azure.com{appResourceId}/restart?api-version=2024-04-01";
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/restart?api-version=2024-04-01");
+        
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         HttpResponseMessage response = await _httpClient.SendAsync(request);
@@ -443,7 +446,7 @@ public class ArmHelper
     public async Task<bool> RestartContainerAppAsync(string appResourceId, string revisionName)
     {
         string accessToken = await GetAccessTokenAsync();
-        string requestUrl = $"https://management.azure.com{appResourceId}/revisions/{revisionName}/restart?api-version=2024-04-01";
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/revisions/{revisionName}/restart?api-version=2024-04-01");
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
         HttpResponseMessage response = await _httpClient.SendAsync(request);
@@ -497,7 +500,7 @@ public class ArmHelper
 
         string token = await GetAccessTokenAsync();
 
-        string tlsUpdateUrl = $"https://management.azure.com{tlsStatus.ResourceId}/config/web?api-version=2022-03-01";
+        var tlsUpdateUrl = new Uri(new Uri("https://management.azure.com"), $"{tlsStatus.ResourceId}/config/web?api-version=2022-03-01");
 
         var requestBody = new
         {
@@ -533,7 +536,7 @@ public class ArmHelper
 
     private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId, string token)
     {
-        string tlsCheckUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2022-03-01";
+        var tlsCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/config/web?api-version=2022-03-01");
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tlsCheckUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
@@ -618,7 +621,7 @@ public class ArmHelper
 
     private async Task<string[]> GetAppServiceInstanceMachineNamesAsync(string appServiceResource, string accessToken)
     {
-        var requestUrl = $"https://management.azure.com{appServiceResource}/instances?api-version=2021-02-01";
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appServiceResource}/instances?api-version=2021-02-01");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);

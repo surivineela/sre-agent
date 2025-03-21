@@ -115,7 +115,7 @@ namespace Agent.Plugins.Implementation
 
                 var httpClient = new HttpClient();
                 var token = await GetAccessTokenAsync();
-                var requestUrl = $"https://management.azure.com{resourceId}/restart?api-version=2021-02-01";
+                var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/restart?api-version=2021-02-01");
 
                 var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
