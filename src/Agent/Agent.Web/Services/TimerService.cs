@@ -1,12 +1,10 @@
-﻿namespace Agent.Seb.Services;
-
-using Agent.Core.Configuration;
-using Agent.Core.Helpers;
+﻿using Agent.Core.Configuration;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
-using Microsoft.DurableTask.Client;
+
+namespace Agent.Seb.Services;
 
 public class TimerService : IHostedService, IDisposable
 {

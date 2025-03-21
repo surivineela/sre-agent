@@ -17,6 +17,13 @@ namespace Agent.Plugins.Definitions
             _containerAppPlugin = containerAppPlugin;
         }
 
+        [KernelFunction("get_latest_containerapp_revision")]
+        [Description("Get the latest active revision for a Container App instance")]
+        public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
+        {
+            return await _containerAppPlugin.GetLatestRevisionAsync(resourceId);
+        }
+
         [KernelFunction("list_container_apps")]
         public async Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(
             [Description("The subscription ID to scan for Container Apps.")] Guid subscriptionId)

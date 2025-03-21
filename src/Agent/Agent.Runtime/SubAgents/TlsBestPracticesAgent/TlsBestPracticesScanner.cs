@@ -44,7 +44,6 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             _armHelper = armHelper;
         }
 
-
         public async Task Scan(CancellationToken cancellationToken)
         {
 

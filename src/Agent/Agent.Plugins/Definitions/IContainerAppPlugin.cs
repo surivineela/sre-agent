@@ -8,6 +8,8 @@ namespace Agent.Plugins.Definitions
 {
     public interface IContainerAppPlugin
     {
+        Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId);
+
         Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(Guid subscriptionId);
 
         Task<string> RestartContainerApp(string appResourceId, string revisionName);
