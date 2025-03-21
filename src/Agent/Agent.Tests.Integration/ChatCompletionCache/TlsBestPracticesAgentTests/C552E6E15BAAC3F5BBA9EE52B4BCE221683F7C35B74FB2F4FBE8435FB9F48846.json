@@ -1,0 +1,39 @@
+{
+  "choices": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_FDtBjKFFbS96EQ7zsbD3Anxc",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "initialExecutionThread",
+            "title": "Rollback for app2 to TLS 1.0 completed",
+            "status": "Completed"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BDLJDwJZyAf6EVqB7iXibacgd71iK",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-03-21T01:17:55+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 5323,
+    "outputTokenCount": 34,
+    "totalTokenCount": 5357,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 4864,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ded0d14823"
+  }
+}

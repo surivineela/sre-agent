@@ -26,7 +26,7 @@ namespace Agent.Runtime
 
             using (var cts = new CancellationTokenSource())
             {
-                Task approvalTimeoutTask = context.CreateTimer(TimeSpan.FromHours(1), cts.Token);
+                Task approvalTimeoutTask = context.CreateTimer(TimeSpan.FromDays(1), cts.Token);
                 Task<ApprovalStatus> approvalTask = context.WaitForExternalEvent<ApprovalStatus>("ApprovalEvent", cts.Token);
 
                 if(approvalTask == await Task.WhenAny(approvalTask, approvalTimeoutTask))

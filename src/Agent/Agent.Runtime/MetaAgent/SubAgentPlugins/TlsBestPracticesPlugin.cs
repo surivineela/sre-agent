@@ -5,6 +5,7 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -35,6 +36,7 @@ public class TlsBestPracticesPlugin
             var list = new List<WorkflowMetadata<TlsBestPracticesInput>>();
             await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
                 new OrchestrationQuery(
+                    InstanceIdPrefix: TlsBestPracticeAgentFactory.OrchestrationInstanceIdPrefix,
                     Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                     FetchInputsAndOutputs: true)))
             {

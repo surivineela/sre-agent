@@ -5,6 +5,7 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -33,6 +34,7 @@ public class AppServiceRemediationPlugin
             var list = new List<WorkflowMetadata<string>>();
             await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
                 new OrchestrationQuery(
+                    InstanceIdPrefix: AppServiceRemediationAgentFactory.OrchestrationInstanceIdPrefix,
                     Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                     FetchInputsAndOutputs: true)))
             {

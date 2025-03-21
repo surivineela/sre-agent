@@ -105,6 +105,20 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             if (functionCall.Name == nameof(ControlFlowPluginDefinition.MarkPlanComplete))
             {
                 done = true;
+
+                string message = string.Empty;
+                if (functionCall.Arguments.TryGetValue("message", out var messageObj) && messageObj != null)
+                {
+                    message = messageObj.ToString() ?? string.Empty;
+                }
+
+                // Call the communication activity
+                await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
+                    ThreadId: threadId,
+                    InstanceId: context.InstanceId,
+                    Message: message
+                ));
+
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Plan marked as complete.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
             }

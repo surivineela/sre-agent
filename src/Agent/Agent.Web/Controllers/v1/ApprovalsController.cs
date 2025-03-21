@@ -1,4 +1,5 @@
 ﻿using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Services;
@@ -40,30 +41,16 @@ namespace Agent.Web.Controllers.v1
             // TODO: Implement pagination and filtering logic
             _logger.LogInformation("GET approvals requested with filter: {Filter}", filter);
 
-
-            var approvalOrchestrations = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+            var approvals = new List<Approval>();
+            await foreach (var orchestrationMetadata in _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
             {
                 Statuses = new[] { OrchestrationRuntimeStatus.Running },
                 InstanceIdPrefix = "approval"
-            }).ToListAsync();
-
-            var approvals = new List<Approval>();
-
-            if (approvalOrchestrations.Count == 0)
+            }))
             {
-                approvals.Add(new Approval(
-                    Id: Guid.NewGuid().ToString(),
-                    Title: "Sample Always On configuration setting update",
-                    Status: ApprovalDecision.Pending,
-                    CreatedTimestamp: DateTime.UtcNow,
-                    DecisionTimestamp: null,
-                    decisionUserId: null
-                ));
+                var approvalOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationMetadata.InstanceId, true, CancellationToken.None);
+                approvals.Add(new Approval(approvalOrchestration.InstanceId, approvalOrchestration.ReadInputAs<ApprovalInput>()?.OperationName ?? "Approval", ApprovalDecision.Pending, approvalOrchestration.CreatedAt.DateTime, null, null));
             }
-
-            approvals.AddRange(approvalOrchestrations
-                .Select(x => new Approval(x.InstanceId, "placeholder title", ApprovalDecision.Pending, x.CreatedAt.DateTime, null, null))
-                .ToList());
 
             return Ok(approvals);
         }

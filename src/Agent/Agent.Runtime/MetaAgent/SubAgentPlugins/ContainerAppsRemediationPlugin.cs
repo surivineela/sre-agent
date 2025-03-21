@@ -33,6 +33,7 @@ public class ContainerAppsRemediationPlugin
             var list = new List<WorkflowMetadata<string>>();
             await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
                 new OrchestrationQuery(
+                    InstanceIdPrefix: ContainerAppsRemediationAgentFactory.OrchestrationInstanceIdPrefix,
                     Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                     FetchInputsAndOutputs: true)))
             {

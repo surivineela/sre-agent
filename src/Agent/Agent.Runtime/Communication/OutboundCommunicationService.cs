@@ -66,18 +66,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         var mapping = await _mappingManager.GetMappingsByThreadIdAsync(threadId);
         if (mapping.Any())
         {
-            // Create completion message
-            var message = $"Task completed with status: {status}";
-            if (!string.IsNullOrEmpty(summary))
-            {
-                message = $"{message}\n\n{summary}";
-            }
-
-            // Save completion message
-            await UpdateThreadWithAgentMessageAsync(
-                threadId,
-                orchestrationInstanceId,
-                new ChatMessage(ChatRole.Assistant, message));
+            // todo - once meta agent context is separate from thread history, consider appending a message to the meta agent context so it knows that control has transferred back
 
             // Remove the mapping as the orchestration is completed
             await _mappingManager.RemoveMappingAsync(threadId, orchestrationInstanceId);

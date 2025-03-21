@@ -6,6 +6,7 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using Castle.Core.Logging;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -35,6 +36,7 @@ public class ManagedIdentityMigrationPlugin
             var list = new List<WorkflowMetadata<ManagedIdentityMigrationInput>>();
             await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
                 new OrchestrationQuery(
+                    InstanceIdPrefix: ManagedIdentityMigrationAgentFactory.OrchestrationInstanceIdPrefix,
                     Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                     FetchInputsAndOutputs: true)))
             {
