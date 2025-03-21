@@ -32,6 +32,7 @@ public sealed class ToolsRepository : IMcpConnectable
         IArmPlugin armPlugin,
         IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
+        IChartPlugin chartPlugin,
         IMIConfigurationCheckPlugin miMigrationPlugin,
         IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
@@ -49,6 +50,11 @@ public sealed class ToolsRepository : IMcpConnectable
             submitFunctionSelector: () => metricsPluginDefinition.StartGetMemoryMetrics,
             executeFunctionSelector: () => metricsPluginDefinition.GetMemoryMetrics);
         Register200(() => metricsPluginDefinition.GetFunctionAppRequestAvailability);
+
+        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
+        Register200(() => chartPluginDefinition.PlotTimeSeriesDataAsync);
+        Register200(() => chartPluginDefinition.PlotPieChartAsync);
+        Register200(() => chartPluginDefinition.PlotBarChartAsync);
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         Register200(() => recordActionsPluginDefinition.RecordAction);

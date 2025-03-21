@@ -112,6 +112,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.StartContainerAppsRemediationAgent));
         _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotPieChartAsync));
         _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotBarChartAsync));
+        _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotTimeSeriesDataAsync));
     }
 
     // TODO: the userMessage is not needed as we are using the repository to get the messages
