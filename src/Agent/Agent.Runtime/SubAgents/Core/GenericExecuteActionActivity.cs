@@ -8,23 +8,27 @@ namespace Agent.Runtime.SubAgents.Core;
 public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, ExecuteActionOutput>
 {
     private readonly ToolsRepository _toolsRepository;
+    private readonly ILogger<GenericExecuteActionActivity> _logger;
 
     public GenericExecuteActionActivity(
-        ToolsRepository toolsRepository)
+        ToolsRepository toolsRepository,
+        ILogger<GenericExecuteActionActivity> logger
+        )
     {
         _toolsRepository = toolsRepository;
+        _logger = logger;
     }
 
     public async override Task<ExecuteActionOutput> RunAsync(
-    TaskActivityContext context,
-    ExecuteActionInput input)
+        TaskActivityContext context,
+        ExecuteActionInput input)
     {
+        // Get all tools and find matching tool
+        var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
+        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name);
+
         try
         {
-            // Get all tools and find matching tool
-            var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
-            var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name);
-
             // Invoke the function
             var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
             var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
@@ -36,6 +40,8 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Function tool invocation failed.");
+
             // Handle all errors with a single catch
             string errorMessage = $"Error executing {input.FunctionCallContent?.Name ?? "function"}: {ex.Message}";
             if (ex.InnerException != null)

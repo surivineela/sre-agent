@@ -1,5 +1,6 @@
 ﻿using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.Core;
@@ -9,28 +10,33 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
 {
     private readonly IChatClient _chatClient;
     private readonly ToolsRepository _toolsRepository;
+    private readonly ILogger<GenericExecute202ActionActivity> _logger;
+
     public GenericExecute202ActionActivity(
         IChatClient chatClient,
-        ToolsRepository toolsRepository)
+        ToolsRepository toolsRepository,
+        ILogger<GenericExecute202ActionActivity> logger
+        )
     {
         _chatClient = chatClient;
         _toolsRepository = toolsRepository;
+        _logger = logger;
     }
 
     public async override Task<ChatMessage> RunAsync(
-    TaskActivityContext context,
-    ExecuteActionInput input)
+        TaskActivityContext context,
+        ExecuteActionInput input)
     {
+        var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
+        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name) as ToolFunction202;
+
+        if (matchingTool is null)
+        {
+            throw new InvalidOperationException($"ToolFunction is not 202 kind function: {input.FunctionCallContent.Name}");
+        }
+
         try
         {
-            var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
-            var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name) as ToolFunction202;
-
-            if (matchingTool is null)
-            {
-                throw new InvalidOperationException($"ToolFunction is not 202 kind function: {input.FunctionCallContent.Name}");
-            }
-
             var invokeResult = await matchingTool.ExecueFunction.InvokeAsync(input.FunctionCallContent.Arguments);
 
             // Success case - return formatted result
@@ -40,6 +46,8 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
         }
         catch (Exception ex)
         {
+            _logger.LogError(ex, "Function tool invocation failed.");
+
             // Handle all errors with a single catch
             string operationName = input.FunctionCallContent?.Name ?? "unknown operation";
             string errorMessage = $"❌ The long-running operation '{operationName}' failed: {ex.Message}";
