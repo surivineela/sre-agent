@@ -17,7 +17,6 @@ public sealed class AppServiceRemediationAgentFactory
 
     public AppServiceRemediationAgentFactory(
         IMetricsPlugin metricsPlugin,
-        IArmPlugin armPlugin,
         IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
         IRemediationPlugin remediationPlugin,
@@ -53,9 +52,6 @@ public sealed class AppServiceRemediationAgentFactory
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
         toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
-
-        var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.RestartWebApp));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
