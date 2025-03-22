@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Plugins.Models;
+using Azure.ResourceManager.Network;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
@@ -68,6 +69,38 @@ namespace Agent.Plugins.Definitions
             [Description("The resource ID of the ContainerApp resource.")] string resourceId)
         {
             return await _containerAppPlugin.GetContainerAppCpuMetrics(resourceId);
+        }
+
+        #endregion
+
+        #region NSG Plugins 
+
+        [KernelFunction("get_containerapp_nsg_rules")]
+        [Description("Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +
+            "Returns a dictionary where keys are NSG resource IDs and values are lists of security rules. " +
+            "Use this to identify network access issues or restrictive rules that might be blocking traffic to/from the Container App.")]
+        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(
+            [Description("The resource ID of the Container App instance.")] string resourceId)
+        {
+            return await _containerAppPlugin.GetAllNSGRulesForContainerAppAsync(resourceId);
+        }
+
+        [KernelFunction("create_or_update_nsg_rule")]
+        [Description("Creates a new NSG rule or updates an existing one to modify network access permissions. Use this to fix connectivity issues by allowing necessary traffic or blocking unwanted traffic.")]
+        public async Task<bool> CreateOrUpdateNSGRuleAsync(
+            [Description("Azure resource ID of the NSG to update")] string nsgResourceId,
+            [Description("The security rule data object containing all rule configuration")] SecurityRuleData rule)
+        {
+            return await _containerAppPlugin.CreateOrUpdateNSGRuleAsync(nsgResourceId, rule);
+        }
+
+        [KernelFunction("remove_nsg_rule")]
+        [Description("Removes an existing NSG rule. Use this to eliminate overly restrictive or unnecessary security rules.")]
+        public async Task<bool> RemoveNSGRuleAsync(
+            [Description("Azure resource ID of the NSG containing the rule")] string nsgResourceId,
+            [Description("Name of the security rule to remove")] string ruleName)
+        {
+            return await _containerAppPlugin.RemoveNSGRuleAsync (nsgResourceId, ruleName);
         }
 
         #endregion

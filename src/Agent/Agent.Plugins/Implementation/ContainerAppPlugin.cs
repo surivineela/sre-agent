@@ -12,6 +12,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
+using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 
@@ -39,7 +40,7 @@ namespace Agent.Plugins.Implementation
                 var armClient = new ArmClient(credential);
 
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
-                
+                                
                 var containerApp = await containerAppResource.GetAsync();
                 
                 // Get the latest revision name directly from the container app properties
@@ -265,6 +266,157 @@ namespace Agent.Plugins.Implementation
                     TimeStamp: m.Timestamp,
                     Percent: m.Value))
                 .ToArray();
+        }
+
+        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        {
+            _logger.LogInformation($"[get_containerapp_nsg_rules] Invoked with resourceId: {resourceId}");
+            var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+
+            try
+            {
+                var credential = new DefaultAzureCredential();
+                var armClient = new ArmClient(credential);
+
+                // Get the Container App to find its environment
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+                
+                if (containerApp.Value.Data.ManagedEnvironmentId == null)
+                {
+                    _logger.LogWarning($"Container App {resourceId} does not have a managed environment ID");
+                    return result;
+                }
+
+                // Get the Container App Environment
+                var environment = armClient.GetContainerAppManagedEnvironmentResource(containerApp.Value.Data.ManagedEnvironmentId);
+                var environmentData = await environment.GetAsync();
+                
+                // Check if environment has VNet configuration with infrastructure subnet
+                if (environmentData.Value.Data.VnetConfiguration == null || 
+                    string.IsNullOrEmpty(environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId))
+                {
+                    _logger.LogWarning($"Container App Environment {environment.Id} does not have VNet configuration with infrastructure subnet");
+                    return result;
+                }
+
+                // Get the infrastructure subnet
+                string infrastructureSubnetId = environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId;
+                var subnet = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
+                var subnetData = await subnet.GetAsync();
+                
+                // Check if subnet has NSG
+                if (subnetData.Value.Data.NetworkSecurityGroup != null)
+                {
+                    string nsgId = subnetData.Value.Data.NetworkSecurityGroup.Id;
+                    var nsg = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
+                    var nsgData = await nsg.GetAsync();
+                    
+                    // Add this NSG's rules to the result dictionary
+                    result[nsgId] = nsgData.Value.Data.SecurityRules.ToList();
+                    _logger.LogInformation($"Found NSG {nsgId} with {nsgData.Value.Data.SecurityRules.Count} rules for infrastructure subnet");
+                }
+                else
+                {
+                    _logger.LogInformation($"No NSG found for infrastructure subnet {infrastructureSubnetId}");
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in GetAllNSGRulesForContainerAppAsync with resourceId {resourceId}");
+                return result;
+            }
+        }
+
+        public async Task<bool> CreateOrUpdateNSGRuleAsync(
+            [Description("Azure resource ID of the NSG to update")] string nsgResourceId,
+            [Description("The security rule data object containing all rule configuration")] SecurityRuleData rule)
+        {
+            _logger.LogInformation($"[create_or_update_nsg_rule] Invoked for rule '{rule.Name}' on NSG: {nsgResourceId}");
+            
+            try
+            {
+                var credential = new DefaultAzureCredential();
+                var armClient = new ArmClient(credential);
+
+                // Get the NSG resource
+                var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
+                
+                // Check if the NSG exists
+                await nsgResource.GetAsync();
+                
+                // Get the security rules collection and create/update the rule
+                SecurityRuleCollection securityRules = nsgResource.GetSecurityRules();
+                
+                try
+                {
+                    // Check if the rule exists
+                    await securityRules.GetAsync(rule.Name);
+                    _logger.LogInformation($"Updating existing security rule '{rule.Name}' in NSG {nsgResourceId}");
+                }
+                catch (RequestFailedException ex) when (ex.Status == 404)
+                {
+                    _logger.LogInformation($"Security rule '{rule.Name}' not found in NSG {nsgResourceId}, creating new rule");
+                }
+                
+                // CreateOrUpdate handles both creating a new rule and updating an existing one
+                await securityRules.CreateOrUpdateAsync(WaitUntil.Completed, rule.Name, rule);
+                _logger.LogInformation($"Successfully created/updated security rule '{rule.Name}' in NSG {nsgResourceId}");
+                
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in CreateOrUpdateNSGRuleAsync with nsgResourceId {nsgResourceId}, rule {rule.Name}");
+                return false;
+            }
+        }
+
+        public async Task<bool> RemoveNSGRuleAsync(
+            [Description("Azure resource ID of the NSG containing the rule")] string nsgResourceId, 
+            [Description("Name of the security rule to remove")] string ruleName)
+        {
+            _logger.LogInformation($"[remove_nsg_rule] Invoked to remove rule '{ruleName}' from NSG: {nsgResourceId}");
+            
+            try
+            {
+                var credential = new DefaultAzureCredential();
+                var armClient = new ArmClient(credential);
+
+                // Get the NSG resource
+                var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
+                
+                // Check if the NSG exists
+                await nsgResource.GetAsync();
+                
+                // Get the security rules collection
+                SecurityRuleCollection securityRules = nsgResource.GetSecurityRules();
+                
+                try
+                {
+                    // Check if the rule exists
+                    var existingRule = await securityRules.GetAsync(ruleName);
+                    
+                    // Delete the rule
+                    _logger.LogInformation($"Removing security rule '{ruleName}' from NSG {nsgResourceId}");
+                    await existingRule.Value.DeleteAsync(WaitUntil.Completed);
+                    _logger.LogInformation($"Successfully removed security rule '{ruleName}' from NSG {nsgResourceId}");
+                    return true;
+                }
+                catch (RequestFailedException ex) when (ex.Status == 404)
+                {
+                    // Rule doesn't exist, nothing to remove
+                    _logger.LogInformation($"Security rule '{ruleName}' not found in NSG {nsgResourceId}, nothing to remove");
+                    return true; 
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in RemoveNSGRuleAsync with nsgResourceId {nsgResourceId}, rule {ruleName}");
+                return false;
+            }
         }
     }
 }

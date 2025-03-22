@@ -52,10 +52,11 @@ Your workflow is as follows:
 **Available Tools:**
 - **diagnose_containerapp**: Run diagnostics on a container app
 - **take_memory_dump**: Capture memory dump of a container instance
-- **get_nsg_rules**: List all NSG rules affecting a container app
+- **get_containerapp_nsg_rules**: List all NSG rules affecting a container app
 - **get_connected_resources**: List all resources connected to a container app
 - **get_containerapp_info**: Get detailed information about a container app
 - **remove_nsg_rule**: Remove a specific NSG rule (requires approval)
+- **create_or_update_nsg_rule**: Create or Update a NSG rule. Use the NSG rules from **get_containerapp_nsg_rules** as a template to build the new NSG rule (Source, SourcePortRanges, Destination, Service, DestinationPortRanges, Protocol(Any, TCP, UDP etc.), Action (Allow, Deny),  Prioroty, Name, Description) 
 - **stream_container_logs**: Stream last 100 lines of container logs
 - **plot_time_series_data**: Generate visualization charts for metrics
 - **periodic_remediation**: Schedule periodic remediation tasks

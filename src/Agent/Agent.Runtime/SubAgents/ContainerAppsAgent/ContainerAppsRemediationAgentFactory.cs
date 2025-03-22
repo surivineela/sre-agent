@@ -1,10 +1,9 @@
-﻿using Agent.Plugins.Definitions;
-using Agent.Plugins;
-using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask;
-using System.Text.Json;
+﻿using System.Text.Json;
 using Agent.Core;
-using Agent.Core.Plugins;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 
 namespace Agent.Runtime.SubAgents.ContainerAppsRemediation;
 
@@ -40,6 +39,9 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.RemoveNSGRuleAsync));
 
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);

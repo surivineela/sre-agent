@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Plugins.Models;
+using Azure.ResourceManager.Network;
 
 namespace Agent.Plugins.Definitions
 {
@@ -19,5 +20,11 @@ namespace Agent.Plugins.Definitions
         Task<IReadOnlyList<MemoryUsageTimeSeriesData>> GetContainerAppMemoryMetrics(string resourceId);
 
         Task<IReadOnlyList<CpuUsageTimeSeriesData>> GetContainerAppCpuMetrics(string resourceId);
+
+        Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId);
+        
+        Task<bool> CreateOrUpdateNSGRuleAsync(string nsgResourceId, SecurityRuleData rule);
+            
+        Task<bool> RemoveNSGRuleAsync(string nsgResourceId, string ruleName);
     }
 }
