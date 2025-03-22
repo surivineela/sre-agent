@@ -74,8 +74,15 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
             if (appsInViolation.Count > 0)
             {
                 var thread = await _agentInboundCommunicationService.CreateAgentThread(
-                    "TLS Best Practices", 
-                    "Some applications that do not follow best practices for TLS configuration have been found.");
+                    "TLS Best Practices",
+                    """
+                    Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version. 
+                    For more information on Microsoft's cryptographic recommendations see:  
+                    https://learn.microsoft.com/en-us/security/engineering/cryptographic-recommendations#tlsssl-versions  
+
+                    Preparing details...  
+                    """);
+                    
 
                 var input = new TlsBestPracticesInput()
                 {

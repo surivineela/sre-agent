@@ -19,11 +19,9 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
             List<ChatMessage> chatHistory = await context.CallTlsPlanActivityAsync(agentInput.Input);
 
             var introMessage = await context.CallActivityAsync<ChatMessage>(new TaskName(nameof(TlsSendIntroActivity)), agentInput);
-            
             // todo - it would be better if this message is in the context, but skipping on adding it for now in case it breaks demo flow.
             // chatHistory.Add(introMessage);
 
-            // Optionally, send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
             chatHistory = await context.CallSendSummaryAndStartActivityAsync(
                 new GetNextActionInput
                 {
@@ -64,12 +62,9 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
         public override async Task<ChatMessage> RunAsync(TaskActivityContext context, TlsBestPracticesAgentInput agentInput)
         {
             StringBuilder introMessage = new StringBuilder("""
-                Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version. For more information on Microsoft's cryptographic recommendations see:  
-                https://learn.microsoft.com/en-us/security/engineering/cryptographic-recommendations#tlsssl-versions  
-
                 I can update these applications to require TLS 1.2 one at a time. I'll wait 30 seconds between each app and monitor its health during that time.  
 
-                #### Recommended Updates  
+                #### Application Updates  
 
                 """);
 
@@ -79,7 +74,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
             }
 
             introMessage.AppendLine();
-            introMessage.AppendLine("Would you like me to proceed? I can trigger an approval flow.");
+            introMessage.AppendLine("Would you like me to proceed as planned above? I can trigger an approval flow.");
 
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
