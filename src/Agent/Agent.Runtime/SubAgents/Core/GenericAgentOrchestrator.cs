@@ -36,6 +36,14 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         while (!done)
         {
             stepCount++;
+
+            string jsonChatHistory = System.Text.Json.JsonSerializer.Serialize(chatHistory, new System.Text.Json.JsonSerializerOptions
+            {
+                WriteIndented = true,
+                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
+            });
+            context.SetCustomStatus(jsonChatHistory);
+
             logger.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", threadId, stepCount);
 
             // If there's an active wait task, then wait for it or for a new chat message

@@ -81,6 +81,9 @@
                     <button class="btn btn-icon" title="Download Messages" @onclick="DownloadMessages">
                         <i class="bi bi-download"></i>
                     </button>
+                    <button class="btn btn-icon" title="Download All Orchestration Histories" @onclick="DownloadAllOrchestrationHistories">
+                        <i class="bi bi-cloud-download"></i>
+                    </button>
                 </div>
             </div>
 
@@ -298,6 +301,89 @@
         {
             Console.WriteLine($"Error downloading messages: {ex.Message}");
         }
+    }
+
+    private async Task DownloadAllOrchestrationHistories()
+    {
+        try
+        {
+            var userMessage = new ChatMessage
+                {
+                    Message = "Downloading all orchestration chat histories...",
+                    FormattedMessage = ApplyMarkdown("Downloading all orchestration chat histories..."),
+                    IsUser = false,
+                    Timestamp = DateTime.Now
+                };
+            messages.Add(userMessage);
+            StateHasChanged();
+
+            var response = await Http.GetAsync("/api/v1/ChatHistory/all");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                var error = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"Error downloading orchestration histories: {response.StatusCode} - {error}");
+
+                messages.Add(new ChatMessage
+                    {
+                        Message = $"Error downloading orchestration histories: {response.StatusCode}",
+                        FormattedMessage = ApplyMarkdown($"Error downloading orchestration histories: {response.StatusCode}"),
+                        IsUser = false,
+                        Timestamp = DateTime.Now
+                    });
+                StateHasChanged();
+                return;
+            }
+
+            var rawResponseContent = await response.Content.ReadAsStringAsync();
+            var timestamp = DateTime.UtcNow.ToString("yyyyMMdd_HHmmss");
+
+            var fileContent = await response.Content.ReadAsByteArrayAsync();
+            var fileName = GetFileNameFromResponse(response) ?? $"orchestration_chat_histories_{timestamp}.json";
+
+            string base64 = Convert.ToBase64String(fileContent);
+            string dataUrl = $"data:application/json;base64,{base64}";
+
+            await JS.InvokeVoidAsync("downloadFile", fileName, dataUrl);
+
+            byte[] rawBytes = System.Text.Encoding.UTF8.GetBytes(rawResponseContent);
+            string rawBase64 = Convert.ToBase64String(rawBytes);
+            string rawDataUrl = $"data:text/plain;base64,{rawBase64}";
+            string rawFileName = $"raw_response_{timestamp}.txt";
+
+            await JS.InvokeVoidAsync("downloadFile", rawFileName, rawDataUrl);
+
+            messages.RemoveAt(messages.Count - 1);
+            messages.Add(new ChatMessage
+                {
+                    Message = $"Downloaded orchestration chat histories as {fileName} and raw response as {rawFileName}",
+                    FormattedMessage = ApplyMarkdown($"Downloaded orchestration chat histories as {fileName} and raw response as {rawFileName}"),
+                    IsUser = false,
+                    Timestamp = DateTime.Now
+                });
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error downloading orchestration histories: {ex.Message}");
+            messages.Add(new ChatMessage
+                {
+                    Message = $"Error downloading orchestration histories: {ex.Message}",
+                    FormattedMessage = ApplyMarkdown($"Error downloading orchestration histories: {ex.Message}"),
+                    IsUser = false,
+                    Timestamp = DateTime.Now
+                });
+            StateHasChanged();
+        }
+    }
+
+    private string? GetFileNameFromResponse(HttpResponseMessage response)
+    {
+        if (response.Content.Headers.ContentDisposition != null)
+        {
+            return response.Content.Headers.ContentDisposition.FileName?.Trim('"');
+        }
+        return null;
     }
 
     private async Task SwitchAgentAsync(string path, string chatId)

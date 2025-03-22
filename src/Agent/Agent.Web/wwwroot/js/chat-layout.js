@@ -90,3 +90,19 @@ window.downloadFile = function (fileName, dataUrl) {
     link.click();
     document.body.removeChild(link);
 };
+
+window.downloadFile = function (fileName, dataUrl) {
+    const link = document.createElement('a');
+
+    link.download = fileName;
+
+    link.href = dataUrl;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+    return true;
+};
