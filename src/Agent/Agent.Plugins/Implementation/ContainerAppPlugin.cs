@@ -234,7 +234,7 @@ namespace Agent.Plugins.Implementation
 
             var metrics = new List<Metric>
             {
-                new Metric { Name = "MemoryPercentage", Unit = "Percentage", Aggregation = "Total" },
+                new Metric { Name = "MemoryPercentage", Unit = "Percentage", Aggregation = "Average" },
             };
 
             var metricsData = await _armHelper.FetchMetricsAsync(
@@ -254,7 +254,7 @@ namespace Agent.Plugins.Implementation
 
             var metrics = new List<Metric>
             {
-                new Metric { Name = "CpuPercentage", Unit = "Percentage", Aggregation = "Total" },
+                new Metric { Name = "CpuPercentage", Unit = "Percentage", Aggregation = "Average" },
             };
 
             var metricsData = await _armHelper.FetchMetricsAsync(

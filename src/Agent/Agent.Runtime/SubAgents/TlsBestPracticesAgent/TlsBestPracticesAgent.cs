@@ -1,12 +1,8 @@
-﻿using Agent.Plugins.Definitions;
-using Agent.Plugins.Implementation;
-using Agent.Plugins;
+﻿using System.Text;
+using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using Agent.Core.Helpers;
-using System.Text;
-using Agent.Runtime.Communication;
 
 namespace Agent.Runtime.SubAgents.TlsBestPractices
 {
@@ -15,6 +11,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
     {
         public override async Task<string> RunAsync(TaskOrchestrationContext context, TlsBestPracticesAgentInput agentInput)
         {
+            var log = context.CreateReplaySafeLogger<TlsBestPracticesAgent>();
             // Initial planning phase: generate plan (e.g. list of apps to update)
             List<ChatMessage> chatHistory = await context.CallTlsPlanActivityAsync(agentInput.Input);
 
@@ -35,7 +32,8 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.ThreadId);
+                agentInput.ThreadId,
+                log);
 
             return "success";
         }

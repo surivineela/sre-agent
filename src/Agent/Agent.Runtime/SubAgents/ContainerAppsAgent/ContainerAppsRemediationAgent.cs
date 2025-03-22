@@ -10,6 +10,7 @@ public class ContainerAppsRemediationAgent : GenericAgentOrchestrator<ContainerA
 {
     public override async Task<string> RunAsync(TaskOrchestrationContext context, ContainerAppsRemediationAgentInput agentInput)
     {
+        var log = context.CreateReplaySafeLogger<ContainerAppsRemediationAgent>();
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ContainerAppsAgent", "ContainerAppsAgent.txt");
         var systemPrompt = File.ReadAllText(path);
         var monitoringMessage = $"I was delegated to resolve container apps issue from another agent with message: {agentInput.Input}";
@@ -24,7 +25,8 @@ public class ContainerAppsRemediationAgent : GenericAgentOrchestrator<ContainerA
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.ThreadId);
+            agentInput.ThreadId, 
+            log);
 
         return "success";
     }

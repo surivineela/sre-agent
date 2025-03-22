@@ -251,13 +251,13 @@ public class ArmHelper
             foreach (var dataPoint in timeSeries[0]["data"])
             {
                 var timestamp = DateTime.Parse(dataPoint["timeStamp"].ToString());
-                var value = dataPoint[metricDefinition.Aggregation.ToLower()].Value<double>();
+                var value = dataPoint[metricDefinition.Aggregation.ToLower()]?.Value<double>();
 
                 timeSeriesData.Add(new TimeSeriesData
                 {
                     Name = metricDefinition.Name,
                     Timestamp = timestamp,
-                    Value = value,
+                    Value = value ?? 0f,
                     Unit = metricDefinition.Unit
                 });
             }

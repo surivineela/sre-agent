@@ -37,7 +37,8 @@ public sealed class ToolsRepository : IMcpConnectable
         IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
         IRemediationPlugin remediationPlugin,
-        IRecordActionsPlugin recordActionsPlugin)
+        IRecordActionsPlugin recordActionsPlugin,
+        IContainerAppPlugin containerAppPlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
@@ -97,6 +98,16 @@ public sealed class ToolsRepository : IMcpConnectable
 
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         Register200(() => approvalPluginDefinition.StartApprovalFlow);
+
+        var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
+        Register200(() => containerAppPluginDefinition.GetContainerAppCpuMetrics);
+        Register200(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics);
+        Register200(() => containerAppPluginDefinition.GetContainerAppRequestMetrics);
+        Register200(() => containerAppPluginDefinition.ListContainerAppsAsync);
+        Register200(() => containerAppPluginDefinition.RestartContainerApp);
+        Register200(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync);
+        Register200(() => containerAppPluginDefinition.RemoveNSGRuleAsync);
+        Register200(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync);
     }
 
     public string Register202(

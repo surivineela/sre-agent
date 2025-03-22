@@ -1,5 +1,4 @@
-﻿using Agent.Runtime.SubAgents.AppServiceRemediation;
-using Agent.Runtime.SubAgents.Core;
+﻿using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
@@ -10,6 +9,7 @@ public class AppServiceRemediationAgent : GenericAgentOrchestrator<AppServiceRem
 {
     public override async Task<string> RunAsync(TaskOrchestrationContext context, AppServiceRemediationAgentInput agentInput)
     {
+        var log = context.CreateReplaySafeLogger<AppServiceRemediationAgent>();
         // Initial planning phase: generate plan (e.g. list of apps to update)
         List<ChatMessage> chatHistory = await context.CallAppServiceRemediationPlanActivityAsync(agentInput.Input);
 
@@ -27,7 +27,8 @@ public class AppServiceRemediationAgent : GenericAgentOrchestrator<AppServiceRem
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.ThreadId);
+            agentInput.ThreadId,
+            log);
 
         return "success";
     }

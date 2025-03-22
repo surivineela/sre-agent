@@ -1,14 +1,14 @@
-﻿using Agent.Plugins.Definitions;
+﻿using System.Reflection;
+using Agent.Core.Models.Api.v1;
+using Agent.Plugins;
+using Agent.Plugins.Attributes;
+using Agent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using Agent.Plugins;
-using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.Logging;
-using Agent.Plugins.Attributes;
-using System.Reflection;
+using Microsoft.SemanticKernel;
 using FunctionCallContent = Microsoft.Extensions.AI.FunctionCallContent;
 using FunctionResultContent = Microsoft.Extensions.AI.FunctionResultContent;
-using Microsoft.SemanticKernel;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -19,10 +19,10 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         TaskOrchestrationContext context,
         List<ChatMessage> chatHistory,
         IReadOnlyList<string> toolSignatures,
-        string threadId)
+        string threadId,
+        ILogger log)
     {
-        var logger = context.CreateReplaySafeLogger<GenericAgentOrchestrator<TInput, TResult>>();
-        logger.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", threadId);
+        log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", threadId);
 
         int stepCount = 0;
         bool done = false;
@@ -44,12 +44,12 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             });
             context.SetCustomStatus(jsonChatHistory);
 
-            logger.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", threadId, stepCount);
+            log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", threadId, stepCount);
 
             // If there's an active wait task, then wait for it or for a new chat message
             if (waitTask is not null)
             {
-                logger.LogInformation("[{ThreadId}] Waiting for task to complete", threadId);
+                log.LogInformation("[{ThreadId}] Waiting for task to complete", threadId);
 
                 var tasksToWaitFor = new List<Task>();
                 tasksToWaitFor.AddRange(pending202Activities);
@@ -57,27 +57,27 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 tasksToWaitFor.Add(waitTask);
 
                 await Task.WhenAny(tasksToWaitFor);
-                logger.LogInformation("[{ThreadId}] Some task completed", threadId);
+                log.LogInformation("[{ThreadId}] Some task completed", threadId);
 
                 if (waitTask.IsCompleted)
                 {
                     // TODO: error handling
                     await waitTask;
                     waitTask = null;
-                    logger.LogInformation("[{ThreadId}] waitTask completed", threadId);
+                    log.LogInformation("[{ThreadId}] waitTask completed", threadId);
                 }
                 else
                 {
                     waitTokenSource.Cancel();
                     waitTokenSource.Dispose();
                     waitTokenSource = new CancellationTokenSource();
-                    logger.LogInformation("[{ThreadId}] waitTask cancelled", threadId);
+                    log.LogInformation("[{ThreadId}] waitTask cancelled", threadId);
                 }
             }
 
             // Process finished 202 activities
             var notCompleted202 = new List<Task<ChatMessage>>();
-            logger.LogInformation("[{ThreadId}] Processing pending 202 activities", threadId);
+            log.LogInformation("[{ThreadId}] Processing pending 202 activities", threadId);
             foreach (var pending202ActivityTask in pending202Activities)
             {
                 if (pending202ActivityTask.IsCompleted)
@@ -85,7 +85,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     // TODO: error handling
                     var pendingTaskResult = await pending202ActivityTask;
                     chatHistory.Add(pendingTaskResult);
-                    logger.LogInformation("[{ThreadId}] 202 activity completed with message: {ChatMessage}", threadId, pendingTaskResult.ToString());
+                    log.LogInformation("[{ThreadId}] 202 activity completed with message: {ChatMessage}", threadId, pendingTaskResult.ToString());
                 }
                 else
                 {
@@ -99,7 +99,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             {
                 // TODO: error handling
                 var newMessage = await newMessageTask;
-                logger.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", threadId, newMessage.ToString());
+                log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", threadId, newMessage.ToString());
                 chatHistory.Add(newMessage);
                 newMessageTask = context.WaitForExternalEvent<ChatMessage>("NewChatMessage");
             }
@@ -111,11 +111,11 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 StepCounter = stepCount,
                 ToolSignatures = toolSignatures,
             });
-            logger.LogInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, nextAction.ToString());
+            log.LogInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, nextAction.ToString());
             chatHistory.Add(nextAction);
 
             var functionCalls = nextAction.Contents.OfType<FunctionCallContent>();
-            logger.LogInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
+            log.LogInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
             // Extract the function call (assumes a single function call in the message)
             var functionCall = functionCalls.Single();
 
@@ -137,7 +137,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     message = messageObj.ToString() ?? string.Empty;
                 }
 
-                logger.LogInformation("[{ThreadId}] Marking plan as complete with message: {Message}", threadId, message);
+                log.LogInformation("[{ThreadId}] Marking plan as complete with message: {Message}", threadId, message);
 
                 // Call the communication activity
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
@@ -146,11 +146,9 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     Message: message
                 ));
 
-                await this.OnPlanComplete(context, threadId);
-
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Plan marked as complete.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-                logger.LogInformation("[{ThreadId}] Marking plan as complete", threadId);
+                log.LogInformation("[{ThreadId}] Marking plan as complete", threadId);
             }
             else if (functionCall.Name == nameof(ControlFlowPluginDefinition.Wait))
             {
@@ -159,7 +157,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 waitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), waitTokenSource.Token);
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Wait operation submitted.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-                logger.LogInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
+                log.LogInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
             }
             else if (functionCall.Name == nameof(RecordActionsPluginDefinition.RecordAction))
             {
@@ -178,7 +176,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                         status = parsedStatus;
                     }
                 }
-                logger.LogInformation("[{ThreadId}] Recording action with title: {Title}, status: {Status}", threadId, title, status);
+                log.LogInformation("[{ThreadId}] Recording action with title: {Title}, status: {Status}", threadId, title, status);
 
                 // Call the record action activity
                 var action = await context.CallRecordActionActivityAsync(new RecordActionInput(
@@ -186,7 +184,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     Title: title,
                     Status: status
                 ));
-                logger.LogInformation("[{ThreadId}] Action recorded: {Action}", threadId, action.ToString());
+                log.LogInformation("[{ThreadId}] Action recorded: {Action}", threadId, action.ToString());
 
                 // Return the action details as a JSON string
                 var resultContent = new FunctionResultContent(
@@ -205,7 +203,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                         actionId = parsedActionId;
                     }
                 }
-                logger.LogInformation("[{ThreadId}] Getting action details for actionId: {ActionId}", threadId, actionId);
+                log.LogInformation("[{ThreadId}] Getting action details for actionId: {ActionId}", threadId, actionId);
 
                 if (actionId == Guid.Empty)
                 {
@@ -213,19 +211,19 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                         functionCall.CallId,
                         "Invalid arguments. actionId is required.");
                     chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { errorContent }));
-                    logger.LogError("[{ThreadId}] Invalid actionId: {ActionId}", threadId, actionId);
+                    log.LogError("[{ThreadId}] Invalid actionId: {ActionId}", threadId, actionId);
                 }
                 else
                 {
                     try
                     {
-                        logger.LogInformation("[{ThreadId}] Retrieving action details for actionId: {ActionId}", threadId, actionId);
+                        log.LogInformation("[{ThreadId}] Retrieving action details for actionId: {ActionId}", threadId, actionId);
                         // Call the get action details activity
                         var action = await context.CallGetActionDetailsActivityAsync(new GetActionDetailsInput(
                             ThreadId: Guid.Parse(threadId),
                             ActionId: actionId
                         ));
-                        logger.LogInformation("[{ThreadId}] Action details retrieved: {Action}", threadId, action.ToString());
+                        log.LogInformation("[{ThreadId}] Action details retrieved: {Action}", threadId, action.ToString());
 
                         // Return the action details as a JSON string
                         var resultContent = new FunctionResultContent(
@@ -240,20 +238,20 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                             functionCall.CallId,
                             $"Error retrieving action: {ex.Message}");
                         chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { errorContent }));
-                        logger.LogError("[{ThreadId}] Error retrieving action details: {Error}", threadId, ex.Message);
+                        log.LogError("[{ThreadId}] Error retrieving action details: {Error}", threadId, ex.Message);
                     }
                 }
             }
             else if (functionCall.Name == nameof(ControlFlowPluginDefinition.NotifyUser))
             {
-                logger.LogInformation("[{ThreadId}] Notifying user", threadId);
+                log.LogInformation("[{ThreadId}] Notifying user", threadId);
                 // Fix: Extract message from the arguments dictionary
                 string message = string.Empty;
                 if (functionCall.Arguments.TryGetValue("message", out var messageObj) && messageObj != null)
                 {
                     message = messageObj.ToString() ?? string.Empty;
                 }
-                logger.LogInformation("[{ThreadId}] Message to notify user: {Message}", threadId, message);
+                log.LogInformation("[{ThreadId}] Message to notify user: {Message}", threadId, message);
 
                 // Call the communication activity
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
@@ -261,14 +259,14 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     InstanceId: context.InstanceId,
                     Message: message
                 ));
-                logger.LogInformation("[{ThreadId}] User notified with message: {Message}", threadId, message);
+                log.LogInformation("[{ThreadId}] User notified with message: {Message}", threadId, message);
 
                 var resultContent = new FunctionResultContent(functionCall.CallId, "User notified.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
             }
             else if (functionCall.Name == nameof(ApprovalPluginDefinition.StartApprovalFlow))
             {
-                logger.LogInformation("[{ThreadId}] Starting approval flow", threadId);
+                log.LogInformation("[{ThreadId}] Starting approval flow", threadId);
 
                 var operationName = functionCall.Arguments["operationName"]?.ToString() ?? "operation";
                 var approvalInstanceId = $"approval-{context.NewGuid()}";
@@ -277,14 +275,14 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 var description = functionCall.Arguments["description"]?.ToString() ?? "Pending approval";
                 context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
 
-                logger.LogInformation("[{ThreadId}] Trying to generate approvalLink for operation: {OperationName} approval instanceId: {approvalInstanceId}", threadId, operationName, approvalInstanceId);
+                log.LogInformation("[{ThreadId}] Trying to generate approvalLink for operation: {OperationName} approval instanceId: {approvalInstanceId}", threadId, operationName, approvalInstanceId);
 
                 // Generate approval link with the new activity
                 string approvalLink = await context.CallActivityAsync<string>(
                     nameof(GenerateApprovalLinkActivity),
                     (approvalInstanceId, operationName, description)
                 );
-                logger.LogInformation("[{ThreadId}] Approval link generated: {ApprovalLink} for {approvalInstanceId}. Trying to notify user.", threadId, approvalLink, approvalInstanceId);
+                log.LogInformation("[{ThreadId}] Approval link generated: {ApprovalLink} for {approvalInstanceId}. Trying to notify user.", threadId, approvalLink, approvalInstanceId);
 
                 // Notify user about approval with the generated link
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
@@ -292,7 +290,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     InstanceId: context.InstanceId,
                     Message: $"Approval required for: {operationName}. [Click here to approve]({approvalLink})"
                 ));
-                logger.LogInformation("[{ThreadId}] User notified about approval with link: {ApprovalLink}. Trying to start ApprovalOrchestration", threadId, approvalLink);
+                log.LogInformation("[{ThreadId}] User notified about approval with link: {ApprovalLink}. Trying to start ApprovalOrchestration", threadId, approvalLink);
 
                 // Start the approval suborchestration
                 waitTask = context.CallSubOrchestratorAsync(
@@ -308,7 +306,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             }
             else
             {
-                logger.LogInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, functionCall.ToString());
+                log.LogInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, functionCall.ToString());
                 // For any other function call, defer to the derived implementation
                 var execInput = new ExecuteActionInput(
                     FunctionCallContent: chatHistory.Last().Contents.Single() as FunctionCallContent,
@@ -319,12 +317,12 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 if (executionResult.Is202Submit)
                 {
                     pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
-                    logger.LogInformation("[{ThreadId}] 202 activity submitted: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
+                    log.LogInformation("[{ThreadId}] 202 activity submitted: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
                 }
             }
         }
 
-        logger.LogInformation("[{ThreadId}] Reasoning loop completed. Notifying user", threadId);
+        log.LogInformation("[{ThreadId}] Reasoning loop completed. Notifying user", threadId);
         // Notify completion when done - use explicit call to activity
         await context.CallNotifyCompletionActivityAsync(new NotifyCompletionInput(
             ThreadId: threadId,
@@ -332,7 +330,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             Status: "Completed",
             Summary: "Task completed successfully"
         ));
-        logger.LogInformation("[{ThreadId}] Completion notification sent", threadId);
+        log.LogInformation("[{ThreadId}] Completion notification sent", threadId);
 
         return chatHistory;
     }

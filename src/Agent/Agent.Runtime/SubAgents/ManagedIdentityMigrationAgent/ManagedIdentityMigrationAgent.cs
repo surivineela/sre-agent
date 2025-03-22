@@ -10,6 +10,7 @@ namespace Agent.Runtime.SubAgents.ManagedIdentityMigration
     {
         public override async Task<string> RunAsync(TaskOrchestrationContext context, ManagedIdentityMigrationAgentInput agentInput)
         {
+            var log = context.CreateReplaySafeLogger<ManagedIdentityMigrationAgent>();
             string threadId = agentInput.ThreadId;
 
             // Initial planning phase: generate plan
@@ -29,7 +30,8 @@ namespace Agent.Runtime.SubAgents.ManagedIdentityMigration
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                threadId);
+                threadId,
+                log);
 
             return "success";
         }
