@@ -12,6 +12,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
+using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
@@ -415,6 +416,94 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error in RemoveNSGRuleAsync with nsgResourceId {nsgResourceId}, rule {ruleName}");
+                return false;
+            }
+        }
+
+        public async Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas)
+        {
+            _logger.LogInformation($"[scale_container_app] Invoked with resourceId: {resourceId}, memory: {desiredMemory}, minReplicas: {minReplicas}, maxReplicas: {maxReplicas}");
+            
+            try
+            {
+                // Dictionary of valid memory-to-CPU mappings
+                var validCpuMemoryCombinations = new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase)
+                {
+                    { "0.25Gi", 0.25 }, { "0.5Gi", 0.5 }, { "0.75Gi", 0.75 }, { "1Gi", 1.0 },
+                    { "1.25Gi", 1.25 }, { "1.5Gi", 1.5 }, { "1.75Gi", 1.75 }, { "2Gi", 2.0 },
+                    { "256Mi", 0.25 }, { "512Mi", 0.5 }, { "1024Mi", 1.0 }, { "2048Mi", 2.0 }
+                };
+
+                if (!validCpuMemoryCombinations.TryGetValue(desiredMemory, out double cpu))
+                {
+                    _logger.LogError($"Unsupported memory size: {desiredMemory}. Valid options include: 0.25Gi, 0.5Gi, 1Gi, 2Gi, 256Mi, 512Mi, etc.");
+                    return false;
+                }
+
+                var credential = new DefaultAzureCredential();
+                var armClient = new ArmClient(credential);
+
+                // Get the Container App
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerAppResponse = await containerAppResource.GetAsync();
+                var containerApp = containerAppResponse.Value;
+                
+                if (containerApp.Data.Template?.Containers == null || containerApp.Data.Template.Containers.Count == 0)
+                {
+                    _logger.LogError($"No container definition found in the app {resourceId}");
+                    return false;
+                }
+                
+                // Patch request
+                var containerAppUpdateData = containerApp.Data;
+                
+                // Update all containers' resources
+                foreach (var container in containerAppUpdateData.Template.Containers)
+                {
+                    if (container.Resources == null)
+                    {
+                        _logger.LogInformation($"Creating new resources for container {container.Name}");
+                        container.Resources = new AppContainerResources
+                        {
+                            Cpu = cpu,
+                            Memory = desiredMemory
+                        };
+                    }
+                    else
+                    {
+                        // Update existing resources
+                        container.Resources.Cpu = cpu;
+                        container.Resources.Memory = desiredMemory;
+                    }
+                }
+                
+                // Update scale settings
+                if (containerAppUpdateData.Template.Scale == null)
+                {
+                    _logger.LogInformation("Creating new scale configuration");
+                    containerAppUpdateData.Template.Scale = new ContainerAppScale
+                    {
+                        MinReplicas = minReplicas,
+                        MaxReplicas = maxReplicas
+                    };
+                }
+                else
+                {
+                    // Update existing scale settings
+                    containerAppUpdateData.Template.Scale.MinReplicas = minReplicas;
+                    containerAppUpdateData.Template.Scale.MaxReplicas = maxReplicas;
+                }
+                
+                // Apply the update
+                _logger.LogInformation("Applying container app scale update...");
+                await containerAppResource.UpdateAsync(WaitUntil.Completed, containerAppUpdateData);
+                
+                _logger.LogInformation($"Successfully scaled container app {resourceId} to {cpu} vCPU / {desiredMemory} with min {minReplicas}, max {maxReplicas} replicas");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error scaling container app {resourceId}");
                 return false;
             }
         }

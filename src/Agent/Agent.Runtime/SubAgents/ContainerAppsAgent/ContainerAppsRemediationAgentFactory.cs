@@ -42,6 +42,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.RemoveNSGRuleAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
 
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);

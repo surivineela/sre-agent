@@ -26,5 +26,7 @@ namespace Agent.Plugins.Definitions
         Task<bool> CreateOrUpdateNSGRuleAsync(string nsgResourceId, SecurityRuleData rule);
             
         Task<bool> RemoveNSGRuleAsync(string nsgResourceId, string ruleName);
+
+        Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas);
     }
 }

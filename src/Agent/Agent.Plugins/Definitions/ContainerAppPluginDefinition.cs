@@ -100,9 +100,25 @@ namespace Agent.Plugins.Definitions
             [Description("Azure resource ID of the NSG containing the rule")] string nsgResourceId,
             [Description("Name of the security rule to remove")] string ruleName)
         {
-            return await _containerAppPlugin.RemoveNSGRuleAsync (nsgResourceId, ruleName);
+            return await _containerAppPlugin.RemoveNSGRuleAsync(nsgResourceId, ruleName);
         }
 
         #endregion
+
+        [KernelFunction("scale_container_app")]
+        [Description("Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
+        public async Task<bool> ScaleContainerApp(
+            [Description("Azure resource ID of the Container App to scale")] string resourceId,
+            [Description("Desired memory allocation (e.g., '1Gi', '512Mi')")] string desiredMemory,
+            [Description("Minimum number of replicas to run (e.g., 1)")] int minReplicas,
+            [Description("Maximum number of replicas to scale to (e.g., 10)")] int maxReplicas)
+        {
+            if (string.IsNullOrWhiteSpace(resourceId) || string.IsNullOrWhiteSpace(desiredMemory) || minReplicas < 0 || maxReplicas < minReplicas)
+            {
+                throw new ArgumentException("Invalid input parameters.");
+            }
+
+            return await _containerAppPlugin.ScaleContainerApp(resourceId, desiredMemory, minReplicas, maxReplicas);
+        }
     }
 }
