@@ -6,5 +6,6 @@ namespace Agent.Plugins
     public interface IGraphDBPlugin
     {
         Task<ResultSet<dynamic>> Query(string query);
+        Task<string> FindAllNetworkConnectedResources(string resourceId = "");
     }
 } 

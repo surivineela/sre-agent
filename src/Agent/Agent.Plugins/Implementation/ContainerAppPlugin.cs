@@ -30,6 +30,82 @@ namespace Agent.Plugins.Implementation
             _logger = logger;
         }
 
+        // This might be redundant since we have ListAllContainerApps method. 
+        // However, the MetaAgent is not able to properly pass the list of container apps to the sub agent.
+        // So, adding this function to explicitly get detailed info for a container app instance to test the e2e 
+        // container app remediation flow. 
+        public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
+        {
+            _logger.LogInformation($"[get_container_app] Invoked with resourceId: {resourceId}");
+
+            try
+            {
+                var credential = new DefaultAzureCredential();
+                var armClient = new ArmClient(credential);
+
+                // Parse resource ID into ResourceIdentifier object
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
+                
+                var containerAppResource = armClient.GetContainerAppResource(resourceIdentifier);
+                var containerAppResponse = await containerAppResource.GetAsync();
+                var containerApp = containerAppResponse.Value;
+
+                if (containerApp == null)
+                {
+                    _logger.LogWarning($"Container App with ID '{resourceId}' not found.");
+                    return null;
+                }
+
+                // Get resource group directly from ResourceIdentifier
+                string resourceGroup = resourceIdentifier.ResourceGroupName;
+
+                // Collect revisions if available
+                /*
+                var revisions = new List<RevisionInfo>();
+                try
+                {
+                    await foreach (var revision in containerAppResource.GetContainerAppRevisions().GetAllAsync())
+                    {
+                        int trafficWeight = revision.Data.TrafficWeight ?? 0;
+                        string revisionName = revision.Data.Name;
+                        
+                        // Extract just the revision part if name contains the app name prefix
+                        if (revisionName.Contains("--"))
+                        {
+                            revisionName = revisionName.Split("--").Last();
+                        }
+                        
+                        revisions.Add(new RevisionInfo(
+                            RevisionName: revisionName,
+                            IsActive: trafficWeight > 0,
+                            TrafficWeight: trafficWeight));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Error getting revisions for Container App {containerApp.Data.Name}");
+                }
+                */
+
+                return new ContainerAppDescriptor(
+                    ResourceId: containerApp.Id.ToString(),
+                    Name: containerApp.Data.Name,
+                    Kind: containerApp.Data.Kind?.ToString() ?? "ContainerApp",
+                    Location: containerApp.Data.Location,
+                    WorkloadProfile: containerApp.Data.WorkloadProfileName,
+                    State: containerApp.Data.ProvisioningState?.ToString() ?? "Unknown",
+                    ResourceGroup: resourceGroup,
+                    EnvironmentName: containerApp.Data.ManagedEnvironmentId?.ToString() ?? "N/A",
+                    IsIngressEnabled: containerApp.Data.Configuration?.Ingress?.External ?? false,
+                    Revisions: null);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in GetContainerAppAsync with resourceId {resourceId}");
+                return null;
+            }
+        }
+
         public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
         {
             _logger.LogInformation($"[get_latest_revision] Invoked with resourceId: {resourceId}");
@@ -131,6 +207,12 @@ namespace Agent.Plugins.Implementation
                 // Get all resource groups in the subscription
                 await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
                 {
+                    // Filter for the specific resource group "aca-sre-agent-demo"
+                    if (!string.Equals(resourceGroup.Data.Name, "aca-sre-agent-demo", StringComparison.OrdinalIgnoreCase))
+                    {
+                        continue;
+                    }
+
                     await foreach (var containerApp in resourceGroup.GetContainerApps().GetAllAsync())
                     {
                         string state = containerApp.Data.ProvisioningState.ToString() ?? "Unknown";
@@ -138,6 +220,7 @@ namespace Agent.Plugins.Implementation
                         string environmentId = containerApp.Data.ManagedEnvironmentId?.ToString() ?? "N/A";
 
                         // Get revisions for this Container App
+                        /*
                         var revisions = new List<RevisionInfo>();
                         try
                         {
@@ -169,7 +252,7 @@ namespace Agent.Plugins.Implementation
                         {
                             _logger.LogWarning(revEx, $"Error fetching revisions for Container App {containerApp.Data.Name}");
                         }
-
+                        */
                         var containerAppDescriptor = new ContainerAppDescriptor(
                             ResourceId: containerApp.Id.ToString(),
                             Name: containerApp.Data.Name,
@@ -178,9 +261,9 @@ namespace Agent.Plugins.Implementation
                             WorkloadProfile: containerApp.Data.WorkloadProfileName,
                             State: state,
                             ResourceGroup: resourceGroup.Data.Name,
-                            Environment: environmentId,
+                            EnvironmentName: environmentId,
                             IsIngressEnabled: containerApp.Data.Configuration?.Ingress?.External ?? false,
-                            Revisions: revisions);
+                            Revisions: null);
 
                         containerApps.Add(containerAppDescriptor);
                     }
@@ -189,17 +272,16 @@ namespace Agent.Plugins.Implementation
             catch (RequestFailedException ex) when (ex.Status == 404)
             {
                 _logger.LogInformation($"Subscription with ID '{subscriptionId}' not found.");
-                return [];
+                return new List<ContainerAppDescriptor>();
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error in ListContainerAppsAsync with subscription {subscriptionId}");
-                return [];
+                return new List<ContainerAppDescriptor>();
             }
 
             return containerApps;
         }
-
         public async Task<string> RestartContainerApp(
           [Description("The resource ID of the Container App.")]
             string appResourceId,

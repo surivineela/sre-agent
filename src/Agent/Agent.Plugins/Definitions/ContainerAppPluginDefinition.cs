@@ -18,6 +18,14 @@ namespace Agent.Plugins.Definitions
             _containerAppPlugin = containerAppPlugin;
         }
 
+        [KernelFunction("get_containerapp_info")]
+        [Description("Get detailed information about a container app including the revision history.")]
+        public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(
+            [Description("The resource ID of the Container App.")]string resourceId)
+        {   
+            return await _containerAppPlugin.GetContainerAppInfoAsync(resourceId);
+        }
+
         [KernelFunction("get_latest_containerapp_revision")]
         [Description("Get the latest active revision for a Container App instance")]
         public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)

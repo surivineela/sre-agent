@@ -1,12 +1,16 @@
-﻿using Agent.Core;
-using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
-using Agent.Data.Repositories;
-using Microsoft.Extensions.Logging;
-using Agent.Runtime.Communication;
-using Agent.Plugins;
-using Agent.Core.Interfaces;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
+using Agent.Core;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Runtime.Communication;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -25,6 +29,8 @@ An agent encompasses instructions and tools and can hand off a conversation to a
 Handoffs are achieved by calling a handoff function, generally named `start<agent_name>agent`.
 Transfers between agents are handled seamlessly in the background; do not mention or draw attention to these transfers in your conversation with the user.
 
+<Important>You must ask user for the subscription, resource group and resource name if they haven't provided and you are not able to correlate. **You must not assume any of these values**</>
+
 ## Primary Capabilities
 - **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **App Service Remediation**: If there is any issue with Azure WebApps or Azure Function apps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
@@ -34,10 +40,10 @@ Transfers between agents are handled seamlessly in the background; do not mentio
 ## Core Responsibilities
 1. **Request Triage**: Determine if a user request is related to Azure SRE concerns
 2. **Task-based-Agent Delegation**: Route requests to specialized task-agents when appropriate for following purposes, e.g.:
-   - For TLS best practices, call `startTlsBestPracticeAgent`
+   - For TLS best practices or an ask to migrate a webapp to a tls version, call `startTlsBestPracticeAgent`
    - For managed identity migration, call `startManagedIdentityMigrationAgent`
-   - For App Service Remediation, call `startAppServiceRemediationAgent`
-   - For Container Apps Remediation, call `startContainerAppsRemediationAgent`
+   - For any issues related to Azure WebApp or Function app or App Service, call `startAppServiceRemediationAgent`
+   - For any issues related to Azure Container Apps, call `startContainerAppsRemediationAgent`
    - Similar to this pattern, you can delegate to other task-based agents if registered accordingly.
 3. **Workflow Management**: Start, monitor, and summarize various Azure-related workflows or orchestrations.
 
@@ -90,7 +96,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         TlsBestPracticesPlugin tlsBestPracticesPlugin,
         AppServiceRemediationPlugin appServiceRemediationPlugin,
         ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
-        ISubscriptionPlugin subscriptionPlugin)
+        ISubscriptionPlugin subscriptionPlugin,
+        IContainerAppPlugin containerAppPlugin)
     {
         _chatClient = chatClient;
         _repository = repository;
@@ -113,6 +120,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.ListAppServiceRemediationWorkflows));
         _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAllSubscriptionsAsync));
         _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAppServicesAsync));
+        _aiTools.Add(AIFunctionFactory.Create(containerAppPlugin.ListContainerAppsAsync));
         _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows));
         _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.StartContainerAppsRemediationAgent));
         _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotPieChartAsync));

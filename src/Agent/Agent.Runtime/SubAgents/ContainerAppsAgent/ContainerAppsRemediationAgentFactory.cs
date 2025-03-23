@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -22,6 +26,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         ITimePlugin timePlugin,
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
+        IGraphDBPlugin graphDbPlugin,
         IChartPlugin chartPlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
@@ -35,7 +40,8 @@ public sealed class ContainerAppsRemediationAgentFactory
         // TODO: use StartGetXXX once we have DTS version of the plugin
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
+        //toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
@@ -44,6 +50,8 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.RemoveNSGRuleAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
 
+        var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));

@@ -1,4 +1,5 @@
-﻿using Agent.Graph.Crawler.Legacy;
+﻿using System.ComponentModel;
+using Agent.Graph.Crawler.Legacy;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -14,6 +15,7 @@ namespace Agent.Plugins
 
 
         [KernelFunction("list_all_subscriptions")]
+        [Description("Gets a list of Azure subscriptions that a user has access to. Use this plugin to infer subscription guid from user provide Subscription Name")]
         public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync()
         {
             return await _subscriptionPlugin.ListAllSubscriptionsAsync();

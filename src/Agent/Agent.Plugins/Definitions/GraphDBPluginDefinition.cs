@@ -21,5 +21,13 @@ namespace Agent.Plugins
         {
             return await _plugin.Query(query);
         }
+
+        [KernelFunction("FindAllNetworkConnectedResources")]
+        [Description("Finds all resources that a particular Azure Container App connects to through network connections, such as Redis caches, databases, and other services. Useful for networking connectivity debug")]
+        public async Task<string> FindAllNetworkConnectedResources(
+            [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")]string resourceId = "")
+        {
+            return await _plugin.FindAllNetworkConnectedResources(resourceId);
+        }
     }
 } 

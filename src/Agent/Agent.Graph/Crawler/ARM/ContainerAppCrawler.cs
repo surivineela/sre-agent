@@ -66,9 +66,19 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                             var value = valueElement.GetString();
                             if (string.IsNullOrEmpty(value)) continue;
 
-                            await foreach (var resourceNode in ProcessConnectionString(node, name, value, "env"))
+                            if (name == "REDIS_HOST" && !string.IsNullOrEmpty(value))
                             {
-                                yield return resourceNode;
+                                await foreach (var resourceNode in ProcessRedisHost(node, name, value, "env"))
+                                {
+                                    yield return resourceNode;
+                                }
+                            }
+                            else
+                            {
+                                await foreach (var resourceNode in ProcessConnectionString(node, name, value, "env"))
+                                {
+                                    yield return resourceNode;
+                                }
                             }
                         }
                         // Check secretRef
@@ -103,6 +113,71 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                         }
                     }
                 }
+            }
+        }
+    }
+
+    private async IAsyncEnumerable<ArmResourceNode> ProcessRedisHost(
+        ArmResourceNode node,
+        string name,
+        string hostName,
+        string sourceType)
+    {
+        // Strip any port if present
+        int portIndex = hostName.LastIndexOf(':');
+        if (portIndex >= 0)
+        {
+            hostName = hostName.Substring(0, portIndex);
+        }
+
+        // Strip the redis suffix if present
+        const string redisSuffix = ".redis.cache.windows.net";
+        if (hostName.EndsWith(redisSuffix, StringComparison.OrdinalIgnoreCase))
+        {
+            hostName = hostName.Substring(0, hostName.Length - redisSuffix.Length);
+        }
+
+        _logger.LogDebug($"Processing Redis host: {hostName}");
+
+        // Use the RedisConnectionStringHelper to find the Redis resource
+        var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
+        var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/" + node.SubscriptionId));
+
+        await foreach (var cache in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Cache/redis'"))
+        {
+            if (cache.Data.Name.Equals(hostName, StringComparison.OrdinalIgnoreCase))
+            {
+                var redisResourceId = cache.Data.Id.ToString();
+                var redisNode = new ArmResourceNode(
+                    resourceType: "Microsoft.Cache/redis",
+                    resourceId: redisResourceId,
+                    subscriptionId: node.SubscriptionId,
+                    resourceGroupName: ExtractResourceGroupName(cache.Data.Id),
+                    resourceName: cache.Data.Name);
+
+                var properties = redisNode.GetNodeProperties();
+                properties["authType"] = "hostName";
+                properties["source"] = $"containerApp:{sourceType}:{name}";
+
+                await _graphDbClient.AddOrUpdateNodeAsync(
+                    redisNode.GetNodeLabel(),
+                    redisNode.GetNodeId(),
+                    redisNode.GetResourceType(),
+                    properties);
+
+                await _graphDbClient.AddOrUpdateEdgeAsync(
+                node.GetNodeId(),
+                redisNode.GetNodeId(),
+                "USES_REDIS",
+                new Dictionary<string, object>
+                {
+                    ["updateTs"] = DateTime.UtcNow.Ticks,
+                    ["connectionType"] = sourceType,
+                    ["envVarName"] = name
+                });
+
+                _logger.LogDebug($"Found Redis cache {redisResourceId} from host name");
+                yield return redisNode;
             }
         }
     }
@@ -167,7 +242,18 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
                value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
     }
-
+    private string ExtractResourceGroupName(ResourceIdentifier resourceId)
+    {
+        var segments = resourceId.ToString().Split('/', StringSplitOptions.RemoveEmptyEntries);
+        for (int i = 0; i < segments.Length - 1; i++)
+        {
+            if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
+            {
+                return segments[i + 1];
+            }
+        }
+        return string.Empty;
+    }
     private bool IsRedisConnectionString(string value)
     {
         if (string.IsNullOrEmpty(value)) return false;

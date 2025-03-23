@@ -1,18 +1,15 @@
-﻿using Agent.Plugins.Definitions;
-using Agent.Plugins;
-using Microsoft.Extensions.AI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Collections.Concurrent;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
-using System.Threading.Tasks;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
-using Agent.Core.Helpers;
-using System.Collections.Concurrent;
-using Agent.Runtime.SubAgents.Core;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents;
 
@@ -38,6 +35,7 @@ public sealed class ToolsRepository : IMcpConnectable
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
+        IGraphDBPlugin graphDBPlugin,
         IContainerAppPlugin containerAppPlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
@@ -60,6 +58,9 @@ public sealed class ToolsRepository : IMcpConnectable
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         Register200(() => recordActionsPluginDefinition.RecordAction);
         Register200(() => recordActionsPluginDefinition.GetActionDetails);
+
+        var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
+        Register200(() => graphDBPluginDefinition.FindAllNetworkConnectedResources);
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         Register200(() => armPluginDefinition.SetMinimumTlsVersion);
@@ -103,11 +104,14 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => containerAppPluginDefinition.GetContainerAppCpuMetrics);
         Register200(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics);
         Register200(() => containerAppPluginDefinition.GetContainerAppRequestMetrics);
+        Register200(() => containerAppPluginDefinition.GetLatestRevisionAsync);
+        Register200(() => containerAppPluginDefinition.GetContainerAppInfoAsync);
         Register200(() => containerAppPluginDefinition.ListContainerAppsAsync);
         Register200(() => containerAppPluginDefinition.RestartContainerApp);
         Register200(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync);
         Register200(() => containerAppPluginDefinition.RemoveNSGRuleAsync);
         Register200(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync);
+        Register200(() => containerAppPluginDefinition.ScaleContainerApp);
     }
 
     public string Register202(

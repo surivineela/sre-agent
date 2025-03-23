@@ -27,6 +27,8 @@ namespace Agent.Runtime.SubAgents
 
         protected IRemediationPlugin _remediationPlugin { get; }
 
+        protected IContainerAppPlugin _containerAppPlugin { get; } 
+
         protected ResourceGraphCrawler _crawler { get; }
 
         public override string SystemPrompt { get; protected set; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
@@ -39,6 +41,7 @@ namespace Agent.Runtime.SubAgents
             ICurrentStatePlugin currentStatePlugin,
             IChatClient chatClient,
             IRemediationPlugin remediationPlugin,
+            IContainerAppPlugin containerAppPlugin,
             ResourceGraphCrawler crawler,
             ILogger<GenericAgent> logger)
             : base("GenericAgent", chatClient)
@@ -50,6 +53,7 @@ namespace Agent.Runtime.SubAgents
             _monitorPlugin = monitorPlugin;
             _currentStatePlugin = currentStatePlugin;
             _remediationPlugin = remediationPlugin;
+            _containerAppPlugin = containerAppPlugin;
             _crawler = crawler;
         }
 
@@ -76,6 +80,10 @@ namespace Agent.Runtime.SubAgents
                 AIFunctionFactory.Create(_remediationPlugin.CollectMemoryDump),
                 AIFunctionFactory.Create(_remediationPlugin.CalculateScalingCost),
                 AIFunctionFactory.Create(_remediationPlugin.SuggestNextSku),
+
+                AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
+                AIFunctionFactory.Create(_containerAppPlugin.GetLatestRevisionAsync),
+                AIFunctionFactory.Create(_containerAppPlugin.GetContainerAppInfoAsync)
             };
         }
     }

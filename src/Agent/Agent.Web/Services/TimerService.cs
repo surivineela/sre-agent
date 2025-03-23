@@ -59,7 +59,7 @@ public class TimerService : IHostedService, IDisposable
         //StartBestPracticeTimer(cancellationToken);
 
         _logger.LogInformation($"Starting TLS timer...");
-        StartTlsTimer(cancellationToken);
+        //StartTlsTimer(cancellationToken);
 
         _logger.LogInformation($"Finished starting background services");
 

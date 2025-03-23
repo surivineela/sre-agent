@@ -532,8 +532,6 @@ public class ArmHelper
             return (false, $"Http status code: {response.StatusCode}, body: {responseBody}");
         }
     }
-
-
     private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId, string token)
     {
         var tlsCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/config/web?api-version=2022-03-01");
