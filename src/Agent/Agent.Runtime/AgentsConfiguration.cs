@@ -54,8 +54,11 @@ namespace Agent.Runtime
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                    var loggerFactory= sp.GetRequiredService<ILoggerFactory>();
 
-                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName)).Build();
+                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                        .UseLogging(loggerFactory)
+                        .Build();
                 }));
         }
     }
