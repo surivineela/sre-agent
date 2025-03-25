@@ -8,9 +8,6 @@ namespace Agent.Core.Configuration
         public string AccountName { get; set; } = string.Empty;
 
         [Required]
-        public string ApiKey { get; set; } = string.Empty;
-
-        [Required]
         public string Database { get; set; } = string.Empty;
 
         public string DomainSuffix { get; set; } = "documents.azure.com";

@@ -10,12 +10,13 @@ resource kv 'Microsoft.KeyVault/vaults@2021-06-01-preview' existing = {
   name: '${namePrefix}${consts.kvNameSuffix}'
 }
 
-resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2021-04-15' = {
+resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
   name: '${namePrefix}${consts.cosmosDocDbAccountNameSuffix}'
   location: resourceGroup().location
   kind: 'GlobalDocumentDB'
   properties: {
     databaseAccountOfferType: 'Standard'
+    disableLocalAuth: true
     locations: [
       {
         locationName: resourceGroup().location
@@ -52,20 +53,14 @@ resource cosmosDatabaseSetting 'Microsoft.AppConfiguration/configurationStores/k
   }
 }
 
-// Secret Settings
-var cosmosApiKey = cosmosdbAccount.listKeys().primaryMasterKey
-resource cosmosApiKeySecret 'Microsoft.KeyVault/vaults/secrets@2021-06-01-preview' = {
-  name: 'docs-cosmos-api-key'
-  parent: kv
+// Assign data plane role
+var roleAssignmentId = '/${subscription().id}/resourceGroups/${resourceGroup().name}/providers/Microsoft.DocumentDB/databaseAccounts/${namePrefix}${consts.cosmosDocDbAccountNameSuffix}/sqlRoleDefinitions/${consts.cosmosDBDataContributor}' // 'Contributor' role ID
+resource roleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssignments@2023-04-15' = {
+  name: guid(cosmosdbAccount.id, deployer().objectId, consts.cosmosDBDataContributor)
+  parent: cosmosdbAccount
   properties: {
-    value: cosmosApiKey
-  }
-}
-resource cosmosApiKeySetting 'Microsoft.AppConfiguration/configurationStores/keyValues@2022-05-01' = {
-  name: 'AppSettings:Core:Azure:CosmosDB:Docs:ApiKey'
-  parent: appConfig
-  properties: {
-    value: string({uri: cosmosApiKeySecret.properties.secretUri})
-    contentType: 'application/vnd.microsoft.appconfig.keyvaultref+json;charset=utf-8'
+    principalId: deployer().objectId
+    roleDefinitionId: roleAssignmentId
+    scope: cosmosdbAccount.id
   }
 }

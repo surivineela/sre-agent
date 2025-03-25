@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Azure.Identity;
+using Azure.Core;
 
 namespace Agent.Data;
 
@@ -21,7 +22,6 @@ public static class AgentDataConfiguration
             var federationSettings = serviceProvider.GetRequiredService<FederationSettings>();
 
             var cosmosAccountName = cosmosDbSettings.Docs.AccountName;
-            var cosmosAccountApiKey = cosmosDbSettings.Docs.ApiKey;
             var domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
             var endpoint = $"https://{cosmosAccountName}.{domainSuffix}";
             var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
@@ -34,10 +34,13 @@ public static class AgentDataConfiguration
                 }
             };
 
+            TokenCredential cred;
+
             if (string.IsNullOrEmpty(federationSettings.ClientId))
             {
-                var cosmosConnectionString = $"AccountEndpoint={endpoint};AccountKey={cosmosAccountApiKey};";
-                return new CosmosClient(cosmosConnectionString, cosmosOptions);
+                // TODO: We should be grabbing this cred from somewhere shared and not creating a new one, but leaving
+                // for now so we can get dev back online
+                cred = new DefaultAzureCredential();
             }
             else
             {
@@ -48,9 +51,10 @@ public static class AgentDataConfiguration
                     AuthorityHost = new Uri(federationSettings.AuthorityHost),
                 };
 
-                var credential = new WorkloadIdentityCredential(credOptions);
-                return new CosmosClient(endpoint, credential, cosmosOptions);
+                cred = new WorkloadIdentityCredential(credOptions);
             }
+
+            return new CosmosClient(endpoint, cred, cosmosOptions);
         });
 
         // Register the repository
