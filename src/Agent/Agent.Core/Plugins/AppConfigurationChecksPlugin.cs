@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -23,6 +24,13 @@ public enum ConnectionType
 
 public class AppConfigurationChecksPlugin
 {
+    private readonly IArmClientFactory _armClientFactory;
+
+    public AppConfigurationChecksPlugin(IArmClientFactory armClientFactory)
+    {
+        _armClientFactory = armClientFactory;
+    }
+
     public sealed record SqlConnectionDescriptor(
         string sqlServerAddress,
         string databaseName,
@@ -37,8 +45,7 @@ public class AppConfigurationChecksPlugin
     {
         Console.WriteLine($"[get_sql_connection_type] Invoked with resourceId: {resourceId}");
 
-        var credential = new DefaultAzureCredential();
-        var armClient = new ArmClient(credential);
+        var armClient = _armClientFactory.GetArmClient();
 
         var armResourceId = new ResourceIdentifier(resourceId);
         var groupid = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);

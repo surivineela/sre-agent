@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
@@ -23,9 +24,11 @@ namespace Agent.Plugins.Implementation
     {
         private readonly ArmHelper _armHelper;
         private readonly ILogger<ContainerAppPlugin> _logger;
+        private readonly IArmClientFactory _armClientFactory;
 
-        public ContainerAppPlugin(ArmHelper armHelper, ILogger<ContainerAppPlugin> logger)
+        public ContainerAppPlugin(ArmHelper armHelper, ILogger<ContainerAppPlugin> logger, IArmClientFactory armClientFactory)
         {
+            _armClientFactory = armClientFactory;
             _armHelper = armHelper;
             _logger = logger;
         }
@@ -184,11 +187,8 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                // Authenticate using DefaultAzureCredential
-                var credential = new DefaultAzureCredential();
-
                 // Create an instance of the ArmClient to interact with Azure
-                var armClient = new ArmClient(credential);
+                var armClient = _armClientFactory.GetArmClient();
 
                 // Construct the Resource Identifier for the specified subscription
                 var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{subscriptionId}");

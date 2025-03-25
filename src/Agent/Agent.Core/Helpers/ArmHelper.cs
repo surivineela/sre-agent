@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
@@ -25,26 +26,18 @@ public class ArmHelper
     private readonly ArmClient _armClient;
     private readonly TokenCredential _credential;
     private readonly HttpClient _httpClient;
+    private readonly IArmClientFactory _armClientFactory;
+    private readonly IAuthenticationService _authService;
 
     // Crawler MI is used for production environment as current solution
-    public ArmHelper([FromKeyedServices("CrawlerArmClient")] ArmClient armClient, HttpClient httpClient, CrawlerSettings crawlerSettings, IHostEnvironment env)
+    public ArmHelper(HttpClient httpClient, CrawlerSettings crawlerSettings, IArmClientFactory armClientFactory, IAuthenticationService authService)
     {
-        bool isProduction = env.IsProduction();
-
-        if (isProduction)
-        {
-            ManagedIdentityId mi = ManagedIdentityId.FromUserAssignedClientId(crawlerSettings.IdentityClientId);
-            ManagedIdentityCredentialOptions options = new ManagedIdentityCredentialOptions(mi);
-            _credential = new ManagedIdentityCredential(options);
-            _armClient = armClient;
-        }
-        else
-        {
-            _credential = new DefaultAzureCredential();
-            _armClient = new ArmClient(_credential);
-        }
-
+        _armClientFactory = armClientFactory;
+        _authService = authService;
         _httpClient = httpClient;
+
+        _armClient = armClientFactory.GetArmClient();
+        _credential = authService.GetArmOperationCredential();
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -195,7 +188,7 @@ public class ArmHelper
             };
 
             string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-            
+
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, scmUrl)
             {
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
@@ -486,7 +479,7 @@ public class ArmHelper
             var resource = await _armClient.GetGenericResource(new ResourceIdentifier(resourceId)).GetAsync();
             return resource != null;
         }
-        catch(RequestFailedException ex) when (ex.Status == 404)
+        catch (RequestFailedException ex) when (ex.Status == 404)
         {
             // Resource not found
             return false;

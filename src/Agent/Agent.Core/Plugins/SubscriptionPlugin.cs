@@ -4,6 +4,7 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Azure;
 using Azure.Core;
@@ -27,9 +28,11 @@ public class SubscriptionPlugin
     private const string AGENT_ID = "SubscriptionPlugin";
     private readonly ILogger<SubscriptionPlugin> _logger;
     private AzureSettings _azureSettings;
+    private readonly IArmClientFactory _armClientFactory;
 
-    public SubscriptionPlugin(AzureSettings azureSettings, ILogger<SubscriptionPlugin> logger)
+    public SubscriptionPlugin(AzureSettings azureSettings, ILogger<SubscriptionPlugin> logger, IArmClientFactory armClientFactory)
     {
+        _armClientFactory = armClientFactory;
         _azureSettings = azureSettings;
         _logger = logger;
     }
@@ -92,10 +95,8 @@ public class SubscriptionPlugin
         Console.WriteLine($"[list_azure_subscriptions] Invoked");
 
         var ret = new List<SubscriptionDescriptor>();
-        // Authenticate using DefaultAzureCredential
-        var credential = new DefaultAzureCredential();
         // Create an instance of the ArmClient to interact with Azure
-        var armClient = new ArmClient(credential);
+        var armClient = _armClientFactory.GetArmClient();
         // Get all subscriptions
         await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
         {
@@ -128,10 +129,8 @@ public class SubscriptionPlugin
             return result;
         }
 
-        // Authenticate using DefaultAzureCredential
-        var credential = new DefaultAzureCredential();
         // Create an instance of the ArmClient to interact with Azure
-        var armClient = new ArmClient(credential);
+        var armClient = _armClientFactory.GetArmClient();
 
         // Parse the ARM resourceId
         var armResourceId = new ResourceIdentifier(resourceId);
@@ -195,11 +194,8 @@ public class SubscriptionPlugin
 
         try
         {
-            // Authenticate using DefaultAzureCredential
-            var credential = new DefaultAzureCredential();
-
             // Create an instance of the ArmClient to interact with Azure
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
 
             // Construct the Resource Identifier for the specified subscription
             var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{subscriptionId}");
@@ -296,11 +292,8 @@ public class SubscriptionPlugin
                 throw new ArgumentException("App name cannot be null or empty.", nameof(appName));
             }
 
-            // Authenticate using DefaultAzureCredential
-            var credential = new DefaultAzureCredential();
-
             // Create an instance of the ArmClient to interact with Azure
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
 
             // Construct the Resource Identifier for the specified subscription
             var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{subscriptionId}");
@@ -354,8 +347,7 @@ public class SubscriptionPlugin
         [Description("The resource ID of the App Service")]
             string resourceId)
     {
-        var credential = new DefaultAzureCredential();
-        var armClient = new ArmClient(credential);
+        var armClient = _armClientFactory.GetArmClient();
         var armResourceId = new ResourceIdentifier(resourceId);
 
         try
@@ -396,8 +388,7 @@ public class SubscriptionPlugin
         [Description("The resource ID of the App Service")]
             string resourceId)
     {
-        var credential = new DefaultAzureCredential();
-        var armClient = new ArmClient(credential);
+        var armClient = _armClientFactory.GetArmClient();
         var armResourceId = new ResourceIdentifier(resourceId);
 
         try

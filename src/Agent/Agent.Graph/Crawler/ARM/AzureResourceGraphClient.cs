@@ -1,4 +1,5 @@
 ﻿using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ResourceGraph;
 using Azure.ResourceManager.ResourceGraph.Models;
@@ -12,9 +13,9 @@ public class AzureResourceGraphClient
     private readonly ArmClient _client;
     private TenantResource _tenantResource;
 
-    public AzureResourceGraphClient([FromKeyedServices("CrawlerArmClient")] ArmClient armClient, CrawlerSettings crawlerSettings)
+    public AzureResourceGraphClient(IArmClientFactory armClientFactory, CrawlerSettings crawlerSettings)
     {
-        _client = armClient;
+        _client = armClientFactory.GetCrawlerArmClient();
         if (crawlerSettings.TenantId == null) throw new ArgumentNullException("TenantId");
         InitTenantResource(crawlerSettings.TenantId);
     }

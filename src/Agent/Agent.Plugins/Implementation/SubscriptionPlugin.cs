@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.Legacy;
 using Azure;
@@ -18,9 +19,11 @@ namespace Agent.Plugins
     {
         private readonly IGraphDatabaseClient _graphDbClient;
         private readonly ILogger<SubscriptionPlugin> _logger;
+        private readonly IArmClientFactory _armClientFactory;
 
-        public SubscriptionPlugin(IGraphDatabaseClient graphDatabaseManager, ILogger<SubscriptionPlugin> logger)
+        public SubscriptionPlugin(IGraphDatabaseClient graphDatabaseManager, ILogger<SubscriptionPlugin> logger, IArmClientFactory armClientFactory)
         {
+            _armClientFactory = armClientFactory;
             _graphDbClient = graphDatabaseManager;
             _logger = logger;
         }
@@ -32,10 +35,8 @@ namespace Agent.Plugins
                 _logger.LogInformation($"[list_azure_subscriptions] Invoked");
 
                 var ret = new List<SubscriptionDescriptor>();
-                // Authenticate using DefaultAzureCredential
-                var credential = new DefaultAzureCredential();
                 // Create an instance of the ArmClient to interact with Azure
-                var armClient = new ArmClient(credential);
+                var armClient = _armClientFactory.GetArmClient();
                 // Get all subscriptions
                 await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
                 {
@@ -60,11 +61,8 @@ namespace Agent.Plugins
 
             try
             {
-                // Authenticate using DefaultAzureCredential
-                var credential = new DefaultAzureCredential();
-
                 // Create an instance of the ArmClient to interact with Azure
-                var armClient = new ArmClient(credential);
+                var armClient = _armClientFactory.GetArmClient();
 
                 // Construct the Resource Identifier for the specified subscription
                 var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{subscriptionId}");
@@ -110,16 +108,6 @@ namespace Agent.Plugins
             }
 
             return appServices;
-        }
-
-        public async Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync()
-        {
-            return await ResourceGraphHelper.ConstructResourceGraphAndPersistAsync(_graphDbClient);
-        }
-
-        public async Task<InMemoryGraphManager> BuildMockResourceGraphForAllSubscriptionsAsync()
-        {
-            return await ResourceGraphHelper.ConstructMockResourceGraphAndPersistAsync(_graphDbClient);
         }
     }
 }

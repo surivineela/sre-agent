@@ -6,15 +6,18 @@ using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Models;
+using Agent.Core.Interfaces;
 
 namespace Agent.Plugins.Implementation
 {
     public class MIConfigurationCheckPlugin : IMIConfigurationCheckPlugin
     {
         private readonly ILogger<MIConfigurationCheckPlugin> _logger;
+        private readonly IArmClientFactory _armClientFactory;
 
-        public MIConfigurationCheckPlugin(ILogger<MIConfigurationCheckPlugin> logger)
+        public MIConfigurationCheckPlugin(ILogger<MIConfigurationCheckPlugin> logger, IArmClientFactory armClientFactory)
         {
+            _armClientFactory = armClientFactory;
             _logger = logger;
         }
 
@@ -22,8 +25,7 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInformation($"[check_sql_connection_type] Invoked with resourceId: {resourceId}");
 
-            var credential = new DefaultAzureCredential();
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
 
             var armResourceId = new ResourceIdentifier(resourceId);
             var groupid = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
@@ -77,8 +79,7 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInformation($"[check_sql_resource_id] Invoked with resourceId: {resourceId}");
 
-            var credential = new DefaultAzureCredential();
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
 
             var armResourceId = new ResourceIdentifier(resourceId);
             var groupid = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);

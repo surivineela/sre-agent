@@ -5,6 +5,7 @@
 using System.Net.Http.Headers;
 using Agent.Core;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
@@ -18,6 +19,7 @@ namespace Agent.Plugins.Implementation
     {
         private readonly ILogger? _logger;
         private readonly ArmHelper _armHelper;
+        private readonly IAuthenticationService _authService;
         private static readonly Dictionary<string, decimal> HourlyRates = new(StringComparer.OrdinalIgnoreCase)
         {
             {"F1", 0}, {"D1", 0},
@@ -27,10 +29,11 @@ namespace Agent.Plugins.Implementation
             {"Premium0v3", 0.078M}, {"Premium1v3", 0.252M}, {"Premium2v3", 0.504M}, {"Premium3v3", 1.008M},
         };
 
-        public RemediationPlugin(ILogger<RemediationPlugin> logger, ArmHelper armHelper)
+        public RemediationPlugin(ILogger<RemediationPlugin> logger, ArmHelper armHelper, IAuthenticationService authService)
         {
-            _logger = logger;
+            _authService = authService;
             _armHelper = armHelper;
+            _logger = logger;
         }
 
         public async Task<RemediationResult> CalculateScalingCost(string resourceId, string direction, string currentSku, string targetSku)
@@ -390,7 +393,7 @@ namespace Agent.Plugins.Implementation
 
         private async Task<string> GetAccessTokenAsync()
         {
-            var credential = new DefaultAzureCredential();
+            var credential = _authService.GetCrawlerCredential();
             var tokenRequestContext = new TokenRequestContext(["https://management.azure.com/.default"]);
             var token = await credential.GetTokenAsync(tokenRequestContext, default);
             return token.Token;

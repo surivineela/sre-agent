@@ -1,12 +1,10 @@
-﻿using Agent.Core.Interfaces;
-using Agent.Core.Configuration;
+﻿using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Azure.Identity;
-using Azure.Core;
 
 namespace Agent.Data;
 
@@ -19,7 +17,6 @@ public static class AgentDataConfiguration
         serviceCollection.AddSingleton(serviceProvider =>
         {
             var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
-            var federationSettings = serviceProvider.GetRequiredService<FederationSettings>();
 
             var cosmosAccountName = cosmosDbSettings.Docs.AccountName;
             var domainSuffix = cosmosDbSettings.Docs.DomainSuffix;
@@ -34,27 +31,10 @@ public static class AgentDataConfiguration
                 }
             };
 
-            TokenCredential cred;
+            var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
+            var tokenCredential = authService.GetDocumentDbCredential();
 
-            if (string.IsNullOrEmpty(federationSettings.ClientId))
-            {
-                // TODO: We should be grabbing this cred from somewhere shared and not creating a new one, but leaving
-                // for now so we can get dev back online
-                cred = new DefaultAzureCredential();
-            }
-            else
-            {
-                var credOptions = new WorkloadIdentityCredentialOptions()
-                {
-                    ClientId = federationSettings.ClientId,
-                    TenantId = federationSettings.TenantId,
-                    AuthorityHost = new Uri(federationSettings.AuthorityHost),
-                };
-
-                cred = new WorkloadIdentityCredential(credOptions);
-            }
-
-            return new CosmosClient(endpoint, cred, cosmosOptions);
+            return new CosmosClient(endpoint, tokenCredential, cosmosOptions);
         });
 
         // Register the repository

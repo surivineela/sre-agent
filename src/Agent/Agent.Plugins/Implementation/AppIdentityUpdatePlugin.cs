@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
 using Azure;
 using Azure.Core;
 using Azure.Identity;
@@ -17,16 +18,17 @@ namespace Agent.Plugins.Implementation
     public class AppIdentityUpdatePlugin : IAppIdentityUpdatePlugin
     {
         private readonly ILogger<AppIdentityUpdatePlugin> _logger;
+        private readonly IArmClientFactory _armClientFactory;
 
-        public AppIdentityUpdatePlugin(ILogger<AppIdentityUpdatePlugin> logger)
+        public AppIdentityUpdatePlugin(ILogger<AppIdentityUpdatePlugin> logger, IArmClientFactory armClientFactory)
         {
+            _armClientFactory = armClientFactory;
             _logger = logger;
         }
 
         public async Task<string> MigrateSqlToManagedIdentityAsync(string resourceId)
         {
-            var credential = new DefaultAzureCredential();
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
             var armResourceId = new ResourceIdentifier(resourceId);
 
             try
@@ -61,8 +63,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> MigrateSqlToManagedIdentityAsync(string resourceId, string sqlServer, string database)
         {
-            var credential = new DefaultAzureCredential();
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
             var armResourceId = new ResourceIdentifier(resourceId);
 
             try
@@ -112,8 +113,7 @@ namespace Agent.Plugins.Implementation
                 resourceId = resourceId.Substring(0, resourceId.Length - (".database.windows.net").Length);
             }
 
-            var credential = new DefaultAzureCredential();
-            var armClient = new ArmClient(credential);
+            var armClient = _armClientFactory.GetArmClient();
             var serverResourceId = new ResourceIdentifier(resourceId);
 
             try

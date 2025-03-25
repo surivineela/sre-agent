@@ -35,6 +35,7 @@ using Azure.ResourceManager;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
@@ -153,23 +154,9 @@ if (useSessionChatService)
         .AddSingleton<LogsAndMetricsAgent>()
         .AddSingleton<DiagnosticAgent>();
 
-    // register arm client for crawler
-    builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
-    {
-        var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
-        ManagedIdentityId mi = null;
-        if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
-        {
-            mi = ManagedIdentityId.FromUserAssignedClientId(crawlerSettings.IdentityClientId);
-            var credOptions = new ManagedIdentityCredentialOptions(mi);
-            return new ArmClient(new ManagedIdentityCredential(credOptions));
-        }
-        else
-        {
-            return new ArmClient(new DefaultAzureCredential());
-        }
 
-    });
+    builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+    builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
 
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
@@ -219,31 +206,21 @@ if (useSessionChatService)
                      .GetSection("Azure")
                      .Get<AzureSettings>();
 
-        var durableConnectionString = azureSettings?.DTS.ConnectionString;
+        string durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+        if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
+        {
+            durableConnectionString = azureSettings.DTS.ConnectionString;
+        }
 
-        if (!string.IsNullOrEmpty(azureSettings?.Federation.ClientId))
+        b.UseDurableTaskScheduler(durableConnectionString);
+
+        builder.Services.AddOptions<DurableTaskSchedulerWorkerOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
         {
-            var credOptions = new WorkloadIdentityCredentialOptions()
-            {
-                ClientId = azureSettings.Federation.ClientId,
-                TenantId = azureSettings.Federation.TenantId,
-                AuthorityHost = new Uri(azureSettings.Federation.AuthorityHost),
-            };
-            var credential = new WorkloadIdentityCredential(credOptions);
-            b.UseDurableTaskScheduler(durableConnectionString, options =>
-            {
-                options.Credential = credential;
-            });
-        }
-        else
-        {
-            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-            if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
-            {
-                durableConnectionString = azureSettings.DTS.ConnectionString;
-            }
-            b.UseDurableTaskScheduler(durableConnectionString);
-        }
+            var authService = sp.GetRequiredService<IAuthenticationService>();
+            var tokenCredential = authService.GetDtsCredential();
+
+            option.Credential = tokenCredential;
+        });
     });
 
     builder.Services.AddDurableTaskClient(b =>
@@ -253,31 +230,21 @@ if (useSessionChatService)
                      .GetSection("Azure")
                      .Get<AzureSettings>();
 
-        var durableConnectionString = azureSettings?.DTS.ConnectionString;
+        string durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+        if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
+        {
+            durableConnectionString = azureSettings.DTS.ConnectionString;
+        }
 
-        if (!string.IsNullOrEmpty(azureSettings?.Federation.ClientId))
+        b.UseDurableTaskScheduler(durableConnectionString);
+
+        builder.Services.AddOptions<DurableTaskSchedulerClientOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
         {
-            var credOptions = new WorkloadIdentityCredentialOptions()
-            {
-                ClientId = azureSettings.Federation.ClientId,
-                TenantId = azureSettings.Federation.TenantId,
-                AuthorityHost = new Uri(azureSettings.Federation.AuthorityHost),
-            };
-            var credential = new WorkloadIdentityCredential(credOptions);
-            b.UseDurableTaskScheduler(durableConnectionString, options =>
-            {
-                options.Credential = credential;
-            });
-        }
-        else
-        {
-            durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-            if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
-            {
-                durableConnectionString = azureSettings.DTS.ConnectionString;
-            }
-            b.UseDurableTaskScheduler(durableConnectionString);
-        }
+            var authService = sp.GetRequiredService<IAuthenticationService>();
+            var tokenCredential = authService.GetDtsCredential();
+
+            option.Credential = tokenCredential;
+        });
     });
 
     builder.Services.AddCosmosClient();

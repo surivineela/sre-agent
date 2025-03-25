@@ -7,7 +7,5 @@ namespace Agent.Plugins
         Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync();
 
         Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId);
-
-        Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync();
     }
 }

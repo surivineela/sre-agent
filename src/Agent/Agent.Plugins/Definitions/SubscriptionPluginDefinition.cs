@@ -26,11 +26,5 @@ namespace Agent.Plugins
         {
             return await _subscriptionPlugin.ListAppServicesAsync(subscriptionId);
         }
-
-        [KernelFunction("build_resource_graph_for_all_subscriptions")]
-        public async Task<InMemoryGraphManager> BuildResourceGraphForAllSubscriptionsAsync()
-        {
-            return await _subscriptionPlugin.BuildResourceGraphForAllSubscriptionsAsync();
-        }
     }
 }

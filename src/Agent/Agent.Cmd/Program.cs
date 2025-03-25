@@ -1,4 +1,6 @@
 ﻿using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Runtime;
@@ -28,16 +30,8 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
             builder.Services.AddSingleton<AzureResourceGraphClient>();
             builder.Services.AddSingleton<ResourceGraphCrawler>();
-            builder.Services.AddKeyedSingleton("CrawlerArmClient", (sp, _) =>
-            {
-                var crawlerSettings = sp.GetRequiredService<CrawlerSettings>();
-                var credOptions = new DefaultAzureCredentialOptions();
-                if (!string.IsNullOrEmpty(crawlerSettings.IdentityClientId))
-                {
-                    credOptions.ManagedIdentityClientId = crawlerSettings.IdentityClientId;
-                }
-                return new ArmClient(new DefaultAzureCredential(credOptions));
-            });
+            builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
+            builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
 
             builder.Services.AddSingleton<CrawlerCommand>();
             builder.Services.AddSingleton<GraphCommand>();

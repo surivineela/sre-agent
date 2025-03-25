@@ -1,6 +1,8 @@
 ﻿using System.Collections;
 using System.Diagnostics;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.ResourceManager;
 using Microsoft.Extensions.DependencyInjection;
@@ -14,17 +16,19 @@ public class ResourceGraphCrawler
     private readonly ArmResourceCrawlerFactory _factory;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly AzureResourceGraphClient _graphClient;
+    private readonly IArmClientFactory _armClientFactory;
     private readonly ArmClient _armClient;
     private readonly CrawlerSettings _crawlerSettings;
     private readonly SemaphoreSlim _semaphore;
 
-    public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, [FromKeyedServices("CrawlerArmClient")] ArmClient armClient)
+    public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory)
     {
         _logger = logger;
         _factory = factory;
         _graphDbClient = graphDbClient;
         _graphClient = graphClient;
-        _armClient = armClient;
+        _armClientFactory = armClientFactory;
+        _armClient = _armClientFactory.GetCrawlerArmClient();
         _crawlerSettings = crawlerSettings;
         _semaphore = new SemaphoreSlim(1, 1);
     }
