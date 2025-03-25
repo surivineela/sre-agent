@@ -1,8 +1,8 @@
 ﻿using Agent.Core.Models;
 using Agent.Runtime.Models;
-using McpDotNet.Client;
-using McpDotNet.Configuration;
-using McpDotNet.Extensions.AI;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Configuration;
+using ModelContextProtocol;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;

@@ -1,5 +1,6 @@
 using Microsoft.Extensions.AI;
 using Agent.Core.Interfaces;
+using Agent.Core.Extensions;
 
 namespace Agent.Core.Helpers;
 
@@ -33,7 +34,7 @@ public static class TitleHelper
             };
 
             var response = await chatClient.GetResponseAsync(chats);
-            string title = response.Message.Text?.Trim() ?? "";
+            string title = response.GetMessage().Text?.Trim() ?? "";
 
             // Validate the response
             if (string.IsNullOrWhiteSpace(title))

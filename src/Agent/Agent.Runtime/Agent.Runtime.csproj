@@ -17,9 +17,10 @@
     <PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" />
     <PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" />
     <PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />
+      <PackageReference Include="Microsoft.Extensions.AI" />
 	  <PackageReference Include="MiniValidation" />
-	  <PackageReference Include="McpDotNet" />
-	  <PackageReference Include="McpDotNet.Extensions.AI" />
+      <PackageReference Include="ModelContextProtocol" />
+      
   </ItemGroup>
  
   <ItemGroup>

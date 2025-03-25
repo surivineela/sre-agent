@@ -291,10 +291,10 @@ namespace Agent.Tests.Integration
                 instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
-                {
-                    Role = ChatRole.User,
-                    Text = "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
-                });
+                (
+                    ChatRole.User,
+                    "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
+                ));
 
                 await Helper.DoApproval(
                     _durableTaskClient,

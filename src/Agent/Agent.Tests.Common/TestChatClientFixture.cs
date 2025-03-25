@@ -4,6 +4,7 @@ using OpenAI.Chat;
 
 using Agent.Core.Configuration;
 using Microsoft.Extensions.AI;
+using Agent.Core.Extensions;
 
 namespace Agent.Tests.Common.Fixtures
 {
@@ -61,7 +62,7 @@ Expected: {expected}"
             ));
             ChatResponse completion = await ChatClient.GetResponseAsync(tmpChatHistory);
 
-            bool succeeded = bool.TryParse(completion.Message.Text, out var result);
+            bool succeeded = bool.TryParse(completion.GetMessage().Text, out var result);
             if (!succeeded)
             {
                 throw new Exception($"Natural language test failed to parse the result. Response was: {completion}");

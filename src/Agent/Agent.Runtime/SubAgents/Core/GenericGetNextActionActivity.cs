@@ -1,4 +1,5 @@
-﻿using Microsoft.DurableTask;
+﻿using Agent.Core.Extensions;
+using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents.Core;
@@ -32,7 +33,7 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
         try
         {
             var response = await ChatClient.GetResponseAsync(allMessages, chatOptions);
-            return response.Message;
+            return response.GetMessage();
         }
         catch (Exception ex)
         {

@@ -1,4 +1,5 @@
-﻿using Agent.Core.Models;
+﻿using Agent.Core.Extensions;
+using Agent.Core.Models;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
@@ -30,7 +31,7 @@ public class TlsPlanActivity : TaskActivity<TlsBestPracticesInput, List<Microsof
             ];
 
         var response = await chatClient.GetResponseAsync(messages);
-        messages.Add(response.Message);
+        messages.Add(response.GetMessage());
 
         return messages;
     }

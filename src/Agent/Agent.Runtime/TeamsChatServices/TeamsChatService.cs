@@ -22,6 +22,7 @@ using Microsoft.Bot.Connector;
 using Microsoft.Extensions.AI;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Core.Helpers;
+using Agent.Core.Extensions;
 
 namespace Agent.Runtime.TeamsChatServices;
 
@@ -146,12 +147,12 @@ public class TeamsBot : TeamsActivityHandler
                         new ChatMessage(ChatRole.User, messageText)
                     };
                     var quickResponse = await _chatClient.GetResponseAsync(_chats);
-                    var text = quickResponse.Message.Text;
+                    var text = quickResponse.GetMessage().Text;
                     if (text == null || text.Contains("SKIP"))
                     {
                         return;
                     }
-                    await turnContext.SendActivityAsync(MessageFactory.Text(quickResponse.Message.Text), cancellationToken).ConfigureAwait(false);
+                    await turnContext.SendActivityAsync(MessageFactory.Text(quickResponse.GetMessage().Text), cancellationToken).ConfigureAwait(false);
                 });
                 tasks.Add(quickResponseTask);
             }

@@ -1,4 +1,5 @@
-﻿using Agent.Tests.End2End.Fixtures;
+﻿using Agent.Core.Extensions;
+using Agent.Tests.End2End.Fixtures;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
 using System.Diagnostics;
@@ -170,7 +171,7 @@ The text doesn't have to match exactly, but it needs to be close enough that a h
                 ]
             );
 
-            bool succeeded = bool.TryParse(completion.Message.Text, out var result);
+            bool succeeded = bool.TryParse(completion.GetMessage().Text, out var result);
 
             if (!succeeded)
             {

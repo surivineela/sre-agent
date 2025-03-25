@@ -1,4 +1,5 @@
-﻿using Agent.Core.Models;
+﻿using Agent.Core.Extensions;
+using Agent.Core.Models;
 using Castle.Core.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -60,7 +61,7 @@ namespace Agent.Runtime.SubAgents
                 string question = prefix + bestPractice;
                 string answer = await _graphDBQueryAgent.Ask(question);
 
-                string? response = (await _chatClient.GetResponseAsync([new(ChatRole.User, $"Was this condition met: {bestPractice}\n Answer with only 'true' or 'false' based on this text: {answer}")])).Message.Text;
+                string? response = (await _chatClient.GetResponseAsync([new(ChatRole.User, $"Was this condition met: {bestPractice}\n Answer with only 'true' or 'false' based on this text: {answer}")])).GetMessage().Text;
                 bool succeeded = bool.TryParse(response, out bool result);
                 if (!result)
                 {
@@ -72,7 +73,7 @@ namespace Agent.Runtime.SubAgents
 
             if (!allPracticesMet)
             {
-                string? message = (await _chatClient.GetResponseAsync([new(ChatRole.User, "Explain all the best practices which weren't met: " + string.Join('\n', unmetConditionAnswers))])).Message.Text;
+                string? message = (await _chatClient.GetResponseAsync([new(ChatRole.User, "Explain all the best practices which weren't met: " + string.Join('\n', unmetConditionAnswers))])).GetMessage().Text;
                 _logger.LogCritical(message);
                 return message;
             }

@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
@@ -176,14 +177,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
                     }
                 });
 
-            _log.LogInformation("[ChatThreadId {threadId}] Getting intermediate response: {Message}", threadId, response.Message);
+            _log.LogInformation("[ChatThreadId {threadId}] Getting intermediate response: {Message}", threadId, response.GetMessage());
 
             // Add model response back to ChatHistory
             // TODO: do we add the intermediate responses to the repository?
-            _chatHistory.Add(response.Message);
+            _chatHistory.Add(response.GetMessage());
 
             var results = new List<AIContent>();
-            foreach (var fnCall in response.Message.Contents.OfType<FunctionCallContent>())
+            foreach (var fnCall in response.GetMessage().Contents.OfType<FunctionCallContent>())
             {
                 var matchingTool = _aiTools.Single(x => x.Name == fnCall.Name);
                 _log.LogInformation("[ChatThreadId {threadId}] Found a matching tool [{Name}]", threadId, fnCall.Name);
@@ -265,7 +266,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
                 results.Add(result);
 
-                _log.LogInformation("[ChatThreadId {threadId}] Getting function call [{Name}] in [category {category}] response: {Message}", threadId, fnCall.Name, category, response.Message);
+                _log.LogInformation("[ChatThreadId {threadId}] Getting function call [{Name}] in [category {category}] response: {Message}", threadId, fnCall.Name, category, response.GetMessage());
 
             }
 
@@ -281,8 +282,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             {
                 // When model has no function call response, we assume it's a single text response
                 // We return this response to user
-                _log.LogInformation("[ChatThreadId {threadId}] Resolved with final response: {Message}", threadId, response.Message.Contents.OfType<TextContent>().Single().Text);
-                return response.Message.Contents.OfType<TextContent>().Single().Text;
+                _log.LogInformation("[ChatThreadId {threadId}] Resolved with final response: {Message}", threadId, response.GetMessage().Contents.OfType<TextContent>().Single().Text);
+                return response.GetMessage().Contents.OfType<TextContent>().Single().Text;
             }
         }
     }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using Agent.Core.Extensions;
+using Microsoft.Extensions.AI;
 using Xunit.Abstractions;
 
 namespace Agent.Tests.Integration
@@ -33,7 +34,7 @@ namespace Agent.Tests.Integration
             var userMessage = new ChatMessage(ChatRole.User, message);
             ChatHistory.Add(userMessage);
             ChatResponse completion = await Client.GetResponseAsync(ChatHistory, ChatOptions);
-            var assistantMessage = new ChatMessage(ChatRole.Assistant, completion.Message.Text);
+            var assistantMessage = new ChatMessage(ChatRole.Assistant, completion.GetMessage().Text);
             ChatHistory.Add(assistantMessage);
             return completion;
         }
@@ -50,7 +51,7 @@ Expected: {expected}"
             ));
             ChatResponse completion = await Client.GetResponseAsync(tmpChatHistory);
 
-            bool succeeded = bool.TryParse(completion.Message.Text, out var result);
+            bool succeeded = bool.TryParse(completion.GetMessage().Text, out var result);
             if (!succeeded)
             {
                 throw new Exception($"Natural language test failed to parse the result. Response was: {completion}");

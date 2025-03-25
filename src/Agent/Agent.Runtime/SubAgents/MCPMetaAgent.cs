@@ -2,7 +2,7 @@
 using Agent.Core.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
-using McpDotNet.Client;
+using ModelContextProtocol.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;

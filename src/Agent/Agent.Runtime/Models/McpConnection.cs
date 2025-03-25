@@ -1,8 +1,8 @@
 ﻿using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents;
-using McpDotNet.Client;
-using McpDotNet.Configuration;
-using McpDotNet.Extensions.AI;
+using ModelContextProtocol.Client;
+using ModelContextProtocol.Configuration;
+using ModelContextProtocol;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -57,18 +57,17 @@ public class McpConnection
                 Location = Url
             };
 
-            var factory = new McpClientFactory(
-                [config],
-                options,
-                NullLoggerFactory.Instance
-            );
 
             logger.LogInformation("Attempting to connect to {endpoint}", Url);
 
+            Client = await McpClientFactory.CreateAsync(
+                config,
+                options
+            );
+
+
             // Can't use McpSessionScope yet because we need lower level functionality for pinging
-            Client = await factory.GetClientAsync(Id);
-            var tools = await Client.ListToolsAsync();
-            Tools = tools.Tools.Select(t => t.ToAITool(Client)).ToList();
+            Tools = (await Client.GetAIFunctionsAsync()).ToList<AITool>();
 
             if (!string.IsNullOrEmpty(Client.ServerInstructions))
             {

@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization.Metadata;
 using System.Threading.Tasks;
+using Agent.Core.Extensions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -48,7 +49,7 @@ namespace Agent.Tests.Common
                 _innerClient.Dispose();
             }
 
-            public async Task<ChatResponse> GetResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
+            public async Task<ChatResponse> GetResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
             {
                 
                 string hash = null;
@@ -80,8 +81,9 @@ namespace Agent.Tests.Common
                 }
 
                 var res = await _innerClient.GetResponseAsync(chatMessages, options, cancellationToken);
+                var msg = res.GetMessage();
 
-                foreach (var responseContent in res.Message.Contents)
+                foreach (var responseContent in msg.Contents)
                 {
                     if (responseContent is FunctionCallContent functionCallContent)
                     {
@@ -97,14 +99,14 @@ namespace Agent.Tests.Common
                     }
                 }
 
-                if (!string.IsNullOrEmpty(res.Message.Text))
+                if (!string.IsNullOrEmpty(msg.Text))
                 {
-                    _logger.LogTrace($"{res.Message.Role}: {res.Message.Text}");
+                    _logger.LogTrace($"{msg.Role}: {msg.Text}");
                 }
 
-                hash = CachingHelpers.GetCacheKey([res.Message], _hashingOptions);
+                hash = CachingHelpers.GetCacheKey([msg], _hashingOptions);
                 _hashes.Add(hash);
-                _debugTracking[hash] = res.Message;
+                _debugTracking[hash] = msg;
 
 
                 return res;
@@ -115,7 +117,7 @@ namespace Agent.Tests.Common
                 return _innerClient.GetService(serviceType, serviceKey);
             }
 
-            public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IList<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
+            public IAsyncEnumerable<ChatResponseUpdate> GetStreamingResponseAsync(IEnumerable<ChatMessage> chatMessages, ChatOptions? options = null, CancellationToken cancellationToken = default)
             {
                 return _innerClient.GetStreamingResponseAsync(chatMessages, options, cancellationToken);
             }

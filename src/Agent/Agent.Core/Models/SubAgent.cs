@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.AI;
+﻿using Agent.Core.Extensions;
+using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Runtime.CompilerServices;
@@ -48,7 +49,7 @@ namespace Agent.Core.Models
         {
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-            ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
+            ChatHistory.Add(new(ChatRole.Assistant, completion.GetMessage().Text));
         }
 
         public virtual async Task DoWorkWithHistory(string question, ChatHistory externalHistory)
@@ -59,7 +60,7 @@ namespace Agent.Core.Models
             // Then add the question and process it
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-            ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
+            ChatHistory.Add(new(ChatRole.Assistant, completion.GetMessage().Text));
         }
 
         // To synchronize our chat history with the external history
@@ -101,8 +102,8 @@ namespace Agent.Core.Models
             ChatHistory.Add(new(ChatRole.User, $"What was the answer to the following question, if you answered it: {question}"));
             var completion = await _chatClient.GetResponseAsync(ChatHistory, new ChatOptions());
 
-            ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
-            return completion.Message.Text;
+            ChatHistory.Add(new(ChatRole.Assistant, completion.GetMessage().Text));
+            return completion.GetMessage().Text;
         }
 
         public IAsyncEnumerable<string> StreamResponseAsync(

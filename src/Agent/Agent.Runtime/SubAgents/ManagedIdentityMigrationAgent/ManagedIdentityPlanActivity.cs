@@ -1,3 +1,4 @@
+using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -30,7 +31,7 @@ public class ManagedIdentityPlanActivity : TaskActivity<ManagedIdentityMigration
         ];
 
         var response = await chatClient.GetResponseAsync(messages);
-        messages.Add(response.Message);
+        messages.Add(response.GetMessage());
 
         return messages;
     }

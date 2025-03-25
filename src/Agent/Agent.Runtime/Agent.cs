@@ -83,15 +83,15 @@ namespace Agent.Runtime
 
             ChatHistory.Add(new(ChatRole.User, $"What was the answer to the following question, if you answered it: {question}"));
             var completion = await ChatClient.GetResponseAsync(ChatHistory, new ChatOptions());
-            ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
-            return completion.Message.Text;
+            ChatHistory.Add(new(ChatRole.Assistant, completion.Messages.First().Text));
+            return completion.Messages.First().Text;
         }
 
         public virtual async Task DoWork(string question)
         {
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await ChatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-            ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
+            ChatHistory.Add(new(ChatRole.Assistant, completion.Messages.First().Text));
         }
 
         public string Name => _name;

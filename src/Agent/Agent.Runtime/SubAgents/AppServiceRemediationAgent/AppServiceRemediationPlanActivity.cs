@@ -1,4 +1,5 @@
 using System.Text.Json;
+using Agent.Core.Extensions;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ public class AppServiceRemediationPlanActivity : TaskActivity<AppServiceRemediat
 
         _logger.LogInformation("AppServiceRemediationPlanActivity sending messages to chat client.");
         var response = await _chatClient.GetResponseAsync(messages);
-        messages.Add(response.Message);
+        messages.Add(response.GetMessage());
         _logger.LogInformation($"AppServiceRemediationPlanActivity completed with response.");
 
         return messages;

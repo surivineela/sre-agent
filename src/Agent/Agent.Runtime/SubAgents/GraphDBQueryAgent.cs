@@ -1,4 +1,5 @@
-﻿using Agent.Core.Models;
+﻿using Agent.Core.Extensions;
+using Agent.Core.Models;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
@@ -70,7 +71,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
 
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-            ChatHistory.Add(new(ChatRole.Assistant, completion.Message.Text));
+            ChatHistory.Add(new(ChatRole.Assistant, completion.GetMessage().Text));
         }
 
         public async Task PrelimData()

@@ -37,7 +37,7 @@ namespace Agent.Runtime.SubAgents.Core;
 //        try
 //        {
 //            var response = await _chatClient.GetResponseAsync(chatHistory, chatOptions);
-//            return response.Message;
+//            return response.GetMessage();
 //        }
 //        catch (Exception ex)
 //        {
