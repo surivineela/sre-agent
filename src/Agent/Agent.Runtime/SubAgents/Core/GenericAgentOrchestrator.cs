@@ -153,7 +153,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             else if (functionCall.Name == nameof(ControlFlowPluginDefinition.Wait))
             {
                 // For simplicity, using a fixed wait time (adjust as needed)
-                double waitSeconds = 0.1;
+                double waitSeconds = 7;
                 waitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), waitTokenSource.Token);
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Wait operation submitted.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));

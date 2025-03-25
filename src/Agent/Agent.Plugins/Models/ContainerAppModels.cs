@@ -12,6 +12,7 @@ namespace Agent.Plugins.Models
         string WorkloadProfile,
         string State,
         string ResourceGroup,
+        string Fqdn,
         string EnvironmentName = "N/A",
         bool IsIngressEnabled = false,
         IReadOnlyList<RevisionInfo> Revisions = null);
