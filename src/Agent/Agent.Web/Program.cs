@@ -45,16 +45,47 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Sinks.AzureDataExplorer;
+using Serilog.Sinks.AzureDataExplorer.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.LoadAppSettings(builder.Environment.IsDevelopment());
 builder.ValidateAndRegisterAppSettings<AppSettings>();
 
+// Enable Serilog self-logging to output internal errors to the console
+Serilog.Debugging.SelfLog.Enable(Console.Out);
+
 // Configure logging
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .CreateLogger();
+if (builder.Environment.IsDevelopment())
+{
+    Log.Logger = new LoggerConfiguration()
+        .ReadFrom.Configuration(builder.Configuration)
+        .CreateLogger();
+}
+else
+{
+    // Temporary - hardcoded values for testing
+    var kustoClusterEndpoint = "https://sub-agent-test.canadacentral.kusto.windows.net"; //"https://cappstest.westus.kusto.windows.net"
+    var kustoDatabaseName = "subagent"; // "capps"
+    var kustoTableName = "SreAgentLogs";
+
+    Log.Logger = new LoggerConfiguration()
+        .WriteTo.Console(
+            outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] [Thread {ThreadId}] [{SourceContext}] {Message}{NewLine}{Exception}"
+        )
+        .WriteTo.AzureDataExplorerSink(
+            new AzureDataExplorerSinkOptions
+            {
+                IngestionEndpointUri = kustoClusterEndpoint,
+                DatabaseName = kustoDatabaseName,
+                TableName = kustoTableName
+            }
+            .WithAadSystemAssignedManagedIdentity()
+        )
+        .CreateLogger();
+}
+
 builder.Host.UseSerilog();
 
 bool useSessionChatService = false;
