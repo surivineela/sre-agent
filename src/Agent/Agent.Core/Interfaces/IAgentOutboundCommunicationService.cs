@@ -1,6 +1,6 @@
 using Microsoft.Extensions.AI;
 
-namespace Agent.Runtime.Communication;
+namespace Agent.Core.Interfaces;
 
 /// <summary>
 /// Interface for SubAgents to communicate outward to threads.
@@ -16,4 +16,7 @@ public interface IAgentOutboundCommunicationService
     /// Notifies about agent task completion
     /// </summary>
     Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null);
+
+    Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity);
+
 }

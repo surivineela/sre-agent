@@ -2,6 +2,8 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
+using Agent.Plugins.Definitions;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -9,18 +11,24 @@ namespace Agent.Runtime.Communication;
 
 public class OutboundCommunicationService : IAgentOutboundCommunicationService
 {
+    
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IThreadRepository _repository;
     private readonly ILogger<OutboundCommunicationService> _logger;
 
+    
+    private readonly IPostToTeamsPlugin _postToTeamsService; 
+
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
         IThreadRepository repository,
-        ILogger<OutboundCommunicationService> logger)
+        ILogger<OutboundCommunicationService> logger,
+        IPostToTeamsPlugin postToTeamsService)
     {
         _mappingManager = mappingManager;
         _repository = repository;
         _logger = logger;
+        _postToTeamsService = postToTeamsService;
     }
 
     public async Task UpdateThreadWithAgentMessageAsync(string threadId, string orchestrationInstanceId, ChatMessage message)
@@ -71,5 +79,10 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
             // Remove the mapping as the orchestration is completed
             await _mappingManager.RemoveMappingAsync(threadId, orchestrationInstanceId);
         }
+    }
+
+    public async Task PostActivity(string threadId, Activity activity)
+    {
+        await _postToTeamsService.PostTeamsMessage(threadId, activity);
     }
 }

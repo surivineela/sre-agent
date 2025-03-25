@@ -2,6 +2,7 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Communication;
+using Agent.Core.Interfaces;
 
 namespace Agent.Runtime.SubAgents.Core;
 

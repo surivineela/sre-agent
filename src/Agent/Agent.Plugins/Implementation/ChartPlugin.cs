@@ -11,6 +11,7 @@ using Agent.Core.Models;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
+using Agent.Core.Interfaces;
 
 namespace Agent.Plugins
 {
@@ -18,12 +19,12 @@ namespace Agent.Plugins
     public class ChartPlugin : IChartPlugin
     {
         private readonly ILogger? _logger;
-        private readonly IPostToTeamsPlugin _teamsConnector;
+        private readonly IAgentOutboundCommunicationService _outboundService;
 
-        public ChartPlugin(ILogger<ChartPlugin>? logger, IPostToTeamsPlugin teamsConnector)
+        public ChartPlugin(ILogger<ChartPlugin>? logger, IAgentOutboundCommunicationService outboundService)
         {
             _logger = logger;
-            _teamsConnector = teamsConnector;
+            _outboundService = outboundService;
         }
 
         public async Task<string> PlotTimeSeriesDataAsync(
@@ -274,7 +275,8 @@ namespace Agent.Plugins
                         ContentUrl = base64Image,
                         Name = $"{threadId}-{DateTime.Now:yyMMdd_HHmmss}.png"
                     });
-                    await _teamsConnector.PostTeamsMessage(threadId, msg);
+
+                    await _outboundService.PostActivity(threadId, msg);
                 }
 
                 return "Successfully generated the chart.";

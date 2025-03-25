@@ -1,7 +1,9 @@
-﻿using Agent.Core.Configuration;
+﻿using Agent.Core.Interfaces;
+using Agent.Core.Configuration;
 using Agent.Core.Models;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
@@ -15,6 +17,7 @@ using Agent.Tests.Integration.Fixtures;
 using Agent.Tests.Integration.Helpers;
 using Agent.Tests.Integration.Mocks;
 using Azure.AI.OpenAI;
+using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
@@ -109,6 +112,7 @@ namespace Agent.Tests.Integration
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
+            services.AddSingleton<IContainerAppPlugin>(new MockContainerAppPlugin());
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
             services.AddSingleton<TimeProvider>(_timeProvider);
             services.AddSingleton<IRemediationPlugin, MockRemediationPlugin>();

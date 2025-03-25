@@ -1,4 +1,5 @@
-﻿using Agent.Core.Models;
+﻿using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
 using Microsoft.DurableTask.Client;

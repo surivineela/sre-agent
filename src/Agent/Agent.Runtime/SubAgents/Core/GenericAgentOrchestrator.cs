@@ -271,9 +271,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 var operationName = functionCall.Arguments["operationName"]?.ToString() ?? "operation";
                 var approvalInstanceId = $"approval-{context.NewGuid()}";
                 var approvalInput = new ApprovalInput(context.InstanceId, operationName, threadId, approvalInstanceId);
-                context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
                 var description = functionCall.Arguments["description"]?.ToString() ?? "Pending approval";
-                context.SetCustomStatus($"Pending approval:{approvalInstanceId}");
 
                 log.LogInformation("[{ThreadId}] Trying to generate approvalLink for operation: {OperationName} approval instanceId: {approvalInstanceId}", threadId, operationName, approvalInstanceId);
 

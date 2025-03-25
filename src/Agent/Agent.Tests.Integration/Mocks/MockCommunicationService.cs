@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Agent.Core.Interfaces;
 using Agent.Runtime.Communication;
+using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -23,6 +25,12 @@ namespace Agent.Tests.Integration.Mocks
         {
             _logger.LogInformation($"ThreadId: {threadId}, InstanceId: {instanceId}, Status: {status}");
             Messages.Add(summary);
+            return Task.CompletedTask;
+        }
+
+        public Task PostActivity(string threadId, Activity activity)
+        {
+            _logger.LogInformation($"ThreadId: {threadId}, Activity: {activity.Text}");
             return Task.CompletedTask;
         }
 
