@@ -6,6 +6,8 @@ using Agent.Core.Models;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Models.Api.v1;
+using Agent.Runtime.Communication;
 
 namespace Agent.Runtime.SubAgents.TlsBestPractices;
 
@@ -14,6 +16,7 @@ public sealed class TlsBestPracticeAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(TlsBestPracticesAgent);
 
@@ -23,6 +26,7 @@ public sealed class TlsBestPracticeAgentFactory
         IApprovalPlugin approvalPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         ToolsRepository toolsRepository,
+        IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
         var toolSignatures = new List<string>();
@@ -47,18 +51,35 @@ public sealed class TlsBestPracticeAgentFactory
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
+        _mappingManager = mappingManager;
     }
 
     public async Task<string> StartOrchestration(
         TlsBestPracticesInput input,
         string threadId = "")
     {
-        return await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(
+        var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+
+        if (threadId != null)
+        {
+            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
+                Id: $"mapping_{threadId}",
+                ThreadId: threadId,
+                OrchestrationInstanceId: instanceId,
+                CreatedTimestamp: DateTime.UtcNow,
+                ModifiedTimestamp: DateTime.UtcNow
+                )
+            );
+        }
+
+        await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(
             new TlsBestPracticesAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
                 ThreadId: threadId),
-            new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
+            new StartOrchestrationOptions(InstanceId: instanceId));
+
+        return instanceId;
     }
 
     public TlsBestPracticesInput DeserializeInput(string serializedOrchestraionInput)

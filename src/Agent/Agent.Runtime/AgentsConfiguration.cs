@@ -50,7 +50,7 @@ namespace Agent.Runtime
         public static IServiceCollection ConfigureIChatClient(this IServiceCollection services)
         {
             return services
-                .AddSingleton((Func<IServiceProvider, IChatClient>)(sp =>
+                .AddSingleton<IChatClient>((Func<IServiceProvider, IChatClient>)(sp =>
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
@@ -59,7 +59,18 @@ namespace Agent.Runtime
                     return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
                         .UseLogging(loggerFactory)
                         .Build();
-                }));
+                }))
+                .AddKeyedSingleton<IChatClient>("function-invocation-enabled", (sp, _) =>
+                {
+                    var client = sp.GetRequiredService<AzureOpenAIClient>();
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+
+                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                        .UseLogging(loggerFactory)
+                        .UseFunctionInvocation()
+                        .Build();
+                });
         }
     }
 

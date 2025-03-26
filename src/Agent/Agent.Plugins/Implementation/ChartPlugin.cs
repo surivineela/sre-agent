@@ -21,6 +21,8 @@ namespace Agent.Plugins
         private readonly ILogger? _logger;
         private readonly IAgentOutboundCommunicationService _outboundService;
 
+        public string? ThreadId { get; set; }
+
         public ChartPlugin(ILogger<ChartPlugin>? logger, IAgentOutboundCommunicationService outboundService)
         {
             _logger = logger;
@@ -28,7 +30,6 @@ namespace Agent.Plugins
         }
 
         public async Task<string> PlotTimeSeriesDataAsync(
-            string threadId,
             string title,
             string yAxisLabel,
             string yAxisMin,
@@ -54,14 +55,13 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
-                threadId,
+                ThreadId,
                 () => ChartHelper.GenerateChartBase64String(input),
                 description,
                 "Failed to generate chart with ScottPlot.");
         }
 
         public async Task<string> PlotPieChartAsync(
-            string threadId,
             string chartTitle,
             string dataPoints,
             string description)
@@ -74,14 +74,13 @@ namespace Agent.Plugins
             }
 
             return await GenerateAndPostChartAsync(
-                threadId,
+                ThreadId,
                 () => ChartHelper.GeneratePieChartBase64String(slices),
                 description,
                 "Failed to generate pie chart with ScottPlot.");
         }
 
         public async Task<string> PlotBarChartAsync(
-            string threadId,
             string chartTitle,
             string xAxisLabel,
             string yAxisLabel,
@@ -104,14 +103,13 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
-                threadId,
+                ThreadId,
                 () => ChartHelper.GenerateBarChartBase64String(chartInput),
                 description,
                 "Failed to generate bar chart with ScottPlot.");
         }
 
         public async Task<string> PlotScatterAsync(
-            string threadId,
             string chartTitle,
             string xAxisLabel,
             string yAxisLabel,
@@ -134,7 +132,7 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
-                threadId,
+                ThreadId,
                 () => ChartHelper.GenerateScatterPlotBase64String(chartInput),
                 description,
                 "Failed to generate scatter plot with ScottPlot.");

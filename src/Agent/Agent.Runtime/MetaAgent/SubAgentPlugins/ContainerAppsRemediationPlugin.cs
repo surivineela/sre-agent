@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using Agent.Core;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -12,6 +11,8 @@ public class ContainerAppsRemediationPlugin
     private readonly DurableTaskClient _durableTaskClient;
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
     private readonly ILogger<AppServiceRemediationPlugin> _logger;
+
+    public string? ThreadId { get; set; }
 
     public ContainerAppsRemediationPlugin(
         DurableTaskClient durableTaskClient,
@@ -27,46 +28,31 @@ public class ContainerAppsRemediationPlugin
     [Description("List the information of started workflow for azure container apps app remediation")]
     public async Task<IReadOnlyList<WorkflowMetadata<string>>> ListContainerAppsRemediationWorkflows()
     {
-        try
+        var list = new List<WorkflowMetadata<string>>();
+        await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
+            new OrchestrationQuery(
+                InstanceIdPrefix: ContainerAppsRemediationAgentFactory.OrchestrationInstanceIdPrefix,
+                Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
+                FetchInputsAndOutputs: true)))
         {
-            var list = new List<WorkflowMetadata<string>>();
-            await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
-                new OrchestrationQuery(
-                    InstanceIdPrefix: ContainerAppsRemediationAgentFactory.OrchestrationInstanceIdPrefix,
-                    Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
-                    FetchInputsAndOutputs: true)))
-            {
-                var input = _containerAppsRemediationAgentFactory.DeserializeInput(instance.SerializedInput.ThrowIfNull());
-                list.Add(new WorkflowMetadata<string>(
-                    WorkflowInstanceId: instance.InstanceId,
-                    Input: input));
-            }
+            // workaround because above fetch inputs and outputs is not working
+            var instanceWithInput = await _durableTaskClient.GetInstanceAsync(instance.InstanceId, getInputsAndOutputs: true);
+            var agentInput = instanceWithInput.ReadInputAs<ContainerAppsRemediationAgentInput>();
+            
+            list.Add(new WorkflowMetadata<string>(
+                WorkflowInstanceId: instance.InstanceId,
+                Input: agentInput.Input));
+        }
 
-            return list;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to list Container Apps remediation workflows.");
-            return [];
-        }
+        return list;
     }
 
     [KernelFunction("start_container_apps_remediation_workflow")]
     [Description("Start the workflow to remediate azure container apps for memory leak, network issues, app issues etc")]
     public async Task<string> StartContainerAppsRemediationAgent(
-        [Description("The list of complete Azure Resource Id of the apps having the issue and a description of the problem")] string input,
-        string threadId)
+        [Description("The list of complete Azure Resource Id of the apps having the issue and a description of the problem")] string input)
     {
-
-        try
-        {
-            var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(input, threadId);
-            return $"A workflow has been started to remediate container apps, the workflow instance id is: {instanceId}";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to start container apps remediation workflow.");
-            return $"Failed to start container apps remediation workflow.";
-        }
+        var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(input, ThreadId);
+        return $"A workflow has been started to remediate container apps, the workflow instance id is: {instanceId}";
     }
 }

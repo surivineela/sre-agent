@@ -5,6 +5,8 @@ using Microsoft.DurableTask;
 using Agent.Core.Models;
 using Agent.Core;
 using System.Text.Json;
+using Agent.Core.Models.Api.v1;
+using Agent.Runtime.Communication;
 
 namespace Agent.Runtime.SubAgents.ManagedIdentityMigration;
 
@@ -12,6 +14,7 @@ public sealed class ManagedIdentityMigrationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(ManagedIdentityMigrationAgent);
 
@@ -24,6 +27,7 @@ public sealed class ManagedIdentityMigrationAgentFactory
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
         IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
         ToolsRepository toolsRepository,
+        IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
         var toolSignatures = new List<string>();
@@ -58,18 +62,33 @@ public sealed class ManagedIdentityMigrationAgentFactory
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
+        _mappingManager = mappingManager;
     }
 
     public async Task<string> StartOrchestration(
         ManagedIdentityMigrationInput input,
         string threadId = "")
     {
+        var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+
+        if (threadId != null)
+        {
+            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
+                Id: $"mapping_{threadId}",
+                ThreadId: threadId,
+                OrchestrationInstanceId: instanceId,
+                CreatedTimestamp: DateTime.UtcNow,
+                ModifiedTimestamp: DateTime.UtcNow
+                )
+            );
+        }
+
         return await _durableTaskClient.ScheduleNewManagedIdentityMigrationAgentInstanceAsync(
             new ManagedIdentityMigrationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
                 ThreadId: threadId),
-            new StartOrchestrationOptions(InstanceId: $"{nameof(ManagedIdentityMigrationAgent)}-{Guid.NewGuid()}"));
+            new StartOrchestrationOptions(InstanceId: instanceId));
     }
 
     public ManagedIdentityMigrationInput DeserializeInput(string serializedOrchestraionInput)

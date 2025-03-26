@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel;
-using Agent.Core;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -12,6 +11,8 @@ public class AppServiceRemediationPlugin
     private readonly DurableTaskClient _durableTaskClient;
     private readonly AppServiceRemediationAgentFactory _appServiceRemediationAgentFactory;
     private readonly ILogger<AppServiceRemediationPlugin> _logger;
+
+    public string? ThreadId { get; set; }
 
     public AppServiceRemediationPlugin(
         DurableTaskClient durableTaskClient,
@@ -27,53 +28,23 @@ public class AppServiceRemediationPlugin
     [Description("List the information of started workflow for app service/function app remediation")]
     public async Task<IReadOnlyList<WorkflowMetadata<AppServiceRemediationInput>>> ListAppServiceRemediationWorkflows()
     {
-        try
+        var list = new List<WorkflowMetadata<AppServiceRemediationInput>>();
+        await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
+            new OrchestrationQuery(
+                InstanceIdPrefix: AppServiceRemediationAgentFactory.OrchestrationInstanceIdPrefix,
+                Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
+                FetchInputsAndOutputs: true)))
         {
-            var list = new List<WorkflowMetadata<AppServiceRemediationInput>>();
-            await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
-                new OrchestrationQuery(
-                    InstanceIdPrefix: AppServiceRemediationAgentFactory.OrchestrationInstanceIdPrefix,
-                    Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
-                    FetchInputsAndOutputs: true)))
-            {
-                var input = _appServiceRemediationAgentFactory.DeserializeInput(instance.SerializedInput.ThrowIfNull());
-                list.Add(new WorkflowMetadata<AppServiceRemediationInput>(
-                    WorkflowInstanceId: instance.InstanceId,
-                    Input: input));
-            }
+            // workaround because above fetch inputs and outputs is not working
+            var instanceWithInput = await _durableTaskClient.GetInstanceAsync(instance.InstanceId, getInputsAndOutputs: true);
+            var agentInput = instanceWithInput.ReadInputAs<AppServiceRemediationAgentInput>();
 
-            return list;
+            list.Add(new WorkflowMetadata<AppServiceRemediationInput>(
+                WorkflowInstanceId: instance.InstanceId,
+                Input: agentInput.Input));
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to list app service remediation workflows.");
-            return [];
-        }
-    }
 
-    [KernelFunction("summarize_app_service_remediation_workflow")]
-    [Description("Summarize the status of a started app service remediation workflow")]
-    public async Task<WorkflowMetadata<AppServiceRemediationInput>?> SummarizeAppServiceRemidiationWorkflow(
-        string instanceId)
-    {
-        try
-        {
-            var orche = await _durableTaskClient.GetInstanceAsync(instanceId);
-            if (orche is null)
-            {
-                return null;
-            }
-
-            // TODO: how to get the chathistory of subagent and summarize a string output here
-            return new WorkflowMetadata<AppServiceRemediationInput>(
-                WorkflowInstanceId: instanceId,
-                Input: _appServiceRemediationAgentFactory.DeserializeInput(orche.SerializedInput.ThrowIfNull()));
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to summarize app service remediation workflow.");
-            return null;
-        }
+        return list;
     }
 
     [KernelFunction("start_app_service_remediation_workflow")]
@@ -83,15 +54,7 @@ public class AppServiceRemediationPlugin
         string threadId)
     {
 
-        try
-        {
-            var instanceId = await _appServiceRemediationAgentFactory.StartOrchestration(input, threadId);
-            return $"A workflow has been started to remediate app service, the workflow instance id is: {instanceId}";
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to start app service remediation workflow.");
-            return $"Failed to start app service remediation workflow.";
-        }
+        var instanceId = await _appServiceRemediationAgentFactory.StartOrchestration(input, ThreadId);
+        return $"A workflow has been started to remediate app service, the workflow instance id is: {instanceId}";
     }
 }

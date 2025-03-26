@@ -2,15 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Text.Json;
 using Agent.Core;
-using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Plugins;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.MetaAgent;
@@ -99,19 +100,27 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IThreadRepository _repository;
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
-    private readonly List<AIFunction> _aiTools = new();
     private readonly AsyncReaderWriterLock _lock = new();
 
+    private readonly IServiceProvider _serviceProvider;
     private readonly IChatClient _chatClient;
     private readonly ILogger<MetaAgent> _log;
 
+    private readonly ManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
+    private readonly TlsBestPracticesPlugin _tlsBestPracticesPlugin;
+    private readonly AppServiceRemediationPlugin _appServiceRemediationPlugin;
+    private readonly ISubscriptionPlugin _subscriptionPlugin;
+    private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
+    private readonly IContainerAppPlugin _containerAppPlugin;
+    private readonly Plugins.ChartPlugin _chartplugin;
+
     public MetaAgent(
-        IChatClient chatClient,
+        [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
         ILogger<MetaAgent> logger,
         IThreadRepository repository,
         IThreadOrchestrationManager mappingManager,
         IAgentOutboundCommunicationService outboundCommunicationService,
-        IChartPlugin chartplugin,
+        Plugins.ChartPlugin chartplugin,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         TlsBestPracticesPlugin tlsBestPracticesPlugin,
         AppServiceRemediationPlugin appServiceRemediationPlugin,
@@ -125,27 +134,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _outboundCommunicationService = outboundCommunicationService;
         _log = logger;
 
-        // Please make sure you categorize the output of these tools correctly below into:
-        // - NewOrchestration
-        // - ReusingOrchestration
-        // - General questions to be answered by the meta-agent or list all orchestrations
-        _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.ListManagedIdentityMigrations));
-        _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.SummarizeManagedIdentityMigration));
-        _aiTools.Add(AIFunctionFactory.Create(managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent));
-        _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.ListTlsBestPracticeWorkflows));
-        _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.SummarizeTlsBestPractice));
-        _aiTools.Add(AIFunctionFactory.Create(tlsBestPracticesPlugin.StartTlsBestPracticeAgent));
-        _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.StartAppServiceRemediationAgent));
-        _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.SummarizeAppServiceRemidiationWorkflow));
-        _aiTools.Add(AIFunctionFactory.Create(appServiceRemediationPlugin.ListAppServiceRemediationWorkflows));
-        _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAllSubscriptionsAsync));
-        _aiTools.Add(AIFunctionFactory.Create(subscriptionPlugin.ListAppServicesAsync));
-        _aiTools.Add(AIFunctionFactory.Create(containerAppPlugin.ListContainerAppsAsync));
-        _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows));
-        _aiTools.Add(AIFunctionFactory.Create(containerAppsRemediationPlugin.StartContainerAppsRemediationAgent));
-        _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotPieChartAsync));
-        _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotBarChartAsync));
-        _aiTools.Add(AIFunctionFactory.Create(chartplugin.PlotTimeSeriesDataAsync));
+        _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
+        _managedIdentityMigrationPlugin = managedIdentityMigrationPlugin;
+        _appServiceRemediationPlugin = appServiceRemediationPlugin;
+        _subscriptionPlugin = subscriptionPlugin;
+        _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
+
+        _containerAppPlugin = containerAppPlugin;
+        _chartplugin = chartplugin;
     }
 
     // TODO: the userMessage is not needed as we are using the repository to get the messages
@@ -153,138 +149,57 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     {
         _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", threadId, userMessage);
         using var _ = await _lock.AcquireWriterAsync();
+
         Guid threadGuid = Guid.Parse(threadId);
         var threadMessages = await _repository.GetMessagesAsync(threadGuid);
-        var _chatHistory = new List<ChatMessage> { new ChatMessage(ChatRole.System, SystemPrompt) };
+        var chatHistory = new List<ChatMessage> { new ChatMessage(ChatRole.System, SystemPrompt) };
         foreach (var msg in threadMessages)
         {
             ChatRole role = msg.Author.Role == Role.User ? ChatRole.User : ChatRole.Assistant;
-            _chatHistory.Add(new ChatMessage(role, msg.Text));
+            chatHistory.Add(new ChatMessage(role, msg.Text));
         }
+        
+        _tlsBestPracticesPlugin.ThreadId = threadId;
+        _managedIdentityMigrationPlugin.ThreadId = threadId;
+        _appServiceRemediationPlugin.ThreadId = threadId;
+        _containerAppsRemediationPlugin.ThreadId = threadId;
 
-        while (true)
-        {
-            var response = await _chatClient.GetResponseAsync(
-                _chatHistory,
-                new ChatOptions
-                {
-                    Tools = _aiTools.Select<AIFunction, AITool>(x => x).ToList(),
-                    ToolMode = ChatToolMode.Auto,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["AllowParallelToolCalls"] = true,
-                        ["ThreadId"] = threadId, // Pass threadId in additional properties
-                    }
-                });
+        var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
+        _chartplugin.ThreadId = threadId;
 
-            _log.LogInformation("[ChatThreadId {threadId}] Getting intermediate response: {Message}", threadId, response.GetMessage());
 
-            // Add model response back to ChatHistory
-            // TODO: do we add the intermediate responses to the repository?
-            _chatHistory.Add(response.GetMessage());
+        List <AITool> _aiTools =
+        [
+            AIFunctionFactory.Create(_managedIdentityMigrationPlugin.ListManagedIdentityMigrations),
+            AIFunctionFactory.Create(_managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent),
+            AIFunctionFactory.Create(_tlsBestPracticesPlugin.ListTlsBestPracticeWorkflows),
+            AIFunctionFactory.Create(_tlsBestPracticesPlugin.StartTlsBestPracticeAgent),
+            AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
+            AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
+            AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
+            AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
+            AIFunctionFactory.Create(_subscriptionPlugin.ListAllSubscriptionsAsync),
+            AIFunctionFactory.Create(_subscriptionPlugin.ListAppServicesAsync),
+            AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync)
 
-            var results = new List<AIContent>();
-            foreach (var fnCall in response.GetMessage().Contents.OfType<FunctionCallContent>())
+        ];
+
+        var response = await _chatClient.GetResponseAsync(
+            chatHistory,
+            new ChatOptions
             {
-                var matchingTool = _aiTools.Single(x => x.Name == fnCall.Name);
-                _log.LogInformation("[ChatThreadId {threadId}] Found a matching tool [{Name}]", threadId, fnCall.Name);
-
-                var category = "unknown";
-                switch (fnCall.Name)
+                Tools = _aiTools,
+                ToolMode = ChatToolMode.Auto,
+                AdditionalProperties = new AdditionalPropertiesDictionary
                 {
-                    // Category 1: NewOrchestration - return value is always orchestration id
-                    case nameof(ManagedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent):
-                    case nameof(TlsBestPracticesPlugin.StartTlsBestPracticeAgent):
-                    case nameof(AppServiceRemediationPlugin.StartAppServiceRemediationAgent):
-                    case nameof(ContainerAppsRemediationPlugin.StartContainerAppsRemediationAgent):
-                        category = "NewOrchestration";
-                        break;
-
-                    // Category 2: ReusingOrchestration - requires instanceId (orchestration id) as parameter
-                    case nameof(ManagedIdentityMigrationPlugin.SummarizeManagedIdentityMigration):
-                    case nameof(TlsBestPracticesPlugin.SummarizeTlsBestPractice):
-                    case nameof(AppServiceRemediationPlugin.SummarizeAppServiceRemidiationWorkflow):
-                        category = "ReusingOrchestration";
-                        break;
-
-                    // Category 3: General questions - handled by meta-agent or list all orchestrations
-                    case nameof(ManagedIdentityMigrationPlugin.ListManagedIdentityMigrations):
-                    case nameof(TlsBestPracticesPlugin.ListTlsBestPracticeWorkflows):
-                    case nameof(AppServiceRemediationPlugin.ListAppServiceRemediationWorkflows):
-                    default:
-                        category = "General";
-                        break;
+                    //["AllowParallelToolCalls"] = false,
                 }
+            });
 
-                // Create a new dictionary with the thread ID if needed
-                IDictionary<string, object?> arguments = fnCall.Arguments;
-                if (!string.IsNullOrEmpty(threadId))
-                {
-                    // Make a copy of the arguments and add the threadId
-                    arguments = new Dictionary<string, object?>(fnCall.Arguments);
-
-                    // Inject threadId to the arguments to avoid hallucination
-                    if (category != "General")
-                    {
-                        // The List* tools doesn't take threadId as parameter. Injecting it will raise exception on invocation.
-                        arguments["threadId"] = threadId;
-                    }
-
-                    if (category == "ReusingOrchestration")
-                    {
-                        if (arguments["instanceId"] == null)
-                        {
-                            _log.LogError("[ChatThreadId {threadId}] ReusingOrchestration function call: {Name} requires instanceId, but it's not provided. Inject the default one to avoid exception.", threadId, fnCall.Name);
-                            var mapping = await _mappingManager.GetMappingsByThreadIdAsync(threadId);
-                            var instanceId = mapping.FirstOrDefault()?.OrchestrationInstanceId;
-                            if (instanceId == null)
-                            {
-                                _log.LogError("[ChatThreadId {threadId}] ReusingOrchestration function call: {Name} requires instanceId, but orchestration found in the thread.", threadId, fnCall.Name);
-                                continue;
-                            }
-                            else
-                            {
-                                arguments["instanceId"] = instanceId;
-                            }
-                        }
-                    }
-                }
-
-                // Invoke function call with potentially modified arguments
-                var invokeResult = await matchingTool.InvokeAsync(arguments);
-                _log.LogInformation("[ChatThreadId {threadId}] Invoking function call [{Name}] with arguments: {Arguments}", threadId, fnCall.Name, JsonSerializer.Serialize(arguments));
-                var result = new FunctionResultContent(fnCall.CallId, invokeResult);
-
-                if (category == "NewOrchestration")
-                {
-                    // Extract instanceId from the result
-                    var resString = invokeResult?.ToString() ?? string.Empty;
-                    var instanceId = resString.Split(' ').Last();
-                    _log.LogInformation("[ChatThreadId {threadId}] NewOrchestration function call: {Name}, Orchestration ID: {result}", threadId, fnCall.Name, instanceId);
-                    await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, instanceId, new ChatMessage(ChatRole.Assistant, $"We have launched a background task with instance ID: {instanceId} for this request, will keep you updated on the progress."));
-                }
-
-                results.Add(result);
-
-                _log.LogInformation("[ChatThreadId {threadId}] Getting function call [{Name}] in [category {category}] response: {Message}", threadId, fnCall.Name, category, response.GetMessage());
-
-            }
-
-            if (results.Count > 0)
-            {
-                // Add function call response, and re-evaluate the ChatHistory with model
-                // TODO: do we add the intermediate tools responses to the repository?
-                var toolCallResponseMessage = new ChatMessage(ChatRole.Tool, results);
-                _chatHistory.Add(toolCallResponseMessage);
-                _log.LogInformation("[ChatThreadId {threadId}] Getting function call response: {toolCallResponseMessage}", threadId, toolCallResponseMessage);
-            }
-            else
-            {
-                // When model has no function call response, we assume it's a single text response
-                // We return this response to user
-                _log.LogInformation("[ChatThreadId {threadId}] Resolved with final response: {Message}", threadId, response.GetMessage().Contents.OfType<TextContent>().Single().Text);
-                return response.GetMessage().Contents.OfType<TextContent>().Single().Text;
-            }
-        }
+        //// TODO - consider preserving tool call messages...
+        return response.Messages.Last().Text;
     }
 }

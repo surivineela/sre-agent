@@ -4,6 +4,8 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Models.Api.v1;
+using Agent.Runtime.Communication;
 
 namespace Agent.Runtime.SubAgents.AppServiceRemediation;
 
@@ -12,6 +14,7 @@ public sealed class AppServiceRemediationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(AppServiceRemediationAgent);
 
@@ -23,6 +26,7 @@ public sealed class AppServiceRemediationAgentFactory
         IRecordActionsPlugin recordActionsPlugin,
         IChartPlugin chartPlugin,
         ToolsRepository toolsRepository,
+        IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
         var toolSignatures = new List<string>();
@@ -63,18 +67,33 @@ public sealed class AppServiceRemediationAgentFactory
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
+        _mappingManager = mappingManager;
     }
 
     public async Task<string> StartOrchestration(
         AppServiceRemediationInput input,
         string threadId)
     {
+        var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+
+        if (threadId != null)
+        {
+            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
+                Id: $"mapping_{threadId}",
+                ThreadId: threadId,
+                OrchestrationInstanceId: instanceId,
+                CreatedTimestamp: DateTime.UtcNow,
+                ModifiedTimestamp: DateTime.UtcNow
+                )
+            );
+        }
+
         return await _durableTaskClient.ScheduleNewAppServiceRemediationAgentInstanceAsync(
             new AppServiceRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
                 threadId),
-            new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
+            new StartOrchestrationOptions(InstanceId: instanceId));
     }
 
     public AppServiceRemediationInput DeserializeInput(string serializedOrchestrationInput)

@@ -30,7 +30,6 @@ For multiple points, separate each with a semicolon:
 '2024-01-25T10:30:00|75.4|CPU Usage;2024-01-25T10:35:00|82.1|Memory Usage'
 description: text to accompany the chart when posting to Teams")]
         public async Task<string> PlotTimeSeriesDataAsync(
-            string threadId,
             [Description("Title for the chart, e.g. 'Application Metrics Dashboard'")] string title,
             [Description("Y-Axis label, e.g. 'Usage (%)'")] string yAxisLabel,
             [Description("Minimum value on the Y-axis, e.g. '0'")] string yAxisMin,
@@ -38,7 +37,7 @@ description: text to accompany the chart when posting to Teams")]
             [Description("Semicolon-separated data points, each 'YYYY-MM-DDTHH:MM:SS|value|seriesName'")] string dataPoints,
             [Description("Short text to describe the chart when posting.")] string description)
         {
-            return await _chartPlugin.PlotTimeSeriesDataAsync(threadId, title, yAxisLabel, yAxisMin, yAxisMax, dataPoints, description);
+            return await _chartPlugin.PlotTimeSeriesDataAsync(title, yAxisLabel, yAxisMin, yAxisMax, dataPoints, description);
         }
 
         [KernelFunction("plot_pie_chart")]
@@ -50,12 +49,11 @@ dataPoints: Semicolon-separated items in format 'sliceLabel|value',
 e.g.: 'Endpoint A|120;Endpoint B|80;Endpoint C|60'
 description: A short message to include if you want to post to Teams.")]
         public async Task<string> PlotPieChartAsync(
-            string threadId,
             [Description("Chart title, e.g. 'Endpoint Distribution'")] string chartTitle,
             [Description("Semicolon-separated 'Label|Value' pairs for each slice.")] string dataPoints,
             [Description("Optional text to describe/post with the image.")] string description)
         {
-            return await _chartPlugin.PlotPieChartAsync(threadId, chartTitle, dataPoints, description);
+            return await _chartPlugin.PlotPieChartAsync(chartTitle, dataPoints, description);
         }
 
         [KernelFunction("plot_bar_chart")]
@@ -69,14 +67,13 @@ dataPoints: Semicolon-separated items in format 'category|value',
 e.g.: 'Q1|120;Q2|80;Q3|60;Q4|90'
 description: A short message to include if you want to post to Teams.")]
         public async Task<string> PlotBarChartAsync(
-            string threadId,
             [Description("Chart title")] string chartTitle,
             [Description("X-axis label")] string xAxisLabel,
             [Description("Y-axis label")] string yAxisLabel,
             [Description("Semicolon-separated 'Category|Value' pairs")] string dataPoints,
             [Description("Optional text to describe/post with the image")] string description)
         {
-            return await _chartPlugin.PlotBarChartAsync(threadId, chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
+            return await _chartPlugin.PlotBarChartAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
 
         [KernelFunction("plot_scatter")]
@@ -90,14 +87,13 @@ dataPoints: Semicolon-separated items in format 'x|y|label',
 e.g.: '1.2|3.4|Point A;2.3|4.5|Point B;3.4|5.6|Point C'
 description: A short message to include if you want to post to Teams.")]
         public async Task<string> PlotScatterAsync(
-            string threadId,
             [Description("Chart title")] string chartTitle,
             [Description("X-axis label")] string xAxisLabel,
             [Description("Y-axis label")] string yAxisLabel,
             [Description("Semicolon-separated 'x|y|label' coordinate pairs")] string dataPoints,
             [Description("Optional text to describe/post with the image")] string description)
         {
-            return await _chartPlugin.PlotScatterAsync(threadId, chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
+            return await _chartPlugin.PlotScatterAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
     }
 }

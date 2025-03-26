@@ -4,8 +4,10 @@
 
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.Communication;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
@@ -16,6 +18,7 @@ public sealed class ContainerAppsRemediationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsRemediationAgent);
 
@@ -78,12 +81,26 @@ public sealed class ContainerAppsRemediationAgentFactory
         string input,
         string threadId = "")
     {
+        var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+
+        if (threadId != null)
+        {
+            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
+                Id: $"mapping_{threadId}",
+                ThreadId: threadId,
+                OrchestrationInstanceId: instanceId,
+                CreatedTimestamp: DateTime.UtcNow,
+                ModifiedTimestamp: DateTime.UtcNow
+                )
+            );
+        }
+
         return await _durableTaskClient.ScheduleNewContainerAppsRemediationAgentInstanceAsync(
             new ContainerAppsRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
                 threadId),
-            new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
+            new StartOrchestrationOptions(InstanceId: instanceId));
     }
 
     public string DeserializeInput(string serializedOrchestrationInput)
