@@ -15,8 +15,8 @@ namespace Agent.Runtime
 
         public static void LoadLocalAppSettings(this IHostApplicationBuilder builder, bool isDevelopment)
         {
-            builder.Configuration.SetBasePath(builder.Environment.ContentRootPath)
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); //load base settings
+            builder.Configuration.SetBasePath(AppContext.BaseDirectory)
+                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); // load base settings
 
             if (isDevelopment)
             {
