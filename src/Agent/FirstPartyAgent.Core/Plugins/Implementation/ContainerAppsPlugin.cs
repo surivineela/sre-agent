@@ -199,7 +199,11 @@ namespace FirstPartyAgent.Plugins
             }
             else if (quotaTypeEnum.Equals(QuotaType.SubscriptionConsumptionNCA100Gpus))
             {
-                if (region.Equals("westus3") || region.Equals("swedencentral") || region.Equals("australiaeast"))
+                if (region.Equals("westus3"))
+                {
+                    return (ApprovalState.Pending, string.Format(MessageTemplates.RequireManualApproveDueToShortage, "SubscriptionConsumptionNCA100Gpus", "westus3"));
+                }
+                else if (region.Equals("swedencentral") || region.Equals("australiaeast"))
                 {
                     if (isEA)
                     {
@@ -275,6 +279,8 @@ namespace FirstPartyAgent.Plugins
             public const string InvalidQuotaLimit = @"Invalid target limit number. Ask the user to provide a valid target limit.";
 
             public const string InvalidQuotaType = @"Invalid quota type. Ask the customer to provide one of the following quota type: SubscriptionNCA100Gpus, SubscriptionConsumptionNCA100Gpus, SubscriptionConsumptionT4Gpus.";
+
+            public const string RequireManualApproveDueToShortage = @"Manual approval is required for {0} offer type in {1} region due to a capacity shortage.";
         }
     }
 }
