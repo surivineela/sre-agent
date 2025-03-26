@@ -1,4 +1,6 @@
 ﻿using Agent.Core.Interfaces;
+using Azure.Core;
+using Azure.Core.Pipeline;
 using Azure.ResourceManager;
 
 namespace Agent.Core.Services;
@@ -14,8 +16,8 @@ public class ArmClientFactory : IArmClientFactory
     {
         _authService = authService;
 
-        _armClient = new Lazy<ArmClient>(() => new ArmClient(_authService.GetArmOperationCredential()));
-        _crawlerClient = new Lazy<ArmClient>(() => new ArmClient(_authService.GetCrawlerCredential()));
+        _armClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetArmOperationCredential()));
+        _crawlerClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetCrawlerCredential()));
     }
 
     public ArmClient GetArmClient()
@@ -26,5 +28,28 @@ public class ArmClientFactory : IArmClientFactory
     public ArmClient GetCrawlerArmClient()
     {
         return _crawlerClient.Value;
+    }
+
+    private ArmClient ConstructArmClient(TokenCredential cred)
+    {
+        var options = new ArmClientOptions
+        {
+            Diagnostics =
+            {
+#if DEBUG
+                // log request and response content
+                IsLoggingContentEnabled = true,
+                // don't redact any headers for debugging
+                LoggedHeaderNames = {"*"},
+                LoggedQueryParameters = {"*"}, 
+
+#else
+                IsLoggingContentEnabled = false,
+#endif
+                IsLoggingEnabled = true,
+            },
+        };
+
+        return new ArmClient(cred, default, options);
     }
 }

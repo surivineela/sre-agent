@@ -17,7 +17,6 @@ public class ResourceGraphCrawler
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly AzureResourceGraphClient _graphClient;
     private readonly IArmClientFactory _armClientFactory;
-    private readonly ArmClient _armClient;
     private readonly CrawlerSettings _crawlerSettings;
     private readonly SemaphoreSlim _semaphore;
 
@@ -28,7 +27,6 @@ public class ResourceGraphCrawler
         _graphDbClient = graphDbClient;
         _graphClient = graphClient;
         _armClientFactory = armClientFactory;
-        _armClient = _armClientFactory.GetCrawlerArmClient();
         _crawlerSettings = crawlerSettings;
         _semaphore = new SemaphoreSlim(1, 1);
     }
@@ -105,7 +103,8 @@ public class ResourceGraphCrawler
                     {
                         try
                         {
-                            var crawler = _factory.CreateFromNode(node, _graphDbClient, _graphClient, _armClient);
+                            var armClient = _armClientFactory.GetCrawlerArmClient();
+                            var crawler = _factory.CreateFromNode(node, _graphDbClient, _graphClient, armClient);
                             await foreach (var n in crawler.Crawl(node))
                             {
                                 if (filters == null || filters.Contains(n.GetType()))

@@ -180,7 +180,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             await SubmitWithRetry(query);
         }
 
-        public async Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 20000)
+        public async Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 200000)
         {
             _logger.LogTrace($"Executing Gremlin query: {query}");
 

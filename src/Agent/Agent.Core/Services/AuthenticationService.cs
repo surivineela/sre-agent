@@ -29,7 +29,7 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        return GetManagedIdentityCredential(_crawlerSettings.IdentityClientId);
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
     public TokenCredential GetDocumentDbCredential()
@@ -60,16 +60,22 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // will change to OBO in the future
-        return GetManagedIdentityCredential(_crawlerSettings.IdentityClientId);
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
-    private ManagedIdentityCredential GetManagedIdentityCredential(string? clientId = null)
+    private ManagedIdentityCredential GetManagedIdentityCredential(string? identity)
     {
-        ManagedIdentityId mi = ManagedIdentityId.SystemAssigned;
+        if (identity == null) throw new ArgumentNullException();
 
-        if (clientId is not null)
+        var mi = ManagedIdentityId.SystemAssigned;
+        if (!Constants.SystemManagedIdentityName.Equals(identity, StringComparison.OrdinalIgnoreCase))
         {
-            mi = ManagedIdentityId.FromUserAssignedClientId(clientId);
+            var id = new ResourceIdentifier(identity);
+            if(id == null)
+            {
+                throw new ArgumentException($"Invalid resource identifier for user assigned managed identity: {identity}");
+            }
+            mi = ManagedIdentityId.FromUserAssignedResourceId(id);
         }
 
         var credOptions = new ManagedIdentityCredentialOptions(mi);

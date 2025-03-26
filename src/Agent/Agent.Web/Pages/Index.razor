@@ -11,7 +11,7 @@
 @using System.Text.Json
 @using System.Text.Json.Serialization
 @inject NavigationManager Navigation
-@inject HttpClient Http
+@inject IHttpClientFactory HttpClientFactory
 @inject IAgentManager AgentManager
 @inject IJSRuntime JS
 
@@ -317,7 +317,8 @@
             messages.Add(userMessage);
             StateHasChanged();
 
-            var response = await Http.GetAsync("/api/v1/ChatHistory/all");
+            var client = HttpClientFactory.CreateClient("Razor");
+            var response = await client.GetAsync("/api/v1/ChatHistory/all");
 
             if (!response.IsSuccessStatusCode)
             {
@@ -437,7 +438,8 @@
                     displayName: "Web Client User"
                 );
 
-                var response = await Http.PostAsJsonAsync($"/api/v1/Threads/{threadId}/messages", createMessageRequest);
+                var client = HttpClientFactory.CreateClient("Razor");
+                var response = await client.PostAsJsonAsync($"/api/v1/Threads/{threadId}/messages", createMessageRequest);
 
                 isTyping = false;
                 StateHasChanged();
@@ -673,7 +675,8 @@
         try
         {
             // Fetch threads from ThreadsApiController
-            var response = await Http.GetAsync("/api/v1/Threads");
+            var client = HttpClientFactory.CreateClient("Razor");
+            var response = await client.GetAsync("/api/v1/Threads");
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -754,7 +757,8 @@
             if (Guid.TryParse(chatId, out Guid threadId))
             {
                 // Get messages using ThreadsApiController
-                var response = await Http.GetAsync($"/api/v1/Threads/{threadId}/messages");
+                var client = HttpClientFactory.CreateClient("Razor");
+                var response = await client.GetAsync($"/api/v1/Threads/{threadId}/messages");
                 if (!response.IsSuccessStatusCode)
                 {
                     var error = await response.Content.ReadAsStringAsync();
@@ -817,7 +821,8 @@
         try
         {
             // Get actions using ThreadsApiController
-            var response = await Http.GetAsync($"/api/v1/Threads/{threadId}/actions");
+            var client = HttpClientFactory.CreateClient("Razor");
+            var response = await client.GetAsync($"/api/v1/Threads/{threadId}/actions");
             if (!response.IsSuccessStatusCode)
             {
                 var error = await response.Content.ReadAsStringAsync();
@@ -867,7 +872,8 @@
                 )
             );
 
-            var response = await Http.PostAsJsonAsync("/api/v1/threads", createThreadRequest);
+            var client = HttpClientFactory.CreateClient("Razor");
+            var response = await client.PostAsJsonAsync("/api/v1/threads", createThreadRequest);
 
             if (!response.IsSuccessStatusCode)
             {
@@ -975,7 +981,8 @@
                 if (Guid.TryParse(threadId, out Guid parsedThreadId))
                 {
                     // Get the latest messages using ThreadsApiController
-                    var response = await Http.GetAsync($"/api/v1/threads/{parsedThreadId}/messages");
+                    var client = HttpClientFactory.CreateClient("Razor");
+                    var response = await client.GetAsync($"/api/v1/threads/{parsedThreadId}/messages");
                     if (response.IsSuccessStatusCode)
                     {
                         var options = new JsonSerializerOptions
@@ -1187,7 +1194,8 @@
                 if (Guid.TryParse(thread.Id, out Guid threadId))
                 {
                     // Delete individual thread using ThreadsApiController
-                    var response = await Http.DeleteAsync($"/api/v1/Threads/{threadId}");
+                    var client = HttpClientFactory.CreateClient("Razor");
+                    var response = await client.DeleteAsync($"/api/v1/Threads/{threadId}");
 
                     if (response.IsSuccessStatusCode)
                     {

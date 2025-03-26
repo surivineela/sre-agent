@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -29,9 +30,7 @@ using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
 using Agent.Web.Services;
-using Azure.Identity;
 using Azure.Monitor.OpenTelemetry.Exporter;
-using Azure.ResourceManager;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -193,6 +192,11 @@ if (useSessionChatService)
     builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
     builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
 
+    // Register HttpClientService and configure HttpClient with proper BaseAddress
+    builder.Services.AddSingleton<HttpClientService>();
+    builder.Services.AddArmHelperHttpClient();
+    builder.Services.AddRazorHttpClient();
+
     builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
 
     // Configure chat services
@@ -200,13 +204,6 @@ if (useSessionChatService)
                    .ConfigureAzureOpenAIClient()
                    .ConfigureIChatClient();
 
-    // Register HttpClientService and configure HttpClient with proper BaseAddress
-    builder.Services.AddSingleton<HttpClientService>();
-    builder.Services.AddSingleton<HttpClient>(serviceProvider =>
-    {
-        var httpClientService = serviceProvider.GetRequiredService<HttpClientService>();
-        return httpClientService.CreateHttpClient();
-    });
 
     // Register all SubAgent types
     foreach (var agentType in SubAgentDiscovery.DiscoverSubAgentTypes())
