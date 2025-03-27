@@ -74,7 +74,7 @@ The return value is a list of discussion entries of the given IcM Incident. Each
            [Description("Incident ID")] string incidentId,
            [Description("From time of the query")] DateTimeOffset queryFrom)
         {
-            return await _icmAutomationClient.GetIncidentDiscussionEntriesAsync(incidentId, queryFrom);
+            return await _icmAutomationClient.GetIncidentDiscussionEntriesAsync(incidentId);
         }
 
         [KernelFunction("icm_add_discussion_entry")]

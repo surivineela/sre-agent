@@ -1,0 +1,38 @@
+﻿using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace FirstPartyAgent.Core.Models.Resources
+{
+    public class WebAppModel
+    {
+        public string ResourceId { get; set; }
+        public string Name { get; set; }
+        public string Location { get; set; }
+        public string SlotName { get; set; } = "Production";
+    }
+
+    public class StampSiteModel
+    {
+        [JsonProperty("name")]
+        public string Name { get; set; }
+
+        [JsonProperty("web_workers")]
+        public List<WebWorkerDetails> WebWorkers { get; set; }
+    }
+
+    public class WebWorkerDetails
+    {
+        [JsonProperty("instance_name")]
+        public string InstanceName { get; set; }
+
+        [JsonProperty("reboot_link")]
+        public string RebootLink { get; set; }
+
+        [JsonProperty("reimage_link")]
+        public string ReimageLink { get; set; }
+    }
+}

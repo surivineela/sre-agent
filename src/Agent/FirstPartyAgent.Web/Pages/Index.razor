@@ -1,11 +1,40 @@
 @page "/"
 @using Agent.Core.Models
 @using FirstPartyAgent.Models
-@using FirstPartyAgent.Web.Services
+@using FirstPartyAgent.Core.Helpers
+@using FirstPartyAgent.Core.Models
+@using FirstPartyAgent.Core.Services
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
 @inject IChatService ChatService
 @inject IJSRuntime JS
+
+<!-- Include Ace Editor -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.4.12/ace.js"></script>
+<script>
+    window.initializeJsonEditor = function (elementId, jsonContent) {
+    var editor = ace.edit(elementId);
+    editor.setTheme("ace/theme/monokai");
+    editor.session.setMode("ace/mode/json");
+    editor.setValue(jsonContent, -1); // -1 moves cursor to start
+    window.jsonEditor = editor;
+    };
+
+    window.getJsonEditorContent = function (elementId) {
+    return ace.edit(elementId).getValue();
+    };
+</script>
+
+<!-- Dropdown for selecting an agent -->
+<div class="agent-selector">
+    <label for="agentDropdown">Select Agent:</label>
+    <select id="agentDropdown" value="@SelectedAgent" @onchange="OnAgentChanged">
+        @foreach (var agent in AvailableAgents)
+        {
+            <option value="@agent">@agent</option>
+        }
+    </select>
+</div>
 
 <div class="chat-container">
     <div class="messages-container" @ref="messagesDiv">
@@ -38,11 +67,12 @@
     <div class="chat-input">
         <form @onsubmit="HandleSubmit">
             <textarea rows="1"
-                   @bind="currentMessage" 
-                   @bind:event="oninput"
-                   placeholder="Type a message..."
-                   @onkeypress="HandleKeyPress"
-                   @ref="textAreaRef" />
+            @bind="currentMessage"
+            @bind:event="oninput"
+            placeholder="Type a message..."
+            @onkeypress="HandleKeyPress"
+            @ref="textAreaRef">
+            </textarea>
             <button type="submit" disabled="@string.IsNullOrWhiteSpace(currentMessage)">
                 <i class="bi bi-send-fill"></i>
             </button>
@@ -56,6 +86,47 @@
     private string currentMessage = "";
     private List<ChatMessage> messages = new();
     private bool isTyping = false;
+    private string CustomConfig = "";
+    private List<string> AvailableAgents = AgentFinder.ListAgentModes();
+    private string SelectedAgent = string.Empty;
+
+    private string sessionId = Guid.NewGuid().ToString();
+
+    protected override void OnInitialized()
+    {
+        // Optionally set a default agent if available.
+        if (AvailableAgents.Any())
+        {
+            SelectedAgent = AvailableAgents.First();
+        }
+    }
+
+    private async Task OnAgentChanged(ChangeEventArgs e)
+    {
+        var newAgent = e.Value?.ToString();
+        if (string.IsNullOrWhiteSpace(newAgent))
+        {
+            return;
+        }
+
+        // If the agent is changing and there are existing messages, confirm with the user.
+        if (newAgent != SelectedAgent && messages.Any())
+        {
+            bool confirmSwitch = await JS.InvokeAsync<bool>("confirm", "Switching agents will delete the current chat. Do you want to proceed?");
+            if (confirmSwitch)
+            {
+                SelectedAgent = newAgent;
+                messages.Clear();
+            }
+            // If user cancels, do nothing so the selection remains unchanged.
+        }
+        else
+        {
+            SelectedAgent = newAgent;
+        }
+        sessionId = Guid.NewGuid().ToString();
+        StateHasChanged();
+    }
 
     private async Task HandleSubmit()
     {
@@ -63,11 +134,11 @@
             return;
 
         var userMessage = new ChatMessage
-        {
-            Message = currentMessage,
-            IsUser = true
-        };
-        
+            {
+                Message = currentMessage,
+                IsUser = true
+            };
+
         messages.Add(userMessage);
         var tempMessage = currentMessage;
         currentMessage = "";
@@ -78,8 +149,15 @@
         {
             isTyping = true;
             StateHasChanged();
-            
-            var response = await ChatService.ProcessMessageAsync(tempMessage);
+
+            var messageRequest = new MessageRequestBody()
+                {
+                    Sender = "User",
+                    Message = tempMessage,
+                    AgentMode = SelectedAgent,
+                    SessionId = sessionId,
+                };
+            var response = await ChatService.ProcessMessageAsync(messageRequest);
             isTyping = false;
             messages.Add(response);
             await ScrollToBottom();
@@ -88,10 +166,10 @@
         {
             isTyping = false;
             messages.Add(new ChatMessage
-            {
-                Message = "Sorry, there was an error processing your request.",
-                IsUser = false
-            });
+                {
+                    Message = "Sorry, there was an error processing your request.",
+                    IsUser = false
+                });
         }
     }
 

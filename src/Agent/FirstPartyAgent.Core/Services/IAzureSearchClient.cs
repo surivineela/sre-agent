@@ -2,7 +2,6 @@
 using Agent.Core.Configuration;
 using Azure.Identity;
 using Azure.Search.Documents;
-using Microsoft.Extensions.Configuration;
 using Azure.Search.Documents.Models;
 
 namespace FirstPartyAgent.Core.Services
@@ -17,9 +16,9 @@ namespace FirstPartyAgent.Core.Services
         private readonly AzureSearchSettings _azureSearchSettings;
         private SearchClient Client { get; }
 
-        public AzureSearchClient(IConfiguration configuration) 
+        public AzureSearchClient(AzureSearchSettings azureSearchSettings) 
         {
-            _azureSearchSettings = configuration.GetSection("AzureSearch").Get<AzureSearchSettings>();
+            _azureSearchSettings = azureSearchSettings;
             if (!string.IsNullOrWhiteSpace(_azureSearchSettings.SearchApiKeyOverride))
             {
                 var credential = new AzureKeyCredential(_azureSearchSettings.SearchApiKeyOverride);

@@ -13,7 +13,7 @@ namespace Agent.Runtime
     {
         private static bool _localConfigLoaded = false;
 
-        public static void LoadLocalAppSettings(this IHostApplicationBuilder builder, bool isDevelopment)
+        public static void LoadLocalAppSettings(this IHostApplicationBuilder builder, bool isDevelopment = true)
         {
             builder.Configuration.SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); // load base settings
@@ -34,7 +34,7 @@ namespace Agent.Runtime
                 builder.LoadLocalAppSettings(isDevelopment);
             }
 
-            if (isDevelopment)
+            if (!isDevelopment)
             {
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {

@@ -3,58 +3,28 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Helpers;
-using Agent.Plugins;
 using Agent.Runtime;
+using FirstPartyAgent;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Helpers;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
-using FirstPartyAgent.Web.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.LoadAppSettings();
-builder.ValidateAndRegisterAppSettings<FirstPartyAgentAppSettings>();
-builder.Services.RegisterFirstPartyAppSettings();
+builder.LoadLocalAppSettings();
+builder.Services.RegisterServiceDependencies();
 
-bool useSessionChatService = false;
-if (args.Length > 0)
+if (builder.Environment.IsDevelopment())
 {
-    if (args[0] == "--session")
-    {
-        useSessionChatService = true;
-    }
+    LocalAadAuthenticator.Initialize();
 }
 
-builder.Services.AddSingleton<IICMAPIClient, ICMAPIClient>();
-builder.Services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
-builder.Services.AddSingleton<ICMPlugin>();
-builder.Services.AddSingleton<KustoClientService>();
-builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
-
-builder.Services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
-builder.Services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
-builder.Services.AddSingleton<AzureSearchPluginDefinition>();
-
-builder.Services.AddSingleton<Agent.Plugins.Models.GitHubClient>();
-builder.Services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
-builder.Services.AddSingleton<GitHubIssuePluginDefinition>();
-
-if (useSessionChatService)
-{
-    builder.Services.ConfigureAzureOpenAIClient();
-    builder.Services.ConfigureIChatClient();
-    builder.Services.ConfigureAgents();
-    // Add background service that processes the chat conversation
-    builder.Services.AddHostedService<SessionService>();
-    builder.Services.AddScoped<IChatService, SessionChatService>();
-}
-else
-{
-    builder.Services.ConfigureSemanticKernel();
-    builder.Services.AddScoped<IChatService, LegacyChatService>();
-}
+builder.Services.ConfigureSemanticKernel();
+builder.Services.AddSingleton<IChatService, ChatProcessingService>();
 
 // Add services to the container.
 // Register our chat service
@@ -84,6 +54,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
+app.MapControllers();
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

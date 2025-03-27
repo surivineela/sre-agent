@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Azure.Search;
 using Azure.Search.Documents.Models;
+using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Plugins;
 
 

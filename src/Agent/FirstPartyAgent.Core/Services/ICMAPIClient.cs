@@ -1,6 +1,5 @@
 ﻿using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -33,11 +32,14 @@ namespace FirstPartyAgent.Core.Services
         private readonly string IcmAPIPathPrefix;
         private readonly AuthType _authType;
 
-        public ICMAPIClient(IConfiguration configuration, IHostEnvironment environment, ICMAPISettings icmApiSettings)
+        public ICMAPIClient(IHostEnvironment environment, ICMAPISettings icmApiSettings)
         {
             _icmApiSettings = icmApiSettings;
             IsDevelopment = environment.IsDevelopment();
-
+            if (!icmApiSettings.Enabled)
+            {
+                return;
+            }
             if (string.IsNullOrWhiteSpace(_icmApiSettings.APIEndpoint))
             {
                 throw new Exception("The environment variable 'ICMAPI:APIEndpoint' is not set.");

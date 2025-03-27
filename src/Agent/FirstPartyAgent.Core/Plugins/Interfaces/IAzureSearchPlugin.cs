@@ -1,6 +1,6 @@
 ﻿using Azure.Search.Documents.Models;
 
-namespace FirstPartyAgent.Plugins
+namespace FirstPartyAgent.Core.Plugins
 {
     public interface IAzureSearchPlugin
     {

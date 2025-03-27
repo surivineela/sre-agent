@@ -1,0 +1,43 @@
+﻿using FirstPartyAgent.Core.Services;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using System.ComponentModel;
+
+namespace FirstPartyAgent.Core.Plugins
+{
+    public class TimePlugin
+    {
+        private readonly ILogger<TimePlugin> _logger;
+        private readonly ITeamsClient _teamsClient;
+        public TimePlugin(ILogger<TimePlugin> logger, ITeamsClient teamsClient)
+        {
+            _logger = logger;
+            _teamsClient = teamsClient;
+        }
+
+        private async Task LogInformation(string info)
+        {
+            _logger.LogInformation(info);
+            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
+            {
+                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
+            }
+        }
+
+        [KernelFunction("wait_timer")]
+        [Description("Wait for a specified number of seconds. This is useful for pacing the execution of tasks.")]
+        public async Task WaitTimer([Description("Wait time in seconds")] int waitTimeInSeconds)
+        {
+            try
+            {
+                await LogInformation($"[wait_timer] Invoked with waitTimeInSeconds {waitTimeInSeconds}");
+                await Task.Delay(waitTimeInSeconds * 1000);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while waiting: {ex.Message}");
+                throw new Exception($"An error occurred while waiting: {ex.Message}");
+            }
+        }
+    }
+}

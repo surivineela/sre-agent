@@ -4,7 +4,7 @@ using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Core.Services;
 
-namespace FirstPartyAgent.Plugins
+namespace FirstPartyAgent.Core.Plugins
 {
     public class AzureSearchPlugin : IAzureSearchPlugin
     {

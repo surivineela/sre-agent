@@ -10,7 +10,9 @@ namespace FirstPartyAgent.Models
     {
         None,
         ACA,
-        ICM,
-        GithubIssueTagger
+        MFP,
+        GithubIssueTagger,
+        ICMAgent,
+        Sev2
     }
 }

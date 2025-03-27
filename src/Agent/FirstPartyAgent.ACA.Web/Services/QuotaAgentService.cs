@@ -9,7 +9,7 @@ using Agent.Core;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
-using FirstPartyAgent.Agents;
+using FirstPartyAgent.AgentPrompts;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;

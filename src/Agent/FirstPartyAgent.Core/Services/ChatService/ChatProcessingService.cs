@@ -1,0 +1,324 @@
+﻿using Agent.Core;
+using Agent.Core.Extensions;
+using Agent.Core.Helpers;
+using Agent.Core.Models;
+using FirstPartyAgent.Core.Helpers;
+using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Models;
+using Markdig;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
+using Microsoft.SemanticKernel.Services;
+using Newtonsoft.Json;
+
+namespace FirstPartyAgent.Core.Services;
+
+public class SessionInformation
+{
+    public string SessionId { get; set; }
+    public AgentMode AgentMode { get; set; }
+    public DateTime Timestamp { get; set; }
+    public ChatHistory ChatHistory { get; set; }
+    public bool AgentLoopRunning { get; set; }
+
+    public SessionInformation(string sessionId, string agentMode)
+    {
+        AgentMode _agentMode = Enum.Parse<AgentMode>(agentMode);
+        SessionId = sessionId;
+        AgentMode = _agentMode;
+        Timestamp = DateTime.UtcNow;
+        ChatHistory = new ChatHistory();
+
+        var agentInfo = AgentFinder.GetAgentPrompts(_agentMode).FirstOrDefault();
+        ChatHistory.AddSystemMessage(agentInfo.SystemMessage);
+    }
+}
+
+public class ChatProcessingService : IChatService
+{
+    private readonly IConfiguration _config;
+    private readonly AsyncReaderWriterLock _lock = new();
+    private readonly ILogger<ChatProcessingService> _logger;
+    private readonly IKernelService _kernelService;
+    private readonly Kernel _kernel;
+    private readonly MarkdownPipeline _markdownPipeline;
+    private readonly ITeamsClient _teamsClient;
+    private Dictionary<string, SessionInformation> _sessionCollection;
+
+    public ChatProcessingService(IConfiguration config, ILogger<ChatProcessingService> logger, IKernelService kernelService, ITeamsClient teamsClient, Kernel kernel)
+    {
+        _teamsClient = teamsClient;
+        _config = config;
+        _logger = logger;
+        _kernelService = kernelService;
+        _sessionCollection = new Dictionary<string, SessionInformation>();
+        _markdownPipeline = new MarkdownPipelineBuilder()
+            .UseAdvancedExtensions()
+            .DisableHtml()           // Disable HTML parsing
+            .Build();
+        _kernel = kernel;
+    }
+
+    private async Task ResetSessionChatHistory(string sessionId)
+    {
+        if (string.IsNullOrEmpty(sessionId))
+        {
+            throw new ArgumentException($"sessionId {sessionId} is either empty or invalid");
+        }
+
+        if (!_sessionCollection.ContainsKey(sessionId))
+        {
+            return;
+        }
+
+        var sessionChatHistory = _sessionCollection[sessionId];
+        var systemMessage = sessionChatHistory.ChatHistory.First().Content;
+        /*var agentMode = sessionChatHistory.AgentMode;
+        var agentInfo = AgentFinder.GetAgentPrompts(agentMode).FirstOrDefault();*/
+
+        //TODO: Dump the old chat history object into JSON file for audit purposes
+
+        using var _ = await _lock.AcquireWriterAsync();
+            var chatHistory = new ChatHistory();
+            chatHistory.AddSystemMessage(systemMessage);
+        _sessionCollection[sessionId].ChatHistory = chatHistory;
+        return;
+    }
+
+    private bool AgentModeExists(string agentMode)
+    {
+        return Enum.TryParse<AgentMode>(agentMode, out var mode);
+    }
+
+    private ChatHistory CloneChatHistory(ChatHistory originalHistory)
+    {
+        var clonedHistory = new ChatHistory();
+        // Iterate through each message in the original chat history and add it to the cloned history.
+        for (int i = 0; i < originalHistory.Count; i++)
+        {
+            clonedHistory.Add(originalHistory[i]);
+        }
+        return clonedHistory;
+    }
+
+    private async Task<string> GetAgentStatusSummary(SessionInformation sessionInfo)
+    {
+        var clonedHistory = CloneChatHistory(sessionInfo.ChatHistory);
+        var statusPrompt = new ChatMessageContent()
+        {
+            Role = AuthorRole.User,
+            Content = "Take a deep look at the above conversation and generate a 1 liner status of the Agent."
+        };
+
+        clonedHistory.Add(statusPrompt);
+
+        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+        var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.None(),
+            MaxTokens = 100
+        };
+
+        var modelName = chatCompletionService.Attributes["DeploymentName"].ToString();
+        if (modelName.StartsWith("o"))
+        {
+            promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.Medium;
+        }
+
+        var chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+            clonedHistory,
+            executionSettings: promptExecutionSettings,
+            kernel: _kernel);
+
+        return chatCompletionResult.Content;
+    }
+
+    private async Task<bool> IsAgentDone(SessionInformation sessionInfo)
+    {
+        var userMessage = new ChatMessageContent()
+        {
+            Role = AuthorRole.User,
+            Content = "Take a deep look at all the tasks that were requested from the Agent and determine if the Agent has finished those and provided an appropriate response. If yes, then respond with 'YES' otherwise respond with 'NO'. If the user's question was not about handling and incident, then the Agent's response is acceptable."
+        };
+        sessionInfo.ChatHistory.Add(userMessage);
+        var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
+        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+        var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.None(),
+            MaxTokens = 100
+        };
+
+        var modelName = chatCompletionService.Attributes["DeploymentName"].ToString();
+        if (modelName.StartsWith("o"))
+        {
+            promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.Medium;
+        }
+
+        var chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+            sessionInfo.ChatHistory,
+            executionSettings: promptExecutionSettings,
+            kernel: _kernel);
+        var isAgentDone = false;
+        if (chatCompletionResult.Content != null && chatCompletionResult.Content.Contains("YES"))
+        {
+            isAgentDone = true;
+        }
+        //Remove the user message that was inserted.
+        sessionInfo.ChatHistory.Remove(userMessage);
+        return isAgentDone;
+    }
+
+    private async Task<ChatMessageContent> RunAgentLoop(SessionInformation sessionInfo, int retryLimit = 2)
+    {
+        _logger.LogInformation($"ChatProcessingService:RunAgentLoop:Start - sessionId: {sessionInfo.SessionId}, chatHistoryLength: {sessionInfo.ChatHistory.Count}");
+        ChatMessageContent chatCompletionResult = null;
+        FunctionChoiceBehaviorOptions options = new() { AllowConcurrentInvocation = true };
+        var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
+        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+        var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
+        {
+            FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(options: options),
+            MaxTokens = 10000
+        };
+
+        var modelName = chatCompletionService.Attributes["DeploymentName"].ToString();
+        if (modelName.StartsWith("o"))
+        {
+            promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.High;
+        }
+
+        chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+            sessionInfo.ChatHistory,
+            executionSettings: promptExecutionSettings,
+            kernel: _kernel);
+
+        sessionInfo.ChatHistory.AddMessage(chatCompletionResult.Role, chatCompletionResult.Content ?? string.Empty);
+
+        _logger.LogInformation($"ChatProcessingService:RunAgentLoop:ChatCompletionResult - {chatCompletionResult.Content}");
+
+        if (retryLimit > 0)
+        {
+            _logger.LogInformation($"ChatProcessingService:RunAgentLoop - Checking if Agent is done. RetryLimit: {retryLimit}");
+            var isAgentDone = await IsAgentDone(sessionInfo);
+            _logger.LogInformation($"ChatProcessingService:RunAgentLoop - isAgentDone = {isAgentDone}.");
+            if (!isAgentDone)
+            {
+                chatCompletionResult = await RunAgentLoop(sessionInfo, retryLimit - 1);
+            }
+        }
+
+        return chatCompletionResult;
+    }
+
+    public async Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message)
+    {
+        _logger.LogInformation($"ChatProcessingService:ProcessMessageAsync - {JsonConvert.SerializeObject(message)}");
+        
+        if (message == null) {
+            throw new ArgumentNullException(nameof(message), "MessageRequestBody cannot be null");
+        }
+        if (string.IsNullOrEmpty(message.Message))
+        {
+            throw new ArgumentException("Message cannot be empty", nameof(message));
+        }
+        if (string.IsNullOrEmpty(message.AgentMode))
+        {
+            throw new ArgumentException("AgentMode cannot be empty", nameof(message));
+        }
+        if (string.IsNullOrEmpty(message.Sender))
+        {
+            throw new ArgumentException("Sender cannot be empty", nameof(message));
+        }
+        if (string.IsNullOrEmpty(message.SessionId))
+        {
+            throw new ArgumentException("SessionId cannot be empty", nameof(message));
+        }
+
+        if (!_sessionCollection.ContainsKey(message.SessionId))
+        {
+            var foundAgent = AgentModeExists(message.AgentMode);
+            if (!foundAgent)
+            {
+                throw new ArgumentException($"Agent {message.AgentMode} not found", nameof(message));
+            }
+            _sessionCollection[message.SessionId] = new SessionInformation(message.SessionId, message.AgentMode);
+        }
+
+        var sessionInfo = _sessionCollection[message.SessionId];
+
+        if ((message.Message == "clear state" || message.Message == "<p>clear state</p>"))
+        {
+            _logger.LogInformation("Clearing state");
+            await ResetSessionChatHistory(sessionInfo.SessionId);
+            return new ChatMessage()
+            {
+                Message = "State cleared",
+                Timestamp = DateTime.Now
+            };
+        }
+
+        if (sessionInfo.AgentLoopRunning)
+        {
+            //var agentStatusSummary = await GetAgentStatusSummary(sessionInfo);
+            return new ChatMessage()
+            {
+                Message = $"Agent is currently busy with processing an earlier request in this session.",
+                Timestamp = DateTime.Now
+            };
+        }
+
+        sessionInfo.AgentLoopRunning = true;
+        try
+        {
+            //Add custom instructions and alert details to the system message if they are present
+            if (sessionInfo.ChatHistory.Count == 1 && message.PromptReplacements != null && message.PromptReplacements.Keys.Count() > 0)
+            {
+                var systemMessage = sessionInfo.ChatHistory.First().Content;
+                foreach (var promptKey in message.PromptReplacements.Keys)
+                {
+                    systemMessage = systemMessage.Replace(promptKey, message.PromptReplacements[promptKey]);
+                }
+                sessionInfo.ChatHistory.Clear();
+                sessionInfo.ChatHistory.AddSystemMessage(systemMessage);
+            }
+
+            sessionInfo.ChatHistory.AddUserMessage($"User({message.Sender}) > " + message.Message);
+
+            _logger.LogInformation($"User({message.Sender}) > " + message.Message);
+
+            var result = await RunAgentLoop(sessionInfo);
+
+            _logger.LogInformation("Assistant > " + result);
+            sessionInfo.ChatHistory.AddMessage(result.Role, result.Content ?? string.Empty);
+
+            string content = result.Content ?? string.Empty;
+            var htmlContent = Markdown.ToHtml(content, _markdownPipeline);
+
+            if (_teamsClient.IsEnabled())
+            {
+                _logger.LogInformation($"Posting message to Teams: {htmlContent}");
+                await _teamsClient.PostMessageOnTeams(htmlContent);
+            }
+
+            sessionInfo.AgentLoopRunning = false;
+
+            return new ChatMessage()
+            {
+                Message = htmlContent,  // Raw markdown
+                Timestamp = DateTime.Now
+            };
+
+        }
+        catch (Exception ex)
+        {
+            sessionInfo.AgentLoopRunning = false;
+            _logger.LogError(ex, "Error running the chat service");
+            throw;
+        }
+    }
+}

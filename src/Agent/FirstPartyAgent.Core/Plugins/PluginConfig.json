@@ -1,0 +1,46 @@
+[
+  {
+    "PluginName": "TimePlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.TimePlugin"
+  },
+  {
+    "PluginName": "IcmPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ICMPlugin"
+  },
+  {
+    "PluginName": "KustoPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Plugins.IKustoPlugin"
+  },
+  {
+    "PluginName": "GenevaActionsPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.GenevaActionsPlugin"
+  },
+  {
+    "PluginName": "RedisGenevaActionsPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.RedisGenevaActionsPlugin"
+  },
+  {
+    "PluginName": "TeamsPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.TeamsPlugin"
+  },
+  {
+    "PluginName": "ICMChartPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ICMChartPlugin"
+  },
+  {
+    "PluginName": "WebAppPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.WebAppPlugin"
+  },
+  {
+    "PluginName": "GitHubIssuePlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.GitHubIssuePluginDefinition"
+  },
+  {
+    "PluginName": "AzureSearchPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureSearchPluginDefinition"
+  },
+  {
+    "PluginName": "AzureAlertingPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureAlertingPlugin"
+  }
+]

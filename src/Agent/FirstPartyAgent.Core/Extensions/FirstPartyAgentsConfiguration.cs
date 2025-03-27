@@ -1,92 +1,79 @@
-using Agent.Core.Configuration;
-using Agent.Plugins;
-using Agent.Runtime;
-using FirstPartyAgent.Agents;
-using FirstPartyAgent.Core.Configuration;
-using FirstPartyAgent.Models;
-using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Microsoft.SemanticKernel;
+using Agent.Core.Configuration;
+using Agent.Plugins;
+using FirstPartyAgent.Core.Helpers;
+using FirstPartyAgent.Core.Plugins;
+using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Models;
+using FirstPartyAgent.Plugins;
+using FirstPartyAgent.Core.Plugins.Definitions;
+using Agent.Runtime;
+using FirstPartyAgent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Plugins.Models;
 
 namespace FirstPartyAgent.Core.Extensions
 {
     public static class FirstPartyAgentsConfigurationExtensions
     {
-        public static void ConfigureAgents(this IServiceCollection services)
+        public static void RegisterServiceDependencies(this IServiceCollection services)
         {
-            _ = services
-                .ConfigureIChatCompletionService()
-                .AddTransient<Kernel>(sp =>
-                {
-                    return new Kernel(sp);
-                })
+            services.RegisterFirstPartyAppSettings();
+            services.AddSingleton<FirstPartyAgent.Core.Plugins.TimePlugin>();
+            services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+            services.AddSingleton<ObserverClientService>();
+            services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
+            services.AddSingleton<ICMPlugin>();
+            services.AddSingleton<GenevaActionsPlugin>();
 
-                // Agent is defined by its name, instructions, and the plugins it uses
-                // In future we load the agent and conversation from a data store. For now it is all in memory
-                .AddSingleton(s =>
-                {
-                    FirstPartyAgentAppSettings appSettings = s.GetRequiredService<FirstPartyAgentAppSettings>();
-                    string systemMessage = ICMAgent.SystemMessage;
-                    switch (appSettings.AgentMode)
-                    {
-                        case AgentMode.ICM:
-                            systemMessage = ICMAgent.SystemMessage;
-                            break;
-                        case AgentMode.GithubIssueTagger:
-                            systemMessage = GithubIssueTaggerAgent.SystemMessage;
-                            break;
-                        case AgentMode.ACA:
-                            break;
-                        default:
-                            systemMessage = "Let the user know that you were not given an AgentMode, but you will do your best to respond";
-                            break;
-                    }
-                    var agent = new Agent.Runtime.Agent(
-                        "main",
-                        systemMessage,
-                        s.GetRequiredService<Kernel>(),
-                        s.GetRequiredService<OpenAISettings>(),
-                        s.GetRequiredService<Microsoft.Extensions.AI.IChatClient>(),
-                        s.GetRequiredService<ILoggerFactory>().CreateLogger<Agent.Runtime.Agent>());
+            services.AddSingleton<KustoServiceClientFactory>();
+            services.AddSingleton<IKustoPlugin, KustoPlugin>();
 
-                    switch (appSettings.AgentMode)
-                    {
-                        case AgentMode.ICM:
-                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
-                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<ICMPlugin>(), "IcmPlugin");
-                            break;
-                        case AgentMode.GithubIssueTagger:
-                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<GitHubIssuePluginDefinition>(), "GitHubIssuePlugin");
-                            agent.Kernel.Plugins.AddFromObject(s.GetRequiredService<AzureSearchPluginDefinition>(), "AzureSearchPlugin");
-                            break;
-                        case AgentMode.ACA:
-                            break;
-                        default:
-                            break;
-                    }
+            services.AddSingleton<ITeamsClient, TeamsClient>();
+            services.AddSingleton<TeamsPlugin>();
+            services.AddSingleton<IAlertProcessingService, AlertProcessingService>();
 
-                    return agent;
-                })
-                .AddSingleton<Session>(s =>
-                {
-                    var conversation = new Session(s.GetRequiredService<ILoggerFactory>().CreateLogger<Session>());
-                    conversation.AddAgent(s.GetRequiredService<Agent.Runtime.Agent>());
-                    return conversation;
-                });
+            services.AddSingleton<ObserverClientService>();
+            services.AddSingleton<IICMAPIClient, ICMAPIClient>();
+            services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
+            services.AddSingleton<ICMPlugin>();
+            services.AddSingleton<GenevaActionsPlugin>();
+            services.AddSingleton<RedisGenevaActionsPlugin>();
+
+            services.AddSingleton<KustoClientService>();
+            services.AddSingleton<IKustoPlugin, KustoPlugin>();
+
+            services.AddSingleton<ITeamsClient, TeamsClient>();
+            services.AddSingleton<TeamsPlugin>();
+
+            services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
+            services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
+            services.AddSingleton<AzureSearchPluginDefinition>();
+            services.AddSingleton<GitHubClient>();
+            services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
+            services.AddSingleton<GitHubIssuePluginDefinition>();
+
+            services.AddSingleton<ICMChartPlugin>();
+            services.AddSingleton<WebAppPlugin>();
+            services.AddSingleton<AzureAlertingClient>();
+            services.AddSingleton<AzureAlertingPlugin>();
+            services.AddSingleton<IStorageService, StorageService>();
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
         {
-            // Configure Semantic Kernel
-            services.AddScoped<Kernel>(sp =>
+            services.AddSingleton<IKernelService, KernelService>();
+
+            // Add a plugin-less simple semantic kernel for stand-alone chat completion tasks
+            services.AddSingleton<Kernel>(sp =>
             {
                 var config = sp.GetRequiredService<IConfiguration>();
-                var openAISettings = sp.GetRequiredService<OpenAISettings>();
-                var appSettings = sp.GetRequiredService<FirstPartyAgentAppSettings>();
+                var azureSettings = sp.GetRequiredService<IOptions<AzureSettings>>();
+                var openAISettings = azureSettings.Value.OpenAI;
 
                 var kernelBuilder = Kernel.CreateBuilder();
                 kernelBuilder.AddAzureOpenAIChatCompletion(
@@ -102,22 +89,6 @@ namespace FirstPartyAgent.Core.Extensions
                     builder.AddConsole();
                 });
 
-                switch (appSettings.AgentMode)
-                {
-                    case AgentMode.ICM:
-                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<ICMPlugin>(), "IcmPlugin");
-                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<IKustoPlugin>(), "KustoPlugin");
-                        break;
-                    case AgentMode.GithubIssueTagger:
-                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<GitHubIssuePluginDefinition>(), "GitHubIssuePlugin");
-                        kernelBuilder.Plugins.AddFromObject(sp.GetRequiredService<AzureSearchPluginDefinition>(), "AzureSearchPlugin");
-                        break;
-                    case AgentMode.ACA:
-                        break;
-                    default:
-                        break;
-                }
-
                 return kernelBuilder.Build();
             });
 
@@ -126,13 +97,23 @@ namespace FirstPartyAgent.Core.Extensions
 
         public static IServiceCollection RegisterFirstPartyAppSettings(this IServiceCollection services)
         {
+            services.AddOptionsWithValidateOnStart<AzureSettings>()
+                .BindConfiguration("AppSettings:Core:Azure")
+                .ValidateDataAnnotations();
+
             services.AddOptionsWithValidateOnStart<FirstPartyAgentExternalSettings>()
                 .BindConfiguration("AppSettings:Core:External")
                 .ValidateDataAnnotations();
 
-            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Kusto);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureAlerting);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureSearch);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.GitHub);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMAPI);
-            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMWorkflow);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMWorkflows);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Kusto);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Observer);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Teams);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Storage);
 
             return services;
         }

@@ -1,7 +1,10 @@
 ﻿using FirstPartyAgent.Constants;
+using FirstPartyAgent.Core.Models.Attributes;
+using FirstPartyAgent.Models;
 
-namespace FirstPartyAgent.Agents
+namespace FirstPartyAgent.AgentPrompts
 {
+    [AgentPrompt("This is the SRE Agent that helps with incidents related to Container Apps Quota issues", AgentMode.ACA)]
     public class ContainerAppAgent
     {
         public class GpuQuota

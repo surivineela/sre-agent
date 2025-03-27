@@ -11,13 +11,25 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Markdig" />
+    <Content Remove="appsettings.Development.json" />
   </ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Markdig" />
+		<PackageReference Include="Serilog" />
+		<PackageReference Include="Serilog.Extensions.Hosting" />
+		<PackageReference Include="Serilog.Sinks.AzureDataExplorer" />
+		<PackageReference Include="Serilog.Sinks.Console" />
+	</ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

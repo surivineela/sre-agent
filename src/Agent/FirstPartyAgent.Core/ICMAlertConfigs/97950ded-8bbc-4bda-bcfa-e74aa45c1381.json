@@ -1,0 +1,20 @@
+{
+  "AlertingId": "97950ded-8bbc-4bda-bcfa-e74aa45c1381",
+  "AgentMode": "Sev2",
+  "IncidentTitle": "[Public] TestSREAgent : Hotsite availability issue",
+  "IncidentTitleContains": "",
+  "ActionTimeoutIntervalInMinutes": 15,
+  "DefaultHumanInterventionLoop": "App Service (Web Apps)/Windows Websites Azure Servicing",
+  "KustoQueries": [
+    {
+      "Title": "",
+      "KustoQuery": ""
+    }
+  ],
+  "MitigationInstructions": [
+    "1. Find the impacted hotsites from the alert.",
+    "2. For each impacted hotsite, restart the site one by one. To restart, first get the web app details, then restart them.",
+    "3. After all the restarts, monitor the impacted endpoints availability to confirm mitigation."
+  ],
+  "Owners": [ "ajsharm", "yifguo", "shgup" ]
+}

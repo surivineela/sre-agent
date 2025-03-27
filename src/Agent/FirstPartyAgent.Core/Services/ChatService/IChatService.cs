@@ -3,11 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using FirstPartyAgent.Core.Models;
 
-namespace FirstPartyAgent.Web.Services;
+namespace FirstPartyAgent.Core.Services;
 
 
 public interface IChatService
 {
-    Task<ChatMessage> ProcessMessageAsync(string message);
+    Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message);
 } 

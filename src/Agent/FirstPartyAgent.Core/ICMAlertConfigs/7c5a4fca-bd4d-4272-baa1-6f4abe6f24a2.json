@@ -1,0 +1,31 @@
+{
+  "AlertingId": "7c5a4fca-bd4d-4272-baa1-6f4abe6f24a2",
+  "AgentMode": "Sev2",
+  "ActionTimeoutIntervalInMinutes": 30,
+  "DefaultHumanInterventionLoop": "App Service (Web Apps)/Windows Websites Azure Servicing",
+  "UseCorrelationIdForKustoQuery": true,
+  "KustoQueries": [
+  ],
+  "MitigationInstructions": [
+    "1. Identify the timestamp when impact started.",
+    "2. Determine if the issue is transient:",
+    "   a) If the alert query returned no results, that would mean that the impact is not ongoing and the issue was transient.",
+    "3. If the issue is non-transient, then execute the following mitigation actions:",
+    "   a) For unhealthy worker nodes, fetch the worker details for the webapp, and then execute a targeted reboot of the worker",
+    "4. After executing any mitigation action, post a discussion entry with the actions taken.",
+    "5. Continue to monitor for atleast 30 more minutes with a gap of 5 minutes and mitigate incident upon confirmed recovery."
+  ],
+  "MonitoringInstructions": [
+    "1. Wait 10 minutes after executing mitigation actions before performing follow-up queries.",
+    "2. Re-run the alert kusto query every 5 minutes for a period up to 30 minutes.",
+    "3. Continuously monitor to ensure that availability stays above 90% and that error counts are negligible.",
+    "4. Once recovery is consistently observed over three consecutive monitoring intervals, mark the incident as mitigated.",
+    "5. If the issue does not clear after the full monitoring period, post detailed findings into the incident and escalate to the DefaultHumanInterventionLoop.",
+    "6. Finally, create a full stage-by-stage report and post it into the ICM incident discussion."
+  ],
+  "Owners": [
+    "ajsharm",
+    "yifguo",
+    "shgup"
+  ]
+}

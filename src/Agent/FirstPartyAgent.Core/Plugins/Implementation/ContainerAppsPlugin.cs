@@ -38,18 +38,7 @@ namespace FirstPartyAgent.Plugins
 
         public async Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit)
         {
-            const string workflowName = "Workflow-GenevaAction-SetSubscriptionQuota";
-
-            Dictionary<string, string> body = new()
-            {
-                { "SubscriptionId", subscriptionId },
-                { "Region", region },
-                { "QuotaType", quotaType },
-                { "QuotaLimit", quotaLimit },
-            };
-
-            var response = await _icmWorkflowClient.SendICMWorkflowRequest<JsonObject>(workflowName, body);
-            return JsonSerializer.Serialize(response);
+            return await _icmWorkflowClient.SetSubscriptionQuota(subscriptionId, region, quotaType, quotaLimit);
         }
 
         public async Task<TeamsPostMessageResponse?> PostTeamsDiscussionAsync(string incidentId, string title, string content)

@@ -1,11 +1,14 @@
-﻿using System;
+﻿using FirstPartyAgent.Core.Models.Attributes;
+using FirstPartyAgent.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace FirstPartyAgent.Agents
+namespace FirstPartyAgent.AgentPrompts
 {
+    [AgentPrompt("This is the SRE Agent that helps with triaging and labeling Github Issues for the Azure Functions Team.", AgentMode.GithubIssueTagger)]
     public static class GithubIssueTaggerAgent
     {
         public const string SystemMessage = 

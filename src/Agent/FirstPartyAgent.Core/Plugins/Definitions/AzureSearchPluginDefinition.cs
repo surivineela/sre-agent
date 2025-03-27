@@ -2,8 +2,9 @@
 using FirstPartyAgent.Constants;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
+using FirstPartyAgent.Core.Plugins;
 
-namespace FirstPartyAgent.Plugins.Definitions
+namespace FirstPartyAgent.Core.Plugins.Definitions
 {
     public class AzureSearchPluginDefinition(IAzureSearchPlugin plugin)
     {

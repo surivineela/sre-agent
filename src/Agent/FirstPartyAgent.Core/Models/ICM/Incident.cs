@@ -10,7 +10,7 @@ namespace FirstPartyAgent.Models
         public string Slice { get; set; }
         public int HitCount { get; set; }
         public string ParentIncidentId { get; set; } = string.Empty;
-        public IncidentEnvironment Environment { get; set; }
+        public string Environment { get; set; } = string.Empty;
         public string CreatedBy { get; set; }
         public DateTime ImpactStartDate { get; set; }
         public DateTime CreatedDate { get; set; }
@@ -24,8 +24,10 @@ namespace FirstPartyAgent.Models
         public string Severity { get; set; }
         public string Title { get; set; }
         public string Summary { get; set; }
-        public List<string> Tags { get; set; }
         public string DiscussionEntry { get; set; }
+        public string MonitoringRole { get; set; }
+        public string MonitoringSlice { get; set; }
+        public string[] Tags { get; set; } = Array.Empty<string>();
     }
 
     public class DiscussionEntry

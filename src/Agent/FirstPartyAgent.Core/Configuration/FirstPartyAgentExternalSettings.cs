@@ -6,8 +6,14 @@ namespace FirstPartyAgent.Core.Configuration
     {
         public ICMAPISettings ICMAPI { get; set; } = new();
 
-        public ICMWorkflowSettings ICMWorkflow { get; set; } = new();
+        public ICMWorkflowSettings ICMWorkflows { get; set; } = new();
 
         public KustoSettings Kusto { get; set; } = new();
+
+        public ObserverClientSettings Observer { get; set; }
+        public AzureSearchSettings AzureSearch { get; set; }
+        public TeamsClientSettings Teams { get; set; }
+        public StorageAccountSettings Storage { get; set; }
+        public AzureAlertingSettings AzureAlerting { get; set; }
     }
 }
