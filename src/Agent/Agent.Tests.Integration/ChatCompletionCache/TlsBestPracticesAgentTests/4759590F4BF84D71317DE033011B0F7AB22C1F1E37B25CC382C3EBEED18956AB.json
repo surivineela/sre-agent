@@ -1,0 +1,39 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_pujHea34KUKKrkbX1zHmosrf",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "execution-thread",
+            "title": "Plan Updates",
+            "status": "Pending"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BFX09KrGrzszcRLvovbDY7rj92KHZ",
+  "modelId": "gpt-4o-2024-05-13",
+  "createdAt": "2025-03-27T02:11:17+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 2594,
+    "outputTokenCount": 24,
+    "totalTokenCount": 2618,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_65792305e4"
+  }
+}

@@ -112,6 +112,7 @@ namespace Agent.Tests.Integration
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
+            services.AddSingleton<IGraphDBPlugin>(new MockGraphDBPlugin());
             services.AddSingleton<IContainerAppPlugin>(new MockContainerAppPlugin());
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
             services.AddSingleton<TimeProvider>(_timeProvider);
@@ -232,7 +233,7 @@ namespace Agent.Tests.Integration
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
+            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
 
             var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
             string? instanceID = "";
@@ -314,6 +315,90 @@ namespace Agent.Tests.Integration
                 Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
                 Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
                 Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
+            }
+            catch (Grpc.Core.RpcException ex)
+            {
+                Assert.Fail($"Make sure you have the DTS emulator running (run-durable-emulator.ps1) or your appsettings.development.json has a valid Durable Task Scheduler connection string.{Environment.NewLine} {ex}");
+            }
+            catch (TaskCanceledException)
+            {
+                if (!string.IsNullOrEmpty(instanceID))
+                {
+                    await _durableTaskClient.TerminateInstanceAsync(instanceID, "Test timeout");
+                }
+
+                Assert.Fail("Orchestration timed out");
+            }
+        }
+
+        [Fact]
+        public async Task AskForConfirmationOnRollback()
+        {
+            var tokenSource = new CancellationTokenSource();
+            tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+
+            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
+
+            var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
+            string? instanceID = "";
+
+            try
+            {
+                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
+
+                await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+                (
+                    ChatRole.User,
+                    "If any apps become unhealthy, I want you to ask me for confirmation on whether I want to proceed with the rollback, or leave the app as is. Specifically use the word confirmation when you request it."
+                ));
+
+                await Helper.DoApproval(
+                    _durableTaskClient,
+                    _timeProvider,
+                    instanceID,
+                    tokenSource.Token);
+
+                OrchestrationMetadata? orchestrationMetadata = null;
+
+                while (true)
+                {
+                    await Task.Delay(TimeSpan.FromMilliseconds(500), tokenSource.Token);
+
+                    var last = _mockCommunicationService.Messages.Last();
+
+                    // Wait for the model to ask us whether it should perform a rollback.
+                    if (last != null && last.Contains("back") && last.Contains("confirm") && last.Contains("?"))
+                    {
+                        // simulate the user taking a while to respond.
+                        await Task.Delay(TimeSpan.FromSeconds(5));
+
+                        await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+                        (
+                            ChatRole.User,
+                            "I checked the app myself, a rollback is not necessary. You can leave the app as is and proceed."
+                        ));
+                        break;
+                    }
+
+                    orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, tokenSource.Token);
+                    if(orchestrationMetadata.IsCompleted)
+                    {
+                        Assert.Fail("Orchestration completed before we could respond to the rollback confirmation.");
+                    }
+                }
+
+                orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
+                if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
+                {
+                    Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
+                }
+
+                Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
+                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
             }
             catch (Grpc.Core.RpcException ex)
             {

@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_1T5e7gxxG6NR5p6GY7XPWhlT",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "▶️ Starting the update for **App4**"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BFWzF61qnwChstGlTc0yZx66kcDWk",
+  "modelId": "gpt-4o-2024-05-13",
+  "createdAt": "2025-03-27T02:10:21+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 6519,
+    "outputTokenCount": 22,
+    "totalTokenCount": 6541,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_65792305e4"
+  }
+}

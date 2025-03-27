@@ -97,6 +97,9 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => controlFlowPluginDefinition.MarkPlanComplete);
         Register200(() => controlFlowPluginDefinition.NotifyUser);
 
+        // TODO - should this be a 202 instead of having its own special handling in the orchestration loop?
+        Register200(() => controlFlowPluginDefinition.AskUserForInput);
+
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         Register200(() => approvalPluginDefinition.StartApprovalFlow);
 

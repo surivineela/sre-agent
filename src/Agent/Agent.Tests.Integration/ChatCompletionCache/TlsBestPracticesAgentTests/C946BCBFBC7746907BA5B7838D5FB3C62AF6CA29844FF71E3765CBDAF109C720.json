@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_YUa3njhA2qlaGspEPTSvrEfc",
+          "name": "MarkPlanComplete",
+          "arguments": {
+            "message": "### Plan Summary\n\n- **App1**: Update successful at 2025-02-24T01:02:30Z ✅\n- **App2**: Anomaly detected. Rollback completed at 2025-02-24T01:04:00Z ⚠️\uD83D\uDD04\n- **App3, App4, App5**: Updates not attempted due to anomaly in App2\n\n**Operation Outcome**: Partial Completion \uD83D\uDEA7"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BFX0cbPDffcMiYxfhn2kWyUcA3d2h",
+  "modelId": "gpt-4o-2024-05-13",
+  "createdAt": "2025-03-27T02:11:46+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 5343,
+    "outputTokenCount": 111,
+    "totalTokenCount": 5454,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ded0d14823"
+  }
+}

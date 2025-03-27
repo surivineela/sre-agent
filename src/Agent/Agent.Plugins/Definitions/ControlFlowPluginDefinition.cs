@@ -25,12 +25,22 @@ namespace Agent.Plugins
             throw new Exception("Control flow plugins should not be invoked directly.");
         }
 
-        [Description("Sends the specified message to the user. Used this for cases where you would normally reply to the user instead of making a tool call.")]
+        [Description("Sends the specified message to the user. Used this for cases where you would normally reply to the user instead of making a tool call. Do not use this if you need to wait for the user response, as this is a fire and forget notification.")]
         public void NotifyUser(
             [Description("The message to send to the user.")]
             string message)
         {
             throw new Exception("Control flow plugins should not be invoked directly.");
         }
+
+        [Description("Sends the specified message to the user and indicates that you require a response to proceed. Only use this tool when you require important information and need to wait for the user response. Do not use this for any scenario where you just need to send the user an update in a fire and forget manner. If the user responds in a manner that does not satisfactorily answer your question, use this tool again.")]
+        public void AskUserForInput(
+            [Description("The question to ask the user.")]
+            string message)
+        {
+            throw new Exception("Control flow plugins should not be invoked directly.");
+        }
+
+
     }
 }

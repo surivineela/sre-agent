@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_U30HGOWwgZG91uS7OOavxbUM",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "✅ Update successful for **App4** at 2025-02-24T01:00:00Z"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BFWzTvJL7kYr2N1PQLaT1nffMOn9F",
+  "modelId": "gpt-4o-2024-05-13",
+  "createdAt": "2025-03-27T02:10:35+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 7564,
+    "outputTokenCount": 35,
+    "totalTokenCount": 7599,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_65792305e4"
+  }
+}

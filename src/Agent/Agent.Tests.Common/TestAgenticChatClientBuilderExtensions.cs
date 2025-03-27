@@ -81,32 +81,34 @@ namespace Agent.Tests.Common
                 }
 
                 var res = await _innerClient.GetResponseAsync(chatMessages, options, cancellationToken);
-                var msg = res.GetMessage();
 
-                foreach (var responseContent in msg.Contents)
+                foreach (var msg in res.Messages)
                 {
-                    if (responseContent is FunctionCallContent functionCallContent)
+                    foreach (var responseContent in msg.Contents)
                     {
-                        var sb = new StringBuilder();
-                        sb.AppendLine($"Function call {functionCallContent.Name}({functionCallContent.CallId}) invoked with arguments:");
-
-                        foreach (var arg in functionCallContent.Arguments)
+                        if (responseContent is FunctionCallContent functionCallContent)
                         {
-                            sb.AppendLine($"  {arg.Key}: {arg.Value}");
+                            var sb = new StringBuilder();
+                            sb.AppendLine($"Function call {functionCallContent.Name}({functionCallContent.CallId}) invoked with arguments:");
+
+                            foreach (var arg in functionCallContent.Arguments)
+                            {
+                                sb.AppendLine($"  {arg.Key}: {arg.Value}");
+                            }
+
+                            _logger.LogTrace(sb.ToString());
                         }
-
-                        _logger.LogTrace(sb.ToString());
                     }
-                }
 
-                if (!string.IsNullOrEmpty(msg.Text))
-                {
-                    _logger.LogTrace($"{msg.Role}: {msg.Text}");
-                }
+                    if (!string.IsNullOrEmpty(msg.Text))
+                    {
+                        _logger.LogTrace($"{msg.Role}: {msg.Text}");
+                    }
 
-                hash = CachingHelpers.GetCacheKey([msg], _hashingOptions);
-                _hashes.Add(hash);
-                _debugTracking[hash] = msg;
+                    hash = CachingHelpers.GetCacheKey([msg], _hashingOptions);
+                    _hashes.Add(hash);
+                    _debugTracking[hash] = msg;
+                }
 
 
                 return res;

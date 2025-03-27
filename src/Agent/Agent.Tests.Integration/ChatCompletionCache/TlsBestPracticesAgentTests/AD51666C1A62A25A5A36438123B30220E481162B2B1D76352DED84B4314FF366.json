@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_HdDvt3r12Xnq78wWohETnA8r",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "⚠️ Anomaly detected for **App2** at 2025-02-24T01:00:00Z. Performing rollback..."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BFWyvzA4X22wdcblHq9PfN3caAYhV",
+  "modelId": "gpt-4o-2024-05-13",
+  "createdAt": "2025-03-27T02:10:01+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 4891,
+    "outputTokenCount": 42,
+    "totalTokenCount": 4933,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ded0d14823"
+  }
+}

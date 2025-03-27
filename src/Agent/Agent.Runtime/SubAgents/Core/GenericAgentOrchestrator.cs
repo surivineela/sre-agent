@@ -26,6 +26,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
         int stepCount = 0;
         bool done = false;
+        bool responseFromUserIsPending = false;
         Task? waitTask = null;
         CancellationTokenSource waitTokenSource = new CancellationTokenSource();
 
@@ -46,20 +47,26 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
             log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", threadId, stepCount);
 
-            // If there's an active wait task, then wait for it or for a new chat message
-            if (waitTask is not null)
+            // If there's an active wait task, the agent is not driving the task forward.
+            // However they still need to be responsive to user questions. Answering these questions might take multiple conversation turns (because of tool calls).
+            // So in that case, we don't want to block on the pending wait task.
+            if (waitTask is not null || responseFromUserIsPending == true)
             {
                 log.LogInformation("[{ThreadId}] Waiting for task to complete", threadId);
 
                 var tasksToWaitFor = new List<Task>();
                 tasksToWaitFor.AddRange(pending202Activities);
                 tasksToWaitFor.Add(newMessageTask);
-                tasksToWaitFor.Add(waitTask);
+                
+                if(waitTask != null)
+                {
+                    tasksToWaitFor.Add(waitTask);
+                }
 
                 await Task.WhenAny(tasksToWaitFor);
                 log.LogInformation("[{ThreadId}] Some task completed", threadId);
 
-                if (waitTask.IsCompleted)
+                if (waitTask != null && waitTask.IsCompleted)
                 {
                     // TODO: error handling
                     await waitTask;
@@ -102,6 +109,9 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", threadId, newMessage.ToString());
                 chatHistory.Add(newMessage);
                 newMessageTask = context.WaitForExternalEvent<ChatMessage>("NewChatMessage");
+                
+                // The user sent us a message
+                responseFromUserIsPending = false;
             }
 
             // Get the next action from the derived implementation
@@ -152,8 +162,15 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
             }
             else if (functionCall.Name == nameof(ControlFlowPluginDefinition.Wait))
             {
-                // For simplicity, using a fixed wait time (adjust as needed)
+                // so, the correct implementation is to grab the wait seconds argument and use that.
+                // but we are still in demo mode and we dont want to actually wait 30 seconds if the model decides to do that
+                // also, if we are in unit tests we dont want to wait at all
                 double waitSeconds = 7;
+                if(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)))
+                {
+                    waitSeconds = 0.1;
+                }
+                
                 waitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), waitTokenSource.Token);
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Wait operation submitted.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
@@ -242,8 +259,21 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     }
                 }
             }
-            else if (functionCall.Name == nameof(ControlFlowPluginDefinition.NotifyUser))
+            else if (functionCall.Name == nameof(ControlFlowPluginDefinition.NotifyUser) || functionCall.Name == nameof(ControlFlowPluginDefinition.AskUserForInput))
             {
+                if (functionCall.Name == nameof(ControlFlowPluginDefinition.AskUserForInput))
+                {
+                    responseFromUserIsPending = true;
+                    log.LogInformation("[{ThreadId}] User response pending", threadId);
+                    var resultContent = new FunctionResultContent(functionCall.CallId, "Question sent to user.");
+                    chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+                }
+                else
+                {
+                    var resultContent = new FunctionResultContent(functionCall.CallId, "User notified.");
+                    chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+                }
+
                 log.LogInformation("[{ThreadId}] Notifying user", threadId);
                 // Fix: Extract message from the arguments dictionary
                 string message = string.Empty;
@@ -260,9 +290,6 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     Message: message
                 ));
                 log.LogInformation("[{ThreadId}] User notified with message: {Message}", threadId, message);
-
-                var resultContent = new FunctionResultContent(functionCall.CallId, "User notified.");
-                chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
             }
             else if (functionCall.Name == nameof(ApprovalPluginDefinition.StartApprovalFlow))
             {
