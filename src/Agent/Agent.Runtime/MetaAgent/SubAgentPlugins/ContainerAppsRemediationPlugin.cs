@@ -35,9 +35,7 @@ public class ContainerAppsRemediationPlugin
                 Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                 FetchInputsAndOutputs: true)))
         {
-            // workaround because above fetch inputs and outputs is not working
-            var instanceWithInput = await _durableTaskClient.GetInstanceAsync(instance.InstanceId, getInputsAndOutputs: true);
-            var agentInput = instanceWithInput.ReadInputAs<ContainerAppsRemediationAgentInput>();
+            var agentInput = instance.ReadInputAs<ContainerAppsRemediationAgentInput>();
             
             list.Add(new WorkflowMetadata<string>(
                 WorkflowInstanceId: instance.InstanceId,

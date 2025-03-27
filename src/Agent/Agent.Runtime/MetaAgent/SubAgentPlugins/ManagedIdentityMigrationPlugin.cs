@@ -38,9 +38,7 @@ public class ManagedIdentityMigrationPlugin
                 Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                 FetchInputsAndOutputs: true)))
         {
-            // workaround because above fetch inputs and outputs is not working
-            var instanceWithInput = await _durableTaskClient.GetInstanceAsync(instance.InstanceId, getInputsAndOutputs: true);
-            var agentInput = instanceWithInput.ReadInputAs<ManagedIdentityMigrationAgentInput>();
+            var agentInput = instance.ReadInputAs<ManagedIdentityMigrationAgentInput>();
             list.Add(new WorkflowMetadata<ManagedIdentityMigrationInput>(
                 WorkflowInstanceId: instance.InstanceId,
                 Input: agentInput.Input));

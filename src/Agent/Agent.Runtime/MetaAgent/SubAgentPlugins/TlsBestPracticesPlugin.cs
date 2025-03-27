@@ -37,9 +37,7 @@ public class TlsBestPracticesPlugin
                 Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                 FetchInputsAndOutputs: true)))
         {
-            // workaround because above fetch inputs and outputs is not working
-            var instanceWithInput = await _durableTaskClient.GetInstanceAsync(instance.InstanceId, getInputsAndOutputs: true);
-            var agentInput = instanceWithInput.ReadInputAs<TlsBestPracticesAgentInput>();
+            var agentInput = instance.ReadInputAs<TlsBestPracticesAgentInput>();
             list.Add(new WorkflowMetadata<TlsBestPracticesInput>(
                 WorkflowInstanceId: instance.InstanceId,
                 Input: agentInput.Input));
