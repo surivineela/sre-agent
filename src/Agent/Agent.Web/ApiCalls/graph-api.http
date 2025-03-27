@@ -1,0 +1,16 @@
+# For more info on HTTP files go to https://aka.ms/vs/httpfile
+### Get nodes
+POST https://{{ApiHostname}}/api/v1/graph/
+Content-Type: application/json
+Accept: application/json
+{
+  "query": "g.V()"
+}
+
+### Get edges
+POST https://{{ApiHostname}}/api/v1/graph/
+Content-Type: application/json
+Accept: application/json
+{
+  "query": "g.E()"
+}
