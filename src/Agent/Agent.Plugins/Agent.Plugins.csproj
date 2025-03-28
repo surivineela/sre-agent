@@ -9,12 +9,14 @@
   <ItemGroup>
 	  <PackageReference Include="Azure.AI.OpenAI" />
 	  <PackageReference Include="Azure.ResourceManager.AppContainers" />
+    <PackageReference Include="Azure.ResourceManager.ContainerService" />
 	  <PackageReference Include="Azure.ResourceManager.Network" />
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Microsoft.SemanticKernel" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
     <PackageReference Include="Octokit" />
+    <PackageReference Include="KubernetesClient" />
   </ItemGroup>
 
   <ItemGroup>
