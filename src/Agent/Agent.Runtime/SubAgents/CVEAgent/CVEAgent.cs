@@ -60,7 +60,8 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         public override async Task<ChatMessage> RunAsync(TaskActivityContext context, CVEAgentInput agentInput)
         {
             StringBuilder introMessage = new StringBuilder("""
-                I scan all github urls for the applications in order to find any security vulnerabilities.
+                I will scan the following list of github repo urls in order to find any security vulnerabilities:
+
                 """);
 
             foreach (var repo in agentInput.Input.ReposToScan)

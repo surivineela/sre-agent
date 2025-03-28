@@ -194,9 +194,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
-            AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubSecurityDependabotAlerts),
-            AIFunctionFactory.Create(_sourceCodePlugin.ListSourceCodeWorkflows),
-            AIFunctionFactory.Create(_sourceCodePlugin.StartSourceCodeAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync)
         ];
 

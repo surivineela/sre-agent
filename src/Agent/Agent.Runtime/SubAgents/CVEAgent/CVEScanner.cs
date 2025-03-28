@@ -67,6 +67,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     "CVE Scanner",
                     """
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
+
                     """);
                     
 
