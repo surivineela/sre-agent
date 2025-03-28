@@ -31,10 +31,19 @@ public class ResourceGraphCrawler
         _semaphore = new SemaphoreSlim(1, 1);
     }
 
-    public async Task<int> Crawl(string rootId, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
+    public async Task<int> Crawl(IEnumerable<string> rootIds, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
-        ArmResourceNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
-        return await Crawl(new List<ArmResourceNode>() { rootNode }, filters);
+        List<ArmResourceNode> roots = new List<ArmResourceNode>();
+        foreach(var rootId in rootIds)
+        {
+            ArmResourceNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
+            if (rootNode != null)
+            {
+                _logger.LogInformation($"Crawl root: {rootId}");
+                roots.Add(rootNode);
+            }
+        }
+        return await Crawl(roots, filters);
     }
 
     public async Task<int> Crawl(IList<ArmResourceNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)

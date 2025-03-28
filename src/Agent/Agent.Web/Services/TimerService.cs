@@ -3,6 +3,7 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
+using ModelContextProtocol.Protocol.Types;
 
 namespace Agent.Seb.Services;
 
@@ -92,11 +93,12 @@ public class TimerService : IHostedService, IDisposable
             try
             {
                 _crawlerTimerIsRunning = true;
-                int count = await _crawler.Crawl(_settings.CrawlRoot, cancellationToken: cancellationToken);
+                var roots = _settings.CrawlRoots.Split(",");
+                int count = await _crawler.Crawl(roots, cancellationToken: cancellationToken);
 
                 // Temp workaround for MVP demo
                 // the UAMI might not have permission when the agent is created
-                if (count > 1)
+                if (count > roots.Length)
                 {
                     _crawlerFinishedOnce = true;
                     if (_crawlerTimerIntervalInSeconds != _timerSettings.BackgroundCrawlIntervalInMinutes * 60)

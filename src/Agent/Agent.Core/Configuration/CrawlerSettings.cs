@@ -11,7 +11,8 @@ namespace Agent.Core.Configuration
     {
         [Required]
         public string TenantId { get; set; } = string.Empty;
-        public string CrawlRoot { get; set; } = string.Empty;
+        // comma delimeted list of resource ids
+        public string CrawlRoots { get; set; } = string.Empty;
         // 'system' for system managed identity
         // or resource id of user assigned managed identity
         public string? Identity { get; set; }

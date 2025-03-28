@@ -23,7 +23,7 @@ namespace Agent.Cmd
 
             command.OnExecute(async () =>
             {
-                await _crawler.Crawl(resourceId.Value);
+                await _crawler.Crawl([resourceId.Value]);
                 return 0;
             });
         }

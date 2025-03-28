@@ -34,7 +34,7 @@ namespace Agent.Runtime
                 builder.LoadLocalAppSettings(isDevelopment);
             }
 
-            if (!isDevelopment)
+            if (isDevelopment)
             {
                 builder.Configuration.AddAzureAppConfiguration(options =>
                 {
