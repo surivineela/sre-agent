@@ -5,11 +5,10 @@
 using Agent.Core;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Plugins;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Plugins.Implementation;
 using Agent.Runtime.Communication;
+using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -100,6 +99,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IThreadRepository _repository;
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
+    private readonly McpToolsRepository _mcpToolsRepository;
     private readonly AsyncReaderWriterLock _lock = new();
 
     private readonly IServiceProvider _serviceProvider;
@@ -120,6 +120,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IThreadRepository repository,
         IThreadOrchestrationManager mappingManager,
         IAgentOutboundCommunicationService outboundCommunicationService,
+        McpToolsRepository mcpToolsRepository,
         Plugins.ChartPlugin chartplugin,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         TlsBestPracticesPlugin tlsBestPracticesPlugin,
@@ -132,6 +133,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _repository = repository;
         _mappingManager = mappingManager;
         _outboundCommunicationService = outboundCommunicationService;
+        _mcpToolsRepository = mcpToolsRepository;
         _log = logger;
 
         _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
@@ -184,8 +186,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync)
-
         ];
+
+        _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
 
         var response = await _chatClient.GetResponseAsync(
             chatHistory,

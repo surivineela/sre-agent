@@ -30,6 +30,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     private readonly SemaphoreSlim _reconnectTimerLock = new(1, 1);
     private ILoggerFactory _loggerFactory;
     private readonly ToolsRepository _toolsRepository;
+    private readonly McpToolsRepository _mcpToolsRepository;
 
     /// <summary>
     /// URLs mapped to connections
@@ -40,6 +41,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         MCPMetaAgent mcpMetaAgent,
         MCPSettings mcpSettings,
         ToolsRepository toolsRepository,
+        McpToolsRepository mcpToolsRepository,
         ILogger<MCPMetaAgentManagementService> logger,
         ILoggerFactory loggerFactory)
     {
@@ -48,6 +50,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         _toolsRepository = toolsRepository;
         _logger = logger;
         _loggerFactory = loggerFactory;
+        _mcpToolsRepository = mcpToolsRepository;
     }
 
     public async Task StartAsync(CancellationToken cancellationToken)
@@ -145,8 +148,13 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
             var mcpMetaAgentTasks = disconnectedMcpMetaAgentUrls.Select(async url => await AddConnectionIfSuccessful(url, _mcpMetaAgent));
 
             var disconnectedToolsRepositoryUrls = _mcpSettings.SharedServers.Where(url => !_activeConnections.ContainsKey(url));
-            var toolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(url, _toolsRepository));
-            await Task.WhenAll(mcpMetaAgentTasks.Concat(toolsRepositoryTasks));
+
+            //  for now, collect a separate set of MCP tools to expose to the meta agent
+            //  todo - figure out how we want MCP tools injected into subagents too.
+            //var toolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(url, _toolsRepository));
+            var mcpToolsRepositoryTasks = disconnectedToolsRepositoryUrls.Select(async url => await AddConnectionIfSuccessful(url, _mcpToolsRepository));
+
+            await Task.WhenAll(mcpMetaAgentTasks.Concat(mcpToolsRepositoryTasks));
         }
         finally
         {

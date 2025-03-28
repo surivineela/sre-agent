@@ -7,6 +7,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.RegularExpressions;
+using ModelContextProtocol.Protocol.Types;
 
 namespace Agent.Runtime.Models;
 
@@ -62,12 +63,18 @@ public class McpConnection
 
             Client = await McpClientFactory.CreateAsync(
                 config,
-                options
+                options,
+                loggerFactory: LoggerFactory
             );
 
 
             // Can't use McpSessionScope yet because we need lower level functionality for pinging
             Tools = (await Client.GetAIFunctionsAsync()).ToList<AITool>();
+
+            foreach (var tool in Tools)
+            {
+                logger.LogInformation("Imported tool: {tool} from MCP server {server}", tool.Name, config.Location);
+            }
 
             if (!string.IsNullOrEmpty(Client.ServerInstructions))
             {
