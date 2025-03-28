@@ -19,6 +19,11 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
+        public Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync()
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<ResultSet<dynamic>> Query(string query)
         {
             throw new NotImplementedException();

@@ -36,7 +36,7 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _sourceCodeCrawlerTimer = null;
     private bool _sourceCodeCrawlerTimerIsRunning = false;
-    private TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(10);
+    private TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(1);
 
     private Timer? _cveCrawlerTimer = null;
     private bool _cveCrawlerTimerIsRunning = false;

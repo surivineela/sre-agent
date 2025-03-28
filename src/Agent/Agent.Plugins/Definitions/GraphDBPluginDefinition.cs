@@ -38,5 +38,12 @@ namespace Agent.Plugins
         {
             await _plugin.AddSourceCodeNodeToContainerAppNodeAsync(resourceId: resourceId, repoUrl: repoUrl);
         }
+
+        [KernelFunction("GetContainerAppsWithNodesWithoutSourceCodeNodes")]
+        [Description("Gets a list of container apps with nodes in the graph that don't have edges connecting them to source code nodes")]
+        public async Task GetContainerAppsWithNodesWithoutSourceCodeNodes()
+        {
+            await _plugin.GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
+        }
     }
 } 

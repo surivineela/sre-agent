@@ -63,6 +63,7 @@ public sealed class ToolsRepository : IMcpConnectable
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
         Register200(() => graphDBPluginDefinition.FindAllNetworkConnectedResources);
         Register200(() => graphDBPluginDefinition.AddSourceCodeNodeToContainerAppNode);
+        Register200(() => graphDBPluginDefinition.GetContainerAppsWithNodesWithoutSourceCodeNodes);
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         Register200(() => armPluginDefinition.SetMinimumTlsVersion);

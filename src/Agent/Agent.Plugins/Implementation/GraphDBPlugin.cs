@@ -83,15 +83,13 @@ namespace Agent.Plugins
                 string sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_");
                 string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository')";
                 var sourceCodeNodeResults = await GraphDbClient.Query(checkSourceCodeNodeQuery);
-
-                var containerAppSubscription = ExtractSubscriptionId(resourceId);
-
+                
                 if (!sourceCodeNodeResults.Any())
                 {
                     var properties = new Dictionary<string, object>
                     {
                         { "resourceId", repoUrl },
-                        { "subscriptionId", containerAppSubscription },
+                        { "subscriptionId", "githubrepo-sub" },
                         { "resourceGroupName", "githubrepo-rg" },
                         { "resourceName", sourceCodeNodeId },
                         { "updateTs", DateTime.UtcNow.Ticks }
@@ -108,17 +106,16 @@ namespace Agent.Plugins
             }
         }
 
-        private string ExtractSubscriptionId(string resourceId)
+        public async Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync()
         {
-            var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < segments.Length - 1; i++)
-            {
-                if (segments[i].Equals("subscriptionId", StringComparison.OrdinalIgnoreCase))
-                {
-                    return segments[i + 1];
-                }
-            }
-            return string.Empty;
+            var queryResults = await GraphDbClient.Query(@"
+                g.V().has('resourceType', 'microsoft.app/containerapps')
+                .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository'))
+                .values('resourceId')");
+
+            var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
+
+            return resources;
         }
     }
 } 

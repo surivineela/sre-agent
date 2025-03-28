@@ -31,6 +31,7 @@ public sealed class SourceCodeAgentFactory
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => graphDbPluginDefinition.AddSourceCodeNodeToContainerAppNode));
+        toolSignatures.Add(toolsRepository.GetSignature(() => graphDbPluginDefinition.GetContainerAppsWithNodesWithoutSourceCodeNodes));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));

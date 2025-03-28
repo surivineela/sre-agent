@@ -60,18 +60,10 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         {
             StringBuilder introMessage = new StringBuilder("""
                 I work to link github urls with applications in order to perform richer analysis on the apps.
-
-                #### Application Updates  
-
                 """);
 
-            foreach (var app in agentInput.Input.AppsWithoutSourceCodeNodes)
-            {
-                introMessage.AppendLine($"**{app.ResourceId}**");
-            }
 
             introMessage.AppendLine();
-            introMessage.AppendLine("Can you provide me with the repo url for this application?");
 
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
