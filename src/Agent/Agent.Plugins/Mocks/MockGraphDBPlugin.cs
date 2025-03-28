@@ -9,6 +9,11 @@ namespace Agent.Plugins.Mocks
 {
     public class MockGraphDBPlugin : IGraphDBPlugin
     {
+        public Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> FindAllNetworkConnectedResources(string resourceId = "")
         {
             throw new NotImplementedException();

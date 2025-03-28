@@ -29,6 +29,8 @@ namespace Agent.Runtime.SubAgents
 
         protected IContainerAppPlugin _containerAppPlugin { get; } 
 
+        protected IGithubIssuePlugin _githubIssuePlugin { get; }
+
         protected ResourceGraphCrawler _crawler { get; }
 
         public override string SystemPrompt { get; protected set; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
@@ -42,6 +44,7 @@ namespace Agent.Runtime.SubAgents
             IChatClient chatClient,
             IRemediationPlugin remediationPlugin,
             IContainerAppPlugin containerAppPlugin,
+            IGithubIssuePlugin githubIssuePlugin,
             ResourceGraphCrawler crawler,
             ILogger<GenericAgent> logger)
             : base("GenericAgent", chatClient)
@@ -54,6 +57,7 @@ namespace Agent.Runtime.SubAgents
             _currentStatePlugin = currentStatePlugin;
             _remediationPlugin = remediationPlugin;
             _containerAppPlugin = containerAppPlugin;
+            _githubIssuePlugin = githubIssuePlugin;
             _crawler = crawler;
         }
 
@@ -83,7 +87,9 @@ namespace Agent.Runtime.SubAgents
 
                 AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
                 AIFunctionFactory.Create(_containerAppPlugin.GetLatestRevisionAsync),
-                AIFunctionFactory.Create(_containerAppPlugin.GetContainerAppInfoAsync)
+                AIFunctionFactory.Create(_containerAppPlugin.GetContainerAppInfoAsync),
+
+                AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubSecurityDependabotAlerts)
             };
         }
     }

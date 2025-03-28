@@ -7,5 +7,6 @@ namespace Agent.Plugins
     {
         Task<ResultSet<dynamic>> Query(string query);
         Task<string> FindAllNetworkConnectedResources(string resourceId = "");
+        Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl);
     }
 } 

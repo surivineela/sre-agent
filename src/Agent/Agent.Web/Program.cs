@@ -24,7 +24,9 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
+using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
+using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
@@ -138,6 +140,8 @@ if (useSessionChatService)
         .AddSingleton<CodeAnalyzerPluginDefinition>()
         .AddSingleton<CodeAnalyzerService>()
         .AddSingleton<Agent.Plugins.Models.GitHubClient>()
+        .AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>()
+        .AddSingleton<GitHubIssuePluginDefinition>()
         .AddSingleton<IDiagnosePlugin, DiagnosePlugin>()
         .AddSingleton<DiagnosePluginDefinition>()
         .AddSingleton<IRemediationPlugin, RemediationPlugin>()
@@ -153,6 +157,7 @@ if (useSessionChatService)
         .AddTransient<ContainerAppsRemediationPlugin>()
         .AddTransient<ManagedIdentityMigrationPlugin>()
         .AddTransient<TlsBestPracticesPlugin>()
+        .AddTransient<SourceCodePlugin>()
         .AddTransient<AppServiceRemediationPlugin>()
         .AddTransient<IChartPlugin, ChartPlugin>()
         .AddTransient<ChartPlugin>()
@@ -161,6 +166,10 @@ if (useSessionChatService)
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<TlsBestPracticesScanner>()
+        .AddSingleton<SourceCodeAgentFactory>()
+        .AddSingleton<SourceCodeScanner>()
+        .AddSingleton<CVEAgentFactory>()
+        .AddSingleton<CVEScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
         .AddSingleton<IApprovalPlugin, ApprovalPlugin>()

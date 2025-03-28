@@ -9,6 +9,8 @@ using Microsoft.SemanticKernel;
 using Agent.Plugins.Helpers;
 using Octokit;
 using Agent.Core.Configuration;
+using Agent.Plugins.Models;
+using Newtonsoft.Json;
 
 namespace Agent.Plugins;
 
@@ -193,6 +195,33 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         );
     }
 
+    public async Task<IEnumerable<GithubIssuePluginDependabotVulnerability>> FetchGithubSecurityDependabotAlerts(
+        string repoUrl
+    )
+    {
+        return await KernelFunctionHelpers.TryAction(
+            nameof(GitHubIssuePlugin),
+            async () =>
+            {
+                var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
+
+                var endpoint = new Uri($"repos/{owner}/{repo}/dependabot/alerts", UriKind.Relative);
+                var response = await _gitHubClient.Connection.Get<string>(endpoint, null, "application/vnd.github+json");
+                var responseObject = JsonConvert.DeserializeObject<DependabotAlert[]>(response.HttpResponse.Body.ToString());
+
+                var dependabotAlerts = new List<DependabotAlert>(responseObject ?? new DependabotAlert[0]);
+                return dependabotAlerts.Select(
+                    alert => new GithubIssuePluginDependabotVulnerability(
+                        alert.Number,
+                        alert.State,
+                        alert.SecurityAdvisory.Summary ?? string.Empty,
+                        alert.SecurityAdvisory.Description ?? string.Empty
+                    ));
+            },
+            _logger
+        );
+    }
+
     public async Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(
         string repoUrl,
         int issueNumber
@@ -242,6 +271,73 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     }
 }
 
+public struct DependabotAlert
+{
+    public long Id { get; set; }
+    public int Number { get; set; }
+    public string State { get; set; }
+    public Dependency Dependency { get; set; }
+    [JsonProperty("security_advisory")]
+    public SecurityAdvisory SecurityAdvisory { get; set; }
+    [JsonProperty("security_vulnerability")]
+    public SecurityVulnerability SecurityVulnerability { get; set; }
+    public string[] VulnerableManifestPaths { get; set; }
+    public string VulnerableRequirements { get; set; }
+    public User? DismissedBy { get; set; }
+    public DateTimeOffset? DismissedAt { get; set; }
+    public string DismissedReason { get; set; }
+    public DateTimeOffset CreatedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? FixedAt { get; set; }
+}
+
+public struct Dependency
+{
+    public Package Package { get; set; }
+    public string ManifestPath { get; set; }
+    public string Scope { get; set; }
+}
+
+public struct Package
+{
+    public string Ecosystem { get; set; }
+    public string Name { get; set; }
+}
+
+public struct SecurityAdvisory
+{
+    public string GhsaId { get; set; }
+    public string CveId { get; set; }
+    public string Summary { get; set; }
+    public string Description { get; set; }
+    public string Severity { get; set; }
+    public Reference[] References { get; set; }
+    public DateTimeOffset PublishedAt { get; set; }
+    public DateTimeOffset UpdatedAt { get; set; }
+    public DateTimeOffset? WithdrawnAt { get; set; }
+}
+
+public struct Reference
+{
+    public string Url { get; set; }
+}
+
+public struct SecurityVulnerability
+{
+    public Package Package { get; set; }
+    public string Severity { get; set; }
+    public string VulnerableVersionRange { get; set; }
+    public string FirstPatchedVersion { get; set; }
+}
+
+public struct User
+{
+    public string Login { get; set; }
+    public long Id { get; set; }
+    public string AvatarUrl { get; set; }
+    public string Url { get; set; }
+}
+
 public record struct GithubIssuePluginIssue(
     long Id,
     int Number,
@@ -257,6 +353,13 @@ public record struct GithubIssuePluginIssue(
     DateTimeOffset? ClosedAt,
     DateTimeOffset CreatedAt,
     DateTimeOffset? UpdatedAt
+);
+
+public record struct GithubIssuePluginDependabotVulnerability(
+    int Number,
+    string State,
+    string Title,
+    string Body
 );
 
 public record struct GithubIssuePluginMilestone(

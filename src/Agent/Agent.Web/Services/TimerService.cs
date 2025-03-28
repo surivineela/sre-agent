@@ -2,6 +2,8 @@
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.CVEAgent;
+using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using ModelContextProtocol.Protocol.Types;
 
@@ -16,6 +18,8 @@ public class TimerService : IHostedService, IDisposable
     private TimerSettings _timerSettings;
     private BestPracticeScannerAgent _bestPracticeScannerAgent;
     private TlsBestPracticesScanner _tlsBestPracticesScanner;
+    private SourceCodeScanner _sourceCodeScanner;
+    private CVEScanner _cveScanner;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -30,6 +34,13 @@ public class TimerService : IHostedService, IDisposable
     private bool _tlsTimerIsRunning = false;
     private TimeSpan _tlsTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _sourceCodeCrawlerTimer = null;
+    private bool _sourceCodeCrawlerTimerIsRunning = false;
+    private TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(10);
+
+    private Timer? _cveCrawlerTimer = null;
+    private bool _cveCrawlerTimerIsRunning = false;
+    private TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
 
     public TimerService(
         ResourceGraphCrawler crawler,
@@ -38,7 +49,9 @@ public class TimerService : IHostedService, IDisposable
         BestPracticeScannerAgent bestPracticeScannerAgent,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
-        ILogger<TimerService> logger)
+        ILogger<TimerService> logger,
+        SourceCodeScanner sourceCodeScanner,
+        CVEScanner cveScanner)
     {
         _logger = logger;
         _crawler = crawler;
@@ -47,6 +60,8 @@ public class TimerService : IHostedService, IDisposable
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
+        _sourceCodeScanner = sourceCodeScanner;
+        _cveScanner = cveScanner;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
     }
 
@@ -61,6 +76,12 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
+
+        _logger.LogInformation($"Starting Source Code timer...");
+        StartSourceCodeTimer(cancellationToken);
+
+        _logger.LogInformation($"Starting CVE timer...");
+        StartCVETimer(cancellationToken);
 
         _logger.LogInformation($"Finished starting background services");
 
@@ -137,6 +158,50 @@ public class TimerService : IHostedService, IDisposable
                 _tlsTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _tlsTimerInterval);
+
+    }
+
+    public void StartSourceCodeTimer(CancellationToken cancellationToken)
+    {
+        _sourceCodeCrawlerTimer = new Timer(async _ =>
+        {
+            if (_sourceCodeCrawlerTimerIsRunning)
+            {
+                _logger.LogInformation("Source code scanner is running. Skip this round");
+                return; // Prevent overlapping executions
+            }
+            try
+            {
+                _sourceCodeCrawlerTimerIsRunning = true;
+                await _sourceCodeScanner.Scan(cancellationToken);
+            }
+            finally
+            {
+                _sourceCodeCrawlerTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _sourceCodeTimerInterval);
+
+    }
+
+    public void StartCVETimer(CancellationToken cancellationToken)
+    {
+        _cveCrawlerTimer = new Timer(async _ =>
+        {
+            if (_cveCrawlerTimerIsRunning)
+            {
+                _logger.LogInformation("CVE scanner is running. Skip this round");
+                return; // Prevent overlapping executions
+            }
+            try
+            {
+                _cveCrawlerTimerIsRunning = true;
+                await _cveScanner.Scan(cancellationToken);
+            }
+            finally
+            {
+                _cveCrawlerTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _cveCrawlerTimerInterval);
 
     }
 

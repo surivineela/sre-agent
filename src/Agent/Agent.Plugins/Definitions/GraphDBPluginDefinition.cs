@@ -29,5 +29,14 @@ namespace Agent.Plugins
         {
             return await _plugin.FindAllNetworkConnectedResources(resourceId);
         }
+
+        [KernelFunction("AddSourceCodeNodeToContainerAppNode")]
+        [Description("Adds the GitHub repo url node and an edge from the container app node to it")]
+        public async Task AddSourceCodeNodeToContainerAppNode(
+            [Description("Azure Resource Id of the Container App, should begin with /subscriptions...., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.app/containerapps/iot-dashboard")] string resourceId = "",
+            [Description("GitHub repository url, should begin with https://github.com/..., Example: https://github.com/serverless-paas-balam/sreagent-demo-nextjsauth")] string repoUrl = "")
+        {
+            await _plugin.AddSourceCodeNodeToContainerAppNodeAsync(resourceId: resourceId, repoUrl: repoUrl);
+        }
     }
 } 

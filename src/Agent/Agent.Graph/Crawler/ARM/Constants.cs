@@ -31,6 +31,7 @@ public class Constants
         public const string Connected = "CONNECTED";
         public const string Hosts = "HOSTS";
         public const string HostedOn = "HOSTED_ON";
+        public const string ServesCode = "SERVES_CODE";
     }
 
     // indicates this node is a part of specific topology

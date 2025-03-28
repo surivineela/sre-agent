@@ -36,7 +36,8 @@ public sealed class ToolsRepository : IMcpConnectable
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IGraphDBPlugin graphDBPlugin,
-        IContainerAppPlugin containerAppPlugin)
+        IContainerAppPlugin containerAppPlugin,
+        IGithubIssuePlugin githubIssuePlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
@@ -61,6 +62,7 @@ public sealed class ToolsRepository : IMcpConnectable
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
         Register200(() => graphDBPluginDefinition.FindAllNetworkConnectedResources);
+        Register200(() => graphDBPluginDefinition.AddSourceCodeNodeToContainerAppNode);
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         Register200(() => armPluginDefinition.SetMinimumTlsVersion);
@@ -115,6 +117,9 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => containerAppPluginDefinition.RemoveNSGRuleAsync);
         Register200(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync);
         Register200(() => containerAppPluginDefinition.ScaleContainerApp);
+
+        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
+        Register200(() => githubIssuePluginDefinition.FetchGithubSecurityDependabotAlerts);
     }
 
     public string Register202(

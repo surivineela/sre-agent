@@ -31,5 +31,15 @@ namespace Agent.Plugins.Helpers
             }
             return (match.Groups["owner"].Value, match.Groups["repo"].Value, long.Parse(match.Groups["issueNumber"].Value));
         }
+
+        public static (string owner, string repo) ParseGitHubDependabotAlertUrl(string issueUrl)
+        {
+            var match = Regex.Match(issueUrl, @"github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)/dependabot/alerts$");
+            if (!match.Success)
+            {
+                throw new ArgumentException("Invalid GitHub issue URL format");
+            }
+            return (match.Groups["owner"].Value, match.Groups["repo"].Value);
+        }
     }
 }

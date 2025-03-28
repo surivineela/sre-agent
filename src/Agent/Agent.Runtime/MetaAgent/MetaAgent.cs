@@ -18,9 +18,9 @@ namespace Agent.Runtime.MetaAgent;
 // [Export]
 public sealed class MetaAgent : IAgent
 {
-    private const string SystemPrompt = @"# Azure SRE Agent
+    private const string SystemPrompt = @"# Azure SRE Agentd
 
-You are a specialized Azure SRE Agent designed to assist users with Microsoft Azure products and services.
+You are a specialized Azure SRE Agent designed to assist users with Microsoft Azure products and services as well as the GitHub repositories that back the apps. You can also GitHub repository security reviews directly.
 
 Your primary role is to understand user requests and delegate tasks to appropriate task based agents when necessary.
 
@@ -56,6 +56,7 @@ Before proceeding with any Azure resource operations:
 - **App Service Remediation**: If there is any issue with Azure WebApps or Azure Function apps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
+- **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 
 ## Core Responsibilities
 1. **Request Triage**: Determine if a user request is related to Azure SRE concerns
@@ -64,6 +65,7 @@ Before proceeding with any Azure resource operations:
    - For managed identity migration, call `startManagedIdentityMigrationAgent`
    - For any issues related to Azure WebApp or Function app or App Service, call `startAppServiceRemediationAgent`
    - For any issues related to Azure Container Apps, call `startContainerAppsRemediationAgent`
+   - To link repo urls to Azure Container Apps, call `startSourceCodeAgent`
    - Similar to this pattern, you can delegate to other task-based agents if registered accordingly.
 3. **Workflow Management**: Start, monitor, and summarize various Azure-related workflows or orchestrations.
 
@@ -113,6 +115,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
     private readonly Plugins.ChartPlugin _chartplugin;
+    private readonly IGithubIssuePlugin _githubIssuePlugin;
+    private readonly SourceCodePlugin _sourceCodePlugin;
 
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -127,7 +131,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         AppServiceRemediationPlugin appServiceRemediationPlugin,
         ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
         ISubscriptionPlugin subscriptionPlugin,
-        IContainerAppPlugin containerAppPlugin)
+        IContainerAppPlugin containerAppPlugin,
+        IGithubIssuePlugin githubIssuePlugin,
+        SourceCodePlugin sourceCodePlugin)
     {
         _chatClient = chatClient;
         _repository = repository;
@@ -144,6 +150,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
         _containerAppPlugin = containerAppPlugin;
         _chartplugin = chartplugin;
+        _githubIssuePlugin = githubIssuePlugin;
+        _sourceCodePlugin = sourceCodePlugin;
     }
 
     // TODO: the userMessage is not needed as we are using the repository to get the messages
@@ -165,10 +173,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _managedIdentityMigrationPlugin.ThreadId = threadId;
         _appServiceRemediationPlugin.ThreadId = threadId;
         _containerAppsRemediationPlugin.ThreadId = threadId;
+        _sourceCodePlugin.ThreadId = threadId;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.ThreadId = threadId;
-
 
         List <AITool> _aiTools =
         [
@@ -185,6 +193,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
+            AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubSecurityDependabotAlerts),
+            AIFunctionFactory.Create(_sourceCodePlugin.ListSourceCodeWorkflows),
+            AIFunctionFactory.Create(_sourceCodePlugin.StartSourceCodeAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync)
         ];
 
