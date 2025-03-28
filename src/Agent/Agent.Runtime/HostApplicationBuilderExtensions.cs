@@ -36,39 +36,43 @@ namespace Agent.Runtime
 
             if (isDevelopment)
             {
-                builder.Configuration.AddAzureAppConfiguration(options =>
-                {
-                    string envPrefix = builder.Configuration.GetValue<string>("AppSettings:EnvPrefix");
-                    string ManagedIdentityClientId = builder.Configuration.GetValue<string>("AppSettings:ManagedIdentityClientId");
-
-                    if (string.IsNullOrEmpty(envPrefix))
-                    {
-                        throw new ConfigurationErrorsException("AppSettings:EnvPrefix not set. Please set so we can automatically fetch private environment settings. For more info, check readme.");
-                    }
-
-                    string endpoint = $"https://{envPrefix}-appconfig.azconfig.io";
-                    var credOptions = new DefaultAzureCredentialOptions()
-                    {
-                        ExcludeInteractiveBrowserCredential = !builder.Environment.IsDevelopment()
-                    };
-                    if (!string.IsNullOrEmpty(ManagedIdentityClientId))
-                    {
-                        credOptions.ManagedIdentityClientId = ManagedIdentityClientId;
-                    }
-                    DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
-                    options.Connect(new Uri(endpoint), cred);
-                    options.ConfigureKeyVault(options =>
-                    {
-                        options.SetCredential(cred);
-                    });
-                });
-            }
-
-            if (isDevelopment)
-            {
+                AddFromAppConfig(builder);
                 builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
             }
             builder.Configuration.AddEnvironmentVariables();
+        }
+
+        private static void AddFromAppConfig(IHostApplicationBuilder builder)
+        {
+            string envPrefix = builder.Configuration.GetValue<string>("AppSettings:EnvPrefix");
+            string ManagedIdentityClientId = builder.Configuration.GetValue<string>("AppSettings:ManagedIdentityClientId");
+
+            if (string.IsNullOrEmpty(envPrefix))
+            {
+                // Log warning instead of throwing exception as AppConfig should not be mandatory for local dev especially for 1P scenarios
+                Console.WriteLine("WARNING: AppSettings:EnvPrefix not set. Azure App Configuration will not be loaded. For more info, check readme.");
+                return;
+            }
+
+            string endpoint = $"https://{envPrefix}-appconfig.azconfig.io";
+            var credOptions = new DefaultAzureCredentialOptions()
+            {
+                ExcludeInteractiveBrowserCredential = !builder.Environment.IsDevelopment()
+            };
+            if (!string.IsNullOrEmpty(ManagedIdentityClientId))
+            {
+                credOptions.ManagedIdentityClientId = ManagedIdentityClientId;
+            }
+            DefaultAzureCredential cred = new DefaultAzureCredential(credOptions);
+
+            builder.Configuration.AddAzureAppConfiguration(options =>
+            {
+                options.Connect(new Uri(endpoint), cred);
+                options.ConfigureKeyVault(options =>
+                {
+                    options.SetCredential(cred);
+                });
+            });
         }
 
         public static void ValidateAndRegisterAppSettings<TAppSettings>(this IHostApplicationBuilder builder)
