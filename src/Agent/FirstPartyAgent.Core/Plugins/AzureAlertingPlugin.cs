@@ -1,4 +1,5 @@
 ﻿using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
@@ -32,15 +33,6 @@ namespace FirstPartyAgent.Core.Plugins
             _kernel = kernel;
             _teamsClient = teamsClient;
             _kustoPlugin = kustoPlugin;
-        }
-
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
         }
 
         private async Task<AlertDetails> GetAzureAlertingDetailsById(
@@ -120,9 +112,11 @@ namespace FirstPartyAgent.Core.Plugins
             [Description("Correlation Id")] string correlationId,
             [Description("Alert Id")] string alertId,
             [Description("Kusto Cluster Name")] string clusterName,
-            [Description("Kusto Database Name")] string databaseName)
+            [Description("Kusto Database Name")] string databaseName,
+            Kernel kernel)
         {
-            await LogInformation($"[run_alert_kusto_query][{DateTime.UtcNow}] Invoked with ICMBacktestingModeEnabled: {ICMBacktestingModeEnabled}, impactStartDate: {impactStartDate}, monitoringIterationNumber: {monitoringIterationNumber},  monitoringGapInSeconds: {monitoringGapInSeconds}, correlationId: {correlationId}, alertId: {alertId}, clusterName: {clusterName}, databaseName: {databaseName}.");
+            var logMessage = $"[run_alert_kusto_query][{DateTime.UtcNow}] Invoked with ICMBacktestingModeEnabled: {ICMBacktestingModeEnabled}, impactStartDate: {impactStartDate}, monitoringIterationNumber: {monitoringIterationNumber},  monitoringGapInSeconds: {monitoringGapInSeconds}, correlationId: {correlationId}, alertId: {alertId}, clusterName: {clusterName}, databaseName: {databaseName}.";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             DateTime? nowOverride = null;
             if (ICMBacktestingModeEnabled)
             {
@@ -139,7 +133,7 @@ namespace FirstPartyAgent.Core.Plugins
                     kustoQuery = kustoQuery + "\n" +
                         $"| where CorrelationId == '{correlationId}'";
                 }
-                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride);
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, kernel);
                 return kustoResult;
             }
             return $"Alert details not found for alertId {alertId}";
@@ -149,9 +143,11 @@ namespace FirstPartyAgent.Core.Plugins
         [KernelFunction("get_alert_details_and_custom_instructions")]
         [Description("Fetches the alert details and custom instructions for an incident. These details involve the kusto queries that are used to check the incident impact and mitigation instructions that must be followed to handle the incident.")]
         public async Task<string> GetAlertDetailsAndCustomInstructions(
-            [Description("Incident Id")] string incidentId)
+            [Description("Incident Id")] string incidentId,
+            Kernel kernel)
         {
-            await LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Invoked with incidentId: {incidentId}.");
+            var logMessage = $"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Invoked with incidentId: {incidentId}.";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, _kernel);
             _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. incidentId: {incidentId}, incidenTtile: {incidentDetails.Title}, owningTeam: {incidentDetails.OwningTeam}, monitoringRole: {incidentDetails.MonitoringRole}, monitoringSlice: {incidentDetails.MonitoringSlice}");
             //match incident details with existing alert configs
@@ -178,7 +174,8 @@ namespace FirstPartyAgent.Core.Plugins
             }
             else
             {
-                await LogInformation("AzureAlertingPlugin: This Incident is not from Azure Alerting, finding configuration based on other fields.");
+                await kernel.LogInformation("AzureAlertingPlugin: This Incident is not from Azure Alerting, finding configuration based on other fields."
+                    , _logger, _teamsClient);
                 var alertConfigs = AgentFinder.GetICMAlertConfigs();
                 foreach (var alertId in alertConfigs.Keys)
                 {

@@ -1,8 +1,11 @@
-﻿using FirstPartyAgent.Core.Services;
+﻿using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
+using ScottPlot.Statistics;
 using System.ComponentModel;
 
 namespace FirstPartyAgent.Core.Plugins
@@ -22,23 +25,15 @@ namespace FirstPartyAgent.Core.Plugins
             _teamsClient = teamsClient;
         }
 
-        private async Task LogInformation(string info)
+        private async Task<bool> IsSubscriptionInternal(string subscriptionId, Kernel kernel)
         {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<bool> IsSubscriptionInternal(string subscriptionId)
-        {
-            await LogInformation($"Checking if subscription {subscriptionId} is internal.");
+            var logMessage = $"Checking if subscription {subscriptionId} is internal.";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var kustoQuery = $@"DataStudio_ServiceTree_AzureSubscription_Snapshot
                 | where SubscriptionId == '{subscriptionId}'
                 | project ServiceName, SubscriptionId, ServiceId, Environment
                 | take 1";
-            var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("servicetreepublic.westus", "Shared", kustoQuery);
+            var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("servicetreepublic.westus", "Shared", kustoQuery, null, kernel);
             if (kustoResult != "ZERO_ROWS_RETURNED" && !string.IsNullOrWhiteSpace(kustoResult))
             {
                 var kustoResultDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(kustoResult);
@@ -57,25 +52,28 @@ namespace FirstPartyAgent.Core.Plugins
         [KernelFunction("mark_subscription_as_first_party")]
         [Description("Mark Subscription as first party")]
         public async Task<string> MarkSubFirstParty(
-           [Description("Subscription ID")] string subscriptionId)
+           [Description("Subscription ID")] string subscriptionId,
+           Kernel kernel)
         {
-            await LogInformation($"[mark_subscription_as_first_party][{DateTime.UtcNow}] Invoked with subscriptionId {subscriptionId}");
-            var isSubscriptionInternal = await IsSubscriptionInternal(subscriptionId);
+            var logMessage = $"[mark_subscription_as_first_party][{DateTime.UtcNow}] Invoked with subscriptionId {subscriptionId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            var isSubscriptionInternal = await IsSubscriptionInternal(subscriptionId, kernel);
             if (!isSubscriptionInternal)
             {
                 return $"The subscription {subscriptionId} is external. Marking subscription as first party is not allowed.";
             }
 
-            await LogInformation($"Running Geneva Action to mark Subscription - {subscriptionId} as First Party.");
+            _logger.LogInformation($"Running Geneva Action to mark Subscription - {subscriptionId} as First Party.");
             return await _icmWorkflowClient.MarkSubFirstPartyAsync(subscriptionId);
         }
 
         [KernelFunction("get_subscription_details_from_geneva")]
         [Description("Get subscription details from geneva")]
         public async Task<string> GetSubDetailsFromGeneva(
-           [Description("Subscription ID")] string subscriptionId)
+           [Description("Subscription ID")] string subscriptionId, Kernel kernel)
         {
-            await LogInformation($"[get_subscription_details_from_geneva][{DateTime.UtcNow}] Invoked with subscriptionId {subscriptionId}");
+            var logMessage = $"[get_subscription_details_from_geneva][{DateTime.UtcNow}] Invoked with subscriptionId {subscriptionId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             return await _icmWorkflowClient.GetSubDetailsFromGenevaAsync(subscriptionId);
         }
 
@@ -84,14 +82,16 @@ namespace FirstPartyAgent.Core.Plugins
         public async Task<string> RestartWebApp(
             [Description("Subscription Id")] string subscriptionId,
             [Description("WebApp Name")] string webappName,
-            [Description("Webspace Name")] string webspaceName)
+            [Description("Webspace Name")] string webspaceName,
+            Kernel kernel)
         {
-            var isSubscriptionInternal = await IsSubscriptionInternal(subscriptionId);
+            var isSubscriptionInternal = await IsSubscriptionInternal(subscriptionId, kernel);
             if (!isSubscriptionInternal)
             {
                 return $"The subscription {subscriptionId} is external. Restarting web app is not allowed.";
             }
-            await LogInformation($"[restart_webapp][{DateTime.UtcNow}] Invoked with subscriptionId {subscriptionId}, webAppName {webappName}, webspaceName {webspaceName}");
+            var logMessage = $"[restart_webapp][{DateTime.UtcNow}] Invoked with subscriptionId {subscriptionId}, webAppName {webappName}, webspaceName {webspaceName}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try
             {
                 var restartOutput = await _icmWorkflowClient.RestartWebApp(subscriptionId, webappName, webspaceName);
@@ -111,10 +111,12 @@ namespace FirstPartyAgent.Core.Plugins
             [Description("Stamp Name")] string stampName,
             [Description("Location")] string location,
             [Description("Role")] string role,
-            [Description("Role Instance")] string roleInstance)
+            [Description("Role Instance")] string roleInstance,
+            Kernel kernel)
         {
             //TODO: Add some check here to confirm if the webapp is in internal subscription
-            await LogInformation($"[reboot_worker][{DateTime.UtcNow}] Invoked for webAppName {webAppName}, location {location}, stampName {stampName}, role {role}, roleInstance {roleInstance}");
+            var logMessage = $"[reboot_worker][{DateTime.UtcNow}] Invoked for webAppName {webAppName}, location {location}, stampName {stampName}, role {role}, roleInstance {roleInstance}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try
             {
                 return await _icmWorkflowClient.RebootWorker(location, stampName, role, roleInstance);

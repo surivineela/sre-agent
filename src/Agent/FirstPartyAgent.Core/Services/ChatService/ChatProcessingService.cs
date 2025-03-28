@@ -34,7 +34,7 @@ public class SessionInformation
         ChatHistory = new ChatHistory();
 
         var agentInfo = AgentFinder.GetAgentPrompts(_agentMode).FirstOrDefault();
-        ChatHistory.AddSystemMessage(agentInfo.SystemMessage);
+        ChatHistory.AddSystemMessage(agentInfo?.SystemMessage??"You are a helpful AI Assistant.");
     }
 }
 
@@ -139,10 +139,14 @@ public class ChatProcessingService : IChatService
 
     private async Task<bool> IsAgentDone(SessionInformation sessionInfo)
     {
+        if (sessionInfo.AgentMode == AgentMode.None)
+        {
+            return true;
+        }
         var userMessage = new ChatMessageContent()
         {
             Role = AuthorRole.User,
-            Content = "Take a deep look at all the tasks that were requested from the Agent and determine if the Agent has finished those and provided an appropriate response. If yes, then respond with 'YES' otherwise respond with 'NO'. If the user's question was not about handling and incident, then the Agent's response is acceptable."
+            Content = "Take a deep look at all the chat history and determine if the Agent has fulfilled the query and provided an appropriate response. If yes, then respond with 'YES' otherwise respond with 'NO'. If the user is greeting the agent, then the agent should be responding with a greeting and a summary of its capabilities."
         };
         sessionInfo.ChatHistory.Add(userMessage);
         var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
@@ -302,7 +306,7 @@ public class ChatProcessingService : IChatService
             if (_teamsClient.IsEnabled())
             {
                 _logger.LogInformation($"Posting message to Teams: {htmlContent}");
-                await _teamsClient.PostMessageOnTeams(htmlContent);
+                await _teamsClient.PostMessageOnTeams(htmlContent, message.AgentMode);
             }
 
             sessionInfo.AgentLoopRunning = false;

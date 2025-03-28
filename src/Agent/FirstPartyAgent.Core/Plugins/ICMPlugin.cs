@@ -1,8 +1,9 @@
-﻿using Microsoft.Extensions.Logging;
-using FirstPartyAgent.Core.Constants;
+﻿using FirstPartyAgent.Core.Constants;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.ComponentModel;
@@ -22,15 +23,6 @@ namespace FirstPartyAgent.Core.Plugins
             _icmApiClient = icmAPIClient;
             _icmWorkflowClient = icmWorkflowClient;
             _teamsClient = teamsClient;
-        }
-
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
         }
 
         /// <summary>
@@ -106,7 +98,8 @@ namespace FirstPartyAgent.Core.Plugins
         public async Task<Incident> GetIncidentInfo(
            [Description("Incident ID")] string incidentId, Kernel kernel)
         {
-            await LogInformation($"[get_icm_incident_details][{DateTime.UtcNow}] Invoked with incidentId {incidentId}");
+            var logMessage = $"[get_icm_incident_details][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var incident = _icmApiClient.IsEnabled()? await _icmApiClient.GetIncidentAsync(incidentId): await _icmWorkflowClient.GetIncidentAsync(incidentId);
             incident.Summary = await ProcessComplexICMContent(incident.Summary, kernel);
             return incident;
@@ -118,7 +111,8 @@ namespace FirstPartyAgent.Core.Plugins
             [Description("Incident ID")] string incidentId,
             Kernel kernel)
         {
-            await LogInformation($"[get_alerting_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}");
+            var logMessage = $"[get_alerting_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var discussionEntries = _icmApiClient.IsEnabled() ? await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId) : await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
             if (discussionEntries != null)
             {
@@ -142,7 +136,8 @@ namespace FirstPartyAgent.Core.Plugins
         public async Task<List<DiscussionEntry>> GetDiscussionEntries(
             [Description("Incident ID")] string incidentId, Kernel kernel)
         {
-            await LogInformation($"[get_icm_discussion_entries][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}");
+            var logMessage = $"[get_icm_discussion_entries][{DateTime.UtcNow}] Fetching ICM Discussion entries for Incident {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var discussionEntries = _icmApiClient.IsEnabled()? await _icmApiClient.GetIncidentDiscussionEntriesAsync(incidentId): await _icmWorkflowClient.GetIncidentDiscussionEntriesAsync(incidentId);
             if (discussionEntries != null)
             {
@@ -163,9 +158,11 @@ namespace FirstPartyAgent.Core.Plugins
                [Description("Incident ID")] string incidentId,
                [Description("Discussion Entry - reason for transferring the incident")] string discussionEntry,
                [Description("Tenant ID of the team to transfer the incident to")] string tenantName,
-               [Description("Team ID of the team to transfer the incident to")] string owningTeam)
+               [Description("Team ID of the team to transfer the incident to")] string owningTeam,
+               Kernel kernel)
         {
-            await LogInformation($"[transfer_icm_incident][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}");
+            var logMessage = $"[transfer_icm_incident][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam) : await _icmWorkflowClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
         }
@@ -174,9 +171,11 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Mitigate ICM incident")]
         public async Task<string> MitigateIncident(
            [Description("Incident ID")] string incidentId,
-           [Description("Discussion Entry (HTML) - reason for mitigating the incident")] string discussionEntry)
+           [Description("Discussion Entry (HTML) - reason for mitigating the incident")] string discussionEntry,
+           Kernel kernel)
         {
-            await LogInformation($"[mitigate_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}");
+            var logMessage = $"[mitigate_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
 
             var mitigationResult = _icmApiClient.IsEnabled() ? await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.MitigateIncidentAsync(incidentId, discussionEntry);
@@ -188,9 +187,11 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Downgrade severity of ICM incident 2 to 3")]
         public async Task<string> DowngradeSeverity(
             [Description("Incident ID")] string incidentId,
-            [Description("Discussion Entry (HTML) - reason for downgrading the incident")] string discussionEntry)
+            [Description("Discussion Entry (HTML) - reason for downgrading the incident")] string discussionEntry,
+            Kernel kernel)
         {
-            await LogInformation($"[downgrade_sev2_incident_to_sev3][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}");
+            var logMessage = $"[downgrade_sev2_incident_to_sev3][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry) : await _icmWorkflowClient.DowngradeSeverityAsync(incidentId, discussionEntry);
         }
@@ -199,9 +200,11 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Resolve ICM incident")]
         public async Task<string> ResolveIncident(
                [Description("Incident ID")] string incidentId,
-               [Description("Discussion Entry (HTML) - reason for resolving the incident")] string discussionEntry)
+               [Description("Discussion Entry (HTML) - reason for resolving the incident")] string discussionEntry,
+               Kernel kernel)
         {
-            await LogInformation($"[resolve_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}");
+            var logMessage = $"[resolve_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.ResolveIncidentAsync(incidentId, discussionEntry);
         }
@@ -210,9 +213,10 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Post ICM discussion entry")]
         public async Task<string> PostDiscussionEntry(
            [Description("Incident ID")] string incidentId,
-           [Description("Discussion Entry (HTML)")] string discussionEntry)
+           [Description("Discussion Entry (HTML)")] string discussionEntry, Kernel kernel)
         {
-            await LogInformation($"[post_icm_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}");
+            var logMessage = $"[post_icm_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry) : await _icmWorkflowClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
         }
@@ -221,9 +225,11 @@ namespace FirstPartyAgent.Core.Plugins
         [Description("Add a tag to an ICM incident")]
         public async Task<string> AddTagToIncident(
             [Description("Id of the incident")] string incidentId,
-            [Description("Tag to add")] string tag)
+            [Description("Tag to add")] string tag,
+            Kernel kernel)
         {
-            await LogInformation($"[icm_add_tag][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, tag: {tag}");
+            var logMessage = $"[icm_add_tag][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, tag: {tag}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.AddTagToIncident(incidentId, tag) : await _icmWorkflowClient.AddTagToIncident(incidentId, tag);
         }
 
@@ -232,8 +238,11 @@ namespace FirstPartyAgent.Core.Plugins
         [KernelFunction("acknowledge_icm_incident")]
         [Description("Acknowledges an ICM incident")]
         public async Task<string> AcknowledgeIncident(
-            [Description("Incident ID")] string incidentId)
+            [Description("Incident ID")] string incidentId,
+            Kernel kernel)
         {
+            var logMessage = $"[acknowledge_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             if (!_icmApiClient.IsEnabled())
             {
                 throw new InvalidOperationException("ICM API client is not enabled.");

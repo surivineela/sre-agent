@@ -3,9 +3,10 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using FirstPartyAgent.Core.Services;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Services;
 using Kusto.Cloud.Platform.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -30,15 +31,6 @@ namespace FirstPartyAgent.Plugins
             _teamsClient = teamsClient;
             _logger = logger;
             _kustoClientService = kustoClientService;
-        }
-
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
         }
 
         [KernelFunction("execute_kusto_query")]
@@ -68,10 +60,16 @@ namespace FirstPartyAgent.Plugins
 
         [KernelFunction("execute_kusto_query_on_cluster")]
         [Description("Executes a fully qualified Kusto query on a cluster and returns JSON response")]
-        public async Task<string> ExecuteClusterKustoQuery([Description("The name (only) of the Kusto cluster")] string cluster, [Description("The name of the Kusto database")] string database, [Description("The full kusto query to execute")] string fullQuery, DateTime? NowOverride = null)
+        public async Task<string> ExecuteClusterKustoQuery(
+            [Description("The name (only) of the Kusto cluster")] string cluster,
+            [Description("The name of the Kusto database")] string database,
+            [Description("The full kusto query to execute")] string fullQuery,
+            DateTime? NowOverride,
+            Kernel kernel)
         {
             cluster = cluster.Replace(".kusto.windows.net", "");
-            await LogInformation($"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, 100)}...");
+            var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, 100)}...";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try
             {
                 var config = new KustoCluster

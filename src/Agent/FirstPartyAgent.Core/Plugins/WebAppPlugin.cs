@@ -1,4 +1,5 @@
-﻿using FirstPartyAgent.Core.Models.Resources;
+﻿using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Models.Resources;
 using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -22,15 +23,6 @@ namespace FirstPartyAgent.Core.Plugins
             _kernel = kernel;
         }
 
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
-        }
-
         private async Task<string> ExtractWorkerRebootLink(string observerPayload)
         {
             var history = new ChatHistory();
@@ -52,9 +44,10 @@ namespace FirstPartyAgent.Core.Plugins
 
         [KernelFunction("get_webapp_reboot_worker_details")]
         [Description("Takes a web app name and a stamp name and fetches the details to reboot the worker like location, role, roleinstance, etc.")]
-        public async Task<string> GetWebAppRebootWorkerDetails([Description("Name of the web app")] string webappName, [Description("Name of the stamp")] string stampName)
+        public async Task<string> GetWebAppRebootWorkerDetails([Description("Name of the web app")] string webappName, [Description("Name of the stamp")] string stampName, Kernel kernel)
         {
-            await LogInformation($"[get_webapp_reboot_worker_details] Invoked with webappName {webappName} and stampName {stampName}");
+            var logMessage = $"[get_webapp_reboot_worker_details] Invoked with webappName {webappName} and stampName {stampName}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             if (!_observerClient.IsEnabled)
             {
                 return $"Cannot fetch the details of the webapp {webappName} as Observer API is not enabled.";
@@ -91,9 +84,10 @@ namespace FirstPartyAgent.Core.Plugins
 
         [KernelFunction("get_webapp_details_by_name")]
         [Description("Takes a web app name and fetches the details like subscription id, webspace name, hostnames etc.")]
-        public async Task<string> GetWebAppDetailsByName([Description("Name of the web app")] string webappName)
+        public async Task<string> GetWebAppDetailsByName([Description("Name of the web app")] string webappName, Kernel kernel)
         {
-            await LogInformation($"[get_webapp_details_by_name] Invoked with webappName {webappName}");
+            var logMessage = $"[get_webapp_details_by_name] Invoked with webappName {webappName}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             if (!_observerClient.IsEnabled)
             {
                 return $"Cannot fetch the details of the webapp {webappName} as Observer API is not enabled.";

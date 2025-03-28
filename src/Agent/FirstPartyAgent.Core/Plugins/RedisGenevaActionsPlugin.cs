@@ -1,4 +1,5 @@
-﻿using FirstPartyAgent.Core.Services;
+﻿using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -19,22 +20,15 @@ namespace FirstPartyAgent.Core.Plugins
             _teamsClient = teamsClient;
         }
 
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
-        }
-        
         [KernelFunction("get_redis_cache_deployment_details")]
         [Description("Get deployment details of redis cache from Geneva")]
         public async Task<string> GetRedisDeploymentDetailsFromGeneva(
             [Description("Incident Id")] string incidentId,
-           [Description("Redis Cache Name")] string redisCacheName)
+           [Description("Redis Cache Name")] string redisCacheName,
+           Kernel kernel)
         {
-            await LogInformation($"[get_redis_cache_deployment_details][{DateTime.UtcNow}] Invoked with redisCacheName {redisCacheName}");
+            var logMessage = $"[get_redis_cache_deployment_details][{DateTime.UtcNow}] Invoked with redisCacheName {redisCacheName}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var result = await _icmWorkflowClient.GetRedisDeploymentDetailsFromGenevaAsync(redisCacheName);
             var fileContentBase64 = TextProcessingHelpers.Base64Encode(result);
             var fileName = $"{redisCacheName}_deployment_details.txt";

@@ -13,6 +13,7 @@ namespace FirstPartyAgent.Models
         MFP,
         GithubIssueTagger,
         ICMAgent,
-        Sev2
+        Sev2,
+        ICMSummarizer
     }
 }

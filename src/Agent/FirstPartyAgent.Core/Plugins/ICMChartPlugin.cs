@@ -1,9 +1,10 @@
 ﻿using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
-using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Core.Constants;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using ScottPlot;
 using System;
@@ -27,15 +28,6 @@ namespace FirstPartyAgent.Core.Plugins
             _logger = logger;
             _icmWorkflowClient = icmWorkflowClient;
             _teamsClient = teamsClient;
-        }
-
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
         }
 
         [KernelFunction("plot_time_series_data_in_icm")]
@@ -75,9 +67,11 @@ description='Showing updated usage stats.'")]
 [Description("Maximum value on the Y-axis, e.g. '100'")] string yAxisMax,
 [Description("Semicolon-separated data points, each 'YYYY-MM-DDTHH:MM:SS|value|seriesName'")] string dataPoints,
 [Description("Short text to describe the chart when posting.")] string description,
-[Description("Incident Id to post the plot to.")] string incidentId)
+[Description("Incident Id to post the plot to.")] string incidentId,
+Kernel kernel)
         {
-            await LogInformation($"[plot_time_series_data_in_icm][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, description: {description}");
+            var logMessage = $"[plot_time_series_data_in_icm][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, description: {description}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
             // Parse numeric min/max from strings
             // (If blank or invalid, default to 0 or 100, etc.)
             if (!double.TryParse(yAxisMin, NumberStyles.Any, CultureInfo.InvariantCulture, out double minVal))

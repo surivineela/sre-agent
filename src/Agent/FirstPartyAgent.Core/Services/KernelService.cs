@@ -89,7 +89,9 @@ namespace FirstPartyAgent.Core.Services
                 }
             }
 
-            return kernelBuilder.Build();
+            var kernel = kernelBuilder.Build();
+            kernel.Data["agentMode"] = agentMode.ToString();
+            return kernel;
         }
     }
 }

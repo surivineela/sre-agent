@@ -1,4 +1,5 @@
-﻿using FirstPartyAgent.Core.Services;
+﻿using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
@@ -15,22 +16,14 @@ namespace FirstPartyAgent.Core.Plugins
             _teamsClient = teamsClient;
         }
 
-        private async Task LogInformation(string info)
-        {
-            _logger.LogInformation(info);
-            if (_teamsClient.IsEnabled() && _teamsClient.SendLogsToTeams())
-            {
-                await _teamsClient.PostMessageOnTeams(info).ConfigureAwait(false);
-            }
-        }
-
         [KernelFunction("wait_timer")]
         [Description("Wait for a specified number of seconds. This is useful for pacing the execution of tasks.")]
-        public async Task WaitTimer([Description("Wait time in seconds")] int waitTimeInSeconds)
+        public async Task WaitTimer([Description("Wait time in seconds")] int waitTimeInSeconds, Kernel kernel)
         {
             try
             {
-                await LogInformation($"[wait_timer] Invoked with waitTimeInSeconds {waitTimeInSeconds}");
+                var logMessage = $"[wait_timer] Invoked with waitTimeInSeconds {waitTimeInSeconds}";
+                await kernel.LogInformation(logMessage, _logger, _teamsClient);
                 await Task.Delay(waitTimeInSeconds * 1000);
             }
             catch (Exception ex)

@@ -25,7 +25,8 @@ namespace FirstPartyAgent.Core.Helpers
             { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin" } },
             { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "RedisGenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin" } },
             { "MFP", new List<string>(){ "IcmPlugin", "GenevaActionsPlugin", "KustoPlugin", "TeamsPlugin" } },
-            { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } }
+            { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } },
+            { "ICMSummarizer", new List<string>(){ "IcmPlugin" } }
         };
 
         public static Dictionary<string, List<string>> AgentDataParsingConfig = new Dictionary<string, List<string>>()
