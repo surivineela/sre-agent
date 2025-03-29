@@ -68,7 +68,10 @@ namespace Agent.Runtime
 
                     return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
                         .UseLogging(loggerFactory)
-                        .UseFunctionInvocation()
+                        .UseFunctionInvocation(loggerFactory, x =>
+                        {
+                            x.IncludeDetailedErrors = true;
+                        })
                         .Build();
                 });
         }
