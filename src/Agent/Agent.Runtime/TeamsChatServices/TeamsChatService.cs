@@ -21,6 +21,7 @@ using Activity = Microsoft.Bot.Schema.Activity;
 using Microsoft.Bot.Connector;
 using Microsoft.Extensions.AI;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Attachment = Microsoft.Bot.Schema.Attachment;
 using Agent.Core.Helpers;
 using Agent.Core.Extensions;
 
@@ -541,6 +542,43 @@ public class TeamsBot : TeamsActivityHandler
                 {
                     // Create message activity
                     var activity = MessageFactory.Text(message.Text);
+                    if (message.IsImageContent)
+                    {
+                        activity.Text = null; // Clear text if it's an image
+                        // Extract base64 image content from markdown format like below
+                        // $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n"
+                        string base64Content = null;
+                        string contentType = null;
+
+                        // Extract base64 content from markdown image format: ![alt](data:image/type;base64,content)
+                        var match = System.Text.RegularExpressions.Regex.Match(
+                            message.Text,
+                            @"!\[(.*?)\]\(data:image/(.*?);base64,(.*?)\)"
+                        );
+
+                        if (match.Success)
+                        {
+                            var altText = match.Groups[1].Value;
+                            contentType = $"image/{match.Groups[2].Value}";
+                            base64Content = match.Groups[3].Value;
+
+                            // Use the alt text as the attachment name, or fall back to default if empty
+                            string attachmentName = !string.IsNullOrEmpty(altText)
+                                ? $"{altText}.{match.Groups[2].Value}"
+                                : $"image.{match.Groups[2].Value}";
+
+                            // Create attachment with the extracted image
+                            activity.Attachments = new List<Attachment>
+                            {
+                                new Attachment
+                                {
+                                    ContentType = contentType,
+                                    ContentUrl = $"data:{contentType};base64,{base64Content}",
+                                    Name = attachmentName
+                                }
+                            };
+                        }
+                    }
 
                     // Send the message using ContinueConversationAsync
                     await adapter.ContinueConversationAsync(

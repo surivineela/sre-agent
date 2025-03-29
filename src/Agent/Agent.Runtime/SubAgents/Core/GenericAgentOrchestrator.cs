@@ -329,6 +329,70 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     $"Approval flow started for operation {operationName}");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
             }
+            else if (functionCall.Name == nameof(GraphDBPluginDefinition.VisualizeApplicationComponents))
+            {
+                log.LogInformation("[{ThreadId}] Generating Visualization", threadId);
+
+                // Extract arguments from the function call
+                string resourceId = string.Empty;
+                int hops = 3; // Default value
+                
+                if (functionCall.Arguments.TryGetValue("resourceId", out var resourceIdObj) && resourceIdObj != null)
+                {
+                    resourceId = resourceIdObj.ToString() ?? string.Empty;
+                }
+                
+                if (functionCall.Arguments.TryGetValue("hops", out var hopsObj) && hopsObj != null)
+                {
+                    if (int.TryParse(hopsObj.ToString(), out var parsedHops))
+                    {
+                        hops = parsedHops;
+                    }
+                }
+                
+                // Convert the threadId string to a Guid and add it to the arguments
+                if (Guid.TryParse(threadId, out Guid threadGuid))
+                {
+                    // Create a new args dictionary with the threadId as a Guid
+                    var argsWithThreadId = new Dictionary<string, object>(functionCall.Arguments)
+                    {
+                        ["threadId"] = threadGuid
+                    };
+                    
+                    // Create a new function call with the updated arguments
+                    var updatedFunctionCall = new FunctionCallContent(
+                        functionCall.Name,
+                        functionCall.CallId,
+                        argsWithThreadId
+                    );
+                    
+                    // Execute the function with the updated arguments
+                    var execInput = new ExecuteActionInput(
+                        FunctionCallContent: updatedFunctionCall,
+                        ToolSignatures: toolSignatures);
+                        
+                    var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);
+                    chatHistory.Add(executionResult.ChatMessage);
+                    
+                    // Check if this is a long-running operation
+                    if (executionResult.Is202Submit)
+                    {
+                        pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
+                        log.LogInformation("[{ThreadId}] 202 activity submitted for visualization: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
+                    }
+                }
+                else
+                {
+                    // Log error if threadId is not a valid Guid
+                    log.LogError("[{ThreadId}] Failed to parse threadId as Guid for visualization", threadId);
+                    
+                    // Add error message to chat history
+                    var errorContent = new FunctionResultContent(
+                        functionCall.CallId,
+                        "Error: Invalid threadId format for visualization");
+                    chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { errorContent }));
+                }
+            }
             else
             {
                 log.LogInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, functionCall.ToString());

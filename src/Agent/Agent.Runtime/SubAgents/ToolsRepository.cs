@@ -36,6 +36,7 @@ public sealed class ToolsRepository : IMcpConnectable
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IGraphDBPlugin graphDBPlugin,
+        IGrafanaPlugin grafanaPlugin,
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin)
     {
@@ -60,8 +61,14 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => recordActionsPluginDefinition.RecordAction);
         Register200(() => recordActionsPluginDefinition.GetActionDetails);
 
+        var grafanaPluginDefinition = new GrafanaPluginDefinition(grafanaPlugin);
+        Register200(() => grafanaPluginDefinition.ModifyGrafanaDashboard);
+
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
         Register200(() => graphDBPluginDefinition.FindAllNetworkConnectedResources);
+        Register200(() => graphDBPluginDefinition.GetApplicationComponentsSummary);
+        Register200(() => graphDBPluginDefinition.VisualizeApplicationComponents);
+        Register200(() => graphDBPluginDefinition.DiscoverApplications);
         Register200(() => graphDBPluginDefinition.AddSourceCodeNodeToContainerAppNode);
         Register200(() => graphDBPluginDefinition.GetContainerAppsWithNodesWithoutSourceCodeNodes);
 

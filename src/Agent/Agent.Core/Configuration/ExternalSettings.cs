@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+﻿
 namespace Agent.Core.Configuration
 {
     public class ExternalSettings
@@ -12,5 +7,6 @@ namespace Agent.Core.Configuration
         public TeamsBotSettings TeamsBot { get; set; } = new();
         public GitHubSettings GitHub { get; set; } = new();
         public MCPSettings MCP { get; set; } = new();
+        public DashboardSettings Dashboard { get; set; } = new();
     }
 }

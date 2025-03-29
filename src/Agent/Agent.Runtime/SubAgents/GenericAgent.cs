@@ -27,7 +27,9 @@ namespace Agent.Runtime.SubAgents
 
         protected IRemediationPlugin _remediationPlugin { get; }
 
-        protected IContainerAppPlugin _containerAppPlugin { get; } 
+        protected IContainerAppPlugin _containerAppPlugin { get; }
+
+        protected IGraphDBPlugin _graphDbPlugin { get; }
 
         protected IGithubIssuePlugin _githubIssuePlugin { get; }
 
@@ -44,6 +46,7 @@ namespace Agent.Runtime.SubAgents
             IChatClient chatClient,
             IRemediationPlugin remediationPlugin,
             IContainerAppPlugin containerAppPlugin,
+            IGraphDBPlugin graphDBPlugin,
             IGithubIssuePlugin githubIssuePlugin,
             ResourceGraphCrawler crawler,
             ILogger<GenericAgent> logger)
@@ -57,6 +60,7 @@ namespace Agent.Runtime.SubAgents
             _currentStatePlugin = currentStatePlugin;
             _remediationPlugin = remediationPlugin;
             _containerAppPlugin = containerAppPlugin;
+            _graphDbPlugin = graphDBPlugin; 
             _githubIssuePlugin = githubIssuePlugin;
             _crawler = crawler;
         }
@@ -88,6 +92,10 @@ namespace Agent.Runtime.SubAgents
                 AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
                 AIFunctionFactory.Create(_containerAppPlugin.GetLatestRevisionAsync),
                 AIFunctionFactory.Create(_containerAppPlugin.GetContainerAppInfoAsync),
+
+                AIFunctionFactory.Create(_graphDbPlugin.DiscoverApplications),
+                AIFunctionFactory.Create(_graphDbPlugin.GetApplicationComponentsSummary),
+                AIFunctionFactory.Create(_graphDbPlugin.VisualizeApplicationComponents),
 
                 AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubSecurityDependabotAlerts)
             };

@@ -12,6 +12,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
+using System.ComponentModel;
 
 namespace Agent.Plugins
 {
@@ -28,21 +29,26 @@ namespace Agent.Plugins
             _logger = logger;
         }
 
-        public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync()
+        public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync(
+            [Description("Optional display name filter to find specific subscriptions. Case-insensitive partial match.")] string? subscriptionNameFilter = null)
         {
             try
             {
-                _logger.LogInformation($"[list_azure_subscriptions] Invoked");
+                _logger.LogInformation($"[list_azure_subscriptions] Invoked with filter: {subscriptionNameFilter ?? "none"}");
 
                 var ret = new List<SubscriptionDescriptor>();
-                // Create an instance of the ArmClient to interact with Azure
                 var armClient = _armClientFactory.GetArmClient();
-                // Get all subscriptions
+                
                 await foreach (var subscription in armClient.GetSubscriptions().GetAllAsync())
                 {
-                    ret.Add(new SubscriptionDescriptor(
-                        Id: subscription.Data.Id,
-                        DisplayName: subscription.Data.DisplayName));
+                    // If filter is provided, check if the subscription name contains the filter (case-insensitive)
+                    if (string.IsNullOrWhiteSpace(subscriptionNameFilter) || 
+                        subscription.Data.DisplayName.Contains(subscriptionNameFilter, StringComparison.OrdinalIgnoreCase))
+                    {
+                        ret.Add(new SubscriptionDescriptor(
+                            Id: subscription.Data.Id,
+                            DisplayName: subscription.Data.DisplayName));
+                    }
                 }
                 return ret;
             }

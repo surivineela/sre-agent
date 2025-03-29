@@ -10,6 +10,7 @@ using Microsoft.Bot.Schema.Teams;
 using Microsoft.Extensions.Logging;
 using Microsoft.Bot.Connector;
 using Agent.Data.Repositories;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Plugins.Implementation
 {
@@ -21,7 +22,7 @@ namespace Agent.Plugins.Implementation
 
         private readonly string _appId;
         private readonly string _tenantId;
-        private const int MaxRetries = 3;
+        private const int MaxRetries = 60;
         private const int RetryDelayMs = 10000;
 
         /// <summary>
@@ -43,13 +44,19 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> PostAsync(string message)
         {
+            var (_, returnMessage) = await PostInitialMessageAsync(message);
+            return returnMessage;
+        }
+
+        private async Task<(ThreadTeamsMapping?, string)> PostInitialMessageAsync(string message, string threadId = "")
+        {
             // Get a valid Teams channel from the repository
             var defaultChannel = await _threadTeamsMappingRepository.GetFirstOrDefaultChannel();
 
             if (defaultChannel == null)
             {
                 _logger.LogError("No conversation references available in the repository. The bot hasn't registered any Teams channels yet.");
-                return "Error: No Teams channels available to post message. The bot needs to register at least one Teams channel first.";
+                return (null, "Error: No Teams channels available to post message. The bot needs to register at least one Teams channel first.");
             }
 
             // Extract the service URL and channel ID from the mapping
@@ -59,7 +66,7 @@ namespace Agent.Plugins.Implementation
             if (string.IsNullOrEmpty(serviceUrl) || string.IsNullOrEmpty(channelId))
             {
                 _logger.LogError($"Service URL or Channel Id in default conversation reference is empty. ServiceUrl: {serviceUrl}, Channel ID: {channelId}");
-                return "Error posting message to Teams.";
+                return (null, "Error posting message to Teams.");
             }
 
             // Build conversation parameters for proactive thread creation.
@@ -72,9 +79,9 @@ namespace Agent.Plugins.Implementation
                 },
                 // This initial activity will appear as the first message in the new thread.
                 Activity = MessageFactory.Text(message),
-                TopicName = "New Thread",
+                TopicName = "Azure SRE Agent - Proactive Thread",
             };
-
+            ThreadTeamsMapping mapping = null;
             try
             {
                 var cloudAdapter = _adapter as CloudAdapter;
@@ -86,11 +93,21 @@ namespace Agent.Plugins.Implementation
                     conversationParameters: conversationParameters,
                     callback: async (turnContext, cancellationToken) =>
                     {
+                        mapping = new ThreadTeamsMapping(
+                            $"teams_{threadId}",
+                            threadId,
+                            turnContext.Activity.Conversation.Id,
+                            channelId,
+                            serviceUrl,
+                            DateTime.UtcNow,
+                            DateTime.UtcNow,
+                            turnContext.Activity.GetConversationReference());
+
                         _logger.LogInformation("New Teams thread created and message posted.");
                     },
                     cancellationToken: CancellationToken.None);
 
-                return "Message posted successfully.";
+                return (mapping, "Message posted successfully.");
             }
             catch (Exception ex)
             {
@@ -99,14 +116,24 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<bool> PostTeamsMessage(string threadId, Activity message)
+        public async Task<bool> PostTeamsMessage(string threadId, Activity message, string messageId = "")
         {
 
             var mapping = await _threadTeamsMappingRepository.GetMappingByThreadIdAsync(threadId);
             if (mapping == null)
             {
-                _logger.LogError($"Failed to post message to Teams post due to thread {threadId} don't have teams conversation exists");
-                return false;
+                (mapping, string returnMessage) = await PostInitialMessageAsync(message.Text, threadId);
+                await _threadTeamsMappingRepository.AddMappingAsync(mapping);
+                if (returnMessage != "Message posted successfully.")
+                {
+                    _logger.LogError("Failed to post message to Teams.");
+                    return false;
+                }
+                if (!string.IsNullOrEmpty(messageId))
+                {
+                    await _threadTeamsMappingRepository.AddPostedMessagesAsync(threadId, new List<string> { messageId });
+                }
+                return true;
             }
 
             var serviceUrl = mapping.ServiceUrl;
@@ -142,14 +169,15 @@ namespace Agent.Plugins.Implementation
         /// <summary>
         /// Posts a message to Teams with retry logic
         /// </summary>
-        public async Task<bool> PostToTeamsWithRetry(string message)
+        public async Task<bool> CreateTeamsThread(string threadId, string initialMessage, string messageId = "")
         {
             for (int attempt = 1; attempt <= MaxRetries; attempt++)
             {
                 try
                 {
-                    var result = await PostAsync(message);
-                    if (result == "Message posted successfully.")
+                    var activity = MessageFactory.Text(initialMessage);
+                    var result = await PostTeamsMessage(threadId, activity, messageId);
+                    if (result)
                     {
                         _logger.LogInformation("Successfully posted message to Teams");
                         return true; // Success, exit method

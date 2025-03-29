@@ -115,6 +115,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
     private readonly Plugins.ChartPlugin _chartplugin;
+    private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly SourceCodePlugin _sourceCodePlugin;
 
@@ -133,6 +134,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         ISubscriptionPlugin subscriptionPlugin,
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
+        IGraphDBPlugin graphDBPlugin,
         SourceCodePlugin sourceCodePlugin)
     {
         _chatClient = chatClient;
@@ -152,6 +154,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _chartplugin = chartplugin;
         _githubIssuePlugin = githubIssuePlugin;
         _sourceCodePlugin = sourceCodePlugin;
+
+        _graphDbPlugin = graphDBPlugin;
     }
 
     // TODO: the userMessage is not needed as we are using the repository to get the messages
@@ -166,19 +170,26 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         foreach (var msg in threadMessages)
         {
             ChatRole role = msg.Author.Role == Role.User ? ChatRole.User : ChatRole.Assistant;
+            if (msg.IsImageContent)
+            {
+                continue;
+            }
             chatHistory.Add(new ChatMessage(role, msg.Text));
         }
-        
+
         _tlsBestPracticesPlugin.ThreadId = threadId;
         _managedIdentityMigrationPlugin.ThreadId = threadId;
         _appServiceRemediationPlugin.ThreadId = threadId;
         _containerAppsRemediationPlugin.ThreadId = threadId;
         _sourceCodePlugin.ThreadId = threadId;
+        _graphDbPlugin.ThreadId = threadId;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.ThreadId = threadId;
 
-        List <AITool> _aiTools =
+        var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
+
+        List<AITool> _aiTools =
         [
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.ListManagedIdentityMigrations),
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent),
@@ -194,7 +205,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
-            AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync)
+            AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
+            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents)
         ];
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());

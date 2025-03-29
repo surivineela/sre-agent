@@ -25,15 +25,15 @@ namespace Agent.Plugins.Mocks
             return "Message posted successfully";
         }
 
-        public async Task<bool> PostTeamsMessage(string threadId, Activity message)
+        public async Task<bool> PostTeamsMessage(string threadId, Activity message, string messageId = "")
         {
             _logger.LogInformation("MockPostToTeamsPlugin: Posting Teams message with threadId {ThreadId}: {Message}", threadId, message);
             return true;
         }
 
-        public async Task<bool> PostToTeamsWithRetry(string message)
+        public async Task<bool> CreateTeamsThread(string threadId, string initialMessage, string messageId)
         {
-            _logger.LogInformation("MockPostToTeamsPlugin: Posting message to Teams with retry: {Message}", message);
+            _logger.LogInformation("MockPostToTeamsPlugin: Posting message to Teams with retry: {Message}", initialMessage);
             return true;
         }
     }

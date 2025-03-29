@@ -44,12 +44,20 @@
 	<None Update="SubAgents\ManagedIdentityMigrationAgent\ManagedIdentityMigrationPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-  <None Update="SubAgents\AppServiceRemediationAgent\AppServiceAgent.txt">
+    <None Update="SubAgents\AppServiceRemediationAgent\AppServiceAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
-  <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
+    <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+	<None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	</None>
+	<None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	  <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
- 
 </Project>

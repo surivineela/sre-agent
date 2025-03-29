@@ -1,4 +1,8 @@
-﻿namespace Agent.Graph.Schema
+﻿// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Graph.Schema
 {
     public class Node
     {

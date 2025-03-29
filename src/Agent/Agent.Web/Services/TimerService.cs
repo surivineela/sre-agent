@@ -2,6 +2,7 @@
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
@@ -18,6 +19,7 @@ public class TimerService : IHostedService, IDisposable
     private TimerSettings _timerSettings;
     private BestPracticeScannerAgent _bestPracticeScannerAgent;
     private TlsBestPracticesScanner _tlsBestPracticesScanner;
+    private DailyReportScanner _dailyReportScanner;
     private SourceCodeScanner _sourceCodeScanner;
     private CVEScanner _cveScanner;
 
@@ -34,6 +36,9 @@ public class TimerService : IHostedService, IDisposable
     private bool _tlsTimerIsRunning = false;
     private TimeSpan _tlsTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _dailyReportTimer = null;
+    private bool _dailyReportTimerIsRunning = false;
+    private TimeSpan _dailyReportTimerInterval = TimeSpan.FromHours(24);
     private Timer? _sourceCodeCrawlerTimer = null;
     private bool _sourceCodeCrawlerTimerIsRunning = false;
     private TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(1);
@@ -49,6 +54,7 @@ public class TimerService : IHostedService, IDisposable
         BestPracticeScannerAgent bestPracticeScannerAgent,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
+        DailyReportScanner dailyReportScanner,
         ILogger<TimerService> logger,
         SourceCodeScanner sourceCodeScanner,
         CVEScanner cveScanner)
@@ -60,6 +66,7 @@ public class TimerService : IHostedService, IDisposable
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
+        _dailyReportScanner = dailyReportScanner;
         _sourceCodeScanner = sourceCodeScanner;
         _cveScanner = cveScanner;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
@@ -72,10 +79,13 @@ public class TimerService : IHostedService, IDisposable
         StartCrawlerTimer(cancellationToken);
 
         _logger.LogInformation($"Starting best practice timer...");
-        //StartBestPracticeTimer(cancellationToken);
+        StartBestPracticeTimer(cancellationToken);
 
-        _logger.LogInformation($"Starting TLS timer...");
+        //_logger.LogInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
+
+        _logger.LogInformation("Starting Daily Report timer...");
+        StartDailyReportTimer(cancellationToken);
 
         _logger.LogInformation($"Starting Source Code timer...");
         StartSourceCodeTimer(cancellationToken);
@@ -226,7 +236,7 @@ public class TimerService : IHostedService, IDisposable
                 if (!string.IsNullOrEmpty(issues))
                 {
                     string messageToPost = $"⚠️ Best Practice Issues Detected ⚠️\n\n{issues}";
-                    var succeed = await _teamsPlugin.PostToTeamsWithRetry(messageToPost);
+                    var succeed = await _teamsPlugin.CreateTeamsThread("", messageToPost);
                     if (succeed)
                     {
                         _bestPracticeTimerIntervalInMinutes = 60 * 24; // Set to 1 day
@@ -243,7 +253,7 @@ public class TimerService : IHostedService, IDisposable
                 else
                 {
                     _logger.LogInformation("No best practice issues detected");
-                    await _teamsPlugin.PostToTeamsWithRetry("All best practices are met! 🎉");
+                    await _teamsPlugin.CreateTeamsThread("", "All best practices are met! 🎉");
                 }
 
             }
@@ -254,6 +264,37 @@ public class TimerService : IHostedService, IDisposable
         }, null,
         TimeSpan.FromMinutes(0), // Initial delay before first execution
         TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes)); // Interval between subsequent executions
+    }
+
+    public void StartDailyReportTimer(CancellationToken cancellationToken)
+    {
+        _dailyReportTimer = new Timer(async _ =>
+        {
+            if (_dailyReportTimerIsRunning)
+            {
+                _logger.LogInformation("Daily report scanner is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _dailyReportTimerIsRunning = true;
+                var thread = await _dailyReportScanner.ScanAndGenerateReport(cancellationToken);
+                if (thread == null)
+                {
+                    _logger.LogInformation("No daily report generated.");
+                    return;
+                }
+                await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing daily report scanner.");
+            }
+            finally
+            {
+                _dailyReportTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _dailyReportTimerInterval);
     }
 
     public void Dispose()

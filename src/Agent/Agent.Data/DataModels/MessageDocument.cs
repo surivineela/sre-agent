@@ -9,6 +9,7 @@ public record MessageDocument(
     DateTime TimeStamp,
     Author Author,
     string Text,
+    bool IsImageContent = false,
     Posted? Posted = null
 ) : ICosmosDocument
 {
@@ -23,6 +24,7 @@ public record MessageDocument(
             message.TimeStamp,
             new Author(message.Author.Role, message.Author.UserId, message.Author.DisplayName),
             message.Text,
+            message.IsImageContent,
             message.Posted
         );
 
@@ -32,6 +34,7 @@ public record MessageDocument(
             TimeStamp,
             Author,
             Text,
+            IsImageContent,
             Posted
         );
 }

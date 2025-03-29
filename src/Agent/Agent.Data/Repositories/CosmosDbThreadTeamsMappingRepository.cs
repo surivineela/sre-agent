@@ -39,6 +39,11 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
     public async Task<ThreadTeamsMapping> AddMappingAsync(ThreadTeamsMapping mapping)
     {
+        if (mapping is null)
+        {
+            throw new ArgumentException("ThreadId and TeamsConversationId cannot be null or empty");
+        }
+
         if (string.IsNullOrEmpty(mapping.Id) || string.IsNullOrEmpty(mapping.ConversationId))
         {
             throw new ArgumentException("ThreadId and TeamsConversationId cannot be null or empty");

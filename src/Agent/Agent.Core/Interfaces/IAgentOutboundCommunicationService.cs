@@ -17,6 +17,8 @@ public interface IAgentOutboundCommunicationService
     /// </summary>
     Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null);
 
-    Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity);
+    Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
+
+    Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
 
 }

@@ -6,7 +6,7 @@ namespace Agent.Plugins
 {
     public class MockSubscriptionPlugin : ISubscriptionPlugin
     {
-        public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync()
+        public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync(string? subscriptionFilter)
         {
             await Task.Yield();
 

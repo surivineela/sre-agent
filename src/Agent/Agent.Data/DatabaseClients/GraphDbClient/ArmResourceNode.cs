@@ -330,6 +330,38 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         }
     }
 
+    public class CosmosDbNode : ArmResourceNode
+    {
+        public string? Location { get; set; }
+        public string? ConsistencyPolicy { get; set; }
+
+        public CosmosDbNode() : base() { }
+
+        public CosmosDbNode(string resourceType,
+            string resourceId,
+            string subscriptionId,
+            string resourceGroupName,
+            string resourceName,
+            string location = null,
+            string? consistencyPolicy = null)
+            : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
+        {
+            Location = location?.NormalizeLocation();
+            ConsistencyPolicy = consistencyPolicy;
+        }
+
+        public override IDictionary<string, object> GetNodeProperties()
+        {
+            var props = base.GetNodeProperties();
+            props.Add("location", Location);
+            if (ConsistencyPolicy != null)
+            {
+                props.Add("consistencyPolicy", ConsistencyPolicy);
+            }
+            return props;
+        }
+    }
+
     public static partial class LocationExtensions
     {
         public static string NormalizeLocation(this string location)

@@ -11,13 +11,13 @@ namespace Agent.Runtime.Communication;
 
 public class OutboundCommunicationService : IAgentOutboundCommunicationService
 {
-    
+
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IThreadRepository _repository;
     private readonly ILogger<OutboundCommunicationService> _logger;
 
-    
-    private readonly IPostToTeamsPlugin _postToTeamsService; 
+
+    private readonly IPostToTeamsPlugin _postToTeamsService;
 
     public OutboundCommunicationService(
         IThreadOrchestrationManager mappingManager,
@@ -67,6 +67,26 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
+    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+        var messageId = Guid.NewGuid();
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: true,
+            Text: message
+        );
+
+        await _repository.AddMessageAsync(threadId, agentMessage);
+
+        return messageId;
+    }
+
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)
     {
         _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);
@@ -81,8 +101,8 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         }
     }
 
-    public async Task PostActivity(string threadId, Activity activity)
+    public async Task PostActivity(string threadId, Activity activity, string messageId = "")
     {
-        await _postToTeamsService.PostTeamsMessage(threadId, activity);
+        await _postToTeamsService.PostTeamsMessage(threadId, activity, messageId);
     }
 }

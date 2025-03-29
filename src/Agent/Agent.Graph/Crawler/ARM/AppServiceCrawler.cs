@@ -10,15 +10,13 @@ namespace Agent.Graph.Crawler.ARM;
 public class AppServiceCrawler : GenericArmResourceCrawler
 {
     private readonly ILogger<AppServiceCrawler> _logger;
-    private readonly IGraphDatabaseClient  _graphDbClient;
-    private readonly ArmClient _armClient;
+    private readonly IGraphDatabaseClient _graphDbClient;
 
     public AppServiceCrawler(ILogger<AppServiceCrawler> logger, IGraphDatabaseClient dbManager, ArmClient armClient)
         : base(logger, dbManager, armClient, false)
     {
         _logger = logger;
         _graphDbClient = dbManager;
-        _armClient = armClient;
     }
 
     public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)

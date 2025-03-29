@@ -132,7 +132,7 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         if (_crawlLinkedResource)
         {
             var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
-            foreach (var link in Tranverse(jsonObj, "."))
+            foreach (var link in Traverse(jsonObj, "."))
             {
                 _logger.LogDebug($"Find linked resource: {link.ResourceId}");
                 await _graphDbClient.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
@@ -145,7 +145,7 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         }
     }
 
-    private IEnumerable<ArmResourceNode> Tranverse(JsonElement root, string path)
+    private IEnumerable<ArmResourceNode> Traverse(JsonElement root, string path)
     {
         if (_skipPath.Contains(path.ToLowerInvariant()))
         {
@@ -157,7 +157,7 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
             case JsonValueKind.Object:
                 foreach (var property in root.EnumerateObject())
                 {
-                    foreach (var node in Tranverse(property.Value, $".{property.Name}"))
+                    foreach (var node in Traverse(property.Value, $".{property.Name}"))
                     {
                         yield return node;
                     }
@@ -167,7 +167,7 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
                 int idx = 0;
                 foreach (var element in root.EnumerateArray())
                 {
-                    foreach (var node in Tranverse(element, $"[{idx}]"))
+                    foreach (var node in Traverse(element, $"[{idx}]"))
                     {
                         yield return node;
                     }

@@ -5,9 +5,16 @@ public record Message(
     DateTime TimeStamp,
     Author Author,
     string Text,
+    bool IsImageContent = false,
     Posted? Posted = null
 );
 
 public record Posted(
     bool Teams
+);
+
+public record Attachment(
+    string Url,
+    string Name,
+    string Typep
 );

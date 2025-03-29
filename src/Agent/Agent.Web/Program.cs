@@ -24,6 +24,7 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
+using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
@@ -143,6 +144,7 @@ if (useSessionChatService)
         .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
+        .AddSingleton<IGraphDbService, GraphDbService>()
 
         .AddTransient<ContainerAppsRemediationPlugin>()
         .AddTransient<ManagedIdentityMigrationPlugin>()
@@ -161,9 +163,12 @@ if (useSessionChatService)
         .AddSingleton<CVEAgentFactory>()
         .AddSingleton<CVEScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
+        .AddSingleton<DailyReportScanner>()
+        .AddSingleton<DailyReportSummaryAgentFactory>()
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
         .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
         .AddSingleton<IArmPlugin, ArmPlugin>()
+        .AddSingleton<IGrafanaPlugin, GrafanaPlugin>()
         .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>()
         .AddSingleton<IGithubWorkflowTriggerPlugin, GithubWorkflowTriggerPlugin>()
         .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
@@ -309,7 +314,6 @@ builder.Services.AddControllersWithViews()
 // Add Blazor services
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

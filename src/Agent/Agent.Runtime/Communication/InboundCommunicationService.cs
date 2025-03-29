@@ -56,6 +56,26 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         return thread;
     }
 
+    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+        var messageId = Guid.NewGuid();
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            IsImageContent: true,
+            Text: message
+        );
+
+        await _repository.AddMessageAsync(threadId, agentMessage);
+
+        return messageId;
+    }
+
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message)
     {
         try
@@ -156,6 +176,5 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             throw;
         }
     }
-
 
 }

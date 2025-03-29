@@ -15,10 +15,11 @@ namespace Agent.Plugins
 
 
         [KernelFunction("list_all_subscriptions")]
-        [Description("Gets a list of Azure subscriptions that a user has access to. Use this plugin to infer subscription guid from user provide Subscription Name")]
-        public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync()
+        [Description("Gets a list of Azure subscriptions that a user has access to. Returns subscription details including ID and display name. Can optionally filter subscriptions by name using a case-insensitive partial match. Use this to find specific subscriptions or to get the subscription ID when you only know the name.")]
+        public async Task<IReadOnlyList<SubscriptionDescriptor>> ListAllSubscriptionsAsync(
+            [Description("Optional. Filter subscriptions by display name. Case-insensitive partial match. Example: 'prod' will match 'Production Subscription'")] string? subscriptionNameFilter = null)
         {
-            return await _subscriptionPlugin.ListAllSubscriptionsAsync();
+            return await _subscriptionPlugin.ListAllSubscriptionsAsync(subscriptionNameFilter);
         }
 
         [KernelFunction("list_app_services")]
