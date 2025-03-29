@@ -59,11 +59,14 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         public override async Task<ChatMessage> RunAsync(TaskActivityContext context, SourceCodeAgentInput agentInput)
         {
             StringBuilder introMessage = new StringBuilder("""
-                I work to link github urls with applications in order to perform richer analysis on the apps.
+                I work to link source repository urls with applications in order to perform richer analysis on the apps. Here are the apps that I need source repo URLs for:  
                 """);
 
-
             introMessage.AppendLine();
+            foreach (var app in agentInput.Input.AppsWithoutSourceCodeNodes)
+            {
+                introMessage.AppendLine($"- {app.ResourceId}");
+            }
 
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
