@@ -26,6 +26,15 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     {
         _logger = logger;
         _gitHubSettings = gitHubSettings;
+
+        // TODO; Remove this post 3/31 demo
+        string? ghToken = Environment.GetEnvironmentVariable("ghtoken");
+        if (!string.IsNullOrEmpty(ghToken))
+        {
+            _logger.Log(LogLevel.Information, "Setting github token in GithubIssuePlugin");
+            _gitHubSettings.PatOverride = ghToken;
+        }
+
         _gitHubClient = gitHubClient.Client;
     }
 
