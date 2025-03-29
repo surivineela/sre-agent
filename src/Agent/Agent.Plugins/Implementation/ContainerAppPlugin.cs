@@ -208,12 +208,6 @@ namespace Agent.Plugins.Implementation
                 // Get all resource groups in the subscription
                 await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
                 {
-                    // Filter for the specific resource group "aca-sre-agent-demo"
-                    if (!string.Equals(resourceGroup.Data.Name, "aca-sre-agent-demo", StringComparison.OrdinalIgnoreCase))
-                    {
-                        continue;
-                    }
-
                     await foreach (var containerApp in resourceGroup.GetContainerApps().GetAllAsync())
                     {
                         string state = containerApp.Data.ProvisioningState.ToString() ?? "Unknown";
