@@ -157,7 +157,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             var conciseSummary = await GenerateConciseSummaryAsync(dashboardSummary, dashboardUrl);
 
-            var screenshot = (await CaptureDashboardScreenshotAsync(SreDashboard, armResourceNode: null)).Screenshot;
+            var screenshot = (await CaptureDashboardScreenshotAsync(SreDashboard, armResourceNode: null))?.Screenshot;
             PersistScreenshot("SreDashboard", screenshot);
 
             var initialMessage = $"{conciseSummary}\n\n" + $"**I created this dashboard for you to give an overview : [SRE Agent Resource Dashboard]({dashboardUrl})**\n\n";
@@ -345,7 +345,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                 if (!string.IsNullOrEmpty(dashboardUrlWithParameters))
                 {
-                    _logger.LogInformation($"Requesting screenshot for {armResourceNode.ResourceName} from dashboard: {dashboardUrlWithParameters}");
+                    _logger.LogInformation($"Requesting screenshot for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}");
                     var request = new HttpRequestMessage(HttpMethod.Post, $"{_puppeteerScreenshotApiUrl}/screenshot");
 
                     var payload = new
@@ -367,13 +367,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                     var screenshotResponse = JsonSerializer.Deserialize<ScreenshotResponse>(responseJson);
 
-                    _logger.LogInformation($"Succesfully captured screenshot (Length: {screenshotResponse?.Screenshot?.Length}) for {armResourceNode.ResourceName} from dashboard: {dashboardUrlWithParameters}. Duration: {duration.TotalSeconds} seconds");
+                    _logger.LogInformation($"Succesfully captured screenshot (Length: {screenshotResponse?.Screenshot?.Length}) for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}. Duration: {duration.TotalSeconds} seconds");
                     return screenshotResponse;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error capturing screenshot for {ResourceName} from dashboard {DashboardUrl}: {Message}", armResourceNode.ResourceName, dashboardUrl, ex.Message);
+                _logger.LogError(ex, "Error capturing screenshot for {ResourceName} from dashboard {DashboardUrl}: {Message}", armResourceNode?.ResourceName, dashboardUrl, ex.Message);
             }
 
             return new ScreenshotResponse() { Screenshot = string.Empty };

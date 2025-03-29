@@ -90,19 +90,19 @@ namespace Agent.Plugins
         }
 
         public async Task<string> VisualizeApplicationComponents(
-            string resourceId, 
-            int hops = 3, 
-            Guid? threadId = null)
+    string resourceId,
+    int hops = 3,
+    Guid? threadId = null)
         {
             _logger.LogInformation($"[VisualizeApplicationComponents] Invoked with resourceId: {resourceId}");
 
+            // Validation
             if (string.IsNullOrWhiteSpace(resourceId))
             {
                 throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
             }
 
             var regex = new Regex(@"^/subscriptions/[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/resourceGroups/[^/]+/providers/[^/]+(\.[^/]+)*/[^/]+/[^/]+$");
-
             if (!regex.IsMatch(resourceId))
             {
                 throw new ArgumentException(
@@ -111,7 +111,7 @@ namespace Agent.Plugins
                     nameof(resourceId));
             }
 
-            // Simple check to ensure threadId is not null
+            // Ensure threadId is not null
             if (threadId == null)
             {
                 if (ThreadId != null)
@@ -122,18 +122,24 @@ namespace Agent.Plugins
                 {
                     _logger.LogWarning("[VisualizeApplicationComponents] ThreadId is null. Cannot append image to message.");
                     return "Error: ThreadId is null. Cannot generate visualization without a valid thread ID.";
-                }  
+                }
             }
 
-            var result = await GetApplicationComponentsRaw(resourceId, hops);
-            var jsonResult = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+            // Retry policy configuration
+            int maxRetries = 3;
+            int retryDelayMilliseconds = 1000; // Fixed delay of 1 second
 
-            var prompt = @$"
-You are a graph visualization expert. Convert the following JSON data representing Azure resources and their relationships into a Mermaid graph specification.
-
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    // Main execution logic
+                    var result = await GetApplicationComponentsRaw(resourceId, hops);
+                    var jsonResult = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
+                    var prompt = @$"
+You are a graph visualization expert. Convert the following Azure Gremlin Query Results JSON data representing Azure resources and their relationships into a Mermaid graph specification.
 Input JSON:
 {jsonResult}
-
 Requirements:
 1. Generate ONLY the Mermaid specification, no explanations or other text. This is very critical to graph generation later.
 2. Use 'graph LR' (left-right) direction
@@ -141,27 +147,38 @@ Requirements:
 4. Use resource IDs as node identifiers
 5. Include all relationships between nodes
 6. Do not include any explanatory text or markdown, just the raw Mermaid specification
-
-Example format (DO NOT USE, just for reference):
+Example format (DO NOT USE THE SAME EXAMPLE, just for reference):
 graph LR
     A[Resource1] --> B[Resource2]
     B --> C[Resource3]
-
 Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.";
+                    var response = await ChatClient.GetResponseAsync(prompt);
+                    var mermaidSpec = response.Text;
+                    _logger.LogInformation("Generated Mermaid specification successfully");
 
-            var response = await ChatClient.GetResponseAsync(prompt);
-            var mermaidSpec = response.Text;
+                    // Generate and return the base64-encoded graph image
+                    var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
+                    _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{base64EncodedGraph})\r\n");
 
-            _logger.LogInformation("Generated Mermaid specification successfully");
+                    return "Visualization Rendered!";
+                }
+                catch (Exception ex)
+                {
+                    if (attempt < maxRetries)
+                    {
+                        _logger.LogWarning($"[VisualizeApplicationComponents] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
+                        await Task.Delay(retryDelayMilliseconds);
+                    }
+                    else
+                    {
+                        _logger.LogError($"[VisualizeApplicationComponents] All {maxRetries} attempts to render the image failed. Last error: {ex.Message}");
+                        throw;
+                    }
+                }
+            }
 
-            // Generate and return the base64-encoded graph image
-            var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
-
-            _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
-
-            await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{base64EncodedGraph})\r\n");
-
-            return "Visualization Rendered!";
+            return "Error: Unexpected execution path in visualization process";
         }
 
         private async Task<string> GenerateMermaidGraph(string mermaidSpec)
