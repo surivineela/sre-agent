@@ -142,6 +142,10 @@ public class TimerService : IHostedService, IDisposable
                     }
                 }
             }
+            catch(Exception ex)
+            {
+                _logger.LogError(ex, "Error executing crawler timer.");
+            }
             finally
             {
                 _crawlerTimerIsRunning = false; // Ensure flag resets even if CrawlAsync() fails
@@ -162,6 +166,10 @@ public class TimerService : IHostedService, IDisposable
             {
                 _tlsTimerIsRunning = true;
                 await _tlsBestPracticesScanner.Scan(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing TLS timer.");
             }
             finally
             {
@@ -191,6 +199,10 @@ public class TimerService : IHostedService, IDisposable
                 _sourceCodeCrawlerTimerIsRunning = true;
                 await _sourceCodeScanner.Scan(cancellationToken);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing source code timer.");
+            }
             finally
             {
                 _sourceCodeCrawlerTimerIsRunning = false;
@@ -218,6 +230,10 @@ public class TimerService : IHostedService, IDisposable
             {
                 _cveCrawlerTimerIsRunning = true;
                 await _cveScanner.Scan(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing CVE timer.");
             }
             finally
             {
@@ -272,6 +288,10 @@ public class TimerService : IHostedService, IDisposable
                     await _teamsPlugin.CreateTeamsThread("", "All best practices are met! 🎉");
                 }
 
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing best practice timer.");
             }
             finally
             {
