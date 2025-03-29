@@ -59,38 +59,28 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
 Serilog.Debugging.SelfLog.Enable(Console.Out);
 
 // Configure logging
-if (builder.Environment.IsDevelopment())
-{
-    Log.Logger = new LoggerConfiguration()
-        .ReadFrom.Configuration(builder.Configuration)
-        .CreateLogger();
-}
-else
-{
-    // Temporary - hardcoded values for testing
-    var kustoClusterEndpoint = "https://sub-agent-test.canadacentral.kusto.windows.net"; //"https://cappstest.westus.kusto.windows.net"
-    var kustoDatabaseName = "subagent"; // "capps"
-    var kustoTableName = "SreAgentLogs";
+var loggerConfiguration = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
 
-    var cosmosDbName = Environment.GetEnvironmentVariable("AppSettings__Core__Azure__CosmosDB__Docs__Database") ?? string.Empty;
-    var agentName = cosmosDbName.StartsWith("db-") ? cosmosDbName.Substring(3) : cosmosDbName;
+if (!builder.Environment.IsDevelopment())
+{
+    // Additional changes for production
+    var agentName = Environment.GetEnvironmentVariable("AGENT_Name") ?? string.Empty;
 
-    Log.Logger = new LoggerConfiguration()
+    loggerConfiguration
         .Enrich.WithProperty("AgentName", agentName) // Add agentname to log context
-        .WriteTo.Console(
-            outputTemplate: "[{Timestamp:yyyy-MM-dd HH:mm:ss}] [{Level:u3}] [Thread {ThreadId}] [{SourceContext}] {Message}{NewLine}{Exception}"
-        )
         .WriteTo.AzureDataExplorerSink(
             new AzureDataExplorerSinkOptions
             {
-                IngestionEndpointUri = kustoClusterEndpoint,
-                DatabaseName = kustoDatabaseName,
-                TableName = kustoTableName
+                // Temporary - hardcoded values for testing
+                IngestionEndpointUri = "https://sub-agent-test.canadacentral.kusto.windows.net",
+                DatabaseName = "subagent",
+                TableName = "SreAgentLogs"
             }
             .WithAadSystemAssignedManagedIdentity()
-        )
-        .CreateLogger();
+        );
 }
+
+Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Host.UseSerilog();
 
