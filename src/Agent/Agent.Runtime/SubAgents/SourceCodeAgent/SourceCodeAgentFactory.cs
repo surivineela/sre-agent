@@ -37,6 +37,7 @@ public sealed class SourceCodeAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

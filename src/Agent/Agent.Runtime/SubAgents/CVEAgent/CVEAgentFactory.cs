@@ -32,6 +32,7 @@ public sealed class CVEAgentFactory
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
