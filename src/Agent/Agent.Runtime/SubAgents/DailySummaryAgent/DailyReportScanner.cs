@@ -681,10 +681,17 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 // Call the LLM to get the summary
                 var response = await _chatClient.GetResponseAsync(messages, options);
                 var summary = response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate summary from dashboards.";
-                var applications = await _graphDBPlugin.DiscoverApplications("a058f7c6-592d-4490-887a-803e748787c0");
-                if (applications != null && applications.Count > 0)
+                try
                 {
-                    summary += $"Following are applications identified via knowledge graph connections; ie they are compute resources connected to data resources: {applications}";
+                    var applications = await _graphDBPlugin.DiscoverApplications("a058f7c6-592d-4490-887a-803e748787c0");
+                    if (applications != null && applications.Count > 0)
+                    {
+                        summary += $"Following are applications identified via knowledge graph connections; ie they are compute resources connected to data resources: {applications}";
+                    }
+                }
+                catch (Exception)
+                {
+                    // Good to have
                 }
                 return summary;
             }
@@ -706,7 +713,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 "Eliminate any unnecessary details while retaining the essence of the dashboard analysis." +
                 "**Response Format 📝**\n" +
                 "- Begin with the local time and date of the analysis\n" +
-                "- Use H3 headings only (###) with professional emojis\n" +
+                "- Use H3 headin{gs only (###) with professional emojis\n" +
                 "- Include appropriate line breaks for readability\n" +
                 "- Put Azure IDs in code blocks\n" +
                 "- Use clear indicators: ✅ healthy, ⚠️ warning, ❌ critical\n" +
