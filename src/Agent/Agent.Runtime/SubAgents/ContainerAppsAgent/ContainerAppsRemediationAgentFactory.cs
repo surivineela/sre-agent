@@ -32,6 +32,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         IGraphDBPlugin graphDbPlugin,
         IChartPlugin chartPlugin,
         ToolsRepository toolsRepository,
+        IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
         var toolSignatures = new List<string>();
@@ -76,6 +77,7 @@ public sealed class ContainerAppsRemediationAgentFactory
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
+        _mappingManager = mappingManager;
     }
 
     public async Task<string> StartOrchestration(
