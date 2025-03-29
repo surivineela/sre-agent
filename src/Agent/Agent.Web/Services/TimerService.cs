@@ -175,6 +175,12 @@ public class TimerService : IHostedService, IDisposable
     {
         _sourceCodeCrawlerTimer = new Timer(async _ =>
         {
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInformation("StartSourceCodeTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                return; // Wait for the first crawl to finish
+            }
+
             if (_sourceCodeCrawlerTimerIsRunning)
             {
                 _logger.LogInformation("Source code scanner is running. Skip this round");
@@ -197,6 +203,12 @@ public class TimerService : IHostedService, IDisposable
     {
         _cveCrawlerTimer = new Timer(async _ =>
         {
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInformation("StartCVETimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                return; // Wait for the first crawl to finish
+            }
+
             if (_cveCrawlerTimerIsRunning)
             {
                 _logger.LogInformation("CVE scanner is running. Skip this round");
@@ -222,7 +234,11 @@ public class TimerService : IHostedService, IDisposable
     {
         _bestPracticeTimer = new Timer(async _ =>
         {
-            if (!_crawlerFinishedOnce) return; // Wait for the first crawl to finish
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInformation("StartBestPracticeTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                return; // Wait for the first crawl to finish
+            }
 
             if (_bestPracticeTimerIsRunning) return; // Prevent overlapping executions
 
