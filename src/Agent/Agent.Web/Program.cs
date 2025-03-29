@@ -60,15 +60,14 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
 Serilog.Debugging.SelfLog.Enable(Console.Out);
 
 // Configure logging
-var loggerConfiguration = new LoggerConfiguration().ReadFrom.Configuration(builder.Configuration);
+var loggerConfiguration = new LoggerConfiguration()
+        .ReadFrom.Configuration(builder.Configuration);
 
 if (!builder.Environment.IsDevelopment())
 {
     // Additional changes for production
-    var agentName = Environment.GetEnvironmentVariable("AGENT_Name") ?? string.Empty;
-
     loggerConfiguration
-        .Enrich.WithProperty("AgentName", agentName) // Add agentname to log context
+        .Enrich.WithProperty("AgentName", Environment.GetEnvironmentVariable("AGENT_NAME"))
         .WriteTo.AzureDataExplorerSink(
             new AzureDataExplorerSinkOptions
             {
