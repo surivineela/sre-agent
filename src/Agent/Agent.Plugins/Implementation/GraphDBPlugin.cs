@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
+using Azure.Core;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -102,12 +103,15 @@ namespace Agent.Plugins
                 throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
             }
 
-            var regex = new Regex(@"^/subscriptions/[0-9a-fA-F]{8}-([0-9a-fA-F]{4}-){3}[0-9a-fA-F]{12}/resourceGroups/[^/]+/providers/[^/]+(\.[^/]+)*/[^/]+/[^/]+$");
-            if (!regex.IsMatch(resourceId))
+            try
+            {
+                // ResourceIdentifier will parse and validate the resource ID format
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
+            }
+            catch (Exception ex)
             {
                 throw new ArgumentException(
-                    "Invalid Azure resource ID format. Expected format: " +
-                    "/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/{resourceProviderNamespace}/{resourceType}/{resourceName}",
+                    $"Invalid Azure resource ID format: {ex.Message}",
                     nameof(resourceId));
             }
 
@@ -135,6 +139,11 @@ namespace Agent.Plugins
                 {
                     // Main execution logic
                     var result = await GetApplicationComponentsRaw(resourceId, hops);
+                    if (result.Count == 0)
+                    {
+                        _logger.LogInformation($"No components found for resourceId: {resourceId}");
+                        throw new Exception($"No components found for resourceId: {resourceId}. Was the correct resource ID provided? Alternatively, the Knowledge Graph may not have been built for this component.");
+                    }
                     var jsonResult = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
                     var prompt = @$"
 You are a graph visualization expert. Convert the following Azure Gremlin Query Results JSON data representing Azure resources and their relationships into a Mermaid graph specification.
