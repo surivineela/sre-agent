@@ -168,7 +168,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                 await _graphDbClient.AddOrUpdateEdgeAsync(
                 node.GetNodeId(),
                 redisNode.GetNodeId(),
-                "USES_REDIS",
+                Constants.Relationships.UsesRedis,
                 new Dictionary<string, object>
                 {
                     ["updateTs"] = DateTime.UtcNow.Ticks,

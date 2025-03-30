@@ -264,8 +264,8 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
                     .repeat(
                         union(
-                            outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED').inV(),
-                            inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED').outV()
+                            outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
+                            inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
                         )
                         .not(has('resourceType', within('resourcegroup', 'subscription')))
                         .simplePath()
