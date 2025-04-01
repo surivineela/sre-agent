@@ -82,27 +82,18 @@ public sealed class ContainerAppsRemediationAgentFactory
 
     public async Task<string> StartOrchestration(
         string input,
-        string threadId = "")
+        ThreadContext context)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-        if (threadId != null)
-        {
-            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
-                Id: $"mapping_{threadId}",
-                ThreadId: threadId,
-                OrchestrationInstanceId: instanceId,
-                CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow
-                )
-            );
-        }
+        var threadId = context.ThreadId.ToString();
 
+        await _mappingManager.AddMappingAsync(threadId, instanceId);
         return await _durableTaskClient.ScheduleNewContainerAppsRemediationAgentInstanceAsync(
             new ContainerAppsRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                threadId),
+                context),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 

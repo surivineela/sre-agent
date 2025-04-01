@@ -49,7 +49,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                 InstanceIdPrefix = CVEAgentFactory.OrchestrationInstanceIdPrefix
             }).ToListAsync();
 
-            if(runningAgents.Count > 0)
+            if (runningAgents.Count > 0)
             {
                 _logger.LogInformation("CVE agent already running, skipping the scan.");
                 return;
@@ -59,7 +59,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                 g.V().has('resourceType', 'microsoft.source/repository')
                 .values('resourceId')");
 
-            var repos = queryResults.Select(x => (string) x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
+            var repos = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
 
             if (repos.Count > 0)
             {
@@ -69,14 +69,16 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
 
                     """);
-                    
+
 
                 var input = new CVEInput()
                 {
                     ReposToScan = repos.Select(r => new RepoUrlStatus(r)).ToList(),
                 };
 
-                var instanceId = await _cveAgentFactory.StartOrchestration(input, thread.Id.ToString());
+                var threadContext = new ThreadContext(thread.Id);
+
+                var instanceId = await _cveAgentFactory.StartOrchestration(input, threadContext);
 
                 // work around "bad grpc response 504" error
                 bool completed = false;
@@ -87,7 +89,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                         await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
                         completed = true;
                     }
-                    catch(RpcException ex)
+                    catch (RpcException ex)
                     {
                         _logger.LogError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
                         await Task.Delay(1000, cancellationToken);

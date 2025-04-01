@@ -73,27 +73,18 @@ public sealed class AppServiceRemediationAgentFactory
 
     public async Task<string> StartOrchestration(
         AppServiceRemediationInput input,
-        string threadId)
+        ThreadContext context)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+        var threadId = context.ThreadId.ToString();
 
-        if (threadId != null)
-        {
-            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
-                Id: $"mapping_{threadId}",
-                ThreadId: threadId,
-                OrchestrationInstanceId: instanceId,
-                CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow
-                )
-            );
-        }
+        await _mappingManager.AddMappingAsync(threadId, instanceId);
 
         return await _durableTaskClient.ScheduleNewAppServiceRemediationAgentInstanceAsync(
             new AppServiceRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                threadId),
+                context),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 

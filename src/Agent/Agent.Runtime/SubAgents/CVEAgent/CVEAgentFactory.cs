@@ -41,27 +41,19 @@ public sealed class CVEAgentFactory
 
     public async Task<string> StartOrchestration(
         CVEInput input,
-        string threadId = "")
+        ThreadContext context)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-        if (threadId != null)
-        {
-            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
-                Id: $"mapping_{threadId}",
-                ThreadId: threadId,
-                OrchestrationInstanceId: instanceId,
-                CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow
-                )
-            );
-        }
+        var threadId = context.ThreadId.ToString();
+
+        await _mappingManager.AddMappingAsync(threadId, instanceId);
 
         await _durableTaskClient.ScheduleNewOrchestrationInstanceAsync(new TaskName(nameof(CVEAgent)),
             new CVEAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                ThreadId: threadId),
+                Context: context),
             new StartOrchestrationOptions(InstanceId: instanceId));
 
         return instanceId;

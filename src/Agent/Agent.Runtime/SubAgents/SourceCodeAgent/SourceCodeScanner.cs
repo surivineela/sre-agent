@@ -49,7 +49,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 InstanceIdPrefix = SourceCodeAgentFactory.OrchestrationInstanceIdPrefix
             }).ToListAsync();
 
-            if(runningAgents.Count > 0)
+            if (runningAgents.Count > 0)
             {
                 _logger.LogInformation("SourceCode agent already running, skipping the scan.");
                 return;
@@ -60,7 +60,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 .not(outE().hasLabel('SERVES_CODE').inV().has('resourceType', 'microsoft.source/repository'))
                 .values('resourceId')");
 
-            var resources = queryResults.Select(x => (string) x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
+            var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
 
             // TODO - remove.
             // some temp filtering because Paul has too many resources
@@ -74,14 +74,16 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     Hi there! I found at least one Container App that does not have the source code repo url provided.
                     Preparing details...  
                     """);
-                    
+
 
                 var input = new SourceCodeInput()
                 {
                     AppsWithoutSourceCodeNodes = resources.Select(r => new SourceCodeStatus(r)).ToList(),
                 };
 
-                var instanceId = await _sourceCodeAgentFactory.StartOrchestration(input, thread.Id.ToString());
+                var threadContext = new ThreadContext(thread.Id);
+
+                var instanceId = await _sourceCodeAgentFactory.StartOrchestration(input, threadContext);
 
                 // work around "bad grpc response 504" error
                 bool completed = false;
@@ -92,7 +94,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                         await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
                         completed = true;
                     }
-                    catch(RpcException ex)
+                    catch (RpcException ex)
                     {
                         _logger.LogError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
                         await Task.Delay(1000, cancellationToken);

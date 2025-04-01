@@ -33,7 +33,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.ThreadId,
+                agentInput.Context.ThreadId.ToString(),
                 log);
 
             return "success";
@@ -78,7 +78,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
             await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                agentInput.ThreadId,
+                agentInput.Context.ThreadId.ToString(),
                 context.InstanceId,
                 newMessage);
 

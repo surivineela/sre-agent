@@ -68,27 +68,18 @@ public sealed class ManagedIdentityMigrationAgentFactory
 
     public async Task<string> StartOrchestration(
         ManagedIdentityMigrationInput input,
-        string threadId = "")
+         ThreadContext context)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+        var threadId = context.ThreadId.ToString();
 
-        if (threadId != null)
-        {
-            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
-                Id: $"mapping_{threadId}",
-                ThreadId: threadId,
-                OrchestrationInstanceId: instanceId,
-                CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow
-                )
-            );
-        }
+        await _mappingManager.AddMappingAsync(threadId, instanceId);
 
         return await _durableTaskClient.ScheduleNewManagedIdentityMigrationAgentInstanceAsync(
             new ManagedIdentityMigrationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                ThreadId: threadId),
+                context),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 

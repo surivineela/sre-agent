@@ -1,4 +1,5 @@
 ﻿using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using System.ComponentModel;
 
 namespace Agent.Runtime.SubAgents.SourceCodeAgent;
@@ -8,4 +9,4 @@ public sealed record SourceCodeAgentInput(
     SourceCodeInput Input,
     [Description("The list of tools that the agent can use to perform its tasks")]
     IReadOnlyList<string> ToolSignatures,
-    string ThreadId);
+    ThreadContext Context);

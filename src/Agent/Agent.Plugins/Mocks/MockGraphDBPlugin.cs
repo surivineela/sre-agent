@@ -1,11 +1,12 @@
-﻿using Agent.Graph.Schema;
+﻿using Agent.Core.Models.Api.v1;
+using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 
 namespace Agent.Plugins.Mocks
 {
     public class MockGraphDBPlugin : IGraphDBPlugin
     {
-        public string? ThreadId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public ThreadContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Task<List<ApplicationGraph>> DiscoverApplications(string subscriptionId)
         {

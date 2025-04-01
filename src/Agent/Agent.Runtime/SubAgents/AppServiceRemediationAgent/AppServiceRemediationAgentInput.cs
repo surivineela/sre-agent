@@ -1,6 +1,9 @@
-﻿namespace Agent.Runtime.SubAgents.AppServiceRemediation;
+﻿using Agent.Core.Models.Api.v1;
+
+namespace Agent.Runtime.SubAgents.AppServiceRemediation;
+
 
 public sealed record AppServiceRemediationAgentInput(
     AppServiceRemediationInput Input,
     IReadOnlyList<string> ToolSignatures,
-    string ThreadId);
+    ThreadContext Context);

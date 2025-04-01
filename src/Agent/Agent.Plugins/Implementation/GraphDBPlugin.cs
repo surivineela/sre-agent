@@ -6,6 +6,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
@@ -23,7 +24,7 @@ namespace Agent.Plugins
 
         public IChatClient ChatClient { get; }
 
-        public string? ThreadId { get; set; }
+        public ThreadContext? Context { get; set; }
 
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
@@ -118,9 +119,9 @@ namespace Agent.Plugins
             // Ensure threadId is not null
             if (threadId == null)
             {
-                if (ThreadId != null)
+                if (Context != null)
                 {
-                    threadId = Guid.Parse(ThreadId);
+                    threadId = Context.ThreadId;
                 }
                 else
                 {
@@ -399,7 +400,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 string sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_");
                 string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository')";
                 var sourceCodeNodeResults = await GraphDbClient.Query(checkSourceCodeNodeQuery);
-                
+
                 if (!sourceCodeNodeResults.Any())
                 {
                     var properties = new Dictionary<string, object>
@@ -410,7 +411,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                         { "resourceName", sourceCodeNodeId },
                         { "updateTs", DateTime.UtcNow.Ticks }
                     };
-                            
+
                     await GraphDbClient.AddOrUpdateNodeAsync("microsoft.source/repository", sourceCodeNodeId, "microsoft.source/repository", properties);
                 }
 

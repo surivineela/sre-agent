@@ -3,6 +3,7 @@ using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -12,7 +13,7 @@ public class AppServiceRemediationPlugin
     private readonly AppServiceRemediationAgentFactory _appServiceRemediationAgentFactory;
     private readonly ILogger<AppServiceRemediationPlugin> _logger;
 
-    public string? ThreadId { get; set; }
+    public ThreadContext? Context { get; set; }
 
     public AppServiceRemediationPlugin(
         DurableTaskClient durableTaskClient,
@@ -48,11 +49,13 @@ public class AppServiceRemediationPlugin
     [KernelFunction("start_app_service_remediation_workflow")]
     [Description("Start the workflow to remediate azure app service apps or azure function apps for memory leak, network issues, app issues etc.")]
     public async Task<string> StartAppServiceRemediationAgent(
-        [Description("The list of complete Azure Resource Id of the app service apps or function apps")] AppServiceRemediationInput input,
-        string threadId)
+        [Description("The list of complete Azure Resource Id of the app service apps or function apps")] AppServiceRemediationInput input)
     {
-
-        var instanceId = await _appServiceRemediationAgentFactory.StartOrchestration(input, ThreadId);
+        if (Context == null)
+        {
+            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+        }
+        var instanceId = await _appServiceRemediationAgentFactory.StartOrchestration(input, Context);
         return $"A workflow has been started to remediate app service, the workflow instance id is: {instanceId}";
     }
 }

@@ -34,7 +34,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.ThreadId,
+                agentInput.Context.ThreadId.ToString(),
                 log);
 
             return "success";
@@ -71,7 +71,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
             await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                agentInput.ThreadId,
+                agentInput.Context.ThreadId.ToString(),
                 context.InstanceId,
                 newMessage);
 

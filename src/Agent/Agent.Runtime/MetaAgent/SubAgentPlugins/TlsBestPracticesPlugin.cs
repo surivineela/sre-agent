@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ public class TlsBestPracticesPlugin
     private readonly TlsBestPracticeAgentFactory _tlsBestPracticeAgentFactory;
     private readonly ILogger<TlsBestPracticesPlugin> _logger;
 
-    public string? ThreadId { get; set; }
+    public ThreadContext? Context { get; set; }
 
     public TlsBestPracticesPlugin(
         DurableTaskClient durableTaskClient,
@@ -51,7 +52,11 @@ public class TlsBestPracticesPlugin
     public async Task<string> StartTlsBestPracticeAgent(
         [Description("The list of apps to be migrated")] TlsBestPracticesInput input)
     {
-        var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, ThreadId);
+        if (Context == null)
+        {
+            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+        }
+        var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, Context);
         return $"A workflow has been started to adopt tls best practice, the workflow instance id is: {instanceId}";
     }
 }

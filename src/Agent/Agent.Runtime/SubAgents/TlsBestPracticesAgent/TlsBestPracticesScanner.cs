@@ -53,7 +53,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                 InstanceIdPrefix = TlsBestPracticeAgentFactory.OrchestrationInstanceIdPrefix
             }).ToListAsync();
 
-            if(runningAgents.Count > 0)
+            if (runningAgents.Count > 0)
             {
                 _logger.LogInformation("TlsBestPractices agent already running, skipping the scan.");
                 return;
@@ -61,7 +61,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
             var queryResults = await _graphDatabaseClient.Query("g.V().has('resourceType', 'microsoft.web/sites').values('resourceId')");
 
-            var resources = queryResults.Select(x => (string) x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
+            var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
 
             // TODO - remove.
             // some temp filtering because Paul has too many resources
@@ -82,7 +82,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
                     Preparing details...  
                     """);
-                    
+
 
                 var input = new TlsBestPracticesInput()
                 {
@@ -90,7 +90,9 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                     DesiredVersion = "1.2"
                 };
 
-                var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, thread.Id.ToString());
+                var threadContext = new ThreadContext(thread.Id);
+
+                var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, threadContext);
 
                 // work around "bad grpc response 504" error
                 bool completed = false;
@@ -101,7 +103,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                         await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
                         completed = true;
                     }
-                    catch(RpcException ex)
+                    catch (RpcException ex)
                     {
                         _logger.LogError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
                         await Task.Delay(1000, cancellationToken);

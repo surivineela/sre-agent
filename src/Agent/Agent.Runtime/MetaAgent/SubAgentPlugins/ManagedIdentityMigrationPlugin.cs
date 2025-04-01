@@ -4,6 +4,7 @@ using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -14,7 +15,7 @@ public class ManagedIdentityMigrationPlugin
     private readonly ManagedIdentityMigrationAgentFactory _managedIdentityMigrationAgentFactory;
     private readonly ILogger<ManagedIdentityMigrationPlugin> _logger;
 
-    public string? ThreadId { get; set; }
+    public ThreadContext? Context { get; set; }
 
 
     public ManagedIdentityMigrationPlugin(
@@ -52,7 +53,11 @@ public class ManagedIdentityMigrationPlugin
     public async Task<string> StartManagedIdentityMigrationAgent(
         [Description("The list of apps to be migrated")] ManagedIdentityMigrationInput input)
     {
-        var instanceId = await _managedIdentityMigrationAgentFactory.StartOrchestration(input, ThreadId);
+        if (Context == null)
+        {
+            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+        }
+        var instanceId = await _managedIdentityMigrationAgentFactory.StartOrchestration(input, Context);
         return $"A workflow has been started to migrate managed identity, the workflow instance id is: {instanceId}";
     }
 }

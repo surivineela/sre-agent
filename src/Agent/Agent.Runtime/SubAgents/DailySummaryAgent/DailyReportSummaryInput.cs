@@ -1,4 +1,5 @@
 ﻿using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using System.Collections.Generic;
 using System.ComponentModel;
 
@@ -17,5 +18,5 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
     public sealed record DailyReportSummaryAgentInput(
         DailyReportSummaryInput Input,
         IReadOnlyList<string> ToolSignatures,
-        string ThreadId);
+        ThreadContext Context);
 }

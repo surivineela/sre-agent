@@ -26,7 +26,7 @@ public class TlsPlanActivity : TaskActivity<TlsBestPracticesInput, List<Microsof
         var userMessage = $"Here are the apps that need updating: {existingAppsDetails}";
 
         List<ChatMessage> messages = [
-            new ChatMessage(ChatRole.System, systemPrompt),
+                new ChatMessage(ChatRole.System, systemPrompt),
                 new ChatMessage(ChatRole.User, userMessage)
             ];
 

@@ -27,6 +27,7 @@ using Agent.Runtime.MetaAgent;
 using Agent.Core.Models;
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Models.Api.v1;
 using Agent.Tests.Integration.Helpers;
 
 namespace Agent.Tests.Integration;
@@ -129,16 +130,16 @@ public class MetaAgentTests : IAsyncLifetime
     public async Task StartTlsBestPracticeAgent()
     {
 
+        var message = new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, "hello", "User"), $"Help me to apply tls best practice. Here are my apps: {JsonSerializer.Serialize(_testApps)}, I want to upgrade TLS version to 1.2");
+        var threadGuid = Guid.NewGuid();
+        var context = new ThreadContext(threadGuid);
         // generate threadId for this background task
-        var threadId = Guid.NewGuid().ToString();
+        var threadId = threadGuid.ToString();
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
-
-        var resp = await metaAgent.ProcessUserMessage(
-            userMessage: $"Help me to apply tls best practice. Here are my apps: {JsonSerializer.Serialize(_testApps)}, I want to upgrade TLS version to 1.2",
-            threadId: threadId);
+        var resp = await metaAgent.ProcessUserMessage(context);
 
         var tlsOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
         {

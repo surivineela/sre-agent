@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
@@ -98,13 +99,10 @@ Format all responses according to Microsoft Teams markdown support:
 
 DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
-    private readonly IThreadRepository _repository;
-    private readonly IThreadOrchestrationManager _mappingManager;
-    private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
+    private readonly ThreadService _threadService;
     private readonly McpToolsRepository _mcpToolsRepository;
     private readonly AsyncReaderWriterLock _lock = new();
 
-    private readonly IServiceProvider _serviceProvider;
     private readonly IChatClient _chatClient;
     private readonly ILogger<MetaAgent> _log;
 
@@ -114,7 +112,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly ISubscriptionPlugin _subscriptionPlugin;
     private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
-    private readonly Plugins.ChartPlugin _chartplugin;
+    private readonly ChartPlugin _chartplugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly SourceCodePlugin _sourceCodePlugin;
@@ -122,9 +120,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
         ILogger<MetaAgent> logger,
-        IThreadRepository repository,
-        IThreadOrchestrationManager mappingManager,
-        IAgentOutboundCommunicationService outboundCommunicationService,
+        ThreadService threadService,
         McpToolsRepository mcpToolsRepository,
         Plugins.ChartPlugin chartplugin,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
@@ -138,9 +134,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         SourceCodePlugin sourceCodePlugin)
     {
         _chatClient = chatClient;
-        _repository = repository;
-        _mappingManager = mappingManager;
-        _outboundCommunicationService = outboundCommunicationService;
+        _threadService = threadService;
         _mcpToolsRepository = mcpToolsRepository;
         _log = logger;
 
@@ -158,34 +152,23 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _graphDbPlugin = graphDBPlugin;
     }
 
-    // TODO: the userMessage is not needed as we are using the repository to get the messages
-    public async Task<string> ProcessUserMessage(string userMessage, string threadId)
+    public async Task<string> ProcessUserMessage(ThreadContext ctx)
     {
-        _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", threadId, userMessage);
+        var lastUserMessage = await _threadService.GetLastUserMessage(ctx);
+        _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", ctx.ThreadId, lastUserMessage);
         using var _ = await _lock.AcquireWriterAsync();
 
-        Guid threadGuid = Guid.Parse(threadId);
-        var threadMessages = await _repository.GetMessagesAsync(threadGuid);
-        var chatHistory = new List<ChatMessage> { new ChatMessage(ChatRole.System, SystemPrompt) };
-        foreach (var msg in threadMessages)
-        {
-            ChatRole role = msg.Author.Role == Role.User ? ChatRole.User : ChatRole.Assistant;
-            if (msg.IsImageContent)
-            {
-                continue;
-            }
-            chatHistory.Add(new ChatMessage(role, msg.Text));
-        }
+        Guid threadGuid = ctx.ThreadId;
 
-        _tlsBestPracticesPlugin.ThreadId = threadId;
-        _managedIdentityMigrationPlugin.ThreadId = threadId;
-        _appServiceRemediationPlugin.ThreadId = threadId;
-        _containerAppsRemediationPlugin.ThreadId = threadId;
-        _sourceCodePlugin.ThreadId = threadId;
-        _graphDbPlugin.ThreadId = threadId;
+        _tlsBestPracticesPlugin.Context = ctx;
+        _managedIdentityMigrationPlugin.Context = ctx;
+        _appServiceRemediationPlugin.Context = ctx;
+        _containerAppsRemediationPlugin.Context = ctx;
+        _sourceCodePlugin.Context = ctx;
+        _graphDbPlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
-        _chartplugin.ThreadId = threadId;
+        _chartplugin.Context = ctx;
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
@@ -212,6 +195,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
 
+        var chatHistory = await _threadService.ToLLMChatHistory(ctx, SystemPrompt);
         var response = await _chatClient.GetResponseAsync(
             chatHistory,
             new ChatOptions

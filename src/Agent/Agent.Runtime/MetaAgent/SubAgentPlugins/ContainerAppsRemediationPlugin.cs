@@ -3,6 +3,7 @@ using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -12,7 +13,7 @@ public class ContainerAppsRemediationPlugin
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
     private readonly ILogger<AppServiceRemediationPlugin> _logger;
 
-    public string? ThreadId { get; set; }
+    public ThreadContext? Context { get; set; }
 
     public ContainerAppsRemediationPlugin(
         DurableTaskClient durableTaskClient,
@@ -36,7 +37,7 @@ public class ContainerAppsRemediationPlugin
                 FetchInputsAndOutputs: true)))
         {
             var agentInput = instance.ReadInputAs<ContainerAppsRemediationAgentInput>();
-            
+
             list.Add(new WorkflowMetadata<string>(
                 WorkflowInstanceId: instance.InstanceId,
                 Input: agentInput.Input));
@@ -50,7 +51,11 @@ public class ContainerAppsRemediationPlugin
     public async Task<string> StartContainerAppsRemediationAgent(
         [Description("The list of complete Azure Resource Id of the apps having the issue and a description of the problem")] string input)
     {
-        var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(input, ThreadId);
+        if (Context == null)
+        {
+            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+        }
+        var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(input, Context);
         return $"A workflow has been started to remediate container apps, the workflow instance id is: {instanceId}";
     }
 }

@@ -6,6 +6,8 @@ public interface IThreadOrchestrationManager
 {
     Task<IEnumerable<ThreadOrchestrationMapping>> GetMappingsByThreadIdAsync(string threadId);
     Task AddMappingAsync(ThreadOrchestrationMapping mapping);
+    Task AddMappingAsync(string threadId, string orchestrationInstanceId);
+
     Task RemoveMappingAsync(string threadId);
     Task RemoveMappingAsync(string threadId, string orchestrationInstanceId);
     Task<IEnumerable<ThreadOrchestrationMapping>> GetAllMappingsAsync();

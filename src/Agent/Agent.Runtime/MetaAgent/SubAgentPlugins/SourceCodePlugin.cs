@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using Agent.Core.Models;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Agent.Runtime.SubAgents.TlsBestPractices;
+using Agent.Core.Models.Api.v1;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -15,7 +15,7 @@ public class SourceCodePlugin
     private readonly SourceCodeAgentFactory _sourceCodeAgentFactory;
     private readonly ILogger<SourceCodePlugin> _logger;
 
-    public string? ThreadId { get; set; }
+    public ThreadContext? Context { get; set; }
 
     public SourceCodePlugin(
         DurableTaskClient durableTaskClient,
@@ -54,7 +54,11 @@ public class SourceCodePlugin
     public async Task<string> StartSourceCodeAgent(
         [Description("The list of apps that need source code nodes")] SourceCodeInput input)
     {
-        var instanceId = await _sourceCodeAgentFactory.StartOrchestration(input, ThreadId);
+        if (Context == null)
+        {
+            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+        }
+        var instanceId = await _sourceCodeAgentFactory.StartOrchestration(input, Context);
         return $"A workflow has been started to adopt tls best practice, the workflow instance id is: {instanceId}";
     }
 }

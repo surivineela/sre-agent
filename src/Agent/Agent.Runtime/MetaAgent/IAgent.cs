@@ -1,8 +1,8 @@
-using Microsoft.Extensions.AI;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.MetaAgent;
 
 public interface IAgent
 {
-    Task<string> ProcessUserMessage(string message, string threadId);
+    Task<string> ProcessUserMessage(ThreadContext context);
 }

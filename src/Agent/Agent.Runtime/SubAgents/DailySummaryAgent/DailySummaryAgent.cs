@@ -38,7 +38,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.ThreadId,
+                agentInput.Context.ThreadId.ToString(),
                 log);
 
             // Once complete, ensure the final message is sent to the thread

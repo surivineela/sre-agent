@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Services;
@@ -175,9 +176,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 Timespan = "1d",
                 DashboardSummary = dashboardSummary
             };
+            var threadContext = new ThreadContext(thread.Id);
 
             // Start the agent orchestration
-            var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, thread.Id.ToString());
+            var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, threadContext);
 
             _logger.LogInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
 

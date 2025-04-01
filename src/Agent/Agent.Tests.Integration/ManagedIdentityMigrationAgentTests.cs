@@ -19,6 +19,7 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Xunit.Abstractions;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Tests.Integration
 {
@@ -42,16 +43,16 @@ namespace Agent.Tests.Integration
 
         private List<AppMigrationStatus> _testApps = new List<AppMigrationStatus>
         {
-            new AppMigrationStatus 
-            { 
-                Name = "app1", 
+            new AppMigrationStatus
+            {
+                Name = "app1",
                 ResourceId = $"{BaseResourceId}/app1",
                 UsesAzureSqlConnectionString = true,
                 CurrentConnectionMethod = "Connection String"
             },
-            new AppMigrationStatus 
-            { 
-                Name = "app2", 
+            new AppMigrationStatus
+            {
+                Name = "app2",
                 ResourceId = $"{BaseResourceId}/app2",
                 UsesAzureSqlConnectionString = true,
                 CurrentConnectionMethod = "Connection String"
@@ -200,15 +201,15 @@ namespace Agent.Tests.Integration
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-            var input = new ManagedIdentityMigrationInput 
-            { 
+            var input = new ManagedIdentityMigrationInput
+            {
                 AppsToMigrate = _testApps
             };
             string? instanceID = "";
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input);
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
                 await DoApproval(instanceID, tokenSource);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);

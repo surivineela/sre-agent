@@ -7,11 +7,12 @@ using System.Globalization;
 using ScottPlot;
 using Agent.Core.Helpers;
 using Agent.Core.Models.Charts;
-using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Schema;
 using Agent.Core.Interfaces;
+using TeamsAttachment = Microsoft.Bot.Schema.Attachment;
 
 namespace Agent.Plugins
 {
@@ -21,7 +22,7 @@ namespace Agent.Plugins
         private readonly ILogger? _logger;
         private readonly IAgentOutboundCommunicationService _outboundService;
 
-        public string? ThreadId { get; set; }
+        public ThreadContext? Context { get; set; }
 
         public ChartPlugin(ILogger<ChartPlugin>? logger, IAgentOutboundCommunicationService outboundService)
         {
@@ -55,7 +56,6 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
-                ThreadId,
                 () => ChartHelper.GenerateChartBase64String(input),
                 description,
                 "Failed to generate chart with ScottPlot.");
@@ -74,7 +74,6 @@ namespace Agent.Plugins
             }
 
             return await GenerateAndPostChartAsync(
-                ThreadId,
                 () => ChartHelper.GeneratePieChartBase64String(slices),
                 description,
                 "Failed to generate pie chart with ScottPlot.");
@@ -103,7 +102,6 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
-                ThreadId,
                 () => ChartHelper.GenerateBarChartBase64String(chartInput),
                 description,
                 "Failed to generate bar chart with ScottPlot.");
@@ -132,7 +130,6 @@ namespace Agent.Plugins
             };
 
             return await GenerateAndPostChartAsync(
-                ThreadId,
                 () => ChartHelper.GenerateScatterPlotBase64String(chartInput),
                 description,
                 "Failed to generate scatter plot with ScottPlot.");
@@ -250,7 +247,6 @@ namespace Agent.Plugins
         }
 
         private async Task<string> GenerateAndPostChartAsync(
-            string threadId,
             Func<string> generateChart,
             string description,
             string errorContext)
@@ -263,10 +259,16 @@ namespace Agent.Plugins
                     return "ERROR: Chart generation returned an empty image.";
                 }
 
+                var threadId = Context.ThreadId.ToString();
+                if (string.IsNullOrEmpty(threadId))
+                {
+                    return "ERROR: No thread ID available for posting the chart.";
+                }
+
                 if (!string.IsNullOrWhiteSpace(description))
                 {
                     var msg = MessageFactory.Text(description);
-                    msg.Attachments.Add(new Attachment
+                    msg.Attachments.Add(new TeamsAttachment
                     {
                         // we're using PNG format for the image, please modify if needed
                         ContentType = "image/png",

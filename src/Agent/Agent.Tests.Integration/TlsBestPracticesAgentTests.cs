@@ -1,5 +1,6 @@
 ﻿using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
@@ -186,7 +187,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
 
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 await Helper.DoApproval(
@@ -236,7 +237,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
                 await Helper.DoApproval(
                     _durableTaskClient,
                     _timeProvider,
@@ -285,7 +286,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 (
@@ -340,7 +341,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid().ToString());
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 (
@@ -377,7 +378,7 @@ namespace Agent.Tests.Integration
                     }
 
                     orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, tokenSource.Token);
-                    if(orchestrationMetadata.IsCompleted)
+                    if (orchestrationMetadata.IsCompleted)
                     {
                         Assert.Fail("Orchestration completed before we could respond to the rollback confirmation.");
                     }

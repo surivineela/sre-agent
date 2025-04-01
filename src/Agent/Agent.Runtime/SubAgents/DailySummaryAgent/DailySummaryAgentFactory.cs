@@ -60,26 +60,19 @@ public sealed class DailyReportSummaryAgentFactory
 
     public async Task<string> StartOrchestration(
         DailyReportSummaryInput input,
-        string threadId = "")
+        ThreadContext context)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-        if (threadId != null)
-        {
-            await _mappingManager.AddMappingAsync(new ThreadOrchestrationMapping(
-                Id: $"mapping_{threadId}",
-                ThreadId: threadId,
-                OrchestrationInstanceId: instanceId,
-                CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow
-                )
-            );
-        }
+        var threadId = context.ThreadId.ToString();
+
+        await _mappingManager.AddMappingAsync(threadId, instanceId);
+
         return await _durableTaskClient.ScheduleNewDailyReportSummaryAgentInstanceAsync(
             new DailyReportSummaryAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                ThreadId: threadId),
+                Context: context),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

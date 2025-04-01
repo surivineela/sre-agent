@@ -1,11 +1,10 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Models.Api.v1;
-using Agent.Data.Repositories;
 using Agent.Runtime.MetaAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Runtime.Models;
 
 namespace Agent.Runtime.Communication;
 
@@ -16,18 +15,21 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly IThreadOrchestrationManager _mappingManager;
     private readonly IThreadRepository _repository;
     private readonly ILogger<InboundCommunicationService> _logger;
+    private readonly SinkService _sinkService;
 
     public InboundCommunicationService(
         IAgent metaAgent,
         DurableTaskClient durableTaskClient,
         IThreadOrchestrationManager mappingManager,
         IThreadRepository repository,
+        SinkService sinkService,
         ILogger<InboundCommunicationService> logger)
     {
         _metaAgent = metaAgent;
         _durableTaskClient = durableTaskClient;
         _mappingManager = mappingManager;
         _repository = repository;
+        _sinkService = sinkService;
         _logger = logger;
     }
 
@@ -62,32 +64,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         {
             throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
         }
-        var messageId = Guid.NewGuid();
-        var agentMessage = new Message(
-            Id: messageId,
-            TimeStamp: DateTime.UtcNow,
-            Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-            IsImageContent: true,
-            Text: message
-        );
 
-        await _repository.AddMessageAsync(threadId, agentMessage);
-
-        return messageId;
+        return await _sinkService.SinkAgentMessageAsync(threadId, message, isImageContent: true);
     }
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message)
     {
         try
         {
-            var aiMessage = new Message(
-                Id: message.MessageId,
-                TimeStamp: DateTime.UtcNow,
-                Author: new Author(Role.User, message.UserId, message.DisplayName),
-                Text: message.Message
-            );
-
-            await _repository.AddMessageAsync(message.ThreadId, aiMessage);
+            await _sinkService.SinkUserMessageAsync(message);
             string orchestrationInstanceId = "";
             Guid responseMessageId = Guid.Empty;
 
@@ -109,11 +94,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     await _mappingManager.RemoveMappingAsync(message.ThreadId.ToString(), orchestrationInstanceId);
 
                     // it would be much better if the meta agent had a separate context to the the thread. If so we would update that instead.
-                    await _repository.AddMessageAsync(message.ThreadId, new Message(
-                        Guid.NewGuid(),
-                        DateTime.UtcNow,
-                        new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-                        failureMessage));
+                    await _sinkService.SinkAgentMessageAsync(message.ThreadId, failureMessage);
 
                     try
                     {
@@ -135,22 +116,17 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             }
 
 
-
             if (mappings == null || !mappings.Any())
             {
+                var threadMessages = await _repository.GetMessagesAsync(message.ThreadId);
+                ThreadContext context = new ThreadContext(message.ThreadId);
+
                 // No existing orchestration, create a new one
                 _logger.LogInformation("No existing orchestration for thread: {ThreadId}", message.ThreadId);
                 // Process the message with MetaAgent
-                string agentResponse = await _metaAgent.ProcessUserMessage(
-                    message.Message,
-                    message.ThreadId.ToString());
-                responseMessageId = Guid.NewGuid();
-                var responseMessage = new Message(
-                    Id: responseMessageId,
-                    TimeStamp: DateTime.UtcNow,
-                    Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-                    Text: agentResponse);
-                await _repository.AddMessageAsync(message.ThreadId, responseMessage);
+                string agentResponse = await _metaAgent.ProcessUserMessage(context);
+
+                responseMessageId = await _sinkService.SinkAgentMessageAsync(message.ThreadId, agentResponse);
             }
             else
             {
@@ -176,5 +152,4 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             throw;
         }
     }
-
 }

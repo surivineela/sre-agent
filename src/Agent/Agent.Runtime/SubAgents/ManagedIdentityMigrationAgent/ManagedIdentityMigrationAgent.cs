@@ -11,7 +11,7 @@ namespace Agent.Runtime.SubAgents.ManagedIdentityMigration
         public override async Task<string> RunAsync(TaskOrchestrationContext context, ManagedIdentityMigrationAgentInput agentInput)
         {
             var log = context.CreateReplaySafeLogger<ManagedIdentityMigrationAgent>();
-            string threadId = agentInput.ThreadId;
+            string threadId = agentInput.Context.ThreadId.ToString();
 
             // Initial planning phase: generate plan
             List<ChatMessage> chatHistory = await context.CallManagedIdentityPlanActivityAsync(agentInput.Input);

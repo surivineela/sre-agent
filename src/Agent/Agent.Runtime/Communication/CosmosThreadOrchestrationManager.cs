@@ -49,6 +49,24 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
     }
 
+    public async Task AddMappingAsync(string threadId, string instanceId)
+    {
+        if (string.IsNullOrEmpty(threadId) || string.IsNullOrEmpty(threadId))
+        {
+            _logger.LogWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
+            return;
+        }
+
+        await AddMappingAsync(new ThreadOrchestrationMapping(
+               Id: $"mapping_{threadId}",
+               ThreadId: threadId,
+               OrchestrationInstanceId: instanceId,
+               CreatedTimestamp: DateTime.UtcNow,
+               ModifiedTimestamp: DateTime.UtcNow
+               )
+           );
+    }
+
     public async Task RemoveMappingAsync(string threadId)
     {
         try

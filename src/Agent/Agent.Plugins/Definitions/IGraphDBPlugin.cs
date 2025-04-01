@@ -4,15 +4,16 @@
 
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Plugins
 {
     public interface IGraphDBPlugin
     {
-        string? ThreadId { get; set; }
-        
+        ThreadContext? Context { get; set; }
+
         Task<ResultSet<dynamic>> Query(string query);
-        
+
         // Find all network resources for an app (container app for now)
         // TODO: Refactor to work with all resource types
         Task<string> FindAllNetworkConnectedResources(string resourceId = "");
