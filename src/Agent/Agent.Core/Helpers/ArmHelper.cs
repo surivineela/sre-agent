@@ -2,20 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Azure.ResourceManager.Storage;
+using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
-using OpenTelemetry.Resources;
-using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
 
@@ -456,6 +451,17 @@ public class ArmHelper
         return output;
     }
 
+    /// <summary>
+    /// Checks if a given string is a valid resource identifier.
+    /// </summary>
+    /// <param name="resourceId">The string to be validated as a resource identifier.</param>
+    /// <returns>Returns true if the string is a valid resource identifier, otherwise false.</returns>
+    /// <remarks>Note that this doesn't check for existence - just structure/shape</remarks>
+    public bool IsWellFormattedResourceId(string resourceId)
+    {
+        return ResourceIdentifier.TryParse(resourceId, out var resourceIdentifier);
+    }
+
     public async Task<bool> CheckIfResourceExistsAsync(string resourceId)
     {
         try
@@ -508,6 +514,36 @@ public class ArmHelper
             return (false, $"Http status code: {response.StatusCode}, body: {responseBody}");
         }
     }
+
+    public async Task<StorageAccountResource> GetStorageAccountAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var storageAccount = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
+        return await storageAccount.GetAsync();
+    }
+
+    public async Task DisableSharedKeySupportAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var storageAccountResource = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
+        var storageAccountPatch = new StorageAccountPatch()
+        {
+            AllowSharedKeyAccess = false
+        };
+        await storageAccountResource.UpdateAsync(storageAccountPatch);
+    }
+
+    public async Task DisablePublicContainers(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var storageAccountResource = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
+        var storageAccountPatch = new StorageAccountPatch()
+        {
+            AllowBlobPublicAccess = false
+        };
+        await storageAccountResource.UpdateAsync(storageAccountPatch);
+    }
+
     private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId)
     {
         var tlsCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/config/web?api-version=2022-03-01");
@@ -533,6 +569,8 @@ public class ArmHelper
 
         return tlsStatus;
     }
+
+
 
     #region Private Methods
 

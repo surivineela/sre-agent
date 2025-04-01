@@ -92,5 +92,29 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "DisabledSharedKey",
+                    Details: $"Storage account {resourceId} can no longer use shared keys.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
+
+        public Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "DisablePublicContainers",
+                    Details: $"All Containers in {resourceId} have been set to private and public container feature disabled.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
     }
 }

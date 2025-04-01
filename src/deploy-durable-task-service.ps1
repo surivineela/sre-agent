@@ -109,6 +109,7 @@ if ($null -eq $scheduler -or $scheduler.Count -eq 0) {
     az durabletask scheduler create `
         --resource-group $ResourceGroupName `
         --name $SchedulerName `
+        --location $Location `
         --ip-allowlist '["0.0.0.0/0"]' `
         --sku-name "Dedicated" `
         --sku-capacity 1

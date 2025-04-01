@@ -96,6 +96,8 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => remediationPluginDefinition.CalculateScalingCost);
         Register200(() => remediationPluginDefinition.RestartWebApp);
         Register200(() => remediationPluginDefinition.CollectMemoryDump);
+        Register200(() => remediationPluginDefinition.StorageAccountDisableSharedKeySupport);
+        Register200(() => remediationPluginDefinition.StorageAccountDisablePublicContainers);
 
         var appIdentityUpdatePluginDefinition = new AppIdentityUpdatePluginDefinition(appIdentityUpdatePlugin);
         Register200(() => appIdentityUpdatePluginDefinition.GetAppManagedIdentityAsync);

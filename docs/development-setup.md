@@ -13,6 +13,7 @@
    source aliases.bash
    deploy3p -n <stamp prefix>
    ```
+   The `<stamp prefix>` above is the prefix that would be used for your resource names. Your alias is a good option.
 
 ## NuGet Configuration
 
@@ -39,11 +40,18 @@ We use an internal NuGet source for packages. To set up:
 
 
 The deployment script deploys the DTS service. You can grab the connection string from the portal and update your `appsettings.Development.json`.
+Note: If you get the connection string from the deployed resource in the portal, it will be missing the `TaskHub` parameter, which you'll need to add manually (also in the portal).
 
 ```
-    "DTS": {
-      "ConnectionString": "<connection string>"
-    },
+  "AppSettings": {
+    "Core": {
+      "Azure": {
+        "DTS": {
+          "ConnectionString": "<connection string>"
+        },
+      }
+    }
+  }
 ```    
 
 Another option is to leave the connection string blank so it uses the emulator. Its convenient because every time you restart it, you start from a blank slate.

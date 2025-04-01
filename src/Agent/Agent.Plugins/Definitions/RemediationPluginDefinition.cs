@@ -59,6 +59,20 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.ScaleAppServicePlanVertically(resourceId);
         }
 
+        [KernelFunction("storage_account_disabled_shared_key")]
+        [Description("Disables the use of shared keys for accessing storage accounts, forcing callers to take advantage of managed credentials.")]
+        public async Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId)
+        {
+            return await _remediationPlugin.StorageAccountDisableSharedKeySupport(resourceId);
+        }
+
+        [KernelFunction("storage_account_disable_public_containers")]
+        [Description("Disables the use of shared keys for accessing storage accounts, forcing callers to take advantage of managed credentials.")]
+        public async Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
+        {
+            return await _remediationPlugin.StorageAccountDisablePublicContainers(resourceId);
+        }
+
         [KernelFunction("possible_next_sku")]
         [Description("Given a current sku suggest a possible next sku")]
         public async Task<RemediationResult> SuggestNextSku(

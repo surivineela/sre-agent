@@ -58,6 +58,7 @@ Before proceeding with any Azure resource operations:
 - **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
+- **Storage Account Remediation**: Help users with making changes storage account settings
 
 ## Core Responsibilities
 1. **Request Triage**: Determine if a user request is related to Azure SRE concerns
@@ -116,6 +117,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly SourceCodePlugin _sourceCodePlugin;
+    private readonly StorageAccountPlugin _storageAccountPlugin;
 
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -127,6 +129,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         TlsBestPracticesPlugin tlsBestPracticesPlugin,
         AppServiceRemediationPlugin appServiceRemediationPlugin,
         ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
+        StorageAccountPlugin storageAccountPlugin,
         ISubscriptionPlugin subscriptionPlugin,
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
@@ -143,6 +146,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _appServiceRemediationPlugin = appServiceRemediationPlugin;
         _subscriptionPlugin = subscriptionPlugin;
         _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
+        _storageAccountPlugin = storageAccountPlugin;
 
         _containerAppPlugin = containerAppPlugin;
         _chartplugin = chartplugin;
@@ -160,6 +164,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
         Guid threadGuid = ctx.ThreadId;
 
+        _storageAccountPlugin.Context = ctx;
         _tlsBestPracticesPlugin.Context = ctx;
         _managedIdentityMigrationPlugin.Context = ctx;
         _appServiceRemediationPlugin.Context = ctx;
@@ -185,6 +190,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_subscriptionPlugin.ListAllSubscriptionsAsync),
             AIFunctionFactory.Create(_subscriptionPlugin.ListAppServicesAsync),
             AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
+            AIFunctionFactory.Create(_storageAccountPlugin.ListStorageAccountAgentWorkflows),
+            AIFunctionFactory.Create(_storageAccountPlugin.StartStorageAccountAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),

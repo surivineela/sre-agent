@@ -28,6 +28,7 @@ using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
+using Agent.Runtime.SubAgents.StorageAccountAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
@@ -150,10 +151,12 @@ if (useSessionChatService)
         .AddTransient<TlsBestPracticesPlugin>()
         .AddTransient<SourceCodePlugin>()
         .AddTransient<AppServiceRemediationPlugin>()
+        .AddTransient<StorageAccountPlugin>()
         .AddTransient<IChartPlugin, ChartPlugin>()
         .AddTransient<ChartPlugin>()
 
         .AddSingleton<AppServiceRemediationAgentFactory>()
+        .AddSingleton<StorageAccountAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<TlsBestPracticesScanner>()
@@ -249,7 +252,8 @@ if (useSessionChatService)
                      .GetSection("Azure")
                      .Get<AzureSettings>();
 
-        string durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+        string durableConnectionString =
+            azureSettings?.DTS.ConnectionString ?? "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
         if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
         {
             durableConnectionString = azureSettings.DTS.ConnectionString;
@@ -273,7 +277,8 @@ if (useSessionChatService)
                      .GetSection("Azure")
                      .Get<AzureSettings>();
 
-        string durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
+        string durableConnectionString =
+            azureSettings?.DTS.ConnectionString ?? "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
         if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
         {
             durableConnectionString = azureSettings.DTS.ConnectionString;

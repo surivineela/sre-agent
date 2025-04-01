@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net.Http.Headers;
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -10,8 +9,10 @@ using Agent.Core.Models;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.Core;
-using Azure.Identity;
+using Azure.ResourceManager.Resources.Models;
+using Azure.ResourceManager.Storage.Models;
 using Microsoft.Extensions.Logging;
+using System.Net.Http.Headers;
 
 namespace Agent.Plugins.Implementation
 {
@@ -268,6 +269,149 @@ namespace Agent.Plugins.Implementation
                 return new RemediationResult(
                     Success: false,
                     Action: "Failed to suggest next SKU",
+                    Details: ex.Message,
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
+        }
+
+        public async Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
+        {
+            try
+            {
+                _logger?.LogInformation($"[storage_account_disable_public_containers] Invoked with resourceId: {resourceId}");
+
+                var storageAccount = await _armHelper.GetStorageAccountAsync(resourceId);
+
+                // Determine if the storage account is locked preventing updates
+                var storageAccountLocks = storageAccount.GetManagementLocks().GetAllAsync();
+
+                await foreach (var storageAccountLock in storageAccountLocks)
+                {
+                    if (storageAccountLock.Data.Level == ManagementLockLevel.ReadOnly)
+                    {
+                        _logger?.LogInformation($"[storage_account_disable_public_containers] Storage account is locked preventing updates");
+                        return new RemediationResult(
+                            Success: false,
+                            Action: "Failed to disable storage account shared key support",
+                            Details: "Storage account is locked preventing updates",
+                            OperationId: null,
+                            FinishedTime: DateTime.Now);
+                    }
+                }
+
+                // Determine if public access is enabled
+                if (storageAccount.Data.AllowBlobPublicAccess == true)
+                {
+                    var blobService = storageAccount.GetBlobService();
+                    var containers = blobService.GetBlobContainers().GetAllAsync();
+                    
+                    // Disabling public access to containers.
+                    // Disabling public access at the storage account level does not affect existing containers.
+                    await foreach (var container in containers)
+                    {
+                        if (container.Data.PublicAccess != StoragePublicAccessType.None)
+                        {
+                            // Disabling public access to containers
+                            _logger.LogInformation($"[storage_account_disable_public_containers] Disabling public access to container: {container.Data.Name}");
+                            container.Data.PublicAccess = StoragePublicAccessType.None;
+                            await container.UpdateAsync(container.Data);
+                        }
+                    }
+
+                    // Disabling public access to blobs
+                    await _armHelper.DisablePublicContainers(resourceId);
+
+                    return new RemediationResult(
+                        Success: true,
+                        Action: "Disabled public containers",
+                        Details: "Public access to all containers was disabled",
+                        OperationId: null,
+                        FinishedTime: DateTime.Now);
+
+                }
+                return new RemediationResult(
+                    Success: true,
+                    Action: $"No remediation performed on {storageAccount.Id}",
+                    Details: "Remediation did nothing",
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+
+            }
+            catch (Exception ex)
+            {
+                return new RemediationResult(
+                    Success: false,
+                    Action: "Failed to disable public containers",
+                    Details: ex.Message,
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
+        }
+
+        public async Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId)
+        {
+            try
+            {
+                _logger?.LogInformation($"[storage_account_disable_shared_key_support] Invoked with resourceId: {resourceId}");
+
+                // Get the storage account name from the resourceId
+                if (!_armHelper.IsWellFormattedResourceId(resourceId))
+                {
+                    return new RemediationResult(
+                        Success: false,
+                        Action: "Invalid resource ID",
+                        Details: "The provided resource ID is not well formatted",
+                        OperationId: null,
+                        FinishedTime: DateTime.Now);
+                }
+
+                var storageAccount = await _armHelper.GetStorageAccountAsync(resourceId);
+
+                // Determine if the storage account is locked preventing updates
+                var storageAccountLocks = storageAccount.GetManagementLocks().GetAllAsync();
+
+                await foreach (var storageAccountLock in storageAccountLocks)
+                {
+                    if (storageAccountLock.Data.Level == ManagementLockLevel.ReadOnly)
+                    {
+                        _logger?.LogInformation($"[storage_account_disable_shared_key_support] Storage account is locked preventing updates");
+                        return new RemediationResult(
+                            Success: false,
+                            Action: "Failed to disable storage account shared key support",
+                            Details: "Storage account is locked preventing updates",
+                            OperationId: null,
+                            FinishedTime: DateTime.Now);
+                    }
+                }
+
+                //Determine if shared key support is enabled
+                if (storageAccount.Data.AllowSharedKeyAccess == true || storageAccount.Data.AllowSharedKeyAccess == null)
+                {
+                    // Disabling shared key access
+                    _logger?.LogInformation($"[storage_account_disable_shared_key_support] Disabling shared key access for storage account");
+                    await _armHelper.DisableSharedKeySupportAsync(resourceId);
+
+                    return new RemediationResult(
+                        Success: true,
+                        Action: $"Disabled {storageAccount.Id} shared key access",
+                        Details: "Storage account shared key access was disabled",
+                        OperationId: null,
+                        FinishedTime: DateTime.Now);
+                }
+
+                return new RemediationResult(
+                    Success: true,
+                    Action: $"No remediation performed on {storageAccount.Id}",
+                    Details: "Remediation did nothing",
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
+            catch (Exception ex)
+            {
+                return new RemediationResult(
+                    Success: false,
+                    Action: "Failed to disable storage account shared key support",
                     Details: ex.Message,
                     OperationId: null,
                     FinishedTime: DateTime.Now);

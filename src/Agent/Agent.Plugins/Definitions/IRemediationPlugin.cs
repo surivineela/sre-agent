@@ -16,6 +16,10 @@ namespace Agent.Plugins.Definitions
 
         Task<RemediationResult> SuggestNextSku(string resourceId, string direction, string currentSku);
 
+        Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId);
+
+        Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId);
+
         Task<RemediationResult> CalculateScalingCost(
             string resourceId,
             string direction,
