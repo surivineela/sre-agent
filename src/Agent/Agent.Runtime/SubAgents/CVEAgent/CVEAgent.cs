@@ -35,7 +35,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.Context.ThreadId.ToString(),
+                agentInput.Context,
                 log);
 
             return "success";

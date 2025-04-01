@@ -19,9 +19,10 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         TaskOrchestrationContext context,
         List<ChatMessage> chatHistory,
         IReadOnlyList<string> toolSignatures,
-        string threadId,
+        ThreadContext threadContext,
         ILogger log)
     {
+        var threadId = threadContext.ThreadId.ToString();
         log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", threadId);
 
         int stepCount = 0;
@@ -57,8 +58,8 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 var tasksToWaitFor = new List<Task>();
                 tasksToWaitFor.AddRange(pending202Activities);
                 tasksToWaitFor.Add(newMessageTask);
-                
-                if(waitTask != null)
+
+                if (waitTask != null)
                 {
                     tasksToWaitFor.Add(waitTask);
                 }
@@ -109,7 +110,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", threadId, newMessage.ToString());
                 chatHistory.Add(newMessage);
                 newMessageTask = context.WaitForExternalEvent<ChatMessage>("NewChatMessage");
-                
+
                 // The user sent us a message
                 responseFromUserIsPending = false;
             }
@@ -166,11 +167,11 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 // but we are still in demo mode and we dont want to actually wait 30 seconds if the model decides to do that
                 // also, if we are in unit tests we dont want to wait at all
                 double waitSeconds = 7;
-                if(AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)))
+                if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)))
                 {
                     waitSeconds = 0.1;
                 }
-                
+
                 waitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), waitTokenSource.Token);
                 var resultContent = new FunctionResultContent(functionCall.CallId, "Wait operation submitted.");
                 chatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
@@ -336,12 +337,12 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 // Extract arguments from the function call
                 string resourceId = string.Empty;
                 int hops = 3; // Default value
-                
+
                 if (functionCall.Arguments.TryGetValue("resourceId", out var resourceIdObj) && resourceIdObj != null)
                 {
                     resourceId = resourceIdObj.ToString() ?? string.Empty;
                 }
-                
+
                 if (functionCall.Arguments.TryGetValue("hops", out var hopsObj) && hopsObj != null)
                 {
                     if (int.TryParse(hopsObj.ToString(), out var parsedHops))
@@ -349,7 +350,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                         hops = parsedHops;
                     }
                 }
-                
+
                 // Convert the threadId string to a Guid and add it to the arguments
                 if (Guid.TryParse(threadId, out Guid threadGuid))
                 {
@@ -358,22 +359,22 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                     {
                         ["threadId"] = threadGuid
                     };
-                    
+
                     // Create a new function call with the updated arguments
                     var updatedFunctionCall = new FunctionCallContent(
                         functionCall.Name,
                         functionCall.CallId,
                         argsWithThreadId
                     );
-                    
+
                     // Execute the function with the updated arguments
                     var execInput = new ExecuteActionInput(
                         FunctionCallContent: updatedFunctionCall,
                         ToolSignatures: toolSignatures);
-                        
+
                     var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);
                     chatHistory.Add(executionResult.ChatMessage);
-                    
+
                     // Check if this is a long-running operation
                     if (executionResult.Is202Submit)
                     {
@@ -385,7 +386,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 {
                     // Log error if threadId is not a valid Guid
                     log.LogError("[{ThreadId}] Failed to parse threadId as Guid for visualization", threadId);
-                    
+
                     // Add error message to chat history
                     var errorContent = new FunctionResultContent(
                         functionCall.CallId,

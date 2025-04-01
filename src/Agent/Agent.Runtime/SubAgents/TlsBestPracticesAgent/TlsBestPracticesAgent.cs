@@ -33,7 +33,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.Context.ThreadId.ToString(),
+                agentInput.Context,
                 log);
 
             return "success";

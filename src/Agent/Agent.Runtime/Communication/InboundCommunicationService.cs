@@ -5,6 +5,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Models;
+using Agent.Runtime.Services;
 
 namespace Agent.Runtime.Communication;
 
@@ -16,6 +17,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly IThreadRepository _repository;
     private readonly ILogger<InboundCommunicationService> _logger;
     private readonly SinkService _sinkService;
+    private readonly ThreadService _threadService;
 
     public InboundCommunicationService(
         IAgent metaAgent,
@@ -23,6 +25,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IThreadOrchestrationManager mappingManager,
         IThreadRepository repository,
         SinkService sinkService,
+        ThreadService threadService,
         ILogger<InboundCommunicationService> logger)
     {
         _metaAgent = metaAgent;
@@ -30,6 +33,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _mappingManager = mappingManager;
         _repository = repository;
         _sinkService = sinkService;
+        _threadService = threadService;
         _logger = logger;
     }
 
@@ -77,54 +81,35 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            var mappings = (await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString())).ToList();
+            ThreadContext threadContext = new ThreadContext(message.ThreadId);
+            orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(threadContext);
 
-            // Check for failed orchestrations
-            if (mappings != null && mappings.Any())
+            if (!string.IsNullOrEmpty(orchestrationInstanceId))
             {
-                orchestrationInstanceId = mappings.First().OrchestrationInstanceId;
-                var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId, getInputsAndOutputs: true, CancellationToken.None);
 
-                // orchestration mapping will be removed if the orchestration is completed or failed
-                if (existingOrchestration != null && existingOrchestration.IsCompleted && existingOrchestration.RuntimeStatus != OrchestrationRuntimeStatus.Completed)
+                var existingOrchestration = await _durableTaskClient.GetInstanceAsync(orchestrationInstanceId,
+                    getInputsAndOutputs: true, CancellationToken.None);
+                // Check for failed orchestrations and clean them if needed
+                bool cleaned = await _threadService.CleanOrchestration(
+                    threadContext,
+                    orchestrationInstanceId,
+                    existingOrchestration);
+
+                // If the orchestration was cleaned, get the updated orchestration ID (might be empty now)
+                if (cleaned)
                 {
-                    string failureMessage = $"Orchestration id {orchestrationInstanceId} mapped to thread {message.ThreadId} has failed with runtime status {existingOrchestration.RuntimeStatus}.";
-                    _logger.LogWarning(failureMessage);
-
-                    await _mappingManager.RemoveMappingAsync(message.ThreadId.ToString(), orchestrationInstanceId);
-
-                    // it would be much better if the meta agent had a separate context to the the thread. If so we would update that instead.
-                    await _sinkService.SinkAgentMessageAsync(message.ThreadId, failureMessage);
-
-                    try
-                    {
-                        var finalState = existingOrchestration.ReadCustomStatusAs<string>();
-                        if (!string.IsNullOrEmpty(finalState))
-                        {
-                            _logger.LogInformation($"Final state of orchestration {orchestrationInstanceId}: {finalState}");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error reading final state of orchestration {orchestrationInstanceId}");
-                    }
-
-                    // reread the mappings
-                    mappings = (await _mappingManager.GetMappingsByThreadIdAsync(message.ThreadId.ToString())).ToList();
-                    orchestrationInstanceId = mappings?.FirstOrDefault()?.OrchestrationInstanceId ?? "";
+                    orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(threadContext);
                 }
             }
 
-
-            if (mappings == null || !mappings.Any())
+            if (string.IsNullOrEmpty(orchestrationInstanceId))
             {
                 var threadMessages = await _repository.GetMessagesAsync(message.ThreadId);
-                ThreadContext context = new ThreadContext(message.ThreadId);
 
                 // No existing orchestration, create a new one
                 _logger.LogInformation("No existing orchestration for thread: {ThreadId}", message.ThreadId);
                 // Process the message with MetaAgent
-                string agentResponse = await _metaAgent.ProcessUserMessage(context);
+                string agentResponse = await _metaAgent.ProcessUserMessage(threadContext);
 
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(message.ThreadId, agentResponse);
             }
@@ -134,15 +119,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 // For now, we assume there's only 1:1 mapping for threadId and orchestrationInstanceId,
                 // but we may change this to allow multiple orchestrations per thread, e.g. to choose sub-agent type in one thread as a different orchestration.
                 // This will enable us for scenarios that need to share chat history with multiple orchestrations for different purposes.
-                var mapping = mappings.FirstOrDefault();
+
                 // Existing orchestration, raise an event to it
                 _logger.LogInformation("Sending message to existing orchestration for thread: {ThreadId}", message.ThreadId);
                 await _durableTaskClient.RaiseEventAsync(
-                    mapping.OrchestrationInstanceId,
+                    orchestrationInstanceId,
                     "NewChatMessage",
                     new ChatMessage(ChatRole.User, message.Message));
-
-                orchestrationInstanceId = mapping.OrchestrationInstanceId;
             }
             return new InboundServiceResponse(message.ThreadId, responseMessageId, orchestrationInstanceId);
         }

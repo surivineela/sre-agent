@@ -27,7 +27,7 @@ public class AppServiceRemediationAgent : GenericAgentOrchestrator<AppServiceRem
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.Context.ThreadId.ToString(),
+            agentInput.Context,
             log);
 
         return "success";

@@ -34,7 +34,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.Context.ThreadId.ToString(),
+                agentInput.Context,
                 log);
 
             return "success";
