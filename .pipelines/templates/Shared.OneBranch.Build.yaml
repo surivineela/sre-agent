@@ -240,6 +240,15 @@ extends:
           inputs:
             copyLogsOnly: true
 
+        # Run unit tests
+        - task: DotNetCoreCLI@2
+          displayName: '🧪 Run unit tests'
+          inputs:
+            command: 'test'
+            projects: '$(BuildSolution)'
+            arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit' 
+            publishTestResults: false
+
         #
         # Run integration tests
         #
