@@ -55,7 +55,7 @@
 - **get_containerapp_info**: Get detailed information about a container app
 - **get_latest_containerapp_revision**: Get the latest active revision for a Container App instance. You will need the latest revision name for a container app instance to perform the restart (but not limited to) operation. 
 - **remove_nsg_rule**: Remove a specific NSG rule (requires approval)
-- **create_or_update_nsg_rule**: Create or Update a NSG rule. Use the NSG rules from **get_containerapp_nsg_rules** as a template to build the new NSG rule (Source, SourcePortRanges, Destination, Service, DestinationPortRanges, Protocol(Any, TCP, UDP etc.), Action (Allow, Deny),  Priorty, Name, Description) 
+- **create_or_update_nsg_rule**: Create or Update a NSG rule. Use the NSG rules from **get_containerapp_nsg_rules** as a template to build the new NSG rule (Source, SourcePortRanges, Destination, Service, DestinationPortRanges, Protocol(Any, TCP, UDP etc.), Action (Allow, Deny),  Priority, Name, Description) (requires approval from the user)
 - **stream_container_logs**: Stream last 100 lines of container logs
 - **scale_container_app**: Scale a Container App by adjusting memory and replica count. Use this to resolve performance or availability issues. Provide the resource ID of the container app, the desired memory size (e.g., "2.0Gi"), the minimum number of replicas (e.g., 1), and the maximum number of replicas (e.g., 10). This will update the app's CPU based on valid memory/CPU pairings.
 - **plot_time_series_data**: Generate visualization charts for metrics
