@@ -5,10 +5,22 @@
    .\AAPT-Antares-OperationalAgent\src\Agent>Agent.sln
    ```
 
-2. Build and run the solution
+2. Update  `appsettings.json` under Agent.Web with your env prefix and add a crawler root.
+Tip: Set the crawl root to a resource group instead of your subscription. This will keep your graph small and help you test things better. 
+```
+ "AppSettings": {
+  "EnvPrefix": "yourprefixfromdeployment", 
+ }
 
-3. The `Agent.Web` project will start a test chat client using your identity to access Azure resources.
+  "Crawler": {
+    "CrawlRoots": "/subscriptions/de22a777-a2a3-44e6-917f-b36c8246fea5/resourceGroups/ca-stacyzeng-group",
+  }
+```
 
+3. Build and run the solution
+
+4. The `Agent.Web` project will start a test chat client using your identity to access Azure resources.
+   
 ![Project Demo](images/Project.gif)
 
 [Back to Development Setup](development-setup.md) | [Next: Graph Database Setup](graph-database.md) 
