@@ -1,4 +1,4 @@
-﻿using Agent.Core.Interfaces;
+using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.ResourceManager;
 using k8s;
@@ -12,15 +12,15 @@ public class K8sClusterCrawler : GenericArmResourceCrawler
     private readonly ILogger<K8sClusterCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ArmClient _armClient;
-    private readonly IKubernetesClientFactory _k8sClientFactory;
+    private readonly IKubernetesService _k8sService;
 
-    public K8sClusterCrawler(ILogger<K8sClusterCrawler> logger, IGraphDatabaseClient graphDbClient, ILoggerFactory loggerFactory, ArmClient armClient, IKubernetesClientFactory k8sClientFactory)
+    public K8sClusterCrawler(ILogger<K8sClusterCrawler> logger, IGraphDatabaseClient graphDbClient, ILoggerFactory loggerFactory, ArmClient armClient, IKubernetesService k8sService)
         : base(logger, graphDbClient, armClient, false)
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
         _armClient = armClient;
-        _k8sClientFactory = k8sClientFactory;
+        _k8sService = k8sService;
     }
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode clusterNode)
@@ -34,13 +34,15 @@ public class K8sClusterCrawler : GenericArmResourceCrawler
         await _graphDbClient.AddOrUpdateNodeAsync(clusterNode.GetNodeLabel(), clusterNode.GetNodeId(), clusterNode.GetResourceType(), clusterNode.GetNodeProperties());
 
         var aksNode = (AksNode)clusterNode;
-        var client = await _k8sClientFactory.CreateKubernetesClientForCrawlerAsync(aksNode.SubscriptionId, aksNode.ResourceGroupName, aksNode.ResourceName);
+        _logger.LogDebug($"Crawling Kubernetes cluster: {aksNode.GetNodeId()}");
 
-        var namespaces = await client.CoreV1.ListNamespaceAsync();
+        var namespaces = await _k8sService.GetNamespacesAsync(aksNode.ResourceId);
+        _logger.LogDebug($"Found {namespaces.Items?.Count} namespaces in cluster: {aksNode.GetNodeId()}");
         foreach (var ns in namespaces)
         {
+            _logger.LogDebug($"Namespace: {ns.Name()} in cluster: {aksNode.GetNodeId()}");
             // TODO: GVK are nulls
-            var nsNode = new KubernetesGlobalResourceNode(aksNode.ResourceId, ns.Name(), "core", "v1", "namespaces");
+            var nsNode = new KubernetesGlobalResourceNode(ns, aksNode.ResourceId, ns.Name(), "core", "v1", "namespaces");
             await _graphDbClient.AddOrUpdateNodeAsync(nsNode.GetNodeLabel(), nsNode.GetNodeId(), nsNode.GetResourceType(), nsNode.GetNodeProperties());
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), nsNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());

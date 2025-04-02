@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +9,6 @@ namespace Agent.Core.Interfaces
 {
     public interface IKubernetesClientFactory
     {
-        public Task<IKubernetes?> CreateKubernetesClientForCrawlerAsync(string subscription, string resourceGroup, string clusterName);
+        public Task<IKubernetes?> CreateKubernetesClientForCrawlerAsync(string resourceId);
     }
 }

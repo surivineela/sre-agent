@@ -1,4 +1,4 @@
-﻿using System.Text;
+using System.Text;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.ResourceManager.ContainerService;
@@ -24,8 +24,18 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         _configurationCache = new Dictionary<string, K8SConfiguration>();
     }
 
-    public async Task<IKubernetes?> CreateKubernetesClientForCrawlerAsync(string subscription, string resourceGroup, string clusterName)
+    public async Task<IKubernetes?> CreateKubernetesClientForCrawlerAsync(string resourceId)
     {
+        var id = new ResourceIdentifier(resourceId);
+        var subscription = id.SubscriptionId;
+        var resourceGroup = id.ResourceGroupName;
+        var clusterName = id.Name;
+
+        if (string.IsNullOrEmpty(subscription) || string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(clusterName))
+        {
+            return null;
+        }
+
         K8SConfiguration? k8sConfig;
         if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}"))
         {

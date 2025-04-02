@@ -1,4 +1,4 @@
-﻿using Agent.Core.Configuration;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -33,6 +33,7 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
             builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
+            builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
 
             builder.Services.AddSingleton<CrawlerCommand>();
             builder.Services.AddSingleton<GraphCommand>();

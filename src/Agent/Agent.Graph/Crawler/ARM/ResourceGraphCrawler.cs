@@ -1,5 +1,6 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Diagnostics;
+using System.Diagnostics.Eventing.Reader;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
@@ -62,7 +63,7 @@ public class ResourceGraphCrawler
 
             foreach (var node in nodes)
             {
-                if (filters == null || filters.Contains(node.GetType()))
+                if (filters == null || FilterNode(filters, node))
                 {
                     toCrawl.Enqueue(node);
                     Interlocked.Increment(ref pendingCount);
@@ -111,7 +112,7 @@ public class ResourceGraphCrawler
                             var crawler = _factory.CreateFromNode(node);
                             await foreach (var n in crawler.Crawl(node))
                             {
-                                if (filters == null || filters.Contains(n.GetType()))
+                                if (filters == null || FilterNode(filters, node))
                                 {
                                     toCrawl.Enqueue(n);
                                     Interlocked.Increment(ref pendingCount);
@@ -192,5 +193,21 @@ public class ResourceGraphCrawler
     private static string GetSanitizedCosmosDBId(string id)
     {
         return id.Replace("/", "_").Replace(":", "_").Replace(" ", "_");
+    }
+
+    private bool FilterNode(HashSet<Type> filters, GraphNode node)
+    {
+        if (filters == null)
+        {
+            return true;
+        }
+        foreach (var filter in filters)
+        {
+            if (filter.IsInstanceOfType(node))
+            {
+                return true;
+            }
+        }
+        return false;
     }
 }

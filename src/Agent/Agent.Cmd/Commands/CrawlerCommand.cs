@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -24,7 +24,7 @@ namespace Agent.Cmd
 
             command.OnExecute(async () =>
             {
-                await _crawler.Crawl([resourceId.Value], filters: [typeof(AksNode), typeof(SubscriptionNode), typeof(ResourceGroupNode)]);
+                await _crawler.Crawl([resourceId.Value], filters: [typeof(AksNode), typeof(SubscriptionNode), typeof(ResourceGroupNode), typeof(KubernetesResourceNode)]);
                 return 0;
             });
         }

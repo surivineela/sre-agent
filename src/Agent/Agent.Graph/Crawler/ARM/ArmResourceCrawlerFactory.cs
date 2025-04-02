@@ -1,7 +1,7 @@
-﻿using Agent.Core.Interfaces;
-using Agent.Core.Services;
+using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -12,15 +12,16 @@ public class ArmResourceCrawlerFactory
     private readonly AzureResourceGraphClient _graphClient;
     private readonly IArmClientFactory _armClientFactory;
     private readonly IGraphDatabaseClient _graphDbClient;
-    private readonly IKubernetesClientFactory _k8sClientFactory;
+    private readonly IKubernetesService _k8sService;
 
-    public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory, IGraphDatabaseClient graphDbClient, IKubernetesClientFactory k8sClientFactory)
+    public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory, IGraphDatabaseClient graphDbClient,
+        [FromKeyedServices("Crawler")] IKubernetesService k8sService)
     {
         _loggerFactory = loggerFactory;
         _graphClient = graphClient;
         _armClientFactory = armClientFactory;
         _graphDbClient = graphDbClient;
-        _k8sClientFactory = k8sClientFactory;
+        _k8sService = k8sService;
     }
 
     public IResourceCrawler CreateFromNode(GraphNode node)
@@ -83,7 +84,7 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.ManagedClusterType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
-                return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), _graphDbClient, _loggerFactory, armClient, _k8sClientFactory);
+                return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), _graphDbClient, _loggerFactory, armClient, _k8sService);
             }
 
             return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);
@@ -92,8 +93,25 @@ public class ArmResourceCrawlerFactory
         {
             if (Constants.KubernetesNamespaceType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
             {
-                return new KubernetesNamespaceCrawler(_k8sClientFactory);
+                return new KubernetesNamespaceCrawler(_loggerFactory.CreateLogger<KubernetesNamespaceCrawler>(), _k8sService, _graphDbClient);
             }
+
+            if (Constants.KubernetesPodType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesPodCrawler(_loggerFactory.CreateLogger<KubernetesPodCrawler>(), _k8sService, _graphDbClient);
+            }
+
+            if (Constants.KubernetesDeploymentType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesDeploymentCrawler(_loggerFactory.CreateLogger<KubernetesDeploymentCrawler>(), _graphDbClient, armClient, _k8sService);
+            }
+
+            if (Constants.KubernetesServiceType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesServiceCrawler(_loggerFactory.CreateLogger<KubernetesServiceCrawler>(), _k8sService, _graphDbClient);
+            }
+
+            return new KubernetesDummyCrawler();
         }
 
         throw new NotImplementedException();

@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -31,6 +31,30 @@ public static class CrawlerHelper
     public static ArmResourceEdge AddOrUpdateEdgeProperty(this ArmResourceEdge edge, string key, string val)
     {
         edge.AdditionalProperties.AddOrUpdateEdgeProperty(key, val);
+        return edge;
+    }
+
+    public static ArmResourceEdge AddReferenceVolumeMountProperties(this ArmResourceEdge edge)
+    {
+        edge.AdditionalProperties.AddOrUpdateEdgeProperty(Constants.ReferenceTypeKey, Constants.ReferenceTypeVolumeMount);
+        return edge;
+    }
+
+    public static ArmResourceEdge AddReferenceEnvProperties(this ArmResourceEdge edge)
+    {
+        edge.AdditionalProperties.AddOrUpdateEdgeProperty(Constants.ReferenceTypeKey, Constants.ReferenceTypeEnv);
+        return edge;
+    }
+
+    public static ArmResourceEdge AddBackendStatusReadyProperties(this ArmResourceEdge edge)
+    {
+        edge.AdditionalProperties.AddOrUpdateEdgeProperty(Constants.BackendStatusKey, Constants.BackendStatusReady);
+        return edge;
+    }
+
+    public static ArmResourceEdge AddBackendStatusNotReadyProperties(this ArmResourceEdge edge)
+    {
+        edge.AdditionalProperties.AddOrUpdateEdgeProperty(Constants.BackendStatusKey, "NotReady");
         return edge;
     }
 

@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
+using Azure.Core;
+using k8s;
 using OpenTelemetry.Resources;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
@@ -24,10 +26,13 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public abstract string GetResourceType();
 
         public abstract string GetHashString();
+        public abstract string GetSubscriptionId();
     }
 
     public class KubernetesResourceNode : GraphNode
     {
+        // Set to the k8s resource object to avoid fetching it twice
+        public IKubernetesObject ResourceObject { get; set; }
         // the cluster arm resource id
         public string ClusterResourceId { get; set; }
         public string Name { get; set; }
@@ -38,6 +43,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public IDictionary<string, string> Labels { get; set; }
 
         public KubernetesResourceNode(
+            IKubernetesObject k8sObject,
             string clusterResourceId,
             string name,
             string group,
@@ -112,19 +118,32 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         {
             return $"{GetNodeId()}";
         }
+
+        public override string GetSubscriptionId()
+        {
+            // Extract the subscription ID from the cluster resource ID
+            var id = new ResourceIdentifier(ClusterResourceId);
+            if (id == null)
+            {
+                return string.Empty;
+            }
+
+            return id.SubscriptionId;
+        }
     }
 
     // Non namespaced resources
     public class KubernetesGlobalResourceNode : KubernetesResourceNode
     {
         public KubernetesGlobalResourceNode(
+            IKubernetesObject k8sObject,
             string clusterResourceId,
             string name,
             string group,
             string apiVersion,
             string kind,
             IDictionary<string, string> annotations = null,
-            IDictionary<string, string> labels = null) : base(clusterResourceId, name, group, apiVersion, kind, annotations, labels)
+            IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, name, group, apiVersion, kind, annotations, labels)
         { }
     }
 
@@ -133,6 +152,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public string Namespace { get; set; }
 
         public KubernetesNamespacedResourceNode(
+            IKubernetesObject? k8sObject,
             string clusterResourceId,
             string @namespace,
             string name,
@@ -140,7 +160,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string apiVersion,
             string kind,
             IDictionary<string, string> annotations = null,
-            IDictionary<string, string> labels = null) : base(clusterResourceId, name, group, apiVersion, kind, annotations, labels)
+            IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, name, group, apiVersion, kind, annotations, labels)
         {
             Namespace = @namespace.ToLowerInvariant();
         }
@@ -226,6 +246,11 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public override string GetHashString()
         {
             return $"{ResourceId}|{GetType()}";
+        }
+
+        public override string GetSubscriptionId()
+        {
+            return SubscriptionId;
         }
     }
 

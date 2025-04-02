@@ -1,4 +1,4 @@
-﻿namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Crawler.ARM;
 
 public class Constants
 {
@@ -18,6 +18,11 @@ public class Constants
 
     // k8s
     public const string KubernetesNamespaceType = "namespaces";
+    public const string KubernetesPodType = "pods";
+    public const string KubernetesDeploymentType = "deployments";
+    public const string KubernetesServiceType = "services";
+    public const string KubernetesConfigMapType = "configmaps";
+    public const string KubernetesSecretType = "secrets";
 
     // Node properties
 
@@ -36,6 +41,8 @@ public class Constants
         public const string Hosts = "HOSTS";
         public const string HostedOn = "HOSTED_ON";
         public const string ServesCode = "SERVES_CODE";
+        public const string References = "REFERENCES";
+        public const string BackedBy = "BACKED_BY";
     }
 
     // indicates this node is a part of specific topology
@@ -48,4 +55,14 @@ public class Constants
 
     // RBAC properties
     public const string RoleAssignmentIdKey = "RoleAssignmentId";
+
+    // Reference properties
+    public const string ReferenceTypeKey = "ReferenceType";
+    public const string ReferenceTypeVolumeMount = "VolumeMount";
+    public const string ReferenceTypeEnv = "Env";
+
+    // BackedBy properties
+    public const string BackendStatusKey = "BackendStatus";
+    public const string BackendStatusReady = "Ready";
+    public const string BackendStatusNotReady = "NotReady";
 }

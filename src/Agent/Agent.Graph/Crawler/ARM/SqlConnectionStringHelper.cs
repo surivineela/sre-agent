@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
@@ -20,7 +20,7 @@ public class SqlConnectionStringHelper
 
     public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(
         IGraphDatabaseClient dbManager,
-        ArmResourceNode workloadNode,
+        GraphNode workloadNode,
         string connectionString)
     {
         try
@@ -48,32 +48,28 @@ public class SqlConnectionStringHelper
 
             _logger.LogDebug($"Parsed SQL server name: {serverName}, Database: {database}");
 
-            var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/" + workloadNode.SubscriptionId));
-            await foreach (var server in subscription.GetGenericResourcesAsync(filter: "resourceType eq 'Microsoft.Sql/servers'"))
+            var subscription = _armClient.GetSubscriptionResource(new ResourceIdentifier("/subscriptions/" + workloadNode.GetSubscriptionId()));
+            await foreach (var server in subscription.GetGenericResourcesAsync(filter: $"resourceType eq 'Microsoft.Sql/servers' and name eq '{serverBaseName.ToLowerInvariant()}'"))
             {
-                // Compare names (adjust for case or domain differences as needed).
-                if (server.Data.Name.Equals(serverBaseName, StringComparison.OrdinalIgnoreCase))
-                {
-                    var sqlResourceId = server.Data.Id.ToString();
-                    var sqlNode = new ArmResourceNode(
-                        resourceType: "Microsoft.Sql/servers",
-                        resourceId: sqlResourceId,
-                        subscriptionId: workloadNode.SubscriptionId,
-                        resourceGroupName: ExtractResourceGroupName(server.Data.Id),
-                        resourceName: server.Data.Name);
+                var sqlResourceId = new ResourceIdentifier(server.Data.Id.ToString());
+                var sqlNode = new ArmResourceNode(
+                    resourceType: "Microsoft.Sql/servers",
+                    resourceId: sqlResourceId,
+                    subscriptionId: sqlResourceId.SubscriptionId,
+                    resourceGroupName: sqlResourceId.ResourceGroupName,
+                    resourceName: sqlResourceId.ResourceGroupName);
 
-                    await dbManager.AddOrUpdateNodeAsync(
-                        sqlNode.GetNodeLabel(),
-                        sqlNode.GetNodeId(),
-                        sqlNode.GetResourceType(),
-                        sqlNode.GetNodeProperties());
+                await dbManager.AddOrUpdateNodeAsync(
+                    sqlNode.GetNodeLabel(),
+                    sqlNode.GetNodeId(),
+                    sqlNode.GetResourceType(),
+                    sqlNode.GetNodeProperties());
 
-                    var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-                    await dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                await dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
 
-                    _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlResourceId}");
-                    return sqlNode;
-                }
+                _logger.LogDebug($"Linked workload {workloadNode.GetNodeId()} with SQL resource {sqlResourceId}");
+                return sqlNode;
             }
 
             _logger.LogWarning($"SQL server with name {serverName} was not found in the subscription.");
