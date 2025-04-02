@@ -4,7 +4,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
 
-public class ResourceGroupCrawler : IArmResourceCrawler
+public class ResourceGroupCrawler : IResourceCrawler
 {
     private readonly ILogger<ResourceGroupCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
@@ -17,7 +17,7 @@ public class ResourceGroupCrawler : IArmResourceCrawler
         _graphClient = graphClient;
     }
 
-    public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+    public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var rgNode = (ResourceGroupNode)node;
         _logger.LogDebug($"Crawling resource group {rgNode.ResourceGroupName}");

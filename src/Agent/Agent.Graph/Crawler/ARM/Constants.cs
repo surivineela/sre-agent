@@ -16,6 +16,9 @@ public class Constants
     public const string AppServiceType = "Microsoft.Web/sites";
     public const string AppServicePlanType = "Microsoft.Web/serverFarms";
 
+    // k8s
+    public const string KubernetesNamespaceType = "namespaces";
+
     // Node properties
 
     // Edge properties

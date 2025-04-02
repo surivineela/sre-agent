@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
 
-public class K8sDeploymentCrawler : IArmResourceCrawler
+public class K8sDeploymentCrawler : IResourceCrawler
 {
     private readonly ILogger<K8sDeploymentCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
@@ -27,9 +27,9 @@ public class K8sDeploymentCrawler : IArmResourceCrawler
         _k8sClient = new Kubernetes(config);
     }
 
-    public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)
+    public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
-        _logger.LogDebug($"Crawling Kubernetes Deployments in cluster: {clusterNode.ResourceId}");
+        var clusterNode = (AksNode)node;
 
         V1DeploymentList deployments = null;
         try

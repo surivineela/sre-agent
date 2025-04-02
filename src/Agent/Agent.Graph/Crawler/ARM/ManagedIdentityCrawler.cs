@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
 
-public class ManagedIdentityCrawler : IArmResourceCrawler
+public class ManagedIdentityCrawler : IResourceCrawler
 {
     private readonly ILogger<ManagedIdentityCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
@@ -23,7 +23,7 @@ public class ManagedIdentityCrawler : IArmResourceCrawler
         _graphClient = graphClient;
     }
 
-    public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+    public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var identityNode = (ManagedIdentityNode)node;
         _logger.LogDebug($"Crawling managed identity {identityNode.ResourceId}");

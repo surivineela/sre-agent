@@ -15,7 +15,7 @@ namespace Agent.Graph.Crawler.ARM;
 /// This crawler does not have prior knowledge
 /// It just finds potential arm resource identifier within the payload
 /// </summary>
-public class GenericArmResourceCrawler : IArmResourceCrawler
+public class GenericArmResourceCrawler : IResourceCrawler
 {
     private readonly ILogger _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
@@ -36,17 +36,18 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         _crawlLinkedResource = crawlLinkedResource;
     }
 
-    public virtual async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+    public virtual async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
-        _logger.LogDebug($"Crawling generic ARM resource {node.ResourceId}");
-        if (node.ResourceType.Contains("microsoft.containerservice/daemonSet") || node.ResourceType.Contains("microsoft.containerservice/deployment"))
+        var armNode = (ArmResourceNode)node;
+        _logger.LogDebug($"Crawling generic ARM resource {armNode.ResourceId}");
+        if (armNode.ResourceType.Contains("microsoft.containerservice/daemonSet") || armNode.ResourceType.Contains("microsoft.containerservice/deployment"))
         {
             yield break;
         }
-        var id = new ResourceIdentifier(node.ResourceId);
+        var id = new ResourceIdentifier(armNode.ResourceId);
         if (id == null)
         {
-            _logger.LogWarning($"Invalid resource id: {node.ResourceId}");
+            _logger.LogWarning($"Invalid resource id: {armNode.ResourceId}");
             yield break;
         }
 
@@ -59,17 +60,17 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         {
             if (ex.Status == (int)HttpStatusCode.Unauthorized)
             {
-                _logger.LogDebug($"Agent MI does not have permission on {node.ResourceId}");
+                _logger.LogDebug($"Agent MI does not have permission on {armNode.ResourceId}");
             }
             else if (ex.Status == (int)HttpStatusCode.BadRequest)
             {
                 if (ex.ErrorCode == "NoRegisteredProviderFound")
                 {
-                    _logger.LogDebug($"No registered provider found: {node.ResourceId}, {ex}");
+                    _logger.LogDebug($"No registered provider found: {armNode.ResourceId}, {ex}");
                 }
                 else
                 {
-                    _logger.LogWarning($"Failed to get resource: {node.ResourceId}, {ex}");
+                    _logger.LogWarning($"Failed to get resource: {armNode.ResourceId}, {ex}");
                 }
             }
             yield break;
@@ -78,18 +79,18 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
         {
             // Usually this is because some properties linked some non-ARM resources
             // Remove the logs to avoid noises
-            _logger.LogDebug($"Invalid node resource type: {node.ResourceId}, {ex}");
+            _logger.LogDebug($"Invalid node resource type: {armNode.ResourceId}, {ex}");
             yield break;
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to get resource: {node.ResourceId}, {ex}");
+            _logger.LogWarning($"Failed to get resource: {armNode.ResourceId}, {ex}");
             yield break;
         }
 
         if (resp == null || resp.Value == null || !resp.Value.HasData)
         {
-            _logger.LogWarning($"Failed to get resource: {node.ResourceId}");
+            _logger.LogWarning($"Failed to get resource: {armNode.ResourceId}");
 
         }
 
@@ -101,7 +102,7 @@ public class GenericArmResourceCrawler : IArmResourceCrawler
                 var identityResp = await resp.Value.GetSystemAssignedIdentity().GetAsync();
                 if (resp == null || resp.Value == null || !resp.Value.HasData)
                 {
-                    _logger.LogWarning($"Failed to get system assigned identity for resource: {node.ResourceId}");
+                    _logger.LogWarning($"Failed to get system assigned identity for resource: {armNode.ResourceId}");
                 }
 
                 var identityResourceId = resp.Value.Id;

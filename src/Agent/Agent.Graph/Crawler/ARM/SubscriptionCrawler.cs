@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
 
-public class SubscriptionCrawler : IArmResourceCrawler
+public class SubscriptionCrawler : IResourceCrawler
 {
     private readonly ILogger<SubscriptionCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
@@ -18,7 +18,7 @@ public class SubscriptionCrawler : IArmResourceCrawler
         _armClient = armClient;
     }
 
-    public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+    public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         var subNode = (SubscriptionNode)node;
         _logger.LogDebug($"Crawling for subscription {subNode.SubscriptionId}");

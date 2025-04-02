@@ -207,6 +207,7 @@ if (useSessionChatService)
 
     builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
     builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
+    builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
 
     // Register HttpClientService and configure HttpClient with proper BaseAddress
     builder.Services.AddSingleton<HttpClientService>();

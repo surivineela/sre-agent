@@ -15,28 +15,24 @@ public class ResourceGraphCrawler
     private readonly ILogger<ResourceGraphCrawler> _logger;
     private readonly ArmResourceCrawlerFactory _factory;
     private readonly IGraphDatabaseClient _graphDbClient;
-    private readonly AzureResourceGraphClient _graphClient;
-    private readonly IArmClientFactory _armClientFactory;
     private readonly CrawlerSettings _crawlerSettings;
     private readonly SemaphoreSlim _semaphore;
 
-    public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory)
+    public ResourceGraphCrawler(ILogger<ResourceGraphCrawler> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient)
     {
         _logger = logger;
         _factory = factory;
         _graphDbClient = graphDbClient;
-        _graphClient = graphClient;
-        _armClientFactory = armClientFactory;
         _crawlerSettings = crawlerSettings;
         _semaphore = new SemaphoreSlim(1, 1);
     }
 
     public async Task<int> Crawl(IEnumerable<string> rootIds, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
-        List<ArmResourceNode> roots = new List<ArmResourceNode>();
+        List<GraphNode> roots = new List<GraphNode>();
         foreach(var rootId in rootIds)
         {
-            ArmResourceNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
+            GraphNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
             if (rootNode != null)
             {
                 _logger.LogInformation($"Crawl root: {rootId}");
@@ -46,7 +42,7 @@ public class ResourceGraphCrawler
         return await Crawl(roots, filters);
     }
 
-    public async Task<int> Crawl(IList<ArmResourceNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
+    public async Task<int> Crawl(IList<GraphNode> nodes, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
         await _semaphore.WaitAsync(cancellationToken ?? CancellationToken.None);
         HashSet<string> crawled = new();
@@ -89,7 +85,7 @@ public class ResourceGraphCrawler
             {
                 while (toCrawl.Count > 0 && tasks.Count < _crawlerSettings.MaxParallelism)
                 {
-                    var node = toCrawl.Dequeue() as ArmResourceNode;
+                    var node = toCrawl.Dequeue() as GraphNode;
                     Interlocked.Decrement(ref pendingCount);
                     Interlocked.Increment(ref crawlingCount);
                     if (node == null)
@@ -112,8 +108,7 @@ public class ResourceGraphCrawler
                     {
                         try
                         {
-                            var armClient = _armClientFactory.GetCrawlerArmClient();
-                            var crawler = _factory.CreateFromNode(node, _graphDbClient, _graphClient, armClient);
+                            var crawler = _factory.CreateFromNode(node);
                             await foreach (var n in crawler.Crawl(node))
                             {
                                 if (filters == null || filters.Contains(n.GetType()))
@@ -123,8 +118,8 @@ public class ResourceGraphCrawler
                                 }
                             }
 
-                            _logger.LogDebug($"Cleaning up stale edges from {node.ResourceId} (older than {startTS})");
-                            await _graphDbClient.Query($"g.V('{GetSanitizedCosmosDBId(node.ResourceId)}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
+                            _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
+                            await _graphDbClient.Query($"g.V('{GetSanitizedCosmosDBId(node.GetNodeId())}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
                         }
                         finally
                         {

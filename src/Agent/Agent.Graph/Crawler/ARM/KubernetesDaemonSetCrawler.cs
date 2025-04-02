@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
 
-public class K8sDaemonSetCrawler : IArmResourceCrawler
+public class K8sDaemonSetCrawler : IResourceCrawler
 {
     private readonly ILogger<K8sDaemonSetCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
@@ -22,8 +22,9 @@ public class K8sDaemonSetCrawler : IArmResourceCrawler
         _k8sClient = new Kubernetes(config);
     }
 
-    public async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode clusterNode)
+    public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
+        var clusterNode = (AksNode)node;
         _logger.LogDebug($"Crawling Kubernetes DaemonSets in cluster: {clusterNode.ResourceId}");
 
         var daemonSets = await _k8sClient.AppsV1.ListDaemonSetForAllNamespacesAsync(

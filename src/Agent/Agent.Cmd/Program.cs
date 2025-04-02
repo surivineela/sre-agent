@@ -32,6 +32,7 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<ResourceGraphCrawler>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
+            builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
 
             builder.Services.AddSingleton<CrawlerCommand>();
             builder.Services.AddSingleton<GraphCommand>();

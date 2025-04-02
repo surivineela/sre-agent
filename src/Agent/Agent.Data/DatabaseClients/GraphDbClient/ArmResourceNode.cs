@@ -3,10 +3,11 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
+using OpenTelemetry.Resources;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
-    public interface IArmResourceGraphNode
+    public interface IResourceGraphNode
     {
         public string GetNodeLabel();
         public string GetNodeId();
@@ -14,82 +15,149 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public IDictionary<string, object> GetNodeProperties();
     }
 
-    public abstract class GraphNode : IArmResourceGraphNode
+    public abstract class GraphNode : IResourceGraphNode
     {
         public long UpdateTs { get; set; }
         public abstract string GetNodeId();
         public abstract string GetNodeLabel();
         public abstract IDictionary<string, object> GetNodeProperties();
         public abstract string GetResourceType();
+
+        public abstract string GetHashString();
     }
 
     public class KubernetesResourceNode : GraphNode
     {
-        public string ResourceType { get; set; }
-        public string ResourceId { get; set; }
-        public string SubscriptionId { get; set; }
-        public string ResourceGroupName { get; set; }  // Maps to Namespace in K8s
-        public string ResourceName { get; set; }
-        public string Namespace { get; set; }
-        public string Kind { get; set; }
+        // the cluster arm resource id
+        public string ClusterResourceId { get; set; }
+        public string Name { get; set; }
+        public string Group { get; set; }
         public string ApiVersion { get; set; }
-
-        public KubernetesResourceNode() { }
+        public string Kind { get; set; }
+        public IDictionary<string, string> Annotations { get; set; }
+        public IDictionary<string, string> Labels { get; set; }
 
         public KubernetesResourceNode(
-            string resourceType,
-            string resourceId,
-            string subscriptionId,
-            string @namespace,
-            string resourceName,
+            string clusterResourceId,
+            string name,
+            string group,
+            string apiVersion,
             string kind,
-            string apiVersion)
+            IDictionary<string, string> annotations = null,
+            IDictionary<string, string> labels = null)
         {
             UpdateTs = DateTime.UtcNow.Ticks;
-            ResourceType = resourceType.ToLowerInvariant();
-            ResourceId = resourceId.ToLowerInvariant();
-            SubscriptionId = subscriptionId.ToLowerInvariant();
-            Namespace = @namespace.ToLowerInvariant();
-            ResourceGroupName = @namespace.ToLowerInvariant();
-            ResourceName = resourceName.ToLowerInvariant();
-            Kind = kind.ToLowerInvariant();
+            ClusterResourceId = clusterResourceId.ToLowerInvariant();
+            Name = name.ToLowerInvariant();
+            Group = group.ToLowerInvariant();
             ApiVersion = apiVersion.ToLowerInvariant();
+            Kind = kind.ToLowerInvariant();
+            Annotations = annotations;
+            Labels = labels;
         }
 
         public override string GetNodeLabel()
         {
             // Return a standardized label combining resource type and kind
-            return $"K8s_{Kind}";
+            return $"K8s/{Group}/{ApiVersion}/{Kind}";
         }
 
         public override string GetNodeId()
         {
-            // Using ResourceId as the unique identifier
-            // This should already be in the format: {clusterResourceId}/{kind}/{namespace}/{name}
-            return ResourceId;
+            // This should already be in the format: {clusterResourceId}/{group}/{version}/{kind}/{name}
+            return $"{ClusterResourceId}/{Group}/{ApiVersion}/{Kind}/{Name}";
+            ;
         }
 
         public override string GetResourceType()
         {
             // Return the Kubernetes resource type in a standardized format
-            return $"K8s/{Kind}";
+            return $"K8s/{Group}/{ApiVersion}/{Kind}";
         }
 
         public override IDictionary<string, object> GetNodeProperties()
         {
             // Return all relevant properties as a dictionary
-            return new Dictionary<string, object>
+            var properties = new Dictionary<string, object>
             {
                 { "updateTs", UpdateTs},
-                { "resourceType", ResourceType },
-                { "resourceId", ResourceId },
-                { "subscriptionId", SubscriptionId },
-                { "resourceGroupName", ResourceGroupName },
-                { "resourceName", ResourceName },
-                { "namespace", Namespace },
+                { "clusterResourceId", ClusterResourceId },
+                { "name", Name},
+                { "group", Group },
+                { "apiVersion", ApiVersion },
                 { "kind", Kind },
-                { "apiVersion", ApiVersion }
             };
+
+            //TODO: can property value be a dictionary?
+            if (Annotations != null)
+            {
+                foreach (var annotation in Annotations)
+                {
+                    properties.Add($"annotation_{annotation.Key}", annotation.Value);
+                }
+            }
+
+            if (Labels != null)
+            {
+                foreach (var label in Labels)
+                {
+                    properties.Add($"label_{label.Key}", label.Value);
+                }
+            }
+
+            return properties;
+        }
+
+        public override string GetHashString()
+        {
+            return $"{GetNodeId()}";
+        }
+    }
+
+    // Non namespaced resources
+    public class KubernetesGlobalResourceNode : KubernetesResourceNode
+    {
+        public KubernetesGlobalResourceNode(
+            string clusterResourceId,
+            string name,
+            string group,
+            string apiVersion,
+            string kind,
+            IDictionary<string, string> annotations = null,
+            IDictionary<string, string> labels = null) : base(clusterResourceId, name, group, apiVersion, kind, annotations, labels)
+        { }
+    }
+
+    public class KubernetesNamespacedResourceNode : KubernetesGlobalResourceNode
+    {
+        public string Namespace { get; set; }
+
+        public KubernetesNamespacedResourceNode(
+            string clusterResourceId,
+            string @namespace,
+            string name,
+            string group,
+            string apiVersion,
+            string kind,
+            IDictionary<string, string> annotations = null,
+            IDictionary<string, string> labels = null) : base(clusterResourceId, name, group, apiVersion, kind, annotations, labels)
+        {
+            Namespace = @namespace.ToLowerInvariant();
+        }
+
+        public override string GetNodeId()
+        {
+            // This should already be in the format: {clusterResourceId}/{group}/{version}/namespaces/{namespace}/{kind}/{name}
+            return $"{ClusterResourceId}/{Group}/{ApiVersion}/namespaces/{Namespace}/{Kind}/{Name}";
+            ;
+        }
+
+        public override IDictionary<string, object> GetNodeProperties()
+        {
+            var props = base.GetNodeProperties();
+            props.Add("namespace", Namespace);
+
+            return props;
         }
     }
 
@@ -154,7 +222,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         // Mainly for system MI
         // To be able to crawl same resource again with ManagedIdentityNode
-        public string GetHashString()
+        public override string GetHashString()
         {
             return $"{ResourceId}|{GetType()}";
         }
@@ -358,6 +426,29 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             {
                 props.Add("consistencyPolicy", ConsistencyPolicy);
             }
+            return props;
+        }
+    }
+
+    public class AksNode : ArmResourceNode
+    {
+        public string? Location { get; set; }
+
+        public AksNode(string resourceType,
+            string resourceId,
+            string subscriptionId,
+            string resourceGroupName,
+            string resourceName,
+            string location = null) : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName)
+        {
+            Location = location?.NormalizeLocation();
+        }
+
+        public override IDictionary<string, object> GetNodeProperties()
+        {
+            var props = base.GetNodeProperties();
+            props.Add("location", Location);
+
             return props;
         }
     }

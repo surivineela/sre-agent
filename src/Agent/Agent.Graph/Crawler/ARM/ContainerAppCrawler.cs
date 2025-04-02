@@ -18,14 +18,15 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         _graphDbClient = graphDbClient;
     }
 
-    public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+    public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         await foreach (var n in base.Crawl(node))
         {
             yield return n;
         }
 
-        _logger.LogDebug($"Crawling Container App {node.ResourceId}");
+        var armNode = (ArmResourceNode)node;
+        _logger.LogDebug($"Crawling Container App {armNode.ResourceId}");
 
         await _graphDbClient.AddOrUpdateNodeAsync(
             node.GetNodeLabel(),
@@ -33,11 +34,11 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             node.GetResourceType(),
             node.GetNodeProperties());
 
-        var resourceIdentifier = new ResourceIdentifier(node.ResourceId);
+        var resourceIdentifier = new ResourceIdentifier(armNode.ResourceId);
         var resp = await _armClient.GetGenericResource(resourceIdentifier).GetAsync();
         if (resp == null || !resp.Value.HasData)
         {
-            _logger.LogWarning($"Failed to get resource details for: {node.ResourceId}");
+            _logger.LogWarning($"Failed to get resource details for: {armNode.ResourceId}");
             yield break;
         }
 
@@ -68,14 +69,14 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
 
                             if (name == "REDIS_HOST" && !string.IsNullOrEmpty(value))
                             {
-                                await foreach (var resourceNode in ProcessRedisHost(node, name, value, "env"))
+                                await foreach (var resourceNode in ProcessRedisHost(armNode, name, value, "env"))
                                 {
                                     yield return resourceNode;
                                 }
                             }
                             else
                             {
-                                await foreach (var resourceNode in ProcessConnectionString(node, name, value, "env"))
+                                await foreach (var resourceNode in ProcessConnectionString(armNode, name, value, "env"))
                                 {
                                     yield return resourceNode;
                                 }
@@ -102,7 +103,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                                         var secretValue = sValue.GetString();
                                         if (!string.IsNullOrEmpty(secretValue))
                                         {
-                                            await foreach (var resourceNode in ProcessConnectionString(node, envName, secretValue, "secret"))
+                                            await foreach (var resourceNode in ProcessConnectionString(armNode, envName, secretValue, "secret"))
                                             {
                                                 yield return resourceNode;
                                             }

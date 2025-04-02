@@ -19,7 +19,7 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         _graphDbClient = dbManager;
     }
 
-    public override async IAsyncEnumerable<ArmResourceNode> Crawl(ArmResourceNode node)
+    public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
         await foreach (var n in base.Crawl(node))
         {

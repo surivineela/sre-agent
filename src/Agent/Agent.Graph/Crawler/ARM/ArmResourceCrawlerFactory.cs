@@ -1,6 +1,7 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+﻿using Agent.Core.Interfaces;
+using Agent.Core.Services;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
-using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -8,77 +9,94 @@ namespace Agent.Graph.Crawler.ARM;
 public class ArmResourceCrawlerFactory
 {
     private readonly ILoggerFactory _loggerFactory;
+    private readonly AzureResourceGraphClient _graphClient;
+    private readonly IArmClientFactory _armClientFactory;
+    private readonly IGraphDatabaseClient _graphDbClient;
+    private readonly IKubernetesClientFactory _k8sClientFactory;
 
-    public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory)
+    public ArmResourceCrawlerFactory(ILoggerFactory loggerFactory, AzureResourceGraphClient graphClient, IArmClientFactory armClientFactory, IGraphDatabaseClient graphDbClient, IKubernetesClientFactory k8sClientFactory)
     {
         _loggerFactory = loggerFactory;
+        _graphClient = graphClient;
+        _armClientFactory = armClientFactory;
+        _graphDbClient = graphDbClient;
+        _k8sClientFactory = k8sClientFactory;
     }
 
-    public IArmResourceCrawler CreateFromNode(ArmResourceNode node, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, ArmClient armClient)
+    public IResourceCrawler CreateFromNode(GraphNode node)
     {
         if (node == null)
         {
             throw new ArgumentNullException(nameof(node));
         }
 
-        if (graphDbClient == null)
+        var armClient = _armClientFactory.GetCrawlerArmClient();
+
+        if (node is ArmResourceNode armNode)
         {
-            throw new ArgumentNullException(nameof(graphDbClient));
+            // For system managed identity the resource id is the actual resource
+            if (armNode is ManagedIdentityNode)
+            {
+                return new ManagedIdentityCrawler(_loggerFactory.CreateLogger<ManagedIdentityCrawler>(), _graphDbClient, _graphClient, armClient);
+            }
+
+            // Filter by known resource type
+            if (Constants.SubscriptionType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new SubscriptionCrawler(_loggerFactory.CreateLogger<SubscriptionCrawler>(), _graphDbClient, armClient);
+            }
+
+            if (Constants.ResourceGroupType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), _graphDbClient, _graphClient);
+            }
+
+            if (Constants.ContainerAppEnvironmentType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new ContainerAppEnvironmentCrawler(_loggerFactory.CreateLogger<ContainerAppEnvironmentCrawler>(), _graphDbClient, _graphClient, armClient);
+            }
+
+            if (Constants.ContainerAppType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), _graphDbClient, armClient);
+            }
+
+            if (Constants.VirtualNetworkType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new VirtualNetworkCrawler(_loggerFactory.CreateLogger<VirtualNetworkCrawler>(), _graphDbClient, armClient);
+            }
+
+            if (Constants.LoadBalancerType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new LoadBalancerCrawler(_loggerFactory.CreateLogger<LoadBalancerCrawler>(), _graphDbClient, armClient);
+            }
+
+            if (Constants.AppServiceType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new AppServiceCrawler(_loggerFactory.CreateLogger<AppServiceCrawler>(), _graphDbClient, armClient);
+            }
+
+            if (Constants.AppServicePlanType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new AppServicePlanCrawler(_loggerFactory.CreateLogger<AppServicePlanCrawler>(), _graphDbClient);
+            }
+
+            if (Constants.ManagedClusterType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
+            {
+                return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), _graphDbClient, _loggerFactory, armClient, _k8sClientFactory);
+            }
+
+            return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);
+        }
+        else if (node is KubernetesResourceNode k8sNode)
+        {
+            if (Constants.KubernetesNamespaceType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesNamespaceCrawler(_k8sClientFactory);
+            }
         }
 
-        // For system managed identity the resource id is the actual resource
-        if (node is ManagedIdentityNode)
-        {
-            return new ManagedIdentityCrawler(_loggerFactory.CreateLogger<ManagedIdentityCrawler>(), graphDbClient, graphClient, armClient);
-        }
-
-        // Filter by known resource type
-        if (Constants.SubscriptionType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new SubscriptionCrawler(_loggerFactory.CreateLogger<SubscriptionCrawler>(), graphDbClient, armClient);
-        }
-
-        if (Constants.ResourceGroupType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), graphDbClient, graphClient);
-        }
-
-        if (Constants.ContainerAppEnvironmentType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new ContainerAppEnvironmentCrawler(_loggerFactory.CreateLogger<ContainerAppEnvironmentCrawler>(), graphDbClient, graphClient, armClient);
-        }
-
-        if (Constants.ContainerAppType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new ContainerAppCrawler(_loggerFactory.CreateLogger<ContainerAppCrawler>(), graphDbClient, armClient);
-        }
-
-        if (Constants.VirtualNetworkType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new VirtualNetworkCrawler(_loggerFactory.CreateLogger<VirtualNetworkCrawler>(), graphDbClient, armClient);
-        }
-
-        if (Constants.LoadBalancerType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new LoadBalancerCrawler(_loggerFactory.CreateLogger<LoadBalancerCrawler>(), graphDbClient, armClient);
-        }
-
-        if (Constants.AppServiceType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new AppServiceCrawler(_loggerFactory.CreateLogger<AppServiceCrawler>(), graphDbClient, armClient);
-        }
-
-        if (Constants.AppServicePlanType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new AppServicePlanCrawler(_loggerFactory.CreateLogger<AppServicePlanCrawler>(), graphDbClient);
-        }
-
-        if (Constants.ManagedClusterType.Equals(node.ResourceType, StringComparison.OrdinalIgnoreCase))
-        {
-            return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), graphDbClient, _loggerFactory, armClient);
-        }
-
-        return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), graphDbClient, armClient);
+        throw new NotImplementedException();
     }
 
     public static ArmResourceNode CreateResourceNodeFromResourceIdentifier(string resourceId)
@@ -111,6 +129,11 @@ public class ArmResourceCrawlerFactory
         if (Constants.AppServiceType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new AppServiceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
+
+        if (Constants.ManagedClusterType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new AksNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
         return new ArmResourceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
