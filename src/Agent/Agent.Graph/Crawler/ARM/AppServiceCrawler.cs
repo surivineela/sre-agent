@@ -1,4 +1,5 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using System.Security.Principal;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -68,12 +69,15 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 resourceGroupName: planId.ResourceGroupName,
                 resourceName: planId.Name);
 
+            var properties = appServicePlanNode.GetNodeProperties();
+            properties["location"] = webApp.Data.Location;
+
             // Add the App Service Plan node
             await _graphDbClient.AddOrUpdateNodeAsync(
                 appServicePlanNode.GetNodeLabel(),
                 appServicePlanNode.GetNodeId(),
                 appServicePlanNode.GetResourceType(),
-                appServicePlanNode.GetNodeProperties());
+                properties);
 
             // Create bidirectional edges
             var edge1 = new ArmResourceEdge(appServicePlanNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.Hosts);
@@ -97,7 +101,10 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 resourceGroupName: subnetId.ResourceGroupName,
                 resourceName: subnetId.Name);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(subnetNode.GetNodeLabel(), subnetNode.GetNodeId(), subnetNode.GetResourceType(), subnetNode.GetNodeProperties());
+            var properties = subnetNode.GetNodeProperties();
+            properties["location"] = webApp.Data.Location;
+
+            await _graphDbClient.AddOrUpdateNodeAsync(subnetNode.GetNodeLabel(), subnetNode.GetNodeId(), subnetNode.GetResourceType(), properties);
 
             // add bidirectional edges for network connections
             var edge1 = new ArmResourceEdge(appServiceNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);

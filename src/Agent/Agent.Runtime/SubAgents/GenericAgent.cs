@@ -15,7 +15,7 @@ namespace Agent.Runtime.SubAgents
     {
         private ILogger<GenericAgent> _logger { get; }
 
-        protected ISubscriptionPlugin _subscriptionPlugin { get; }
+        protected IAppServicePlugin _appServicePlugin { get; }
 
         protected ITimePlugin _timePlugin { get; }
 
@@ -38,7 +38,7 @@ namespace Agent.Runtime.SubAgents
         public override string SystemPrompt { get; protected set; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
         public GenericAgent(
-            ISubscriptionPlugin subscriptionPlugin,
+            IAppServicePlugin appServicePlugin,
             ITimePlugin timePlugin,
             ICodeAnalyzerPlugin codeAnalyzerPlugin,
             IMonitorPlugin monitorPlugin,
@@ -53,7 +53,7 @@ namespace Agent.Runtime.SubAgents
             : base("GenericAgent", chatClient)
         {
             _logger = logger;
-            _subscriptionPlugin = subscriptionPlugin;
+            _appServicePlugin = appServicePlugin;
             _timePlugin = timePlugin;
             _codeAnalyzerPlugin = codeAnalyzerPlugin;
             _monitorPlugin = monitorPlugin;
@@ -69,8 +69,8 @@ namespace Agent.Runtime.SubAgents
         {
             return new List<AITool>
             {
-                AIFunctionFactory.Create(_subscriptionPlugin.ListAllSubscriptionsAsync),
-                AIFunctionFactory.Create(_subscriptionPlugin.ListAppServicesAsync),
+                AIFunctionFactory.Create(_appServicePlugin.GetAppServiceInfoAsync),
+                AIFunctionFactory.Create(_appServicePlugin.ListAppServicesAsync),
 
                 AIFunctionFactory.Create(_monitorPlugin.StartMonitor),
                 AIFunctionFactory.Create(_monitorPlugin.UpdateMonitorInterval),

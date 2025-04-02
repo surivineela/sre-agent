@@ -18,10 +18,12 @@ namespace Agent.Plugins.Definitions
             _containerAppPlugin = containerAppPlugin;
         }
 
-        [KernelFunction("get_containerapp_info")]
-        [Description("Get detailed information about a container app including the revision history.")]
+        [KernelFunction("get_container_app")]
+        [Description("PREFERRED METHOD FOR CONTAINER APP DETAILS: Gets detailed information about a specific Azure Container App by its resource ID. " +
+            "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, and environment details. " +
+            "Always use this specialized method for Container Apps instead of generic resource search functions for more complete and accurate information.")]
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(
-            [Description("The resource ID of the Container App.")]string resourceId)
+            [Description("The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")] string resourceId)
         {   
             return await _containerAppPlugin.GetContainerAppInfoAsync(resourceId);
         }
@@ -34,8 +36,11 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("list_container_apps")]
+        [Description("PREFERRED METHOD FOR CONTAINER APPS: Lists all Azure Container Apps in the specified subscription. " +
+            "Returns detailed ContainerAppDescriptor objects with resource ID, name, location, state, workload profile, FQDN, and environment details. " +
+            "This is the most direct and efficient way to get Container App information - use this instead of generic resource search methods. Returns an empty list if no Container Apps are found.")]
         public async Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(
-            [Description("The subscription ID to scan for Container Apps.")] Guid subscriptionId)
+            [Description("The subscription ID (GUID) to scan for Container Apps.")] Guid subscriptionId)
         {
             return await _containerAppPlugin.ListContainerAppsAsync(subscriptionId);
         }

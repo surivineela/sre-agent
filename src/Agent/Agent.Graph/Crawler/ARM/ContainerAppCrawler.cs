@@ -28,11 +28,8 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         var armNode = (ArmResourceNode)node;
         _logger.LogDebug($"Crawling Container App {armNode.ResourceId}");
 
-        await _graphDbClient.AddOrUpdateNodeAsync(
-            node.GetNodeLabel(),
-            node.GetNodeId(),
-            node.GetResourceType(),
-            node.GetNodeProperties());
+        // Get the properties for the node to update
+        var properties = node.GetNodeProperties();
 
         var resourceIdentifier = new ResourceIdentifier(armNode.ResourceId);
         var resp = await _armClient.GetGenericResource(resourceIdentifier).GetAsync();
@@ -45,7 +42,60 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         var resource = resp.Value;
         var jsonObj = JsonSerializer.Deserialize<JsonElement>(resource.Data.Properties);
 
-        // Check template.containers array
+        if (resource.Data.Kind != null)
+        {
+            properties["kind"] = resource.Data.Kind ?? "ContainerApp";
+        }
+
+        properties["location"] = resource.Data.Location.ToString();
+
+        if (jsonObj.TryGetProperty("provisioningState", out JsonElement provisioningState) && 
+            provisioningState.ValueKind == JsonValueKind.String)
+        {
+            properties["provisioningState"] = provisioningState.GetString();
+        }
+
+        if (jsonObj.TryGetProperty("managedEnvironmentId", out JsonElement managedEnvironmentId) && 
+            managedEnvironmentId.ValueKind == JsonValueKind.String)
+        {
+            properties["managedEnvironmentId"] = managedEnvironmentId.GetString();
+        }
+
+        if (jsonObj.TryGetProperty("workloadProfileName", out JsonElement workloadProfileName) && 
+            workloadProfileName.ValueKind == JsonValueKind.String)
+        {
+            properties["workloadProfileName"] = workloadProfileName.GetString();
+        }
+
+        if (jsonObj.TryGetProperty("configuration", out JsonElement configuration) && 
+            configuration.TryGetProperty("ingress", out JsonElement ingress))
+        {
+            if (ingress.TryGetProperty("fqdn", out JsonElement fqdn) && 
+                fqdn.ValueKind == JsonValueKind.String)
+            {
+                properties["fqdn"] = fqdn.GetString();
+            }
+
+            if (ingress.TryGetProperty("external", out JsonElement external) && 
+                external.ValueKind == JsonValueKind.True || 
+                external.ValueKind == JsonValueKind.False)
+            {
+                properties["ingressExternal"] = external.GetBoolean();
+            }
+        }
+
+        if (jsonObj.TryGetProperty("latestRevisionName", out JsonElement latestRevisionName) && 
+            latestRevisionName.ValueKind == JsonValueKind.String)
+        {
+            properties["latestRevisionName"] = latestRevisionName.GetString();
+        }
+
+        await _graphDbClient.AddOrUpdateNodeAsync(
+            node.GetNodeLabel(),
+            node.GetNodeId(),
+            node.GetResourceType(),
+            properties);
+
         if (jsonObj.TryGetProperty("template", out JsonElement template) &&
             template.TryGetProperty("containers", out JsonElement containers) &&
             containers.ValueKind == JsonValueKind.Array)

@@ -1,4 +1,5 @@
-﻿using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.Api.v1;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 
@@ -39,6 +40,31 @@ namespace Agent.Plugins.Mocks
         }
 
         public Task<string> VisualizeApplicationComponents(string resourceId, int hops = 3, Guid? threadId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetGeneralHealthAsync(string resourceName, string resourceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<List<dynamic>> ListSubscriptionsAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 30, Guid? threadId = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "")
         {
             throw new NotImplementedException();
         }

@@ -11,6 +11,7 @@
 	  <PackageReference Include="Azure.ResourceManager.AppContainers" />
     <PackageReference Include="Azure.ResourceManager.ContainerService" />
 	  <PackageReference Include="Azure.ResourceManager.Network" />
+	  <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Microsoft.SemanticKernel" />
     <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />

@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
+
 namespace Agent.Graph.Schema
 {
     public class Node
@@ -23,5 +25,28 @@ namespace Agent.Graph.Schema
         public string Name { get; set; }
         public string Type { get; set; }
         public IDictionary<string, object> Properties { get; set; }
+    }
+
+    public static class NodeListExtensions
+    {
+        public static string ToString(this List<Node> nodes)
+        {
+            if (nodes == null || nodes.Count == 0)
+                return "[]";
+
+            var sb = new StringBuilder();
+            sb.Append("[\n");
+
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                sb.Append("  ").Append(nodes[i].ToString());
+
+                if (i < nodes.Count - 1)
+                    sb.Append(",\n");
+            }
+
+            sb.Append("\n]");
+            return sb.ToString();
+        }
     }
 }

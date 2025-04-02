@@ -7,7 +7,6 @@ namespace Agent.Plugins.Models
     public sealed record ContainerAppDescriptor(
         string ResourceId,
         string Name,
-        string Kind,
         string Location,
         string WorkloadProfile,
         string State,

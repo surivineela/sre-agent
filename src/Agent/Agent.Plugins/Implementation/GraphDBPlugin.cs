@@ -3,39 +3,82 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Text;
 using System.Text.Json;
-using System.Text.RegularExpressions;
+using System.Text.Json.Serialization;
+using System.Threading;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Azure.Core;
+using Azure.Identity;
+using Google.Protobuf;
 using Gremlin.Net.Driver;
+using Microsoft.Azure.Management.Monitor.Fluent;
+using Microsoft.Azure.Management.Monitor.Fluent.Models;
+using Microsoft.Azure.Management.ResourceManager.Fluent;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Rest.Azure;
+using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
+using OpenAI.Chat;
+using YamlDotNet.Core.Tokens;
+using static Kusto.Data.Security.WellKnownAadResourceIds;
 
 namespace Agent.Plugins
 {
     public class GraphDBPlugin : IGraphDBPlugin
     {
         public IGraphDatabaseClient GraphDbClient { get; }
-
         public IChatClient ChatClient { get; }
 
+        // Using ThreadContext from your original code. When a thread ID is needed, we pull it from here.
         public ThreadContext? Context { get; set; }
 
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+        public ILogger<GraphDBPlugin> _logger { get; }
+
+        // Additional fields for health dashboard screenshot and LLM summarization
+        private readonly string _grafanaUrl;
+        private readonly string _grafanaToken;
+        private readonly string _puppeteerScreenshotApiUrl;
+        private readonly HttpClient _httpClient;
+        private readonly DashboardSettings _dashboardSettings;
 
         private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
-        public ILogger<GraphDBPlugin> _logger { get; }
-        public GraphDBPlugin(IGraphDatabaseClient graphDbClient, IChatClient chatClient, IAgentOutboundCommunicationService agentInboundCommunicationService, ILogger<GraphDBPlugin> logger)
+
+        private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
+            { "microsoft.storage/storageaccounts", "azure-insights-storage-accounts" },
+            { "microsoft.documentdb/databaseaccounts", "azure-insights-cosmos-db" },
+            { "microsoft.cache/redis", "azure-redis" },
+            { "microsoft.web/sites", "azure-app-service-monitoring" },
+            // Pending: webapp, sql
+        };
+
+        public GraphDBPlugin(
+            IGraphDatabaseClient graphDbClient,
+            IChatClient chatClient,
+            DashboardSettings dashboardSettings,
+            IAgentOutboundCommunicationService agentOutboundCommunicationService,
+            ILogger<GraphDBPlugin> logger)
         {
             GraphDbClient = graphDbClient;
             ChatClient = chatClient;
-            _agentOutboundCommunicationService = agentInboundCommunicationService;
+            _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _logger = logger;
+            _dashboardSettings = dashboardSettings;
+
+            _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
+            _grafanaToken = dashboardSettings.GrafanaApiKey;
+            _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
+            _httpClient = new HttpClient();
         }
 
         /// <summary>
@@ -92,9 +135,9 @@ namespace Agent.Plugins
         }
 
         public async Task<string> VisualizeApplicationComponents(
-    string resourceId,
-    int hops = 3,
-    Guid? threadId = null)
+            string resourceId,
+            int hops = 3,
+            Guid? threadId = null)
         {
             _logger.LogInformation($"[VisualizeApplicationComponents] Invoked with resourceId: {resourceId}");
 
@@ -130,15 +173,13 @@ namespace Agent.Plugins
                 }
             }
 
-            // Retry policy configuration
             int maxRetries = 3;
-            int retryDelayMilliseconds = 1000; // Fixed delay of 1 second
+            int retryDelayMilliseconds = 1000; // 1 second
 
             for (int attempt = 1; attempt <= maxRetries; attempt++)
             {
                 try
                 {
-                    // Main execution logic
                     var result = await GetApplicationComponentsRaw(resourceId, hops);
                     if (result.Count == 0)
                     {
@@ -166,7 +207,6 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     var mermaidSpec = response.Text;
                     _logger.LogInformation("Generated Mermaid specification successfully");
 
-                    // Generate and return the base64-encoded graph image
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
                     await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{base64EncodedGraph})\r\n");
@@ -199,10 +239,8 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                 using (var httpClient = new HttpClient())
                 {
-                    // Set a timeout for the HTTP client
-                    httpClient.Timeout = TimeSpan.FromSeconds(30); // Reduced timeout to detect issues faster
+                    httpClient.Timeout = TimeSpan.FromSeconds(30);
 
-                    // Prepare the API request as JSON with "spec" property
                     var jsonPayload = new { spec = mermaidSpec };
                     var requestContent = new StringContent(
                         JsonSerializer.Serialize(jsonPayload),
@@ -211,20 +249,15 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                     try
                     {
-                        // Make the request to the container app's render endpoint
                         var response = await httpClient.PostAsync(MermaidServiceAPI, requestContent);
 
-                        // Check if the request was successful
                         if (response.IsSuccessStatusCode)
                         {
-                            // Read the JSON response containing base64-encoded image data
                             var jsonResponse = await response.Content.ReadAsStringAsync();
                             var responseObject = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
                             var base64Image = responseObject.GetProperty("image_base64").GetString();
 
                             _logger.LogInformation("Successfully generated graph visualization");
-
-                            // Return the base64-encoded image
                             return base64Image;
                         }
                         else
@@ -237,8 +270,6 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     catch (TaskCanceledException)
                     {
                         _logger.LogWarning("The visualization request timed out after {Timeout} seconds", httpClient.Timeout.TotalSeconds);
-
-                        // Return a user-friendly message with the raw Mermaid spec as a fallback
                         return $"The visualization request timed out after {httpClient.Timeout.TotalSeconds} seconds. The graph may be too complex to render. Here's the raw Mermaid specification that you can paste into a Mermaid editor:\n\n```mermaid\n{mermaidSpec}\n```";
                     }
                     catch (HttpRequestException ex)
@@ -261,7 +292,6 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
             try
             {
-                // Create a unified query that works for all resource types
                 string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
                     .repeat(
                         union(
@@ -286,7 +316,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error finding application components");
-                throw; // Let the calling methods handle the error according to their needs
+                throw;
             }
         }
 
@@ -296,14 +326,12 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
             try
             {
-                // Identify all potential application entry points
                 string entryPointQuery = BuildDiscoverApplicationsQuery(subscriptionId);
                 var entryPointResult = await Query(entryPointQuery);
                 var entryPoints = ConvertResultToNodes(entryPointResult);
 
                 var applications = new List<ApplicationGraph>();
 
-                // Process each entry point
                 foreach (var entryPoint in entryPoints)
                 {
                     _logger.LogDebug($"Processing application entry point: {entryPoint.Name} ({entryPoint.Type})");
@@ -339,7 +367,6 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
         private string BuildDiscoverApplicationsQuery(string subscriptionId)
         {
-            // Find resources that are typically application entry points
             return $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}')
                 .out('{Constants.Relationships.Contains}')
                 .out('{Constants.Relationships.Contains}')
@@ -361,6 +388,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
             foreach (var item in result)
             {
+                // For consistency, we assume the properties are already a dictionary.
                 var properties = new Dictionary<string, object>();
                 foreach (var prop in item["properties"])
                 {
@@ -380,23 +408,70 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             return nodes;
         }
 
+        /// <summary>
+        /// Flattens nested property values from Gremlin query results.
+        /// </summary>
+        private Dictionary<string, object> FlattenProperties(dynamic properties)
+        {
+            var flatProps = new Dictionary<string, object>();
+            foreach (var kvp in properties)
+            {
+                if (kvp.Value is IEnumerable<object> arr)
+                {
+                    var first = arr.FirstOrDefault();
+                    if (first is IDictionary<string, object> dict && dict.ContainsKey("value"))
+                    {
+                        flatProps[kvp.Key] = dict["value"];
+                    }
+                    else
+                    {
+                        flatProps[kvp.Key] = kvp.Value;
+                    }
+                }
+                else
+                {
+                    flatProps[kvp.Key] = kvp.Value;
+                }
+            }
+            return flatProps;
+        }
+
+        /// <summary>
+        /// Converts Gremlin query results to ArmResourceNode objects.
+        /// </summary>
+        private List<ArmResourceNode> ConvertResultToArmResourceNodes(ResultSet<dynamic> result)
+        {
+            var nodes = new List<ArmResourceNode>();
+
+            foreach (var item in result)
+            {
+                var properties = FlattenProperties(item["properties"]);
+                var node = new ArmResourceNode
+                {
+                    ResourceName = item["resourceName"],
+                    ResourceType = item["resourceType"],
+                    SubscriptionId = properties.ContainsKey("subscriptionId") ? properties["subscriptionId"].ToString() : string.Empty,
+                };
+
+                nodes.Add(node);
+            }
+
+            return nodes;
+        }
+
         public async Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl)
         {
             try
             {
                 var containerAppNodeId = resourceId.ToLower().Replace("/", "_");
-                string vertexFilter = $"hasId('{containerAppNodeId}')"; // Replacing "/" with "_" as graph IDs use underscores
-
-                string query = $@"
-                    g.V().{vertexFilter}";
-
+                string vertexFilter = $"hasId('{containerAppNodeId}')";
+                string query = $@"g.V().{vertexFilter}";
                 var containerAppNodeResults = await GraphDbClient.Query(query);
                 if (!containerAppNodeResults.Any())
                 {
                     return;
                 }
 
-                // Check if the source code node exists, create it if it doesn't
                 string sourceCodeNodeId = repoUrl.ToLower().Replace("/", "_");
                 string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository')";
                 var sourceCodeNodeResults = await GraphDbClient.Query(checkSourceCodeNodeQuery);
@@ -434,5 +509,682 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
             return resources;
         }
+
+        #region Additional Methods
+        /// <summary>
+        /// Retrieves the resource dashboard screenshot and uses an LLM to summarize the general health.
+        /// </summary>
+        public async Task<string> GetGeneralHealthAsync(string resourceName, string resourceType)
+        {
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(resourceType))
+                {
+                    _logger.LogWarning("Resource name or type cannot be empty");
+                    return "Failed to generate health summary: Resource name or type not provided.";
+                }
+
+                // Normalize resource type to case-insensitive comparison
+                resourceType = resourceType.ToLowerInvariant();
+
+                // Check if the resource type is supported
+                if (!_dashboardsToProcessByResourceType.TryGetValue(resourceType, out var dashboardType))
+                {
+                    _logger.LogWarning("Unsupported resource type for dashboard: {ResourceType}", resourceType);
+                    return $"Failed to generate health summary: Dashboard not available for resource type '{resourceType}'.";
+                }
+
+                // Look up the resource in our database/graph
+                var resourceNodes = await SearchResourceAsync(resourceName, resourceType);
+                if (resourceNodes == null || !resourceNodes.Any())
+                {
+                    _logger.LogWarning("Resource not found: {ResourceName} of type {ResourceType}", resourceName, resourceType);
+                    return $"Failed to generate health summary: Resource '{resourceName}' of type '{resourceType}' not found.";
+                }
+
+                // Use the first matching resource
+                var resource = resourceNodes.First();
+
+                // Generate dashboard URL based on resource type
+                string baseUrl = $"{_grafanaUrl}/d/{dashboardType}";
+
+                // Prepare query parameters based on resource type
+                var queryParams = new Dictionary<string, string>
+                {
+                    { "var-ds", "azure-monitor-oob" },
+                    { "var-ns", resourceType },
+                    { "var-sub", resource.SubscriptionId },
+                    { "var-rg", resource.ResourceGroupName.ToLowerInvariant() },
+                    { "var-resource", resource.ResourceName.ToLowerInvariant() }
+                };
+
+                // Add dashboard-specific parameters
+                switch (dashboardType)
+                {
+                    case "azure-container-apps-container-app-view":
+                        queryParams["var-containerapp"] = resource.ResourceName.ToLowerInvariant();
+                        break;
+                    case "azure-redis":
+                        queryParams["var-name"] = resource.ResourceName.ToLowerInvariant();
+                        break;
+                }
+
+                _httpClient.DefaultRequestHeaders.Clear();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_dashboardSettings.GrafanaApiKey}");
+                var dashboardResponse = await _httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
+                dashboardResponse.EnsureSuccessStatusCode();
+                var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
+                var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
+                string dashboardUrl = null;
+                foreach (var dashboard in dashboards.EnumerateArray())
+                {
+                    if (dashboard.TryGetProperty("url", out var urlElement) &&
+                        urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                    {
+                        dashboardUrl = $"{urlElement.GetString()}";
+                        break;
+                    }
+                }
+
+                if (string.IsNullOrEmpty(dashboardUrl))
+                {
+                    // Fallback to constructed URL if not found through API
+                    dashboardUrl = baseUrl;
+                }
+
+                // Build the final dashboard URL
+                dashboardUrl = AddQueryParameters(dashboardUrl, queryParams);
+
+                _logger.LogInformation("Generated dashboard URL: {DashboardUrl} for resource {ResourceName}", dashboardUrl, resourceName);
+
+                // Capture screenshot for the dashboard
+                var screenshotResponse = await CaptureDashboardScreenshotAsync(dashboardUrl);
+                if (string.IsNullOrEmpty(screenshotResponse?.Screenshot))
+                {
+                    _logger.LogWarning("No screenshot captured for resource {ResourceName}", resourceName);
+                    return $"Failed to capture dashboard screenshot for resource '{resourceName}'.";
+                }
+
+                if (Context != null)
+                {
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(Context.ThreadId, $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
+                }
+
+                string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);
+                _logger.LogInformation("General health summary generated successfully for resource {ResourceName}", resourceName);
+                return healthSummary;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating general health summary for resource {ResourceName} of type {ResourceType}", resourceName, resourceType);
+                return $"Error generating health summary: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Searches for resources by a partial resource name and resource type.
+        /// </summary>
+        public async Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType)
+        {
+            try
+            {
+                string query = $@"
+                g.V().hasLabel('{resourceType.ToLower()}')
+                .where(values('resourceName').is(containing('{resourceName}')))
+                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId')
+                .by(id())
+                .by(values('resourceName'))
+                .by(label())
+                .by(values('subscriptionId'))
+                .by(values('resourceGroupName'))
+                .by(coalesce(values('location'), constant('')))
+                .by(values('resourceId'))
+";
+
+                var result = await GraphDbClient.Query(query);
+                var resources = new List<ArmResourceNode>();
+
+                foreach (var item in result)
+                {
+                    var node = new ArmResourceNode
+                    {
+                        ResourceName = item["resourceName"]?.ToString() ?? string.Empty,
+                        ResourceType = item["resourceType"]?.ToString() ?? string.Empty,
+                        SubscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty,
+                        ResourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty,
+                        Location = item["location"]?.ToString() ?? string.Empty,
+                        ResourceId = item["resourceId"]?.ToString() ?? string.Empty
+                    };
+
+                    resources.Add(node);
+                }
+
+                return resources;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching for resource with name '{Name}' and type '{Type}'", resourceName, resourceType);
+                throw;
+            }
+        }
+
+        public async Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "")
+        {
+            try
+            {
+                string query;
+
+                if (string.IsNullOrWhiteSpace(groupBy))
+                {
+                    // Simple count query when no groupBy is specified
+                    query = $@"
+                g.V().hasLabel('{resourceType.ToLower()}')
+                .count()
+            ";
+
+                    var result = await GraphDbClient.Query(query);
+
+                    long count = 0;
+                    if (result != null && result.Count > 0)
+                    {
+                        // Convert the first result to long
+                        count = Convert.ToInt64(result.First());
+                        _logger.LogInformation("Found {Count} resources of type '{Type}'", count, resourceType);
+                    }
+
+                    return new { ResourceType = resourceType, Count = count };
+                }
+                else
+                {
+                    query = $@"
+    g.V().hasLabel('{resourceType.ToLower()}')
+    .project('id', 'propertyValue')
+    .by(id())
+    .by(
+        coalesce(
+            choose(has('{groupBy}'), 
+                properties('{groupBy}').value(), 
+                constant('Unknown')
+            ),
+            constant('Unknown')
+        )
+    )
+";
+
+                    var result = await GraphDbClient.Query(query);
+                    var groupedResults = new Dictionary<string, long>();
+
+                    foreach (var item in result)
+                    {
+                        try
+                        {
+                            string groupValue = "Unknown";
+
+                            try
+                            {
+                                groupValue = item.propertyValue?.ToString() ?? "Unknown";
+                            }
+                            catch
+                            {
+                                // Fallback to dictionary-style access
+                                if (item is IDictionary<string, object> dict && dict.ContainsKey("propertyValue"))
+                                {
+                                    groupValue = dict["propertyValue"]?.ToString() ?? "Unknown";
+                                }
+                            }
+
+                            // Update the count in our dictionary
+                            if (!groupedResults.ContainsKey(groupValue))
+                            {
+                                groupedResults[groupValue] = 0;
+                            }
+
+                            groupedResults[groupValue]++;
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning(ex, "Error processing result item");
+                        }
+                    }
+
+                    _logger.LogInformation("Found resource counts grouped by '{GroupBy}' for type '{Type}'", groupBy, resourceType);
+                    return new { ResourceType = resourceType, GroupBy = groupBy, Counts = groupedResults };
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting count for resource type '{Type}' grouped by '{GroupBy}'", resourceType, groupBy);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Returns a list of subscription IDs by querying all vertices that have a 'subscriptionId' property.
+        /// </summary>
+        public async Task<List<dynamic>> ListSubscriptionsAsync()
+        {
+            try
+            {
+                string query = @"
+                g.V()
+                .properties('subscriptionId')
+                .value()
+                .dedup()
+                ";
+
+                var result = await GraphDbClient.Query(query);
+
+                // If each row is literally just a string:
+                var subscriptionIds = result
+                    .Select(row => row.ToString())
+                    .ToList();
+
+                _logger.LogInformation("Found {Count} subscriptions", subscriptionIds.Count);
+                return subscriptionIds;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing subscriptions");
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Retrieves and summarizes activity logs for a container app and its dependent resources.
+        /// </summary>
+        [KernelFunction("GetActivityLogsSummary")]
+        [Description("Retrieves and summarizes activity logs for a container app and its dependent resources")]
+        public async Task<string> FetchAndSummarizeActivityLogs(
+            string resourceId,
+            int daysBack = 1,
+            Guid? threadId = null)
+        {
+            _logger.LogInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
+
+            if (string.IsNullOrWhiteSpace(resourceId))
+            {
+                throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
+            }
+
+            try
+            {
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(
+                    $"Invalid Azure resource ID format: {ex.Message}",
+                    nameof(resourceId));
+            }
+
+            if (threadId == null)
+            {
+                if (Context != null)
+                {
+                    threadId = Context.ThreadId;
+                }
+            }
+
+            int maxRetries = 3;
+            int retryDelayMilliseconds = 1000; // 1 second
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    var components = await GetApplicationComponentsSummary(resourceId, 3);
+
+                    if (components.Count == 0)
+                    {
+                        _logger.LogWarning($"No components found for resourceId: {resourceId}");
+                        return $"No components found for resourceId: {resourceId}. Was the correct resource ID provided? Alternatively, the Knowledge Graph may not have been built for this component.";
+                    }
+
+                    var resourceIds = components.Select(c => c.Id).ToList();
+                    var rgs = ExtractUniqueResourceGroups(resourceIds);
+                    _logger.LogInformation($"Found {resourceIds.Count} related resources for activity log analysis");
+
+                    var allActivityLogs = new List<Dictionary<string, object>>();
+
+                    foreach (var id in rgs)
+                    {
+                        var logs = await FetchActivityLogsForResource(id.Replace("_", "/"), daysBack);
+                        if (logs.Count > 0)
+                        {
+                            allActivityLogs.AddRange(logs);
+                        }
+                        _logger.LogInformation($"Fetched {logs.Count} activity logs for resource {id}");
+                    }
+
+                    if (allActivityLogs.Count == 0)
+                    {
+                        return "No activity logs found for the specified resource and its dependencies in the last " + daysBack + " days.";
+                    }
+
+                    allActivityLogs = allActivityLogs
+                        .OrderByDescending(log =>
+                            log.ContainsKey("eventTimestamp") ?
+                            DateTimeOffset.Parse(log["eventTimestamp"].ToString()) :
+                            DateTimeOffset.MinValue)
+                        .ToList();
+
+                    _logger.LogInformation($"Total activity logs collected: {allActivityLogs.Count}");
+
+                    var logsJson = JsonSerializer.Serialize(allActivityLogs, new JsonSerializerOptions { WriteIndented = true });
+                    var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString());
+
+                    return summary;
+                }
+                catch (Exception ex)
+                {
+                    if (attempt < maxRetries)
+                    {
+                        _logger.LogWarning($"[FetchAndSummarizeActivityLogs] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
+                        await Task.Delay(retryDelayMilliseconds);
+                    }
+                    else
+                    {
+                        _logger.LogError($"[FetchAndSummarizeActivityLogs] All {maxRetries} attempts failed. Last error: {ex.Message}");
+                        throw;
+                    }
+                }
+            }
+
+            return "Error: Unexpected execution path in fetching and summarizing activity logs";
+        }
+
+        public HashSet<string> ExtractUniqueResourceGroups(IEnumerable<string> resourceIds)
+        {
+            var resourceGroups = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+
+            foreach (var resourceId in resourceIds)
+            {
+                // Convert underscores back to slashes if they were replaced
+                string normalizedId = resourceId.Replace("_", "/");
+
+                // Split the path into segments
+                string[] segments = normalizedId.Split('/');
+
+                // Look for the subscription and resourceGroups in the segments
+                for (int i = 0; i < segments.Length - 3; i++)
+                {
+                    if (string.Equals(segments[i], "subscriptions", StringComparison.OrdinalIgnoreCase) &&
+                        i + 2 < segments.Length &&
+                        string.Equals(segments[i + 2], "resourceGroups", StringComparison.OrdinalIgnoreCase) &&
+                        i + 3 < segments.Length)
+                    {
+                        // We found the pattern /subscriptions/{subId}/resourceGroups/{rgName}
+                        // Build the path: /subscriptions/{subId}/resourceGroups/{rgName}
+                        string path = $"/subscriptions/{segments[i + 1]}/resourceGroups/{segments[i + 3]}";
+                        resourceGroups.Add(path);
+                        break; // Once we find the pattern in this resource ID, we can move to the next one
+                    }
+                }
+            }
+
+            return resourceGroups;
+        }
+
+        private async Task<List<Dictionary<string, object>>> FetchActivityLogsForResource(string resourceId, int daysBack)
+        {
+            _logger.LogInformation($"[FetchActivityLogsForResource] Fetching activity logs for: {resourceId}");
+
+            try
+            {
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
+                var subscriptionId = resourceIdentifier.SubscriptionId;
+                var resourceGroupName = resourceIdentifier.ResourceGroupName;
+
+                var credential = new DefaultAzureCredential();
+                var defaultCredential = new DefaultAzureCredential();
+                var defaultToken = defaultCredential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" })).Token;
+                var defaultTokenCredentials = new Microsoft.Rest.TokenCredentials(defaultToken);
+                var azureCredentials = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(defaultTokenCredentials, defaultTokenCredentials, null, AzureEnvironment.AzureGlobalCloud);
+                var credentials = new DefaultAzureCredential();
+
+                var restClient = RestClient.Configure()
+                    .WithBaseUri("https://management.azure.com")
+                    .WithCredentials(azureCredentials)
+                    .Build();
+
+                var monitorClient = new MonitorManagementClient(restClient)
+                {
+                    SubscriptionId = subscriptionId
+                };
+
+                var startTime = DateTime.UtcNow.AddDays(-daysBack);
+                var endTime = DateTime.UtcNow;
+
+                var filter = new ODataQuery<EventData>(eventData =>
+                    eventData.EventTimestamp >= startTime &&
+                    eventData.EventTimestamp <= endTime &&
+                    eventData.ResourceGroupName == resourceGroupName);
+
+                var filterString = $"eventTimestamp ge {startTime:yyyy-MM-ddTHH:mm:ssZ} and " +
+                  $"eventTimestamp le {endTime:yyyy-MM-ddTHH:mm:ssZ} and " +
+                  $"eventChannels eq 'Admin, Operation' and " +
+                  $"resourceGroupName eq '{resourceGroupName}'";
+
+                var odataQuery = new ODataQuery<EventData>(filterString);
+
+                IPage<EventData> eventsPage = await monitorClient.ActivityLogs.ListAsync(
+                    odataQuery: odataQuery,
+                    cancellationToken: default);
+
+                var logs = new List<Dictionary<string, object>>();
+
+                do
+                {
+                    foreach (var eventData in eventsPage)
+                    {
+                        var log = new Dictionary<string, object>
+                        {
+                            ["resourceId"] = resourceId,
+                            ["resourceName"] = resourceIdentifier.Name,
+                            ["resourceType"] = resourceIdentifier.ResourceType.ToString(),
+                            ["eventTimestamp"] = eventData.EventTimestamp?.ToString("o"),
+                            ["operationName"] = eventData.OperationName?.Value,
+                            ["caller"] = eventData.Caller,
+                            ["status"] = eventData.Status?.Value,
+                            ["correlationId"] = eventData.CorrelationId,
+                            ["category"] = eventData.Category?.Value,
+                            ["level"] = eventData.Level?.ToString()
+                        };
+
+                        // Add caller IP if available
+                        if (eventData.HttpRequest != null)
+                        {
+                            log["callerIpAddress"] = eventData.HttpRequest.ClientIpAddress;
+                        }
+
+                        // Add authorization details if available
+                        if (eventData.Authorization != null)
+                        {
+                            log["authorizationAction"] = eventData.Authorization.Action;
+                            log["authorizationScope"] = eventData.Authorization.Scope;
+                        }
+
+                        // Add properties
+                        if (eventData.Properties != null)
+                        {
+                            log["properties"] = JsonSerializer.Serialize(eventData.Properties);
+                        }
+
+                        logs.Add(log);
+                    }
+
+                    // Get next page if available
+                    if (eventsPage.NextPageLink != null)
+                    {
+                        eventsPage = await monitorClient.ActivityLogs.ListNextAsync(eventsPage.NextPageLink);
+                    }
+                    else
+                    {
+                        break;
+                    }
+                } while (true);
+
+                return logs;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error fetching activity logs for {resourceId}");
+                return new List<Dictionary<string, object>>();
+            }
+        }
+
+
+        private async Task<string> SummarizeLogsWithLLM(string logsJson, string gremlinOutput)
+        {
+            try
+            {
+                var prompt = @$"
+You are a cloud operations analyst. I will provide you with Azure activity logs for a resource group of an app facing an issue. This might contain some noise since the resource group may have other resources. Provide a concise summary following instructions below:
+
+Here's a gremlin output of resources we care about:
+
+{gremlinOutput}
+
+Please analyze these logs and provide a summary that includes:
+
+1. A high-level overview of the activity
+2. Key changes made to the resources (when and by whom), collapse same operation (e.g. role assignments) into same point
+3. Patterns of activity (e.g., regular deployments, configuration changes)
+4. Any potential issues or concerns
+5. Recommendations based on the activity patterns
+
+Each log entry contains:
+- resourceId: The Azure resource identifier
+- resourceName: The name of the resource
+- resourceType: The type of Azure resource
+- eventTimestamp: When the activity occurred
+- operationName: What action was performed
+- caller: The user or service principal that performed the action
+- callerIpAddress: The IP address of the caller
+- status: Success or failure of the operation
+- correlationId: Unique identifier to track related activities
+- category: Type of activity (Administrative, Security, etc.)
+- properties: Additional details about the activity
+
+Here are the logs in JSON format:
+
+{logsJson}
+
+Please provide a highly concise summary with sections for each of the above points. Focus on who made changes (mention the name), when they were made, and what kinds of changes were made. Identify patterns and potential issues. Remember the summary should be very concise and to the point. Respond in a **minimalist, structured format** with no fluff. Using fewer words per point while preserving clarity.";
+
+                var response = await ChatClient.GetResponseAsync(prompt);
+                return response.Text;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error summarizing logs with LLM");
+                return $"Error summarizing logs: {ex.Message}";
+            }
+        }
+
+        #endregion
+
+        #region Dummy Screenshot & LLM Summary Methods
+
+        private async Task<ScreenshotResponse> CaptureDashboardScreenshotAsync(string dashboardUrl)
+        {
+            try
+            {
+                var payload = new
+                {
+                    grafanaEndpoint = _grafanaUrl,
+                    grafanaToken = _grafanaToken,
+                    dashboardUrl
+                };
+
+                string requestJson = JsonSerializer.Serialize(payload);
+                var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
+
+                _logger.LogInformation("Requesting screenshot for dashboard: {DashboardUrl}", dashboardUrl);
+
+                var response = await _httpClient.PostAsync($"{_puppeteerScreenshotApiUrl}/screenshot", content);
+                response.EnsureSuccessStatusCode();
+
+                string responseJson = await response.Content.ReadAsStringAsync();
+                var screenshotResponse = JsonSerializer.Deserialize<ScreenshotResponse>(responseJson);
+
+                _logger.LogInformation("Screenshot captured successfully for dashboard: {DashboardUrl}", dashboardUrl);
+                return screenshotResponse;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error capturing dashboard screenshot for {DashboardUrl}", dashboardUrl);
+                return new ScreenshotResponse { Screenshot = string.Empty };
+            }
+        }
+
+        private string AddQueryParameters(string url, Dictionary<string, string> parameters)
+        {
+            // Return the original URL if there are no parameters to add
+            if (string.IsNullOrEmpty(url) || parameters == null || parameters.Count == 0)
+            {
+                return url;
+            }
+
+            // Convert dictionary to a query string with URL-encoded parameters
+            var queryString = string.Join("&", parameters
+                .Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
+
+            // Determine the correct separator: ? if no query exists, otherwise use &
+            char separator = url.Contains("?") ? '&' : '?';
+
+            // Append the query string to the URL
+            return $"{url}{separator}{queryString}";
+        }
+
+        private async Task<string> SummarizeDashboardScreenshotAsync(string base64Screenshot, string dashboardUrl)
+        {
+            try
+            {
+                var messages = new List<Microsoft.Extensions.AI.ChatMessage>();
+                var prompt = $"Please analyze the dashboard screenshot for the dashboard at {dashboardUrl}. " +
+                             $"Based on the visual data, provide a concise summary of the resource's health and any notable observations.";
+
+               _logger.LogInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
+               messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, prompt));
+               var screenshot = Convert.FromBase64String(base64Screenshot);
+               var content = new List<AIContent>
+                    {
+                        new Microsoft.Extensions.AI.TextContent($"This is a screenshot of the dashboard: {dashboardUrl}"),
+                        new DataContent(screenshot, "image/png")
+                    };
+                messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, content));
+
+                var options = new ChatOptions
+                {
+                    Temperature = (float)0.2,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        ["response_format"] = "text"
+                    }
+                };
+
+                var response = await ChatClient.GetResponseAsync(messages, options);
+                string summary = response.Text;
+
+                _logger.LogInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);
+                return summary;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error summarizing dashboard screenshot for {DashboardUrl}", dashboardUrl);
+                return $"Error summarizing dashboard screenshot: {ex.Message}";
+            }
+        }
+
+        public class ScreenshotResponse
+        {
+            [JsonPropertyName("screenshot")]
+            public string Screenshot { get; set; }
+        }
+
+        #endregion
     }
 }
+

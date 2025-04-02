@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -168,6 +168,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public string SubscriptionId { get; set; }
         public string ResourceGroupName { get; set; }
         public string ResourceName { get; set; }
+        public string Location { get; set; }
         public bool SystemMI { get; set; }
 
         public ArmResourceNode() { }

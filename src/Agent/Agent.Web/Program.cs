@@ -112,8 +112,8 @@ if (useSessionChatService)
     // Register plugins and their dependencies
     builder.Services
         .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
-        .AddSingleton<ISubscriptionPlugin, SubscriptionPlugin>()
-        .AddSingleton<SubscriptionPluginDefinition>()
+        .AddSingleton<IAppServicePlugin, AppServicePlugin>()
+        .AddSingleton<AppServicePluginDefinition>()
         .AddSingleton<IKubePlugin, KubePlugin>()
         .AddSingleton<KubePluginDefinition>()
         .AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>()

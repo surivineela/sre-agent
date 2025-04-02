@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 using Microsoft.SemanticKernel;
@@ -89,9 +90,78 @@ namespace Agent.Plugins
 
         [KernelFunction("GetContainerAppsWithNodesWithoutSourceCodeNodes")]
         [Description("Gets a list of container apps with nodes in the graph that don't have edges connecting them to source code nodes")]
-        public async Task GetContainerAppsWithNodesWithoutSourceCodeNodes()
+        public async Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodes()
         {
-            await _plugin.GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
+            return await _plugin.GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
+        }
+
+        [KernelFunction("GetGeneralHealth")]
+        [Description("Retrieves dashboard metrics for a specific Azure resource and generates an AI-powered health summary. " +
+            "This function is useful when you need to: 1) Get a quick health assessment of a resource/general health of the resource for questions like how i my resource doing?, " +
+            "2) Understand performance trends and potential issues, " +
+            "3) View summarized metrics without accessing the Azure portal, or " +
+            "4) Get actionable insights about resource behavior. " +
+            "The output is a text summary that describes the resource's health status, important metrics, and any anomalies or concerns.")]
+        public async Task<string> GetGeneralHealth(
+            [Description("Name of the Azure resource to analyze. This should be the exact resource name as shown in the Azure portal.")] string resourceName,
+            [Description("Type of the Azure resource (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts', 'microsoft.documentdb/databaseaccounts', 'microsoft.cache/redis')")] string resourceType)
+        {
+            return await _plugin.GetGeneralHealthAsync(resourceName, resourceType);
+        }
+
+        [KernelFunction("SearchResource")]
+        [Description("Searches for Azure resources by name pattern and resource type in the knowledge graph. " +
+            "This function is useful when you need to: 1) Find specific resources without knowing the exact resource ID, " +
+            "2) Locate resources of a particular type across your Azure environment, " +
+            "3) Find resources matching a naming pattern, or " +
+            "4) Verify if resources exist before performing operations on them. " +
+            "Returns a list of matching resources with their details.")]
+        public async Task<List<ArmResourceNode>> SearchResource(
+            [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName,
+            [Description("Type of the Azure resource to search for (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts')")] string resourceType)
+        {
+            return await _plugin.SearchResourceAsync(resourceName, resourceType);
+        }
+
+        [KernelFunction("GetResourceCount")]
+        [Description("Gets the count of Azure resources of a specified type in the knowledge graph. " +
+            "This function is useful when you need to: 1) Get a quick inventory of resources by type, " +
+            "2) Validate the quantity of deployed resources against expected counts, " +
+            "3) Monitor resource proliferation over time, or " +
+            "4) Get statistics about your Azure environment composition. " +
+            "Returns a count of matching resources and optionally can group by specific properties.")]
+        public async Task<dynamic> GetResourceCount(
+            [Description("Type of the Azure resource to count (e.g., 'microsoft.app/containerapps' for container apps, 'microsoft.web/sites' for webapps, function apps, 'microsoft.containerservice/managedclusters' for AKS)")] string resourceType,
+            [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroup'). Leave empty for total count.")] string groupBy = "")
+        {
+            return await _plugin.GetResourceCountAsync(resourceType, groupBy);
+        }
+
+        [KernelFunction("ListSubscriptions")]
+        [Description("Returns a list of all Azure subscription IDs present in the knowledge graph. " +
+            "This function is useful when you need to: 1) Discover available subscriptions, " +
+            "2) Verify subscription visibility to the agent, " +
+            "3) Get subscription IDs for use with other commands, or " +
+            "4) Perform an inventory of monitored subscriptions. " +
+            "The output is a list of subscription IDs without additional details.")]
+        public async Task<List<dynamic>> ListSubscriptions()
+        {
+            return await _plugin.ListSubscriptionsAsync();
+        }
+
+        [KernelFunction("GetActivityLogsSummary")]
+        [Description("Retrieves and analyzes Azure Activity Logs for a resource and its connected components. " +
+            "This function is valuable when you need to: 1) Review recent changes made to a resource and its dependencies, " +
+            "2) Investigate who made specific configuration changes, " +
+            "3) Understand patterns of administrative activity, or " +
+            "4) Detect potentially unauthorized or unusual operations. " +
+            "The output is a natural language summary highlighting key activities, patterns, and potential concerns.")]
+        public async Task<string> GetActivityLogsSummary(
+            [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
+            [Description("Number of days of activity logs to retrieve and analyze. Default is 1 days.")] int daysBack = 1,
+            Guid? threadId = null)
+        {
+            return await _plugin.FetchAndSummarizeActivityLogs(resourceId, daysBack, threadId);
         }
     }
 }

@@ -1,8 +1,10 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Diagnostics.Contracts;
 using Agent.Core;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
@@ -23,6 +25,8 @@ public sealed class MetaAgent : IAgent
 
 You are a specialized Azure SRE Agent designed to assist users with Microsoft Azure products and services as well as the GitHub repositories that back the apps. You can also GitHub repository security reviews directly.
 
+The resources you are monitoring is present in the knowledge graph you have built and you are given various tools to interact with this graph. Moreover, you are integrated with Azure Managed Grafana(AMG), where you have a dashboard for your knowledge graph resources and other stock dashboards in AMG.
+
 Your primary role is to understand user requests and delegate tasks to appropriate task based agents when necessary.
 
 You are part of a multi-agent system for Azure SRE Agent, designed to make agent coordination and execution easy.
@@ -31,7 +35,7 @@ An agent encompasses instructions and tools and can hand off a conversation to a
 Handoffs are achieved by calling a handoff function, generally named `start<agent_name>agent`.
 Transfers between agents are handled seamlessly in the background; do not mention or draw attention to these transfers in your conversation with the user.
 
-
+Be concise about the response, if user asks what went wrong with an update: covering who changed, when, what changed and why it's causing an issue.
 <Important>
 Before proceeding with any Azure resource operations:
 
@@ -111,7 +115,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly ManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
     private readonly TlsBestPracticesPlugin _tlsBestPracticesPlugin;
     private readonly AppServiceRemediationPlugin _appServiceRemediationPlugin;
-    private readonly ISubscriptionPlugin _subscriptionPlugin;
+    private readonly IAppServicePlugin _appServicePlugin;
     private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly KubernetesAgentPlugin _kubernetesAgentPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
@@ -120,6 +124,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly SourceCodePlugin _sourceCodePlugin;
     private readonly StorageAccountPlugin _storageAccountPlugin;
+    private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -127,13 +132,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         ThreadService threadService,
         McpToolsRepository mcpToolsRepository,
         Plugins.ChartPlugin chartplugin,
+        DashboardSettings dashboardSettings,
         ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         TlsBestPracticesPlugin tlsBestPracticesPlugin,
         AppServiceRemediationPlugin appServiceRemediationPlugin,
         ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
         StorageAccountPlugin storageAccountPlugin,
         KubernetesAgentPlugin kubernetesAgentPlugin,
-        ISubscriptionPlugin subscriptionPlugin,
+        IAppServicePlugin appServicePlugin,
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
@@ -143,11 +149,12 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _threadService = threadService;
         _mcpToolsRepository = mcpToolsRepository;
         _log = logger;
+        _dashboardSettings = dashboardSettings;
 
         _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
         _managedIdentityMigrationPlugin = managedIdentityMigrationPlugin;
         _appServiceRemediationPlugin = appServiceRemediationPlugin;
-        _subscriptionPlugin = subscriptionPlugin;
+        _appServicePlugin = appServicePlugin;
         _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
         _storageAccountPlugin = storageAccountPlugin;
         _kubernetesAgentPlugin = kubernetesAgentPlugin;
@@ -181,6 +188,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
+        var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin);
+
+        var appServicePluginDefinition = new AppServicePluginDefinition(_appServicePlugin);
+
         List<AITool> _aiTools =
         [
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.ListManagedIdentityMigrations),
@@ -193,21 +204,28 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgentWorkflow),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
-            AIFunctionFactory.Create(_subscriptionPlugin.ListAllSubscriptionsAsync),
-            AIFunctionFactory.Create(_subscriptionPlugin.ListAppServicesAsync),
             AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
+            AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
+            AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
             AIFunctionFactory.Create(_storageAccountPlugin.ListStorageAccountAgentWorkflows),
             AIFunctionFactory.Create(_storageAccountPlugin.StartStorageAccountAgent),
+            AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
-            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents)
+            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),
+            AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),
+            AIFunctionFactory.Create(graphDbPluginDefinition.SearchResource),
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetActivityLogsSummary),
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetGeneralHealth),
+            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceCount)
         ];
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
-
         var chatHistory = await _threadService.ToLLMChatHistory(ctx, SystemPrompt);
         var response = await _chatClient.GetResponseAsync(
             chatHistory,

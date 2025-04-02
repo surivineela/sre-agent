@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure;
@@ -15,7 +16,6 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
-using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation
@@ -23,91 +23,100 @@ namespace Agent.Plugins.Implementation
     public class ContainerAppPlugin : IContainerAppPlugin
     {
         private readonly ArmHelper _armHelper;
+        private readonly IGraphDatabaseClient _databaseClient;
         private readonly ILogger<ContainerAppPlugin> _logger;
         private readonly IArmClientFactory _armClientFactory;
 
-        public ContainerAppPlugin(ArmHelper armHelper, ILogger<ContainerAppPlugin> logger, IArmClientFactory armClientFactory)
+        public ContainerAppPlugin(ArmHelper armHelper,
+            IGraphDatabaseClient graphDbClient,
+            ILogger<ContainerAppPlugin> logger,
+            IArmClientFactory armClientFactory)
         {
             _armClientFactory = armClientFactory;
+            _databaseClient = graphDbClient;
             _armHelper = armHelper;
             _logger = logger;
         }
 
-        // This might be redundant since we have ListAllContainerApps method. 
-        // However, the MetaAgent is not able to properly pass the list of container apps to the sub agent.
-        // So, adding this function to explicitly get detailed info for a container app instance to test the e2e 
-        // container app remediation flow. 
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
         {
-            _logger.LogInformation($"[get_container_app] Invoked with resourceId: {resourceId}");
+            _logger.LogInformation($"[get_container_app_info] Invoked with resourceId: {resourceId}");
 
             try
             {
-                var credential = new DefaultAzureCredential();
-                var armClient = new ArmClient(credential);
-
-                // Parse resource ID into ResourceIdentifier object
-                var resourceIdentifier = new ResourceIdentifier(resourceId);
+                string cappResourceId = resourceId.ToLower().Replace("/", "_");
                 
-                var containerAppResource = armClient.GetContainerAppResource(resourceIdentifier);
-                var containerAppResponse = await containerAppResource.GetAsync();
-                var containerApp = containerAppResponse.Value;
+                string query = $@"
+                    g.V().has('id', '{cappResourceId}')
+                    .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
+                    .project('id', 'name', 'type', 'properties')
+                    .by(id())
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(label())
+                    .by(valueMap())";
 
-                if (containerApp == null)
+                var result = await _databaseClient.Query(query);
+
+                if (result == null || !result.Any())
                 {
-                    _logger.LogWarning($"Container App with ID '{resourceId}' not found.");
+                    _logger.LogWarning($"Container App with ID '{resourceId}' not found in graph database.");
                     return null;
                 }
 
-                // Get resource group directly from ResourceIdentifier
-                string resourceGroup = resourceIdentifier.ResourceGroupName;
+                var containerApp = result.First();
+                var properties = containerApp["properties"];
 
-                // Collect revisions if available
-                /*
-                var revisions = new List<RevisionInfo>();
-                try
+                string name = containerApp["name"]?.ToString() ?? "";
+                string location = GetFirstPropertyValue(properties, "location");
+                string workloadProfile = GetFirstPropertyValue(properties, "workloadProfileName");
+                string state = GetFirstPropertyValue(properties, "provisioningState");
+                string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
+                string fqdn = GetFirstPropertyValue(properties, "fqdn");
+                string environmentName = GetFirstPropertyValue(properties, "managedEnvironmentId");
+                
+                bool isIngressEnabled = false;
+                string ingressExternalValue = GetFirstPropertyValue(properties, "ingressExternal");
+                if (!string.IsNullOrEmpty(ingressExternalValue))
                 {
-                    await foreach (var revision in containerAppResource.GetContainerAppRevisions().GetAllAsync())
+                    if (!bool.TryParse(ingressExternalValue, out isIngressEnabled))
                     {
-                        int trafficWeight = revision.Data.TrafficWeight ?? 0;
-                        string revisionName = revision.Data.Name;
-                        
-                        // Extract just the revision part if name contains the app name prefix
-                        if (revisionName.Contains("--"))
-                        {
-                            revisionName = revisionName.Split("--").Last();
-                        }
-                        
-                        revisions.Add(new RevisionInfo(
-                            RevisionName: revisionName,
-                            IsActive: trafficWeight > 0,
-                            TrafficWeight: trafficWeight));
+                        _logger.LogWarning($"Could not parse ingressExternal value: {ingressExternalValue} to boolean");
                     }
                 }
-                catch (Exception ex)
-                {
-                    _logger.LogWarning(ex, $"Error getting revisions for Container App {containerApp.Data.Name}");
-                }
-                */
 
                 return new ContainerAppDescriptor(
-                    ResourceId: containerApp.Id.ToString(),
-                    Name: containerApp.Data.Name,
-                    Kind: containerApp.Data.Kind?.ToString() ?? "ContainerApp",
-                    Location: containerApp.Data.Location,
-                    WorkloadProfile: containerApp.Data.WorkloadProfileName,
-                    Fqdn: containerApp.Data.Configuration?.Ingress?.Fqdn ?? "",
-                    State: containerApp.Data.ProvisioningState?.ToString() ?? "Unknown",
+                    ResourceId: resourceId,
+                    Name: name,
+                    Location: location,
+                    WorkloadProfile: workloadProfile,
+                    State: state,
                     ResourceGroup: resourceGroup,
-                    EnvironmentName: containerApp.Data.ManagedEnvironmentId?.ToString() ?? "N/A",
-                    IsIngressEnabled: containerApp.Data.Configuration?.Ingress?.External ?? false,
-                    Revisions: null);
+                    Fqdn: fqdn,
+                    EnvironmentName: environmentName,
+                    IsIngressEnabled: isIngressEnabled,
+                    Revisions: null); // Not including revisions for now
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetContainerAppAsync with resourceId {resourceId}");
+                _logger.LogError(ex, $"Error in GetContainerAppInfoAsync with resourceId {resourceId}");
                 return null;
             }
+        }
+
+        private string GetFirstPropertyValue(dynamic properties, string propertyName)
+        {
+            if (properties == null || !((IDictionary<string, object>)properties).ContainsKey(propertyName))
+            {
+                return string.Empty;
+            }
+
+            var values = properties[propertyName];
+            if (values is IEnumerable<object> enumerable && enumerable.Any())
+            {
+                return enumerable.First().ToString();
+            }
+
+            return string.Empty;
         }
 
         public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
@@ -121,29 +130,26 @@ namespace Agent.Plugins.Implementation
                 var armClient = new ArmClient(credential);
 
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
-                                
+
                 var containerApp = await containerAppResource.GetAsync();
-                
-                // Get the latest revision name directly from the container app properties
+
                 string latestRevisionName = containerApp.Value.Data.LatestRevisionName;
-                
+
                 if (string.IsNullOrEmpty(latestRevisionName))
                 {
                     _logger.LogWarning($"No latest revision name found for Container App {resourceId}");
                     return null;
                 }
-                
-                // Extract the simple revision name if it contains the app name prefix
+
                 string revisionName = latestRevisionName;
                 if (latestRevisionName.Contains("--"))
                 {
                     revisionName = latestRevisionName.Split("--").Last();
                 }
-                
-                // Now get the specific revision to get traffic weight
+
                 var revisions = containerAppResource.GetContainerAppRevisions();
                 ContainerAppRevisionResource? latestRevision = null;
-                
+
                 await foreach (var revision in revisions.GetAllAsync())
                 {
                     if (revision.Data.Name == latestRevisionName)
@@ -152,13 +158,12 @@ namespace Agent.Plugins.Implementation
                         break;
                     }
                 }
-                
-                // If we found the latest revision, get its traffic weight
+
                 if (latestRevision != null)
                 {
                     int trafficWeight = latestRevision.Data.TrafficWeight ?? 0;
                     bool isActive = trafficWeight > 0;
-                    
+
                     return new RevisionInfo(
                         RevisionName: revisionName,
                         IsActive: isActive,
@@ -166,7 +171,6 @@ namespace Agent.Plugins.Implementation
                 }
                 else
                 {
-                    // If we couldn't find the revision details, assume it's active since it's the latest
                     return new RevisionInfo(
                         RevisionName: revisionName,
                         IsActive: true,
@@ -188,87 +192,63 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                // Create an instance of the ArmClient to interact with Azure
-                var armClient = _armClientFactory.GetArmClient();
+                string query = $@"
+                    g.V()
+                    .has('subscriptionId', '{subscriptionId}')
+                    .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
+                    .project('id', 'name', 'type', 'properties')
+                    .by(id())
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(label())
+                    .by(valueMap())";
 
-                // Construct the Resource Identifier for the specified subscription
-                var subscriptionResourceId = new ResourceIdentifier($"/subscriptions/{subscriptionId}");
+                var result = await _databaseClient.Query(query);
 
-                // Get the SubscriptionResource
-                SubscriptionResource subscription = armClient.GetSubscriptionResource(subscriptionResourceId);
-
-                // Verify if the subscription exists by attempting to get its data
-                var subscriptionResponse = await subscription.GetAsync();
-
-                if (subscriptionResponse.Value == null)
+                if (result == null || !result.Any())
                 {
-                    throw new InvalidOperationException($"Subscription with ID '{subscriptionId}' not found.");
+                    _logger.LogInformation($"No container apps found for subscription {subscriptionId} in graph database.");
+                    return containerApps;
                 }
 
-                // Get all resource groups in the subscription
-                await foreach (var resourceGroup in subscription.GetResourceGroups().GetAllAsync())
+                foreach (var containerApp in result)
                 {
-                    await foreach (var containerApp in resourceGroup.GetContainerApps().GetAllAsync())
+                    var properties = containerApp["properties"];
+                    
+                    string id = containerApp["id"].ToString();
+                    string resourceId = id.Replace("_", "/");
+                    
+                    string name = containerApp["name"]?.ToString() ?? "";
+                    string location = GetFirstPropertyValue(properties, "location");
+                    string workloadProfile = GetFirstPropertyValue(properties, "workloadProfileName");
+                    string state = GetFirstPropertyValue(properties, "provisioningState");
+                    string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
+                    string fqdn = GetFirstPropertyValue(properties, "fqdn");
+                    string environmentName = GetFirstPropertyValue(properties, "managedEnvironmentId");
+                    
+                    bool isIngressEnabled = false;
+                    string ingressExternalValue = GetFirstPropertyValue(properties, "ingressExternal");
+                    if (!string.IsNullOrEmpty(ingressExternalValue))
                     {
-                        string state = containerApp.Data.ProvisioningState.ToString() ?? "Unknown";
-
-                        string environmentId = containerApp.Data.ManagedEnvironmentId?.ToString() ?? "N/A";
-
-                        // Get revisions for this Container App
-                        /*
-                        var revisions = new List<RevisionInfo>();
-                        try
+                        if (!bool.TryParse(ingressExternalValue, out isIngressEnabled))
                         {
-                            // Get all revisions for this Container App
-                            var revisionCollection = containerApp.GetContainerAppRevisions();
-                            await foreach (var revision in revisionCollection.GetAllAsync())
-                            {
-                                // A revision is considered active if it has traffic weight > 0
-                                int trafficWeight = revision.Data.TrafficWeight ?? 0;
-                                bool isActive = trafficWeight > 0;
-
-                                // Use the correct property - the revision name is usually the last part of the full name
-                                // If there's no specific RevisionName property, extract it from the Name
-                                string fullName = revision.Data.Name;
-                                string revisionName = fullName;
-
-                                if (fullName.Contains("--"))
-                                {
-                                    revisionName = fullName.Split("--").Last();
-                                }
-
-                                revisions.Add(new RevisionInfo(
-                                    RevisionName: revisionName,
-                                    IsActive: isActive,
-                                    TrafficWeight: trafficWeight));
-                            }
+                            _logger.LogWarning($"Could not parse ingressExternal value: {ingressExternalValue} to boolean");
                         }
-                        catch (Exception revEx)
-                        {
-                            _logger.LogWarning(revEx, $"Error fetching revisions for Container App {containerApp.Data.Name}");
-                        }
-                        */
-                        var containerAppDescriptor = new ContainerAppDescriptor(
-                            ResourceId: containerApp.Id.ToString(),
-                            Name: containerApp.Data.Name,
-                            Kind: containerApp.Data.Kind.ToString(),
-                            Location: containerApp.Data.Location,
-                            WorkloadProfile: containerApp.Data.WorkloadProfileName,
-                            State: state,
-                            Fqdn: containerApp.Data.Configuration?.Ingress?.Fqdn ?? "",
-                            ResourceGroup: resourceGroup.Data.Name,
-                            EnvironmentName: environmentId,
-                            IsIngressEnabled: containerApp.Data.Configuration?.Ingress?.External ?? false,
-                            Revisions: null);
-
-                        containerApps.Add(containerAppDescriptor);
                     }
+
+                    var containerAppDescriptor = new ContainerAppDescriptor(
+                        ResourceId: resourceId,
+                        Name: name,
+                        Location: location,
+                        WorkloadProfile: workloadProfile,
+                        State: state,
+                        ResourceGroup: resourceGroup,
+                        Fqdn: fqdn, 
+                        EnvironmentName: environmentName,
+                        IsIngressEnabled: isIngressEnabled,
+                        Revisions: null); // skipping revisions for now
+
+                    containerApps.Add(containerAppDescriptor);
                 }
-            }
-            catch (RequestFailedException ex) when (ex.Status == 404)
-            {
-                _logger.LogInformation($"Subscription with ID '{subscriptionId}' not found.");
-                return new List<ContainerAppDescriptor>();
             }
             catch (Exception ex)
             {
@@ -360,7 +340,7 @@ namespace Agent.Plugins.Implementation
                 // Get the Container App to find its environment
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
-                
+
                 if (containerApp.Value.Data.ManagedEnvironmentId == null)
                 {
                     _logger.LogWarning($"Container App {resourceId} does not have a managed environment ID");
@@ -370,9 +350,9 @@ namespace Agent.Plugins.Implementation
                 // Get the Container App Environment
                 var environment = armClient.GetContainerAppManagedEnvironmentResource(containerApp.Value.Data.ManagedEnvironmentId);
                 var environmentData = await environment.GetAsync();
-                
+
                 // Check if environment has VNet configuration with infrastructure subnet
-                if (environmentData.Value.Data.VnetConfiguration == null || 
+                if (environmentData.Value.Data.VnetConfiguration == null ||
                     string.IsNullOrEmpty(environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId))
                 {
                     _logger.LogWarning($"Container App Environment {environment.Id} does not have VNet configuration with infrastructure subnet");
@@ -383,14 +363,14 @@ namespace Agent.Plugins.Implementation
                 string infrastructureSubnetId = environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId;
                 var subnet = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
                 var subnetData = await subnet.GetAsync();
-                
+
                 // Check if subnet has NSG
                 if (subnetData.Value.Data.NetworkSecurityGroup != null)
                 {
                     string nsgId = subnetData.Value.Data.NetworkSecurityGroup.Id;
                     var nsg = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
                     var nsgData = await nsg.GetAsync();
-                    
+
                     // Add this NSG's rules to the result dictionary
                     result[nsgId] = nsgData.Value.Data.SecurityRules.ToList();
                     _logger.LogInformation($"Found NSG {nsgId} with {nsgData.Value.Data.SecurityRules.Count} rules for infrastructure subnet");
@@ -399,7 +379,7 @@ namespace Agent.Plugins.Implementation
                 {
                     _logger.LogInformation($"No NSG found for infrastructure subnet {infrastructureSubnetId}");
                 }
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -414,7 +394,7 @@ namespace Agent.Plugins.Implementation
             [Description("The security rule data object containing all rule configuration")] SecurityRuleData rule)
         {
             _logger.LogInformation($"[create_or_update_nsg_rule] Invoked for rule '{rule.Name}' on NSG: {nsgResourceId}");
-            
+
             try
             {
                 var credential = new DefaultAzureCredential();
@@ -422,13 +402,13 @@ namespace Agent.Plugins.Implementation
 
                 // Get the NSG resource
                 var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
-                
+
                 // Check if the NSG exists
                 await nsgResource.GetAsync();
-                
+
                 // Get the security rules collection and create/update the rule
                 SecurityRuleCollection securityRules = nsgResource.GetSecurityRules();
-                
+
                 try
                 {
                     // Check if the rule exists
@@ -439,11 +419,11 @@ namespace Agent.Plugins.Implementation
                 {
                     _logger.LogInformation($"Security rule '{rule.Name}' not found in NSG {nsgResourceId}, creating new rule");
                 }
-                
+
                 // CreateOrUpdate handles both creating a new rule and updating an existing one
                 await securityRules.CreateOrUpdateAsync(WaitUntil.Completed, rule.Name, rule);
                 _logger.LogInformation($"Successfully created/updated security rule '{rule.Name}' in NSG {nsgResourceId}");
-                
+
                 return true;
             }
             catch (Exception ex)
@@ -454,11 +434,11 @@ namespace Agent.Plugins.Implementation
         }
 
         public async Task<bool> RemoveNSGRuleAsync(
-            [Description("Azure resource ID of the NSG containing the rule")] string nsgResourceId, 
+            [Description("Azure resource ID of the NSG containing the rule")] string nsgResourceId,
             [Description("Name of the security rule to remove")] string ruleName)
         {
             _logger.LogInformation($"[remove_nsg_rule] Invoked to remove rule '{ruleName}' from NSG: {nsgResourceId}");
-            
+
             try
             {
                 var credential = new DefaultAzureCredential();
@@ -466,18 +446,18 @@ namespace Agent.Plugins.Implementation
 
                 // Get the NSG resource
                 var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
-                
+
                 // Check if the NSG exists
                 await nsgResource.GetAsync();
-                
+
                 // Get the security rules collection
                 SecurityRuleCollection securityRules = nsgResource.GetSecurityRules();
-                
+
                 try
                 {
                     // Check if the rule exists
                     var existingRule = await securityRules.GetAsync(ruleName);
-                    
+
                     // Delete the rule
                     _logger.LogInformation($"Removing security rule '{ruleName}' from NSG {nsgResourceId}");
                     await existingRule.Value.DeleteAsync(WaitUntil.Completed);
@@ -488,7 +468,7 @@ namespace Agent.Plugins.Implementation
                 {
                     // Rule doesn't exist, nothing to remove
                     _logger.LogInformation($"Security rule '{ruleName}' not found in NSG {nsgResourceId}, nothing to remove");
-                    return true; 
+                    return true;
                 }
             }
             catch (Exception ex)
@@ -501,7 +481,7 @@ namespace Agent.Plugins.Implementation
         public async Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas)
         {
             _logger.LogInformation($"[scale_container_app] Invoked with resourceId: {resourceId}, memory: {desiredMemory}, minReplicas: {minReplicas}, maxReplicas: {maxReplicas}");
-            
+
             try
             {
                 // Dictionary of valid memory-to-CPU mappings
@@ -525,16 +505,16 @@ namespace Agent.Plugins.Implementation
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerAppResponse = await containerAppResource.GetAsync();
                 var containerApp = containerAppResponse.Value;
-                
+
                 if (containerApp.Data.Template?.Containers == null || containerApp.Data.Template.Containers.Count == 0)
                 {
                     _logger.LogError($"No container definition found in the app {resourceId}");
                     return false;
                 }
-                
+
                 // Patch request
                 var containerAppUpdateData = containerApp.Data;
-                
+
                 // Update all containers' resources
                 foreach (var container in containerAppUpdateData.Template.Containers)
                 {
@@ -554,7 +534,7 @@ namespace Agent.Plugins.Implementation
                         container.Resources.Memory = desiredMemory;
                     }
                 }
-                
+
                 // Update scale settings
                 if (containerAppUpdateData.Template.Scale == null)
                 {
@@ -571,11 +551,11 @@ namespace Agent.Plugins.Implementation
                     containerAppUpdateData.Template.Scale.MinReplicas = minReplicas;
                     containerAppUpdateData.Template.Scale.MaxReplicas = maxReplicas;
                 }
-                
+
                 // Apply the update
                 _logger.LogInformation("Applying container app scale update...");
                 await containerAppResource.UpdateAsync(WaitUntil.Completed, containerAppUpdateData);
-                
+
                 _logger.LogInformation($"Successfully scaled container app {resourceId} to {cpu} vCPU / {desiredMemory} with min {minReplicas}, max {maxReplicas} replicas");
                 return true;
             }

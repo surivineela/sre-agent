@@ -1,5 +1,6 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Microsoft.Extensions.Logging;
+using OpenTelemetry.Resources;
 
 namespace Agent.Graph.Crawler.ARM;
 
