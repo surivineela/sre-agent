@@ -250,18 +250,7 @@ if (useSessionChatService)
             DurableHelper.AddAllGeneratedTasks(r);
         });
 
-        var azureSettings = builder.Configuration.GetSection("AppSettings")
-                     .GetSection("Core")
-                     .GetSection("Azure")
-                     .Get<AzureSettings>();
-
-        string durableConnectionString =
-            azureSettings?.DTS.ConnectionString ?? "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-        if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
-        {
-            durableConnectionString = azureSettings.DTS.ConnectionString;
-        }
-
+        string durableConnectionString = builder.ResolveDtsConnectionString();
         b.UseDurableTaskScheduler(durableConnectionString);
 
         builder.Services.AddOptions<DurableTaskSchedulerWorkerOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
@@ -275,18 +264,7 @@ if (useSessionChatService)
 
     builder.Services.AddDurableTaskClient(b =>
     {
-        var azureSettings = builder.Configuration.GetSection("AppSettings")
-                     .GetSection("Core")
-                     .GetSection("Azure")
-                     .Get<AzureSettings>();
-
-        string durableConnectionString =
-            azureSettings?.DTS.ConnectionString ?? "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-        if (!string.IsNullOrEmpty(azureSettings?.DTS.ConnectionString))
-        {
-            durableConnectionString = azureSettings.DTS.ConnectionString;
-        }
-
+        string durableConnectionString = builder.ResolveDtsConnectionString();
         b.UseDurableTaskScheduler(durableConnectionString);
 
         builder.Services.AddOptions<DurableTaskSchedulerClientOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
