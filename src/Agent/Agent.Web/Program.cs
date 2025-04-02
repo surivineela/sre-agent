@@ -33,7 +33,6 @@ using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
-using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -51,6 +50,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
+using Microsoft.Extensions.Hosting;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -142,7 +142,6 @@ if (useSessionChatService)
         .AddSingleton<ArmResourceCrawlerFactory>()
         .AddSingleton<ResourceGraphCrawler>()
         .AddSingleton<RemediationPluginDefinition>()
-        .AddSingleton<IChatHistoryStorage, ChatHistoryStorage>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
         .AddSingleton<IGraphDbService, GraphDbService>()
@@ -214,8 +213,6 @@ if (useSessionChatService)
     builder.Services.AddArmHelperHttpClient();
     builder.Services.AddRazorHttpClient();
 
-    builder.Services.AddSingleton<IChatHistoryStorage, ChatHistoryStorage>();
-
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()
                    .ConfigureAzureOpenAIClient()
@@ -227,10 +224,6 @@ if (useSessionChatService)
     {
         builder.Services.AddSingleton(agentType);
     }
-
-    builder.Services.AddSingleton<IAgentManager, AgentManager>();
-
-    builder.Services.AddSingleton<IChatService, SessionChatService>();
 
     // Kick off background processes
     builder.Services.AddHostedService<TimerService>();
@@ -281,7 +274,6 @@ if (useSessionChatService)
 else
 {
     SemanticKernelHelper.ConfigService(builder.Services);
-    builder.Services.AddSingleton<IChatService, LegacyChatService>();
 }
 
 // Register TeamsConnector service

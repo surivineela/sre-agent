@@ -1,10 +1,9 @@
-@page "/"
+﻿@page "/"
 @page "/{*path}"
 @using Agent.Core.Models
 @using Agent.Core.Models.Api.v1
 @using System.Net.Http.Json
 @using Agent.Core.Services
-@using Agent.Web.Services
 @using Markdig
 @using Microsoft.AspNetCore.Components.Web
 @using Microsoft.JSInterop
@@ -12,31 +11,9 @@
 @using System.Text.Json.Serialization
 @inject NavigationManager Navigation
 @inject IHttpClientFactory HttpClientFactory
-@inject IAgentManager AgentManager
 @inject IJSRuntime JS
 
 <div class="app-container">
-    <!-- 
-    <div class="status-bar">
-        <div class="connection-status">
-            <span class="connection-indicator"></span>
-            <span>Connected</span>
-        </div>
-        <div class="agent-selector">
-            <select @bind="CurrentPath" class="form-select">
-                @foreach (var path in availablePaths)
-                {
-                    <option value="@path">@FormatAgentName(path)</option>
-                }
-            </select>
-        </div>
-        <div class="user-menu">
-            <button class="btn btn-icon">
-                <i class="bi bi-person-circle"></i>
-            </button>
-        </div>
-    </div>
-    -->
     <!-- Main Content Area -->
     <div class="main-content" style="margin-top:-10px">
         <!-- Left Sidebar - Threads List -->
@@ -239,7 +216,6 @@
     private List<ChatMessage> messages = new();
     private bool isTyping = false;
     private string currentPath = "/";
-    private List<string> availablePaths = new();
     private List<ChatThread> threads = new();
     private string? currentChatId;
     private bool hasError = false;
@@ -565,18 +541,8 @@
     {
         try
         {
-            availablePaths = AgentManager.GetAvailableSubAgents().ToList();
             var requestedPath = string.IsNullOrEmpty(Path) ? "/" : $"/{Path}";
-
-            if (!availablePaths.Contains(requestedPath, StringComparer.OrdinalIgnoreCase) && requestedPath != "/")
-            {
-                shouldRedirect = true;
-                return;
-            }
-            else
-            {
-                currentPath = requestedPath;
-            }
+            currentPath = requestedPath;
 
             await RefreshThreadsList();
 
@@ -610,12 +576,6 @@
                 if (threadExists)
                 {
                     currentChatId = savedChatId;
-
-                    // If we also have a saved path, set it
-                    if (!string.IsNullOrEmpty(savedPath) && availablePaths.Contains(savedPath))
-                    {
-                        currentPath = savedPath;
-                    }
 
                     // Load the history for this thread
                     await SetThreadAndLoadHistory(currentChatId);

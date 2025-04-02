@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
-using Agent.Web.Services;
 using Agent.Core.Configuration;
 
 namespace Agent.Web.Controllers;
