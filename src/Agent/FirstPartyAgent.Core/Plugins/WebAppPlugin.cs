@@ -6,6 +6,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Linq;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -42,6 +43,25 @@ namespace FirstPartyAgent.Core.Plugins
             return result.Content;
         }
 
+        private async Task<string> ExtractHostnames(string observerPayload)
+        {
+            var history = new ChatHistory();
+            var message = new ChatMessageContentItemCollection
+                        {
+                            new TextContent("Please extract the web app hostnames and their link from the following JSON payload"),
+                            new TextContent(observerPayload)
+                        };
+            history.AddUserMessage(message);
+            var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+            var result = await chatCompletionService.GetChatMessageContentAsync(
+            history,
+            executionSettings: new()
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.None()
+            });
+            return result.Content;
+        }
+
         [KernelFunction("get_webapp_reboot_worker_details")]
         [Description("Takes a web app name and a stamp name and fetches the details to reboot the worker like location, role, roleinstance, etc.")]
         public async Task<string> GetWebAppRebootWorkerDetails([Description("Name of the web app")] string webappName, [Description("Name of the stamp")] string stampName, Kernel kernel)
@@ -62,8 +82,13 @@ namespace FirstPartyAgent.Core.Plugins
                 else
                 {
                     try {
-                        var webAppDetailsContent = JsonConvert.DeserializeObject<List<StampSiteModel>>(JsonConvert.SerializeObject(webAppDetails.Content));
-                        var workerRebootLink = webAppDetailsContent.FirstOrDefault()?.WebWorkers.FirstOrDefault()?.WorkerRebootLink;
+                        List<StampSiteModel> webAppDetailsContent = JsonConvert.DeserializeObject<List<StampSiteModel>>(JsonConvert.SerializeObject(webAppDetails.Content));
+                        var webApp = webAppDetailsContent.FirstOrDefault();
+                        if (webApp == null)
+                        {
+                            return $"Web app {webappName} not found.";
+                        }
+                        var workerRebootLink = webApp.WebWorkers.FirstOrDefault()?.RebootLink;
                         if (workerRebootLink != null)
                         {
                             return workerRebootLink;
@@ -99,11 +124,48 @@ namespace FirstPartyAgent.Core.Plugins
                 {
                     return $"Web app {webappName} not found.";
                 }
-                return JsonConvert.SerializeObject(webApp.Content);
+                var result = JsonConvert.SerializeObject(webApp.Content);
+                return result;
             }
             catch (Exception ex)
             {
                 return $"Failed to fetch the details for the web app {webappName}. Error: {ex.Message}";
+            }
+        }
+
+        [KernelFunction("get_webapp_hostnames")]
+        [Description("Takes a web app name and a stamp name and fetches the hostnames for the web app.")]
+        public async Task<string> GetWebAppHostnames([Description("Name of the web app")] string webappName, [Description("Name of the stamp")] string stampName, Kernel kernel)
+        {
+            var logMessage = $"[get_webapp_hostnames] Invoked with webappName {webappName}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            if (!_observerClient.IsEnabled)
+            {
+                return $"Cannot fetch the details of the webapp {webappName} as Observer API is not enabled.";
+            }
+            var webAppDetails = await _observerClient.GetSite(stampName, webappName);
+            if (webAppDetails == null || (webAppDetails.StatusCode != System.Net.HttpStatusCode.OK))
+            {
+                return $"Web app {webappName} not found.";
+            }
+            else
+            {
+                try
+                {
+                    List<StampSiteModel> webAppDetailsContent = JsonConvert.DeserializeObject<List<StampSiteModel>>(JsonConvert.SerializeObject(webAppDetails.Content));
+                    var webApp = webAppDetailsContent.FirstOrDefault();
+                    if (webApp == null)
+                    {
+                        return $"Web app {webappName} not found.";
+                    }
+                    var result = JsonConvert.SerializeObject(webApp.Hostnames.Where(hostname => !hostname.Hostname.Contains(".scm.")).Select(x => x.Hostname).ToList());
+                    return result;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Failed to deserialize web app details content. Error: {ex.Message}.");
+                }
+                return await ExtractHostnames(JsonConvert.SerializeObject(webAppDetails.Content));
             }
         }
     }

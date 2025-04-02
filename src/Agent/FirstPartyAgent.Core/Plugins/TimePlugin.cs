@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.Plugins
         {
             try
             {
-                var logMessage = $"[wait_timer] Invoked with waitTimeInSeconds {waitTimeInSeconds}";
+                var logMessage = $"[wait_timer][{DateTime.UtcNow}] Invoked with waitTimeInSeconds {waitTimeInSeconds}";
                 await kernel.LogInformation(logMessage, _logger, _teamsClient);
                 await Task.Delay(waitTimeInSeconds * 1000);
             }

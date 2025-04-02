@@ -67,7 +67,10 @@ namespace FirstPartyAgent.Plugins
             DateTime? NowOverride,
             Kernel kernel)
         {
+            //Ensure cleanup of cluster name
             cluster = cluster.Replace(".kusto.windows.net", "");
+            cluster = cluster.Replace("https://", "");
+
             var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, 100)}...";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try

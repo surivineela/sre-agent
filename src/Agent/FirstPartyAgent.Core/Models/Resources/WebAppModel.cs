@@ -22,6 +22,9 @@ namespace FirstPartyAgent.Core.Models.Resources
 
         [JsonProperty("web_workers")]
         public List<WebWorkerDetails> WebWorkers { get; set; }
+
+        [JsonProperty("hostnames")]
+        public List<HostnameDetails> Hostnames { get; set; }
     }
 
     public class WebWorkerDetails
@@ -34,5 +37,15 @@ namespace FirstPartyAgent.Core.Models.Resources
 
         [JsonProperty("reimage_link")]
         public string ReimageLink { get; set; }
+    }
+
+    public class HostnameDetails
+    {
+        [JsonProperty("hostname")]
+        public string Hostname { get; set; }
+        [JsonProperty("link")]
+        public string Link { get; set; }
+        [JsonProperty("hostname_type")]
+        public int HostnameType { get; set; }
     }
 }

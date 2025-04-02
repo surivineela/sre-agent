@@ -1,7 +1,7 @@
 {
   "AlertingId": "97950ded-8bbc-4bda-bcfa-e74aa45c1381",
   "AgentMode": "Sev2",
-  "IncidentTitle": "[Public] TestSREAgent : Hotsite availability issue",
+  "IncidentTitle": "[Public] TestSREAgent : Test Hotsite availability issue",
   "IncidentTitleContains": "",
   "ActionTimeoutIntervalInMinutes": 15,
   "DefaultHumanInterventionLoop": "App Service (Web Apps)/Windows Websites Azure Servicing",
@@ -11,10 +11,44 @@
       "KustoQuery": ""
     }
   ],
-  "MitigationInstructions": [
-    "1. Find the impacted hotsites from the alert.",
-    "2. For each impacted hotsite, restart the site one by one. To restart, first get the web app details, then restart them.",
-    "3. After all the restarts, monitor the impacted endpoints availability to confirm mitigation."
+  "IncidentProcessingGuide": [
+    "Create an EXECUTION_PLAN using the below guidelines:",
+    "- Identify the list of Impacted Endpoints from azure alerting discussion entry.",
+    "- For each impacted endpoint - get web app details, then get web app hostnames.",
+    "- Create full https URL for each endpoint.",
+    "- Post discussion Entry for impacted endpoints with a table with three columns:",
+    "  - Impacted Endpoint",
+    "  - Impact Start Time",
+    "  - Full HTTP URL",
+    "- For each impacted endpoint, make HTTP get request and check the status code:",
+    "  - Status Code < 500 means the issue was transient.",
+    "  - Status Code >= 500 means the issue is non-transient.",
+    "- Transient Issue Handling:",
+    "  - Post a discussion entry in the ICM incident with the following details: Impacted Endpoint, HTTP get request status code, Issue is transient",
+    "  - Continue with ALERT_SIGNAL_MONITORING instructions.",
+    "- Non transient issue handling:",
+    "  - For each impacted endpoint where the issue is non-transient, restart the web app.",
+    "  - Wait for 2 minutes.",
+    "  - Run HTTP get request to each non-transient endpoint to confirm recovery.",
+    "  - Post a discussion entry with the details: Impacted Endpoint, HTTP Status (before restart), Mitigation action taken, HTTP Status (after restart)",
+    "  - If recovery confirmed, and discussion entry has been posted, then continue with ALERT_SIGNAL_MONITORING instructions.",
+    "  - If recovery not confirmed, and discussion entry has been posted, transfer the incident to DefaultHumanInterventionLoop. TenantName and OwningTeam are separated by '/'.",
+    "- ALERT_SIGNAL_MONITORING instructions:",
+    "  - Wait for 10 minutes.",
+    "  - Set MONITORING_ITERATION = 0",
+    "  - Repeat running run_alert_kusto_query 10 times with a gap of 10 minutes or until NUM_ROWS_RETURNED == 0. In each iteration:",
+    "    - Ensure that you've waited for 10 minutes after the last iteration.",
+    "    - run_alert_kusto_query and check if it returns any rows.",
+    "    - Post discussion Entry into ICM Incident with the following list details regarding the ALERT_SIGNAL: MONITORING_ITERATION, NUM_ROWS_RETURNED",
+    "    - If NUM_ROWS_RETURNED > 0, increase MONITORING_ITERATION by 1 and add wait_timer for 10 minutes.",
+    "    - If NUM_ROWS_RETURNED == 0, this confirms that the ALERT_SIGNAL has been cleared. EXIT THE LOOP.",
+    "  - Post a discussion Entry with a summary of stage-by-stage details:",
+    "      - Incident Details",
+    "      - Impacted Endpoint Details",
+    "      - Transient/Non-Transient check",
+    "      - Mitigation Actions",
+    "      - Confirmation of Recovery",
+    "      - Iteration-by-Iteration results of the ALERT_SIGNAL_MONITORING in a table format."
   ],
   "Owners": [ "ajsharm", "yifguo", "shgup" ]
 }

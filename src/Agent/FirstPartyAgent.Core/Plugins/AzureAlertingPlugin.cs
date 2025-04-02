@@ -156,6 +156,7 @@ namespace FirstPartyAgent.Core.Plugins
                 try
                 {
                     var alertId = incidentDetails.MonitoringSlice;
+                    await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Fetching alert details for Azure Alerting Id: {alertId}", _logger, _teamsClient);
                     var alertConfig = AgentFinder.GetICMAlertConfig(alertId);
                     if (alertConfig == null) alertConfig = new ICMAlertConfig() { AlertingId = alertId };
                     var alertDetails = await GetAzureAlertingDetailsById(alertId);
@@ -174,7 +175,7 @@ namespace FirstPartyAgent.Core.Plugins
             }
             else
             {
-                await kernel.LogInformation("AzureAlertingPlugin: This Incident is not from Azure Alerting, finding configuration based on other fields."
+                await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] AzureAlertingPlugin: This Incident is not from Azure Alerting, finding configuration based on other fields."
                     , _logger, _teamsClient);
                 var alertConfigs = AgentFinder.GetICMAlertConfigs();
                 foreach (var alertId in alertConfigs.Keys)

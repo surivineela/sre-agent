@@ -29,6 +29,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
             services.AddSingleton<ICMPlugin>();
             services.AddSingleton<GenevaActionsPlugin>();
+            services.AddSingleton<HttpRequestPlugin>();
 
             services.AddSingleton<KustoServiceClientFactory>();
             services.AddSingleton<IKustoPlugin, KustoPlugin>();

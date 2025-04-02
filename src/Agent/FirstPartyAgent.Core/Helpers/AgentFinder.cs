@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.Helpers
         //TODO: Move it to JSON
         private static Dictionary<string, List<string>> AgentPluginsConfig = new Dictionary<string, List<string>>()
         {
-            { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin" } },
+            { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
             { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "RedisGenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin" } },
             { "MFP", new List<string>(){ "IcmPlugin", "GenevaActionsPlugin", "KustoPlugin", "TeamsPlugin" } },
             { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } },

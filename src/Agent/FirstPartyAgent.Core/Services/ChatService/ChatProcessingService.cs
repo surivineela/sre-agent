@@ -181,7 +181,7 @@ public class ChatProcessingService : IChatService
     {
         _logger.LogInformation($"ChatProcessingService:RunAgentLoop:Start - sessionId: {sessionInfo.SessionId}, chatHistoryLength: {sessionInfo.ChatHistory.Count}");
         ChatMessageContent chatCompletionResult = null;
-        FunctionChoiceBehaviorOptions options = new() { AllowConcurrentInvocation = true };
+        FunctionChoiceBehaviorOptions options = new() { AllowConcurrentInvocation = false };
         var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
         var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
         var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()

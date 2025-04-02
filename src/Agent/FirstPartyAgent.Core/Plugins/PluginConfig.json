@@ -4,6 +4,10 @@
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.TimePlugin"
   },
   {
+    "PluginName": "HttpRequestPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.HttpRequestPlugin"
+  },
+  {
     "PluginName": "IcmPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ICMPlugin"
   },
