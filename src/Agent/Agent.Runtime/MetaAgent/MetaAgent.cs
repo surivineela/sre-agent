@@ -59,6 +59,7 @@ Before proceeding with any Azure resource operations:
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 - **Storage Account Remediation**: Help users with making changes storage account settings
+- **Kubernetes Agent**: Help users with any queries related to Azure Kubernetes Service (AKS)
 
 ## Core Responsibilities
 1. **Request Triage**: Determine if a user request is related to Azure SRE concerns
@@ -112,6 +113,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly AppServiceRemediationPlugin _appServiceRemediationPlugin;
     private readonly ISubscriptionPlugin _subscriptionPlugin;
     private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
+    private readonly KubernetesAgentPlugin _kubernetesAgentPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
     private readonly ChartPlugin _chartplugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
@@ -130,6 +132,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         AppServiceRemediationPlugin appServiceRemediationPlugin,
         ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
         StorageAccountPlugin storageAccountPlugin,
+        KubernetesAgentPlugin kubernetesAgentPlugin,
         ISubscriptionPlugin subscriptionPlugin,
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
@@ -147,7 +150,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _subscriptionPlugin = subscriptionPlugin;
         _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
         _storageAccountPlugin = storageAccountPlugin;
-
+        _kubernetesAgentPlugin = kubernetesAgentPlugin;
         _containerAppPlugin = containerAppPlugin;
         _chartplugin = chartplugin;
         _githubIssuePlugin = githubIssuePlugin;
@@ -169,6 +172,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _managedIdentityMigrationPlugin.Context = ctx;
         _appServiceRemediationPlugin.Context = ctx;
         _containerAppsRemediationPlugin.Context = ctx;
+        _kubernetesAgentPlugin.Context = ctx;
         _sourceCodePlugin.Context = ctx;
         _graphDbPlugin.Context = ctx;
 
@@ -187,6 +191,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
             AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
             AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
+            AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgentWorkflow),
+            AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
             AIFunctionFactory.Create(_subscriptionPlugin.ListAllSubscriptionsAsync),
             AIFunctionFactory.Create(_subscriptionPlugin.ListAppServicesAsync),
             AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),

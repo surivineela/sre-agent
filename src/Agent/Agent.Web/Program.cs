@@ -51,6 +51,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
+using Agent.Runtime.SubAgents.KubernetesAgent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -150,6 +151,7 @@ if (useSessionChatService)
         .AddTransient<ManagedIdentityMigrationPlugin>()
         .AddTransient<TlsBestPracticesPlugin>()
         .AddTransient<SourceCodePlugin>()
+        .AddTransient<KubernetesAgentPlugin>()
         .AddTransient<AppServiceRemediationPlugin>()
         .AddTransient<StorageAccountPlugin>()
         .AddTransient<IChartPlugin, ChartPlugin>()
@@ -157,6 +159,7 @@ if (useSessionChatService)
 
         .AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<StorageAccountAgentFactory>()
+        .AddSingleton<KubernetesAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<TlsBestPracticesScanner>()

@@ -38,6 +38,7 @@ public sealed class ToolsRepository : IMcpConnectable
         IGraphDBPlugin graphDBPlugin,
         IGrafanaPlugin grafanaPlugin,
         IContainerAppPlugin containerAppPlugin,
+        IKubePlugin kubernetesAgentPlugin,
         IGithubIssuePlugin githubIssuePlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
@@ -127,6 +128,22 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => containerAppPluginDefinition.RemoveNSGRuleAsync);
         Register200(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync);
         Register200(() => containerAppPluginDefinition.ScaleContainerApp);
+
+        var kubernetesAgentPluginDefinition = new KubePluginDefinition(kubernetesAgentPlugin);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeNamespacesAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubePodsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentSpecStatusAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentEventsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.RolloutRestartDeploymentAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubePodEventsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubePodLogsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.ExecCommandInPodAsync);
+        Register200(() => kubernetesAgentPluginDefinition.ListKubePodResourceUsageByNamespaceAsync);
+        Register200(() => kubernetesAgentPluginDefinition.ListCRDsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.ListCustomResourcesAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetCustomResourceYamlAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetPodYamlAsync);
 
         var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
         Register200(() => githubIssuePluginDefinition.FetchGithubSecurityDependabotAlerts);

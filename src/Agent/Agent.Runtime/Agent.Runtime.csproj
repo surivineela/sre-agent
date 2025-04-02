@@ -53,14 +53,14 @@
     <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
+    <None Update="SubAgents\KubernetesAgent\KubernetesAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
+	<None Update="SubAgents\DailySummaryAgent\Dashboards\Main-Dashboard.json">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+	  <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
 </Project>
