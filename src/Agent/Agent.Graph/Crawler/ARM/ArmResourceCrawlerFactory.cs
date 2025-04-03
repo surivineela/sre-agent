@@ -79,12 +79,12 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.AppServicePlanType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
-                return new AppServicePlanCrawler(_loggerFactory.CreateLogger<AppServicePlanCrawler>(), _graphDbClient);
+                return new AppServicePlanCrawler(_loggerFactory.CreateLogger<AppServicePlanCrawler>(), _graphDbClient, armClient);
             }
 
             if (Constants.ManagedClusterType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
-                return new K8sClusterCrawler(_loggerFactory.CreateLogger<K8sClusterCrawler>(), _graphDbClient, _loggerFactory, armClient, _k8sService);
+                return new AzureKubernetesServiceCrawler(_loggerFactory.CreateLogger<AzureKubernetesServiceCrawler>(), _graphDbClient, _loggerFactory, armClient, _k8sService);
             }
 
             return new GenericArmResourceCrawler(_loggerFactory.CreateLogger<GenericArmResourceCrawler>(), _graphDbClient, armClient);

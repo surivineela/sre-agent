@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -47,8 +47,6 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             properties["kind"] = resource.Data.Kind ?? "ContainerApp";
         }
 
-        properties["location"] = resource.Data.Location.ToString();
-
         if (jsonObj.TryGetProperty("provisioningState", out JsonElement provisioningState) && 
             provisioningState.ValueKind == JsonValueKind.String)
         {
@@ -90,11 +88,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             properties["latestRevisionName"] = latestRevisionName.GetString();
         }
 
-        await _graphDbClient.AddOrUpdateNodeAsync(
-            node.GetNodeLabel(),
-            node.GetNodeId(),
-            node.GetResourceType(),
-            properties);
+        await _graphDbClient.AddOrUpdateNodeAsync(node);
 
         if (jsonObj.TryGetProperty("template", out JsonElement template) &&
             template.TryGetProperty("containers", out JsonElement containers) &&
@@ -210,22 +204,13 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                 properties["authType"] = "hostName";
                 properties["source"] = $"containerApp:{sourceType}:{name}";
 
-                await _graphDbClient.AddOrUpdateNodeAsync(
-                    redisNode.GetNodeLabel(),
-                    redisNode.GetNodeId(),
-                    redisNode.GetResourceType(),
-                    properties);
+                await _graphDbClient.AddOrUpdateNodeAsync(redisNode);
 
-                await _graphDbClient.AddOrUpdateEdgeAsync(
-                node.GetNodeId(),
-                redisNode.GetNodeId(),
-                Constants.Relationships.UsesRedis,
-                new Dictionary<string, object>
-                {
-                    ["updateTs"] = DateTime.UtcNow.Ticks,
-                    ["connectionType"] = sourceType,
-                    ["envVarName"] = name
-                });
+                var edge = new ArmResourceEdge(node.GetNodeId(), redisNode.GetNodeId(), Constants.Relationships.UsesRedis);
+                edge.AdditionalProperties["connectionType"] = sourceType;
+                edge.AdditionalProperties["envVarName"] = name;
+
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
                 _logger.LogDebug($"Found Redis cache {redisResourceId} from host name");
                 yield return redisNode;
@@ -252,11 +237,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                     : "connectionString";
                 properties["source"] = $"containerApp:{sourceType}:{name}";
 
-                await _graphDbClient.AddOrUpdateNodeAsync(
-                    sqlNode.GetNodeLabel(),
-                    sqlNode.GetNodeId(),
-                    sqlNode.GetResourceType(),
-                    properties);
+                await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
 
                 yield return sqlNode;
             }
@@ -274,11 +255,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                     : "connectionString";
                 properties["source"] = $"containerApp:{sourceType}:{name}";
 
-                await _graphDbClient.AddOrUpdateNodeAsync(
-                    redisNode.GetNodeLabel(),
-                    redisNode.GetNodeId(),
-                    redisNode.GetResourceType(),
-                    properties);
+                await _graphDbClient.AddOrUpdateNodeAsync(redisNode);
 
                 yield return redisNode;
             }

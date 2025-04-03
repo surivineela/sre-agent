@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
@@ -32,16 +32,16 @@ public class SubscriptionCrawler : IResourceCrawler
 
         var nodeProperties = subNode.GetNodeProperties();
         nodeProperties["subscriptionName"] = subName;
-        await _graphDbClient.AddOrUpdateNodeAsync(subNode.GetNodeLabel(), subNode.GetNodeId(), subNode.GetResourceType(), nodeProperties);
+        await _graphDbClient.AddOrUpdateNodeAsync(subNode);
 
         await foreach (var rg in subResource.GetResourceGroups().GetAllAsync())
         {
             var rgNode = new ResourceGroupNode(subNode.SubscriptionId, rg.Data.Name);
-            await _graphDbClient.AddOrUpdateNodeAsync(rgNode.GetNodeLabel(), rgNode.GetNodeId(), rgNode.GetResourceType(), rgNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(rgNode);
 
             var edge = new ArmResourceEdge(subNode.GetNodeId(), rgNode.GetNodeId(), Constants.Relationships.Contains);
             edge.AddOrUpdateEdgeProperty(Constants.RbacPath, Constants.RbacPathInherited);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             yield return rgNode;
         }

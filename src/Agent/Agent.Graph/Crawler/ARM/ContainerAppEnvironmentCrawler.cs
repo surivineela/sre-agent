@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -49,10 +49,10 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
         }
 
         // update current node properties
-        envNode.Location = env.Value.Data.Location;
         envNode.VnetId = env.Value.Data.VnetConfiguration?.InfrastructureSubnetId;
         if (!string.IsNullOrEmpty(envNode.VnetId))
         {
+            // TODO: load balancers for shared env
             if (string.IsNullOrEmpty(env.Value.Data.InfrastructureResourceGroup))
             {
                 envNode.LbId = $"/subscriptions/{envNode.SubscriptionId}/resourceGroups/ME_{envNode.ResourceName}_{envNode.ResourceGroupName}_{envNode.Location}/providers/Microsoft.Network/loadBalancers/capp-svc-lb";
@@ -63,7 +63,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             }
         }
 
-        await _graphDbClient.AddOrUpdateNodeAsync(envNode.GetNodeLabel(), envNode.GetNodeId(), envNode.GetResourceType(), envNode.GetNodeProperties());
+        await _graphDbClient.AddOrUpdateNodeAsync(envNode);
 
         // network
         if (env.Value.Data.VnetConfiguration?.InfrastructureSubnetId is not null)
@@ -73,30 +73,30 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             // subnet
             var subnetResourceId = new ResourceIdentifier(id);
             var subnetNode = new ArmResourceNode(subnetResourceId.ResourceType, id, subnetResourceId.SubscriptionId, subnetResourceId.ResourceGroupName, subnetResourceId.Name);
-            await _graphDbClient.AddOrUpdateNodeAsync(subnetNode.GetNodeLabel(), subnetNode.GetNodeId(), subnetNode.GetResourceType(), subnetNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
 
             var edge1 = new ArmResourceEdge(envNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
             edge1.AddNetworkEgressEdgeProperties();
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge1.GetSourceNodeId(), edge1.GetTargetNodeId(), edge1.GetRelationship(), edge1.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
 
             var edge2 = new ArmResourceEdge(subnetNode.GetNodeId(), envNode.GetNodeId(), Constants.Relationships.Connected);
             edge2.AddNetworkIngressEdgeProperties();
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge2.GetSourceNodeId(), edge2.GetTargetNodeId(), edge2.GetRelationship(), edge2.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
             var vnetResourceId = subnetResourceId.Parent;
             var vnetNode = new ArmResourceNode(vnetResourceId.ResourceType, vnetResourceId.ToString(), vnetResourceId.SubscriptionId, vnetResourceId.ResourceGroupName, vnetResourceId.Name);
-            await _graphDbClient.AddOrUpdateNodeAsync(vnetNode.GetNodeLabel(), vnetNode.GetNodeId(), vnetNode.GetResourceType(), vnetNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
             // crawl the whole vnet
             yield return vnetNode;
 
             var lbId = envNode.LbId;
             var lbResourceId = new ResourceIdentifier(lbId);
             var lbNode = new ArmResourceNode(lbResourceId.ResourceType, lbId, lbResourceId.SubscriptionId, lbResourceId.ResourceGroupName, lbResourceId.Name);
-            await _graphDbClient.AddOrUpdateNodeAsync(lbNode.GetNodeLabel(), lbNode.GetNodeId(), lbNode.GetResourceType(), lbNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(lbNode);
 
             var edge = new ArmResourceEdge(lbNode.GetNodeId(), envNode.GetNodeId(), Constants.Relationships.Connected);
             edge.AddNetworkEgressEdgeProperties();
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             yield return lbNode;
         }
 
@@ -116,10 +116,10 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             var resourceName = item.GetProperty("name").GetString();
             var containerAppNode = new ArmResourceNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(containerAppNode.GetNodeLabel(), containerAppNode.GetNodeId(), containerAppNode.GetResourceType(), containerAppNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(containerAppNode);
 
             var edge = new ArmResourceEdge(envNode.GetNodeId(), containerAppNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             yield return containerAppNode;
         }
 

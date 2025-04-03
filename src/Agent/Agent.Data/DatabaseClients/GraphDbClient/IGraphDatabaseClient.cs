@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -22,6 +22,11 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             IDictionary<string, object> properties);
 
         /// <summary>
+        /// Adds or updates a node in the graph from a GraphNode
+        /// </summary>
+        Task<bool> AddOrUpdateNodeAsync(GraphNode node);
+
+        /// <summary>
         /// Adds or updates an edge in the graph.
         /// </summary>
         /// <param name="sourceNodeId">The unique identifier of the source node.</param>
@@ -34,6 +39,11 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string targetNodeId,
             string relationshipType,
             IDictionary<string, object> properties = null);
+
+        /// <summary>
+        /// Adds or updates a node in the graph from a GraphEdge
+        /// </summary>
+        Task<bool> AddOrUpdateEdgeAsync(GraphEdge edge);
 
         /// <summary>
         /// Clears the graph.

@@ -24,7 +24,8 @@ namespace Agent.Cmd
 
             command.OnExecute(async () =>
             {
-                await _crawler.Crawl([resourceId.Value], filters: [typeof(AksNode), typeof(SubscriptionNode), typeof(ResourceGroupNode), typeof(KubernetesResourceNode)]);
+                //await _crawler.Crawl([resourceId.Value], filters: [typeof(AksNode), typeof(SubscriptionNode), typeof(ResourceGroupNode), typeof(KubernetesResourceNode)]);
+                await _crawler.Crawl([resourceId.Value]);
                 return 0;
             });
         }

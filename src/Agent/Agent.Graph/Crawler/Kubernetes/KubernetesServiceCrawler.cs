@@ -41,7 +41,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
         {
             _logger.LogDebug($"Pod: {pod.Name()} for service: {serviceNode.GetNodeId()}");
             var podNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, pod.Name(), "core", "v1", "pods");
-            await _graphDbClient.AddOrUpdateNodeAsync(podNode.GetNodeLabel(), podNode.GetNodeId(), podNode.GetResourceType(), podNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
             var edge = new ArmResourceEdge(serviceNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.BackedBy);
             edge.AddNetworkIngressEdgeProperties();
             bool ready = false;
@@ -67,7 +67,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
                 edge.AddBackendStatusNotReadyProperties();
             }
 
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             yield return podNode;
         }
         yield break;

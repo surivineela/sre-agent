@@ -59,14 +59,10 @@ public class SqlConnectionStringHelper
                     resourceGroupName: sqlResourceId.ResourceGroupName,
                     resourceName: sqlResourceId.ResourceGroupName);
 
-                await dbManager.AddOrUpdateNodeAsync(
-                    sqlNode.GetNodeLabel(),
-                    sqlNode.GetNodeId(),
-                    sqlNode.GetResourceType(),
-                    sqlNode.GetNodeProperties());
+                await dbManager.AddOrUpdateNodeAsync(sqlNode);
 
                 var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-                await dbManager.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await dbManager.AddOrUpdateEdgeAsync(edge);
 
                 _logger.LogDebug($"Linked workload {workloadNode.GetNodeId()} with SQL resource {sqlResourceId}");
                 return sqlNode;
@@ -80,19 +76,5 @@ public class SqlConnectionStringHelper
             _logger.LogError($"Error processing connection string: {ex.Message}");
             return null;
         }
-    }
-
-
-    private string ExtractResourceGroupName(string resourceId)
-    {
-        var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < segments.Length - 1; i++)
-        {
-            if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
-            {
-                return segments[i + 1];
-            }
-        }
-        return string.Empty;
     }
 }

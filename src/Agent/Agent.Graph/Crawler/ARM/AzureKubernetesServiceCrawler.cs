@@ -7,14 +7,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
 
-public class K8sClusterCrawler : GenericArmResourceCrawler
+public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
 {
-    private readonly ILogger<K8sClusterCrawler> _logger;
+    private readonly ILogger<AzureKubernetesServiceCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ArmClient _armClient;
     private readonly IKubernetesService _k8sService;
 
-    public K8sClusterCrawler(ILogger<K8sClusterCrawler> logger, IGraphDatabaseClient graphDbClient, ILoggerFactory loggerFactory, ArmClient armClient, IKubernetesService k8sService)
+    public AzureKubernetesServiceCrawler(ILogger<AzureKubernetesServiceCrawler> logger, IGraphDatabaseClient graphDbClient, ILoggerFactory loggerFactory, ArmClient armClient, IKubernetesService k8sService)
         : base(logger, graphDbClient, armClient, false)
     {
         _logger = logger;
@@ -31,7 +31,7 @@ public class K8sClusterCrawler : GenericArmResourceCrawler
         }
 
         // Add the cluster node to the graph.
-        await _graphDbClient.AddOrUpdateNodeAsync(clusterNode.GetNodeLabel(), clusterNode.GetNodeId(), clusterNode.GetResourceType(), clusterNode.GetNodeProperties());
+        await _graphDbClient.AddOrUpdateNodeAsync(clusterNode);
 
         var aksNode = (AksNode)clusterNode;
         _logger.LogDebug($"Crawling Kubernetes cluster: {aksNode.GetNodeId()}");
@@ -42,10 +42,10 @@ public class K8sClusterCrawler : GenericArmResourceCrawler
         {
             _logger.LogDebug($"Namespace: {ns.Name()} in cluster: {aksNode.GetNodeId()}");
             // TODO: GVK are nulls
-            var nsNode = new KubernetesGlobalResourceNode(ns, aksNode.ResourceId, ns.Name(), "core", "v1", "namespaces");
-            await _graphDbClient.AddOrUpdateNodeAsync(nsNode.GetNodeLabel(), nsNode.GetNodeId(), nsNode.GetResourceType(), nsNode.GetNodeProperties());
+            var nsNode = new KubernetesResourceNode(ns, aksNode.ResourceId, ns.Name(), "core", "v1", "namespaces");
+            await _graphDbClient.AddOrUpdateNodeAsync(nsNode);
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), nsNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             yield return nsNode;
         }

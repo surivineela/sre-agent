@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -248,6 +248,16 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
 
             return false;
+        }
+
+        public Task<bool> AddOrUpdateNodeAsync(GraphNode node)
+        {
+            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());
+        }
+
+        public Task<bool> AddOrUpdateEdgeAsync(GraphEdge edge)
+        {
+            return AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
         }
     }
 }

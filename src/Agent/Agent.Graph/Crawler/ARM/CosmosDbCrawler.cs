@@ -35,14 +35,9 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         var cosmosDbResponse = await resourceGroup.GetCosmosDBAccountAsync(armResourceId.Name);
         var cosmosDbAccount = cosmosDbResponse.Value;
 
-        cosmosDbNode.Location = cosmosDbAccount.Data.Location;
         cosmosDbNode.ConsistencyPolicy = cosmosDbAccount.Data.ConsistencyPolicy?.DefaultConsistencyLevel.ToString();
 
-        await _graphDbClient.AddOrUpdateNodeAsync(
-            cosmosDbNode.GetNodeLabel(),
-            cosmosDbNode.GetNodeId(),
-            cosmosDbNode.GetResourceType(),
-            cosmosDbNode.GetNodeProperties());
+        await _graphDbClient.AddOrUpdateNodeAsync(cosmosDbNode);
 
         // Crawl databases within the Cosmos DB account
         await foreach (var database in cosmosDbAccount.GetCosmosDBSqlDatabases().GetAllAsync())
@@ -54,14 +49,10 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
                 resourceGroupName: armResourceId.ResourceGroupName,
                 resourceName: database.Data.Name);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(
-                databaseNode.GetNodeLabel(),
-                databaseNode.GetNodeId(),
-                databaseNode.GetResourceType(),
-                databaseNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(databaseNode);
 
             var edge = new ArmResourceEdge(cosmosDbNode.GetNodeId(), databaseNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             _logger.LogDebug($"Linked Cosmos DB Account {cosmosDbNode.ResourceId} with Sql Database {database.Data.Name}");
 

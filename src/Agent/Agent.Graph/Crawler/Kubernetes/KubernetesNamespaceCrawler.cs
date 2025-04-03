@@ -22,7 +22,7 @@ namespace Agent.Graph.Crawler.ARM
 
         public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
         {
-            var nsNode = (KubernetesGlobalResourceNode)node;
+            var nsNode = (KubernetesResourceNode)node;
             _logger.LogDebug($"Crawling Kubernetes namespace: {nsNode.GetNodeId()}");
 
             // list all pods
@@ -32,9 +32,9 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogDebug($"Pod: {pod.Name()} in namespace: {nsNode.GetNodeId()}");
                 var podNode = new KubernetesNamespacedResourceNode(pod, nsNode.ClusterResourceId, nsNode.Name, pod.Name(), "core", "v1", "pods");
-                await _graphDbClient.AddOrUpdateNodeAsync(podNode.GetNodeLabel(), podNode.GetNodeId(), podNode.GetResourceType(), podNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(podNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return podNode;
             }
 
@@ -45,9 +45,9 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogDebug($"Deployment: {deployment.Name()} in namespace: {nsNode.GetNodeId()}");
                 var deploymentNode = new KubernetesNamespacedResourceNode(deployment, nsNode.ClusterResourceId, nsNode.Name, deployment.Name(), "apps", "v1", "deployments");
-                await _graphDbClient.AddOrUpdateNodeAsync(deploymentNode.GetNodeLabel(), deploymentNode.GetNodeId(), deploymentNode.GetResourceType(), deploymentNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(deploymentNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return deploymentNode;
             }
 
@@ -58,9 +58,9 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogDebug($"Service: {service.Name()} in namespace: {nsNode.GetNodeId()}");
                 var serviceNode = new KubernetesNamespacedResourceNode(service, nsNode.ClusterResourceId, nsNode.Name, service.Name(), "core", "v1", "services");
-                await _graphDbClient.AddOrUpdateNodeAsync(serviceNode.GetNodeLabel(), serviceNode.GetNodeId(), serviceNode.GetResourceType(), serviceNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(serviceNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), serviceNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return serviceNode;
             }
 
@@ -71,9 +71,9 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogDebug($"ConfigMap: {configMap.Name()} in namespace: {nsNode.GetNodeId()}");
                 var configMapNode = new KubernetesNamespacedResourceNode(configMap, nsNode.ClusterResourceId, nsNode.Name, configMap.Name(), "core", "v1", "configmaps");
-                await _graphDbClient.AddOrUpdateNodeAsync(configMapNode.GetNodeLabel(), configMapNode.GetNodeId(), configMapNode.GetResourceType(), configMapNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(configMapNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), configMapNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return configMapNode;
             }
 
@@ -84,9 +84,9 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogDebug($"Secret: {secret.Name()} in namespace: {nsNode.GetNodeId()}");
                 var secretNode = new KubernetesNamespacedResourceNode(secret, nsNode.ClusterResourceId, nsNode.Name, secret.Name(), "core", "v1", "secrets");
-                await _graphDbClient.AddOrUpdateNodeAsync(secretNode.GetNodeLabel(), secretNode.GetNodeId(), secretNode.GetResourceType(), secretNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(secretNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), secretNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return secretNode;
             }
 
@@ -96,10 +96,10 @@ namespace Agent.Graph.Crawler.ARM
             foreach (var pv in persistentVolumes.Items)
             {
                 _logger.LogDebug($"PersistentVolume: {pv.Name()} in namespace: {nsNode.GetNodeId()}");
-                var pvNode = new KubernetesGlobalResourceNode(pv, nsNode.ClusterResourceId, pv.Name(), "core", "v1", "persistentvolumes");
-                await _graphDbClient.AddOrUpdateNodeAsync(pvNode.GetNodeLabel(), pvNode.GetNodeId(), pvNode.GetResourceType(), pvNode.GetNodeProperties());
+                var pvNode = new KubernetesNamespacedResourceNode(pv, nsNode.ClusterResourceId, nsNode.Name, pv.Name(), "core", "v1", "persistentvolumes");
+                await _graphDbClient.AddOrUpdateNodeAsync(pvNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), pvNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return pvNode;
             }
 
@@ -110,9 +110,9 @@ namespace Agent.Graph.Crawler.ARM
             {
                 _logger.LogDebug($"PersistentVolumeClaim: {pvc.Name()} in namespace: {nsNode.GetNodeId()}");
                 var pvcNode = new KubernetesNamespacedResourceNode(pvc, nsNode.ClusterResourceId, nsNode.Name, pvc.Name(), "core", "v1", "persistentvolumeclaims");
-                await _graphDbClient.AddOrUpdateNodeAsync(pvcNode.GetNodeLabel(), pvcNode.GetNodeId(), pvcNode.GetResourceType(), pvcNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(pvcNode);
                 var edge = new ArmResourceEdge(nsNode.GetNodeId(), pvcNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                 yield return pvcNode;
             }
 

@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -40,11 +40,12 @@ public class ManagedIdentityCrawler : IResourceCrawler
             }
 
             var identity = resp.Value.Data;
+            identityNode.Location = identity.Location;
             identityNode.TenantId = identity.TenantId.ToString();
             identityNode.PrincipalId = identity.PrincipalId.ToString();
             identityNode.ClientId = identity.ClientId.ToString();
 
-            await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
         }
         else
         {
@@ -64,10 +65,11 @@ public class ManagedIdentityCrawler : IResourceCrawler
             }
 
             var identity = identityResp.Value.Data;
+            identityNode.Location = identity.Location;
             identityNode.TenantId = identity.TenantId.ToString();
             identityNode.PrincipalId = identity.PrincipalId.ToString();
             identityNode.ClientId = identity.ClientId.ToString();
-            await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
         }
 
         var principalId = identityNode.PrincipalId;
@@ -83,12 +85,12 @@ public class ManagedIdentityCrawler : IResourceCrawler
             // TODO: better logic to handle scope
             ArmResourceNode targetResourceNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(scope);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(targetResourceNode.GetNodeLabel(), targetResourceNode.GetNodeId(), targetResourceNode.GetResourceType(), targetResourceNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(targetResourceNode);
 
             var edge = new ArmResourceEdge(identityNode.GetNodeId(), targetResourceNode.GetNodeId(), Constants.Relationships.HasRole);
             edge.AddRbacExplicitEdgeProperties()
                 .AddOrUpdateEdgeProperty(Constants.RoleAssignmentIdKey, roleId);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             yield return targetResourceNode;
         }

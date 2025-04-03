@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
@@ -113,6 +113,16 @@ namespace Agent.Graph.Crawler.Legacy
         public Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 20000)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<bool> AddOrUpdateNodeAsync(GraphNode node)
+        {
+            return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());
+        }
+
+        public Task<bool> AddOrUpdateEdgeAsync(GraphEdge edge)
+        {
+            return AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
         }
     }
 }

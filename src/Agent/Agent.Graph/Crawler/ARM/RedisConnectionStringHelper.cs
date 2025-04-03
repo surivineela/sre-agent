@@ -60,11 +60,7 @@ public class RedisConnectionStringHelper
                         resourceGroupName: ExtractResourceGroupName(cache.Data.Id),
                         resourceName: cache.Data.Name);
 
-                    await graphDbClient.AddOrUpdateNodeAsync(
-                        redisNode.GetNodeLabel(),
-                        redisNode.GetNodeId(),
-                        redisNode.GetResourceType(),
-                        redisNode.GetNodeProperties());
+                    await graphDbClient.AddOrUpdateNodeAsync(redisNode);
 
                     _logger.LogDebug($"Found Redis cache {redisResourceId}");
                     return redisNode;

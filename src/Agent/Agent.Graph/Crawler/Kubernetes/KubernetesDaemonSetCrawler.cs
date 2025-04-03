@@ -1,4 +1,4 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using k8s;
@@ -50,10 +50,10 @@ public class K8sDaemonSetCrawler : IResourceCrawler
                 resourceGroupName: ds.Metadata.NamespaceProperty,
                 resourceName: ds.Metadata.Name);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(dsNode.GetNodeLabel(), dsNode.GetNodeId(), dsNode.GetResourceType(), dsNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(dsNode);
 
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), dsNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             if (ds.Spec?.Template?.Spec?.Containers != null)
             {
@@ -93,10 +93,10 @@ public class K8sDaemonSetCrawler : IResourceCrawler
                 resourceGroupName: workloadNode.ResourceGroupName,
                 resourceName: workloadNode.ResourceName);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(sqlNode.GetNodeLabel(), sqlNode.GetNodeId(), sqlNode.GetResourceType(), sqlNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
 
             var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
             return sqlNode;

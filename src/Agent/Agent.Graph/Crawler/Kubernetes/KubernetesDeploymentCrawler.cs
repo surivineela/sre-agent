@@ -78,14 +78,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                                                 : "connectionString";
                                         properties["source"] = $"k8s:deployment:env:{env.Name}";
 
-                                        await _graphDbClient.AddOrUpdateNodeAsync(
-                                            sqlNode.GetNodeLabel(),
-                                            sqlNode.GetNodeId(),
-                                            sqlNode.GetResourceType(),
-                                            properties);
+                                        await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
 
                                         var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-                                        await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                        await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                     }
                                 }
                                 else if (env.Value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
@@ -114,14 +110,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                                             "core",
                                             "v1",
                                             "services");
-                                        await _graphDbClient.AddOrUpdateNodeAsync(
-                                            serviceNode.GetNodeLabel(),
-                                            serviceNode.GetNodeId(),
-                                            serviceNode.GetResourceType(),
-                                            serviceNode.GetNodeProperties());
+                                        await _graphDbClient.AddOrUpdateNodeAsync(serviceNode);
                                         var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), serviceNode.GetNodeId(), Constants.Relationships.Connected);
                                         edge.AddNetworkEgressEdgeProperties();
-                                        await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                        await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                     }
                                 }
                             }
@@ -138,14 +130,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                                         "core",
                                         "v1",
                                         "secrets");
-                                    await _graphDbClient.AddOrUpdateNodeAsync(
-                                        secretNode.GetNodeLabel(),
-                                        secretNode.GetNodeId(),
-                                        secretNode.GetResourceType(),
-                                        secretNode.GetNodeProperties());
+                                    await _graphDbClient.AddOrUpdateNodeAsync(secretNode);
                                     var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), secretNode.GetNodeId(), Constants.Relationships.References);
                                     edge.AddReferenceEnvProperties();
-                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                 }
                                 else if (env.ValueFrom.ConfigMapKeyRef != null)
                                 {
@@ -158,14 +146,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                                         "core",
                                         "v1",
                                         "configmaps");
-                                    await _graphDbClient.AddOrUpdateNodeAsync(
-                                        configMapNode.GetNodeLabel(),
-                                        configMapNode.GetNodeId(),
-                                        configMapNode.GetResourceType(),
-                                        configMapNode.GetNodeProperties());
+                                    await _graphDbClient.AddOrUpdateNodeAsync(configMapNode);
                                     var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), configMapNode.GetNodeId(), Constants.Relationships.References);
                                     edge.AddReferenceEnvProperties();
-                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                 }
                             }
                         }
@@ -216,14 +200,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                                     "core",
                                     "v1",
                                     "secrets");
-                                await _graphDbClient.AddOrUpdateNodeAsync(
-                                    secretNode.GetNodeLabel(),
-                                    secretNode.GetNodeId(),
-                                    secretNode.GetResourceType(),
-                                    secretNode.GetNodeProperties());
+                                await _graphDbClient.AddOrUpdateNodeAsync(secretNode);
                                 var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), secretNode.GetNodeId(), Constants.Relationships.References);
                                 edge.AddReferenceVolumeMountProperties();
-                                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                 yield return secretNode;
                             }
                             else if (volume.ConfigMap != null)
@@ -237,14 +217,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                                     "core",
                                     "v1",
                                     "configmaps");
-                                await _graphDbClient.AddOrUpdateNodeAsync(
-                                    configMapNode.GetNodeLabel(),
-                                    configMapNode.GetNodeId(),
-                                    configMapNode.GetResourceType(),
-                                    configMapNode.GetNodeProperties());
+                                await _graphDbClient.AddOrUpdateNodeAsync(configMapNode);
                                 var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), configMapNode.GetNodeId(), Constants.Relationships.References);
                                 edge.AddReferenceVolumeMountProperties();
-                                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
                                 yield return configMapNode;
                             }
                             // TODO: pvc
@@ -271,13 +247,9 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                 "core",
                 "v1",
                 "pods");
-            await _graphDbClient.AddOrUpdateNodeAsync(
-                podNode.GetNodeLabel(),
-                podNode.GetNodeId(),
-                podNode.GetResourceType(),
-                podNode.GetNodeProperties());
+            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
             var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             yield return podNode;
         }
     }
@@ -308,14 +280,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
             properties["source"] = $"k8s:deployment:env:{envName}";
             properties["authType"] = "resourceId";
 
-            await _graphDbClient.AddOrUpdateNodeAsync(
-                sqlNode.GetNodeLabel(),
-                sqlNode.GetNodeId(),
-                sqlNode.GetResourceType(),
-                properties);
+            await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
 
             var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             _logger.LogDebug($"Linked workload {workloadNode.GetNodeId()} with SQL resource {sqlId}");
             return sqlNode;
@@ -325,24 +293,5 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
             _logger.LogError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
             return null;
         }
-    }
-
-    private string ExtractResourceGroupName(string resourceId)
-    {
-        var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        for (int i = 0; i < segments.Length - 1; i++)
-        {
-            if (segments[i].Equals("resourceGroups", StringComparison.OrdinalIgnoreCase))
-            {
-                return segments[i + 1];
-            }
-        }
-        return string.Empty;
-    }
-
-    private string ExtractResourceName(string resourceId)
-    {
-        var segments = resourceId.Split('/', StringSplitOptions.RemoveEmptyEntries);
-        return segments[segments.Length - 1];
     }
 }

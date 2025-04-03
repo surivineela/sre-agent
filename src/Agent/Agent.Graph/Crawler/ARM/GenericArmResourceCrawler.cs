@@ -1,4 +1,4 @@
-﻿using System.Net;
+using System.Net;
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure;
@@ -94,6 +94,10 @@ public class GenericArmResourceCrawler : IResourceCrawler
 
         }
 
+        var location = resp.Value.Data.Location;
+        armNode.Location = location;
+        await _graphDbClient.AddOrUpdateNodeAsync(armNode);
+
         var identity = resp.Value.Data.Identity;
         if (identity != null)
         {
@@ -108,7 +112,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
                 var identityResourceId = resp.Value.Id;
                 var resourceId = new ResourceIdentifier(identityResourceId);
                 var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.SystemAssignedManagedIdentityType);
-                await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
 
                 yield return identityNode;
             }
@@ -120,10 +124,10 @@ public class GenericArmResourceCrawler : IResourceCrawler
                     var identityResourceId = uami.Key;
                     var resourceId = new ResourceIdentifier(identityResourceId);
                     var identityNode = new ManagedIdentityNode(resourceId.ResourceType, identityResourceId, resourceId.SubscriptionId, resourceId.ResourceGroupName, resourceId.Name, ManagedIdentityNode.UserAssignedManagedIdentityType);
-                    await _graphDbClient.AddOrUpdateNodeAsync(identityNode.GetNodeLabel(), identityNode.GetNodeId(), identityNode.GetResourceType(), identityNode.GetNodeProperties());
+                    await _graphDbClient.AddOrUpdateNodeAsync(identityNode);
 
                     var edge = new ArmResourceEdge(node.GetNodeId(), identityNode.GetNodeId(), Constants.Relationships.HasIdentity);
-                    await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
                     yield return identityNode;
                 }
@@ -136,10 +140,10 @@ public class GenericArmResourceCrawler : IResourceCrawler
             foreach (var link in Traverse(jsonObj, "."))
             {
                 _logger.LogDebug($"Find linked resource: {link.ResourceId}");
-                await _graphDbClient.AddOrUpdateNodeAsync(link.GetNodeLabel(), link.GetNodeId(), link.GetResourceType(), link.GetNodeProperties());
+                await _graphDbClient.AddOrUpdateNodeAsync(link);
 
                 var edge = new ArmResourceEdge(node.GetNodeId(), link.GetNodeId(), Constants.Relationships.Linked);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
                 yield return link;
             }
