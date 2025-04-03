@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
 using System.ComponentModel;
+using System.Linq;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -186,7 +187,7 @@ namespace FirstPartyAgent.Core.Plugins
                     var alertConfig = alertConfigs[alertId];
                     if (incidentDetails.Title == alertConfig.IncidentTitle
                         || (!string.IsNullOrWhiteSpace(alertConfig.IncidentTitleContains) && incidentDetails.Title.Contains(alertConfig.IncidentTitleContains, StringComparison.OrdinalIgnoreCase))
-                        || (!string.IsNullOrWhiteSpace(alertConfig.OwningTeam) && incidentDetails.OwningTeam.Equals(alertConfig.OwningTeam, StringComparison.OrdinalIgnoreCase)))
+                        || (alertConfig.OwningTeams != null && alertConfig.OwningTeams.Count > 0 && alertConfig.OwningTeams.Any(x => x.Equals(incidentDetails.OwningTeam, StringComparison.OrdinalIgnoreCase))))
                     {
                         return "PROVIDED_MITIGATION_INSTRUCTIONS:\n" + JsonConvert.SerializeObject(alertConfig);
                     }

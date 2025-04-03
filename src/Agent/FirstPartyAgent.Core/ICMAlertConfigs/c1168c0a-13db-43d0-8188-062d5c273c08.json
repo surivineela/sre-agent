@@ -1,7 +1,7 @@
 {
   "AlertingId": "c1168c0a-13db-43d0-8188-062d5c273c08",
   "AgentMode": "ICMAgent",
-  "OwningTeam": "WINDOWSAZURECACHE\\AUTOMATION",
+  "OwningTeams": [ "WINDOWSAZURECACHE\\AUTOMATION", "WINDOWSAZURECACHE\\CRI", "WINDOWSAZURECACHE\\PGEscalation" ],
   "ActionTimeoutIntervalInMinutes": 15,
   "DefaultHumanInterventionLoop": "",
   "KustoQueries": [
@@ -15,8 +15,14 @@
     "    - Redis cache name",
     "    - Incident Title",
     "    - User Ask",
-    "  - Execute the relevant Geneva Action to fetch the deployment details for the redis cache(s). Let the output of this be DEPLOYMENT_DETAILS.",
-    "  - Create a well formatted section with the first 20 lines of DEPLOYMENT_DETAILS and the details of the attachment file and post it into the incident discussion."
+    "  - Validate if there is a valid Redis Cache Name provided",
+    "  - If there is no valid Redis Cache Name, then fetch the Incident discussion entries and check if the customer/user has provided a valid redis cache name provided there",
+    "  - If there is no valid Redis Cache Name found, then STOP right there and DO NOTHING.",
+    "  - If a valid redis cache name was found, then proceed with the following instructions:",
+    "    - Execute the relevant Geneva Action to fetch the deployment details for the redis cache(s). Let the output of this be DEPLOYMENT_DETAILS.",
+    "    - Create a well formatted section with the first 20 lines of DEPLOYMENT_DETAILS and the details of the attachment file and post it into the incident discussion.",
+    "    - Execute the relevant Geneva Action to fetch the deployment history for the redis cache(s). Let the output of this be DEPLOYMENT_HISTORY.",
+    "    - Create a well formatted section with the first 20 lines of DEPLOYMENT_HISTORY and the details of the attachment file and post it into the incident discussion."
   ],
   "Owners": [ "ajsharm", "yifguo", "anutuli", "shgup" ]
 }

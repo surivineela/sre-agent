@@ -9,7 +9,7 @@ namespace FirstPartyAgent.Core.Models
         public string AlertingId { get; set; }
         public string? IncidentTitle { get; set; }
         public string? IncidentTitleContains { get; set; }
-        public string? OwningTeam { get; set; }
+        public List<string> OwningTeams { get; set; } = new List<string>();
         public string AgentMode { get; set; }
         public bool UseCorrelationIdForKustoQuery { get; set; }
         public List<ICMConfigKustoQueryModel> KustoQueries { get; set; } = new List<ICMConfigKustoQueryModel>();
