@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Core.Models
 {
     public interface IAgentManager : IDisposable
@@ -17,3 +21,4 @@ namespace Agent.Core.Models
         public string AgentType { get; set; } = "";
     }
 }
+

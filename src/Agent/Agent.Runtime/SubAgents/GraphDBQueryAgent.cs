@@ -1,4 +1,8 @@
-﻿using Agent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -87,3 +91,4 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
         }
     }
 }
+

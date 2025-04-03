@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using k8s.Models;
 
 namespace Agent.Core.Interfaces;
@@ -26,3 +25,4 @@ public interface IKubernetesService
     public Task<V1SecretList> GetSecretsAsync(string resourceId, string ns, string? labelSelector = null);
     public Task<V1Secret?> GetSecretAsync(string resourceId, string ns, string name);
 }
+

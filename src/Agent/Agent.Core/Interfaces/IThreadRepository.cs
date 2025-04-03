@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models.Api.v1;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
@@ -22,3 +26,4 @@ public interface IThreadRepository
     Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);
 }
+

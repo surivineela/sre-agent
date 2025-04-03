@@ -1,4 +1,7 @@
-﻿using AdaptiveCards.Rendering;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
@@ -67,3 +70,4 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
         }
     }
 }
+

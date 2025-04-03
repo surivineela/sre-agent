@@ -1,4 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Core.Models.Api.v1
 {
@@ -29,3 +33,4 @@ namespace Agent.Core.Models.Api.v1
         string DisplayName
     );
 }
+

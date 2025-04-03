@@ -1,7 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Agent.Runtime.TeamsChatServices
 {
@@ -31,3 +33,4 @@ namespace Agent.Runtime.TeamsChatServices
         }
     }
 }
+

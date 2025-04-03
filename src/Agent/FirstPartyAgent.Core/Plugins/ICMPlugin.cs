@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Core.Constants;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Constants;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helpers;
@@ -251,3 +255,4 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
+

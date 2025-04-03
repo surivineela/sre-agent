@@ -1,12 +1,13 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 using Agent.Core.Configuration;
-using Agent.Runtime.SubAgents;
 using Agent.Core;
 using Agent.Core.Models;
 using Azure.AI.OpenAI;
-using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -120,3 +121,4 @@ public class ApprovalPlugin : IApprovalPlugin
         return Task.FromResult(new LongRunningOperationStatus(guid.ToString(), status.ToString()));
     }
 }
+

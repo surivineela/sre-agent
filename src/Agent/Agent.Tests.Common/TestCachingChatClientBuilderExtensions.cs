@@ -1,4 +1,8 @@
-﻿// https://github.com/dotnet/eShopSupport/blob/9d81e9d9804b35dac70695e609b46d0933603461/src/ServiceDefaults/Clients/ChatCompletion/TestCachingChatClientBuilderExtensions.cs
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+// https://github.com/dotnet/eShopSupport/blob/9d81e9d9804b35dac70695e609b46d0933603461/src/ServiceDefaults/Clients/ChatCompletion/TestCachingChatClientBuilderExtensions.cs
 
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Caching.Distributed;

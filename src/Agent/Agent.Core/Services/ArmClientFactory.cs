@@ -1,6 +1,9 @@
-﻿using Agent.Core.Interfaces;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Interfaces;
 using Azure.Core;
-using Azure.Core.Pipeline;
 using Azure.ResourceManager;
 
 namespace Agent.Core.Services;
@@ -53,3 +56,4 @@ public class ArmClientFactory : IArmClientFactory
         return new ArmClient(cred, default, options);
     }
 }
+

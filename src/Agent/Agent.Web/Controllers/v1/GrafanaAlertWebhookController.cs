@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.AspNetCore.Mvc;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;

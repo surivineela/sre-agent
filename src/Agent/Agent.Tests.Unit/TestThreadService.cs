@@ -1,4 +1,7 @@
-using Agent.Core.Interfaces;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Runtime.Communication;
@@ -6,11 +9,8 @@ using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Xunit;
-using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask;
 
 namespace Agent.Tests.Unit;
 
@@ -391,3 +391,4 @@ public class TestThreadService
         return await _threadRepository.CreateThreadAsync(thread);
     }
 }
+

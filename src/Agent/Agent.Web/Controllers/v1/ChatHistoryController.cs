@@ -1,5 +1,7 @@
-﻿using Agent.Core.Models.Api.v1;
-using Agent.Runtime;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
 using System.Text.Json;
@@ -114,3 +116,4 @@ namespace Agent.Web.Controllers.v1
         }
     }
 }
+

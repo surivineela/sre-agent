@@ -1,4 +1,8 @@
-﻿using Azure.Search.Documents.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.Search.Documents.Models;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -7,3 +11,4 @@ namespace FirstPartyAgent.Core.Plugins
         public Task<IEnumerable<SearchResult<SearchDocument>>> PerformSemanticSearchAsync(string searchText, CancellationToken cancellationToken = default);
     }
 }
+

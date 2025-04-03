@@ -1,4 +1,8 @@
-﻿using Agent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Extensions;
 using Microsoft.Extensions.AI;
 using Xunit.Abstractions;
 
@@ -62,3 +66,4 @@ Expected: {expected}"
         }
     }
 }
+

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -7,7 +7,6 @@ using FirstPartyAgent.Constants;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Octokit;
 
 namespace FirstPartyAgent.Plugins.Definitions
 {

@@ -1,4 +1,8 @@
-﻿using Agent.Plugins.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Plugins.Helpers;
 using Azure.Search.Documents;
 using Azure.Search.Documents.Models;
 using Microsoft.Extensions.Logging;
@@ -50,3 +54,4 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
+

@@ -1,4 +1,8 @@
-﻿using Agent.Runtime.SubAgents.ContainerAppsRemediation;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -31,3 +35,4 @@ public class ContainerAppsRemediationAgent : GenericAgentOrchestrator<ContainerA
         return "success";
     }
 }
+

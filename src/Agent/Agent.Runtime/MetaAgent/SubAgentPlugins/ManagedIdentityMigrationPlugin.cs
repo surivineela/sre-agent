@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using Agent.Core.Models;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Microsoft.DurableTask.Client;
@@ -61,3 +65,4 @@ public class ManagedIdentityMigrationPlugin
         return $"A workflow has been started to migrate managed identity, the workflow instance id is: {instanceId}";
     }
 }
+

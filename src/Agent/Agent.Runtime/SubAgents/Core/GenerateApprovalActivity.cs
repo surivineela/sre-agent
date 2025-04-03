@@ -1,8 +1,10 @@
-﻿using Microsoft.DurableTask;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.DurableTask;
 using Microsoft.Extensions.Configuration;
-using System;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Agent.Runtime.SubAgents.Core;
 

@@ -1,4 +1,8 @@
-﻿using Agent.Plugins;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
@@ -17,11 +21,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Microsoft.DurableTask.Client.AzureManaged;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit.Abstractions;
 using Agent.Runtime.MetaAgent;
 using Agent.Core.Models;
@@ -177,3 +176,4 @@ public class MetaAgentTests : IAsyncLifetime
         await Helper.CleanupAllOrchestration<TlsBestPracticesAgent>(durableTaskClient);
     }
 }
+

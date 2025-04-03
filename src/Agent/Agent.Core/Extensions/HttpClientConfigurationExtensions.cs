@@ -1,4 +1,8 @@
-﻿using System.Net.Http.Headers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Net.Http.Headers;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
@@ -117,3 +121,4 @@ namespace Agent.Core.Extensions
         }
     }
 }
+

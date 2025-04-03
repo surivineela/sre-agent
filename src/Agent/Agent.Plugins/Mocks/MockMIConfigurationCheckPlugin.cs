@@ -1,7 +1,8 @@
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace Agent.Plugins.Mocks
 {
@@ -93,3 +94,4 @@ namespace Agent.Plugins.Mocks
         }
     }
 }
+

@@ -1,4 +1,7 @@
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 
 namespace Agent.Core.Models;
@@ -19,3 +22,4 @@ public class AppMigrationStatus
     public bool UsesAzureSqlConnectionString { get; set; }
     public string CurrentConnectionMethod { get; set; }
 }
+

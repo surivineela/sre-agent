@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Plugins
 {
     public interface IAppIdentityUpdatePlugin
@@ -7,3 +11,4 @@ namespace Agent.Plugins
         Task<string> EnableSqlAdAuthAsync(string resourceId, string servicePrincipalId);
     }
 }
+

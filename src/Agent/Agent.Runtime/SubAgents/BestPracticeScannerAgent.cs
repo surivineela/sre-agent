@@ -1,10 +1,12 @@
-﻿using Agent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Extensions;
 using Agent.Core.Models;
-using Castle.Core.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
-using System.Text;
 
 namespace Agent.Runtime.SubAgents
 {
@@ -82,3 +84,4 @@ namespace Agent.Runtime.SubAgents
         }
     }
 }
+

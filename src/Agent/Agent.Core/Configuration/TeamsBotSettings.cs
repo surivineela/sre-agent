@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 
 namespace Agent.Core.Configuration
 {
@@ -9,3 +13,4 @@ namespace Agent.Core.Configuration
         public string TenantId { get; set; }
     }
 }
+

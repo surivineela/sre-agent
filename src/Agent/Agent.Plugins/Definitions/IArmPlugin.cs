@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
 
 namespace Agent.Plugins
 {
@@ -10,3 +14,4 @@ namespace Agent.Plugins
         Task<bool> RestartWebApp(string appResourceId);
     }
 }
+

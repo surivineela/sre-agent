@@ -1,16 +1,11 @@
-﻿using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
 using Agent.Runtime;
-using Agent.Runtime.SubAgents.TlsBestPractices;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
-using Microsoft.SemanticKernel;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit.Abstractions;
 
 namespace Agent.Tests.Integration.Helpers
@@ -81,3 +76,4 @@ namespace Agent.Tests.Integration.Helpers
         }
     }
 }
+

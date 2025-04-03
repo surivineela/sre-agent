@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Runtime.TeamsChatServices
 {
     /// <summary>
@@ -16,3 +20,4 @@ namespace Agent.Runtime.TeamsChatServices
         void StopMessagePolling();
     }
 }
+

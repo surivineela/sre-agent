@@ -5,7 +5,6 @@
 using Agent.Core.Helpers;
 using Agent.Runtime;
 using FirstPartyAgent.ACA.Web.Services;
-using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;

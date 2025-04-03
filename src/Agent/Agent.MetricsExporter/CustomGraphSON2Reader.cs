@@ -1,4 +1,8 @@
-﻿using Gremlin.Net.Structure.IO.GraphSON;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Gremlin.Net.Structure.IO.GraphSON;
 using System.Text.Json;
 
 namespace GremlinMetricsExporter
@@ -21,3 +25,4 @@ namespace GremlinMetricsExporter
             };
     }
 }
+

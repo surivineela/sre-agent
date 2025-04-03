@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Data.DataModels
 {
@@ -13,3 +11,4 @@ namespace Agent.Data.DataModels
         string PartitionKey { get; } // Defines the partition key value
     }
 }
+

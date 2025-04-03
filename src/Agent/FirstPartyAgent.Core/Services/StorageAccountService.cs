@@ -1,4 +1,8 @@
-﻿using Azure.Identity;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.Identity;
 using Azure.Storage.Blobs;
 using Azure.Storage.Blobs.Models;
 using FirstPartyAgent.Core.Configuration;
@@ -110,3 +114,4 @@ namespace FirstPartyAgent.Core.Services
 
     }
 }
+

@@ -1,5 +1,8 @@
-﻿using Agent.Tests.Integration.Fixtures;
-using Xunit;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Tests.Integration.Fixtures;
 
 namespace Agent.Tests.Integration
 {

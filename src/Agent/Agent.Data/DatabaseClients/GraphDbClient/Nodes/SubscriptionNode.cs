@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
 public sealed class SubscriptionNode : ArmResourceNode
@@ -27,3 +25,4 @@ public sealed class SubscriptionNode : ArmResourceNode
         };
     }
 }
+

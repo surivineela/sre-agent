@@ -1,13 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
-using System.Text.Json.Nodes;
 using Agent.Core.Models;
-using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;

@@ -1,4 +1,8 @@
-﻿using Newtonsoft.Json;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Models
 {
@@ -49,3 +53,4 @@ namespace FirstPartyAgent.Models
         public List<T> Value { get; set; }
     }
 }
+

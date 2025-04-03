@@ -2,13 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Octokit;
-using System.Diagnostics;
 
 namespace Agent.Web.Controllers;
 

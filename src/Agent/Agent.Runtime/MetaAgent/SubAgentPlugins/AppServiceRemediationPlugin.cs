@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -59,3 +63,4 @@ public class AppServiceRemediationPlugin
         return $"A workflow has been started to remediate app service, the workflow instance id is: {instanceId}";
     }
 }
+

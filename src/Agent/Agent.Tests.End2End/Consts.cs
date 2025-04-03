@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace E2ETests
 {
@@ -15,3 +13,4 @@ namespace E2ETests
         public const string ApprovalUrlFormatString = @"runtime/webhooks/durabletask/instances/{0}/raiseEvent/{1}?code={2}";
     }
 }
+

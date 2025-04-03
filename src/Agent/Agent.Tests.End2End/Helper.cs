@@ -1,7 +1,10 @@
-﻿using Agent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Extensions;
 using Agent.Tests.End2End.Fixtures;
 using Microsoft.Extensions.AI;
-using OpenAI.Chat;
 using System.Diagnostics;
 using Xunit;
 using Xunit.Abstractions;
@@ -216,3 +219,4 @@ The text doesn't have to match exactly, but it needs to be close enough that a h
         }
     }
 }
+

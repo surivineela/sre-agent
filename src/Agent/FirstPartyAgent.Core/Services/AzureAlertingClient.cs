@@ -1,4 +1,8 @@
-﻿using Agent.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Helpers;
 using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Core.Models;
 using Newtonsoft.Json;
@@ -142,3 +146,4 @@ namespace FirstPartyAgent.Core.Services
         }
     }
 }
+

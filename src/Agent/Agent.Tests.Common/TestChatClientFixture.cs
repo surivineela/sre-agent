@@ -1,6 +1,9 @@
-﻿using Azure.AI.OpenAI;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.AI.OpenAI;
 using Azure.Identity;
-using OpenAI.Chat;
 
 using Agent.Core.Configuration;
 using Microsoft.Extensions.AI;

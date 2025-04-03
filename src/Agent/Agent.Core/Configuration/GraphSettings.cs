@@ -1,4 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Core.Configuration
 {
@@ -19,3 +23,4 @@ namespace Agent.Core.Configuration
         public string DomainSuffix { get; set; } = "gremlin.cosmos.azure.com";
     }
 }
+

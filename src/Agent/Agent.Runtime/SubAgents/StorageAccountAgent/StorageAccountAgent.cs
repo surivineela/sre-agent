@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models.Api.v1;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using System.ComponentModel;
@@ -44,3 +48,4 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
         }
     }
 }
+

@@ -1,4 +1,7 @@
-﻿using System.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Azure.Identity;
 using Microsoft.Extensions.Configuration;
@@ -139,3 +142,4 @@ Otherwise, there may be required settings which are not auto-populated by the pr
         }
     }
 }
+

@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 
 namespace Agent.Plugins.Models
 {
@@ -7,3 +11,4 @@ namespace Agent.Plugins.Models
     [Description("Base branch name. Can be inferred from app if CI/CD Enabled.Always confirm")] string baseBranch,
     [Description("New branch name for fixes")] string newBranch);
 }
+

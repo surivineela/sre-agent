@@ -1,16 +1,11 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using System.Reflection;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Options;
 using Xunit.Abstractions;
 
 namespace FirstPartyAgent.Tests.Integration.TestCases

@@ -1,4 +1,7 @@
-using Agent.Runtime.SubAgents.ContainerAppsRemediation;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -31,3 +34,4 @@ public class KubernetesAgent : GenericAgentOrchestrator<KubernetesAgentInput, st
         return "success";
     }
 }
+

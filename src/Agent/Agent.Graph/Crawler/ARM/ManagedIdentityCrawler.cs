@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
@@ -96,3 +100,4 @@ public class ManagedIdentityCrawler : IResourceCrawler
         }
     }
 }
+

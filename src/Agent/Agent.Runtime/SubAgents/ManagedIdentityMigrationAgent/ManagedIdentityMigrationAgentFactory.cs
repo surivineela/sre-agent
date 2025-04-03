@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
@@ -88,3 +92,4 @@ public sealed class ManagedIdentityMigrationAgentFactory
         return JsonSerializer.Deserialize<ManagedIdentityMigrationAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
     }
 }
+

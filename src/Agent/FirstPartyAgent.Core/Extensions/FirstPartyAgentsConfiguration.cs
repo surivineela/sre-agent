@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -8,10 +12,8 @@ using Agent.Plugins;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
-using Agent.Runtime;
 using FirstPartyAgent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Plugins.Models;
@@ -120,3 +122,4 @@ namespace FirstPartyAgent.Core.Extensions
         }
     }
 }
+

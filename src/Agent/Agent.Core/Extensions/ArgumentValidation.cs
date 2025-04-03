@@ -1,4 +1,8 @@
-﻿using System.Diagnostics.CodeAnalysis;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
@@ -92,3 +96,4 @@ public static class ArgumentValidation
         return argument;
     }
 }
+

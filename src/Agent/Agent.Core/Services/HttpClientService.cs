@@ -1,4 +1,7 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 
@@ -47,3 +50,4 @@ public class HttpClientService
             : "http://localhost:8080";
     }
 }
+

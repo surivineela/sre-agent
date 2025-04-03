@@ -1,12 +1,8 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using System.Collections.Concurrent;
-using System.Linq.Expressions;
-using System.Reflection;
-using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;

@@ -3,9 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
-using Azure.Core;
-using k8s;
-using OpenTelemetry.Resources;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {

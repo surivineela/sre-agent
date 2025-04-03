@@ -1,13 +1,12 @@
-﻿using Agent.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agent.Runtime.SubAgents
 {
@@ -51,3 +50,4 @@ You can run multiple tool calls to answer a single question.";
         }
     }
 }
+

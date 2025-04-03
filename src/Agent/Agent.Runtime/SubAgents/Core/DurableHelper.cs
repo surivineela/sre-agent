@@ -1,4 +1,8 @@
-﻿using Microsoft.DurableTask;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.DurableTask;
 
 namespace Agent.Runtime.SubAgents.Core
 {
@@ -12,3 +16,4 @@ namespace Agent.Runtime.SubAgents.Core
         }
     }
 }
+

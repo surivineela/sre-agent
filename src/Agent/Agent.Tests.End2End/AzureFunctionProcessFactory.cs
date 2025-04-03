@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Diagnostics;
 using Xunit.Abstractions;
 
 namespace E2ETests

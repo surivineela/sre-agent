@@ -1,4 +1,8 @@
-﻿using System.Diagnostics;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Diagnostics;
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
@@ -946,3 +950,4 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         public string Screenshot { get; set; }
     }
 }
+

@@ -2,15 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.ComponentModel;
-using System.Runtime.Intrinsics.X86;
 using System.Text;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Plugins.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;

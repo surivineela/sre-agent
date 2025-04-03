@@ -1,4 +1,8 @@
-﻿
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+
 namespace Agent.Core.Configuration
 {
     public class ExternalSettings
@@ -10,3 +14,4 @@ namespace Agent.Core.Configuration
         public DashboardSettings Dashboard { get; set; } = new();
     }
 }
+

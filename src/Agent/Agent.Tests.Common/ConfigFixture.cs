@@ -1,4 +1,8 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.DependencyInjection;
@@ -27,3 +31,4 @@ namespace Agent.Tests.Common
         }
     }
 }
+

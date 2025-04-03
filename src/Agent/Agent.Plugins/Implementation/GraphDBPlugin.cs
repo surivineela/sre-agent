@@ -6,7 +6,6 @@ using System.ComponentModel;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Threading;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -15,7 +14,6 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Azure.Core;
 using Azure.Identity;
-using Google.Protobuf;
 using Gremlin.Net.Driver;
 using Microsoft.Azure.Management.Monitor.Fluent;
 using Microsoft.Azure.Management.Monitor.Fluent.Models;
@@ -26,9 +24,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
-using OpenAI.Chat;
-using YamlDotNet.Core.Tokens;
-using static Kusto.Data.Security.WellKnownAadResourceIds;
 
 namespace Agent.Plugins
 {

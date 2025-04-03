@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Graph.Crawler.ARM;
 
 public class Constants
@@ -66,3 +70,4 @@ public class Constants
     public const string BackendStatusReady = "Ready";
     public const string BackendStatusNotReady = "NotReady";
 }
+

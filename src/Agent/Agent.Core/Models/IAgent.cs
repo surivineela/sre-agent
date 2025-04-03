@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.SemanticKernel.ChatCompletion;
 
 namespace Agent.Core.Models
@@ -12,3 +16,4 @@ namespace Agent.Core.Models
             CancellationToken cancellationToken = default);
     }
 }
+

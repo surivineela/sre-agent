@@ -1,4 +1,8 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents;
@@ -6,7 +10,6 @@ using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
-using ModelContextProtocol.Protocol.Types;
 
 namespace Agent.Seb.Services;
 
@@ -341,3 +344,4 @@ public class TimerService : IHostedService, IDisposable
         _bestPracticeTimer?.Dispose();
     }
 }
+

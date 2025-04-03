@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace FirstPartyAgent.Core.Constants
 {
@@ -13,3 +11,4 @@ namespace FirstPartyAgent.Core.Constants
         public const string DiscussionEntryTemplate = $"<div style='border: 1px solid #C9CACB80;padding: 15px;padding-top: 0px;font-family: Arial, sans-serif;'><div style='background-color: rgba(0, 120, 212, 1);color: rgba(255, 255, 255, 1);font-weight: bold;padding: 4px 12px;font-size: 14px;display: inline-flex;margin;margin: 0px -15px 10px;'><img src='{LogoBase64}' alt='Azure SRE Agent Logo' style='height: 16px; width: auto'>Azure SRE Agent</div><br><br>POST_CONTENT_HERE</div>";
     }
 }
+

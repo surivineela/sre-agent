@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -60,3 +64,4 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         }
     }
 }
+

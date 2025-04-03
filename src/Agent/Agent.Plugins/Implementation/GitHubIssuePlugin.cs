@@ -1,15 +1,13 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel;
 using Agent.Plugins.Helpers;
 using Octokit;
 using Agent.Core.Configuration;
-using Agent.Plugins.Models;
 using Newtonsoft.Json;
 
 namespace Agent.Plugins;

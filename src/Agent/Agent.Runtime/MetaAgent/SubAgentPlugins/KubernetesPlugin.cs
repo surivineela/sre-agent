@@ -1,5 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
-using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -60,3 +63,4 @@ public class KubernetesAgentPlugin
         return $"A workflow has been started to remediate Kubernetes workloads, the workflow instance id is: {instanceId}";
     }
 }
+

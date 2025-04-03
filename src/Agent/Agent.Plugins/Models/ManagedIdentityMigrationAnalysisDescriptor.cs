@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 
 namespace Agent.Plugins.Models
 {
@@ -9,3 +13,4 @@ namespace Agent.Plugins.Models
     [Description("SQLServer name in the original connection string. We are trying to migrate this to to use AD Based auth")] string sqlServer,
     [Description("Database in the original connection string")] string database);
 }
+

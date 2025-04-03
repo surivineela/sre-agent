@@ -1,6 +1,7 @@
-﻿using System;
-using System.Threading;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Configuration;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
@@ -204,3 +205,4 @@ namespace Agent.Plugins.Implementation
         }
     }
 }
+

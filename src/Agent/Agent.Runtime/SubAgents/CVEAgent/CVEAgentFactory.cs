@@ -1,4 +1,8 @@
-﻿using Agent.Plugins;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
 using Agent.Core.Models;
@@ -64,3 +68,4 @@ public sealed class CVEAgentFactory
         return JsonSerializer.Deserialize<CVEAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
     }
 }
+

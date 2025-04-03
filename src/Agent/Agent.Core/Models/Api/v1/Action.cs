@@ -1,4 +1,8 @@
-﻿namespace Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Core.Models.Api.v1;
 
 public enum ActionStatus
 {
@@ -14,3 +18,4 @@ public record Action(
     DateTime TimeStamp,
     ActionStatus Status
 );
+

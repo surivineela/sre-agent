@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Tests.Integration.Fixtures;
 using OperationalAgentCore.Models;
 using Xunit.Abstractions;

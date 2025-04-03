@@ -1,4 +1,8 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.Repositories;
 using Microsoft.Azure.Cosmos;
@@ -95,3 +99,4 @@ public static class AgentDataConfiguration
         );
     }
 }
+

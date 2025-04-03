@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace FirstPartyAgent.Core.Configuration
 {
@@ -11,3 +9,4 @@ namespace FirstPartyAgent.Core.Configuration
         public string AccountUrl { get; set; }
     }
 }
+

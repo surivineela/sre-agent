@@ -1,12 +1,11 @@
-﻿using Microsoft.Extensions.Logging;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Core.Services;
 using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using FirstPartyAgent.Models;
 
 namespace FirstPartyAgent.Core.Plugins
@@ -39,3 +38,4 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
+

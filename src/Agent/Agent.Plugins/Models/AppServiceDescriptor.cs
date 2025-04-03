@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 
 namespace Agent.Plugins
 {
@@ -12,3 +16,4 @@ namespace Agent.Plugins
         string State,
         string ResourceGroup);
 }
+

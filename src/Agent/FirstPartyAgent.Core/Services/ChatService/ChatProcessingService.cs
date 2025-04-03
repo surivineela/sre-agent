@@ -1,10 +1,11 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core;
-using Agent.Core.Extensions;
-using Agent.Core.Helpers;
 using Agent.Core.Models;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
-using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Markdig;
 using Microsoft.Extensions.Configuration;
@@ -12,7 +13,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
-using Microsoft.SemanticKernel.Services;
 using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Core.Services;
@@ -326,3 +326,4 @@ public class ChatProcessingService : IChatService
         }
     }
 }
+

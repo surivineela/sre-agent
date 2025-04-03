@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Core.Models;
 
 public class ManagedIdentityInfo
@@ -8,3 +12,4 @@ public class ManagedIdentityInfo
     public string WorkflowPath { get; set; } = string.Empty;
     public string Details { get; set; } = string.Empty;
 }
+

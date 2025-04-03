@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Constants;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Models.Attributes;
 using FirstPartyAgent.Models;
 
@@ -87,3 +91,4 @@ I don't understand you questions. Because it seems you have already extracted su
         }
     }
 }
+

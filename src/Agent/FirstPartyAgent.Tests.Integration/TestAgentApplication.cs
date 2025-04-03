@@ -1,17 +1,14 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Tests.Integration.Extensions;
 using FirstPartyAgent.Tests.Integration.Mocks;
-using FirstPartyAgent.ACA.Web;
 using FirstPartyAgent.ACA.Web.Services;
-using FirstPartyAgent.Core.Configuration;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 using Moq;
 using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Tests.Integration.Logging;

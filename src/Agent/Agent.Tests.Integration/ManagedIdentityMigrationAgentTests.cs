@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -5,7 +9,6 @@ using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
-using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Integration.Fixtures;
 using Azure.AI.OpenAI;
@@ -253,3 +256,4 @@ namespace Agent.Tests.Integration
         }
     }
 }
+

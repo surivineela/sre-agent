@@ -1,25 +1,15 @@
-﻿// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  
-//  All rights reserved.
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation. All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
-using Agent.Runtime;
-using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
-using Serilog.Extensions.Hosting;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
-using Azure.Identity;
-using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Helpers;
-using FirstPartyAgent;
-using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Core.Extensions;
 
 // Enable Serilog internal diagnostics (optional, but helps troubleshooting)

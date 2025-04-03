@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using Agent.Core.Models.Api.v1;
 using Action = Agent.Core.Models.Api.v1.Action;
 
@@ -31,3 +35,4 @@ namespace Agent.Plugins.Definitions
         }
     }
 }
+

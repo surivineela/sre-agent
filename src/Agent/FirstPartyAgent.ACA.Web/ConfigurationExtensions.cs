@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Microsoft.SemanticKernel;
-using Agent.Core.Configuration;
 
 namespace FirstPartyAgent.ACA.Web;
 

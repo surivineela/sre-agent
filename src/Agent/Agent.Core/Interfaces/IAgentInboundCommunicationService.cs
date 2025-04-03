@@ -1,5 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
-using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Interfaces;
 

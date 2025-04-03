@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Azure.Search;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Azure.Search.Documents.Models;
 using FirstPartyAgent.Core.Plugins;
-using FirstPartyAgent.Plugins;
 
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
@@ -34,3 +31,4 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
         }
     }
 }
+

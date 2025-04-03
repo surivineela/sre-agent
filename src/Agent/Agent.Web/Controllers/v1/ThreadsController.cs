@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models.Api.v1;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
@@ -194,3 +198,4 @@ namespace Agent.Web.Controllers.v1
         }
     }
 }
+

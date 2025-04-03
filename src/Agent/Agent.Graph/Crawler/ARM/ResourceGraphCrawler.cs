@@ -1,12 +1,11 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Collections;
 using System.Diagnostics;
-using System.Diagnostics.Eventing.Reader;
 using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
-using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Azure.ResourceManager;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -211,3 +210,4 @@ public class ResourceGraphCrawler
         return false;
     }
 }
+

@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
@@ -70,3 +74,4 @@ namespace Agent.Plugins.Mocks
         }
     }
 }
+

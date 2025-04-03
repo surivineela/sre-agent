@@ -1,10 +1,8 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Data.DataModels;
@@ -43,3 +41,4 @@ public record ThreadDocument(
             Source
         );
 }
+

@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 
 namespace Agent.Runtime.SubAgents.AppServiceRemediation;
 
@@ -7,3 +11,4 @@ public sealed record AppServiceRemediationInput(
     string message,
     [Description("List of resources that need remediation.")]
     List<string> AppServiceResourceIds);
+

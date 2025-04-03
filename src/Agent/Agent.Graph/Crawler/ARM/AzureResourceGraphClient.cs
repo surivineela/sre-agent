@@ -1,10 +1,13 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ResourceGraph;
 using Azure.ResourceManager.ResourceGraph.Models;
 using Azure.ResourceManager.Resources;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -48,3 +51,4 @@ public class AzureResourceGraphClient
         return result;
     }
 }
+

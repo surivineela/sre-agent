@@ -1,11 +1,9 @@
-﻿using FirstPartyAgent.Core.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Models;
 using System.Text.Json;
-using System.Threading.Tasks;
-using YamlDotNet.Serialization;
 
 namespace FirstPartyAgent.Core.Helpers
 {
@@ -51,3 +49,4 @@ namespace FirstPartyAgent.Core.Helpers
     }
 
 }
+

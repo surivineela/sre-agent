@@ -1,7 +1,10 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Runtime.Communication;
 using Agent.Core.Interfaces;
 using Agent.Core.Extensions;
 

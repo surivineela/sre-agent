@@ -1,9 +1,8 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using Octokit;
-using System.ComponentModel;
 
 namespace Agent.Plugins
 {

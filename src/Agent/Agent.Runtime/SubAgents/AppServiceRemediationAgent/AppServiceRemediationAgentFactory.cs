@@ -1,4 +1,8 @@
-﻿using Agent.Plugins.Definitions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
@@ -93,3 +97,4 @@ public sealed class AppServiceRemediationAgentFactory
         return JsonSerializer.Deserialize<AppServiceRemediationAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }
 }
+

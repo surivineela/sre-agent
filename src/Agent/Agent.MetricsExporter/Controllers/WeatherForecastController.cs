@@ -1,4 +1,6 @@
-using Microsoft.AspNetCore.Mvc;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.MetricsExporter.Controllers
 {
@@ -31,3 +33,4 @@ namespace Agent.MetricsExporter.Controllers
     //    }
     //}
 }
+

@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Security.Cryptography.X509Certificates;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Microsoft.Extensions.Logging;
@@ -75,3 +72,4 @@ namespace Agent.Plugins.Implementation
         }
     }
 }
+

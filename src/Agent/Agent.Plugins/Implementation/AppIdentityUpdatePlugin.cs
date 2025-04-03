@@ -5,8 +5,6 @@
 using Agent.Core.Interfaces;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Sql;

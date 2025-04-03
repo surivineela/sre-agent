@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 
 namespace Agent.Data.Repositories;
@@ -59,3 +63,4 @@ public interface IThreadTeamsMappingRepository
     /// <returns>List of posted message IDs or empty list if none found</returns>
     Task<IList<string>> GetPostedMessagesAsync(string threadId);
 }
+

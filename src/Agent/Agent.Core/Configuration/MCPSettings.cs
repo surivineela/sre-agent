@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Core.Configuration
 {
@@ -22,3 +20,4 @@ namespace Agent.Core.Configuration
         public int PingTimeoutInSeconds { get; set; } = 10;
     }
 }
+

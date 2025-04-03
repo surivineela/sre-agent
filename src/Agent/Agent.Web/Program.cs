@@ -6,7 +6,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -50,7 +49,6 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
-using Microsoft.Extensions.Hosting;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 
 var builder = WebApplication.CreateBuilder(args);

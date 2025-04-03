@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {

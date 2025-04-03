@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.AI;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.VectorData;
 using Microsoft.SemanticKernel.Connectors.InMemory;
 using System.Text.Json;
@@ -101,3 +105,4 @@ namespace OperationalAgentCore.Models
         public ReadOnlyMemory<float> Vector { get; set; }
     }
 }
+

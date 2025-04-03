@@ -1,13 +1,15 @@
-﻿using Agent.Core;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core;
 using Agent.Core.Models;
-using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Core.Services;
 

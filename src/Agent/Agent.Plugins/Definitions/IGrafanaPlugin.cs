@@ -1,6 +1,6 @@
-using System;
-using System.ComponentModel;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Plugins
 {
@@ -20,3 +20,4 @@ namespace Agent.Plugins
             bool isDefault = false);
     }
 }
+

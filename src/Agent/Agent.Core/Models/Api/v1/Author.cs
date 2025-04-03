@@ -1,4 +1,8 @@
-﻿namespace Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+namespace Agent.Core.Models.Api.v1;
 
 // Always append and don't change the order here as it's persisted in Database and used by SQL Query to filter all agent messages
 public enum Role
@@ -28,3 +32,4 @@ public record Author(
     Role Role,
     string UserId,
     string DisplayName);
+

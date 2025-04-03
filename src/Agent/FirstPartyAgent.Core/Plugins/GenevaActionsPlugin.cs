@@ -1,11 +1,13 @@
-﻿using FirstPartyAgent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Newtonsoft.Json;
-using ScottPlot.Statistics;
 using System.ComponentModel;
 
 namespace FirstPartyAgent.Core.Plugins
@@ -128,3 +130,4 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
+

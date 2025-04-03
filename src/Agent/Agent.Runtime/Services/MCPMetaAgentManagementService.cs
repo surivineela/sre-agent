@@ -1,17 +1,15 @@
-﻿using Agent.Core.Configuration;
-using Agent.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Agent.Runtime.SubAgents;
-using Grpc.Core;
 using ModelContextProtocol.Client;
-using ModelContextProtocol.Configuration;
-using ModelContextProtocol.Protocol.Types;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Collections.Concurrent;
-using System.Text.RegularExpressions;
 
 /// <summary>
 /// Responsible for initializing the MCPMetaAgent instance with the provided MCP servers,

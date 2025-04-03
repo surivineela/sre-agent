@@ -1,5 +1,8 @@
-﻿using Agent.Core.Configuration;
-using Microsoft.Extensions.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Octokit;
 
 namespace Agent.Plugins.Models
@@ -34,3 +37,4 @@ namespace Agent.Plugins.Models
         }
     }
 }
+

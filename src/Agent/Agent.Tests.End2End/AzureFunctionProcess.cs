@@ -1,7 +1,9 @@
-﻿using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Diagnostics;
 using System.Text.RegularExpressions;
-using System.Threading;
 using Xunit.Abstractions;
 
 namespace E2ETests

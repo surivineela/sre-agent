@@ -1,16 +1,16 @@
-﻿// https://github.com/dotnet/extensions/blob/6def38fb744109fee0a1406da96a1e6c2599b327/src/Libraries/Microsoft.Extensions.AI/CachingHelpers.cs
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+// https://github.com/dotnet/extensions/blob/6def38fb744109fee0a1406da96a1e6c2599b327/src/Libraries/Microsoft.Extensions.AI/CachingHelpers.cs
 
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-using System;
 using System.Diagnostics;
-using System.IO;
 using System.Security.Cryptography;
 using System.Text.Json;
 #if NET
-using System.Threading;
-using System.Threading.Tasks;
 #endif
 
 #pragma warning disable S109 // Magic numbers should not be used
@@ -151,3 +151,4 @@ public static class CachingHelpers
     }
 #endif
 }
+

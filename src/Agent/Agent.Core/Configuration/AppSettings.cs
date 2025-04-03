@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
 using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Core.Configuration;

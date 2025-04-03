@@ -1,4 +1,7 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Action = Agent.Core.Models.Api.v1.Action;
 
@@ -34,3 +37,4 @@ public record ActionDocument(
             Status
         );
 }
+

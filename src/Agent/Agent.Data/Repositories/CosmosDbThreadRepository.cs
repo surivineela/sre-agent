@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -473,3 +477,4 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 }
+

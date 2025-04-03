@@ -1,10 +1,13 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.MetaAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Runtime.Models;
 using Agent.Runtime.Services;
 using Agent.Plugins.Definitions;
 

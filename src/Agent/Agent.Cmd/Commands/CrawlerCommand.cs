@@ -1,4 +1,7 @@
-using Agent.Data.DatabaseClients.GraphDbClient;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Graph.Crawler.ARM;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -43,3 +46,4 @@ namespace Agent.Cmd
         }
     }
 }
+

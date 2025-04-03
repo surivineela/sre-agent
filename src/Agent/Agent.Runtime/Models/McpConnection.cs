@@ -1,13 +1,14 @@
-﻿using Agent.Runtime.Interfaces;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents;
 using ModelContextProtocol.Client;
 using ModelContextProtocol.Configuration;
-using ModelContextProtocol;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using System.Text.RegularExpressions;
-using ModelContextProtocol.Protocol.Types;
 
 namespace Agent.Runtime.Models;
 

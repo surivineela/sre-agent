@@ -1,7 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Azure;
 using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
@@ -169,3 +171,4 @@ namespace Agent.Plugins.Implementation
         }
     }
 }
+

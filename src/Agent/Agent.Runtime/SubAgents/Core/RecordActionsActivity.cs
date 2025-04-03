@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models.Api.v1;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Action = Agent.Core.Models.Api.v1.Action;
@@ -57,3 +61,4 @@ namespace Agent.Runtime.SubAgents.Core
         }
     }
 }
+

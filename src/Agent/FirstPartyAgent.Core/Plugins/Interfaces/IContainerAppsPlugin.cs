@@ -1,10 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
 using FirstPartyAgent.Models;
-using System.ComponentModel;
 
 namespace FirstPartyAgent.Plugins
 {

@@ -1,4 +1,8 @@
-﻿using Agent.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
 using Kusto.Cloud.Platform.Utils;
 
 namespace Agent.Plugins.Mocks
@@ -68,3 +72,4 @@ namespace Agent.Plugins.Mocks
         }
     }
 }
+

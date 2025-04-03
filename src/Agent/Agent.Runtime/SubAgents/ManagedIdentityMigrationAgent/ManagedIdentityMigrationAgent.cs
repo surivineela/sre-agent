@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
@@ -36,3 +40,4 @@ namespace Agent.Runtime.SubAgents.ManagedIdentityMigration
         }
     }
 }
+

@@ -1,8 +1,11 @@
-﻿using Azure.Search.Documents.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.Search.Documents.Models;
 using FirstPartyAgent.Constants;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using FirstPartyAgent.Core.Plugins;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {
@@ -22,3 +25,4 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
         }
     }
 }
+

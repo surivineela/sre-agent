@@ -1,6 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.DurableTask;
 using Agent.Core.Interfaces;
-using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents.Core;
@@ -54,3 +57,4 @@ public class NotifyCompletionActivity : TaskActivity<NotifyCompletionInput, stri
         return "Completion notification sent";
     }
 }
+

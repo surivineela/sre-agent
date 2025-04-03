@@ -1,9 +1,8 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.TestPlatform.Utilities;
 using Xunit.Abstractions;
 
 namespace FirstPartyAgent.Tests.Integration.Logging

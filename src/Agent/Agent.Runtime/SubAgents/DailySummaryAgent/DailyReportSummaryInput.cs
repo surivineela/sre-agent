@@ -1,6 +1,8 @@
-﻿using Agent.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
-using System.Collections.Generic;
 using System.ComponentModel;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
@@ -20,3 +22,4 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         IReadOnlyList<string> ToolSignatures,
         ThreadContext Context);
 }
+

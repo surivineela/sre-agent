@@ -1,9 +1,12 @@
-﻿using Agent.Plugins.Definitions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask;
 using Agent.Core.Models;
-using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Models.Api.v1;
@@ -79,3 +82,4 @@ public sealed class TlsBestPracticeAgentFactory
         return JsonSerializer.Deserialize<TlsBestPracticesAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
     }
 }
+

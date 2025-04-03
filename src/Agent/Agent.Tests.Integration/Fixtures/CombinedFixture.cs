@@ -1,4 +1,8 @@
-﻿using Agent.Tests.Common;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Tests.Common;
 using Agent.Tests.Common.Fixtures;
 using Xunit.Abstractions;
 

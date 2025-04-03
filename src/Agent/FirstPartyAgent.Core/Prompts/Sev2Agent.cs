@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Core.Models.Attributes;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Models.Attributes;
 using FirstPartyAgent.Models;
 
 
@@ -42,3 +46,4 @@ namespace FirstPartyAgent.AgentPrompts
         ;
     }
 }
+

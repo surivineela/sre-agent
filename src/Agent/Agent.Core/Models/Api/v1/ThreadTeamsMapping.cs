@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.Bot.Schema;
 namespace Agent.Core.Models.Api.v1;
 public record ThreadTeamsMapping(
@@ -10,3 +14,4 @@ public record ThreadTeamsMapping(
     DateTime ModifiedTimestamp,
     ConversationReference? Reference = null
 );
+

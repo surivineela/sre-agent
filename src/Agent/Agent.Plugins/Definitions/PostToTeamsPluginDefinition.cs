@@ -1,10 +1,9 @@
-﻿using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.SemanticKernel;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Agent.Plugins.Definitions
 {
@@ -26,3 +25,4 @@ namespace Agent.Plugins.Definitions
         }
     }
 }
+

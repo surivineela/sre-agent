@@ -1,4 +1,7 @@
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
 
 namespace Agent.Plugins
@@ -9,3 +12,4 @@ namespace Agent.Plugins
         Task<string> CheckSqlResourceIdForAppAsync(string resourceId);
     }
 }
+

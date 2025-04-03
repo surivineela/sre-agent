@@ -1,4 +1,8 @@
-﻿using System.ComponentModel.DataAnnotations;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel.DataAnnotations;
 
 namespace FirstPartyAgent.Core.Configuration
 {
@@ -40,3 +44,4 @@ namespace FirstPartyAgent.Core.Configuration
         public bool ICMBacktestingModeEnabled { get; set; } = false;
     }
 }
+

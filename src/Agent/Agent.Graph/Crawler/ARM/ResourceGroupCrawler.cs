@@ -1,6 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
@@ -144,3 +147,4 @@ public class ResourceGroupCrawler : IResourceCrawler
         }
     }
 }
+

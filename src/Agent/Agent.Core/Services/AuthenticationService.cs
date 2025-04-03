@@ -1,9 +1,12 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.Identity;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Core.Services;
 
@@ -100,3 +103,4 @@ public class AuthenticationService : IAuthenticationService
         return new DefaultAzureCredential();
     }
 }
+

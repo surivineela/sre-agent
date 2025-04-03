@@ -1,4 +1,7 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
 
 namespace Agent.Core.Models
@@ -40,3 +43,4 @@ namespace Agent.Core.Models
         string Details
     );
 }
+

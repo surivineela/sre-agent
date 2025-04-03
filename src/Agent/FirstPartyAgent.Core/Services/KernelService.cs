@@ -1,4 +1,8 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Configuration;
@@ -95,3 +99,4 @@ namespace FirstPartyAgent.Core.Services
         }
     }
 }
+

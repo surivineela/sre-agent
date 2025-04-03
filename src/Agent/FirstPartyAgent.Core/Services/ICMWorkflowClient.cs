@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -6,8 +10,6 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using FirstPartyAgent.Core.Configuration;
-using Octokit;
-using Microsoft.Extensions.Options;
 
 namespace FirstPartyAgent.Core.Services
 {
@@ -521,3 +523,4 @@ namespace FirstPartyAgent.Core.Services
         }
     }
 }
+

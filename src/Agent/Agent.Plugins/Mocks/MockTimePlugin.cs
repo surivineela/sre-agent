@@ -1,4 +1,7 @@
-using System;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.RegularExpressions;
 
 namespace Agent.Plugins.Mocks;
@@ -55,3 +58,4 @@ public class MockTimePlugin : ITimePlugin
         return _timeProvider.GetUtcNow().DateTime;
     }
 }
+

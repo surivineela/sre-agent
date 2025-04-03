@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Models;
 
 namespace FirstPartyAgent.ACA.Web.Models
 {
@@ -13,3 +17,4 @@ namespace FirstPartyAgent.ACA.Web.Models
         public IList<ConversationEntry>? Discussions { get; set; }
     }
 }
+

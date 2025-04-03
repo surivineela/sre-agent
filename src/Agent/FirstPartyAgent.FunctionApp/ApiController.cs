@@ -1,14 +1,15 @@
-using Agent.Core.Helpers;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Models;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Net;
-using System.Threading.Tasks;
 
 namespace FirstPartyAgent.FunctionApp
 {
@@ -218,3 +219,4 @@ namespace FirstPartyAgent.FunctionApp
         }
     }
 }
+

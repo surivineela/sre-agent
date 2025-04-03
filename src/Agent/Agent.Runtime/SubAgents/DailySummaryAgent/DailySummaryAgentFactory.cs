@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -81,3 +85,4 @@ public sealed class DailyReportSummaryAgentFactory
         return JsonSerializer.Deserialize<DailyReportSummaryAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
     }
 }
+

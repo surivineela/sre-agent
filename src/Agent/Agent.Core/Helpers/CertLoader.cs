@@ -1,4 +1,8 @@
-﻿using System.Security.Cryptography.X509Certificates;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Security.Cryptography.X509Certificates;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Helpers
@@ -82,3 +86,4 @@ namespace Agent.Core.Helpers
         }
     }
 }
+

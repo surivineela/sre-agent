@@ -1,4 +1,8 @@
-﻿using Azure;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure;
 using Agent.Core.Configuration;
 using Azure.Identity;
 using Azure.Search.Documents;
@@ -50,3 +54,4 @@ namespace FirstPartyAgent.Core.Services
         }
     }
 }
+

@@ -1,14 +1,12 @@
-﻿using Azure.AI.OpenAI;
-using Azure.Identity;
-using System.Text.Json;
-using Microsoft.Extensions.AI;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Xunit.Abstractions;
 
 using E2ETests.Models;
-using OpenAI.Chat;
 using Microsoft.Extensions.Configuration;
 using Agent.Tests.Common;
-using E2ETests;
 using Agent.Core.Configuration;
 
 namespace Agent.Tests.End2End.Fixtures

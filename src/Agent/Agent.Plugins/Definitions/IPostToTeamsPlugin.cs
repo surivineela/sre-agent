@@ -1,4 +1,8 @@
-﻿using Microsoft.Bot.Schema;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Bot.Schema;
 
 namespace Agent.Plugins.Definitions
 {
@@ -9,3 +13,4 @@ namespace Agent.Plugins.Definitions
         Task<bool> CreateTeamsThread(string threadId, string initialMessage, string messageId = "");
     }
 }
+

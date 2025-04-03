@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Microsoft.DurableTask;
@@ -38,3 +42,4 @@ public class AppServiceRemediationPlanActivity : TaskActivity<AppServiceRemediat
         return messages;
     }
 }
+

@@ -1,9 +1,8 @@
-﻿using Agent.Runtime.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Runtime.Models;
 
 namespace Agent.Runtime.Interfaces
 {
@@ -24,3 +23,4 @@ namespace Agent.Runtime.Interfaces
         public void TryRemoveServer(McpConnection connection);
     }
 }
+

@@ -1,9 +1,8 @@
-﻿using Newtonsoft.Json;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Core.Models.Resources
 {
@@ -49,3 +48,4 @@ namespace FirstPartyAgent.Core.Models.Resources
         public int HostnameType { get; set; }
     }
 }
+

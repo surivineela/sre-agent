@@ -1,10 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Plugins.Definitions;
-using Kusto.Data;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.Logging;
 
@@ -38,3 +36,4 @@ namespace Agent.Plugins.Mocks
         }
     }
 }
+

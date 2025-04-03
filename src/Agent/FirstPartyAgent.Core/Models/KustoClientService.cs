@@ -1,4 +1,8 @@
-﻿using System.Data;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Data;
 using System.Security.Cryptography.X509Certificates;
 using Agent.Core.Configuration;
 using Agent.Core.Models;
@@ -108,3 +112,4 @@ public class KustoClientService
         }
     }
 }
+

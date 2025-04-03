@@ -1,7 +1,8 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Collections.Concurrent;
-using System.Diagnostics;
-using System.Text;
-using System.Threading;
 using System.Xml;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -664,3 +665,4 @@ public class AdapterWithErrorHandler : CloudAdapter
         };
     }
 }
+

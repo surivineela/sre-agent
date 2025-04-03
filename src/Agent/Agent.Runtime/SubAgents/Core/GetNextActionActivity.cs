@@ -1,6 +1,6 @@
-﻿using Microsoft.DurableTask;
-using Microsoft.Extensions.AI;
-using Microsoft.Extensions.Logging;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -46,3 +46,4 @@ namespace Agent.Runtime.SubAgents.Core;
 //        }
 //    }
 //}
+

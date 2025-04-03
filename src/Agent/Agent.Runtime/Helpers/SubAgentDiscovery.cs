@@ -1,6 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
 using Agent.Runtime.SubAgents;
-using System.Reflection;
 
 namespace Agent.Core.Helpers
 {
@@ -46,3 +49,4 @@ namespace Agent.Core.Helpers
         }
     }
 }
+

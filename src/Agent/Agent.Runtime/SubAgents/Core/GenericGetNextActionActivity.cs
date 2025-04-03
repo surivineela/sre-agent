@@ -1,4 +1,8 @@
-﻿using Agent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Extensions;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
@@ -42,3 +46,4 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
         }
     }
 }
+

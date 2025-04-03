@@ -1,9 +1,12 @@
-﻿using Microsoft.Extensions.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Extensions.Configuration;
 using Agent.Tests.End2End.Fixtures;
 using Xunit;
 using Xunit.Abstractions;
 using Agent.Core.Configuration;
-using Agent.Tests.Common;
 
 namespace E2ETests.Tests
 {

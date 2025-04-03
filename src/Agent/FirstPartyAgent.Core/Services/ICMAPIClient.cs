@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -362,3 +366,4 @@ namespace FirstPartyAgent.Core.Services
         }
     }
 }
+

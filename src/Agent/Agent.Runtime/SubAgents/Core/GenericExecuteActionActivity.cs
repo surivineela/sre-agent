@@ -1,4 +1,8 @@
-﻿using Microsoft.DurableTask;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -60,3 +64,4 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         }
     }
 }
+

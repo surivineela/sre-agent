@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using Agent.Core.Models;
 
 namespace Agent.Plugins
@@ -50,3 +54,4 @@ namespace Agent.Plugins
         }
     }
 }
+

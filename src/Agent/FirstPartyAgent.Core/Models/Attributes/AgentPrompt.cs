@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Models;
 
 namespace FirstPartyAgent.Core.Models.Attributes
 {
@@ -16,3 +20,4 @@ namespace FirstPartyAgent.Core.Models.Attributes
     }
 
 }
+

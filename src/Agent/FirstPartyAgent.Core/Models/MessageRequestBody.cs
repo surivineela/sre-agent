@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace FirstPartyAgent.Core.Models
 {
@@ -15,3 +13,4 @@ namespace FirstPartyAgent.Core.Models
         public Dictionary<string, string> PromptReplacements { get; set; } = new Dictionary<string, string>();
     }
 }
+

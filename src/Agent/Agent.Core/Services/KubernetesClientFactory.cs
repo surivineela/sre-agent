@@ -1,11 +1,13 @@
-using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.ResourceManager.ContainerService;
 using Azure.ResourceManager.Resources;
 using k8s;
 using k8s.KubeConfigModels;
-using Octokit;
 
 namespace Agent.Core.Services;
 
@@ -120,3 +122,4 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         }
     }
 }
+

@@ -1,4 +1,8 @@
-﻿using System.Text.Json;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text.Json;
 using System.Xml;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -140,3 +144,4 @@ namespace Agent.Cmd
         }
     }
 }
+

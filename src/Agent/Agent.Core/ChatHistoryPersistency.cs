@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Microsoft.SemanticKernel.ChatCompletion;
-using System.Text.Json;
 
 namespace Agent.Core;
 

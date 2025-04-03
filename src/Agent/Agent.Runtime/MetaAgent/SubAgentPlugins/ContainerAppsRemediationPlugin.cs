@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -59,3 +63,4 @@ public class ContainerAppsRemediationPlugin
         return $"A workflow has been started to remediate container apps, the workflow instance id is: {instanceId}";
     }
 }
+

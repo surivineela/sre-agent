@@ -1,11 +1,9 @@
-﻿using Agent.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
@@ -47,3 +45,4 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         }
     }
 }
+

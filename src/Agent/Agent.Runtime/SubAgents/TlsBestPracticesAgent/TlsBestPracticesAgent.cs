@@ -1,6 +1,9 @@
-﻿using System.Text;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.Text;
 using Agent.Core.Interfaces;
-using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -86,3 +89,4 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
         }
     }
 }
+

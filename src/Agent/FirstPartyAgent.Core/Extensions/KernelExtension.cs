@@ -1,12 +1,11 @@
-﻿using FirstPartyAgent.Core.Services;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FirstPartyAgent.Core.Extensions
 {
@@ -23,3 +22,4 @@ namespace FirstPartyAgent.Core.Extensions
         }
     }
 }
+

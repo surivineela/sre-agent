@@ -1,4 +1,8 @@
-﻿using Agent.Core.Configuration;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Configuration;
 
 namespace FirstPartyAgent.Core.Configuration
 {
@@ -17,3 +21,4 @@ namespace FirstPartyAgent.Core.Configuration
         public AzureAlertingSettings AzureAlerting { get; set; }
     }
 }
+

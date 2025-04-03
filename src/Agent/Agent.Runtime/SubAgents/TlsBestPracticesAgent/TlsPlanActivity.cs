@@ -1,4 +1,8 @@
-﻿using Agent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -36,3 +40,4 @@ public class TlsPlanActivity : TaskActivity<TlsBestPracticesInput, List<Microsof
         return messages;
     }
 }
+

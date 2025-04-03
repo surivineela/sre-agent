@@ -1,4 +1,8 @@
-﻿using Agent.Plugins.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.PeriodicMonitor
@@ -11,3 +15,4 @@ namespace Agent.Plugins.PeriodicMonitor
         PeriodicMonitorInfo? UpdateFrequency(string resourceId, TimeSpan interval);
     }
 }
+

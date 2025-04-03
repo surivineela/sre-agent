@@ -1,7 +1,9 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Azure.Core;
-using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
@@ -33,3 +35,4 @@ public class KubernetesPodCrawler : IResourceCrawler
         yield break;
     }
 }
+

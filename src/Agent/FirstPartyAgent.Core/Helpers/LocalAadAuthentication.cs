@@ -1,10 +1,9 @@
-﻿using Azure.Core;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Azure.Core;
 using Azure.Identity;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FirstPartyAgent.Core.Helpers
 {
@@ -42,3 +41,4 @@ namespace FirstPartyAgent.Core.Helpers
         }
     }
 }
+

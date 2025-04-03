@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models.Resources;
 using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
@@ -6,7 +10,6 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Linq;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -170,3 +173,4 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
+

@@ -1,4 +1,8 @@
-﻿using FirstPartyAgent.Core.Extensions;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -38,3 +42,4 @@ namespace FirstPartyAgent.Core.Plugins
         }
     }
 }
+

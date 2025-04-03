@@ -1,4 +1,8 @@
-﻿// Comment out until the tools required by these scenarios are migrated
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+// Comment out until the tools required by these scenarios are migrated
 
 //using Microsoft.Extensions.Configuration;
 //using Agent.Tests.End2End.Fixtures;

@@ -1,5 +1,7 @@
-﻿using System;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models.Api.v1;
 using Action = Agent.Core.Models.Api.v1.Action;
 
@@ -28,3 +30,4 @@ namespace Agent.Plugins.Definitions
         Task<Action> GetAction(Guid threadId, Guid actionId);
     }
 }
+

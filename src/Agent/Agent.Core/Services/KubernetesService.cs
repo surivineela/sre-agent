@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Net;
 using Agent.Core.Interfaces;
 using k8s;
@@ -193,3 +197,4 @@ public abstract class KubernetesService : IKubernetesService
         }
     }
 }
+

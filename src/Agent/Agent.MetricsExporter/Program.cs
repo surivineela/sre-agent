@@ -1,15 +1,14 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Prometheus;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Concurrent;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using Microsoft.Extensions.Options;
 using GremlinMetricsExporter;
-using System.Xml.Linq;
-using static Prometheus.MetricServerMiddleware;
-using System.Diagnostics.Metrics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -1091,3 +1090,4 @@ public class MetricsController : ControllerBase
         return NoContent();
     }
 }
+

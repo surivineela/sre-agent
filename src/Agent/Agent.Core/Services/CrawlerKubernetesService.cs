@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Interfaces;
 using k8s;
 
@@ -22,3 +26,4 @@ public class CrawlerKubernetesService : KubernetesService
         return client;
     }
 }
+

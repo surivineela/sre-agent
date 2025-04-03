@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 namespace Agent.Runtime.Communication;
 
 public record AgentMessage(
@@ -5,3 +9,4 @@ public record AgentMessage(
     string Message,
     string MessageType,
     DateTime Timestamp);
+

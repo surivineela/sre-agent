@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Microsoft.Extensions.AI;
 using Agent.Core.Interfaces;
 using Agent.Core.Extensions;

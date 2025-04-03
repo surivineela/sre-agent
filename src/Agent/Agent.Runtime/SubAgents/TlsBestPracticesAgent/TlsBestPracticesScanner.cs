@@ -1,8 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -12,7 +11,6 @@ using Agent.Runtime.SubAgents.TlsBestPractices;
 using Grpc.Core;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 {
@@ -114,3 +112,4 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
         }
     }
 }
+

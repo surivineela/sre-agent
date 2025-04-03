@@ -1,19 +1,16 @@
-﻿using Agent.Core.Helpers;
-using Agent.Core.Models;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Helpers;
 using Agent.Core.Models.Charts;
 using FirstPartyAgent.Core.Constants;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using ScottPlot;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace FirstPartyAgent.Core.Plugins
 {
@@ -152,3 +149,4 @@ Kernel kernel)
         }
     }
 }
+

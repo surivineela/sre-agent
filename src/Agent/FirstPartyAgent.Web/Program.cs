@@ -2,16 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
 using Agent.Runtime;
-using FirstPartyAgent;
-using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
-using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Models;
-using FirstPartyAgent.Plugins;
 
 var builder = WebApplication.CreateBuilder(args);
 

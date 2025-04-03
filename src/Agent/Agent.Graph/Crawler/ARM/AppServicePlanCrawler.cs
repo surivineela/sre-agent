@@ -1,7 +1,10 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Resources;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -32,3 +35,4 @@ public class AppServicePlanCrawler : GenericArmResourceCrawler
         yield break;
     }
 }
+

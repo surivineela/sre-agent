@@ -1,9 +1,8 @@
-﻿using Microsoft.Extensions.AI;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents;
 
@@ -48,4 +47,5 @@ public sealed class ToolFunction202 : IToolFunction
         _execFunction = AIFunctionFactory.Create(executeFunction);
     }
 }
+
 

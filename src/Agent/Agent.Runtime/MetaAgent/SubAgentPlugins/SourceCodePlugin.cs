@@ -1,4 +1,8 @@
-﻿using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using System.ComponentModel;
 using Agent.Core.Models;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Core.Models.Api.v1;
@@ -62,3 +66,4 @@ public class SourceCodePlugin
         return $"A workflow has been started to adopt tls best practice, the workflow instance id is: {instanceId}";
     }
 }
+

@@ -2,10 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using ScottPlot;
-using static Agent.Core.Plugins.ChartPlugin;
 
 namespace Agent.Core.Helpers;
 

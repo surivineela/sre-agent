@@ -1,9 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
 using k8s.Models;
 
 namespace Agent.Graph.Crawler;
@@ -68,3 +68,4 @@ public static partial class KubernetesHelper
         }
     }
 }
+

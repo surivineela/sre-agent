@@ -1,4 +1,8 @@
-﻿using Agent.Runtime.SubAgents.Core;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
@@ -33,3 +37,4 @@ public class AppServiceRemediationAgent : GenericAgentOrchestrator<AppServiceRem
         return "success";
     }
 }
+

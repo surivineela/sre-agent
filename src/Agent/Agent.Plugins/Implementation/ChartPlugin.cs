@@ -8,9 +8,7 @@ using ScottPlot;
 using Agent.Core.Helpers;
 using Agent.Core.Models.Charts;
 using Agent.Core.Models.Api.v1;
-using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
-using Microsoft.Bot.Schema;
 using Agent.Core.Interfaces;
 using TeamsAttachment = Microsoft.Bot.Schema.Attachment;
 

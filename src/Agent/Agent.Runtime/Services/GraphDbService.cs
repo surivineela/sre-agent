@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Microsoft.Extensions.Logging;
 
@@ -29,3 +33,4 @@ namespace Agent.Runtime.Services
         }
     }
 }
+

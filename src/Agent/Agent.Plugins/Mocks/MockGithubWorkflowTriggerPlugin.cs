@@ -1,3 +1,7 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Core.Models;
 
 namespace Agent.Plugins.Mocks
@@ -78,3 +82,4 @@ namespace Agent.Plugins.Mocks
         }
     }
 }
+

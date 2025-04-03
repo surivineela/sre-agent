@@ -1,4 +1,8 @@
-﻿using Agent.Data.DatabaseClients.GraphDbClient;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
@@ -24,3 +28,4 @@ public class LoadBalancerCrawler : GenericArmResourceCrawler
         }
     }
 }
+

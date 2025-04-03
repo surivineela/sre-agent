@@ -1,10 +1,10 @@
-﻿using Agent.Plugins.Definitions;
-using Agent.Plugins;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {
@@ -54,3 +54,4 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         }
     }
 }
+
