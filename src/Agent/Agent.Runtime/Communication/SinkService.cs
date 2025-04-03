@@ -23,7 +23,8 @@ public class SinkService
             TimeStamp: DateTime.UtcNow,
             Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
             IsImageContent: isImageContent,
-            Text: messageText
+            Text: messageText,
+            Posted: new Posted(false)
         );
 
         try
@@ -45,7 +46,9 @@ public class SinkService
             Id: message.MessageId,
             TimeStamp: DateTime.UtcNow,
             Author: new Author(Role.User, message.UserId, message.DisplayName),
-            Text: message.Message
+            Text: message.Message,
+            IsImageContent: false,
+            Posted: new Posted(false)
         );
         try
         {

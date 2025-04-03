@@ -225,7 +225,10 @@ if (useSessionChatService)
 
     builder.Services.AddSingleton<BotFrameworkAuthentication, ConfigurationBotFrameworkAuthentication>();
     builder.Services.AddSingleton<IBotFrameworkHttpAdapter, AdapterWithErrorHandler>();
-    builder.Services.AddSingleton<IBot, TeamsBot>();
+    builder.Services.AddSingleton<IBot, TeamsBot>()
+                    .AddSingleton<IBotPollingMessage, TeamsBot>();
+    // Add the new polling service
+    builder.Services.AddHostedService<TeamsMessagePollingService>();
 
     builder.Services.AddDurableTaskWorker(b =>
     {

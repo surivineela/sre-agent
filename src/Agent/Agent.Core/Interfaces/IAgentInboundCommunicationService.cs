@@ -16,6 +16,17 @@ public interface IAgentInboundCommunicationService
     Task<Models.Api.v1.Thread> CreateAgentThread(string title, string message);
 
     /// <summary>
+    /// Used for alert scenarios, where we need to create a new thread for an agent to work from,
+    /// and trigger teams to notify the engineer as well
+    /// </summary>
+    Task<Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message);
+
+    /// <summary>
+    /// Processes a thread that has been created for an alert, and starts the orchestration
+    /// </summary>
+    Task ProcessAlertMessageAsync(ThreadMessage message);
+
+    /// <summary>
     /// Appends a message from the agent to the specified thread
     /// </summary>
     /// <param name="threadId">The ID of the thread to append to</param>

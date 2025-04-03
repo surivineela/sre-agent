@@ -31,7 +31,7 @@ public class ResourceGraphCrawler
     public async Task<int> Crawl(IEnumerable<string> rootIds, HashSet<Type> filters = null, CancellationToken? cancellationToken = null)
     {
         List<GraphNode> roots = new List<GraphNode>();
-        foreach(var rootId in rootIds)
+        foreach (var rootId in rootIds)
         {
             GraphNode rootNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier(rootId);
             if (rootNode != null)
@@ -76,7 +76,7 @@ public class ResourceGraphCrawler
             {
                 while (!linkedCts.IsCancellationRequested)
                 {
-                    _logger.LogInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+                    _logger.LogDebug($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
                     await Task.Delay(5 * 1000);
                 }
                 _logger.LogInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");

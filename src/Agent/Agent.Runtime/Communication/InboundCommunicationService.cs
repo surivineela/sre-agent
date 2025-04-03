@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Models;
 using Agent.Runtime.Services;
+using Agent.Plugins.Definitions;
 
 namespace Agent.Runtime.Communication;
 
@@ -19,6 +20,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly SinkService _sinkService;
     private readonly ThreadService _threadService;
 
+    private readonly IPostToTeamsPlugin _teamsPlugin;
+
     public InboundCommunicationService(
         IAgent metaAgent,
         DurableTaskClient durableTaskClient,
@@ -26,6 +29,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IThreadRepository repository,
         SinkService sinkService,
         ThreadService threadService,
+        IPostToTeamsPlugin teamsPlugin,
         ILogger<InboundCommunicationService> logger)
     {
         _metaAgent = metaAgent;
@@ -34,32 +38,28 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _repository = repository;
         _sinkService = sinkService;
         _threadService = threadService;
+        _teamsPlugin = teamsPlugin;
         _logger = logger;
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAgentThread(string title, string message)
     {
-        var now = DateTime.UtcNow;
-        var thread = new Core.Models.Api.v1.Thread
-        (
-            Id: Guid.NewGuid(),
-            Title: title,
-            new Message
-            (
-                Guid.NewGuid(),
-                now,
-                new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-                message
-            ),
-            now,
-            now
-        );
+        return await CreateThread(title, message, ThreadSource.Agent);
+    }
 
-        // TODO - how should we share implementation with process user message and make sure fan out occurs?
-        await _repository.CreateThreadAsync(thread);
-        await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+    public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message)
+    {
+        var thread = await CreateThread(title, message, ThreadSource.Alert);
+        await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
+    }
+
+    public async Task ProcessAlertMessageAsync(ThreadMessage message)
+    {
+        // TODO(jianbosun) - this is a placeholder for the alert message processing
+        // In the future, we may want to add some logic here to handle alert messages differently
+        await ProcessUserMessageAsync(message);
     }
 
     public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
@@ -134,5 +134,33 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             _logger.LogError(ex, "Error processing user message for thread: {ThreadId}", message.ThreadId);
             throw;
         }
+    }
+
+    private async Task<Core.Models.Api.v1.Thread> CreateThread(string title, string message, ThreadSource source)
+    {
+        var now = DateTime.UtcNow;
+        var thread = new Core.Models.Api.v1.Thread
+        (
+            Id: Guid.NewGuid(),
+            Title: title,
+            new Message
+            (
+                Guid.NewGuid(),
+                now,
+                new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+                message,
+                false,
+                new Posted(false)
+            ),
+            now,
+            now,
+            source
+        );
+
+        // TODO - how should we share implementation with process user message and make sure fan out occurs?
+        await _repository.CreateThreadAsync(thread);
+        await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+
+        return thread;
     }
 }

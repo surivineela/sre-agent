@@ -27,7 +27,7 @@ using Agent.Core.Extensions;
 
 namespace Agent.Runtime.TeamsChatServices;
 
-public class TeamsBot : TeamsActivityHandler
+public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 {
     private readonly ILogger<TeamsBot> _logger;
     private readonly IChatClient _chatClient;
@@ -77,8 +77,6 @@ public class TeamsBot : TeamsActivityHandler
 
         // Log credential information (without exposing the actual password)
         _logger.LogInformation($"TeamsBot initialized with AppId: {(_appId != null ? "Configured" : "Not Configured, disable sending proactive messages")}");
-
-        StartMessagePolling();
     }
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
@@ -449,6 +447,16 @@ public class TeamsBot : TeamsActivityHandler
                 await Task.Delay(_pollInterval, _pollingCancellationSource.Token);
             }
         }, _pollingCancellationSource.Token);
+    }
+
+    public void StopMessagePolling()
+    {
+        if (!_isPollingStarted)
+            return;
+
+        _logger.LogInformation("Stopping Teams message polling");
+        _pollingCancellationSource.Cancel();
+        _isPollingStarted = false;
     }
 
     private async Task PollForNewMessages()
