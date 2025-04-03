@@ -256,6 +256,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public sealed class SubscriptionNode : ArmResourceNode
     {
+        public string? SubscriptionName;
+
         public SubscriptionNode() { }
 
         public SubscriptionNode(string subscriptionId) : base()
@@ -271,6 +273,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             return new Dictionary<string, object>
             {
                 { "subscriptionId", SubscriptionId },
+                { "subscriptionName", SubscriptionName }
             };
         }
     }

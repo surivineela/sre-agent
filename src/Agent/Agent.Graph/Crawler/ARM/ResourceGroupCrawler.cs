@@ -1,5 +1,6 @@
 ﻿using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -9,12 +10,14 @@ public class ResourceGroupCrawler : IResourceCrawler
     private readonly ILogger<ResourceGroupCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly AzureResourceGraphClient _graphClient;
+    private readonly ArmClient _armClient;
 
-    public ResourceGroupCrawler(ILogger<ResourceGroupCrawler> logger, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient)
+    public ResourceGroupCrawler(ILogger<ResourceGroupCrawler> logger, IGraphDatabaseClient graphDbClient, AzureResourceGraphClient graphClient, ArmClient armClient)
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
         _graphClient = graphClient;
+        _armClient = armClient;
     }
 
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -27,6 +30,19 @@ public class ResourceGroupCrawler : IResourceCrawler
             rgNode.GetNodeId(),
             rgNode.GetResourceType(),
             rgNode.GetNodeProperties());
+
+        // add or update subscription node for rg subscription
+        var subNode = new SubscriptionNode(rgNode.SubscriptionId);
+        var subscription = _armClient.GetSubscriptions().Get(subNode.SubscriptionId);
+        var subName = subscription?.Value?.Data?.DisplayName;
+        var nodeProperties = subNode.GetNodeProperties();
+        nodeProperties["subscriptionName"] = subName;
+
+        await _graphDbClient.AddOrUpdateNodeAsync(
+            subNode.GetNodeLabel(),
+            subNode.GetNodeId(),
+            subNode.GetResourceType(),
+            nodeProperties);
 
         // get all resources under resource group
         var resources = await _graphClient.Query(

@@ -49,7 +49,7 @@ public class ArmResourceCrawlerFactory
 
             if (Constants.ResourceGroupType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))
             {
-                return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), _graphDbClient, _graphClient);
+                return new ResourceGroupCrawler(_loggerFactory.CreateLogger<ResourceGroupCrawler>(), _graphDbClient, _graphClient, armClient);
             }
 
             if (Constants.ContainerAppEnvironmentType.Equals(armNode.ResourceType, StringComparison.OrdinalIgnoreCase))

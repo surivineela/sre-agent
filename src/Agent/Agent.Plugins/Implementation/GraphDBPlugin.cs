@@ -767,8 +767,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             try
             {
                 string query = @"
-                g.V()
-                .properties('subscriptionId')
+               g.V().has('resourceType', 'subscription').properties('subscriptionName', 'subscriptionId')
                 .value()
                 .dedup()
                 ";

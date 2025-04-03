@@ -22,10 +22,17 @@ public class SubscriptionCrawler : IResourceCrawler
     {
         var subNode = (SubscriptionNode)node;
         _logger.LogDebug($"Crawling for subscription {subNode.SubscriptionId}");
-        await _graphDbClient.AddOrUpdateNodeAsync(subNode.GetNodeLabel(), subNode.GetNodeId(), subNode.GetResourceType(), subNode.GetNodeProperties());
 
         var subArmId = SubscriptionResource.CreateResourceIdentifier(subNode.SubscriptionId);
         var subResource = _armClient.GetSubscriptionResource(subArmId);
+
+        // the above subResource does not container subscription data, do a Get to get subname
+        var subscription = _armClient.GetSubscriptions().Get(subNode.SubscriptionId);
+        var subName = subscription?.Value?.Data?.DisplayName;
+
+        var nodeProperties = subNode.GetNodeProperties();
+        nodeProperties["subscriptionName"] = subName;
+        await _graphDbClient.AddOrUpdateNodeAsync(subNode.GetNodeLabel(), subNode.GetNodeId(), subNode.GetResourceType(), nodeProperties);
 
         await foreach (var rg in subResource.GetResourceGroups().GetAllAsync())
         {
