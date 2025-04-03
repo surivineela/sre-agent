@@ -1,7 +1,7 @@
 {
   "AlertingId": "c1168c0a-13db-43d0-8188-062d5c273c09",
   "AgentMode": "ICMAgent",
-  "OwningTeam": "WINDOWSAZURECACHE\\PGEscalation",
+  "OwningTeam": "WINDOWSAZURECACHE\\CRI",
   "ActionTimeoutIntervalInMinutes": 15,
   "DefaultHumanInterventionLoop": "",
   "KustoQueries": [

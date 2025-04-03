@@ -465,6 +465,21 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
+        public async Task<string> GetRedisDeploymentHistoryFromGenevaAsync(string cacheName)
+        {
+            var payload = JsonConvert.SerializeObject(new { cacheName });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.RedisDeploymentHistoryWorkflowName, payload, _icmWorkflowSettings.RedisTenantId);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            else
+            {
+                return $"Failed to fetch redis deployment history for cacheName: {cacheName}. StatusCode: {response.StatusCode}. Content: {await response.Content.ReadAsStringAsync()}";
+            }
+        }
+
         public async Task<string> RestartWebApp(string subscriptionId, string webappName, string webspaceName)
         {
             if (_icmWorkflowSettings.ReadOnly)

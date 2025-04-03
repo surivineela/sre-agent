@@ -1,0 +1,22 @@
+{
+    "AlertingId": "c1168c0a-13db-43d0-8188-062d5c273c11",
+    "AgentMode": "ICMAgent",
+    "OwningTeam": "WINDOWSAZURECACHE\\AUTOMATION",
+    "ActionTimeoutIntervalInMinutes": 15,
+    "DefaultHumanInterventionLoop": "",
+    "KustoQueries": [
+      {
+        "Title": "",
+        "KustoQuery": ""
+      }
+    ],
+    "IncidentProcessingGuide": [
+      "  - If the incident is pertaining to Azure Redis Cache, then extract the following deployment history from the Incident:",
+      "    - Redis cache name",
+      "    - Incident Title",
+      "    - User Ask",
+      "  - Execute the relevant Geneva Action to fetch the deployment history for the redis cache(s). Let the output of this be DEPLOYMENT_HISTORY.",
+      "  - Create a well formatted section with the first 20 lines of DEPLOYMENT_HISTORY and the details of the attachment file and post it into the incident discussion."
+    ],
+    "Owners": [ "ajsharm", "yifguo", "anutuli", "shgup" ]
+  }

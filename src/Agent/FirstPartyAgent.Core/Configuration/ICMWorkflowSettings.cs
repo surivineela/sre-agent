@@ -31,6 +31,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string RebootWorkerWorkflowName { get; set; } = string.Empty;
         public string RedisTenantId { get; set; } = string.Empty;
         public string RedisDeploymentDetailsWorkflowName { get; set; } = string.Empty;
+        public string RedisDeploymentHistoryWorkflowName { get; set; } = string.Empty;
         public string AddIncidentTagWorkflowName { get; set; } = string.Empty;
         public string ApplensPluginWorkflowName { get; set; } = string.Empty;
         public string HumanInterventionServiceName { get; set; } = string.Empty;
