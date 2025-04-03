@@ -58,3 +58,5 @@ Another option is to leave the connection string blank so it uses the emulator. 
 Run the emulator using: `./src/run-durable-emulator.ps1`
 
 [Next: Running the Application](running-the-app.md) 
+
+[FAQs: Check frequently faced issues in development setup](development-setup-faqs.md)
