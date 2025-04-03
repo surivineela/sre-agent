@@ -22,6 +22,11 @@ public interface IThreadRepository
     Task<Message> AddMessageAsync(Guid threadId, Message message);
     Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId);
 
+    Task<ThreadContext> GetThreadContextAsync(Guid threadId);
+    Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null);
+    Task<ThreadContext> AddThreadContextAsync(ThreadContext context);
+    Task<bool> DeleteThreadContextAsync(Guid threadId);
+
     Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null);
     Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);

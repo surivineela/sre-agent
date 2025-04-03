@@ -84,8 +84,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            ThreadContext threadContext = new ThreadContext(message.ThreadId);
-            orchestrationInstanceId = await _threadService.GetOrchestrationInstanceId(threadContext);
+            ThreadContext threadContext = await _repository.GetThreadContextAsync(message.ThreadId);
+            orchestrationInstanceId = threadContext != null ? await _threadService.GetOrchestrationInstanceId(threadContext) : orchestrationInstanceId;
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
             {

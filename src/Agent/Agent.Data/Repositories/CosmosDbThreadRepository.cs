@@ -376,6 +376,90 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 
+    #region ThreadContext Operations
+    public async Task<ThreadContext> GetThreadContextAsync(Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            var threadContextDocId = ThreadContextDocument.GetId(threadIdStr);
+
+            ThreadContextDocument threadContextDoc = await GetDocumentAsync<ThreadContextDocument>(threadContextDocId, threadContextDocId);
+
+            return threadContextDoc?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null)
+    {
+        var threads = new List<ThreadContext>();
+
+        // Query for thread documents
+        var query = _container.GetItemLinqQueryable<ThreadContextDocument>()
+            .Where(t => t.DocumentType == "ThreadContext");
+
+        // Apply OData filters here if needed
+        // This is a simplified example without full OData support
+
+        if (skip.HasValue)
+            query = query.Skip(skip.Value);
+
+        if (take.HasValue)
+            query = query.Take(take.Value);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var threadContextDoc in await iterator.ReadNextAsync())
+            {
+                threads.Add(threadContextDoc.ToDomainModel());
+            }
+        }
+
+        return threads;
+    }
+
+    public async Task<ThreadContext> AddThreadContextAsync(ThreadContext threadContext)
+    {
+        // Ensure IDs are set
+        if (threadContext.ThreadId == Guid.Empty)
+            threadContext = new ThreadContext(Guid.NewGuid());
+
+        // Then create the thread
+        ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
+        await _container.CreateItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
+
+        return threadContext;
+    }
+
+    public async Task<bool> DeleteThreadContextAsync(Guid threadId)
+    {
+        string threadIdStr = threadId.ToString();
+        var threadContextDocId = ThreadContextDocument.GetId(threadIdStr);
+
+
+        try
+        {
+            // Finally delete the thread
+            await _container.DeleteItemAsync<ThreadDocument>(
+                threadContextDocId,
+                new PartitionKey(threadContextDocId)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+    #endregion
+
     #region Action Operations
 
     public async Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null)

@@ -73,6 +73,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                 };
 
                 var threadContext = new ThreadContext(thread.Id);
+                await _threadRepository.AddThreadContextAsync(threadContext);
 
                 var instanceId = await _cveAgentFactory.StartOrchestration(input, threadContext);
 

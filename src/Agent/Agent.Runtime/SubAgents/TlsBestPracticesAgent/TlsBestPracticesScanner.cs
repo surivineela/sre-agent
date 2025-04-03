@@ -89,6 +89,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                 };
 
                 var threadContext = new ThreadContext(thread.Id);
+                await _threadRepository.AddThreadContextAsync(threadContext);
 
                 var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, threadContext);
 

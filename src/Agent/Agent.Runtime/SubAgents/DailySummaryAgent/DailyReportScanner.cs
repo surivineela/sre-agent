@@ -181,6 +181,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 DashboardSummary = dashboardSummary
             };
             var threadContext = new ThreadContext(thread.Id);
+            await _threadRepository.AddThreadContextAsync(threadContext);
 
             // Start the agent orchestration
             var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, threadContext);

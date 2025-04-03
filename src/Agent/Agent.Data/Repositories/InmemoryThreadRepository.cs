@@ -7,6 +7,8 @@ using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Action = Agent.Core.Models.Api.v1.Action;
+using System;
+using System.Threading;
 
 namespace Agent.Data.Repositories
 {
@@ -17,6 +19,7 @@ namespace Agent.Data.Repositories
     public class InmemoryThreadRepository : IThreadRepository
     {
         private readonly Dictionary<Guid, Thread> _threads = new();
+        private readonly Dictionary<Guid, ThreadContext> _threadContexts = new();
         private readonly Dictionary<(Guid ThreadId, Guid MessageId), Message> _messages = new();
         private readonly Dictionary<(Guid ThreadId, Guid ActionId), Action> _actions = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
@@ -193,6 +196,52 @@ namespace Agent.Data.Repositories
 
         #endregion
 
+        #region ThreadContext Operations
+
+        public Task<ThreadContext> GetThreadContextAsync(Guid threadId)
+        {
+            _threadContexts.TryGetValue(threadId, out var action);
+            return Task.FromResult(action);
+        }
+
+        public Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null)
+        {
+            IEnumerable<ThreadContext> threadContexts = _threadContexts.Values;
+
+            // Apply skip if specified
+            if (skip.HasValue)
+            {
+                threadContexts = threadContexts.Skip(skip.Value);
+            }
+
+            // Apply take if specified
+            if (take.HasValue)
+            {
+                threadContexts = threadContexts.Take(take.Value);
+            }
+
+            return Task.FromResult(threadContexts);
+        }
+
+        public Task<ThreadContext> AddThreadContextAsync(ThreadContext context)
+        {
+            // Ensure ID is set
+            if (context.ThreadId == Guid.Empty)
+                context = new ThreadContext(Guid.NewGuid());
+
+            _threadContexts[context.ThreadId] = context;
+
+            return Task.FromResult(context);
+        }
+
+        public Task<bool> DeleteThreadContextAsync(Guid threadId)
+        {
+            _threadContexts.Remove(threadId);
+            return Task.FromResult(true);
+        }
+
+        #endregion
+
         #region Action Operations
 
         public Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null)
@@ -230,7 +279,6 @@ namespace Agent.Data.Repositories
                 throw;
             }
         }
-
         #endregion
     }
 }

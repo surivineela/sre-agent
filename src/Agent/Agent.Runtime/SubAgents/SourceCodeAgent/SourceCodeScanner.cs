@@ -78,6 +78,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 };
 
                 var threadContext = new ThreadContext(thread.Id);
+                await _threadRepository.AddThreadContextAsync(threadContext);
 
                 var instanceId = await _sourceCodeAgentFactory.StartOrchestration(input, threadContext);
 
