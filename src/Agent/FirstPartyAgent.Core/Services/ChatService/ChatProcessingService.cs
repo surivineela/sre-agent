@@ -1,4 +1,4 @@
-﻿using Agent.Core;
+using Agent.Core;
 using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
