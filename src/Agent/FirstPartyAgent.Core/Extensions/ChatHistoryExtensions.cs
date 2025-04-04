@@ -7,10 +7,11 @@
 // -----------------------------------------------------------
 
 using System.Text;
+using FirstPartyAgent.Core.Extensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
 
-namespace Agent.Core.Extensions
+namespace FirstPartyAgent.Core.Extensions
 {
     public static class ChatHistoryExtensions
     {
@@ -36,7 +37,7 @@ namespace Agent.Core.Extensions
 
         private static string Substring(string message, int length)
         {
-            StringBuilder sb = new StringBuilder();
+            var sb = new StringBuilder();
 
             foreach (var line in message.Split(Environment.NewLine))
             {

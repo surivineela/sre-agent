@@ -2,7 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-namespace Agent.Core.Models;
+namespace FirstPartyAgent.Core.Models;
 
 public record ChatMessage()
 {

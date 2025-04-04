@@ -6,7 +6,7 @@ using System.Text.Json;
 using Agent.Core.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Core.Helpers;
+namespace FirstPartyAgent.Helpers;
 
 public static class TrackedActionHelper
 
@@ -55,7 +55,7 @@ public static class TrackedActionHelper
             {
                 AgentId = agentId,
                 ResourceId = resourceId,
-                Type = (ActionType)type,
+                Type = type,
                 Status = ActionStatus.Initiated,
                 Description = description,
                 Metadata = metadata ?? new Dictionary<string, string>(),

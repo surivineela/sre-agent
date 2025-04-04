@@ -223,23 +223,6 @@ public class SubscriptionPlugin
                         ResourceGroup: appService.Data.ResourceGroup);
 
                     appServices.Add(appDescriptor);
-
-                    // Track the app service state
-                    TrackedActionHelper.TrackAction(
-                        agentId: AGENT_ID,
-                        resourceId: appService.Id.ToString(),
-                        type: ActionType.AppStateTracking,
-                        description: $"Tracked state for {appService.Data.Name}",
-                        metadata: new Dictionary<string, string>
-                        {
-                            ["name"] = appService.Data.Name,
-                            ["kind"] = appService.Data.Kind,
-                            ["state"] = appService.Data.State,
-                            ["sku"] = appService.Data.Sku ?? "N/A",
-                            ["location"] = appService.Data.Location,
-                            ["resourceGroup"] = appService.Data.ResourceGroup
-                        },
-                        logger: _logger);
                 }
             }
         }

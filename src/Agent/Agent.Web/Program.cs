@@ -11,7 +11,6 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
-using Agent.Plugins.CodeAnalyzer;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Plugins.PeriodicMonitor;
@@ -122,7 +121,6 @@ if (useSessionChatService)
         .AddSingleton<IMetricsPlugin, MetricsPlugin>()
         .AddSingleton<MetricsPluginDefinition>()
         .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
-        .AddSingleton<CodeAnalyzerService>()
         .AddSingleton<Agent.Plugins.Models.GitHubClient>()
         .AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>()
         .AddSingleton<GitHubIssuePluginDefinition>()
