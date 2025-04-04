@@ -1,0 +1,20 @@
+# Set default behavior to automatically normalize line endings
+* text=auto
+
+# Declare files that should always have CRLF line endings
+*.bat text eol=crlf
+*.cmd text eol=crlf
+*.ps1 text eol=crlf
+
+# Denote binary files
+*.png binary
+*.jpg binary
+*.gif binary
+*.zip binary
+*.cat binary
+*.inf binary
+*.sys binary
+
+# linux files should end in lf
+*.sh text eol=lf
+*.lua text eol=lf
