@@ -28,6 +28,7 @@ using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Models.Api.v1;
 using Agent.Tests.Integration.Helpers;
+using Agent.Runtime.SubAgents.AppReliabilityAgent;
 
 namespace Agent.Tests.Integration;
 
@@ -95,9 +96,11 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<ToolsRepository>();
                 services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
                 services.AddSingleton<TlsBestPracticeAgentFactory>();
+                services.AddSingleton<AppReliabilityAgentFactory>();
                 services.AddSingleton<Runtime.MetaAgent.IAgent, MetaAgent>();
                 services.AddSingleton<ManagedIdentityMigrationPlugin>();
                 services.AddSingleton<TlsBestPracticesPlugin>();
+                services.AddSingleton<AppReliabilityPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
 
                 services.AddDurableTaskWorker(builder =>
@@ -124,6 +127,11 @@ public class MetaAgentTests : IAsyncLifetime
             new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app1", ResourceId : $"{BaseResourceId}/app1", Location:"eastus" ),
             new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app2", ResourceId : $"{BaseResourceId}/app2", Location:"eastus" ),
         };
+    private readonly List<AppReliability> _testApps2 = new List<AppReliability>
+    {
+        new AppReliability ($"{BaseResourceId}/app1", false, false, false, 1),
+        new AppReliability ($"{BaseResourceId}/app2", false, true, false, 2)
+    };
 
     [Fact]
     public async Task StartTlsBestPracticeAgent()
@@ -160,6 +168,40 @@ public class MetaAgentTests : IAsyncLifetime
             getInputsAndOutputs: true);
     }
 
+    [Fact]
+    public async Task StartAppReliabilityAgent()
+    {
+
+        var message = new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, "hello", "User"), $"Help me to apply best practices for app reliability. Here are my apps: {JsonSerializer.Serialize(_testApps2)}, I want to upgrade the AlwaysOn to true, HealthCheck to true, AutoHeal to true, and NumberOfWorkers to 3");
+        // generate threadId for this background task
+        var threadId = Guid.NewGuid(); ;
+        var context = new ThreadContext(threadId);
+
+        var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
+        var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
+        var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
+
+        var resp = await metaAgent.ProcessUserMessage(context);
+
+        var relOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+        {
+            FetchInputsAndOutputs = true
+        }).ToListAsync()).Single();
+        var input = JsonSerializer.Deserialize<AppReliabilityAgentInput>(relOrche.SerializedInput.ThrowIfNull()).ThrowIfNull().Input;
+
+        Assert.True(input.AppsInViolation.SequenceEqual(_testApps2));
+
+        await Helper.DoApproval(
+            durableTaskClient,
+            timeProvider,
+            relOrche.InstanceId,
+            cancellationToken: default);
+
+        var orchestrationMetadata = await durableTaskClient.WaitForInstanceCompletionAsync(
+            relOrche.InstanceId,
+            getInputsAndOutputs: true);
+    }
+
     async Task IAsyncLifetime.InitializeAsync()
     {
         await Cleanup();
@@ -174,6 +216,7 @@ public class MetaAgentTests : IAsyncLifetime
     {
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         await Helper.CleanupAllOrchestration<TlsBestPracticesAgent>(durableTaskClient);
+        await Helper.CleanupAllOrchestration<AppReliabilityAgent>(durableTaskClient);
     }
 }
 

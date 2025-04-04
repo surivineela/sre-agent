@@ -77,7 +77,6 @@ namespace Agent.Runtime
                 });
         }
     }
-
 }
 
 public class ApprovalPlugin : IApprovalPlugin

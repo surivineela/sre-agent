@@ -61,6 +61,8 @@ Before proceeding with any Azure resource operations:
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 - **Storage Account Remediation**: Help users with making changes storage account settings
 - **Kubernetes Agent**: Help users with any queries related to Azure Kubernetes Service (AKS)
+- **App Reliability**: Delegate to this plugin to help users improve the reliability of their Azure applications
+
 
 ## Core Responsibilities
 1. **Request Triage**: Determine if a user request is related to Azure SRE concerns
@@ -70,6 +72,7 @@ Before proceeding with any Azure resource operations:
    - For any issues related to Azure WebApp or Function app or App Service, call `startAppServiceRemediationAgent`
    - For any issues related to Azure Container Apps, call `startContainerAppsRemediationAgent`
    - To link repo urls to Azure Container Apps, call `startSourceCodeAgent`
+   - For any issues related to Azure App Service Reliability or Resilience, call `startAppReliabilityAgent`
    - Similar to this pattern, you can delegate to other task-based agents if registered accordingly.
 3. **Workflow Management**: Start, monitor, and summarize various Azure-related workflows or orchestrations.
 
@@ -121,6 +124,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly SourceCodePlugin _sourceCodePlugin;
     private readonly StorageAccountPlugin _storageAccountPlugin;
+    private readonly AppReliabilityPlugin _appReliabilityPlugin;
     private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
@@ -140,7 +144,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
-        SourceCodePlugin sourceCodePlugin)
+        SourceCodePlugin sourceCodePlugin,
+        AppReliabilityPlugin appReliabilityPlugin)
     {
         _chatClient = chatClient;
         _threadService = threadService;
@@ -161,6 +166,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _sourceCodePlugin = sourceCodePlugin;
 
         _graphDbPlugin = graphDBPlugin;
+        _appReliabilityPlugin = appReliabilityPlugin;
     }
 
     public async Task<string> ProcessUserMessage(ThreadContext ctx)
@@ -179,6 +185,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _kubernetesAgentPlugin.Context = ctx;
         _sourceCodePlugin.Context = ctx;
         _graphDbPlugin.Context = ctx;
+        _appReliabilityPlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.Context = ctx;
@@ -195,6 +202,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent),
             AIFunctionFactory.Create(_tlsBestPracticesPlugin.ListTlsBestPracticeWorkflows),
             AIFunctionFactory.Create(_tlsBestPracticesPlugin.StartTlsBestPracticeAgent),
+            AIFunctionFactory.Create(_appReliabilityPlugin.ListAppReliabilityWorkflows),
+            AIFunctionFactory.Create(_appReliabilityPlugin.StartAppReliabilityAgent),
             AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
             AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
             AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),

@@ -9,6 +9,7 @@
 @using Microsoft.JSInterop
 @using System.Text.Json
 @using System.Text.Json.Serialization
+@using Microsoft.JSInterop.Implementation
 @inject NavigationManager Navigation
 @inject IHttpClientFactory HttpClientFactory
 @inject IJSRuntime JS
@@ -482,7 +483,7 @@
         }
     }
 
-    private IJSObjectReference? _layoutManager;
+    private JSObjectReference? _layoutManager;
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -491,7 +492,7 @@
             try
             {
                 // Initialize layout manager
-                _layoutManager = await JS.InvokeAsync<IJSObjectReference>("initializeChatLayout");
+                _layoutManager = await JS.InvokeAsync<JSObjectReference>("initializeChatLayout");
 
                 // Load saved session data
                 await LoadSavedSession();

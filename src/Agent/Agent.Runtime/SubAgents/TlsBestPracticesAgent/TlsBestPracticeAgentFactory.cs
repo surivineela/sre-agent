@@ -77,9 +77,9 @@ public sealed class TlsBestPracticeAgentFactory
         return instanceId;
     }
 
-    public TlsBestPracticesInput DeserializeInput(string serializedOrchestraionInput)
+    public TlsBestPracticesInput DeserializeInput(string serializedOrchestrationInput)
     {
-        return JsonSerializer.Deserialize<TlsBestPracticesAgentInput>(serializedOrchestraionInput).ThrowIfNull().Input;
+        return JsonSerializer.Deserialize<TlsBestPracticesAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }
 }
 

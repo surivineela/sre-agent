@@ -75,7 +75,7 @@ namespace Agent.Runtime
 
             if (approvalEvent.IsApproved)
             {
-                var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** recieved at {approvalEvent.ApprovedTime}";
+                var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** received at {approvalEvent.ApprovedTime}";
                 _logger.LogInformation(approvalString);
 
                 // HACK HACK HACK
@@ -114,7 +114,7 @@ namespace Agent.Runtime
         {
             var (approvalInput, approvalEvent) = input;
             
-            string timeoutMessage = $"Approval was not recieved within the timeout period. Operation timed out at {approvalEvent.ProcessedTime}";
+            string timeoutMessage = $"Approval was not received within the timeout period. Operation timed out at {approvalEvent.ProcessedTime}";
             _logger.LogInformation(timeoutMessage);
             var outputMessage = new ChatMessage(ChatRole.System, timeoutMessage);
 

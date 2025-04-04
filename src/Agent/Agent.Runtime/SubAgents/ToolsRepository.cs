@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -36,6 +36,7 @@ public sealed class ToolsRepository : IMcpConnectable
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IGraphDBPlugin graphDBPlugin,
+        IReliabilityPlugin reliabilityPlugin,
         IGrafanaPlugin grafanaPlugin,
         IContainerAppPlugin containerAppPlugin,
         IKubePlugin kubernetesAgentPlugin,
@@ -129,6 +130,17 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync);
         Register200(() => containerAppPluginDefinition.ScaleContainerApp);
 
+        var reliabilityPluginDefinition = new ReliabilityPluginDefinition(reliabilityPlugin);
+        Register200(() => reliabilityPluginDefinition.UpdateAutoHeal);
+        Register200(() => reliabilityPluginDefinition.UpdateAlwaysOn);
+        Register200(() => reliabilityPluginDefinition.UpdateHealthCheck);
+        Register200(() => reliabilityPluginDefinition.UpdateHostWorkers);
+        Register200(() => reliabilityPluginDefinition.GetReliabilityStatusForSubscriptions);
+        Register200(() => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus);
+        Register202(
+           submitFunctionSelector: () => reliabilityPluginDefinition.GetAppsToMonitor,
+           executeFunctionSelector: () => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus);
+
         var kubernetesAgentPluginDefinition = new KubePluginDefinition(kubernetesAgentPlugin);
         Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentsAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubeNamespacesAsync);
@@ -186,6 +198,8 @@ public sealed class ToolsRepository : IMcpConnectable
         // This will throw if entry not found
         return _aiFunctions[signature];
     }
+
+    public Dictionary<string, IToolFunction> GetAllFunctions() => _aiFunctions;
 
     private static string GetSignature(MethodInfo method)
     {

@@ -7,10 +7,14 @@ using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
+using Octokit;
 using System.Text;
 using System.Text.Json;
 
@@ -542,6 +546,119 @@ public class ArmHelper
             AllowBlobPublicAccess = false
         };
         await storageAccountResource.UpdateAsync(storageAccountPatch);
+    }
+    public async Task<bool> UpdateAutoHeal(string resourceId, bool autoHealEnabled, AutoHealRules autoHealRules)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required");
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
+
+        var requestBody = new
+        {
+            properties = new
+            {
+                autoHealEnabled = autoHealEnabled,
+                autoHealRules = autoHealRules
+            }
+        };
+
+        string jsonBody = JsonSerializer.Serialize(requestBody);
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, armUrl)
+        {
+            Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+        };
+
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        return response.IsSuccessStatusCode;
+    }
+
+
+    public async Task<bool> UpdateNumberOfWorkersAppService(string resourceId, int numberOfWorkers)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required");
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
+
+        var requestBody = new
+        {
+            properties = new
+            {
+                numberOfWorkers = numberOfWorkers
+            }
+        };
+
+        string jsonBody = JsonSerializer.Serialize(requestBody);
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, armUrl)
+        {
+            Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+        };
+
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateAlwaysOn(string resourceId, bool alwaysOn)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required");
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
+
+        var requestBody = new
+        {
+            properties = new
+            {
+                alwaysOn = alwaysOn
+            }
+        };
+
+        string jsonBody = JsonSerializer.Serialize(requestBody);
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, armUrl)
+        {
+            Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+        };
+
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<bool> UpdateHealthcheck(string resourceId, string healthCheckPath)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required");
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
+
+        var requestBody = new
+        {
+            properties = new
+            {
+                healthCheckPath = healthCheckPath
+            }
+        };
+
+        string jsonBody = JsonSerializer.Serialize(requestBody);
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, armUrl)
+        {
+            Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+        };
+
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        return response.IsSuccessStatusCode;
     }
 
     private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId)

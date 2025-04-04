@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -55,6 +55,10 @@ public class AppServicePlugin : IAppServicePlugin
             string sku = GetFirstPropertyValue(properties, "sku") ?? "Unknown";
             string state = GetFirstPropertyValue(properties, "state") ?? "Unknown";
             string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
+            int numberOfWOrkers = int.TryParse(GetFirstPropertyValue(properties, "numberOfWorkers"), out int numWorkers) ? numWorkers : 1;
+            bool autoHealEnabled = bool.TryParse(GetFirstPropertyValue(properties, "autoHealEnabled"), out bool autoHeal) ? autoHeal : false;
+            bool alwaysOnEnabled = bool.TryParse(GetFirstPropertyValue(properties, "alwaysOnEnabled"), out bool alwaysOn) ? alwaysOn : false;
+            bool healthCheckEnabled = bool.TryParse(GetFirstPropertyValue(properties, "healthCheckEnalbled"), out bool healthCheck) ? healthCheck : false;
 
             return new AppServiceDescriptor(
                 ResourceId: resourceId,
@@ -63,7 +67,11 @@ public class AppServicePlugin : IAppServicePlugin
                 Location: location,
                 Sku: sku,
                 State: state,
-                ResourceGroup: resourceGroup);
+                ResourceGroup: resourceGroup,
+                NumberOfWorkers: numberOfWOrkers,
+                AutoHealEnabled: autoHealEnabled,
+                AlwaysOn: alwaysOnEnabled,
+                HealthCheckEnabled: healthCheckEnabled);
         }
         catch (Exception ex)
         {
@@ -111,6 +119,10 @@ public class AppServicePlugin : IAppServicePlugin
                 string sku = GetFirstPropertyValue(properties, "sku") ?? "Unknown";
                 string state = GetFirstPropertyValue(properties, "state") ?? "Unknown";
                 string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
+                int numberOfWOrkers = int.TryParse(GetFirstPropertyValue(properties, "numberOfWorkers"), out int numWorkers) ? numWorkers : 1;
+                bool autoHealEnabled = bool.TryParse(GetFirstPropertyValue(properties, "autoHealEnabled"), out bool autoHeal) ? autoHeal : false;
+                bool alwaysOnEnabled = bool.TryParse(GetFirstPropertyValue(properties, "alwaysOnEnabled"), out bool alwaysOn) ? alwaysOn : false;
+                bool healthCheckEnabled = bool.TryParse(GetFirstPropertyValue(properties, "healthCheckEnalbled"), out bool healthCheck) ? healthCheck : false;
 
                 var appServiceDescriptor = new AppServiceDescriptor(
                     ResourceId: resourceId,
@@ -119,7 +131,11 @@ public class AppServicePlugin : IAppServicePlugin
                     Location: location,
                     Sku: sku,
                     State: state,
-                    ResourceGroup: resourceGroup);
+                    ResourceGroup: resourceGroup,
+                    NumberOfWorkers: numberOfWOrkers,
+                    AutoHealEnabled: autoHealEnabled,
+                    AlwaysOn: alwaysOnEnabled,
+                    HealthCheckEnabled: healthCheckEnabled);
 
                 appServices.Add(appServiceDescriptor);
             }

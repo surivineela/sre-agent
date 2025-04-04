@@ -45,7 +45,11 @@ public class SubscriptionPlugin
         string Location,
         string Sku,
         string State,
-        string ResourceGroup);
+        string ResourceGroup,
+        int? NumberOfWorkers,
+        bool? AutoHealEnabled,
+        bool? AlwaysOn,
+        bool? HealthCheckEnabled);
 
     [Description("The id and display name of an Azure subscription")]
     public sealed record SubscriptionDescriptor(
@@ -220,7 +224,11 @@ public class SubscriptionPlugin
                         Location: appService.Data.Location,
                         Sku: appService.Data.Sku ?? "N/A",
                         State: appService.Data.State,
-                        ResourceGroup: appService.Data.ResourceGroup);
+                        ResourceGroup: appService.Data.ResourceGroup,
+                        NumberOfWorkers: appService.Data.SiteConfig.NumberOfWorkers,
+                        AutoHealEnabled: appService.Data.SiteConfig.IsAutoHealEnabled,
+                        AlwaysOn: appService.Data.SiteConfig.IsAlwaysOn,
+                        HealthCheckEnabled: !string.IsNullOrWhiteSpace(appService.Data.SiteConfig.HealthCheckPath));
 
                     appServices.Add(appDescriptor);
                 }

@@ -41,7 +41,6 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
         }
         catch (Exception ex)
         {
-            //Logger.LogError(ex, "Error getting next action");
             throw;
         }
     }

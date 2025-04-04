@@ -30,6 +30,7 @@ using Agent.Runtime.SubAgents.StorageAccountAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
+using Agent.Runtime.SubAgents.AppReliabilityAgent;
 using Agent.Seb.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Bot.Builder;
@@ -130,6 +131,10 @@ if (useSessionChatService)
         .AddSingleton<ArmResourceCrawlerFactory>()
         .AddSingleton<ResourceGraphCrawler>()
         .AddSingleton<RemediationPluginDefinition>()
+        .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
+        .AddSingleton<ReliabilityPluginDefinition>()
+        .AddSingleton<AppReliabilityPlugin>()
+        .AddSingleton<AppReliabilityAgentFactory>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
         .AddSingleton<IGraphDbService, GraphDbService>()

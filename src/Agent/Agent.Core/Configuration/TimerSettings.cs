@@ -13,6 +13,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public int BestPracticeScanIntervalInMinutes { get; set; } = 5;
+
+        [Required]
+        public int ReliabilityScanIntervalInMinutes { get; set; } = 60;
     }
 }
-

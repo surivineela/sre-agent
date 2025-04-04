@@ -14,6 +14,9 @@ namespace Agent.Plugins
         string Location,
         string Sku,
         string State,
-        string ResourceGroup);
+        string ResourceGroup,
+        int? NumberOfWorkers,
+        bool? AutoHealEnabled,
+        bool? AlwaysOn,
+        bool? HealthCheckEnabled);
 }
-

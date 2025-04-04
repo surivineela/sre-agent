@@ -12,6 +12,7 @@ namespace Agent.Plugins.Mocks
         private readonly TimeProvider _timeProvider;
         private readonly MockApprovalPlugin _approvalPlugin;
         private readonly Dictionary<string, TlsStatus> _tlsStatuses = new();
+        private readonly Dictionary<string, AppReliability> _reliabilityStatuses = new();
 
         public MockArmPlugin(TimeProvider timeProvider, MockApprovalPlugin approvalPlugin)
         {
@@ -59,6 +60,24 @@ namespace Agent.Plugins.Mocks
         public Task<bool> RestartWebApp(string appResourceId)
         {
             return Task.FromResult(true);
+        }
+
+        public void ConfigureReliability(
+            IReadOnlyDictionary<string, AppReliability> statuses)
+        {
+            _reliabilityStatuses.Clear();
+            _reliabilityStatuses.AddOrSetRange(statuses);
+        }
+
+        public Tuple<bool, bool, bool, int> GetAppReliability(string appResourceId)
+        {
+            if (!_tlsStatuses.ContainsKey(appResourceId))
+            {
+                throw new ArgumentException($"Resource {appResourceId} not found");
+            }
+            var ar = _reliabilityStatuses[appResourceId];
+            var status = new Tuple<bool, bool, bool, int>(ar.AlwaysOnEnabled, ar.HealthCheckEnabled, ar.AutoHealEnabled, ar.NumberOfWorkers);
+            return status;
         }
 
         public Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
