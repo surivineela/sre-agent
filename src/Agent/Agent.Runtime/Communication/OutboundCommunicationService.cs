@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
@@ -29,8 +30,9 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _sinkService = sinkService;
     }
 
-    public async Task UpdateThreadWithAgentMessageAsync(string threadId, string orchestrationInstanceId, ChatMessage message)
+    public async Task UpdateThreadWithAgentMessageAsync(ThreadContext? threadContext, string orchestrationInstanceId, ChatMessage message)
     {
+        var threadId = threadContext?.ThreadId.ToString() ?? string.Empty;
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
             await _mappingManager.AddMappingAsync(threadId, orchestrationInstanceId);
@@ -38,26 +40,18 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
 
-        if (Guid.TryParse(threadId, out var guidThreadId))
-        {
-            // Use SinkService instead of directly accessing repository
-            await _sinkService.SinkAgentMessageAsync(guidThreadId, message.Text ?? string.Empty);
-        }
-        else
-        {
-            _logger.LogWarning("Invalid thread ID format: {ThreadId}", threadId);
-        }
+        await _sinkService.SinkAgentMessageAsync(threadContext, message.Text ?? string.Empty);
     }
 
-    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+    public async Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message)
     {
-        if (threadId == Guid.Empty)
+        if (threadContext == null || threadContext.ThreadId == Guid.Empty)
         {
-            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadContext));
         }
 
         // Use SinkService to add the image message
-        return await _sinkService.SinkAgentMessageAsync(threadId, message, true);
+        return await _sinkService.SinkAgentMessageAsync(threadContext, message, true);
     }
 
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)

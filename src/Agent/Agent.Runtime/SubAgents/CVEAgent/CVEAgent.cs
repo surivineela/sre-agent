@@ -41,11 +41,6 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
             return "success";
         }
-
-        protected override async Task OnPlanComplete(TaskOrchestrationContext context, string threadId)
-        {
-            await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(threadId, context.InstanceId, "Thanks for your help!"));
-        }
     }
 
     [DurableTask]
@@ -73,7 +68,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
             await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                agentInput.Context.ThreadId.ToString(),
+                agentInput.Context,
                 context.InstanceId,
                 newMessage);
 

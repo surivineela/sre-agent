@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -19,7 +20,7 @@ namespace Agent.Tests.Integration.Mocks
 
         public List<string> Messages { get; } = new List<string>();
 
-        public Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+        public Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message)
         {
             throw new NotImplementedException();
         }
@@ -37,9 +38,9 @@ namespace Agent.Tests.Integration.Mocks
             return Task.CompletedTask;
         }
 
-        public Task UpdateThreadWithAgentMessageAsync(string threadId, string agentId, ChatMessage message)
+        public Task UpdateThreadWithAgentMessageAsync(ThreadContext? threadContext, string agentId, ChatMessage message)
         {
-            _logger.LogInformation($"ThreadId: {threadId}, AgentId: {agentId}, Message: {message.Text}");
+            _logger.LogInformation($"ThreadId: {threadContext?.ThreadId}, AgentId: {agentId}, Message: {message.Text}");
             Messages.Add(message.Text);
             return Task.CompletedTask;
         }

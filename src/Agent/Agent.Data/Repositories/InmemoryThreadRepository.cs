@@ -234,6 +234,17 @@ namespace Agent.Data.Repositories
             return Task.FromResult(context);
         }
 
+        public Task<ThreadContext> UpdateThreadContextAsync(ThreadContext context)
+        {
+            // Ensure ID is set
+            if (context.ThreadId == Guid.Empty)
+                context = new ThreadContext(Guid.NewGuid());
+
+            _threadContexts[context.ThreadId] = context;
+
+            return Task.FromResult(context);
+        }
+
         public Task<bool> DeleteThreadContextAsync(Guid threadId)
         {
             _threadContexts.Remove(threadId);

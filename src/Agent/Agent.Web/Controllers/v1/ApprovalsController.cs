@@ -20,17 +20,20 @@ namespace Agent.Web.Controllers.v1
         private readonly ILogger<ApprovalsController> _logger;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+        private readonly IThreadRepository _threadRepository;
 
         public ApprovalsController(
             IApprovalService approvalService, 
             ILogger<ApprovalsController> logger,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
-            DurableTaskClient durableTaskClient)
+            DurableTaskClient durableTaskClient,
+            IThreadRepository threadRepository)
         {
             _approvalService = approvalService;
             _logger = logger;
             _durableTaskClient = durableTaskClient;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
+            _threadRepository = threadRepository;
         }
 
         /// <summary>
@@ -99,7 +102,7 @@ namespace Agent.Web.Controllers.v1
                 InstanceIdPrefix = "approval"
             }).ToListAsync();
 
-            var threadId = "";
+            ThreadContext? threadContext = null;
             var orchestrationId = "";
             foreach (var orchestration in runningApprovalOrchestrations)
             {
@@ -114,7 +117,7 @@ namespace Agent.Web.Controllers.v1
 
                             if (approvalInput != null && approvalInput.ApprovalId.Equals(id, StringComparison.OrdinalIgnoreCase))
                             {
-                                threadId = approvalInput.ThreadId;
+                                threadContext = await _threadRepository.GetThreadContextAsync(Guid.Parse(approvalInput.ThreadId));
                                 orchestrationId = approvalInput.ParentInstanceId;
                                 break;
                             }
@@ -136,7 +139,7 @@ namespace Agent.Web.Controllers.v1
                 return BadRequest(new { error = $"Invalid status value: {request.Status}" });
             }
 
-            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, threadId, orchestrationId);
+            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, threadContext, orchestrationId);
             return Ok();
         }
 

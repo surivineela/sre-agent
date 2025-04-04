@@ -16,7 +16,7 @@ public interface IAgentInboundCommunicationService
     /// </summary>
     /// <param name="title"></param>
     /// <returns></returns>
-    Task<Models.Api.v1.Thread> CreateAgentThread(string title, string message);
+    Task<(Models.Api.v1.Thread, Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message);
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,
@@ -35,7 +35,7 @@ public interface IAgentInboundCommunicationService
     /// <param name="threadId">The ID of the thread to append to</param>
     /// <param name="message">The message content</param>
     /// <returns>The ID of the newly created message</returns>
-    Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
+    Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message);
 
     /// <summary>
     /// Processes a user message, determining if it should be routed to an existing orchestration 

@@ -437,6 +437,19 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threadContext;
     }
 
+    public async Task<ThreadContext> UpdateThreadContextAsync(ThreadContext threadContext)
+    {
+        // Ensure IDs are set
+        if (threadContext.ThreadId == Guid.Empty)
+            return null;
+
+        // Then create the thread
+        ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
+        await _container.UpsertItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
+
+        return threadContext;
+    }
+
     public async Task<bool> DeleteThreadContextAsync(Guid threadId)
     {
         string threadIdStr = threadId.ToString();
@@ -561,4 +574,3 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 }
-

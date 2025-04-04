@@ -25,7 +25,7 @@ namespace Agent.Runtime.Services
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
-        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, string threadId, string orchestrationId)
+        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, ThreadContext? threadContext, string orchestrationId)
         {
             _logger.LogInformation($"Processing approval decision for {approvalId} with status {status}");
 
@@ -47,7 +47,7 @@ namespace Agent.Runtime.Services
                                          $"- **User:** {user}\n" +
                                          $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadContext, orchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
             }
             else if (status == ApprovalDecision.Rejected)
             {
@@ -56,7 +56,7 @@ namespace Agent.Runtime.Services
                        $"- **User:** {user}\n" +
                        $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadContext, orchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
                 throw new NotImplementedException("How do we handle rejections?");
             }
             else

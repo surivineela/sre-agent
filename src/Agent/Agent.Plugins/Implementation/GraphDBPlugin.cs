@@ -204,7 +204,8 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    // TODO: read threadcontext from cosmos db
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(threadId ?? Guid.Empty), $"![DailyReport Dashboard](data:image/png;base64,{base64EncodedGraph})\r\n");
 
                     return "Visualization Rendered!";
                 }
@@ -603,7 +604,8 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                 if (Context != null)
                 {
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(Context.ThreadId, $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
+                    // TODO: read threadcontext from cosmos db
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(Context.ThreadId), $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);
@@ -1181,4 +1183,3 @@ Please provide a highly concise summary with sections for each of the above poin
         #endregion
     }
 }
-

@@ -9,7 +9,8 @@ namespace Agent.Data.DataModels;
 // Extended Thread model for Cosmos DB
 public record ThreadContextDocument(
     string Id,
-    string ThreadId
+    string ThreadId,
+    List<Message> Messages
 ) : ICosmosDocument
 {
     public string DocumentType => "ThreadContext";
@@ -19,12 +20,14 @@ public record ThreadContextDocument(
     public static ThreadContextDocument FromDomainModel(ThreadContext threadContext) =>
         new ThreadContextDocument(
             GetId(threadContext.ThreadId.ToString()),
-            threadContext.ThreadId.ToString()
+            threadContext.ThreadId.ToString(),
+            Messages: threadContext.RecentMessages.ToList()
         );
 
     public ThreadContext ToDomainModel() =>
         new ThreadContext(
-            Guid.Parse(ThreadId)
+            Guid.Parse(ThreadId),
+            new Queue<Message>(Messages)
         );
 
     public static string GetId(string threadId)

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Interfaces;
@@ -15,7 +16,7 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Updates a thread with a message from an agent
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(string threadId, string orchestrationInstanceId, ChatMessage message);
+    Task UpdateThreadWithAgentMessageAsync(ThreadContext? threadContext, string orchestrationInstanceId, ChatMessage message);
     /// <summary>
     /// Notifies about agent task completion
     /// </summary>
@@ -23,6 +24,6 @@ public interface IAgentOutboundCommunicationService
 
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
-    Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
+    Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message);
 
 }

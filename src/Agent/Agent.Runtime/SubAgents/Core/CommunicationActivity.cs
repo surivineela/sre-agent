@@ -5,11 +5,12 @@
 using Microsoft.DurableTask;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.SubAgents.Core;
 
 public record UpdateThreadWithAgentMessageInput(
-    string ThreadId,
+    ThreadContext ThreadContext,
     string InstanceId,
     string Message);
 
@@ -26,7 +27,7 @@ public class UpdateThreadWithAgentMessageActivity : TaskActivity<UpdateThreadWit
     public override async Task<string> RunAsync(TaskActivityContext context, UpdateThreadWithAgentMessageInput input)
     {
         await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-            input.ThreadId,
+            input.ThreadContext,
             input.InstanceId,
             new ChatMessage(ChatRole.Assistant, input.Message));
 

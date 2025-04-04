@@ -25,6 +25,7 @@ public interface IThreadRepository
     Task<ThreadContext> GetThreadContextAsync(Guid threadId);
     Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null);
     Task<ThreadContext> AddThreadContextAsync(ThreadContext context);
+    Task<ThreadContext> UpdateThreadContextAsync(ThreadContext context);
     Task<bool> DeleteThreadContextAsync(Guid threadId);
 
     Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null);

@@ -156,7 +156,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
                 // Call the communication activity
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
-                    ThreadId: threadId,
+                    ThreadContext: threadContext,
                     InstanceId: context.InstanceId,
                     Message: message
                 ));
@@ -290,7 +290,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
                 // Call the communication activity
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
-                    ThreadId: threadId,
+                    ThreadContext: threadContext,
                     InstanceId: context.InstanceId,
                     Message: message
                 ));
@@ -316,7 +316,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
                 // Notify user about approval with the generated link
                 await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
-                    ThreadId: threadId,
+                    ThreadContext: threadContext,
                     InstanceId: context.InstanceId,
                     Message: $"Approval required for: {operationName}. [Click here to approve]({approvalLink})"
                 ));
@@ -427,11 +427,6 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         log.LogInformation("[{ThreadId}] Completion notification sent", threadId);
 
         return chatHistory;
-    }
-
-    protected virtual Task OnPlanComplete(TaskOrchestrationContext context, string threadId)
-    {
-        return Task.CompletedTask;
     }
 
     // Helper method to check if a function has the ThreadSpecific attribute

@@ -19,7 +19,7 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false)
+    public async Task<Guid> SinkAgentMessageAsync(ThreadContext? threadContext, string messageText, bool isImageContent = false)
     {
         var messageId = Guid.NewGuid();
         var agentMessage = new Message(
@@ -33,7 +33,13 @@ public class SinkService
 
         try
         {
-            await _repository.AddMessageAsync(threadId, agentMessage);
+            await _repository.AddMessageAsync(threadContext?.ThreadId ?? Guid.Empty, agentMessage);
+
+            if (threadContext != null)
+            {
+                threadContext.AddMessage(agentMessage);
+                await _repository.UpdateThreadContextAsync(threadContext);
+            }            
         }
         catch (Exception ex)
         {
@@ -44,7 +50,10 @@ public class SinkService
         return messageId;
     }
 
-    public async Task SinkUserMessageAsync(ThreadMessage message)
+    public async Task SinkUserMessageAsync(
+        ThreadContext? threadContext,
+        ThreadMessage message,
+        bool? isVisibleInUserChatHistory = true)
     {
         var userMessage = new Message(
             Id: message.MessageId,
@@ -56,13 +65,48 @@ public class SinkService
         );
         try
         {
-            await _repository.AddMessageAsync(message.ThreadId, userMessage);
+            if (isVisibleInUserChatHistory.GetValueOrDefault())
+            {
+                await _repository.AddMessageAsync(message.ThreadId, userMessage);
+            }
+
+            if (threadContext != null)
+            {
+                threadContext.AddMessage(userMessage);
+                await _repository.UpdateThreadContextAsync(threadContext);
+            }
         }
         catch (Exception ex)
         {
             _logger.LogError("Error adding user message: {Message}", ex.Message);
             throw;
         }
+    }
+
+    public async Task<Guid> SinkSystemMessageAsync(ThreadContext threadContext, string messageText)
+    {
+        var messageId = Guid.NewGuid();
+        var agentMessage = new Message(
+            Id: messageId,
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.System, "system-default", "System"),
+            IsImageContent: false,
+            Text: messageText,
+            Posted: new Posted(false)
+        );
+
+        try
+        {
+            threadContext.AddMessage(agentMessage);
+            await _repository.UpdateThreadContextAsync(threadContext);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error adding agent message: {Message}", ex.Message);
+            throw;
+        }
+
+        return messageId;
     }
 }
 

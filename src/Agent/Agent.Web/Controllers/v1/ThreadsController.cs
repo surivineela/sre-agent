@@ -84,6 +84,10 @@ namespace Agent.Web.Controllers.v1
 
             thread = await repository.CreateThreadAsync(thread);
 
+            var threadContext = new ThreadContext(thread.Id);
+            threadContext.AddMessage(thread.StartMessage);
+            await repository.AddThreadContextAsync(threadContext);
+
             // Start the background title generation task (fire and forget)
             _ = TitleHelper.GenerateTitleAndUpdateAsync(chatClient, repository, thread.Id, request.StartMessage.Text);
 

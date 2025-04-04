@@ -41,14 +41,6 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
 
             return "success";
         }
-
-        protected override async Task OnPlanComplete(TaskOrchestrationContext context, string threadId)
-        {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "TlsBestPracticesAgent", "TlsBestPracticesInfo.txt");
-            var info = File.ReadAllText(path);
-
-            await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(threadId, context.InstanceId, info));
-        }
     }
 
     [DurableTask]
@@ -81,7 +73,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
             await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                agentInput.Context.ThreadId.ToString(),
+                agentInput.Context,
                 context.InstanceId,
                 newMessage);
 

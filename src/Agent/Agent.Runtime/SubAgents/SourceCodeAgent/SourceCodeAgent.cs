@@ -17,7 +17,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         {
             var log = context.CreateReplaySafeLogger<SourceCodeAgent>();
             // Initial planning phase: generate plan (e.g. list of apps to update)
-            List<ChatMessage> chatHistory = await context.CallSourceCodePlanActivityAsync(agentInput.Input);
+            List<ChatMessage> chatHistory = await context.CallSourceCodePlanActivityAsync(agentInput);
 
             var introMessage = await context.CallActivityAsync<ChatMessage>(new TaskName(nameof(SourceCodeSendIntroActivity)), agentInput);
             // todo - it would be better if this message is in the context, but skipping on adding it for now in case it breaks demo flow.
@@ -40,11 +40,6 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 log);
 
             return "success";
-        }
-
-        protected override async Task OnPlanComplete(TaskOrchestrationContext context, string threadId)
-        {
-            await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(threadId, context.InstanceId, "Thanks for your help!"));
         }
     }
 
@@ -73,7 +68,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 
             await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-                agentInput.Context.ThreadId.ToString(),
+                agentInput.Context,
                 context.InstanceId,
                 newMessage);
 

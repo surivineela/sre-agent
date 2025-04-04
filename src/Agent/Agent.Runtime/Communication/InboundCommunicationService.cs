@@ -45,14 +45,14 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _logger = logger;
     }
 
-    public async Task<Core.Models.Api.v1.Thread> CreateAgentThread(string title, string message)
+    public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message)
     {
         return await CreateThread(title, message, ThreadSource.Agent);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message)
     {
-        var thread = await CreateThread(title, message, ThreadSource.Alert);
+        (var thread, var threadContext) = await CreateThread(title, message, ThreadSource.Alert);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -65,27 +65,28 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await ProcessUserMessageAsync(message);
     }
 
-    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
+    public async Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message)
     {
-        if (threadId == Guid.Empty)
+        if (threadContext == null || threadContext.ThreadId == Guid.Empty)
         {
-            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadContext));
         }
 
-        return await _sinkService.SinkAgentMessageAsync(threadId, message, isImageContent: true);
+        return await _sinkService.SinkAgentMessageAsync(threadContext, message, isImageContent: true);
     }
 
     public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message)
     {
         try
         {
-            await _sinkService.SinkUserMessageAsync(message);
             string orchestrationInstanceId = "";
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
             ThreadContext threadContext = await _repository.GetThreadContextAsync(message.ThreadId);
             orchestrationInstanceId = threadContext != null ? await _threadService.GetOrchestrationInstanceId(threadContext) : orchestrationInstanceId;
+
+            await _sinkService.SinkUserMessageAsync(threadContext, message);
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
             {
@@ -114,7 +115,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 // Process the message with MetaAgent
                 string agentResponse = await _metaAgent.ProcessUserMessage(threadContext);
 
-                responseMessageId = await _sinkService.SinkAgentMessageAsync(message.ThreadId, agentResponse);
+                responseMessageId = await _sinkService.SinkAgentMessageAsync(threadContext, agentResponse);
             }
             else
             {
@@ -139,7 +140,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    private async Task<Core.Models.Api.v1.Thread> CreateThread(string title, string message, ThreadSource source)
+    private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(string title, string message, ThreadSource source)
     {
         var now = DateTime.UtcNow;
         var thread = new Core.Models.Api.v1.Thread
@@ -164,6 +165,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateThreadAsync(thread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
 
-        return thread;
+        var threadContext = new ThreadContext(thread.Id);
+        threadContext.AddMessage(thread.StartMessage);
+        await _repository.AddThreadContextAsync(threadContext);
+
+        return (thread, threadContext);
     }
 }

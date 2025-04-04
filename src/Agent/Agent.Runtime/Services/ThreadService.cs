@@ -51,6 +51,7 @@ public class ThreadService
     /// <param name="durableTaskClient">The durable task client.</param>
     /// <param name="sinkService">The sink service for sending messages.</param>
     /// <returns>True if the orchestration was in a bad state and was cleaned, otherwise false.</returns>
+    /// <returns>True if the orchestration was in a bad state and was cleaned, otherwise false.</returns>
     public async Task<bool> CleanOrchestration(
         ThreadContext threadContext,
         string orchestrationInstanceId,
@@ -72,7 +73,7 @@ public class ThreadService
             await _mappingManager.RemoveMappingAsync(threadContext.ThreadId.ToString(), orchestrationInstanceId);
 
             // Notify about the failed orchestration
-            await _sinkService.SinkAgentMessageAsync(threadContext.ThreadId, failureMessage);
+            await _sinkService.SinkAgentMessageAsync(threadContext, failureMessage);
 
             try
             {
