@@ -74,7 +74,9 @@ namespace Agent.Tests.Integration
             services.AddLogging(builder =>
             {
                 builder.AddXUnit(testOutputHelper)
-                    .SetMinimumLevel(LogLevel.Trace);
+                    .SetMinimumLevel(LogLevel.Trace)
+                    .AddFilter("Microsoft.DurableTask", LogLevel.Information)
+                    .AddFilter("ModelContextProtocol", LogLevel.Error);
             });
 
             var openAISettings = config.AzureSettings.OpenAI;
@@ -112,6 +114,9 @@ namespace Agent.Tests.Integration
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
+            services.AddSingleton<IGithubIssuePlugin>(new MockGithubIssuePlugin());
+            services.AddSingleton<IKubePlugin>(new MockKubePlugin());
+            services.AddSingleton<IGrafanaPlugin>(new MockGrafanaPlugin());
             services.AddSingleton<IGraphDBPlugin>(new MockGraphDBPlugin());
             services.AddSingleton<IContainerAppPlugin>(new MockContainerAppPlugin());
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
@@ -173,16 +178,8 @@ namespace Agent.Tests.Integration
         }
 
         [Fact]
-        public async Task Cleanup()
-        {
-            // Need to chat with DTS folks about the best way to do this. 
-        }
-
-        [Fact]
         public async Task UpdateHealthyApps()
         {
-            // TODO AgenticLoggingChatClient is kind of broken, some logs are still duplicated
-
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
@@ -192,8 +189,6 @@ namespace Agent.Tests.Integration
             try
             {
                 instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
-
-                await Task.Delay(TimeSpan.FromSeconds(3));
                 await Helper.DoApproval(
                     _durableTaskClient,
                     _timeProvider,

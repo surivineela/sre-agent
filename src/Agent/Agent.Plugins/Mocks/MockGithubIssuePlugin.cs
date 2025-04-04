@@ -1,0 +1,60 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using Octokit;
+
+namespace Agent.Plugins.Mocks;
+public class MockGithubIssuePlugin : IGithubIssuePlugin
+{
+    public Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IssueComment> CreateGithubIssueComment(string repoUrl, int number, string commentBody)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task DeleteGithubIssueComment(string repoUrl, long id, string newCommentBody)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<GithubIssuePluginIssue> FetchGithubIssue(string issueUrl)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(string repoUrl, int issueNumber)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<GithubIssuePluginIssue>> FetchGithubIssues(string repoUrl, GithubIssuePluginIssueFilter issueFilter, GithubIssuePluginItemStateFilter itemStateFilter, string milestone = "none", string assignee = "none", string? creator = null, string? mentioned = null, string[]? labels = null, DateTimeOffset? since = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<GithubIssuePluginDependabotVulnerability>> FetchGithubSecurityDependabotAlerts(string repoUrl)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IEnumerable<string>> GetUserOrganizations(string username)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<Issue> UpdateGithubIssue(string repoUrl, int number, string? newTitle = null, string? newBody = null, string[]? labelsToAdd = null, string[]? labelsToRemove = null, ItemState? newState = null)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<IssueComment> UpdateGithubIssueComment(string repoUrl, long id, string newCommentBody)
+    {
+        throw new NotImplementedException();
+    }
+}
