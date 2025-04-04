@@ -25,6 +25,25 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public abstract string GetHashString();
         public abstract string GetSubscriptionId();
     }
+
+    public class Scorecard
+    {
+        // last captured timestamp
+        public DateTime LastDataCaptureTimeStampInUTC { get; set; } = DateTime.UtcNow;
+
+        // availability
+        public double? Availability { get; set; }
+
+        // activity (requests/transactions)
+        public long? Transactions { get; set; }
+
+        // costs ($ USD)
+        public double? Costs { get; set; }
+        
+        // average latency (ms)
+        public double? AvgLatencyInMs { get; set; }
+    }
+
     public class ArmResourceNode : GraphNode
     {
         public string ResourceType { get; set; }
@@ -34,6 +53,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public string ResourceName { get; set; }
         public string Location { get; set; }
         public bool SystemMI { get; set; }
+        public Scorecard Scorecard { get; set; }
 
         public ArmResourceNode() { }
         public ArmResourceNode(string resourceType, string subscriptionId)
@@ -57,6 +77,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             ResourceName = resourceName?.ToLowerInvariant();
             Location = location?.NormalizeLocation();
             //SystemMI = systemMI;
+            Scorecard = new Scorecard();
         }
 
         public override string GetNodeLabel()
