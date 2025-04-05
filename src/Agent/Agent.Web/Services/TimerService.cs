@@ -36,10 +36,6 @@ public class TimerService : IHostedService, IDisposable
     private bool _bestPracticeTimerIsRunning = false;
     private int _bestPracticeTimerIntervalInMinutes = 24 * 60;
 
-    private Timer? _reliabilityTimer = null;
-    private ReliabilityAgent _reliabilityAgent;
-    private bool _reliabilityTimerIsRunning = false;
-
     private Timer? _tlsTimer = null;
     private bool _tlsTimerIsRunning = false;
     private TimeSpan _tlsTimerInterval = TimeSpan.FromMinutes(1);
@@ -60,7 +56,6 @@ public class TimerService : IHostedService, IDisposable
         CrawlerSettings settings,
         TimerSettings timerSettings,
         BestPracticeScannerAgent bestPracticeScannerAgent,
-        ReliabilityAgent reliabilityAgent,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
         DailyReportScanner dailyReportScanner,
@@ -73,7 +68,6 @@ public class TimerService : IHostedService, IDisposable
         _settings = settings;
         _timerSettings = timerSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
-        _reliabilityAgent = reliabilityAgent;
         _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
         _dailyReportScanner = dailyReportScanner;
@@ -87,7 +81,6 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting background services...");
 
         StartCrawlerTimer(cancellationToken);
-        //StartReliabilityTimer(cancellationToken);
 
         _logger.LogInformation($"Starting best practice timer...");
         //StartBestPracticeTimer(cancellationToken);
@@ -115,7 +108,6 @@ public class TimerService : IHostedService, IDisposable
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
         _bestPracticeTimer?.Change(Timeout.Infinite, 0); // Stop the best practice timer
-        _reliabilityTimer?.Change(Timeout.Infinite, 0); // Stop the reliability timer
 
         return Task.CompletedTask;
     }
@@ -314,29 +306,6 @@ public class TimerService : IHostedService, IDisposable
         TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes)); // Interval between subsequent executions
     }
 
-    /// <summary>
-    /// Kicks off the reliability scan every 60 minutes on a different thread
-    /// </summary>
-    public void StartReliabilityTimer(CancellationToken cancellationToken)
-    {
-        _reliabilityTimer = new Timer(async _ =>
-        {
-            if (!_crawlerFinishedOnce) return; 
-
-            if (_reliabilityTimerIsRunning) return; 
-
-            try
-            {
-                _reliabilityTimerIsRunning = true;
-                await _reliabilityAgent.Scan(cancellationToken);
-            }
-            finally
-            {
-                _reliabilityTimerIsRunning = false;
-            }
-        }, null, TimeSpan.FromSeconds(1), TimeSpan.FromMinutes(_timerSettings.ReliabilityScanIntervalInMinutes));
-    }
-
     public void StartDailyReportTimer(CancellationToken cancellationToken)
     {
         _dailyReportTimer = new Timer(async _ =>
@@ -373,7 +342,6 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
-        _reliabilityTimer?.Dispose();
         _bestPracticeTimer?.Dispose();
     }
 }
