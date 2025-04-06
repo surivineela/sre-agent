@@ -11,7 +11,6 @@ using System.Threading.Tasks;
 using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Plugins;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;

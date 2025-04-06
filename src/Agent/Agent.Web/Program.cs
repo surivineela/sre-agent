@@ -13,7 +13,6 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
-using Agent.Plugins.PeriodicMonitor;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
@@ -84,16 +83,6 @@ Log.Logger = loggerConfiguration.CreateLogger();
 
 builder.Host.UseSerilog();
 
-bool useSessionChatService = false;
-if (args.Length > 0)
-{
-    if (args[0] == "--session")
-    {
-        useSessionChatService = true;
-    }
-}
-
-if (useSessionChatService)
 {
     // Configure Azure settings
     builder.Services.Configure<AzureSettings>(
@@ -121,7 +110,6 @@ if (useSessionChatService)
         .AddSingleton<TimePluginDefinition>()
         .AddSingleton<IMetricsPlugin, MetricsPlugin>()
         .AddSingleton<MetricsPluginDefinition>()
-        .AddSingleton<IPeriodicMonitor, PeriodicMonitor>()
         .AddSingleton<Agent.Plugins.Models.GitHubClient>()
         .AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>()
         .AddSingleton<GitHubIssuePluginDefinition>()
@@ -265,10 +253,6 @@ if (useSessionChatService)
     });
 
     builder.Services.AddCosmosClient();
-}
-else
-{
-    SemanticKernelHelper.ConfigService(builder.Services);
 }
 
 // Register TeamsConnector service
