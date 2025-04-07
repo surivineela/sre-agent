@@ -36,7 +36,7 @@ public class SubscriptionCrawler : IResourceCrawler
 
         var nodeProperties = subNode.GetNodeProperties();
         nodeProperties["subscriptionName"] = subName;
-        await _graphDbClient.AddOrUpdateNodeAsync(subNode);
+        await _graphDbClient.AddOrUpdateNodeAsync(subNode.GetNodeLabel(), subNode.GetNodeId(), subNode.GetResourceType(), nodeProperties);
 
         await foreach (var rg in subResource.GetResourceGroups().GetAllAsync())
         {

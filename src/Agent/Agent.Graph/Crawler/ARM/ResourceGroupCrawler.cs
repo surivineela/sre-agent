@@ -45,7 +45,11 @@ public class ResourceGroupCrawler : IResourceCrawler
         var nodeProperties = subNode.GetNodeProperties();
         nodeProperties["subscriptionName"] = subName;
 
-        await _graphDbClient.AddOrUpdateNodeAsync(subNode);
+        await _graphDbClient.AddOrUpdateNodeAsync(
+               subNode.GetNodeLabel(),
+               subNode.GetNodeId(),
+               subNode.GetResourceType(),
+               nodeProperties);
 
         // get all resources under resource group
         var resources = await _graphClient.Query(
