@@ -3,6 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Extensions;
+using Agent.Core.Models.Api.v1;
+using DurableTask.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
@@ -24,7 +26,7 @@ namespace Agent.Core.Models
             Tools = Tools()
         };
 
-        public SubAgent(string name, IChatClient chatClient)
+        public SubAgent(string name, IChatClient chatClient, bool isSkippingInitChatHistory = false)
         {
             Name = name;
             _chatClient = chatClient
@@ -32,7 +34,10 @@ namespace Agent.Core.Models
                 .UseFunctionInvocation()
                 .Build();
 
-            InitChatHistory();
+            if (!isSkippingInitChatHistory)
+            {
+                InitChatHistory();
+            }
         }
 
         private void InitChatHistory()
@@ -40,7 +45,37 @@ namespace Agent.Core.Models
             ChatHistory = [new(ChatRole.System, SystemPrompt)];
         }
 
+        public void InitChatHistoryFromMessageQueue(Queue<Message> messages)
+        {
+            foreach (var message in messages)
+            {
+                if (message.Author.Role == Role.User)
+                {
+                    ChatHistory.Add(new(ChatRole.User, message.Text));
+                }
+                else if (message.Author.Role == Role.SREAgent)
+                {
+                    ChatHistory.Add(new(ChatRole.Assistant, message.Text));
+                }
+                else if (message.Author.Role == Role.System)
+                {
+                    ChatHistory.Add(new(ChatRole.System, message.Text));
+                }
+            }
+        }
+
         public abstract IList<AITool> Tools();
+
+        protected abstract Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync();
+
+        public virtual async Task PrepareAgentForUserInput()
+        {
+            var startingMessages = await GetStartingMessagesAsync();
+            foreach (var message in startingMessages)
+            {
+                ChatHistory.Add(message);
+            }
+        }
 
         /// <summary>
         /// Try to answer the question
@@ -49,11 +84,13 @@ namespace Agent.Core.Models
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        public virtual async Task DoWork(string question)
+        public virtual async Task<(string Response, bool IsComplete)> DoWork(string question)
         {
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-            ChatHistory.Add(new(ChatRole.Assistant, completion.GetMessage().Text));
+            var agentMessage = completion.Text;
+            ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
+            return (Response: agentMessage, IsComplete: false);
         }
 
         public virtual async Task DoWorkWithHistory(string question, ChatHistory externalHistory)
@@ -163,6 +200,11 @@ namespace Agent.Core.Models
             {
                 Console.WriteLine("Under subagent No response content received from streaming");
             }
+        }
+
+        public virtual List<Microsoft.Extensions.AI.ChatMessage> GetUserVisibleChatHistory()
+        {
+            return ChatHistory.Where(m => m.Role != ChatRole.System).ToList();
         }
     }
 }

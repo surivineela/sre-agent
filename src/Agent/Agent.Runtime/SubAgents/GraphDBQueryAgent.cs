@@ -65,7 +65,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ];
         }
 
-        public override async Task DoWork(string question)
+        public override async Task<(string Response, bool IsComplete)> DoWork(string question)
         {
             if (!_fetchedPrelimData)
             {
@@ -75,7 +75,9 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
 
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-            ChatHistory.Add(new(ChatRole.Assistant, completion.GetMessage().Text));
+            var agentMessage = completion.GetMessage().Text;
+            ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
+            return (Response: agentMessage, IsComplete: false);
         }
 
         public async Task PrelimData()
@@ -88,6 +90,11 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.V().properties().key().dedup()"))));
             ChatHistory.Add(new(ChatRole.System, "Edge properties (g.E().properties().key().dedup()):"));
             ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.E().properties().key().dedup()"))));
+        }
+
+        protected override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
+        {
+            throw new NotImplementedException();
         }
     }
 }

@@ -48,6 +48,11 @@ You can run multiple tool calls to answer a single question.";
             _logger.LogInformation($"Graph traversal agent responded with: {answer}");
             return answer;
         }
+
+        protected override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

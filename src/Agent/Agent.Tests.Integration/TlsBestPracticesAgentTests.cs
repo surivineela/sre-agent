@@ -188,7 +188,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid(), Core.Helpers.AgentTypeEnum.DurableAgent));
                 await Helper.DoApproval(
                     _durableTaskClient,
                     _timeProvider,
@@ -236,7 +236,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid(), Core.Helpers.AgentTypeEnum.DurableAgent));
                 await Helper.DoApproval(
                     _durableTaskClient,
                     _timeProvider,
@@ -285,7 +285,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid(), Core.Helpers.AgentTypeEnum.DurableAgent));
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 (
@@ -340,7 +340,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid()));
+                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid(), Core.Helpers.AgentTypeEnum.DurableAgent));
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 (

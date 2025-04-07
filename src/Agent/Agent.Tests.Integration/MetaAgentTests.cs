@@ -139,7 +139,7 @@ public class MetaAgentTests : IAsyncLifetime
 
         var message = new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, "hello", "User"), $"Help me to apply tls best practice. Here are my apps: {JsonSerializer.Serialize(_testApps)}, I want to upgrade TLS version to 1.2");
         var threadGuid = Guid.NewGuid();
-        var context = new ThreadContext(threadGuid);
+        var context = new ThreadContext(threadGuid, Core.Helpers.AgentTypeEnum.MetaAgent);
         // generate threadId for this background task
         var threadId = threadGuid.ToString();
 
@@ -175,7 +175,7 @@ public class MetaAgentTests : IAsyncLifetime
         var message = new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, "hello", "User"), $"Help me to apply best practices for app reliability. Here are my apps: {JsonSerializer.Serialize(_testApps2)}, I want to upgrade the AlwaysOn to true, HealthCheck to true, AutoHeal to true, and NumberOfWorkers to 3");
         // generate threadId for this background task
         var threadId = Guid.NewGuid(); ;
-        var context = new ThreadContext(threadId);
+        var context = new ThreadContext(threadId, Core.Helpers.AgentTypeEnum.MetaAgent);
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();

@@ -82,6 +82,11 @@ namespace Agent.Runtime.SubAgents
 
             return null;
         }
+
+        protected override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

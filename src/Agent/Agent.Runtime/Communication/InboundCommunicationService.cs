@@ -10,6 +10,9 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Runtime.Services;
 using Agent.Plugins.Definitions;
+using Agent.Core.Helpers;
+using Agent.Runtime.SubAgents.SourceCodeAgent;
+using Agent.Plugins;
 
 namespace Agent.Runtime.Communication;
 
@@ -22,6 +25,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly ILogger<InboundCommunicationService> _logger;
     private readonly SinkService _sinkService;
     private readonly ThreadService _threadService;
+    private readonly IChatClient _chatClient;
+    private readonly IGraphDBPlugin _graphDbPlugin;
 
     private readonly IPostToTeamsPlugin _teamsPlugin;
 
@@ -33,7 +38,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         SinkService sinkService,
         ThreadService threadService,
         IPostToTeamsPlugin teamsPlugin,
-        ILogger<InboundCommunicationService> logger)
+        ILogger<InboundCommunicationService> logger,
+        IChatClient chatClient,
+        IGraphDBPlugin graphDBPlugin)
     {
         _metaAgent = metaAgent;
         _durableTaskClient = durableTaskClient;
@@ -43,16 +50,18 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _threadService = threadService;
         _teamsPlugin = teamsPlugin;
         _logger = logger;
+        _chatClient = chatClient;
+        _graphDbPlugin = graphDBPlugin;
     }
 
-    public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message)
+    public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message, AgentTypeEnum agentTypeEnum)
     {
-        return await CreateThread(title, message, ThreadSource.Agent);
+        return await CreateThread(title, message, ThreadSource.Agent, agentTypeEnum);
     }
 
-    public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message)
+    public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message, AgentTypeEnum agentTypeEnum)
     {
-        (var thread, var threadContext) = await CreateThread(title, message, ThreadSource.Alert);
+        (var thread, var threadContext) = await CreateThread(title, message, ThreadSource.Alert, agentTypeEnum);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -112,10 +121,27 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                 // No existing orchestration, create a new one
                 _logger.LogInformation("No existing orchestration for thread: {ThreadId}", message.ThreadId);
-                // Process the message with MetaAgent
-                string agentResponse = await _metaAgent.ProcessUserMessage(threadContext);
 
+                string agentResponse = string.Empty;
+                bool isComplete = false;
+                if (threadContext.AgentTypeEnum == AgentTypeEnum.SourceCodeAgentV2)
+                {
+                    var sourceCodeAgentV2 = new SourceCodeAgentV2(_chatClient, _graphDbPlugin);
+                    sourceCodeAgentV2.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
+                    (agentResponse, isComplete) = await sourceCodeAgentV2.DoWork(message.Message);
+                }
+                else
+                {
+                    // Process the message with MetaAgent
+                    agentResponse = await _metaAgent.ProcessUserMessage(threadContext);
+                }
+                
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(threadContext, agentResponse);
+                
+                if (isComplete)
+                {
+                    await _repository.DeleteThreadContextAsync(threadContext.ThreadId);
+                }
             }
             else
             {
@@ -131,6 +157,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     "NewChatMessage",
                     new ChatMessage(ChatRole.User, message.Message));
             }
+
             return new InboundServiceResponse(message.ThreadId, responseMessageId, orchestrationInstanceId);
         }
         catch (Exception ex)
@@ -140,7 +167,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(string title, string message, ThreadSource source)
+    private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(string title, string message, ThreadSource source, AgentTypeEnum agentTypeEnum)
     {
         var now = DateTime.UtcNow;
         var thread = new Core.Models.Api.v1.Thread
@@ -165,7 +192,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateThreadAsync(thread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
 
-        var threadContext = new ThreadContext(thread.Id);
+        var threadContext = new ThreadContext(thread.Id, agentTypeEnum: agentTypeEnum);
         threadContext.AddMessage(thread.StartMessage);
         await _repository.AddThreadContextAsync(threadContext);
 

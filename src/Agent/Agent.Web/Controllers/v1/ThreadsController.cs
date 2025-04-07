@@ -84,7 +84,7 @@ namespace Agent.Web.Controllers.v1
 
             thread = await repository.CreateThreadAsync(thread);
 
-            var threadContext = new ThreadContext(thread.Id);
+            var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.MetaAgent);
             threadContext.AddMessage(thread.StartMessage);
             await repository.AddThreadContextAsync(threadContext);
 

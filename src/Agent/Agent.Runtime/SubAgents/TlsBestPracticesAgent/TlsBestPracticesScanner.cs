@@ -79,7 +79,8 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                     https://learn.microsoft.com/en-us/security/engineering/cryptographic-recommendations#tlsssl-versions  
 
                     Preparing details...  
-                    """);
+                    """,
+                    agentTypeEnum: AgentTypeEnum.DurableAgent);
 
 
                 var input = new TlsBestPracticesInput()

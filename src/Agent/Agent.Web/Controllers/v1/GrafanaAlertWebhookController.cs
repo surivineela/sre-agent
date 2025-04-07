@@ -44,7 +44,7 @@ namespace Agent.Web.Controllers.v1
                 }
 
                 // Create the thread and post to Teams - wait for this to complete
-                var thread = await inboundCommunicationService.CreateAlertThreadWithTeams(request.Title, $"Alert general message: {request.Message}, alerts in json: {alerts}");
+                var thread = await inboundCommunicationService.CreateAlertThreadWithTeams(request.Title, $"Alert general message: {request.Message}, alerts in json: {alerts}", Core.Helpers.AgentTypeEnum.MetaAgent);
 
                 // Process the message in the background for new thread
                 string newAlertMessage = "I have received an alert, please analyze it and give me the suggestion for actions to quickly mitigate the alerts.";

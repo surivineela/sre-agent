@@ -227,7 +227,7 @@ namespace Agent.Data.Repositories
         {
             // Ensure ID is set
             if (context.ThreadId == Guid.Empty)
-                context = new ThreadContext(Guid.NewGuid());
+                context = new ThreadContext(Guid.NewGuid(), context.AgentTypeEnum);
 
             _threadContexts[context.ThreadId] = context;
 
@@ -238,7 +238,7 @@ namespace Agent.Data.Repositories
         {
             // Ensure ID is set
             if (context.ThreadId == Guid.Empty)
-                context = new ThreadContext(Guid.NewGuid());
+                context = new ThreadContext(Guid.NewGuid(), context.AgentTypeEnum);
 
             _threadContexts[context.ThreadId] = context;
 

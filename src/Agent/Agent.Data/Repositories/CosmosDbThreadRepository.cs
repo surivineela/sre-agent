@@ -428,7 +428,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         // Ensure IDs are set
         if (threadContext.ThreadId == Guid.Empty)
-            threadContext = new ThreadContext(Guid.NewGuid());
+            threadContext = new ThreadContext(Guid.NewGuid(), threadContext.AgentTypeEnum);
 
         // Then create the thread
         ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
@@ -571,6 +571,5 @@ public class CosmosDbThreadRepository : IThreadRepository
             return default;
         }
     }
-
     #endregion
 }

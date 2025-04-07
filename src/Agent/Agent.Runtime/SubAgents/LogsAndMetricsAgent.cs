@@ -33,5 +33,10 @@ namespace Agent.Runtime.SubAgents
                 AIFunctionFactory.Create(_metricsPlugin.GetSuccessfulRequestVolumeAsync),
             };
         }
+
+        protected override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

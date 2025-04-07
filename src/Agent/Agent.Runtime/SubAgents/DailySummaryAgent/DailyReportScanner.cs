@@ -9,6 +9,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -179,7 +180,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var initialMessage = $"{conciseSummary}\n\n" + $"**I created this dashboard for you to give an overview : [SRE Agent Resource Dashboard]({dashboardUrl})**\n\n";
             (var thread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
-                initialMessage);
+                initialMessage,
+                agentTypeEnum: AgentTypeEnum.DurableAgent);
 
             // Append the screenshot as separate message, this message will be excluded from the chat history to LLM due to token limitation.
             await _agentInboundCommunicationService.AppendAgentImageMessage(threadContext, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");

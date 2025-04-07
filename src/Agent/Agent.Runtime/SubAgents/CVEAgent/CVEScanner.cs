@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
@@ -64,7 +65,8 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     """
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
 
-                    """);
+                    """,
+                    agentTypeEnum: AgentTypeEnum.DurableAgent);
 
 
                 var input = new CVEInput()

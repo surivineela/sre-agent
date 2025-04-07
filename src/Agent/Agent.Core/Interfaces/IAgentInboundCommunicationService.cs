@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 
 namespace Agent.Core.Interfaces;
@@ -16,13 +17,13 @@ public interface IAgentInboundCommunicationService
     /// </summary>
     /// <param name="title"></param>
     /// <returns></returns>
-    Task<(Models.Api.v1.Thread, Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message);
+    Task<(Models.Api.v1.Thread, Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message, AgentTypeEnum agentTypeEnum);
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,
     /// and trigger teams to notify the engineer as well
     /// </summary>
-    Task<Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message);
+    Task<Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message, AgentTypeEnum agentTypeEnum);
 
     /// <summary>
     /// Processes a thread that has been created for an alert, and starts the orchestration

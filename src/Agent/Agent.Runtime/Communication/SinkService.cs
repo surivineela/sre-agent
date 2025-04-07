@@ -5,6 +5,7 @@
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
+using Agent.Core.Helpers;
 
 namespace Agent.Runtime.Communication;
 
@@ -70,6 +71,34 @@ public class SinkService
                 await _repository.AddMessageAsync(message.ThreadId, userMessage);
             }
 
+            if (threadContext != null)
+            {
+                threadContext.AddMessage(userMessage);
+                await _repository.UpdateThreadContextAsync(threadContext);
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError("Error adding user message: {Message}", ex.Message);
+            throw;
+        }
+    }
+
+    public async Task SinkUserMessageAsync(
+        ThreadContext? threadContext,
+        string message)
+    {
+        var messageId = Guid.NewGuid();
+        var userMessage = new Message(
+            Id: Guid.NewGuid(),
+            TimeStamp: DateTime.UtcNow,
+            Author: new Author(Role.User, messageId.ToString(), string.Empty),
+            Text: message,
+            IsImageContent: false,
+            Posted: new Posted(false)
+        );
+        try
+        {
             if (threadContext != null)
             {
                 threadContext.AddMessage(userMessage);
