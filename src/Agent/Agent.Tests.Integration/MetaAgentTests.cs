@@ -101,6 +101,7 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<ManagedIdentityMigrationPlugin>();
                 services.AddSingleton<TlsBestPracticesPlugin>();
                 services.AddSingleton<AppReliabilityPlugin>();
+                services.AddSingleton<VmRdpInvestigatorPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
 
                 services.AddDurableTaskWorker(builder =>

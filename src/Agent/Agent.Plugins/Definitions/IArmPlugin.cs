@@ -12,6 +12,7 @@ namespace Agent.Plugins
         Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds);
         Task<bool> CheckIfResourceExists(string appResourceId);
         Task<bool> RestartWebApp(string appResourceId);
+        Task<string> GetArmResourceAsJson(string resourceId);
     }
 }
 

@@ -127,6 +127,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IServiceProvider _serviceProvider;
     private readonly StorageAccountPlugin _storageAccountPlugin;
     private readonly AppReliabilityPlugin _appReliabilityPlugin;
+    private readonly VmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
     private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
@@ -148,7 +149,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IGraphDBPlugin graphDBPlugin,
         AppReliabilityPlugin appReliabilityPlugin,
         SourceCodePlugin sourceCodePlugin,
-        IServiceProvider serviceProvider
+        IServiceProvider serviceProvider,
+        VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin
         )
     {
         _chatClient = chatClient;
@@ -171,6 +173,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _serviceProvider = serviceProvider;
         _graphDbPlugin = graphDBPlugin;
         _appReliabilityPlugin = appReliabilityPlugin;
+        _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
     }
 
     public async Task<string> ProcessUserMessage(ThreadContext ctx)
@@ -190,6 +193,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _sourceCodePlugin.Context = ctx;
         _graphDbPlugin.Context = ctx;
         _appReliabilityPlugin.Context = ctx;
+        _vmRdpInvestigatorPlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.Context = ctx;
@@ -232,7 +236,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceCount),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourcesByType),
-            AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard)
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard),
+            AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
+            AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent)
         ];
 
         // Get all instances of background-scanning subagents and register their methods

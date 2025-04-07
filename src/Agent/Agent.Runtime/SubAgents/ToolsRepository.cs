@@ -40,7 +40,8 @@ public sealed class ToolsRepository : IMcpConnectable
         IGrafanaPlugin grafanaPlugin,
         IContainerAppPlugin containerAppPlugin,
         IKubePlugin kubernetesAgentPlugin,
-        IGithubIssuePlugin githubIssuePlugin)
+        IGithubIssuePlugin githubIssuePlugin,
+        IAzureSupportCenterPlugin azureSupportCenterPlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
@@ -78,6 +79,7 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => armPluginDefinition.SetMinimumTlsVersion);
         //Register200(() => armPluginDefinition.RestartWebApp);
         Register200(() => armPluginDefinition.GetTlsSettings);
+        Register200(() => armPluginDefinition.GetArmResourceAsJson);
 
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
         Register200(() => timePluginDefinition.GetCurrentUtcTime);
@@ -159,6 +161,11 @@ public sealed class ToolsRepository : IMcpConnectable
 
         var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
         Register200(() => githubIssuePluginDefinition.FetchGithubSecurityDependabotAlerts);
+
+        var azureSupportCenterPluginDefinition = new AzureSupportCenterPluginDefinition(azureSupportCenterPlugin);
+        Register200(() => azureSupportCenterPluginDefinition.GetSupportProductsFromArm);
+        Register200(() => azureSupportCenterPluginDefinition.GetSupportProblemClassificationsForProduct);
+        Register200(() => azureSupportCenterPluginDefinition.GetAzureSupportCenterDiagnosticResultsForQuestion);
     }
 
     public string Register202(

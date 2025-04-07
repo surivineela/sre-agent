@@ -62,5 +62,8 @@
 	  <None Update="SubAgents\DailySummaryAgent\DailySummaryPlan.txt">
 		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="SubAgents\VmRdpInvestigatorAgent\VmRdpInvestigatorAgentPlan.txt">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
   </ItemGroup>
 </Project>

@@ -70,6 +70,11 @@ namespace Agent.Plugins.Implementation
         {
             return await _armHelper.RestartContainerAppAsync(appResourceId, revisionName);
         }
+
+        public async Task<string> GetArmResourceAsJson(string resourceId)
+        {
+            return await _armHelper.GetArmResourceAsJsonAsync(resourceId);
+        }
     }
 }
 

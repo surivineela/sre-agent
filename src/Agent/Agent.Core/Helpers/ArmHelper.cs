@@ -10,6 +10,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService.Models;
+using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
@@ -724,7 +725,39 @@ public class ArmHelper
         return tlsStatus;
     }
 
+    public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
+        if(virtualMachineResource == null)
+        {
+            throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
+        }
+        var virtualMachineResourceResponse = await virtualMachineResource.GetAsync();
+        return virtualMachineResourceResponse.Value;
+    }
 
+    public async Task<string> GetArmResourceAsJsonAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
+        var resourceDataResponse = await resource.GetAsync();
+        var resourceData = resourceDataResponse.Value;
+        var properties = JsonSerializer.Deserialize<object>(resourceData.Data.Properties.ToString());
+
+        GenericArmResourceModel armRes = new GenericArmResourceModel(
+            resourceData.Data.Id,
+            resourceData.Data.Name,
+            resourceData.Data.ResourceType,
+            resourceData.Data.Location,
+            resourceData.Data.Kind ?? string.Empty,
+            properties,
+            resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>()
+        );
+
+        // Return the formatted JSON
+        return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
+    }
 
     #region Private Methods
 

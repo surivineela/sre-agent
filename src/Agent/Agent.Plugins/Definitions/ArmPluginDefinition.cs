@@ -52,6 +52,13 @@ namespace Agent.Plugins
                 ? "Restart succeeded"
                 : "Restart failed";
         }
+
+        [Description("Get ARM properties of a resource as JSON")]
+        public async Task<string> GetArmResourceAsJson(
+            [Description("Full resource id of an Azure resource")] string resourceId)
+        {
+            return await _armPlugin.GetArmResourceAsJson(resourceId);
+        }
     }
 }
 

@@ -49,6 +49,7 @@ using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
 using Agent.Runtime.SubAgents.KubernetesAgent;
+using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -127,6 +128,10 @@ builder.Host.UseSerilog();
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
         .AddSingleton<IGraphDbService, GraphDbService>()
+        .AddSingleton<AzureSupportCenterHelper>()
+        .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()        
+        .AddSingleton<VmRdpInvestigatorAgentFactory>()
+        .AddSingleton<VmRdpInvestigatorPlugin>()
 
         .AddTransient<ContainerAppsRemediationPlugin>()
         .AddTransient<ManagedIdentityMigrationPlugin>()

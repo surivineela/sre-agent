@@ -89,6 +89,11 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> GetArmResourceAsJson(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 
