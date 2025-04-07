@@ -7,69 +7,53 @@ using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
+using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
+using System.Linq.Expressions;
 using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.StorageAccountAgent
 {
-    public class StorageAccountAgentFactory
+    public class StorageAccountAgentFactory : SimpleResourceSubAgentFactoryBase<StorageAccountAgent, StorageAccountAgentInput, StorageAccountAgentActivity, StorageAccountAgentActivityInput>
     {
-        private readonly IReadOnlyList<string> _toolSignatures;
-        private readonly DurableTaskClient _durableTaskClient;
-        private readonly IThreadOrchestrationManager _mappingManager;
-
-        public const string OrchestrationInstanceIdPrefix = nameof(StorageAccountAgent);
+        private readonly IApprovalPlugin approvalPlugin;
+        private readonly IRemediationPlugin remediationPlugin;
+        private readonly IRecordActionsPlugin recordActionsPlugin;
 
         public StorageAccountAgentFactory(
             IApprovalPlugin approvalPlugin,
-            ITimePlugin timePlugin,
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
-            ToolsRepository toolsRepository,
             IThreadOrchestrationManager mappingManager,
+            ToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient
             )
+            : base(toolsRepository, mappingManager, durableTaskClient)
         {
-            var toolSignatures = new List<string>();
+            this.approvalPlugin = approvalPlugin;
+            this.remediationPlugin = remediationPlugin;
+            this.recordActionsPlugin = recordActionsPlugin;
+        }
 
+        protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
+        {
             var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-            toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.StorageAccountDisableSharedKeySupport));
-            toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.StorageAccountDisablePublicContainers));
+            yield return () => remediationPluginDefinition.StorageAccountDisableSharedKeySupport;
+            yield return () => remediationPluginDefinition.StorageAccountDisablePublicContainers;
 
             var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-            toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-            toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
+            yield return () => recordActionsPluginDefinition.RecordAction;
+            yield return () => recordActionsPluginDefinition.GetActionDetails;
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-            toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-            toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-            toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+            yield return () => controlFlowPluginDefinition.Wait;
+            yield return () => controlFlowPluginDefinition.MarkPlanComplete;
+            yield return () => controlFlowPluginDefinition.NotifyUser;
+            yield return () => controlFlowPluginDefinition.AskUserForInput;
 
             var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-            toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
-
-            _toolSignatures = toolSignatures;
-            _durableTaskClient = durableTaskClient;
-            _mappingManager = mappingManager;
-        }
-
-        public async Task<string> StartOrchestration(StorageAccountAgentPlanInput input, ThreadContext context)
-        {
-            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
-            var threadId = context.ThreadId.ToString();
-
-            await _mappingManager.AddMappingAsync(threadId, instanceId);
-
-            return await _durableTaskClient.ScheduleNewStorageAccountAgentInstanceAsync(
-                new StorageAccountAgentInput(Input: input, ToolSignatures: _toolSignatures, context),
-                new StartOrchestrationOptions(InstanceId: instanceId)
-            );
-        }
-
-        public StorageAccountAgentPlanInput DeserializeInput(string serializedOrchestrationInput)
-        {
-            return JsonSerializer.Deserialize<StorageAccountAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
+            yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

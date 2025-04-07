@@ -3,19 +3,51 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.CVEAgent;
+using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
+using Microsoft.Extensions.AI;
+using System.Reflection;
 
 namespace Agent.Seb.Services;
 
+
 public class TimerService : IHostedService, IDisposable
 {
+    /// <summary>
+    /// A class that stores information about a single scanner's timer
+    /// </summary>
+    private class ScannerTimerInformation
+    {
+        public string Name;
+        public Timer? Timer { get; set; }
+        public bool IsRunning { get; set; } = false;
+        public TimeSpan Interval { get; set; } = TimeSpan.FromMinutes(1);
+        public MethodInfo ScanMethod { get; }
+        public object ScanTarget { get; set; } = null!;
+
+        /// <summary>
+        /// Create a new instance
+        /// </summary>
+        /// <param name="name">The name of this scanner</param>
+        /// <param name="scanMethod">The method to initiate when timer is triggered</param>
+        /// <param name="scanTarget">The instance on which to initiate it</param>
+        public ScannerTimerInformation(string name, MethodInfo scanMethod, object scanTarget)
+        {
+            Name = name;
+            ScanMethod = scanMethod;
+            ScanTarget = scanTarget;
+            IsRunning = false;
+        }
+    }
+
     private readonly ILogger<TimerService> _logger;
     private readonly ResourceGraphCrawler _crawler;
     private readonly IPostToTeamsPlugin _teamsPlugin;
@@ -51,6 +83,8 @@ public class TimerService : IHostedService, IDisposable
     private bool _cveCrawlerTimerIsRunning = false;
     private TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
 
+    private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
+
     public TimerService(
         ResourceGraphCrawler crawler,
         CrawlerSettings settings,
@@ -59,9 +93,11 @@ public class TimerService : IHostedService, IDisposable
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
         DailyReportScanner dailyReportScanner,
-        ILogger<TimerService> logger,
         SourceCodeScanner sourceCodeScanner,
-        CVEScanner cveScanner)
+        CVEScanner cveScanner,
+        ILogger<TimerService> logger,
+        IServiceProvider serviceProvider
+        )
     {
         _logger = logger;
         _crawler = crawler;
@@ -74,6 +110,20 @@ public class TimerService : IHostedService, IDisposable
         _sourceCodeScanner = sourceCodeScanner;
         _cveScanner = cveScanner;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
+
+        // Register all the scanners that implement this base type
+        var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
+        foreach (var type in scannerSubClasses)
+        {
+            // Instantiate the type using DI
+            var instance = serviceProvider.GetRequiredService(type);
+            // Get a handle to the scan method
+            var scanMethod = type.GetMethod("ScanAsync", BindingFlags.Public | BindingFlags.Instance)
+                ?? throw new Exception($"Could not find scanning method on type {type.Name}");
+            // TODO: Would it be neater if instead of method+instance, we created an Action<Task> at this point?
+            GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance));
+        }
+
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -97,6 +147,8 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting CVE timer...");
         StartCVETimer(cancellationToken);
 
+        StartAllGenericSubAgentTimers(cancellationToken);
+
         _logger.LogInformation($"Finished starting background services");
 
         return Task.CompletedTask;
@@ -108,6 +160,12 @@ public class TimerService : IHostedService, IDisposable
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
         _bestPracticeTimer?.Change(Timeout.Infinite, 0); // Stop the best practice timer
+
+        // Stop all generic timers
+        foreach (var scanner in GenericSubAgentScannerTimers)
+        {
+            scanner.Timer?.Change(Timeout.Infinite, 0);
+        }
 
         return Task.CompletedTask;
     }
@@ -248,6 +306,36 @@ public class TimerService : IHostedService, IDisposable
     }
 
     /// <summary>
+    /// This starts all timers that derived from the shared base class.
+    /// </summary>
+    public void StartAllGenericSubAgentTimers(CancellationToken cancellationToken)
+    {
+        foreach (var scanner in GenericSubAgentScannerTimers)
+        {
+            _logger.LogInformation($"Starting timer for {scanner.Name} scanner...");
+            scanner.Timer = new Timer(async _ =>
+            {
+                if (scanner.IsRunning)
+                {
+                    _logger.LogInformation($"Scanner '{scanner.Name}' is running. Skipping this round");
+                    return; // Prevent overlapping executions
+                }
+                try
+                {
+                    _logger.LogInformation($"Starting scanner '{scanner.Name}'");
+                    scanner.IsRunning = true;
+                    var task = (Task)scanner.ScanMethod.Invoke(scanner.ScanTarget, [cancellationToken]);
+                    await task!;
+                }
+                finally
+                {
+                    scanner.IsRunning = false;
+                }
+            }, null, TimeSpan.Zero, scanner.Interval);
+        }
+    }
+
+    /// <summary>
     /// Kicks off the best practice scanner and posts issues to Teams
     /// </summary>
     public void StartBestPracticeTimer(CancellationToken cancellationToken)
@@ -343,6 +431,12 @@ public class TimerService : IHostedService, IDisposable
 
         _crawlerTimer?.Dispose();
         _bestPracticeTimer?.Dispose();
+
+        // Dispose generic timers
+        foreach (var scanner in GenericSubAgentScannerTimers)
+        {
+            scanner.Timer?.Dispose();
+        }
     }
 }
 

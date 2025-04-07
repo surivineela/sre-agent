@@ -21,11 +21,10 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.Core;
-using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.CVEAgent;
+using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Agent.Runtime.SubAgents.StorageAccountAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.TeamsChatServices;
@@ -40,6 +39,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
+using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -49,6 +49,7 @@ using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
 using Agent.Runtime.SubAgents.KubernetesAgent;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,12 +134,10 @@ builder.Host.UseSerilog();
         .AddTransient<SourceCodePlugin>()
         .AddTransient<KubernetesAgentPlugin>()
         .AddTransient<AppServiceRemediationPlugin>()
-        .AddTransient<StorageAccountPlugin>()
         .AddTransient<IChartPlugin, ChartPlugin>()
         .AddTransient<ChartPlugin>()
 
         .AddSingleton<AppServiceRemediationAgentFactory>()
-        .AddSingleton<StorageAccountAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
@@ -182,6 +181,25 @@ builder.Host.UseSerilog();
         .AddSingleton<ArchitectureAgent>()
         .AddSingleton<LogsAndMetricsAgent>();
 
+
+    // Register all subagent factories that derive from the shared impl
+    var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
+    foreach (var type in genericSubAgentFactories)
+    {
+        builder.Services.AddSingleton(type);
+    }
+    // Register all subagent plugins that derive from the shared impl
+    var genericSubAgentPlugins = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentPluginBase<,,,,>));
+    foreach (var type in genericSubAgentPlugins)
+    {
+        builder.Services.AddTransient(type);
+    }
+    // Register all subagent scanners that derive from the shared impl
+    var genericSubAgentScanners = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
+    foreach (var type in genericSubAgentScanners)
+    {
+        builder.Services.AddSingleton(type);
+    }
 
     builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
     builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();

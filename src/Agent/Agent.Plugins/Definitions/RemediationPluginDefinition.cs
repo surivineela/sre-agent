@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -60,14 +60,14 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("storage_account_disabled_shared_key")]
-        [Description("Disables the use of shared keys for accessing storage accounts, forcing callers to take advantage of managed credentials.")]
+        [Description("Disables the use of shared keys for accessing storage accounts. This forces callers to use Managed Identities or Delegated Secure Access Token (SAS).")]
         public async Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId)
         {
             return await _remediationPlugin.StorageAccountDisableSharedKeySupport(resourceId);
         }
 
         [KernelFunction("storage_account_disable_public_containers")]
-        [Description("Disables the use of shared keys for accessing storage accounts, forcing callers to take advantage of managed credentials.")]
+        [Description("Disables public access to blob containers in the storage account. This is a security measure to prevent unauthorized access to blobs.")]
         public async Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
         {
             return await _remediationPlugin.StorageAccountDisablePublicContainers(resourceId);

@@ -25,6 +25,28 @@ Tip: Set the crawl root to a resource group instead of your subscription. This w
 
 [Back to Development Setup](development-setup.md) | [Next: Graph Database Setup](graph-database.md) 
 
+# Running the Crawler
+The crawler scans Azure resources and puts them into a CosmosDB graph for use by various agents.
+
+It gets kicked off automatically on a separate thread by `Agent.Web`, but in order for it to work, you need to give it a root to crawl from.
+
+This can be done in appsettings.development.json, and looks like this:
+
+```json
+  "AppSettings": {
+    "Core": {
+      "Azure": {
+        "Crawler": {
+          "CrawlRoot": "/subscriptions/fe2ef518-fe95-41c5-9264-467faa5d6182/resourcegroups/avip2-operations-agent-3p-rg"
+        },
+      }
+    }
+  }
+}
+```
+
+
+
 
 # Dealing With Workflow Approvals
 The approval workflow looks like this:

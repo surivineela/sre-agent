@@ -455,6 +455,30 @@ public class ArmHelper
         return output;
     }
 
+    public async Task<List<Models.StorageAccountStatus>> GetStorageSettings(List<string> resourceIds)
+    {
+        var output = new List<Models.StorageAccountStatus>();
+        if (resourceIds == null || resourceIds.Count == 0) return output;
+
+        const int batchSize = 5;
+        for (int i = 0; i < resourceIds.Count; i += batchSize)
+        {
+            // Take a slice of up to 5 resource IDs
+            var chunk = resourceIds.Skip(i).Take(batchSize).ToList();
+
+            // Create tasks for each resource in this chunk
+            var tasks = chunk.Select(rid => FetchStorageAccountStatusAsync(rid)).ToList();
+
+            // Run them in parallel
+            var results = await Task.WhenAll(tasks);
+
+            // Add them to the output (filter out any null if the call failed)
+            output.AddRange(results.Where(r => r != null));
+        }
+
+        return output;
+    }
+
     /// <summary>
     /// Checks if a given string is a valid resource identifier.
     /// </summary>
@@ -659,6 +683,19 @@ public class ArmHelper
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         return response.IsSuccessStatusCode;
+    }
+
+    public async Task<Models.StorageAccountStatus>FetchStorageAccountStatusAsync(string resourceId)
+    {
+        var storageAccount = await GetStorageAccountAsync(resourceId);
+        return new Models.StorageAccountStatus(
+            ResourceId: resourceId,
+            Name: storageAccount.Data.Name,
+            Location: storageAccount.Data.Location,
+            StorageKeyEnabled: storageAccount.Data.AllowSharedKeyAccess ?? false,
+            PublicContainersEnabled: storageAccount.Data.AllowBlobPublicAccess ?? false 
+            );
+
     }
 
     private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId)

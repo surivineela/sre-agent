@@ -2,8 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using Agent.Core;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -43,6 +45,32 @@ Before initiating any Azure resource operations:
    - Use the resource-specific `List` tool to show available resources.
    - Confirm the exact resource name with the user.
 3. **Never assume** any subscription, resource group, or resource name; always present explicit options.
+
+2. If ANY of these values are missing, you must:
+   - First use the List.Subscriptions tool to retrieve available subscriptions
+   - Present the subscriptions to the user and ask them to select one
+   - Then use individual resource specific List tool to List the resources
+   - Have the user confirm the specific resource name
+
+3. Never assume any subscription ID, resource group name, or resource name values.
+   
+4. Always show the user the available options and have them explicitly confirm their selection before proceeding with any operations.
+
+5. If multiple options exist at any step, present them in a clear, numbered list for easy selection.
+
+**You must not assume any of these values**
+</Important>
+
+## Primary Capabilities
+- **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
+- **App Service Remediation**: If there is any issue with Azure WebApps or Azure Function apps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
+- **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
+- **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
+- **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
+- **Storage Account Remediation**: Help users with making changes storage account settings
+- **Kubernetes Agent**: Help users with any queries related to Azure Kubernetes Service (AKS)
+- **App Reliability**: Delegate to this plugin to help users improve the reliability of their Azure applications
+
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.
@@ -96,6 +124,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly SourceCodePlugin _sourceCodePlugin;
+    private readonly IServiceProvider _serviceProvider;
     private readonly StorageAccountPlugin _storageAccountPlugin;
     private readonly AppReliabilityPlugin _appReliabilityPlugin;
     private readonly DashboardSettings _dashboardSettings;
@@ -117,8 +146,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
+        AppReliabilityPlugin appReliabilityPlugin,
         SourceCodePlugin sourceCodePlugin,
-        AppReliabilityPlugin appReliabilityPlugin)
+        IServiceProvider serviceProvider
+        )
     {
         _chatClient = chatClient;
         _threadService = threadService;
@@ -137,7 +168,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _chartplugin = chartplugin;
         _githubIssuePlugin = githubIssuePlugin;
         _sourceCodePlugin = sourceCodePlugin;
-
+        _serviceProvider = serviceProvider;
         _graphDbPlugin = graphDBPlugin;
         _appReliabilityPlugin = appReliabilityPlugin;
     }
@@ -186,8 +217,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
-            AIFunctionFactory.Create(_storageAccountPlugin.ListStorageAccountAgentWorkflows),
-            AIFunctionFactory.Create(_storageAccountPlugin.StartStorageAccountAgent),
             AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
@@ -205,6 +234,31 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourcesByType),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard)
         ];
+
+        // Get all instances of background-scanning subagents and register their methods
+        var subClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
+            typeof(MetaAgent).Assembly,
+            typeof(SimpleResourceSubAgentPluginBase<,,,,>)
+        );
+        foreach (var type in subClasses)
+        {
+            // Instantiate the type using DI
+            var instance = _serviceProvider.GetRequiredService(type);
+
+            // Set the context
+            var prop = type.GetProperty("Context", BindingFlags.Public | BindingFlags.Instance);
+            if (prop == null) {
+                throw new InvalidOperationException($"Property 'Context' not found on plugin '{type.Name}'");
+            }
+            prop.SetValue(instance, ctx);
+
+            // Get a handle to its methods, and register them in the tools
+            var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance);
+            var startAgentAsync = type.GetMethod("StartAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+            _aiTools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
+            _aiTools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
+        }
+        
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
         var chatHistory = await _threadService.ToLLMChatHistory(ctx, SystemPrompt);
