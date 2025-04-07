@@ -72,6 +72,16 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType)
+        {
+            throw new NotImplementedException();
+        }
+
+        public string GetKnowledgeGraphResourceUsageDashboard()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

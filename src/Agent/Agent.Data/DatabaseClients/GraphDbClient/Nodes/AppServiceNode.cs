@@ -13,8 +13,6 @@ public class AppServiceNode : ArmResourceNode
     public bool? AlwaysOn { get; set; }
     public bool? HealthCheckEnabled { get; set; }
 
-
-
     public AppServiceNode(string resourceType,
         string resourceId,
         string subscriptionId,
@@ -66,4 +64,3 @@ public class AppServiceNode : ArmResourceNode
         return props;
     }
 }
-

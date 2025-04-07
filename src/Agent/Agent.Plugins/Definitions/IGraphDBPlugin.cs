@@ -123,5 +123,16 @@ namespace Agent.Plugins
         /// When groupBy is specified: Returns an object with ResourceType, GroupBy, and a Counts dictionary.
         /// </returns>
         Task<dynamic> GetResourceCountAsync(string resourceType, string groupBy = "");
+
+        /// <summary>
+        /// Returns a list of resources of a specified type with their complete property bag.
+        /// Each resource is represented as a dictionary of property names and values.
+        /// The 'updateTs' property is excluded from the results.
+        /// </summary>
+        /// <param name="resourceType">The type of resource to query (e.g., 'microsoft.app/containerapps')</param>
+        /// <returns>A list of dictionaries containing all properties for each resource of the specified type.</returns>
+        Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType);
+
+        string GetKnowledgeGraphResourceUsageDashboard();
     }
 }

@@ -123,6 +123,17 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
             }).ToListAsync();
 
+            foreach (var agent in runningAgents)
+            {
+                await _durableTaskClient.TerminateInstanceAsync(agent.InstanceId);
+            }
+
+            runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+            {
+                Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                InstanceIdPrefix = DailyReportSummaryAgentFactory.OrchestrationInstanceIdPrefix
+            }).ToListAsync();
+
             if (runningAgents.Count > 0)
             {
                 _logger.LogInformation("Daily report summary agent already running, skipping this run.");

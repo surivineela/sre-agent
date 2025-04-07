@@ -112,4 +112,3 @@ public class K8sDaemonSetCrawler : IResourceCrawler
         }
     }
 }
-

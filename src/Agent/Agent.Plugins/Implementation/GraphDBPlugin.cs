@@ -289,16 +289,19 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             try
             {
                 string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
-                    .repeat(
-                        union(
-                            outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
-                            inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
+                    .union(
+                        identity(),
+                        repeat(
+                            union(
+                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
+                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
+                            )
+                            .not(has('resourceType', within('resourcegroup', 'subscription')))
+                            .simplePath()
                         )
-                        .not(has('resourceType', within('resourcegroup', 'subscription')))
-                        .simplePath()
+                        .times({hops})
+                        .emit()
                     )
-                    .times({hops})
-                    .emit()
                     .dedup()
                     .project('id', 'name', 'type', 'properties')
                     .by(id())
@@ -536,7 +539,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 if (resourceNodes == null || !resourceNodes.Any())
                 {
                     _logger.LogWarning("Resource not found: {ResourceName} of type {ResourceType}", resourceName, resourceType);
-                    return $"Failed to generate health summary: Resource '{resourceName}' of type '{resourceType}' not found.";
+                    return $"Failed to generate health summary: Resource '{resourceName}' of type '{resourceType}' was not found in the knwoledge graph.";
                 }
 
                 // Use the first matching resource
@@ -550,18 +553,20 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 {
                     { "var-ds", "azure-monitor-oob" },
                     { "var-ns", resourceType },
-                    { "var-sub", resource.SubscriptionId },
+                    { "var-sub", resource.ResourceType },
                     { "var-rg", resource.ResourceGroupName.ToLowerInvariant() },
                     { "var-resource", resource.ResourceName.ToLowerInvariant() }
                 };
 
-                // Add dashboard-specific parameters
                 switch (dashboardType)
                 {
                     case "azure-container-apps-container-app-view":
                         queryParams["var-containerapp"] = resource.ResourceName.ToLowerInvariant();
                         break;
                     case "azure-redis":
+                        queryParams["var-name"] = resource.ResourceName.ToLowerInvariant();
+                        break;
+                    case "azure-app-service-monitoring":
                         queryParams["var-name"] = resource.ResourceName.ToLowerInvariant();
                         break;
                 }
@@ -585,7 +590,6 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
                 if (string.IsNullOrEmpty(dashboardUrl))
                 {
-                    // Fallback to constructed URL if not found through API
                     dashboardUrl = baseUrl;
                 }
 
@@ -599,7 +603,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 if (string.IsNullOrEmpty(screenshotResponse?.Screenshot))
                 {
                     _logger.LogWarning("No screenshot captured for resource {ResourceName}", resourceName);
-                    return $"Failed to capture dashboard screenshot for resource '{resourceName}'.";
+                    return $"Failed to capture dashboard screenshot for resource '{resourceName}'. Dashboard URL: {dashboardUrl}";
                 }
 
                 if (Context != null)
@@ -609,13 +613,76 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);
-                _logger.LogInformation("General health summary generated successfully for resource {ResourceName}", resourceName);
-                return healthSummary;
+                _logger.LogInformation("General health summary generated successfully for resource {ResourceName}.  Dashboard URL: {dashboardUrl}", resourceName);
+                return $"Summary--------{healthSummary}------\nDashboard URL from where the summary was retrieved: {_grafanaUrl}{dashboardUrl}";
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error generating general health summary for resource {ResourceName} of type {ResourceType}", resourceName, resourceType);
                 return $"Error generating health summary: {ex.Message}";
+            }
+        }
+
+        public string GetKnowledgeGraphResourceUsageDashboard()
+        {
+            return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m";
+        }
+
+        public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType)
+        {
+            try
+            {
+                // Using valueMap() and project to get all properties
+                string query = $@"
+        g.V().hasLabel('{resourceType.ToLower()}')
+        .project('properties', 'label')
+        .by(valueMap())
+        .by(label())
+        ";
+
+                var result = await GraphDbClient.Query(query);
+                var resources = new List<Dictionary<string, object>>();
+
+                foreach (var item in result)
+                {
+                    // Create a new dictionary for each resource
+                    var propertyBag = new Dictionary<string, object>();
+
+                    // Add label
+                    propertyBag["label"] = item["label"]?.ToString();
+
+                    // Process the property map
+                    if (item["properties"] is IDictionary<string, object> properties)
+                    {
+                        foreach (var kvp in properties)
+                        {
+                            // Skip 'updateTs' property
+                            if (kvp.Key == "updateTs")
+                                continue;
+
+                            // Handle array values (Gremlin usually returns properties as arrays)
+                            if (kvp.Value is object[] valueArray && valueArray.Length > 0)
+                            {
+                                // If it's a single-valued array, just take the first value
+                                propertyBag[kvp.Key] = valueArray[0];
+                            }
+                            else
+                            {
+                                propertyBag[kvp.Key] = kvp.Value;
+                            }
+                        }
+                    }
+
+                    resources.Add(propertyBag);
+                }
+
+                _logger.LogInformation("Found {Count} resources of type '{ResourceType}'", resources.Count, resourceType);
+                return resources;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing resources of type '{Type}'", resourceType);
+                throw;
             }
         }
 
@@ -763,21 +830,17 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
         {
             try
             {
-                string query = @"
-               g.V().has('resourceType', 'subscription').properties('subscriptionName', 'subscriptionId')
-                .value()
-                .dedup()
-                ";
+                string query = @"g.V().has('resourceType', 'subscription')
+                          .project('name', 'id')
+                          .by('subscriptionName')
+                          .by('subscriptionId')";
 
                 var result = await GraphDbClient.Query(query);
 
-                // If each row is literally just a string:
-                var subscriptionIds = result
-                    .Select(row => row.ToString())
-                    .ToList();
+                _logger.LogInformation("Found {Count} subscriptions", result.Count);
 
-                _logger.LogInformation("Found {Count} subscriptions", subscriptionIds.Count);
-                return subscriptionIds;
+                // Return the list of subscription objects with name and id properties intact
+                return result.ToList();
             }
             catch (Exception ex)
             {

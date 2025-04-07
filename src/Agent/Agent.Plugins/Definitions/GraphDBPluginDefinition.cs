@@ -163,5 +163,26 @@ namespace Agent.Plugins
         {
             return await _plugin.FetchAndSummarizeActivityLogs(resourceId, daysBack, threadId);
         }
+
+        [KernelFunction("ListResourcesByType")]
+        [Description("Returns a list of Azure resources of a specified type with their property details as recorded in the knowledge graph. " +
+            "This function is useful when you need to: 1) Get an inventory of resources of a specific type, " +
+            "2) Examine tracked configuration properties of resources, " +
+            "3) Gather metadata for resources across your Azure environment, or " +
+            "The output is a list of resource objects with all their properties. " +
+            "Each resource includes details like name, location, resource group, and type-specific configuration.")]
+        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")]string resourceType)
+        {
+            return await _plugin.ListResourcesByTypeAsync(resourceType);
+        }
+
+        [Description("Returns a general dashboard provided as daily reports for Resource Counts recorded in the knowledge graph. " +
+            "This function is useful when you need to: 1) Need to provide a URL to the daily dashboard " +
+            "2) Provide a very generic dashboard for the knowledge graph overview which is at a very high level." +
+            "3) When asked Have you created a dashboard?")]
+        public string GetKnowledgeGraphResourceUsageDashboard()
+        {
+            return _plugin.GetKnowledgeGraphResourceUsageDashboard();
+        }
     }
 }
