@@ -172,7 +172,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error writing metrics to remote storage");
+                _logger.LogWarning(ex, "Error writing metrics to remote storage");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
@@ -198,7 +198,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("core").Inc();
-                _logger.LogError(ex, "Core metrics collection failed");
+                _logger.LogWarning(ex, "Core metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
@@ -221,7 +221,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("resource_type").Inc();
-                _logger.LogError(ex, "Resource type metrics collection failed");
+                _logger.LogWarning(ex, "Resource type metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
@@ -244,7 +244,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("edge_type").Inc();
-                _logger.LogError(ex, "Edge type metrics collection failed");
+                _logger.LogWarning(ex, "Edge type metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
@@ -278,7 +278,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("property").Inc();
-                _logger.LogError(ex, "Property metrics collection failed");
+                _logger.LogWarning(ex, "Property metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
@@ -325,7 +325,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 catch (Exception ex)
                 {
                     _errorsCounter.WithLabels("custom").Inc();
-                    _logger.LogError(ex, "Custom metric collection failed for {MetricName}", metric.Name);
+                    _logger.LogWarning(ex, "Custom metric collection failed for {MetricName}", metric.Name);
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(metric.ScrapeIntervalSeconds), cancellationToken);
@@ -371,7 +371,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogError(ex, "Error executing count query: {Query}", query);
+            _logger.LogWarning(ex, "Error executing count query: {Query}", query);
             throw new Exception($"Error executing query '{query}'", ex);
         }
     }
@@ -405,7 +405,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogError(ex, "Error executing group count query: {Query}", query);
+            _logger.LogWarning(ex, "Error executing group count query: {Query}", query);
             throw new Exception($"Error executing query '{query}'", ex);
         }
     }
@@ -433,8 +433,8 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogError(ex, "Error executing deduplication query: {Query}", query);
-            throw new Exception($"Error executing query '{query}'", ex);
+            _logger.LogWarning(ex, "Error executing deduplication query: {Query}", query);
+            return [];
         }
     }
 
@@ -492,9 +492,8 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogError(ex, "Error executing custom metric query: {Query} for metric {MetricName}",
+            _logger.LogWarning(ex, "Error executing custom metric query: {Query} for metric {MetricName}",
                 metric.Query, metric.Name);
-            throw;
         }
     }
 
