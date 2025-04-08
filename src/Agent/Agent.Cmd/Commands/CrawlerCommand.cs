@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.Logging;
@@ -27,8 +28,7 @@ namespace Agent.Cmd
 
             command.OnExecute(async () =>
             {
-                //await _crawler.Crawl([resourceId.Value], filters: [typeof(AksNode), typeof(SubscriptionNode), typeof(ResourceGroupNode), typeof(KubernetesResourceNode)]);
-                await _crawler.Crawl([resourceId.Value]);
+                await _crawler.Crawl([resourceId.Value], filters: [typeof(AksNode), typeof(SubscriptionNode), typeof(ResourceGroupNode), typeof(KubernetesResourceNode)]);
                 return 0;
             });
         }

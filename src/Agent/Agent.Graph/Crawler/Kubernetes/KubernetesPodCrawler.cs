@@ -4,10 +4,13 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
+using Azure.Core;
+using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Crawler.Kubernetes;
 public class KubernetesPodCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesPodCrawler> _logger;

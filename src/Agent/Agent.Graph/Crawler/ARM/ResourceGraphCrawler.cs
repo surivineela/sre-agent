@@ -119,7 +119,7 @@ public class ResourceGraphCrawler
                             }
 
                             _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
-                            await _graphDbClient.Query($"g.V('{GetSanitizedCosmosDBId(node.GetNodeId())}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({startTS}))).drop()");
+                            await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
                         }
                         finally
                         {
@@ -187,11 +187,6 @@ public class ResourceGraphCrawler
         _logger.LogInformation($"Done cleanup orphan nodes in graph (no edges)");
 
         _logger.LogInformation($"Done cleaning up");
-    }
-
-    private static string GetSanitizedCosmosDBId(string id)
-    {
-        return id.Replace("/", "_").Replace(":", "_").Replace(" ", "_");
     }
 
     private bool FilterNode(HashSet<Type> filters, GraphNode node)

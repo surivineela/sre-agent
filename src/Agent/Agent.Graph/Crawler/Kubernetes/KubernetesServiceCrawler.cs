@@ -6,8 +6,10 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
+using Agent.Graph.Crawler;
+using Agent.Graph.Crawler.ARM;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Crawler.Kubernetes;
 public class KubernetesServiceCrawler : IResourceCrawler
 {
     private readonly ILogger<KubernetesServiceCrawler> _logger;
@@ -31,7 +33,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
         }
 
         // Connects pods
-        var selector = KubernetesHelper.ConstructLabelSelector(service.Spec.Selector);
+        var selector = service.Spec.Selector.ToSelectorString();
         var podList = new V1PodList();
         if (!string.IsNullOrEmpty(selector))
         {
@@ -49,7 +51,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
             bool ready = false;
             if (pod.Status?.Conditions != null)
             {
-                
+
                 foreach (var condition in pod.Status.Conditions)
                 {
                     if (condition.Type == "Ready" && condition.Status == "True")

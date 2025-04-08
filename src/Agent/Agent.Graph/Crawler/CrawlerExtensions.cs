@@ -3,10 +3,11 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Crawler;
 
-public static class CrawlerHelper
+public static class CrawlerExtensions
 {
     public static ArmResourceEdge AddNetworkIngressEdgeProperties(this ArmResourceEdge edge)
     {
@@ -74,6 +75,22 @@ public static class CrawlerHelper
         }
 
         return props;
+    }
+
+    public static Task RemoveStaleEdgeForNode(IGraphDatabaseClient client, GraphNode node, long ts)
+    {
+        return client.Query($"g.V('{GetSanitizedCosmosDBId(node.GetNodeId())}').outE().or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).drop()");
+    }
+
+    public static Task RemoveStaleNodesWithFilter(IGraphDatabaseClient client, IDictionary<string, string> props, long ts)
+    {
+        var filter = string.Join("','", props.Select(kvp => $"has('{kvp.Key}','{kvp.Value}')"));
+        return client.Query($"g.V().and({filter}).or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).drop()");
+    }
+
+    public static string GetSanitizedCosmosDBId(string id)
+    {
+        return id.Replace("/", "_").Replace(":", "_").Replace(" ", "_");
     }
 }
 

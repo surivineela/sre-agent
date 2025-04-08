@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.Kubernetes;
 using Azure.Core;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -108,6 +109,11 @@ public class ArmResourceCrawlerFactory
             if (Constants.KubernetesDeploymentType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
             {
                 return new KubernetesDeploymentCrawler(_loggerFactory.CreateLogger<KubernetesDeploymentCrawler>(), _graphDbClient, armClient, _k8sService);
+            }
+
+            if (Constants.KubernetesDaemonSetType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesDaemonSetCrawler(_loggerFactory.CreateLogger<KubernetesDaemonSetCrawler>(), _graphDbClient, armClient, _k8sService);
             }
 
             if (Constants.KubernetesServiceType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))

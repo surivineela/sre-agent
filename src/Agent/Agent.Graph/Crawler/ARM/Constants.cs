@@ -24,6 +24,8 @@ public class Constants
     public const string KubernetesNamespaceType = "namespaces";
     public const string KubernetesPodType = "pods";
     public const string KubernetesDeploymentType = "deployments";
+    public const string KubernetesDaemonSetType = "daemonsets";
+    public const string KubernetesStatefulSetType = "statefulsets";
     public const string KubernetesServiceType = "services";
     public const string KubernetesConfigMapType = "configmaps";
     public const string KubernetesSecretType = "secrets";

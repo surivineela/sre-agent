@@ -30,6 +30,7 @@ public class KubernetesResourceNode : GraphNode
         IDictionary<string, string> labels = null)
     {
         UpdateTs = DateTime.UtcNow.Ticks;
+        ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();
         Name = name.ToLowerInvariant();
         Group = group.ToLowerInvariant();
@@ -76,6 +77,10 @@ public class KubernetesResourceNode : GraphNode
         {
             foreach (var annotation in Annotations)
             {
+                if (string.Equals(annotation.Key, "kubectl.kubernetes.io/last-applied-configuration"))
+                {
+                    continue;
+                }
                 properties.Add($"annotation_{annotation.Key}", annotation.Value);
             }
         }

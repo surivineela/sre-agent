@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Schema;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
@@ -14,22 +15,25 @@ public class SqlConnectionStringHelper
 {
     private readonly ILogger _logger;
     private readonly ArmClient _armClient;
+    private readonly IGraphDatabaseClient _graphDbClient;
     private const string azureSqlSuffix = ".database.windows.net";
 
-    public SqlConnectionStringHelper(ILogger logger, ArmClient armClient)
+    public SqlConnectionStringHelper(ILogger logger, ArmClient armClient, IGraphDatabaseClient graphDbClient)
     {
         _logger = logger;
         _armClient = armClient;
+        _graphDbClient = graphDbClient;
     }
 
     public async Task<ArmResourceNode> GetSqlResourceFromConnectionStringAsync(
-        IGraphDatabaseClient dbManager,
         GraphNode workloadNode,
-        string connectionString)
+        string value,
+        string sourceType,
+        string sourceName)
     {
         try
         {
-            var builder = new SqlConnectionStringBuilder(connectionString);
+            var builder = new SqlConnectionStringBuilder(value);
             var rawServer = builder.DataSource;
             var database = builder.InitialCatalog;
 
@@ -63,12 +67,23 @@ public class SqlConnectionStringHelper
                     resourceGroupName: sqlResourceId.ResourceGroupName,
                     resourceName: sqlResourceId.ResourceGroupName);
 
-                await dbManager.AddOrUpdateNodeAsync(sqlNode);
+                if (sqlNode != null)
+                {
+                    var properties = sqlNode.GetNodeProperties();
+                    properties["authType"] = value.Contains("Authentication=Active Directory Managed Identity",
+                        StringComparison.OrdinalIgnoreCase)
+                            ? "managedIdentity"
+                            : "connectionString";
+                    properties["source"] = $"{sourceType}:{sourceName}";
 
-                var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-                await dbManager.AddOrUpdateEdgeAsync(edge);
+                    await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
 
-                _logger.LogDebug($"Linked workload {workloadNode.GetNodeId()} with SQL resource {sqlResourceId}");
+                    var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+                    _logger.LogDebug($"Linked workload {workloadNode.GetNodeId()} with SQL resource {sqlResourceId}");
+                }
+
                 return sqlNode;
             }
 
@@ -78,6 +93,47 @@ public class SqlConnectionStringHelper
         catch (Exception ex)
         {
             _logger.LogError($"Error processing connection string: {ex.Message}");
+            return null;
+        }
+    }
+
+    public bool IsSqlConnectionString(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+
+        // Common SQL connection string indicators
+        return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
+               value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
+               value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public async Task<ArmResourceNode> TryLinkSqlResourceById(GraphNode workloadNode, string possibleSqlResource, string sourceType, string sourceName)
+    {
+        try
+        {
+            var sqlId = new ResourceIdentifier(possibleSqlResource);
+            var sqlNode = new ArmResourceNode(
+                resourceType: "Microsoft.Sql/servers",
+                resourceId: sqlId,
+                subscriptionId: sqlId.SubscriptionId,
+                resourceGroupName: sqlId.ResourceGroupName,
+                resourceName: sqlId.Name);
+
+            var properties = sqlNode.GetNodeProperties();
+            properties["source"] = $"{sourceType}:{sourceName}";
+            properties["authType"] = "resourceId";
+
+            await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
+
+            var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+            _logger.LogDebug($"Linked workload {workloadNode.GetNodeId()} with SQL resource {sqlId}");
+            return sqlNode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
             return null;
         }
     }

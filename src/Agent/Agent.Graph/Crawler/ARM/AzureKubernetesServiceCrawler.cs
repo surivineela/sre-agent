@@ -46,7 +46,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         {
             _logger.LogDebug($"Namespace: {ns.Name()} in cluster: {aksNode.GetNodeId()}");
             // TODO: GVK are nulls
-            var nsNode = new KubernetesResourceNode(ns, aksNode.ResourceId, ns.Name(), "core", "v1", "namespaces");
+            var nsNode = new KubernetesResourceNode(ns, aksNode.ResourceId, ns.Name(), "core", "v1", "namespaces", ns.Annotations(), ns.Labels());
             await _graphDbClient.AddOrUpdateNodeAsync(nsNode);
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), nsNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);

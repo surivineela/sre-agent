@@ -15,12 +15,14 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 {
     private readonly ILogger<AppServiceCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
+    private readonly SqlConnectionStringHelper _sqlHelper;
 
     public AppServiceCrawler(ILogger<AppServiceCrawler> logger, IGraphDatabaseClient dbManager, ArmClient armClient)
         : base(logger, dbManager, armClient, false)
     {
         _logger = logger;
         _graphDbClient = dbManager;
+        _sqlHelper = new SqlConnectionStringHelper(logger, armClient, dbManager);
     }
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -122,23 +124,11 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             if (string.IsNullOrEmpty(value)) continue;
 
             // Look for SQL connection strings in app settings
-            if (IsSqlConnectionString(value))
+            if (_sqlHelper.IsSqlConnectionString(value))
             {
-                var sqlHelper = new SqlConnectionStringHelper(_logger, _armClient);
-                var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_graphDbClient, appServiceNode, value);
+                var sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
                 if (sqlNode != null)
                 {
-                    var properties = sqlNode.GetNodeProperties();
-                    properties["authType"] = value.Contains("Authentication=Active Directory Managed Identity", StringComparison.OrdinalIgnoreCase)
-                        ? "managedIdentity"
-                        : "connectionString";
-                    properties["source"] = $"appService:appSetting:{name}";
-
-                    await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
-
-                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
-                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-
                     yield return sqlNode;
                 }
             }
@@ -164,16 +154,6 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 }
             }
         }
-    }
-
-    private bool IsSqlConnectionString(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-
-        // Common SQL connection string indicators
-        return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
     }
 
     private bool IsRedisConnectionString(string value)

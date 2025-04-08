@@ -196,5 +196,47 @@ public abstract class KubernetesService : IKubernetesService
             return null;
         }
     }
+
+    public async Task<V1StatefulSetList> GetStatefulSetsAsync(string resourceId, string ns, string? labelSelector = null)
+    {
+        var client = await GetKubernetesClient(resourceId);
+        var statefulSets = await client.AppsV1.ListNamespacedStatefulSetAsync(ns, labelSelector: labelSelector);
+        return statefulSets;
+    }
+
+    public async Task<V1StatefulSet?> GetStatefulSetAsync(string resourceId, string ns, string name)
+    {
+        var client = await GetKubernetesClient(resourceId);
+        try
+        {
+            var statefulSet = await client.AppsV1.ReadNamespacedStatefulSetAsync(name, ns);
+            return statefulSet;
+        }
+        catch (HttpOperationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<V1DaemonSetList> GetDaemonSetsAsync(string resourceId, string ns, string? labelSelector = null)
+    {
+        var client = await GetKubernetesClient(resourceId);
+        var daemonSets = await client.AppsV1.ListNamespacedDaemonSetAsync(ns, labelSelector: labelSelector);
+        return daemonSets;
+    }
+
+    public async Task<V1DaemonSet?> GetDaemonSetAsync(string resourceId, string ns, string name)
+    {
+        var client = await GetKubernetesClient(resourceId);
+        try
+        {
+            var daemonSet = await client.AppsV1.ReadNamespacedDaemonSetAsync(name, ns);
+            return daemonSet;
+        }
+        catch (HttpOperationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
 }
 

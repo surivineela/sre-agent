@@ -14,12 +14,15 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
 {
     private readonly ILogger<ContainerAppCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
+    private readonly SqlConnectionStringHelper _sqlHelper;
+
 
     public ContainerAppCrawler(ILogger<ContainerAppCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient)
         : base(logger, graphDbClient, armClient)
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
+        _sqlHelper = new SqlConnectionStringHelper(logger, armClient, graphDbClient);
     }
 
     public override async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
@@ -229,20 +232,11 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         string sourceType)
     {
         // Look for SQL connection strings
-        if (IsSqlConnectionString(value))
+        if (_sqlHelper.IsSqlConnectionString(value))
         {
-            var sqlHelper = new SqlConnectionStringHelper(_logger, _armClient);
-            var sqlNode = await sqlHelper.GetSqlResourceFromConnectionStringAsync(_graphDbClient, node, value);
+            var sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(node, value, $"containerApp:{sourceType}", name);
             if (sqlNode != null)
             {
-                var properties = sqlNode.GetNodeProperties();
-                properties["authType"] = value.Contains("Authentication=Active Directory Managed Identity", StringComparison.OrdinalIgnoreCase)
-                    ? "managedIdentity"
-                    : "connectionString";
-                properties["source"] = $"containerApp:{sourceType}:{name}";
-
-                await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
-
                 yield return sqlNode;
             }
         }
@@ -266,14 +260,6 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         }
     }
 
-    private bool IsSqlConnectionString(string value)
-    {
-        if (string.IsNullOrEmpty(value)) return false;
-
-        return value.Contains("Server=", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains("Data Source=", StringComparison.OrdinalIgnoreCase) ||
-               value.Contains(".database.windows.net", StringComparison.OrdinalIgnoreCase);
-    }
     private string ExtractResourceGroupName(ResourceIdentifier resourceId)
     {
         var segments = resourceId.ToString().Split('/', StringSplitOptions.RemoveEmptyEntries);

@@ -3,8 +3,12 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
+using Azure.Core;
+using k8s;
+using k8s.Models;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Crawler.Kubernetes;
 
 // literally do nothing
 public class KubernetesDummyCrawler : IResourceCrawler

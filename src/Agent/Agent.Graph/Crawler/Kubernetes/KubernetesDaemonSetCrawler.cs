@@ -1,114 +1,129 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
+using System.Linq;
+using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
 using Azure.Core;
 using Azure.ResourceManager;
 using k8s;
+using k8s.Models;
 using Microsoft.Extensions.Logging;
+using Octokit;
 
-namespace Agent.Graph.Crawler.ARM;
+namespace Agent.Graph.Crawler.Kubernetes;
 
-public class K8sDaemonSetCrawler : IResourceCrawler
+public class KubernetesDaemonSetCrawler : IResourceCrawler
 {
-    private readonly ILogger<K8sDaemonSetCrawler> _logger;
+    private readonly ILogger<KubernetesDaemonSetCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ArmClient _armClient;
-    private readonly IKubernetes _k8sClient;
+    private readonly IKubernetesService _k8sService;
+    private readonly SqlConnectionStringHelper _sqlHelper;
 
-    public K8sDaemonSetCrawler(ILogger<K8sDaemonSetCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient)
+    public KubernetesDaemonSetCrawler(ILogger<KubernetesDaemonSetCrawler> logger, IGraphDatabaseClient graphDbClient, ArmClient armClient, IKubernetesService k8sService)
     {
         _logger = logger;
         _graphDbClient = graphDbClient;
         _armClient = armClient;
         var config = KubernetesClientConfiguration.BuildDefaultConfig();
-        _k8sClient = new Kubernetes(config);
+        _k8sService = k8sService;
+        _sqlHelper = new SqlConnectionStringHelper(logger, _armClient, _graphDbClient);
     }
 
     public async IAsyncEnumerable<GraphNode> Crawl(GraphNode node)
     {
-        var clusterNode = (AksNode)node;
-        _logger.LogDebug($"Crawling Kubernetes DaemonSets in cluster: {clusterNode.ResourceId}");
+        var daemonSetNode = (KubernetesNamespacedResourceNode)node;
+        _logger.LogDebug($"Crawling deployment: {daemonSetNode.GetNodeId()}");
 
-        var daemonSets = await _k8sClient.AppsV1.ListDaemonSetForAllNamespacesAsync(
-            allowWatchBookmarks: false,
-            continueParameter: null,
-            fieldSelector: null,
-            labelSelector: null,
-            limit: null,
-            pretty: null,
-            resourceVersion: null,
-            resourceVersionMatch: null,
-            timeoutSeconds: null,
-            watch: false
-        );
-
-        foreach (var ds in daemonSets.Items)
+        var daemonSet = (V1Deployment)daemonSetNode.ResourceObject;
+        if (daemonSet == null)
         {
-            var dsId = $"{clusterNode.ResourceId}/daemonsets/{ds.Metadata.NamespaceProperty}{ds.Metadata.Name}";
-            var dsNode = new ArmResourceNode(
-                resourceType: "Microsoft.ContainerService/DaemonSet",
-                resourceId: dsId,
-                subscriptionId: clusterNode.SubscriptionId,
-                resourceGroupName: ds.Metadata.NamespaceProperty,
-                resourceName: ds.Metadata.Name);
+            daemonSet = await _k8sService.GetDeploymentAsync(
+                daemonSetNode.ClusterResourceId,
+                daemonSetNode.Namespace,
+                daemonSetNode.Name);
+        }
 
-            await _graphDbClient.AddOrUpdateNodeAsync(dsNode);
+        if (daemonSet == null)
+        {
+            yield break;
+        }
 
-            var edge = new ArmResourceEdge(clusterNode.GetNodeId(), dsNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-
-            if (ds.Spec?.Template?.Spec?.Containers != null)
+        if (daemonSet.Spec?.Template?.Spec?.Containers != null)
+        {
+            HashSet<string> knownVolumes = [];
+            foreach (var container in daemonSet.Spec.Template.Spec.Containers)
             {
-                foreach (var container in ds.Spec.Template.Spec.Containers)
+                if (container.Env != null)
                 {
-                    if (container.Env != null)
+                    foreach (var env in container.Env)
                     {
-                        foreach (var env in container.Env)
+                        var refNode = await env.TryLinkEnvReferenceAsync(daemonSetNode, _k8sService, _graphDbClient, _logger);
+                        if (refNode != null)
                         {
-                            if (!string.IsNullOrEmpty(env.Value) &&
-                                env.Value.Contains("/Microsoft.Sql/", StringComparison.OrdinalIgnoreCase))
+                            yield return refNode;
+                            // continue match on values
+                        }
+
+                        // chck env value
+                        // match sql connection string
+                        var sqlNode = await env.TryMatchAndLinkSqlResourcesAsync(daemonSetNode, _sqlHelper, _graphDbClient, "daemonset", _logger);
+                        if (sqlNode != null)
+                        {
+                            yield return sqlNode;
+                            continue;
+                        }
+
+                        // match service name call
+                        var serviceNode = await env.TryMatchAndLinkServiceAsync(daemonSetNode, _k8sService, _graphDbClient, _logger);
+                        if (serviceNode != null)
+                        {
+                            yield return serviceNode;
+                            continue;
+                        }
+                    }
+                }
+
+                if (container.VolumeMounts != null)
+                {
+                    foreach (var volumeMount in container.VolumeMounts)
+                    {
+                        var volume = daemonSet.Spec.Template.Spec.Volumes?.FirstOrDefault(v => v.Name == volumeMount.Name);
+                        if (!knownVolumes.Contains(volume.Name))
+                        {
+                            knownVolumes.Add(volume.Name);
+                            var refNode = await volume.TryLinkVolumeReferenceAsync(daemonSetNode, _k8sService, _graphDbClient, _logger);
+                            if (refNode != null)
                             {
-                                var sqlNode = await TryLinkSqlResource(dsNode, env.Value);
-                                if (sqlNode != null)
-                                {
-                                    yield return sqlNode;
-                                }
+                                yield return refNode;
                             }
                         }
                     }
                 }
             }
-
-            yield return dsNode;
         }
-    }
 
-    private async Task<ArmResourceNode> TryLinkSqlResource(ArmResourceNode workloadNode, string possibleSqlResource)
-    {
-        try
+        // connect pods
+        var selector = daemonSet.Spec.Selector.ToSelectorString();
+        var podList = new V1PodList();
+        if (!string.IsNullOrEmpty(selector))
         {
-            var sqlId = new ResourceIdentifier(possibleSqlResource).ToString();
-            var sqlNode = new ArmResourceNode(
-                resourceType: "Microsoft.Sql/servers",
-                resourceId: sqlId,
-                subscriptionId: workloadNode.SubscriptionId,
-                resourceGroupName: workloadNode.ResourceGroupName,
-                resourceName: workloadNode.ResourceName);
-
-            await _graphDbClient.AddOrUpdateNodeAsync(sqlNode);
-
-            var edge = new ArmResourceEdge(workloadNode.GetNodeId(), sqlNode.GetNodeId(), Constants.Relationships.SqlConnected);
+            podList = await _k8sService.GetPodsAsync(daemonSetNode.ClusterResourceId, daemonSetNode.Namespace, selector);
+        }
+        foreach (var pod in podList.Items ?? new List<V1Pod>())
+        {
+            var podNode = new KubernetesNamespacedResourceNode(
+                pod,
+                daemonSetNode.ClusterResourceId,
+                daemonSetNode.Namespace,
+                pod.Name(),
+                "core",
+                "v1",
+                "pods");
+            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
+            var edge = new ArmResourceEdge(daemonSetNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
-            _logger.LogDebug($"Linked workload {workloadNode.ResourceId} with SQL resource {sqlId}");
-            return sqlNode;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
-            return null;
+            yield return podNode;
         }
     }
 }
