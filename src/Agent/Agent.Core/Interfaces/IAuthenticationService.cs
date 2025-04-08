@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -32,5 +32,10 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetArmOperationCredential();
-}
 
+    /// <summary>
+    /// Get the credential to access the azure monitor workspace
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetAzureMonitorWorkspaceCredential();
+}

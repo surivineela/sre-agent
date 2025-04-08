@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -248,6 +248,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
 
             return false;
+        }
+
+        public async Task<ResultSet<T>> SubmitAsync<T>(string query)
+        {
+            return await _retryPolicy.ExecuteAsync(async () =>
+            {
+                return await _gremlinClient!.SubmitAsync<T>(query);
+            });
         }
 
         public Task<bool> AddOrUpdateNodeAsync(GraphNode node)

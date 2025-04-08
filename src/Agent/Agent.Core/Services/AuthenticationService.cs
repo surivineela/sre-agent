@@ -1,8 +1,4 @@
-// ------------------------------------------------------------
-//  Copyright (c) Microsoft Corporation.  All rights reserved.
-// ------------------------------------------------------------
-
-using Agent.Core.Configuration;
+﻿using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.Identity;
@@ -15,14 +11,17 @@ public class AuthenticationService : IAuthenticationService
     private readonly CrawlerSettings _crawlerSettings;
     private readonly FederationSettings _federationSettings;
     private readonly IHostEnvironment _hostEnvironment;
+    private readonly DashboardSettings _dashboardSettings;
 
     public AuthenticationService(CrawlerSettings crawlerSettings,
         FederationSettings federationSettings,
+        DashboardSettings dashboardSettings,
         IHostEnvironment hostEnvironment)
     {
         _crawlerSettings = crawlerSettings;
         _federationSettings = federationSettings;
         _hostEnvironment = hostEnvironment;
+        _dashboardSettings = dashboardSettings;
     }
 
     public TokenCredential GetCrawlerCredential()
@@ -74,7 +73,7 @@ public class AuthenticationService : IAuthenticationService
         if (!Constants.SystemManagedIdentityName.Equals(identity, StringComparison.OrdinalIgnoreCase))
         {
             var id = new ResourceIdentifier(identity);
-            if(id == null)
+            if (id == null)
             {
                 throw new ArgumentException($"Invalid resource identifier for user assigned managed identity: {identity}");
             }
@@ -102,5 +101,14 @@ public class AuthenticationService : IAuthenticationService
     {
         return new DefaultAzureCredential();
     }
-}
 
+    public TokenCredential GetAzureMonitorWorkspaceCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(_dashboardSettings.Identity);
+    }
+}

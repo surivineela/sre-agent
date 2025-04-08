@@ -57,6 +57,25 @@ Note: If you get the connection string from the deployed resource in the portal,
 Another option is to leave the connection string blank so it uses the emulator. Its convenient because every time you restart it, you start from a blank slate.
 Run the emulator using: `./src/run-durable-emulator.ps1`
 
+### Dashboard Settings
+
+An Azure managed grafana and azure managed prometheus(Azure Monitor Worksapce) will be deployed using the deployment scirpt,
+which are used by DailyReportAgent.
+In production, they will be user-provided resources.
+Please configure Dashboard Settings properly:
+```
+"Dashboard": {
+    "GrafanaApiKey": "<your grafana admin api key>", // generated using az grafana api-key create --key <key-name>  --name <grafana name> --resource-group <grafana-rg> --role admin --time-to-live 365d
+    "GrafanaUrl": "<your grafana endpoint>",
+    "PrometheusUrl": "<Azure Monitor Workspace Query endpoint>",
+    // metrics ingestion ednpoint of Azure Monitor workspace(Azure mangaged prometheus). It is not the same as the prometheus url for the same AMW resource.
+    "MetricsIngestionEndpoint": "<Azure Monitor Workspace Metrics ingestion endpoint>",
+    "GrafanaDataSourceName": "<Azure monitor workspace's datasource name in grafana>",
+    "MermaidServerAPI" : ""
+}
+```
+Azure Monitor Workspace Query endpoint and Metrics ingestion endpoint can be found on Azure Monitor Workspace's overview page.
+
 [Next: Running the Application](running-the-app.md) 
 
 [FAQs: Check frequently faced issues in development setup](development-setup-faqs.md)

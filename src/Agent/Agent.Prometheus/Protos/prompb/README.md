@@ -1,0 +1,1 @@
+Copied from https://github.com/prometheus/prometheus/tree/v3.2.1/prompb with gogoproto related annotation removed and added csharp_namespace option.

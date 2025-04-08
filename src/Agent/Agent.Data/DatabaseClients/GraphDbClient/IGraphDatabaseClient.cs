@@ -56,5 +56,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         /// </summary>
         /// <returns></returns>
         Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 200000);
+
+        Task<ResultSet<T>> SubmitAsync<T>(string query);
     }
 }

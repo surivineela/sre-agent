@@ -18,7 +18,6 @@ module keyVault 'kv.bicep' = {
   }
 }
 
-// Dependencies
 module openaiModule 'openai.bicep' = {
   name: 'openaiDeployment'
   params: {
@@ -98,5 +97,24 @@ resource roleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
     roleDefinitionId: resourceId('Microsoft.Authorization/roleDefinitions', consts.appConfigurationDataReader)
     principalId: deployer().objectId
     principalType: 'User'
+  }
+}
+
+// In production the Azure Managed Grafana should be customer provided.
+module azureManagedGrafana 'azureManagedGrafana.bicep' = {
+  name: 'azureManagedGrafanaDeployment'
+  params: {
+    namePrefix: namePrefix
+    location: resourceGroup().location
+  }
+}
+
+// In production, azure monitor workspace(managed prometheus) should be customer provided.
+module azureMonitorWorkspace 'azureMonitorWorkspace.bicep' = {
+  name: 'azureMonitorWorkspaceDeployment'
+  params: {
+    namePrefix: namePrefix
+    location: resourceGroup().location
+    grafanaManagedIdentityId: azureManagedGrafana.outputs.managedIdentityId
   }
 }

@@ -39,5 +39,13 @@
     // Roles
     "appConfigurationDataReader": "516239f1-63e1-4d78-a4de-a74fb236a071",
     "keyVaultSecretsUser": "4633458b-17de-408a-b874-0445c86b69e6",
-    "cosmosDBDataContributor": "00000000-0000-0000-0000-000000000002"
+    "cosmosDBDataContributor": "00000000-0000-0000-0000-000000000002",
+
+    // Azure Monitor Workspace
+    "azureMonitorWorkspaceNameSuffix": "-monitor-workspace",
+    "dataCollectionEndpointSuffix": "-dce",
+    "dataCollectionRuleSuffix": "-dcr",
+
+    // Azure managed grafana
+    "grafanaNameSuffix": "-grafana"
 }

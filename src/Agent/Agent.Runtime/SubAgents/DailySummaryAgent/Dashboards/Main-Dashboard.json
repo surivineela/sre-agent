@@ -1580,6 +1580,30 @@
         "skipUrlSync": false,
         "sort": 1,
         "type": "query"
+      },
+      {
+        "current": {
+          "selected": false,
+          "text": "All",
+          "value": "$__all"
+        },
+        "datasource": "KnowledgeGraph",
+        "definition": "label_values(gremlin_resource_type_count, resource_type)",
+        "hide": 0,
+        "includeAll": true,
+        "label": "Agent Name",
+        "multi": true,
+        "name": "agentName",
+        "options": [],
+        "query": {
+          "query": "label_values(gremlin_resource_type_count, agent_name)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
+        "regex": "",
+        "skipUrlSync": false,
+        "sort": 1,
+        "type": "query"
       }
     ]
   },

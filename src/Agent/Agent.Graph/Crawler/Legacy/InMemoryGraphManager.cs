@@ -119,6 +119,11 @@ namespace Agent.Graph.Crawler.Legacy
             throw new NotImplementedException();
         }
 
+        public Task<ResultSet<T>> SubmitAsync<T>(string query)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> AddOrUpdateNodeAsync(GraphNode node)
         {
             return AddOrUpdateNodeAsync(node.GetNodeLabel(), node.GetNodeId(), node.GetResourceType(), node.GetNodeProperties());

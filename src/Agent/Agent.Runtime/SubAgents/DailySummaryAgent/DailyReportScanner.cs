@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -92,8 +92,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
             _prometheusUrl = dashboardSettings.PrometheusUrl.TrimEnd('/');
             _graphDBPlugin = graphDBPlugin;
-            // _dataSourceName = dashboardSettings.GrafanaDataSourceName;
-            _dataSourceName = "KnowledgeGraph";
+            _dataSourceName = dashboardSettings.GrafanaDataSourceName ?? "KnowledgeGraph";
             _puppeteerScreenshotApiUrl = puppeteerScreenshotApiUrl;
             //_puppeteerScreenshotApiUrl = "http://20.57.166.55:3000";//puppeteerScreenshotApiUrl;
             _azureCredential = new DefaultAzureCredential();
@@ -557,7 +556,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     jsonData = new
                     {
                         httpMethod = "POST",
-                        timeInterval = "15s"
+                        timeInterval = "15s",
+                        azureAuthType = "msi",
+                        azureCredentials = new
+                        {
+                            authType = "msi"
+                        },
                     }
                 };
 
@@ -780,12 +784,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 }
 
                 string dashboardJson = await File.ReadAllTextAsync(_mainDashboardFilePath);
-                dashboardJson = dashboardJson.Replace("\"datasource\": \"Prometheus\"", $"\"datasource\": \"{_dataSourceName}\"");
+                dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
                 dashboardJson = dashboardJson.Replace("\"PROMETHEUS_UID\"", $"\"{dataSourceUid}\"");
 
-                string dateFormatted = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-                dashboardJson = dashboardJson.Replace("\"title\": \"Resource Monitoring Dashboard\"",
-                    $"\"title\": \"Resource Monitoring Dashboard - {dateFormatted}\"");
+                // string dateFormatted = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+                dashboardJson = dashboardJson.Replace("\"title\": \"SRE Azure Resource Overview\"",
+                    $"\"title\": \"SRE Agent Resource Monitoring Dashboard\"");
 
                 // Get access token for Azure Managed Grafana
                 var token = GetAccessTokenForGrafana();

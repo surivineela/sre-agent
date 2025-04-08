@@ -49,8 +49,8 @@ using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
 using Agent.Runtime.SubAgents.KubernetesAgent;
+using Agent.Prometheus.Services;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
-using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -128,6 +128,7 @@ builder.Host.UseSerilog();
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
         .AddSingleton<IGraphDbService, GraphDbService>()
+        .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<AzureSupportCenterHelper>()
         .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()        
         .AddSingleton<VmRdpInvestigatorAgentFactory>()
@@ -171,6 +172,9 @@ builder.Host.UseSerilog();
         .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
         .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
         .AddSingleton<IApprovalService, DurableApprovalService>()
+        .AddSingleton<IRemoteWriteService, RemoteWriteService>()
+        .AddSingleton<IMetricsRegistry, MetricsRegistry>()
+        .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()
@@ -295,7 +299,12 @@ builder.Services.AddControllersWithViews()
 // Add Blazor services
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+
 var app = builder.Build();
+
+var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
+// Kick off metrics collection after the app has fully started
+app.Lifetime.ApplicationStarted.Register(() => metricsService.StartMetricsCollection());
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
