@@ -57,7 +57,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
             { "microsoft.storage/storageaccounts", "azure-insights-storage-accounts" },
             { "microsoft.documentdb/databaseaccounts", "azure-insights-cosmos-db" },
-            { "microsoft.cache/redis", "azure-redis" }
+            { "microsoft.cache/redis", "azure-redis" },
+            { "microsoft.web/sites", "azure-app-service" },
             // Pending: webapp, sql
         };
 
@@ -165,6 +166,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             // Activate predefined Azure Monitor dashboards
             await ActivateAzureMonitorDashboards();
+
+            // Activate predefined customized dashboards (except the main dashboard)
+            await ActivateCustomizedDashboards([_mainDashboardFilePath]);
 
             // Create a thread for the report
             var dateFormatted = now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
@@ -437,6 +441,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 {
                 },
                 "azure-redis" => new Dictionary<string, string>
+                {
+                    { "var-name", armResourceNode.ResourceName.ToLowerInvariant() }
+                },
+                "azure-app-service" => new Dictionary<string, string>
                 {
                     { "var-name", armResourceNode.ResourceName.ToLowerInvariant() }
                 },
@@ -782,8 +790,15 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 // Get access token for Azure Managed Grafana
                 var token = GetAccessTokenForGrafana();
 
+                var input = new DashboardInput
+                {
+                    Name = "DS_PROMETHEUS",
+                    Type = "datasource",
+                    PluginId = "prometheus",
+                    Value = _dataSourceName,
+                };
                 // Publish dashboard directly to Azure Managed Grafana
-                var dashboardUid = await PublishDashboardToManagedGrafana(dashboardJson, token);
+                var dashboardUid = await PublishDashboardToManagedGrafana(dashboardJson, token, [input]);
 
                 _logger.LogInformation("Successfully published dashboard with UID: {DashboardUid}", dashboardUid);
                 string dashboardUrl = $"{_grafanaUrl}/d/{dashboardUid}";
@@ -802,7 +817,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             return _dashboardSettings.GrafanaApiKey ?? throw new Exception("Grafana API TOKEN not found");
         }
 
-        private async Task<string> PublishDashboardToManagedGrafana(string dashboardJson, string accessToken)
+        private async Task<string> PublishDashboardToManagedGrafana(string dashboardJson, string accessToken, DashboardInput[] inputs)
         {
             var dashboardObject = JsonSerializer.Deserialize<JsonElement>(dashboardJson);
 
@@ -812,16 +827,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 dashboard = dashboardObject,
                 overwrite = true,
                 folderId = 0,
-                inputs = new[]
-                {
-                    new
-                    {
-                        name = "DS_PROMETHEUS",
-                        type = "datasource",
-                        pluginId = "prometheus",
-                        value = _dataSourceName
-                    }
-                }
+                inputs = inputs,
             };
 
             var requestJson = JsonSerializer.Serialize(importRequest);
@@ -954,12 +960,36 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 _logger.LogError(ex, "Error activating Azure Monitor dashboards: {Message}", ex.Message);
             }
         }
+
+        private async Task ActivateCustomizedDashboards(IList<string> excludes)
+        {
+            var dashboards = Directory.GetFiles(_dashboardsDirectory, "*.json").Except(excludes);
+
+            var accessToken = GetAccessTokenForGrafana();
+            foreach (var dashboard in dashboards)
+            {
+                var dashboardJson = File.ReadAllText(dashboard);
+                await PublishDashboardToManagedGrafana(dashboardJson, accessToken, []);
+            }
+        }
     }
 
     public class ScreenshotResponse
     {
         [JsonPropertyName("screenshot")]
         public string Screenshot { get; set; }
+    }
+
+    public class DashboardInput
+    {
+        [JsonPropertyName("name")]
+        public string Name { get; set; } = string.Empty;
+        [JsonPropertyName("type")]
+        public string Type { get; set; } = string.Empty;
+        [JsonPropertyName("pluginId")]
+        public string PluginId { get; set; } = string.Empty;
+        [JsonPropertyName("value")]
+        public string Value { get; set; } = string.Empty;
     }
 }
 
