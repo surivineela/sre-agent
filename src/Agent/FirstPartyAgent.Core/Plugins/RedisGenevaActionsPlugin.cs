@@ -34,19 +34,21 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[get_redis_cache_deployment_details][{DateTime.UtcNow}] Invoked with redisCacheName {redisCacheName}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var result = await _icmWorkflowClient.GetRedisDeploymentDetailsFromGenevaAsync(redisCacheName);
-            var fileContentBase64 = TextProcessingHelpers.Base64Encode(result);
-            var fileName = $"{redisCacheName}_deployment_details.txt";
-            var attachmentResult = await _icmWorkflowClient.AddAttachmentToIncident(incidentId, fileName, fileContentBase64);
-            if (attachmentResult == "Success")
+            if (!result.StartsWith("Failed"))
             {
-                _logger.LogInformation($"Successfully added attachment {fileName} to incident {incidentId}");
-                result = result + $"\n\nAdded the full details as an attachment {fileName} to the incident {incidentId}";
-            }
-            else
-            {
-                _logger.LogError($"Failed to add attachment to incident {incidentId}. Error: {attachmentResult}");
-            }
-            
+                var fileContentBase64 = TextProcessingHelpers.Base64Encode(result);
+                var fileName = $"{redisCacheName}_deployment_details.txt";
+                var attachmentResult = await _icmWorkflowClient.AddAttachmentToIncident(incidentId, fileName, fileContentBase64);
+                if (attachmentResult == "Success")
+                {
+                    _logger.LogInformation($"Successfully added attachment {fileName} to incident {incidentId}");
+                    result = result + $"\n\nAdded the full details as an attachment {fileName} to the incident {incidentId}";
+                }
+                else
+                {
+                    _logger.LogError($"Failed to add attachment to incident {incidentId}. Error: {attachmentResult}");
+                }
+            }            
             return result;
         }
 
@@ -60,19 +62,21 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[get_redis_cache_deployment_history][{DateTime.UtcNow}] Invoked with redisCacheName {redisCacheName}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             var result = await _icmWorkflowClient.GetRedisDeploymentHistoryFromGenevaAsync(redisCacheName);
-            var fileContentBase64 = TextProcessingHelpers.Base64Encode(result);
-            var fileName = $"{redisCacheName}_deployment_history.txt";
-            var attachmentResult = await _icmWorkflowClient.AddAttachmentToIncident(incidentId, fileName, fileContentBase64);
-            if (attachmentResult == "Success")
+            if (!result.StartsWith("Failed"))
             {
-                _logger.LogInformation($"Successfully added attachment {fileName} to incident {incidentId}");
-                result = result + $"\n\nAdded the full history as an attachment {fileName} to the incident {incidentId}";
+                var fileContentBase64 = TextProcessingHelpers.Base64Encode(result);
+                var fileName = $"{redisCacheName}_deployment_history.txt";
+                var attachmentResult = await _icmWorkflowClient.AddAttachmentToIncident(incidentId, fileName, fileContentBase64);
+                if (attachmentResult == "Success")
+                {
+                    _logger.LogInformation($"Successfully added attachment {fileName} to incident {incidentId}");
+                    result = result + $"\n\nAdded the full history as an attachment {fileName} to the incident {incidentId}";
+                }
+                else
+                {
+                    _logger.LogError($"Failed to add attachment to incident {incidentId}. Error: {attachmentResult}");
+                }
             }
-            else
-            {
-                _logger.LogError($"Failed to add attachment to incident {incidentId}. Error: {attachmentResult}");
-            }
-            
             return result;
         }
     }

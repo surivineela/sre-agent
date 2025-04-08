@@ -16,13 +16,17 @@
     "    - Incident Title",
     "    - User Ask",
     "  - Validate if there is a valid Redis Cache Name provided",
+    "  - In Redis terminology, resource and tenant are synonyms for cache name",
     "  - If there is no valid Redis Cache Name, then fetch the Incident discussion entries and check if the customer/user has provided a valid redis cache name provided there",
     "  - If there is no valid Redis Cache Name found, then STOP right there and DO NOTHING.",
-    "  - If a valid redis cache name was found, then proceed with the following instructions:",
+    "  - If a valid redis cache name was found, then proceed with the following instructions for each redis cache:",
     "    - Execute the relevant Geneva Action to fetch the deployment details for the redis cache(s). Let the output of this be DEPLOYMENT_DETAILS.",
-    "    - Create a well formatted section with the first 20 lines of DEPLOYMENT_DETAILS and the details of the attachment file and post it into the incident discussion.",
+    "    - Create a well formatted section with the first 20 lines of DEPLOYMENT_DETAILS and the details of the attachment file.",
+    "    - If the well formatted section has been created, post this well formatted section as discussion entry into the ICM incident",
     "    - Execute the relevant Geneva Action to fetch the deployment history for the redis cache(s). Let the output of this be DEPLOYMENT_HISTORY.",
-    "    - Create a well formatted section with the first 20 lines of DEPLOYMENT_HISTORY and the details of the attachment file and post it into the incident discussion."
+    "    - Create a well formatted section with the first 20 lines of DEPLOYMENT_HISTORY and the details of the attachment file.",
+    "    - If the well formatted section has been created, post this well formatted section as discussion entry into the ICM incident",
+    "    - Add a TAG to the Incident 'SREAgent_Processed'"
   ],
   "Owners": [ "ajsharm", "yifguo", "anutuli", "shgup" ]
 }
