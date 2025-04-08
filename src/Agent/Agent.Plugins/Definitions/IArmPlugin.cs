@@ -13,6 +13,8 @@ namespace Agent.Plugins
         Task<bool> CheckIfResourceExists(string appResourceId);
         Task<bool> RestartWebApp(string appResourceId);
         Task<string> GetArmResourceAsJson(string resourceId);
+        Task<string> PowerOnVirtualMachine(string resourceId);
+        Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId);
     }
 }
 

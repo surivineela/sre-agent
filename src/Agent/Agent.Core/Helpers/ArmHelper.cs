@@ -759,6 +759,64 @@ public class ArmHelper
         return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
     }
 
+    public async Task<string> PowerOnVirtualMachineAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
+        if (virtualMachineResource == null)
+        {
+            throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
+        }
+        var startOperation = await virtualMachineResource.PowerOnAsync(WaitUntil.Completed);
+        return startOperation.HasCompleted.ToString();
+    }
+
+    public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnosticsAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
+        if (virtualMachineResource == null)
+        {
+            throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
+        }
+
+        var bootDiagnosticsDataResult = await virtualMachineResource.RetrieveBootDiagnosticsDataAsync(30);
+
+        var bootDiagnosticLogs = new Dictionary<string, string>();
+
+        if (bootDiagnosticsDataResult.Value.ConsoleScreenshotBlobUri != null || bootDiagnosticsDataResult.Value.SerialConsoleLogBlobUri != null)
+        {
+            var httpClient = _httpClientFactory.CreateClient(nameof(GetVirtualMachineBootDiagnosticsAsync));
+
+            if (bootDiagnosticsDataResult.Value.ConsoleScreenshotBlobUri != null)
+            {
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, bootDiagnosticsDataResult.Value.ConsoleScreenshotBlobUri);
+                var consoleScreenshotResponse = await httpClient.SendAsync(request);
+                if (consoleScreenshotResponse.IsSuccessStatusCode)
+                {
+                    // Read the image response and convert it into base64 string
+                    var imageBytes = await consoleScreenshotResponse.Content.ReadAsByteArrayAsync();
+                    var base64Image = Convert.ToBase64String(imageBytes);
+                    bootDiagnosticLogs.Add("ConsoleScreenshot", $"data:{consoleScreenshotResponse.Content.Headers.ContentType};base64,{base64Image}");
+                }
+            }
+
+            if (bootDiagnosticsDataResult.Value.SerialConsoleLogBlobUri != null)
+            {
+                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, bootDiagnosticsDataResult.Value.SerialConsoleLogBlobUri);
+                var serialCosoleLogResponse = await httpClient.SendAsync(request);
+                if (serialCosoleLogResponse.IsSuccessStatusCode)
+                {
+                    // Read the log response
+                    var logContent = await serialCosoleLogResponse.Content.ReadAsStringAsync();
+                    bootDiagnosticLogs.Add("SerialConsoleLog", logContent);
+                }
+            }
+        }
+
+        return bootDiagnosticLogs;
+    }
+
     #region Private Methods
 
     private static string GetFamilyFromSku(string sku)

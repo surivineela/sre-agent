@@ -10,6 +10,8 @@ public class AzureSupportCenterHelper
     private readonly IHttpClientFactory _httpClientFactory;
     private const int WAIT_IN_MS_BETWEEN_POLLS_FOR_APOLLO_DIAGNOSTICS = 15000;
     private const int MAX_POLLING_ATTEMPTS = 25;
+    private const string SUPPORT_PRODUCTS_FILE_NAME = "SupportProductsFromArm.json";
+    private const string SUPPORT_CLASSIFICATION_FILE_NAME = "SupportProblemClassification.json";
 
     // Crawler MI is used for production environment as current solution
     public AzureSupportCenterHelper(IHttpClientFactory httpClientFactory)
@@ -19,74 +21,88 @@ public class AzureSupportCenterHelper
 
     public async Task<List<SupportProductFromArmModel>> GetSupportProductsFromArm(string resourceId)
     {
-        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"/providers/Microsoft.Support/services?api-version=2023-06-01-preview");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(Helpers), "SupportProductMetadata", SUPPORT_PRODUCTS_FILE_NAME);
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        var supportProductFromArmResponse = File.ReadAllText(path);
+        var matchingSupportProducts = new List<SupportProductFromArmModel>();
+        try
+        {
+            var json = JObject.Parse(supportProductFromArmResponse);
 
-        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        var content = await response.Content.ReadAsStringAsync();
-        var json = JObject.Parse(content);
-        var SupportProductFromArm = json["value"]?.Select(suppSvc => new SupportProductFromArmModel(
-                suppSvc["id"]?.ToString(),
-                suppSvc["name"]?.ToString(),
-                suppSvc["type"]?.ToString(),
-                new SupportProductFromArmPropertiesModel(
-                    suppSvc["properties"]?["displayName"]?.ToString(),
-                    suppSvc["properties"]?["resourceTypes"]?.ToObject<List<string>>() ?? new List<string>(),
-                    new SupportProductFromArmPropertiesMetadataModel(
-                        suppSvc["properties"]?["metadata"]?["state"]?.ToString(),
-                        suppSvc["properties"]?["metadata"]?["groupIds"]?.ToString(),
-                        suppSvc["properties"]?["metadata"]?["legacyId"]?.ToString(),
-                        suppSvc["properties"]?["metadata"]?["serviceIdentifierName"]?.ToString() ?? string.Empty
+            var SupportProductFromArm = json["value"]?.Select(suppSvc => new SupportProductFromArmModel(
+                    suppSvc["id"]?.ToString(),
+                    suppSvc["name"]?.ToString(),
+                    suppSvc["type"]?.ToString(),
+                    new SupportProductFromArmPropertiesModel(
+                        suppSvc["properties"]?["displayName"]?.ToString(),
+                        suppSvc["properties"]?["resourceTypes"]?.ToObject<List<string>>() ?? new List<string>(),
+                        new SupportProductFromArmPropertiesMetadataModel(
+                            suppSvc["properties"]?["metadata"]?["state"]?.ToString() ?? string.Empty,
+                            suppSvc["properties"]?["metadata"]?["groupIds"]?.ToString() ?? string.Empty,
+                            suppSvc["properties"]?["metadata"]?["legacyId"]?.ToString() ?? string.Empty,
+                            suppSvc["properties"]?["metadata"]?["serviceIdentifierName"]?.ToString() ?? string.Empty
+                        )
                     )
-                )
-            ))?.ToList() ?? new List<SupportProductFromArmModel>();
+                ))?.ToList() ?? new List<SupportProductFromArmModel>();
 
-        ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
+            ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
 
-        var matchingSupportProducts = SupportProductFromArm
-            ?.Where(supportProduct => supportProduct.properties.resourceTypes
-                .Any(resourceType => resourceIdentifier.ToString().IndexOf(resourceType, StringComparison.OrdinalIgnoreCase) > -1))
-            ?.ToList() ?? new List<SupportProductFromArmModel>();
+            matchingSupportProducts = SupportProductFromArm
+                ?.Where(supportProduct => supportProduct.properties.resourceTypes
+                    .Any(resourceType => resourceIdentifier.ToString().IndexOf(resourceType, StringComparison.OrdinalIgnoreCase) > -1))
+                ?.ToList() ?? new List<SupportProductFromArmModel>();
+        }
+        catch(JsonException ex)
+        {
+            throw new Exception($"Error parsing support product response: {ex.Message}", ex);
+        }
 
         return matchingSupportProducts;
     }
 
     public async Task<List<SupportProblemClassificationModel>> GetSupportProblemClassificationsForProduct(Guid productId)
     {
-        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"/providers/Microsoft.Support/services/{productId}/problemClassifications?api-version=2023-06-01-preview");
+        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(Helpers), "SupportProductMetadata", $"{productId}/{SUPPORT_CLASSIFICATION_FILE_NAME}");
+        if (!Path.Exists(path))
+        {
+            throw new FileNotFoundException($"Support problem classification for {productId} missing. Please update.");
+        }
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var supportClassificationResponse = File.ReadAllText(path);
+        var supportProblemClassification = new List<SupportProblemClassificationModel>();
+        try
+        {
+            var json = JObject.Parse(supportClassificationResponse);
 
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
+            supportProblemClassification = json["value"]?.Select(problemClassification => new SupportProblemClassificationModel(
+                    problemClassification["id"]?.ToString(),
+                    problemClassification["name"]?.ToString(),
+                    new SupportProblemClassificationPropertiesModel(
+                        problemClassification["properties"]?["displayName"]?.ToString(),
+                        problemClassification["properties"]?["secondaryConsentEnabled"]?.Select(c => new SupportProblemSecondaryConsentModel(
+                            c["description"].ToString(),
+                            c["type"]?.ToString() ?? string.Empty)
+                        )?.ToList() ?? new List<SupportProblemSecondaryConsentModel>(),
+                        new SupportProblemClassificationMetadataModel(
+                            problemClassification["properties"]?["metadata"]?["shortDescription"]?.ToString() ?? string.Empty,
+                            problemClassification["properties"]?["metadata"]?["diagnosticid"]?.ToString() ?? string.Empty,
+                            problemClassification["properties"]?["metadata"]?["category"]?.ToString() ?? string.Empty,
+                            problemClassification["properties"]?["metadata"]?["searchTags"]?.ToString() ?? string.Empty,
+                            problemClassification["properties"]?["metadata"]?["state"]?.ToString() ?? string.Empty,
+                            problemClassification["properties"]?["metadata"]?["azureSubscriptionRequired"]?.ToString() ?? string.Empty,
+                            problemClassification["properties"]?["metadata"]?["legacyId"]?.ToString() ?? string.Empty
+                            )
+                    )
+                ))?.ToList() ?? new List<SupportProblemClassificationModel>();
 
-        var content = await response.Content.ReadAsStringAsync();
-        var json = JObject.Parse(content);
-
-        var supportProblemClassification = json["value"]?.Select(problemClassification => new SupportProblemClassificationModel(
-                problemClassification["id"]?.ToString(),
-                problemClassification["name"]?.ToString(),
-                new SupportProblemClassificationPropertiesModel(
-                    problemClassification["properties"]?["displayName"]?.ToString(),
-                    problemClassification["properties"]?["secondaryConsentEnabled"]?.Select(c => new SupportProblemSecondaryConsentModel(
-                        c["description"].ToString(),
-                        c["type"].ToString())
-                    )?.ToList() ?? new List<SupportProblemSecondaryConsentModel>(),
-                    new SupportProblemClassificationMetadataModel(
-                        problemClassification["shortDescription"]?.ToString(),
-                        problemClassification["diagnosticid"]?.ToString(),
-                        problemClassification["category"]?.ToString(),
-                        problemClassification["searchTags"]?.ToString(),
-                        problemClassification["state"]?.ToString(),
-                        problemClassification["azureSubscriptionRequired"]?.ToString(),
-                        problemClassification["legacyId"]?.ToString()
-                        )
-                )
-            ))?.ToList() ?? new List<SupportProblemClassificationModel>();
+            supportProblemClassification = supportProblemClassification
+                ?.Where(problemClassification => !problemClassification.properties.metadata.state.Equals("retired", StringComparison.OrdinalIgnoreCase))
+                ?.ToList() ?? new List<SupportProblemClassificationModel>();
+        }
+        catch(JsonException ex)
+        {
+            throw new Exception($"Error parsing support classification response: {ex.Message}", ex);
+        }
 
         return supportProblemClassification;
     }
@@ -110,13 +126,13 @@ public class AzureSupportCenterHelper
             targetSupportProduct.properties.metadata.serviceIdentifierName ?? string.Empty,
             question);
 
-        request.Content = new StringContent(JsonSerializer.Serialize<AzureSupportCenterApolloRequestPayloadWrapper>(requestPayload), Encoding.UTF8, "application/json");
+        request.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
 
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
-
+        
         bool isDiagnosticRunning = false;
         int pollingAttempts = 0;
         AzureSupportCenterApolloResponsePayload apolloDiagnosticResult = null;

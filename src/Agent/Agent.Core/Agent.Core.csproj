@@ -47,4 +47,13 @@
 		<PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />
 	</ItemGroup>
 
+	<ItemGroup>
+	  <None Update="Helpers\SupportProductMetadata\6f16735c-b0ae-b275-ad3a-03479cfa1396\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Helpers\SupportProductMetadata\SupportProductsFromArm.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
 </Project>

@@ -70,7 +70,7 @@ Before initiating any Azure resource operations:
 - **Storage Account Remediation**: Help users with making changes storage account settings
 - **Kubernetes Agent**: Help users with any queries related to Azure Kubernetes Service (AKS)
 - **App Reliability**: Delegate to this plugin to help users improve the reliability of their Azure applications
-
+- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.

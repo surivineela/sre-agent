@@ -5,6 +5,8 @@ using Microsoft.DurableTask.Client;
 using Agent.Core.Models.Api.v1;
 using Microsoft.DurableTask;
 using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
+using Agent.Plugins.Definitions;
+using OperationalAgentCore;
 
 namespace Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 public sealed class VmRdpInvestigatorAgentFactory
@@ -18,7 +20,8 @@ public sealed class VmRdpInvestigatorAgentFactory
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
-        IAzureSupportCenterPlugin supportCenterPlugin
+        IAzureSupportCenterPlugin supportCenterPlugin,
+        IApprovalPlugin approvalPlugin
         )
     {
         var toolSignatures = new List<string>();
@@ -36,6 +39,11 @@ public sealed class VmRdpInvestigatorAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
+        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.PowerOnVirtualMachine));
+        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetVirtualMachineBootDiagnostics));
+
+        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

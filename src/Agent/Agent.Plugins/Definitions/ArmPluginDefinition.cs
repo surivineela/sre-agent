@@ -59,6 +59,20 @@ namespace Agent.Plugins
         {
             return await _armPlugin.GetArmResourceAsJson(resourceId);
         }
+
+        [Description("Power ON an Azure virtual machine")]
+        public async Task<string> PowerOnVirtualMachine(
+            [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
+        {
+            return await _armPlugin.PowerOnVirtualMachine(resourceId);
+        }
+
+        [Description("Get boot diagnostic logs and console screenshot for an Azure virtual machine")]
+        public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(
+            [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
+        {
+            return await _armPlugin.GetVirtualMachineBootDiagnostics(resourceId);
+        }
     }
 }
 

@@ -75,6 +75,16 @@ namespace Agent.Plugins.Implementation
         {
             return await _armHelper.GetArmResourceAsJsonAsync(resourceId);
         }
+
+        public async Task<string> PowerOnVirtualMachine(string resourceId)
+        {
+            return await _armHelper.PowerOnVirtualMachineAsync(resourceId);
+        }
+
+        public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId)
+        {
+            return await _armHelper.GetVirtualMachineBootDiagnosticsAsync(resourceId);
+        }
     }
 }
 

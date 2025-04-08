@@ -94,6 +94,16 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> PowerOnVirtualMachine(string resourceId)
+        {
+            return Task.FromResult("true");
+        }
+
+        public Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId)
+        {
+            return Task.FromResult((IReadOnlyDictionary<string, string>)new Dictionary<string, string>());
+        }
     }
 }
 

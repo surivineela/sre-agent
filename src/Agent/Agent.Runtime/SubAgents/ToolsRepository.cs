@@ -80,6 +80,8 @@ public sealed class ToolsRepository : IMcpConnectable
         //Register200(() => armPluginDefinition.RestartWebApp);
         Register200(() => armPluginDefinition.GetTlsSettings);
         Register200(() => armPluginDefinition.GetArmResourceAsJson);
+        Register200(() => armPluginDefinition.PowerOnVirtualMachine);
+        Register200(() => armPluginDefinition.GetVirtualMachineBootDiagnostics);
 
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
         Register200(() => timePluginDefinition.GetCurrentUtcTime);
