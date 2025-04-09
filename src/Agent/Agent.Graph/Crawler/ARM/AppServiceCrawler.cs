@@ -101,12 +101,8 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     {
                         appServiceNode.StackVersion = workerRuntime;
                     }
-                    // Otherwise, store it as a property in the node
-                    else
-                    {
-                        var props = appServiceNode.GetNodeProperties();
-                        props["workerRuntime"] = workerRuntime;
-                    }
+
+                    appServiceNode.WorkerRuntime = workerRuntime;
                 }
             }
         }
@@ -179,13 +175,16 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
         {
             var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
-            var appServicePlanNode = new ArmResourceNode(
+            var appServicePlanNode = new AppServicePlanNode(
                 resourceType: "Microsoft.Web/serverfarms",
                 resourceId: webApp.Data.AppServicePlanId,
                 subscriptionId: planId.SubscriptionId,
-                resourceGroupName: planId.ResourceGroupName,
                 resourceName: planId.Name,
                 location: webApp.Data.Location);
+
+            // TODO: this should be only put on appserviceplan node
+            appServiceNode.PlanType = await GetAppServicePlanTypeAsync(webApp.Data.AppServicePlanId);
+            await _graphDbClient.AddOrUpdateNodeAsync(appServiceNode);
 
             // Add the App Service Plan node
             await _graphDbClient.AddOrUpdateNodeAsync(appServicePlanNode);

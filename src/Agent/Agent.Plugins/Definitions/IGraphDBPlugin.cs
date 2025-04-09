@@ -134,5 +134,8 @@ namespace Agent.Plugins
         Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType);
 
         string GetKnowledgeGraphResourceUsageDashboard();
+
+        Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId);
+        Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId);
     }
 }

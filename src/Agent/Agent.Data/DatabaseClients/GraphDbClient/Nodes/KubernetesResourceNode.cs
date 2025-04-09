@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.Attributes;
 using Azure.Core;
 using k8s;
 
@@ -11,10 +12,19 @@ public class KubernetesResourceNode : GraphNode
     // Set to the k8s resource object to avoid fetching it twice
     public IKubernetesObject ResourceObject { get; set; }
     // the cluster arm resource id
+    [GraphProperty("clusterResourceId")]
     public string ClusterResourceId { get; set; }
+
+    [GraphProperty("name")]
     public string Name { get; set; }
+
+    [GraphProperty("group")]
     public string Group { get; set; }
+
+    [GraphProperty("apiVersion")]
     public string ApiVersion { get; set; }
+
+    [GraphProperty("kind")]
     public string Kind { get; set; }
     public IDictionary<string, string> Annotations { get; set; }
     public IDictionary<string, string> Labels { get; set; }
@@ -61,16 +71,7 @@ public class KubernetesResourceNode : GraphNode
 
     public override IDictionary<string, object> GetNodeProperties()
     {
-        // Return all relevant properties as a dictionary
-        var properties = new Dictionary<string, object>
-            {
-                { "updateTs", UpdateTs},
-                { "clusterResourceId", ClusterResourceId },
-                { "name", Name},
-                { "group", Group },
-                { "apiVersion", ApiVersion },
-                { "kind", Kind },
-            };
+        var props = base.GetNodeProperties();
 
         //TODO: can property value be a dictionary?
         if (Annotations != null)
@@ -81,7 +82,7 @@ public class KubernetesResourceNode : GraphNode
                 {
                     continue;
                 }
-                properties.Add($"annotation_{annotation.Key}", annotation.Value);
+                props.Add($"annotation_{annotation.Key}", annotation.Value);
             }
         }
 
@@ -89,11 +90,11 @@ public class KubernetesResourceNode : GraphNode
         {
             foreach (var label in Labels)
             {
-                properties.Add($"label_{label.Key}", label.Value);
+                props.Add($"label_{label.Key}", label.Value);
             }
         }
 
-        return properties;
+        return props;
     }
 
     public override string GetHashString()

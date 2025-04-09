@@ -2,9 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.Attributes;
+
 namespace Agent.Data.DatabaseClients.GraphDbClient;
 public class CosmosDbNode : ArmResourceNode
 {
+    [GraphProperty("consistencyPolicy")]
     public string? ConsistencyPolicy { get; set; }
 
     public CosmosDbNode(string resourceType,
@@ -12,21 +15,7 @@ public class CosmosDbNode : ArmResourceNode
         string subscriptionId,
         string resourceGroupName,
         string resourceName,
-        string location = null,
-        string? consistencyPolicy = null)
-        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
-    {
-        ConsistencyPolicy = consistencyPolicy;
-    }
-
-    public override IDictionary<string, object> GetNodeProperties()
-    {
-        var props = base.GetNodeProperties();
-        if (ConsistencyPolicy != null)
-        {
-            props.Add("consistencyPolicy", ConsistencyPolicy);
-        }
-        return props;
-    }
+        string location = null)
+        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location) { }
 }
 

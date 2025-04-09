@@ -340,7 +340,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
         try
         {
-            var resultSet = await _graphDatabaseClient.SubmitAsync<object>(query);
+            var resultSet = await _graphDatabaseClient.Query<object>(query);
             var rawResult = resultSet.FirstOrDefault();
 
             // Convert the result to long
@@ -383,7 +383,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
         try
         {
-            var resultSet = await _graphDatabaseClient.SubmitAsync<Dictionary<string, object>>(query);
+            var resultSet = await _graphDatabaseClient.Query<Dictionary<string, object>>(query);
             var result = resultSet.FirstOrDefault() ?? new Dictionary<string, object>();
 
             // Convert to a dictionary of string, long
@@ -417,7 +417,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
         try
         {
-            var resultSet = await _graphDatabaseClient.SubmitAsync<string>(query);
+            var resultSet = await _graphDatabaseClient.Query<string>(query);
             var result = resultSet.ToList();
 
             // Update latency metric

@@ -133,6 +133,16 @@ namespace Agent.Graph.Crawler.Legacy
         {
             return AddOrUpdateEdgeAsync(edge.GetSourceNodeId(), edge.GetTargetNodeId(), edge.GetRelationship(), edge.GetEdgeProperties());
         }
+
+        public Task<ResultSet<dynamic>> Query(string query)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<ResultSet<T>> Query<T>(string query)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

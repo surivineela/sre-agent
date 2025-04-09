@@ -1,25 +1,54 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+using Agent.Data.DatabaseClients.Attributes;
+
 namespace Agent.Data.DatabaseClients.GraphDbClient;
 
 public class AppServiceNode : ArmResourceNode
 {
+    [GraphProperty("vnetId")]
     public string? VnetId { get; set; }
+
+    [GraphProperty("minTlsVersion")]
     public string? MinTlsVersion { get; set; }
+
+    [GraphProperty("numberOfWorkers")]
     public int? NumberOfWorkers { get; set; }
+
+    [GraphProperty("autoHealEnabled")]
     public bool? AutoHealEnabled { get; set; }
+
+    [GraphProperty("alwaysOn")]
     public bool? AlwaysOn { get; set; }
+
+    [GraphProperty("healthCheckEnabled")]
     public bool? HealthCheckEnabled { get; set; }
+
+    [GraphProperty("webSocketsEnabled")]
     public bool? WebSocketsEnabled { get; set; }
 
     // Additional properties
+
+    [GraphProperty("kind")]
     public string? Kind { get; set; }
+
+    [GraphProperty("stackVersion")]
     public string? StackVersion { get; set; }
+
+    [GraphProperty("functionsHostVersion")]
     public string? FunctionsHostVersion { get; set; }
+
+    [GraphProperty("usesAppInsights")]
     public bool? UsesAppInsights { get; set; }
+
+    [GraphProperty("planType")]
     public string? PlanType { get; set; } // "ElasticPremium", "FlexConsumption", etc.
+
     public List<string> HostNames { get; set; } = new List<string>();
+
+    [GraphProperty("workerRuntime")]
+    public string? WorkerRuntime { get; set; } // Function worker runtime
 
     public class SlotSwapStatus
     {
@@ -33,99 +62,12 @@ public class AppServiceNode : ArmResourceNode
         string subscriptionId,
         string resourceGroupName,
         string resourceName,
-        string location = null,
-        string? vnetId = null,
-        string? tlsVersion = null,
-        int? numberOfWorkers = null,
-        bool? autoHealEnabled = null,
-        bool? alwaysOn = null,
-        bool? healthCheckEnabled = null,
-        string? kind = null,
-        string? stackVersion = null,
-        string? functionsHostVersion = null,
-        bool? usesAppInsights = null,
-        DateTime? lastDeploymentTime = null,
-        string? planType = null,
-        SlotSwapStatus? slotSwapStatus = null)
-        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
-    {
-        // Initialize base properties
-        VnetId = vnetId;
-        MinTlsVersion = tlsVersion;
-        NumberOfWorkers = numberOfWorkers;
-        AutoHealEnabled = autoHealEnabled;
-        AlwaysOn = alwaysOn;
-        HealthCheckEnabled = healthCheckEnabled;
-
-        // Initialize additional properties
-        Kind = kind;
-        StackVersion = stackVersion;
-        FunctionsHostVersion = functionsHostVersion;
-        UsesAppInsights = usesAppInsights;
-        PlanType = planType;
-        HostNames = new List<string>();
-    }
+        string location = null)
+        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location) { }
 
     public override IDictionary<string, object> GetNodeProperties()
     {
         var props = base.GetNodeProperties();
-
-        // Add base properties
-        if (VnetId != null)
-        {
-            props.Add("vnetId", VnetId);
-        }
-
-        if (MinTlsVersion != null)
-        {
-            props.Add("minTlsVersion", MinTlsVersion);
-        }
-
-        if (NumberOfWorkers != null)
-        {
-            props.Add("numberOfWorkers", NumberOfWorkers);
-        }
-
-        if (AutoHealEnabled != null)
-        {
-            props.Add("autoHealEnabled", AutoHealEnabled);
-        }
-
-        if (AlwaysOn != null)
-        {
-            props.Add("alwaysOn", AlwaysOn);
-        }
-
-        if (HealthCheckEnabled != null)
-        {
-            props.Add("healthCheckEnabled", HealthCheckEnabled);
-        }
-
-        // Add additional properties
-        if (Kind != null)
-        {
-            props.Add("kind", Kind);
-        }
-
-        if (StackVersion != null)
-        {
-            props.Add("stackVersion", StackVersion);
-        }
-
-        if (FunctionsHostVersion != null)
-        {
-            props.Add("functionsHostVersion", FunctionsHostVersion);
-        }
-
-        if (UsesAppInsights != null)
-        {
-            props.Add("usesAppInsights", UsesAppInsights);
-        }
-
-        if (PlanType != null)
-        {
-            props.Add("planType", PlanType);
-        }
 
         // Add hostnames
         if (HostNames != null && HostNames.Count > 0)

@@ -171,13 +171,13 @@ public class ResourceGraphCrawler
         _logger.LogInformation($"Done crawling. Start to cleanup orphan nodes under subscription {subscription} (no inE)");
 
         var query = $"g.V().not(hasLabel('subscription')).has('subscriptionId', '{subscription}').where(__.inE().count().is(0))";
-        var result = await _graphDbClient.Query(query, maxMessageSize: 0);
+        var result = await _graphDbClient.Query(query);
         int count = result.Count;
         while (count > 0)
         {
             _logger.LogInformation($"Will drop {count} orphan nodes");
             await _graphDbClient.Query($"{query}.drop()");
-            result = await _graphDbClient.Query(query, maxMessageSize: 0);
+            result = await _graphDbClient.Query(query);
             count = result.Count;
         }
         _logger.LogInformation($"Done cleanup orphan nodes under subscription {subscription} (no inE)");

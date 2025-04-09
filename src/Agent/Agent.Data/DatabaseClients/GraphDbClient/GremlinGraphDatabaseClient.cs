@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -180,24 +180,24 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             await SubmitWithRetry(query);
         }
 
-        public async Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 200000)
+        public async Task<ResultSet<dynamic>> Query(string query)
+        {
+            return await Query<dynamic>(query);
+        }
+
+        public async Task<ResultSet<T>> Query<T>(string query)
         {
             _logger.LogTrace($"Executing Gremlin query: {query}");
 
             try
             {
-                var res = await SubmitWithRetry(query);
-                int messageSize = JsonSerializer.Serialize(res).Count();
-                if (maxMessageSize > 0 && messageSize > maxMessageSize)
-                {
-                    return new ResultSet<dynamic>(new string[] { "Too many results" }, null);
-                }
-
-                return res;
+                return await SubmitWithRetry<T>(query);
             }
             catch (Exception e)
             {
-                return new ResultSet<dynamic>(new string[] { $"Exception: {e.Message}" }, null);
+                _logger.LogError(e, $"Exception: {e.Message}. Query: {query}");
+
+                return new ResultSet<T>([], null);
             }
         }
 
@@ -222,9 +222,14 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         private async Task<ResultSet<dynamic>> SubmitWithRetry(string query)
         {
+            return await SubmitWithRetry<dynamic>(query);
+        }
+
+        private async Task<ResultSet<T>> SubmitWithRetry<T>(string query)
+        {
             return await _retryPolicy.ExecuteAsync(async () =>
             {
-                return await _gremlinClient!.SubmitAsync<dynamic>(query);
+                return await _gremlinClient!.SubmitAsync<T>(query);
             });
         }
 
@@ -248,14 +253,6 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
 
             return false;
-        }
-
-        public async Task<ResultSet<T>> SubmitAsync<T>(string query)
-        {
-            return await _retryPolicy.ExecuteAsync(async () =>
-            {
-                return await _gremlinClient!.SubmitAsync<T>(query);
-            });
         }
 
         public Task<bool> AddOrUpdateNodeAsync(GraphNode node)

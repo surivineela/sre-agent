@@ -2,11 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.Attributes;
 using k8s;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
 public class KubernetesNamespacedResourceNode : KubernetesResourceNode
 {
+    [GraphProperty("namespace")]
     public string Namespace { get; set; }
 
     public KubernetesNamespacedResourceNode(
@@ -28,14 +30,6 @@ public class KubernetesNamespacedResourceNode : KubernetesResourceNode
         // This should already be in the format: {clusterResourceId}/{group}/{version}/namespaces/{namespace}/{kind}/{name}
         return $"{ClusterResourceId}/{Group}/{ApiVersion}/namespaces/{Namespace}/{Kind}/{Name}";
         ;
-    }
-
-    public override IDictionary<string, object> GetNodeProperties()
-    {
-        var props = base.GetNodeProperties();
-        props.Add("namespace", Namespace);
-
-        return props;
     }
 }
 

@@ -154,9 +154,19 @@ public class ArmResourceCrawlerFactory
             return new ContainerAppEnvironmentNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
+        if (Constants.ContainerAppType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new ContainerAppNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
+
         if (Constants.AppServiceType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
         {
             return new AppServiceNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
+        }
+
+        if (Constants.AppServicePlanType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))
+        {
+            return new AppServicePlanNode(id.ResourceType, id.ToString(), id.SubscriptionId, id.ResourceGroupName, id.Name);
         }
 
         if (Constants.ManagedClusterType.Equals(id.ResourceType, StringComparison.OrdinalIgnoreCase))

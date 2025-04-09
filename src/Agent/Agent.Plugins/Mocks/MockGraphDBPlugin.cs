@@ -82,6 +82,16 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

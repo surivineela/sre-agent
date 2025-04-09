@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Text.RegularExpressions;
+using Agent.Data.DatabaseClients.Attributes;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
@@ -16,10 +17,37 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public abstract class GraphNode : IResourceGraphNode
     {
+        [GraphProperty("updateTs")]
         public long UpdateTs { get; set; }
         public abstract string GetNodeId();
         public abstract string GetNodeLabel();
-        public abstract IDictionary<string, object> GetNodeProperties();
+        public virtual IDictionary<string, object> GetNodeProperties()
+        {
+            var properties = new Dictionary<string, object>();
+
+            var type = GetType();
+            var props = type.GetProperties();
+
+            foreach (var prop in props)
+            {
+                // Check if property has GraphProperty attribute
+                var attr = prop.GetCustomAttributes(typeof(GraphPropertyAttribute), true)
+                            .FirstOrDefault() as GraphPropertyAttribute;
+
+                if (attr != null)
+                {
+                    // Use the attribute's name as the key, property value as the value
+                    var value = prop.GetValue(this);
+                    if (value != null)
+                    {
+                        properties[attr.PropertyName] = value;
+                    }
+                }
+            }
+
+            return properties;
+        }
+
         public abstract string GetResourceType();
 
         public abstract string GetHashString();
@@ -47,12 +75,16 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     public class ArmResourceNode : GraphNode
     {
         public string ResourceType { get; set; }
+        [GraphProperty("resourceId")]
         public string ResourceId { get; set; }
+        [GraphProperty("subscriptionId")]
         public string SubscriptionId { get; set; }
+        [GraphProperty("resourceGroupName")]
         public string ResourceGroupName { get; set; }
+        [GraphProperty("resourceName")]
         public string ResourceName { get; set; }
+        [GraphProperty("location")]
         public string Location { get; set; }
-        public bool SystemMI { get; set; }
         public Scorecard Scorecard { get; set; }
 
         public ArmResourceNode() { }
@@ -76,7 +108,6 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             ResourceGroupName = resourceGroupName?.ToLowerInvariant();
             ResourceName = resourceName?.ToLowerInvariant();
             Location = location?.NormalizeLocation();
-            //SystemMI = systemMI;
             Scorecard = new Scorecard();
         }
 
@@ -97,27 +128,6 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public override string GetResourceType()
         {
             return ResourceType;
-        }
-
-        public override IDictionary<string, object> GetNodeProperties()
-        {
-            var properties = new Dictionary<string, object>
-            {
-                // resourceType is partition key, cannot be updated
-                //{ "resourceType", ResourceType },
-                { "updateTs", UpdateTs },
-                { "resourceId", ResourceId },
-                { "subscriptionId", SubscriptionId },
-                { "resourceGroupName", ResourceGroupName },
-                { "resourceName", ResourceName }
-            };
-
-            if (!string.IsNullOrEmpty(Location))
-            {
-                properties.Add("location", Location);
-            }
-
-            return properties;
         }
 
         // Mainly for system MI

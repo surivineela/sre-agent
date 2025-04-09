@@ -12,14 +12,6 @@ public class AksNode : ArmResourceNode
         string resourceName,
         string location = null) : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
     {
-        Location = location?.NormalizeLocation();
-    }
-
-    public override IDictionary<string, object> GetNodeProperties()
-    {
-        var props = base.GetNodeProperties();
-
-        return props;
     }
 }
 

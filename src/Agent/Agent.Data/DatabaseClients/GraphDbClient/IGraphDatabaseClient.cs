@@ -55,8 +55,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         /// Queries the graph.
         /// </summary>
         /// <returns></returns>
-        Task<ResultSet<dynamic>> Query(string query, int maxMessageSize = 200000);
+        Task<ResultSet<dynamic>> Query(string query);
 
-        Task<ResultSet<T>> SubmitAsync<T>(string query);
+        Task<ResultSet<T>> Query<T>(string query);
     }
 }

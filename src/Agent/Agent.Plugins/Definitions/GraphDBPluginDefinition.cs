@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -183,6 +184,30 @@ namespace Agent.Plugins
         public string GetKnowledgeGraphResourceUsageDashboard()
         {
             return _plugin.GetKnowledgeGraphResourceUsageDashboard();
+        }
+
+        [Description("Returns basic metadata of an Azure resource. The input should be in Azure resource id format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +
+            "Use this tool when you want to get following properties of an azure resource:" +
+            "- subscription id" +
+            "- resource group" +
+            "- resource type" +
+            "- resource name" +
+            "- location (or region)" +
+            "\nNote: For resources with parent-child relationships like App Service and App Service Plan, or Container Apps and Container App Environment, basic properties only include the core metadata.")]
+        public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
+        {
+            return await _plugin.GetResourceBasicProperties(resourceId);
+        }
+
+        [Description("Returns a comprehensive set of resource-specific properties in addition to the basic metadata which are in Knowledge Graph. The input should be in Azure resource id format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +
+            "\nResource-specific properties include:" +
+            "\n- For App Service/Web Apps/Function Apps: hosting plan details, vnet integration, TLS version, worker count, auto heal settings, always on status, health checks, websockets, hostnames, runtime stack, Functions host version, App Insights integration etc." +
+            "\n- For App Service Plans: number of workers, maximum workers, status, provisioning state, zone redundancy, region, kind etc" +
+            "\n- For Container Apps: provisioning state, running status, workload profile, external access, transport, hostnames, container details (image, CPU, memory), scaling settings (min/max replicas), etc." +
+            "\nNote: Some properties for App Service/Function Apps may reside in their associated App Service Plan. Similarly, Container Apps may have properties in their Container App Environment. This function will return all properties directly attached to the requested resource. The attached resource must be queried seperately")]
+        public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
+        {
+            return await _plugin.GetResourceDetailedProperties(resourceId);
         }
     }
 }

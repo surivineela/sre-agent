@@ -44,35 +44,60 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             yield break;
         }
 
-        var env = await rgResource.GetContainerAppManagedEnvironmentAsync(envNode.ResourceName);
+        var envResp = await rgResource.GetContainerAppManagedEnvironmentAsync(envNode.ResourceName);
 
-        if (env == null || !env.Value.HasData)
+        if (envResp == null || !envResp.Value.HasData)
         {
             _logger.LogWarning($"Failed to get container app environment: {envNode.ResourceId}");
             yield break;
         }
 
         // update current node properties
-        envNode.VnetId = env.Value.Data.VnetConfiguration?.InfrastructureSubnetId;
-        if (!string.IsNullOrEmpty(envNode.VnetId))
+        var env = envResp.Value.Data;
+        envNode.Internal = env.VnetConfiguration?.IsInternal;
+        envNode.InfrastructureSubnetId = env.VnetConfiguration?.InfrastructureSubnetId;
+        envNode.StaticIp = env.StaticIP.ToString();
+        envNode.LogDestination = env.AppLogsConfiguration.Destination;
+        envNode.ZoneRedundant = env.IsZoneRedundant;
+        envNode.CustomDomain = env.CustomDomainConfiguration?.DnsSuffix;
+
+        if (env.WorkloadProfiles.Count > 0)
+        {
+            foreach (var workloadProfile in env.WorkloadProfiles)
+            {
+                var profile = new ContainerAppEnvironmentNode.WorkloadProfileName
+                {
+                    Name = workloadProfile.Name,
+                    Type = workloadProfile.WorkloadProfileType.ToString(),
+                    MinimumCount = workloadProfile.MinimumCount,
+                    MaximumCount = workloadProfile.MaximumCount
+                };
+                envNode.WorkloadProfiles.Add(profile);
+            }
+        }
+
+        envNode.InfrastructureResourceGroup = env.InfrastructureResourceGroup;
+        envNode.PublicNetworkAccess = env.PublicNetworkAccess.ToString();
+
+        if (!string.IsNullOrEmpty(envNode.InfrastructureSubnetId))
         {
             // TODO: load balancers for shared env
-            if (string.IsNullOrEmpty(env.Value.Data.InfrastructureResourceGroup))
+            if (string.IsNullOrEmpty(env.InfrastructureResourceGroup))
             {
                 envNode.LbId = $"/subscriptions/{envNode.SubscriptionId}/resourceGroups/ME_{envNode.ResourceName}_{envNode.ResourceGroupName}_{envNode.Location}/providers/Microsoft.Network/loadBalancers/capp-svc-lb";
             }
             else
             {
-                envNode.LbId = $"/subscriptions/{envNode.SubscriptionId}/resourceGroups/{env.Value.Data.InfrastructureResourceGroup}/providers/Microsoft.Network/loadBalancers/capp-svc-lb";
+                envNode.LbId = $"/subscriptions/{envNode.SubscriptionId}/resourceGroups/{env.InfrastructureResourceGroup}/providers/Microsoft.Network/loadBalancers/capp-svc-lb";
             }
         }
 
         await _graphDbClient.AddOrUpdateNodeAsync(envNode);
 
         // network
-        if (env.Value.Data.VnetConfiguration?.InfrastructureSubnetId is not null)
+        if (env.VnetConfiguration?.InfrastructureSubnetId is not null)
         {
-            var id = env.Value.Data.VnetConfiguration?.InfrastructureSubnetId;
+            var id = env.VnetConfiguration?.InfrastructureSubnetId;
 
             // subnet
             var subnetResourceId = new ResourceIdentifier(id);
@@ -118,7 +143,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
             var subscriptionId = item.GetProperty("subscriptionId").GetString();
             var resourceGroupName = item.GetProperty("resourceGroup").GetString();
             var resourceName = item.GetProperty("name").GetString();
-            var containerAppNode = new ArmResourceNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName);
+            var containerAppNode = new ContainerAppNode(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName);
 
             await _graphDbClient.AddOrUpdateNodeAsync(containerAppNode);
 

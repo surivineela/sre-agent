@@ -30,7 +30,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<ActionResult<ResultSet<dynamic>>> Query([FromBody] GraphQueryRequest request)
         {
 
-            var result = await this._graphDatabaseClient.Query(request.Query, request.MaxMessageSize);
+            var result = await this._graphDatabaseClient.Query(request.Query);
 
             return Ok(result);
         }

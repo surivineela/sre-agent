@@ -6,6 +6,8 @@ using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
+using Azure.ResourceManager.AppContainers;
+using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.ARM;
@@ -32,135 +34,128 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             yield return n;
         }
 
-        var armNode = (ArmResourceNode)node;
-        _logger.LogDebug($"Crawling Container App {armNode.ResourceId}");
+        var cappNode = (ContainerAppNode)node;
+        _logger.LogDebug($"Crawling Container App {cappNode.ResourceId}");
 
-        // Get the properties for the node to update
-        var properties = node.GetNodeProperties();
-
-        var resourceIdentifier = new ResourceIdentifier(armNode.ResourceId);
-        var resp = await _armClient.GetGenericResource(resourceIdentifier).GetAsync();
-        if (resp == null || !resp.Value.HasData)
+        var rgResourceId = ResourceGroupResource.CreateResourceIdentifier(cappNode.SubscriptionId, cappNode.ResourceGroupName);
+        var rgResource = _armClient.GetResourceGroupResource(rgResourceId);
+        if (rgResource == null)
         {
-            _logger.LogWarning($"Failed to get resource details for: {armNode.ResourceId}");
+            _logger.LogWarning($"Failed to get container app: {cappNode.ResourceId}");
             yield break;
         }
 
-        var resource = resp.Value;
-        var jsonObj = JsonSerializer.Deserialize<JsonElement>(resource.Data.Properties);
-
-        if (resource.Data.Kind != null)
+        var cappResp = await rgResource.GetContainerAppAsync(cappNode.ResourceName);
+        if (cappResp == null || !cappResp.Value.HasData)
         {
-            properties["kind"] = resource.Data.Kind ?? "ContainerApp";
+            _logger.LogWarning($"Failed to get container app: {cappNode.ResourceId}");
+            yield break;
         }
 
-        if (jsonObj.TryGetProperty("provisioningState", out JsonElement provisioningState) && 
-            provisioningState.ValueKind == JsonValueKind.String)
-        {
-            properties["provisioningState"] = provisioningState.GetString();
-        }
+        var capp = cappResp.Value.Data;
+        cappNode.ProvisioningState = capp.ProvisioningState.ToString();
+        cappNode.RunningStatus = capp.RunningStatus.ToString();
+        cappNode.WorkloadProfileName = capp.WorkloadProfileName;
 
-        if (jsonObj.TryGetProperty("managedEnvironmentId", out JsonElement managedEnvironmentId) && 
-            managedEnvironmentId.ValueKind == JsonValueKind.String)
+        // ingress properties
+        cappNode.External = capp.Configuration?.Ingress?.External;
+        cappNode.Transport = capp.Configuration?.Ingress?.Transport.ToString();
+        if (!string.IsNullOrEmpty(capp.Configuration?.Ingress?.Fqdn))
         {
-            properties["managedEnvironmentId"] = managedEnvironmentId.GetString();
+            cappNode.HostNames.Add(capp.Configuration.Ingress.Fqdn);
         }
-
-        if (jsonObj.TryGetProperty("workloadProfileName", out JsonElement workloadProfileName) && 
-            workloadProfileName.ValueKind == JsonValueKind.String)
+        if (capp.Configuration.Ingress.CustomDomains.Count > 0)
         {
-            properties["workloadProfileName"] = workloadProfileName.GetString();
-        }
-
-        if (jsonObj.TryGetProperty("configuration", out JsonElement configuration) && 
-            configuration.TryGetProperty("ingress", out JsonElement ingress))
-        {
-            if (ingress.TryGetProperty("fqdn", out JsonElement fqdn) && 
-                fqdn.ValueKind == JsonValueKind.String)
+            foreach (var customDomain in capp.Configuration.Ingress.CustomDomains)
             {
-                properties["fqdn"] = fqdn.GetString();
-            }
-
-            if (ingress.TryGetProperty("external", out JsonElement external) && 
-                external.ValueKind == JsonValueKind.True || 
-                external.ValueKind == JsonValueKind.False)
-            {
-                properties["ingressExternal"] = external.GetBoolean();
-            }
-        }
-
-        if (jsonObj.TryGetProperty("latestRevisionName", out JsonElement latestRevisionName) && 
-            latestRevisionName.ValueKind == JsonValueKind.String)
-        {
-            properties["latestRevisionName"] = latestRevisionName.GetString();
-        }
-
-        await _graphDbClient.AddOrUpdateNodeAsync(node);
-
-        if (jsonObj.TryGetProperty("template", out JsonElement template) &&
-            template.TryGetProperty("containers", out JsonElement containers) &&
-            containers.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var container in containers.EnumerateArray())
-            {
-                // Check environment variables
-                if (container.TryGetProperty("env", out JsonElement env) &&
-                    env.ValueKind == JsonValueKind.Array)
+                if (!string.IsNullOrEmpty(customDomain.Name))
                 {
-                    foreach (var envVar in env.EnumerateArray())
-                    {
-                        if (envVar.TryGetProperty("name", out JsonElement nameElement) &&
-                            envVar.TryGetProperty("value", out JsonElement valueElement) &&
-                            nameElement.ValueKind == JsonValueKind.String &&
-                            valueElement.ValueKind == JsonValueKind.String)
-                        {
-                            var name = nameElement.GetString();
-                            var value = valueElement.GetString();
-                            if (string.IsNullOrEmpty(value)) continue;
+                    cappNode.HostNames.Add(customDomain.Name);
+                }
+            }
+        }
 
-                            if (name == "REDIS_HOST" && !string.IsNullOrEmpty(value))
+        // containers properties
+        if (capp.Template?.Containers.Count > 0)
+        {
+            cappNode.Containers = new List<ContainerAppNode.Container>();
+            foreach (var container in capp.Template.Containers)
+            {
+                var containerNode = new ContainerAppNode.Container
+                {
+                    Name = container.Name,
+                    Image = container.Image,
+                    Cpu = container.Resources?.Cpu.ToString(),
+                    Memory = container.Resources?.Memory.ToString()
+                };
+                cappNode.Containers.Add(containerNode);
+            }
+        }
+        if (capp.Template?.InitContainers.Count > 0)
+        {
+            cappNode.InitContainers = new List<ContainerAppNode.Container>();
+            foreach (var container in capp.Template.InitContainers)
+            {
+                var containerNode = new ContainerAppNode.Container
+                {
+                    Name = container.Name,
+                    Image = container.Image,
+                    Cpu = container.Resources?.Cpu.ToString(),
+                    Memory = container.Resources?.Memory.ToString()
+                };
+                cappNode.InitContainers.Add(containerNode);
+            }
+        }
+
+        // scale properties
+        if (capp.Template?.Scale != null)
+        {
+            cappNode.MinReplicas = capp.Template.Scale.MinReplicas ?? 1;
+            cappNode.MaxReplicas = capp.Template.Scale.MaxReplicas;
+        }
+
+        await _graphDbClient.AddOrUpdateNodeAsync(cappNode);
+
+        Dictionary<string, string> secrets = new Dictionary<string, string>();
+        var cappSecrets = cappResp.Value.GetSecretsAsync();
+        await foreach (var secret in cappSecrets)
+        {
+            secrets.Add(secret.Name, secret.Value);
+        }
+
+        if (capp.Template?.Containers.Count > 0)
+        {
+            foreach (var container in capp.Template.Containers)
+            {
+                foreach (var env in container.Env)
+                {
+                    if (env.SecretRef != null)
+                    {
+                        if (secrets.ContainsKey(env.SecretRef))
+                        {
+                            var secretValue = secrets[env.SecretRef];
+                            if (string.IsNullOrEmpty(secretValue)) continue;
+
+                            await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, secretValue, "secret"))
                             {
-                                await foreach (var resourceNode in ProcessRedisHost(armNode, name, value, "env"))
-                                {
-                                    yield return resourceNode;
-                                }
-                            }
-                            else
-                            {
-                                await foreach (var resourceNode in ProcessConnectionString(armNode, name, value, "env"))
-                                {
-                                    yield return resourceNode;
-                                }
+                                yield return resourceNode;
                             }
                         }
-                        // Check secretRef
-                        else if (envVar.TryGetProperty("name", out nameElement) &&
-                                 envVar.TryGetProperty("secretRef", out JsonElement secretRef) &&
-                                 secretRef.TryGetProperty("name", out JsonElement secretName))
+                    }
+                    else if (!string.IsNullOrEmpty(env.Value))
+                    {
+                        if (env.Name.Equals("REDIS_HOST", StringComparison.OrdinalIgnoreCase))
                         {
-                            var envName = nameElement.GetString();
-                            var secretNameValue = secretName.GetString();
-
-                            // Look up the secret value in the secrets section
-                            if (template.TryGetProperty("secrets", out JsonElement secrets) &&
-                                secrets.ValueKind == JsonValueKind.Array)
+                            await foreach (var resourceNode in ProcessRedisHost(cappNode, env.Name, env.Value, "env"))
                             {
-                                foreach (var secret in secrets.EnumerateArray())
-                                {
-                                    if (secret.TryGetProperty("name", out JsonElement sName) &&
-                                        secret.TryGetProperty("value", out JsonElement sValue) &&
-                                        sName.GetString() == secretNameValue)
-                                    {
-                                        var secretValue = sValue.GetString();
-                                        if (!string.IsNullOrEmpty(secretValue))
-                                        {
-                                            await foreach (var resourceNode in ProcessConnectionString(armNode, envName, secretValue, "secret"))
-                                            {
-                                                yield return resourceNode;
-                                            }
-                                        }
-                                    }
-                                }
+                                yield return resourceNode;
+                            }
+                        }
+                        else
+                        {
+                            await foreach (var resourceNode in ProcessConnectionString(cappNode, env.Name, env.Value, "env"))
+                            {
+                                yield return resourceNode;
                             }
                         }
                     }

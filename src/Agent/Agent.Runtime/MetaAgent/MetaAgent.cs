@@ -246,6 +246,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceCount),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourcesByType),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard),
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceDetailedProperties),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent)
         ];

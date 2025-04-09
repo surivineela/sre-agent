@@ -10,6 +10,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Azure.Core;
@@ -508,6 +509,32 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
 
             return resources;
         }
+
+        public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
+        {
+            var query = $@"
+                g.V({CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)})
+                .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceName', 'location')
+                .by(coalesce(values('subscriptionId'), constant('unknown')))
+                .by(coalesce(values('resourceGroupName'), constant('unknown')))
+                .by(coalesce(values('resourceType'), constant('unknown')))
+                .by(coalesce(values('resourceName'), constant('unknown')))
+                .by(coalesce(values('location'), constant('unknown'))) 
+                ";
+
+            var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
+
+            return results.FirstOrDefault(new Dictionary<string, object>());
+        }
+
+        public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
+        {
+            var query = $@"g.V({CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}).properties().as('p').group().by(select('p').key()).by(select('p').value())";
+
+            var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
+            return results.FirstOrDefault(new Dictionary<string, object>());
+        }
+
 
         #region Additional Methods
         /// <summary>
