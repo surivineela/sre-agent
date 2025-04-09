@@ -44,10 +44,10 @@ steps:
     RunAsPreJob: false
 
 # Execute the test
-- script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx
+- script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx --results-directory $(Build.SourcesDirectory)\TestResults\
   env:
     OpenAIEndpoint: $(SRE_AGENT_OPENAI_ENDPOINT)
-    OpenAIKey: $(SRE_AGENT_OPENAI_KEY)
+    OpenAIKey: $(EvalsOpenAIKey)
     OpenAIModel: $(SRE_AGENT_OPENAI_MODEL)
     IterationCount: 5
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
@@ -57,18 +57,14 @@ steps:
   condition: always()
   inputs:
     testRunner: VSTest
-    testResultsFiles: '**/*.trx'
+    testResultsFiles: '$(Build.SourcesDirectory)\TestResults\**\*.trx'
 
 # Publish test result to event hub
 - script: dotnet run --project src/Agent/Agent.Evals.Cmd/Agent.Evals.Cmd.csproj
   condition: always()
   env:
-    SRE_AGENT_TESTING_CLIENT_ID: $(SRE_AGENT_TESTING_CLIENT_ID)
-    SRE_AGENT_TESTING_TENANTID: $(SRE_AGENT_TESTING_TENANTID)
-    SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: $(SRE_AGENT_TESTING_TEST_RESULTS_LOCATION)
-    SRE_AGENT_TESTING_ENVIRONMENT_AZURE_CLOUD: Test
-    SRE_AGENT_TESTING_CLIENT_CERT: $(sre-agent-test-integration-pfx)
-    SRE_AGENT_TESTING_KEY_VAULT: $(SRE_AGENT_TESTING_KV_NAME)
+    SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: '$(Build.SourcesDirectory)\TestResults\'
+    SRE_AGENT_EVENT_HUB_CONNECTION_STRING: $(TestResultEventHubConnectionStr)
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
 
   displayName: 'Uploading evals tests results to event hub for ${{ parameters.displayName }}'

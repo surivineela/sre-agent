@@ -23,7 +23,7 @@ public class Program
         string testResultFile;
         try
         {
-            var testResultsLocation = Environment.GetEnvironmentVariable("SREA3P_TESTING_TEST_RESULTS_LOCATION");
+            var testResultsLocation = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_TEST_RESULTS_LOCATION");
             if (string.IsNullOrEmpty(testResultsLocation))
             {
                 testResultsLocation = "src\\Agent\\Agent.Evals\\TestResults\\";
@@ -192,30 +192,10 @@ public class Program
         // Send to EventHub
         Console.WriteLine("Start sending test results to event hub.");
 
-        var clientCert = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_CLIENT_CERT");
-        var clientId = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_CLIENT_ID");
-        var tenantId = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_TENANT_ID");
-        var azureCloud = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_ENVIRONMENT_AZURE_CLOUD");
-        var azureAuthorityHost = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_ENVIRONMENT_AUTHORITY_HOST");
-
-        X509Certificate2 clientCertificate = null;
-        if (!string.IsNullOrEmpty(clientCert))
-        {
-            clientCertificate = new X509Certificate2(Convert.FromBase64String(clientCert), string.Empty, X509KeyStorageFlags.EphemeralKeySet);
-        }
-
-        var cred = string.IsNullOrEmpty(clientCert) || string.IsNullOrEmpty(clientId) || string.IsNullOrEmpty(tenantId) ?
-            GetIntegrationTestsCredentials(null, null, null) :
-            GetIntegrationTestsCredentials(clientId, clientCertificate, tenantId, string.Equals(azureCloud, "Public", StringComparison.OrdinalIgnoreCase), new Uri(azureAuthorityHost));
-
-        var keyVaultUrl = Environment.GetEnvironmentVariable("SRE_AGENT_TESTING_KEY_VAULT");
-        keyVaultUrl = string.IsNullOrEmpty(keyVaultUrl) ? "https://sre-agent-keyvault.vault.azure.net/" : keyVaultUrl;
-        var kvClient = GetIntegrationTestsKVClient(keyVaultUrl, cred);
-        var secretBundle = await kvClient.GetSecretAsync(EventHubConnectionStr);
-        var connectionStr = secretBundle.Value.Value;
+        var eventHubConnectionString = Environment.GetEnvironmentVariable("SRE_AGENT_EVENT_HUB_CONNECTION_STRING");
 
         var producerClient = new EventHubProducerClient(
-            connectionStr,
+            eventHubConnectionString,
             EventHubName);
 
         // Create a batch of events
@@ -234,45 +214,5 @@ public class Program
         await producerClient.SendAsync(eventData);
 
         Console.WriteLine("Finished!");
-    }
-
-    public static TokenCredential GetIntegrationTestsCredentials(string clientId, X509Certificate2 clientCertificate, string tenantId, bool useSNI = false, Uri authorityHost = null)
-    {
-        if (clientCertificate != null)
-        {
-            return new ClientCertificateCredential(
-                tenantId,
-                clientId,
-                clientCertificate,
-                new ClientCertificateCredentialOptions()
-                {
-                    AuthorityHost = authorityHost,
-                    SendCertificateChain = useSNI,
-
-                });
-        }
-
-        return new DefaultAzureCredential();
-    }
-
-    public static SecretClient GetIntegrationTestsKVClient(string vaultUrl, TokenCredential tokenCredential)
-    {
-        return new SecretClient(
-            new Uri(vaultUrl),
-            tokenCredential,
-            new SecretClientOptions()
-            {
-                Diagnostics =
-                {
-#if DEBUG
-                        IsLoggingContentEnabled = true,
-                        LoggedHeaderNames = {"*"},
-                        LoggedQueryParameters = {"*"},
-#else
-                        IsLoggingContentEnabled = false,
-#endif
-                        IsLoggingEnabled = true
-                }
-            });
     }
 }
