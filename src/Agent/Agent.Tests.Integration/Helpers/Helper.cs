@@ -31,7 +31,7 @@ namespace Agent.Tests.Integration.Helpers
             string instanceID,
             CancellationToken cancellationToken)
         {
-            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
             using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
             while (true)

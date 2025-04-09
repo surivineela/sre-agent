@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_1Us7bmKYSO9UVkRGjM3k3kDv",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "\uD83D\uDD04 Rollback for app2 completed at 2025-02-24T01:00:00Z. No further updates will be performed."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BK7nxRqY9v3v1u33qxGhfGFdo07jI",
+  "modelId": "gpt-4o-2024-05-13",
+  "createdAt": "2025-04-08T18:17:41+00:00",
+  "finishReason": "stop",
+  "usage": {
+    "inputTokenCount": 6231,
+    "outputTokenCount": 43,
+    "totalTokenCount": 6274,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_65792305e4"
+  }
+}

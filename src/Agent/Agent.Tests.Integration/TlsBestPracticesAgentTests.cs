@@ -114,6 +114,8 @@ namespace Agent.Tests.Integration
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
+            services.AddSingleton<IAzureSupportCenterPlugin>(new MockAzureSupportCenterPlugin());
+            services.AddSingleton<IReliabilityPlugin>(new MockReliabilityPlugin());
             services.AddSingleton<IGithubIssuePlugin>(new MockGithubIssuePlugin());
             services.AddSingleton<IKubePlugin>(new MockKubePlugin());
             services.AddSingleton<IGrafanaPlugin>(new MockGrafanaPlugin());
@@ -363,7 +365,10 @@ namespace Agent.Tests.Integration
                     var last = _mockCommunicationService.Messages.Last();
 
                     // Wait for the model to ask us whether it should perform a rollback.
-                    if (last != null && last.Contains("back") && last.Contains("confirm") && last.Contains("?"))
+                    if (last != null
+                        && last.Contains("back", StringComparison.InvariantCultureIgnoreCase)
+                        && last.Contains("confirm", StringComparison.InvariantCultureIgnoreCase)
+                        && last.Contains("?"))
                     {
                         // simulate the user taking a while to respond.
                         await Task.Delay(TimeSpan.FromSeconds(5));

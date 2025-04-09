@@ -112,7 +112,8 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
                 // TODO: error handling
                 var newMessage = await newMessageTask;
                 log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", threadId, newMessage.ToString());
-                chatHistory.Add(newMessage);
+                await OnUserMessage(context, threadContext, chatHistory, newMessage);
+                
                 newMessageTask = context.WaitForExternalEvent<ChatMessage>("NewChatMessage");
 
                 // The user sent us a message
@@ -427,6 +428,13 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         log.LogInformation("[{ThreadId}] Completion notification sent", threadId);
 
         return chatHistory;
+    }
+
+
+    protected virtual Task OnUserMessage(TaskOrchestrationContext context, ThreadContext threadContext, List<ChatMessage> chatHistory, ChatMessage userMessage)
+    {
+        chatHistory.Add(userMessage);
+        return Task.CompletedTask;
     }
 
     // Helper method to check if a function has the ThreadSpecific attribute
