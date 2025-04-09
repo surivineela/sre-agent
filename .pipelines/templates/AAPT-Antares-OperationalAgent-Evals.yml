@@ -1,21 +1,13 @@
+trigger: none  # https://aka.ms/obpipelines/triggers
+
 parameters:
-- name: category
-  type: string
-- name: targetApiVersion
-  type: string
-  default: '*'
-- name: displayName
-  type: string
-- name: singleTestTimeout
-  type: string
-  default: 30m
 - name: timeoutMinutes
   type: number
   default: 30
 
 steps:
 - script: echo Integration Test Pipeline Run $(Build.BuildNumber)!
-  displayName: 'Starting integration test run for ${{ parameters.displayName }}'
+  displayName: 'Starting Evals run'
 
 - task: UseDotNet@2
   continueOnError: false
@@ -34,7 +26,7 @@ steps:
     NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS: 60
     NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS: 60
 
-  displayName: 'Restore nuget for ${{ parameters.displayName }}'
+  displayName: 'Restore nuget'
 
 - task: AzureKeyVault@2
   inputs:
@@ -49,9 +41,10 @@ steps:
     OpenAIEndpoint: $(SRE_AGENT_OPENAI_ENDPOINT)
     OpenAIKey: $(EvalsOpenAIKey)
     OpenAIModel: $(SRE_AGENT_OPENAI_MODEL)
-    IterationCount: 5
+    IterationCount: 100
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
-  displayName: 'Running evals for ${{ parameters.displayName }}'
+  displayName: 'Running evals'
+  continueOnError: true
 
 - task: PublishTestResults@2
   condition: always()
@@ -67,4 +60,4 @@ steps:
     SRE_AGENT_EVENT_HUB_CONNECTION_STRING: $(TestResultEventHubConnectionStr)
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
 
-  displayName: 'Uploading evals tests results to event hub for ${{ parameters.displayName }}'
+  displayName: 'Uploading evals tests results to event hub'
