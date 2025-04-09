@@ -5,6 +5,7 @@
 - Visual Studio or preferred IDE
 - .NET Core SDK
 - NuGet Package Manager
+- NodeJS 22
 
 ## Private Environment Setup
 1. **Depoloy the necessary resources**
@@ -31,6 +32,23 @@ We use an internal NuGet source for packages. To set up:
    ```
 
 > **Warning**: The cross-platform `dotnet nuget` command doesn't support setting API keys.
+
+## NodeJS setup
+
+1. Install NodeJS 22 (https://nodejs.org/en)
+   ```powershell
+   winget install OpenJS.NodeJS.LTS
+   ```
+
+1. Install vsts-npm
+   ```powershell
+   npm install -g vsts-npm-auth --registry https://registry.npmjs.com --always-auth false
+   ```
+
+1. Login to VSTS registry
+   ```powershell
+   vsts-npm-auth -config src\Agent\Agent.Web\Client\.npmrc
+   ```
 
 ## Configuration Setup
 

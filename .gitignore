@@ -418,3 +418,5 @@ secrets.json
 **/.env
 
 appPackage.zip
+
+src/Agent/Agent.Web/wwwroot/react/
