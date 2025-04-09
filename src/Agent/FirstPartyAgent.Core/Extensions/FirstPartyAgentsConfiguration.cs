@@ -64,7 +64,14 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<WebAppPlugin>();
             services.AddSingleton<AzureAlertingClient>();
             services.AddSingleton<AzureAlertingPlugin>();
-            services.AddSingleton<IStorageService, StorageService>();
+            services.AddSingleton<IStorageService>(sp =>
+            {
+                var storageAccountSettings = sp.GetRequiredService<StorageAccountSettings>();
+                if (string.IsNullOrWhiteSpace(storageAccountSettings.AccountUrl)) {
+                    return new StorageServiceDisabled();
+                }
+                return new StorageService(storageAccountSettings);
+            });
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
