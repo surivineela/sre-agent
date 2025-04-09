@@ -27,10 +27,7 @@ public class ContainerImagePullFailurePlanActivity : TaskActivity<ContainerImage
         List<ChatMessage> messages = [
              new ChatMessage(ChatRole.System, systemPrompt),
             new ChatMessage(ChatRole.User,
-                $"I need to investigate an image pull failure for the following Linux/Container App: {input.resourceId}.\n\n" +
-                $"Issue description: {input.message}\n\n" +
-                $"Failed image reference: {input.imageReference}\n\n" +
-                $"Error message: {input.errorMessage}")
+                $"I need to investigate an image pull failure for the following Linux/Container App: {input.resourceId}")
          ];
 
         _logger.LogInformation("ContainerImagePullFailurePlanActivity sending messages to chat client.");

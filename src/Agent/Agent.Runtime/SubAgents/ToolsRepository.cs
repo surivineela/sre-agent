@@ -41,7 +41,8 @@ public sealed class ToolsRepository : IMcpConnectable
         IContainerAppPlugin containerAppPlugin,
         IKubePlugin kubernetesAgentPlugin,
         IGithubIssuePlugin githubIssuePlugin,
-        IAzureSupportCenterPlugin azureSupportCenterPlugin)
+        IAzureSupportCenterPlugin azureSupportCenterPlugin,
+        IContainerImagePullFailurePlugin containerImagePullFailurePlugin)
     {
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
@@ -168,6 +169,10 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => azureSupportCenterPluginDefinition.GetSupportProductsFromArm);
         Register200(() => azureSupportCenterPluginDefinition.GetSupportProblemClassificationsForProduct);
         Register200(() => azureSupportCenterPluginDefinition.GetAzureSupportCenterDiagnosticResultsForQuestion);
+
+        var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
+        Register200(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication);
+        Register200(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry);
     }
 
     public string Register202(

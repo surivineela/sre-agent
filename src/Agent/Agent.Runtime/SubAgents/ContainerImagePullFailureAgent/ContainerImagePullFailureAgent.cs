@@ -16,10 +16,7 @@ public class ContainerImagePullFailureAgent : GenericAgentOrchestrator<Container
 
         // Create input for the plan activity
         var imagePullInput = new ContainerImagePullFailureInput(
-            message: agentInput.Input,
-            resourceId: agentInput.ResourceId,
-            imageReference: agentInput.ImageReference,
-            errorMessage: agentInput.ErrorMessage
+            resourceId: agentInput.ResourceId
         );
 
         // Initial planning phase: generate plan for investigation

@@ -24,6 +24,8 @@ public sealed class ContainerImagePullFailureAgentFactory
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IChartPlugin chartPlugin,
+        IContainerAppPlugin containerAppPlugin,
+        IContainerImagePullFailurePlugin containerRegistryVerificationPlugin,
         ToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
@@ -34,9 +36,6 @@ public sealed class ContainerImagePullFailureAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         //var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        //toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
-        //toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
-        //toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
         //toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         //var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
@@ -44,16 +43,28 @@ public sealed class ContainerImagePullFailureAgentFactory
         //toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
         //toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
 
-        //TODO: Uncomment when the methods are implemented
+        // Container App plugin for container operations
+        var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
+
+        // Registry verification tools
+        var containerRegistryVerificationPluginDefinition = new ContainerImagePullFailurePluginDefinition(containerRegistryVerificationPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.CheckAcrAuthentication));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.VerifyExternalRegistry));
+
+        //// Remediation plugin for fixing issues
         //var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-        //toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.GetContainerLogs));
         //toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.UpdateContainerAppSettings));
         //toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.RollbackToLastWorkingImage));
         //toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.VerifyRegistryAccess));
 
-        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
+        //var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
+        //toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        //toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
@@ -61,8 +72,8 @@ public sealed class ContainerImagePullFailureAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
+        //toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
@@ -70,10 +81,7 @@ public sealed class ContainerImagePullFailureAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-        string input,
         string resourceId,
-        string imageReference,
-        string errorMessage,
         ThreadContext context)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
@@ -83,10 +91,7 @@ public sealed class ContainerImagePullFailureAgentFactory
 
         return await _durableTaskClient.ScheduleNewContainerImagePullFailureAgentInstanceAsync(
             new ContainerImagePullFailureAgentInput(
-                Input: input,
                 ResourceId: resourceId,
-                ImageReference: imageReference,
-                ErrorMessage: errorMessage,
                 ToolSignatures: _toolSignatures,
                 Context: context),
             new StartOrchestrationOptions(InstanceId: instanceId));
@@ -97,11 +102,7 @@ public sealed class ContainerImagePullFailureAgentFactory
         try
         {
             var agentInput = JsonSerializer.Deserialize<ContainerImagePullFailureAgentInput>(serializedOrchestrationInput).ThrowIfNull();
-            return new ContainerImagePullFailureInput(
-                message: agentInput.Input,
-                resourceId: agentInput.ResourceId,
-                imageReference: agentInput.ImageReference,
-                errorMessage: agentInput.ErrorMessage);
+            return new ContainerImagePullFailureInput(resourceId: agentInput.ResourceId);
         }
         catch (JsonException ex)
         {

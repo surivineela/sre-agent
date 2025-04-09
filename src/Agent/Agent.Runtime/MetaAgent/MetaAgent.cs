@@ -130,7 +130,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly StorageAccountPlugin _storageAccountPlugin;
     private readonly AppReliabilityPlugin _appReliabilityPlugin;
     private readonly VmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
-    private readonly ContainerImagePullFailurePlugin _containerImagePullFailurePlugin;
+    private readonly ContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
     private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
@@ -154,7 +154,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         SourceCodePlugin sourceCodePlugin,
         IServiceProvider serviceProvider,
         VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
-        ContainerImagePullFailurePlugin containerImagePullFailurePlugin
+        ContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin
         )
     {
         _chatClient = chatClient;
@@ -175,7 +175,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _githubIssuePlugin = githubIssuePlugin;
         _sourceCodePlugin = sourceCodePlugin;
         _serviceProvider = serviceProvider;
-        _containerImagePullFailurePlugin = containerImagePullFailurePlugin;
+        _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
 
         _graphDbPlugin = graphDBPlugin;
         _appReliabilityPlugin = appReliabilityPlugin;
@@ -200,7 +200,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _graphDbPlugin.Context = ctx;
         _appReliabilityPlugin.Context = ctx;
         _vmRdpInvestigatorPlugin.Context = ctx;
-        _containerImagePullFailurePlugin.Context = ctx;
+        _containerImageTroubleshooterPlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.Context = ctx;
@@ -230,8 +230,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
-            AIFunctionFactory.Create(_containerImagePullFailurePlugin.ListContainerImagePullWorkflows),
-            AIFunctionFactory.Create(_containerImagePullFailurePlugin.StartContainerImagePullAgent),
+            AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.ListContainerImagePullWorkflows),
+            AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.StartContainerImagePullAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),

@@ -68,5 +68,8 @@
 	  <None Update="SubAgents\VmRdpInvestigatorAgent\VmRdpInvestigatorAgentPlan.txt">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+    <None Update="SubAgents\ContainerImagePullFailureAgent\ContainerImagePullFailureAgent.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 </Project>
