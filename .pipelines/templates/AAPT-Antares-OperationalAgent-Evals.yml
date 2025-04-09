@@ -44,7 +44,7 @@ steps:
     RunAsPreJob: false
 
 # Execute the test
-- script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx --results-directory $(Build.SourcesDirectory)\TestResults\
+- script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx --results-directory $(Build.SourcesDirectory)/TestResults/
   env:
     OpenAIEndpoint: $(SRE_AGENT_OPENAI_ENDPOINT)
     OpenAIKey: $(EvalsOpenAIKey)
@@ -57,13 +57,13 @@ steps:
   condition: always()
   inputs:
     testRunner: VSTest
-    testResultsFiles: '$(Build.SourcesDirectory)\TestResults\**\*.trx'
+    testResultsFiles: '$(Build.SourcesDirectory)/TestResults/**/*.trx'
 
 # Publish test result to event hub
 - script: dotnet run --project src/Agent/Agent.Evals.Cmd/Agent.Evals.Cmd.csproj
   condition: always()
   env:
-    SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: '$(Build.SourcesDirectory)\TestResults\'
+    SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: '$(Build.SourcesDirectory)/TestResults/'
     SRE_AGENT_EVENT_HUB_CONNECTION_STRING: $(TestResultEventHubConnectionStr)
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
 
