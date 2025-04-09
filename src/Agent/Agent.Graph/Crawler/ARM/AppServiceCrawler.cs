@@ -8,6 +8,10 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -41,19 +45,132 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         var siteResponse = await resourceGroup.GetWebSiteAsync(armResourceId.Name);
         var webApp = siteResponse.Value;
 
+        // Extract basic metadata
         if (!string.IsNullOrEmpty(webApp.Data.VirtualNetworkSubnetId))
         {
             appServiceNode.VnetId = webApp.Data.VirtualNetworkSubnetId;
         }
 
+        // Store the kind property
+        appServiceNode.Kind = webApp.Data.Kind;
+
+        // Get website configuration
         var webConfigResp = await webApp.GetWebSiteConfig().GetAsync();
         if (webConfigResp != null && webConfigResp.Value != null)
         {
             var webConfig = webConfigResp.Value;
-            if (webConfig.HasData && webConfig.Data.MinTlsVersion != null)
+            if (webConfig.HasData)
             {
-                appServiceNode.MinTlsVersion = webConfig.Data.MinTlsVersion.ToString();
+                if (webConfig.Data.MinTlsVersion != null)
+                {
+                    appServiceNode.MinTlsVersion = webConfig.Data.MinTlsVersion.ToString();
+                }
+
+                // Get stack version from site config
+                appServiceNode.StackVersion = GetStackVersion(webConfig.Data);
+
+                // Set additional properties from site config
+                appServiceNode.AlwaysOn = webConfig.Data.IsAlwaysOn;
+                appServiceNode.AutoHealEnabled = webConfig.Data.IsAutoHealEnabled;
+                appServiceNode.NumberOfWorkers = webConfig.Data.NumberOfWorkers;
+                appServiceNode.HealthCheckEnabled = !string.IsNullOrEmpty(webConfig.Data.HealthCheckPath);
+                appServiceNode.WebSocketsEnabled = webConfig.Data.IsWebSocketsEnabled;
             }
+        }
+
+        // Get app settings to check for Functions host version and App Insights
+        var appSettingsResponse = await webApp.GetApplicationSettingsAsync();
+        var appSettings = appSettingsResponse.Value.Properties;
+
+        // Check for Functions host version and runtime
+        if (appServiceNode.Kind?.Contains("functionapp", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            if (appSettings.TryGetValue("FUNCTIONS_EXTENSION_VERSION", out var functionsVersion))
+            {
+                appServiceNode.FunctionsHostVersion = functionsVersion;
+            }
+
+            // Also capture the worker runtime for Functions
+            if (appSettings.TryGetValue("FUNCTIONS_WORKER_RUNTIME", out var workerRuntime))
+            {
+                // If we have a worker runtime, use it to enhance or set the stack version
+                if (!string.IsNullOrEmpty(workerRuntime))
+                {
+                    // If we don't have a stack version yet, set it from the worker runtime
+                    if (string.IsNullOrEmpty(appServiceNode.StackVersion))
+                    {
+                        appServiceNode.StackVersion = workerRuntime;
+                    }
+                    // Otherwise, store it as a property in the node
+                    else
+                    {
+                        var props = appServiceNode.GetNodeProperties();
+                        props["workerRuntime"] = workerRuntime;
+                    }
+                }
+            }
+        }
+
+        // Check for App Insights
+        appServiceNode.UsesAppInsights = appSettings.Any(s =>
+            s.Key.Contains("APPINSIGHTS", StringComparison.OrdinalIgnoreCase) &&
+            !string.IsNullOrEmpty(s.Value));
+
+        // Get hostnames including custom domains
+        if (webApp.Data.HostNames != null && webApp.Data.HostNames.Count > 0)
+        {
+            appServiceNode.HostNames.AddRange(webApp.Data.HostNames);
+            _logger.LogDebug($"Found {webApp.Data.HostNames.Count} hostnames for {appServiceNode.ResourceId}");
+        }
+        else
+        {
+            // Fallback to default hostname if available
+            if (!string.IsNullOrEmpty(webApp.Data.DefaultHostName))
+            {
+                appServiceNode.HostNames.Add(webApp.Data.DefaultHostName);
+                _logger.LogDebug($"Using default hostname for {appServiceNode.ResourceId}: {webApp.Data.DefaultHostName}");
+            }
+        }
+
+        // Additionally, try to retrieve custom hostnames binding information
+        try
+        {
+            var hostnameBindings = webApp.GetSiteHostNameBindings();
+            var bindingsList = await hostnameBindings.GetAllAsync().ToListAsync();
+
+            foreach (var binding in bindingsList)
+            {
+                string hostnameValue = null;
+
+                // Handle the case where binding.Data.Name is in format "app-name/hostname.domain.com"
+                if (!string.IsNullOrEmpty(binding.Data.Name) && binding.Data.Name.Contains("/"))
+                {
+                    hostnameValue = binding.Data.Name.Split('/').Last();
+                }
+                // Try to use hostname property directly if available
+                else if (!string.IsNullOrEmpty(binding.Data.Name))
+                {
+                    hostnameValue = binding.Data.Name;
+                }
+                // Fallback to name if no slash is present
+                else if (!string.IsNullOrEmpty(binding.Data.Name))
+                {
+                    hostnameValue = binding.Data.Name;
+                }
+
+                // Add the hostname if it's valid, unique, and not an azurewebsites.net domain
+                if (!string.IsNullOrEmpty(hostnameValue) &&
+                    !appServiceNode.HostNames.Contains(hostnameValue) &&
+                    !hostnameValue.Contains(".azurewebsites.net", StringComparison.OrdinalIgnoreCase))
+                {
+                    appServiceNode.HostNames.Add(hostnameValue);
+                    _logger.LogDebug($"Found custom domain binding: {hostnameValue}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Failed to get hostname bindings for {webApp.Data.Id}: {ex.Message}");
         }
 
         await _graphDbClient.AddOrUpdateNodeAsync(appServiceNode);
@@ -85,6 +202,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             yield return appServicePlanNode;
         }
 
+        // Link to VNet if available
         if (!string.IsNullOrEmpty(webApp.Data.VirtualNetworkSubnetId))
         {
             var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
@@ -114,9 +232,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             yield return vnetNode;
         }
 
-        var appSettingsResponse = await siteResponse.Value.GetApplicationSettingsAsync();
-        var appSettings = appSettingsResponse.Value.Properties;
-
+        // Process app settings for connection strings
         foreach (var setting in appSettings)
         {
             var name = setting.Key;
@@ -156,6 +272,83 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
     }
 
+    private string GetStackVersion(SiteConfigData config)
+    {
+        // For Linux web apps, use LinuxFxVersion directly
+        if (!string.IsNullOrEmpty(config.LinuxFxVersion))
+        {
+            return config.LinuxFxVersion;
+        }
+        // For Windows web apps, use WindowsFxVersion if available
+        else if (!string.IsNullOrEmpty(config.WindowsFxVersion))
+        {
+            return config.WindowsFxVersion;
+        }
+        // Fallback to other runtime properties if needed
+        else if (!string.IsNullOrEmpty(config.NetFrameworkVersion))
+        {
+            return $"dotnet:{config.NetFrameworkVersion}";
+        }
+        else if (!string.IsNullOrEmpty(config.JavaVersion))
+        {
+            return $"java:{config.JavaVersion}";
+        }
+        else if (!string.IsNullOrEmpty(config.PhpVersion))
+        {
+            return $"php:{config.PhpVersion}";
+        }
+        else if (!string.IsNullOrEmpty(config.PythonVersion))
+        {
+            return $"python:{config.PythonVersion}";
+        }
+        else if (!string.IsNullOrEmpty(config.NodeVersion))
+        {
+            return $"node:{config.NodeVersion}";
+        }
+
+        return null;
+    }
+
+    private async Task<string> GetAppServicePlanTypeAsync(string appServicePlanId)
+    {
+        try
+        {
+            var planResourceId = new ResourceIdentifier(appServicePlanId);
+            var planResource = _armClient.GetAppServicePlanResource(planResourceId);
+            var plan = await planResource.GetAsync();
+
+            if (plan.Value != null && plan.Value.Data != null)
+            {
+                var sku = plan.Value.Data.Sku;
+                if (sku != null)
+                {
+                    // Check for elastic premium (EP) or consumption (Y)
+                    if (sku.Tier?.Equals("ElasticPremium", StringComparison.OrdinalIgnoreCase) == true ||
+                        sku.Name?.StartsWith("EP", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        return "ElasticPremium";
+                    }
+                    else if (sku.Tier?.Equals("Dynamic", StringComparison.OrdinalIgnoreCase) == true ||
+                             sku.Name?.StartsWith("Y", StringComparison.OrdinalIgnoreCase) == true)
+                    {
+                        return "FlexConsumption";
+                    }
+                    else
+                    {
+                        // Return the actual SKU tier or name if not a special case
+                        return sku.Tier ?? sku.Name;
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Failed to get plan type for {appServicePlanId}: {ex.Message}");
+        }
+
+        return null;
+    }
+
     private bool IsRedisConnectionString(string value)
     {
         if (string.IsNullOrEmpty(value)) return false;
@@ -167,4 +360,3 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 value.Contains("password=", StringComparison.OrdinalIgnoreCase));
     }
 }
-
