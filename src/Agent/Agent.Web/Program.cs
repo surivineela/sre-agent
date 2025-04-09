@@ -94,7 +94,7 @@ builder.Host.UseSerilog();
     builder.Services.AddLogging();
 
     builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-
+    
 
     // Register a default ConversationReference that can be injected into PostToTeamsPlugin
     // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
@@ -325,6 +325,7 @@ app.UseCors(x => x.WithOrigins(GetAzurePortalDomains(builder.Configuration))
 app.UseHttpsRedirection();
 
 // Serve static files from wwwroot
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
@@ -334,6 +335,7 @@ app.MapBlazorHub();
 
 // Finally, map the fallback page
 app.MapFallbackToPage("/_Host");
+//app.MapFallbackToFile("index.html");
 
 var azureSettings = builder.Configuration.GetSection("Azure").Get<AzureSettings>();
 var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();

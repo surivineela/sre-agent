@@ -10,6 +10,7 @@
     <PackageReference Include="Azure.Monitor.OpenTelemetry.Exporter" />
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.AspNetCore.OData" />
+    <PackageReference Include="Microsoft.AspNetCore.StaticFiles" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="Serilog" />
@@ -29,4 +30,13 @@
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+  <Target Name="BuildReactApp" BeforeTargets="Build">
+    <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
+    <Exec Command="npm install" WorkingDirectory="Client" />
+    <Exec Command="npm run build" WorkingDirectory="Client" />
+  </Target>
 </Project>
