@@ -51,6 +51,7 @@ using Serilog.Sinks.AzureDataExplorer.Extensions;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Prometheus.Services;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
+using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -126,6 +127,8 @@ builder.Host.UseSerilog();
         .AddSingleton<AppReliabilityPlugin>()
         .AddSingleton<AppReliabilityAgentFactory>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
+        .AddSingleton<ContainerImagePullFailureAgentFactory>()
+        .AddSingleton<ContainerImagePullFailurePlugin>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
         .AddSingleton<IGraphDbService, GraphDbService>()
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()

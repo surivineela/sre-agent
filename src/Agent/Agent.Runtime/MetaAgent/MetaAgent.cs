@@ -71,6 +71,7 @@ Before initiating any Azure resource operations:
 - **Kubernetes Agent**: Help users with any queries related to Azure Kubernetes Service (AKS)
 - **App Reliability**: Delegate to this plugin to help users improve the reliability of their Azure applications
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
+- **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.
@@ -80,6 +81,7 @@ Before initiating any Azure resource operations:
    - `startAppServiceRemediationAgent` for Azure WebApp, Function, or App Service issues.
    - `startContainerAppsRemediationAgent` for Azure Container Apps concerns.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
+   - `startContainerImageFailureAgent` for container image pull failures in Linux Web Apps and Container Apps.
    - Other registered agents as applicable.
 3. **Workflow Management**: Initiate, monitor, and summarize Azure-related workflows.
 
@@ -128,6 +130,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly StorageAccountPlugin _storageAccountPlugin;
     private readonly AppReliabilityPlugin _appReliabilityPlugin;
     private readonly VmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
+    private readonly ContainerImagePullFailurePlugin _containerImagePullFailurePlugin;
     private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
@@ -150,7 +153,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         AppReliabilityPlugin appReliabilityPlugin,
         SourceCodePlugin sourceCodePlugin,
         IServiceProvider serviceProvider,
-        VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin
+        VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
+        ContainerImagePullFailurePlugin containerImagePullFailurePlugin
         )
     {
         _chatClient = chatClient;
@@ -171,6 +175,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _githubIssuePlugin = githubIssuePlugin;
         _sourceCodePlugin = sourceCodePlugin;
         _serviceProvider = serviceProvider;
+        _containerImagePullFailurePlugin = containerImagePullFailurePlugin;
+
         _graphDbPlugin = graphDBPlugin;
         _appReliabilityPlugin = appReliabilityPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
@@ -194,6 +200,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _graphDbPlugin.Context = ctx;
         _appReliabilityPlugin.Context = ctx;
         _vmRdpInvestigatorPlugin.Context = ctx;
+        _containerImagePullFailurePlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.Context = ctx;
@@ -223,6 +230,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
+            AIFunctionFactory.Create(_containerImagePullFailurePlugin.ListContainerImagePullWorkflows),
+            AIFunctionFactory.Create(_containerImagePullFailurePlugin.StartContainerImagePullAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
