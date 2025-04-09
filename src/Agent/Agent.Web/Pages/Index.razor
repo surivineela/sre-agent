@@ -30,7 +30,8 @@
                 {
                     <div class="thread-item @(thread.Id == currentChatId ? "active" : "")"
                          @onclick="async () => await SelectThread(thread.Id)">
-                        <div class="thread-title">@thread.Name</div>
+                         <!-- for backward compatibility, if no lastMessage saved, display title like before-->
+                        <div class="thread-title">@(!string.IsNullOrEmpty(thread.LastMessage) ? thread.LastMessage : thread.Name)</div>
                         <div class="thread-metadata">
                             <span class="thread-created-at" title="Created on @thread.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")">
                                 @thread.CreatedAt.ToLocalTime().ToString("MMM d")
@@ -665,6 +666,7 @@
                                 Name = t.Title,
                                 CreatedAt = t.CreatedTimestamp,
                                 LastMessageAt = t.ModifiedTimestamp,
+                                LastMessage = t.LastMessage?.Text,
                                 AgentType = GetAgentTypeFromPath(currentPath)
                             }).ToList();
 
@@ -741,9 +743,9 @@
                         messages = messagesList.Select(m => new ChatMessage
                             {
                                 Message = m.Text,
-                                // Fix: Apply Markdown immediately when loading messages
+                            // Fix: Apply Markdown immediately when loading messages
                                 FormattedMessage = Markdown.ToHtml(m.Text, _markdownPipeline),
-                                // Fix: Properly determine if message is from user or assistant
+                            // Fix: Properly determine if message is from user or assistant
                                 IsUser = m.Author.Role == Role.User,
                                 Timestamp = m.TimeStamp
                             }).ToList();
@@ -973,7 +975,7 @@
                                         messages[index] = new ChatMessage
                                             {
                                                 Message = latestAgentMessage.Text,
-                                                // Fix: Apply markdown to the agent response
+                                            // Fix: Apply markdown to the agent response
                                                 FormattedMessage = Markdown.ToHtml(latestAgentMessage.Text, _markdownPipeline),
                                                 IsUser = false,
                                                 Timestamp = latestAgentMessage.TimeStamp
@@ -989,7 +991,7 @@
                                     messages.Add(new ChatMessage
                                         {
                                             Message = latestAgentMessage.Text,
-                                            // Fix: Apply markdown to the agent response
+                                        // Fix: Apply markdown to the agent response
                                             FormattedMessage = Markdown.ToHtml(latestAgentMessage.Text, _markdownPipeline),
                                             IsUser = false,
                                             Timestamp = latestAgentMessage.TimeStamp
@@ -1078,6 +1080,7 @@
         public string Name { get; set; } = "";
         public DateTime CreatedAt { get; set; }
         public DateTime LastMessageAt { get; set; }
+        public string? LastMessage { get; set; } = "";
         public string AgentType { get; set; } = "";
     }
 

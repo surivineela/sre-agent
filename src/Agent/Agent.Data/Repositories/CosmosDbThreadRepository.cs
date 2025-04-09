@@ -2,16 +2,17 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net;
+using System.Threading;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
-using System.Net;
+using Microsoft.Extensions.Logging;
+using Action = Agent.Core.Models.Api.v1.Action;
 using Container = Microsoft.Azure.Cosmos.Container;
 using Thread = Agent.Core.Models.Api.v1.Thread;
-using Action = Agent.Core.Models.Api.v1.Action;
-using Agent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Agent.Data.Repositories;
 
@@ -53,8 +54,25 @@ public class CosmosDbThreadRepository : IThreadRepository
                 return null;
             }
 
+            // last message may be null if thread was created before we started saving last message id
+            // & a new message has not been added to the thread
+            Message lastMessageDocDomainModel;
+            if (threadDoc.LastMessageId == null)
+            {
+                _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                lastMessageDocDomainModel = null;
+            }
+            else
+            {
+                MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                    threadDoc.LastMessageId,
+                    threadDoc.Id
+                );
+                lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
+            }
+
             // Convert to domain model
-            return threadDoc.ToDomainModel(startMessageDoc.ToDomainModel());
+            return threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -91,9 +109,26 @@ public class CosmosDbThreadRepository : IThreadRepository
                     threadDoc.Id
                 );
 
+                // last message may be null if thread was created before we started saving last message id
+                // & a new message has not been added to the thread
+                Message lastMessageDocDomainModel;
+                if (threadDoc.LastMessageId == null)
+                {
+                    _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                    lastMessageDocDomainModel = null;
+                }
+                else
+                {
+                    MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                        threadDoc.LastMessageId,
+                        threadDoc.Id
+                    );
+                    lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
+                }
+
                 if (startMessageDoc != null)
                 {
-                    threads.Add(threadDoc.ToDomainModel(startMessageDoc.ToDomainModel()));
+                    threads.Add(threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel));
                 }
             }
         }
@@ -111,6 +146,12 @@ public class CosmosDbThreadRepository : IThreadRepository
             thread = thread with
             {
                 StartMessage = thread.StartMessage with { Id = Guid.NewGuid() }
+            };
+
+        if (thread.LastMessage.Id == Guid.Empty)
+            thread = thread with
+            {
+                LastMessage = thread.LastMessage with { Id = Guid.NewGuid() }
             };
 
         // Then create the thread
@@ -226,6 +267,25 @@ public class CosmosDbThreadRepository : IThreadRepository
                 threadIdStr
             );
 
+            // Get the last message to construct the complete Thread domain model
+
+            // last message may be null if thread was created before we started saving last message id
+            // & a new message has not been added to the thread
+            Message lastMessageDocDomainModel;
+            if (threadDoc.LastMessageId == null)
+            {
+                _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                lastMessageDocDomainModel = null;
+            }
+            else
+            {
+                MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                    threadDoc.LastMessageId,
+                    threadDoc.Id
+                );
+                lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
+            }
+
             if (startMessageDoc == null)
             {
                 _logger.LogWarning("Start message {MessageId} not found for thread {ThreadId}",
@@ -236,6 +296,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                     Id: threadId,
                     Title: newTitle,
                     StartMessage: null,
+                    LastMessage: lastMessageDocDomainModel,
                     CreatedTimestamp: threadDoc.CreatedTimestamp,
                     ModifiedTimestamp: updatedThreadDoc.ModifiedTimestamp
                 );
@@ -243,7 +304,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             // Return the complete updated Thread domain model
             _logger.LogInformation("Successfully updated title for thread {ThreadId}", threadId);
-            return updatedThreadDoc.ToDomainModel(startMessageDoc.ToDomainModel());
+            return updatedThreadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -340,6 +401,26 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             // Log the error but don't fail the operation
             Console.WriteLine($"Error updating thread timestamp: {ex.Message}");
+        }
+
+        // Update the threads latest message
+        try
+        {
+            ThreadDocument threadDoc = await GetDocumentAsync<ThreadDocument>(threadIdStr, threadIdStr);
+            if (threadDoc != null)
+            {
+                ThreadDocument updatedThreadDoc = threadDoc with { LastMessageId = message.Id.ToString() };
+                await _container.ReplaceItemAsync(
+                    updatedThreadDoc,
+                    updatedThreadDoc.Id,
+                    new PartitionKey(updatedThreadDoc.PartitionKey)
+                );
+            }
+        }
+        catch
+        {
+            // Log the error but don't fail the operation
+            Console.WriteLine($"Error updating thread latest message: {message.Id}");
         }
 
         return message;

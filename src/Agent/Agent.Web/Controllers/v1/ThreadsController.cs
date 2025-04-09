@@ -69,15 +69,17 @@ namespace Agent.Web.Controllers.v1
 
             string temporaryTitle = request.StartMessage.Text.Length <= 50 ? request.StartMessage.Text : request.StartMessage.Text.Substring(0, 47) + "...";
 
-            var thread = new Thread(
-                Id: threadId,
-                Title: temporaryTitle,
-                StartMessage: new Message(
+            var message = new Message(
                     Id: messageId,
                     TimeStamp: DateTime.UtcNow,
                     Author: new Author(Role.User, request.StartMessage.UserId, request.StartMessage.DisplayName),
                     Text: request.StartMessage.Text
-                ),
+                );
+            var thread = new Thread(
+                Id: threadId,
+                Title: temporaryTitle,
+                StartMessage: message,
+                LastMessage: message, // when the thread is first created the start message is the last message
                 CreatedTimestamp: DateTime.UtcNow,
                 ModifiedTimestamp: DateTime.UtcNow
             );

@@ -374,17 +374,20 @@ public class TestThreadService
     // Helper method to create a test thread
     private async Task<Thread> CreateTestThreadAsync(Guid threadId)
     {
-        var thread = new Thread(
-            Id: threadId,
-            Title: "Test Thread",
-            StartMessage: new Message(
+        var message = new Message(
                 Id: Guid.NewGuid(),
                 Text: "Start message",
                 TimeStamp: DateTime.UtcNow.AddMinutes(-10),
                 Author: new Author(Role.System, "system", "System"),
                 IsImageContent: false,
                 Posted: new Posted(true)
-            ),
+            );
+
+        var thread = new Thread(
+            Id: threadId,
+            Title: "Test Thread",
+            StartMessage: message,
+            LastMessage: message, // when the thread is first created the start message is the last message
             CreatedTimestamp: DateTime.UtcNow.AddMinutes(-10),
             ModifiedTimestamp: DateTime.UtcNow.AddMinutes(-10)
         );

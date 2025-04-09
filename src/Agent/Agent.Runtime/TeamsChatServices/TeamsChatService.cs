@@ -274,15 +274,17 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         string temporaryTitle = "Conversation title...";
 
         Guid newThreadId = Guid.NewGuid();
-        var thread = await _threadRepository.CreateThreadAsync(new Thread(
-            Id: newThreadId,
-            Title: temporaryTitle,
-            StartMessage: new Message(
+        var message = new Message(
                 Id: startMessageId,
                 TimeStamp: DateTime.UtcNow,
                 Author: new Author(Role.User, userId, senderName),
                 Text: "-"
-            ),
+            );
+        var thread = await _threadRepository.CreateThreadAsync(new Thread(
+            Id: newThreadId,
+            Title: temporaryTitle,
+            StartMessage: message,
+            LastMessage: message, // when the thread is first created the start message is the last message
             CreatedTimestamp: DateTime.UtcNow,
             ModifiedTimestamp: DateTime.UtcNow
             ));

@@ -12,11 +12,13 @@ public record ThreadDocument(
     string Id,
     string Title,
     string MessageId, // Reference to the start message
+    string LastMessageId, // Reference to the last message
     DateTime CreatedTimestamp,
     DateTime ModifiedTimestamp,
     ThreadSource Source = ThreadSource.Portal
 ) : ICosmosDocument
 {
+
     public string DocumentType => "Thread";
     public string PartitionKey => Id; // Use Thread Id as partition key
 
@@ -26,16 +28,18 @@ public record ThreadDocument(
             thread.Id.ToString(),
             thread.Title,
             thread.StartMessage.Id.ToString(),
+            thread.LastMessage?.Id.ToString(), 
             thread.CreatedTimestamp,
             thread.ModifiedTimestamp,
             thread.Source
         );
 
-    public Thread ToDomainModel(Message startMessage) =>
+    public Thread ToDomainModel(Message startMessage, Message lastMessage) =>
         new Thread(
             Guid.Parse(Id),
             Title,
             startMessage,
+            lastMessage,
             CreatedTimestamp,
             ModifiedTimestamp,
             Source

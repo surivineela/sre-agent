@@ -24,9 +24,20 @@ value:
             userId: 'agent-123'
             displayName: 'SRE Agent'
         text: "Hello, I am an SRE agent, blah blah blah"
+    lastMessage: 
+        id: "edf8fb73-6cf7-4835-96b7-e6caa36f8929"
+        timeStamp: "2025-04-09T00:34:03.1916368Z"
+        author: 
+          role: "SREAgent"
+          userId: "agent-default"
+          displayName: "Azure SRE Agent"
+        text: "Got it! How can I assist you further with Azure? Let me know!"
+        isImageContent: false
+        posted: 
+          teams: false
     createdTimestamp: '2025-03-01' 
-    modifiedTimestamp: '2025-03-11'
-  - id: id
+    modifiedTimestamp: '2025-04-09'
+    - id: id
     title: 'Updating TLS settings'
     startMessage:
         id: id
@@ -69,6 +80,14 @@ Response:
 id: id
 title: 'Current status update'
 startMessage: 
+    id: id
+    timestamp: '2025-03-12'
+    author:
+        role: User
+        userId: 'user-789'
+        displayName: 'Paul'
+    text: "Hello, can you tell me which subscriptions I have access to?"
+lastMessage: 
     id: id
     timestamp: '2025-03-12'
     author:

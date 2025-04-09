@@ -18,6 +18,7 @@ namespace Agent.Core.Models.Api.v1
         Guid Id,
         string Title,
         Message StartMessage,
+        Message LastMessage,
         DateTime CreatedTimestamp,
         DateTime ModifiedTimestamp,
         ThreadSource Source = ThreadSource.Portal

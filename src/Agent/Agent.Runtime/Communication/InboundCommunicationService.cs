@@ -170,11 +170,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(string title, string message, ThreadSource source, AgentTypeEnum agentTypeEnum)
     {
         var now = DateTime.UtcNow;
-        var thread = new Core.Models.Api.v1.Thread
-        (
-            Id: Guid.NewGuid(),
-            Title: title,
-            new Message
+        var startMessage = new Message
             (
                 Guid.NewGuid(),
                 now,
@@ -182,7 +178,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 message,
                 false,
                 new Posted(false)
-            ),
+            );
+        var thread = new Core.Models.Api.v1.Thread
+        (
+            Id: Guid.NewGuid(),
+            Title: title,
+            startMessage,
+            startMessage, // when the thread is first created the start message is the last message
             now,
             now,
             source
