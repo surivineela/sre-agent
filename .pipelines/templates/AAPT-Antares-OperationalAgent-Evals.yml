@@ -36,8 +36,10 @@ steps:
 
 - task: AzureKeyVault@2
   inputs:
-    azureSubscription: $(SRE_AGENT_TESTING_SERVICE_CONNECTION)
-    KeyVaultName: $(SRE_AGENT_TESTING_KV_NAME)
+    azureSubscription: 'SRE_AGENT_TESTING_SERVICE_CONNECTION'
+    KeyVaultName: 'sre-agent-keyvault'
+    SecretsFilter: '*'
+    RunAsPreJob: false
 
 # Execute the test
 - script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx
