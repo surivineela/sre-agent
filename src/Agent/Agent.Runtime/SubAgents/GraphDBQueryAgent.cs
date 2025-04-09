@@ -92,7 +92,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ChatHistory.Add(new(ChatRole.System, JsonSerializer.Serialize(await _def.Query("g.E().properties().key().dedup()"))));
         }
 
-        protected override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
+        public override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
         {
             throw new NotImplementedException();
         }

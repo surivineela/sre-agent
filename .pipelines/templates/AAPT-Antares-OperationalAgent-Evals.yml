@@ -1,0 +1,70 @@
+parameters:
+- name: category
+  type: string
+- name: targetApiVersion
+  type: string
+  default: '*'
+- name: displayName
+  type: string
+- name: singleTestTimeout
+  type: string
+  default: 30m
+- name: timeoutMinutes
+  type: number
+  default: 30
+
+steps:
+- script: echo Integration Test Pipeline Run $(Build.BuildNumber)!
+  displayName: 'Starting integration test run for ${{ parameters.displayName }}'
+
+- task: UseDotNet@2
+  continueOnError: true
+  inputs:
+    version: '8.0.x'
+
+- task: NuGetAuthenticate@1
+  inputs:
+    forceReinstallCredentialProvider: false # Optional
+
+# Restore nuget
+- script: dotnet restore src/Agent/Agent.Evals/Agent.Evals.csproj
+  env:
+    NUGET_PLUGIN_HANDSHAKE_TIMEOUT_IN_SECONDS: 60
+    NUGET_PLUGIN_REQUEST_TIMEOUT_IN_SECONDS: 60
+
+  displayName: 'Restore nuget for ${{ parameters.displayName }}'
+
+- task: AzureKeyVault@2
+  inputs:
+    azureSubscription: $(SRE_AGENT_TESTING_SERVICE_CONNECTION)
+    KeyVaultName: $(SRE_AGENT_TESTING_KV_NAME)
+
+# Execute the test
+- script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx
+  env:
+    OpenAIEndpoint: $(SRE_AGENT_OPENAI_ENDPOINT)
+    OpenAIKey: $(SRE_AGENT_OPENAI_KEY)
+    OpenAIModel: $(SRE_AGENT_OPENAI_MODEL)
+    IterationCount: 5
+  timeoutInMinutes: ${{ parameters.timeoutMinutes }}
+  displayName: 'Running evals for ${{ parameters.displayName }}'
+
+- task: PublishTestResults@2
+  condition: always()
+  inputs:
+    testRunner: VSTest
+    testResultsFiles: '**/*.trx'
+
+# Publish test result to event hub
+- script: dotnet run --project src/Agent/Agent.Evals.Cmd/Agent.Evals.Cmd.csproj
+  condition: always()
+  env:
+    SRE_AGENT_TESTING_CLIENT_ID: $(SRE_AGENT_TESTING_CLIENT_ID)
+    SRE_AGENT_TESTING_TENANTID: $(SRE_AGENT_TESTING_TENANTID)
+    SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: $(SRE_AGENT_TESTING_TEST_RESULTS_LOCATION)
+    SRE_AGENT_TESTING_ENVIRONMENT_AZURE_CLOUD: Test
+    SRE_AGENT_TESTING_CLIENT_CERT: $(sre-agent-test-integration-pfx)
+    SRE_AGENT_TESTING_KEY_VAULT: $(SRE_AGENT_TESTING_KV_NAME)
+  timeoutInMinutes: ${{ parameters.timeoutMinutes }}
+
+  displayName: 'Uploading evals tests results to event hub for ${{ parameters.displayName }}'

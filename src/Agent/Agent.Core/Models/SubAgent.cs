@@ -66,7 +66,7 @@ namespace Agent.Core.Models
 
         public abstract IList<AITool> Tools();
 
-        protected abstract Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync();
+        public abstract Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync();
 
         public virtual async Task PrepareAgentForUserInput()
         {

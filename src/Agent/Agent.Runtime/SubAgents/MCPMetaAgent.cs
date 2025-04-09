@@ -69,7 +69,7 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
             ChatHistory.Add(new(ChatRole.Assistant, $"Removed connection to {connection.Url} due to connection failure"));
         }
 
-        protected override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
+        public override Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync()
         {
             throw new NotImplementedException();
         }
