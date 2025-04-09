@@ -186,7 +186,7 @@ namespace Agent.Plugins
             return _plugin.GetKnowledgeGraphResourceUsageDashboard();
         }
 
-        [Description("Returns basic metadata of an Azure resource. The input should be in Azure resource id format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +
+        [Description("Returns basic metadata of an Azure resource. The input should be in Azure ResourceId format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +
             "Use this tool when you want to get following properties of an azure resource:" +
             "- subscription id" +
             "- resource group" +
@@ -194,18 +194,21 @@ namespace Agent.Plugins
             "- resource name" +
             "- location (or region)" +
             "\nNote: For resources with parent-child relationships like App Service and App Service Plan, or Container Apps and Container App Environment, basic properties only include the core metadata.")]
-        public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
+        public async Task<Dictionary<string, object>> GetResourceBasicProperties(
+             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
         {
             return await _plugin.GetResourceBasicProperties(resourceId);
         }
 
-        [Description("Returns a comprehensive set of resource-specific properties in addition to the basic metadata which are in Knowledge Graph. The input should be in Azure resource id format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +
+        [Description("Returns resource-specific properties along with basic metadata for an Azure resource identified by its ResourceId. " +
+            "Input must be in Azure ResourceId format (e.g., /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp). " +
             "\nResource-specific properties include:" +
-            "\n- For App Service/Web Apps/Function Apps: hosting plan details, vnet integration, TLS version, worker count, auto heal settings, always on status, health checks, websockets, hostnames, runtime stack, Functions host version, App Insights integration etc." +
-            "\n- For App Service Plans: number of workers, maximum workers, status, provisioning state, zone redundancy, region, kind etc" +
-            "\n- For Container Apps: provisioning state, running status, workload profile, external access, transport, hostnames, container details (image, CPU, memory), scaling settings (min/max replicas), etc." +
-            "\nNote: Some properties for App Service/Function Apps may reside in their associated App Service Plan. Similarly, Container Apps may have properties in their Container App Environment. This function will return all properties directly attached to the requested resource. The attached resource must be queried seperately")]
-        public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
+            "\n- For App Service/Web/Function Apps: hosting plan, VNET, TLS, workers, auto-heal, health checks, runtime stack, App Insights. " +
+            "\n- For App Service Plans: workers, status, zone redundancy, region, kind. " +
+            "\n- For Container Apps: state, profile, access, containers, scaling. " +
+            "Note: Some properties may be in associated resources (e.g., App Service Plan) and need separate queries.This function will return all properties directly attached to the requested resource.")]
+        public async Task<Dictionary<string, object>> GetResourceDetailedProperties(
+             [Description("Azure Resource Id of the resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
         {
             return await _plugin.GetResourceDetailedProperties(resourceId);
         }
