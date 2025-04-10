@@ -28,4 +28,8 @@
     <ProjectReference Include="..\Agent.Graph\Agent.Graph.csproj" />
   </ItemGroup>
 
+	<ItemGroup>
+		<ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
+	</ItemGroup>
+
 </Project>

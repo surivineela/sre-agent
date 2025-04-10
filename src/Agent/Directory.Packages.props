@@ -40,6 +40,7 @@
     <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.47.2" />
     <PackageVersion Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Azure.Management.Monitor.Fluent" Version="1.38.1" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Csharp" Version="4.13.0" />
     <PackageVersion Include="Microsoft.Extensions.AI.Evaluation" Version="9.3.0-preview.1.25164.6" />
     <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Quality" Version="9.3.0-preview.1.25164.6" />
     <PackageVersion Include="Microsoft.Extensions.AI.Evaluation.Reporting" Version="9.3.0-preview.1.25164.6" />
