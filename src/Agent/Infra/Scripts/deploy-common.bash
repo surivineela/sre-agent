@@ -101,3 +101,25 @@ registerProvider() {
 
     echo "All registrations completed successfully!"
 }
+
+# We cannot use bicep to migrate a db from manual to autoscale, so we need to do it here.
+# Then we can use bicep to set the autoscale settings for the graph.
+configureAutoscale() {
+    local account_name="$NAME_PREFIX-cosmosdb-graph"
+    local database_name="resourcegraph"
+    local graphName="configuration"
+    if az cosmosdb gremlin graph show --account-name $account_name --database-name $database_name --name $graphName --resource-group $RG_NAME --only-show-errors &> /dev/null; then
+        mode=$(az cosmosdb gremlin graph throughput show --account-name $account_name --database-name $database_name --name $graphName --resource-group $RG_NAME --query "resource.autoscaleSettings.maxThroughput" --output tsv)
+        
+        if [[ -z "$mode" ]]; then
+            echo "Throughput mode: MANUAL"
+            echo "Setting throughput to AUTOSCALE"
+
+            az cosmosdb gremlin graph throughput migrate --account-name $account_name --database-name $database_name --name $graphName --resource-group $RG_NAME --throughput-type autoscale
+        else
+            echo "Throughput mode: AUTOSCALE (max $mode RU/s)"
+        fi
+        else
+        echo "Graph does not exist."
+        fi
+}

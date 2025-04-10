@@ -67,6 +67,11 @@ resource graph 'Microsoft.DocumentDb/databaseAccounts/gremlinDatabases/graphs@20
         kind: 'Hash'
       }
     }
+    options: {
+      autoscaleSettings: {
+        maxThroughput: 5000
+      }
+    }
   }
 }
 

@@ -20,6 +20,7 @@ az bicep upgrade
 
 registerFeature
 registerProvider
+configureAutoscale
 
 if [ "$useStack" == true ]; then
     echo "Creating deployment stack with name $DEPLOYMENT_NAME..."
