@@ -117,8 +117,8 @@ public class AzureSupportCenterHelper
 
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/providers/Microsoft.Diagnostics/apollo/{apolloDiagnosticsReqId}?api-version=2020-07-01-preview");
 
-        var supportProdctId = ExtractGuidFromId(targetSupportProduct.name);
-        var problemClassificationId = ExtractGuidFromId(targetSupportProblemClassification.name);
+        var supportProdctId = ExtractGuidFromId(targetSupportProduct.id);
+        var problemClassificationId = ExtractGuidFromId(targetSupportProblemClassification.id);
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         var requestPayload = AzureSupportCenterApolloRequestPayloadWrapper.CreateForSapIdTrigger(resourceId,
@@ -185,7 +185,7 @@ public class AzureSupportCenterHelper
                 }
                 else
                 {
-                    throw new ArgumentException($"Supplied value does not have id as past lart: {idField}", nameof(idField));
+                    throw new ArgumentException($"Supplied value does not have a GUID in id as past part: {idField}", nameof(idField));
                 }
             }
         }
