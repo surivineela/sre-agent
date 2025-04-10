@@ -720,9 +720,10 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
         {
             try
             {
+                string modifiedResourceName = SanitizeInputForQuery(resourceName);
                 string query = $@"
                 g.V().hasLabel('{resourceType.ToLower()}')
-                .where(values('resourceName').is(containing('{resourceName}')))
+                .where(values('resourceName').is(containing('{modifiedResourceName}')))
                 .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId')
                 .by(id())
                 .by(values('resourceName'))
@@ -756,6 +757,54 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error searching for resource with name '{Name}' and type '{Type}'", resourceName, resourceType);
+                throw;
+            }
+        }
+
+        /// <summary>
+        /// Searches for resources by a partial resource name.
+        /// </summary>
+        public async Task<List<ArmResourceNode>> SearchResourceByNameAsync(string resourceName)
+        {
+            try
+            {
+                string modifiedResourceName = SanitizeInputForQuery(resourceName);
+                string query = $@"
+                g.V()
+                .where(values('resourceName').is(containing('{modifiedResourceName}')))
+                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId')
+                .by(id())
+                .by(values('resourceName'))
+                .by(label())
+                .by(values('subscriptionId'))
+                .by(values('resourceGroupName'))
+                .by(coalesce(values('location'), constant('')))
+                .by(values('resourceId'))
+";
+
+                var result = await GraphDbClient.Query(query);
+                var resources = new List<ArmResourceNode>();
+
+                foreach (var item in result)
+                {
+                    var node = new ArmResourceNode
+                    {
+                        ResourceName = item["resourceName"]?.ToString() ?? string.Empty,
+                        ResourceType = item["resourceType"]?.ToString() ?? string.Empty,
+                        SubscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty,
+                        ResourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty,
+                        Location = item["location"]?.ToString() ?? string.Empty,
+                        ResourceId = item["resourceId"]?.ToString() ?? string.Empty
+                    };
+
+                    resources.Add(node);
+                }
+
+                return resources;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error searching for resource with name '{Name}'", resourceName);
                 throw;
             }
         }
@@ -1118,6 +1167,12 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 _logger.LogError(ex, $"Error fetching activity logs for {resourceId}");
                 return new List<Dictionary<string, object>>();
             }
+        }
+
+        private string SanitizeInputForQuery(string input)
+        {
+            // Sanitize the input to prevent injection attacks
+            return input.Replace("'", "''").Replace(".", "").Replace("//", "");
         }
 
 

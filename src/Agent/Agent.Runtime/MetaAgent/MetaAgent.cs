@@ -247,6 +247,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResource),
+            AIFunctionFactory.Create(graphDbPluginDefinition.SearchResourceByName),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetActivityLogsSummary),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetGeneralHealth),
             AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),

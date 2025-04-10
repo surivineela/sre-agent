@@ -58,6 +58,11 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
+        public Task<List<ArmResourceNode>> SearchResourceByNameAsync(string resourceName)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<List<dynamic>> ListSubscriptionsAsync()
         {
             throw new NotImplementedException();

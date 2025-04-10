@@ -97,6 +97,14 @@ namespace Agent.Plugins
         Task<List<ArmResourceNode>> SearchResourceAsync(string resourceName, string resourceType);
 
         /// <summary>
+        /// Searches for resources by a partial resource name and resource type.
+        /// Helps locate specific resources in the Azure environment.
+        /// </summary>
+        /// <param name="resourceName">Partial or complete name of the resource to search for.</param>
+        /// <returns>A list of ArmResourceNode objects matching the search criteria.</returns>
+        Task<List<ArmResourceNode>> SearchResourceByNameAsync(string resourceName);
+
+        /// <summary>
         /// Returns a list of subscription IDs by querying all vertices that have a 'subscriptionId' property.
         /// Useful for discovery and inventory of available subscriptions.
         /// </summary>

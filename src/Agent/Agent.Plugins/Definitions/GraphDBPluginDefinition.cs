@@ -124,6 +124,18 @@ namespace Agent.Plugins
             return await _plugin.SearchResourceAsync(resourceName, resourceType);
         }
 
+        [KernelFunction("SearchResourceByName")]
+        [Description("Searches for Azure resources by name pattern only in the knowledge graph. " +
+            "This function is useful when you need to: 1) Find specific resources without knowing the exact resource ID, " +
+            "2) Find resources matching a naming pattern, or " +
+            "3) Verify if resources exist before performing operations on them. " +
+            "Returns a list of matching resources with their details.")]
+        public async Task<List<ArmResourceNode>> SearchResourceByName(
+        [Description("Partial or complete name of the resource to search for. The search is case-insensitive and will match any resource containing this string.")] string resourceName)
+        {
+            return await _plugin.SearchResourceByNameAsync(resourceName);
+        }
+
         [KernelFunction("GetResourceCount")]
         [Description("Gets the count of Azure resources of a specified type in the knowledge graph. " +
             "This function is useful when you need to: 1) Get an inventory of resources by type, " +
