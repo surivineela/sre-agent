@@ -68,13 +68,20 @@ public class AzureSupportCenterPlugin : IAzureSupportCenterPlugin
             throw new ArgumentException("Support product detail must have a valid guid and the legacyId must be a positive number", nameof(SupportProductFromArmModel));
         }
 
-        var apolloDiagnosticResult = await _azureSupportCenterHelper.GetDiagnosticResultsFromApollo(resourceId, targetSupportProduct, targetSupportProblemClassification, question);
-
-        var diagnostics = apolloDiagnosticResult.Properties.Sections
+        try
+        {
+            var apolloDiagnosticResult = await _azureSupportCenterHelper.GetDiagnosticResultsFromApollo(resourceId, targetSupportProduct, targetSupportProblemClassification, question);
+            var diagnostics = apolloDiagnosticResult.Properties.Sections
             .SelectMany(section => section.ReplacementMaps.Diagnostics)
             .Select(diagnostic => diagnostic)
             .ToList() ?? new List<ApolloDiagnostic>();
 
-        return JsonSerializer.Serialize(diagnostics, new JsonSerializerOptions { WriteIndented = true });
+            return JsonSerializer.Serialize(diagnostics, new JsonSerializerOptions { WriteIndented = true });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error occurred while getting Azure Support Center diagnostic results.");
+            return $"Error occurred while getting Azure Support Center diagnostic results: {ex.Message}";
+        }        
     }
 }

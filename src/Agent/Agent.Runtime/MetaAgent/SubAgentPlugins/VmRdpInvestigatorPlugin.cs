@@ -33,22 +33,30 @@ public class VmRdpInvestigatorPlugin
     public async Task<IReadOnlyList<WorkflowMetadata<VmRdpInvestigatorAgentInput>>> ListVmRdpInvestigateWorkflows()
     {
         var list = new List<WorkflowMetadata<VmRdpInvestigatorAgentInput>>();
-        await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
+
+        try
+        {
+            await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
             new OrchestrationQuery(
                 Statuses: [OrchestrationRuntimeStatus.Pending, OrchestrationRuntimeStatus.Running],
                 FetchInputsAndOutputs: true)))
+            {
+                try
+                {
+                    var input = _vmRdpInvestigatorAgentFactory.DeserializeInput(instance.SerializedInput.ThrowIfNull());
+                    list.Add(new WorkflowMetadata<VmRdpInvestigatorAgentInput>(
+                        WorkflowInstanceId: instance.InstanceId,
+                        Input: input));
+                }
+                catch
+                {
+                    // Ignore deserialization errors
+                }
+            }
+        }
+        catch
         {
-            try
-            {
-                var input = _vmRdpInvestigatorAgentFactory.DeserializeInput(instance.SerializedInput.ThrowIfNull());
-                list.Add(new WorkflowMetadata<VmRdpInvestigatorAgentInput>(
-                    WorkflowInstanceId: instance.InstanceId,
-                    Input: input));
-            }
-            catch
-            {
-                // Ignore deserialization errors
-            }
+            // Ignore errors while fetching instances
         }
 
         return list;

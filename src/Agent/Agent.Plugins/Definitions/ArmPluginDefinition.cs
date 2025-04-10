@@ -4,6 +4,7 @@
 
 using System.ComponentModel;
 using Agent.Core.Models;
+using Agent.Plugins.Models;
 
 namespace Agent.Plugins
 {
@@ -61,7 +62,7 @@ namespace Agent.Plugins
         }
 
         [Description("Power ON an Azure virtual machine")]
-        public async Task<string> PowerOnVirtualMachine(
+        public async Task<RemediationResult> PowerOnVirtualMachine(
             [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
         {
             return await _armPlugin.PowerOnVirtualMachine(resourceId);

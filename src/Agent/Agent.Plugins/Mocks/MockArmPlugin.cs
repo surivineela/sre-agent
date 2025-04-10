@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Plugins.Models;
 using Kusto.Cloud.Platform.Utils;
 
 namespace Agent.Plugins.Mocks
@@ -95,9 +96,14 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<string> PowerOnVirtualMachine(string resourceId)
+        public Task<RemediationResult> PowerOnVirtualMachine(string resourceId)
         {
-            return Task.FromResult("true");
+            return Task.FromResult(new RemediationResult(
+                    Success: true,
+                    Action: "Power On Azure Virtual Machine",
+                    Details: "Virtual machine powered on successfully",
+                    OperationId: null,
+                    FinishedTime: DateTime.Now));
         }
 
         public Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId)

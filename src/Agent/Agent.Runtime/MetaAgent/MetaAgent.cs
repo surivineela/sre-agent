@@ -83,6 +83,7 @@ Before initiating any Azure resource operations:
    - `startContainerAppsRemediationAgent` for Azure Container Apps concerns.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
    - `startContainerImageFailureAgent` for container image pull failures in Linux Web Apps and Container Apps.
+   - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summairze your plan or ask for list of tools when delegating to this agent.
    - Other registered agents as applicable.
 3. **Workflow Management**: Initiate, monitor, and summarize Azure-related workflows.
 

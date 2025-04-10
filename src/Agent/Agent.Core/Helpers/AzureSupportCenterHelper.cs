@@ -117,11 +117,14 @@ public class AzureSupportCenterHelper
 
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/providers/Microsoft.Diagnostics/apollo/{apolloDiagnosticsReqId}?api-version=2020-07-01-preview");
 
+        var supportProdctId = ExtractGuidFromId(targetSupportProduct.name);
+        var problemClassificationId = ExtractGuidFromId(targetSupportProblemClassification.name);
+
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl);
         var requestPayload = AzureSupportCenterApolloRequestPayloadWrapper.CreateForSapIdTrigger(resourceId,
-            targetSupportProduct.name,
+            supportProdctId,
             targetSupportProduct.properties.metadata.legacyId,
-            targetSupportProblemClassification.name,
+            problemClassificationId,
             targetSupportProblemClassification.properties.metadata.legacyId,
             targetSupportProduct.properties.metadata.serviceIdentifierName ?? string.Empty,
             question);
@@ -164,5 +167,29 @@ public class AzureSupportCenterHelper
         }
 
         return apolloDiagnosticResult;
+    }
+
+    private string ExtractGuidFromId(string idField)
+    {
+        string guidToReturn = idField;
+        if (!Guid.TryParseExact(idField, "D", out Guid _))
+        {
+            // Extract the GUID from id field
+            var idParts = idField.TrimEnd('/').Split('/');
+            if (idParts.Length > 0)
+            {
+                idField = idParts.Last();
+                if (Guid.TryParseExact(idField, "D", out _))
+                {
+                    guidToReturn = idField;
+                }
+                else
+                {
+                    throw new ArgumentException($"Supplied value does not have id as past lart: {idField}", nameof(idField));
+                }
+            }
+        }
+
+        return guidToReturn;
     }
 }

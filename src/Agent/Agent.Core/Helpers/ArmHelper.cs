@@ -885,7 +885,7 @@ public class ArmHelper
         return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    public async Task<string> PowerOnVirtualMachineAsync(string resourceId)
+    public async Task<bool> PowerOnVirtualMachineAsync(string resourceId)
     {
         var armClient = _armClientFactory.GetArmClient();
         var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
@@ -894,7 +894,7 @@ public class ArmHelper
             throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
         }
         var startOperation = await virtualMachineResource.PowerOnAsync(WaitUntil.Completed);
-        return startOperation.HasCompleted.ToString();
+        return startOperation.HasCompleted;
     }
 
     public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnosticsAsync(string resourceId)
@@ -906,7 +906,7 @@ public class ArmHelper
             throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
         }
 
-        var bootDiagnosticsDataResult = await virtualMachineResource.RetrieveBootDiagnosticsDataAsync(30);
+        var bootDiagnosticsDataResult = await virtualMachineResource.RetrieveBootDiagnosticsDataAsync(10);
 
         var bootDiagnosticLogs = new Dictionary<string, string>();
 
@@ -914,18 +914,9 @@ public class ArmHelper
         {
             var httpClient = _httpClientFactory.CreateClient(nameof(GetVirtualMachineBootDiagnosticsAsync));
 
-            if (bootDiagnosticsDataResult.Value.ConsoleScreenshotBlobUri != null)
-            {
-                HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, bootDiagnosticsDataResult.Value.ConsoleScreenshotBlobUri);
-                var consoleScreenshotResponse = await httpClient.SendAsync(request);
-                if (consoleScreenshotResponse.IsSuccessStatusCode)
-                {
-                    // Read the image response and convert it into base64 string
-                    var imageBytes = await consoleScreenshotResponse.Content.ReadAsByteArrayAsync();
-                    var base64Image = Convert.ToBase64String(imageBytes);
-                    bootDiagnosticLogs.Add("ConsoleScreenshot", $"data:{consoleScreenshotResponse.Content.Headers.ContentType};base64,{base64Image}");
-                }
-            }
+            // Intentionally not summarizing console screenshot image it is bmp and causes token limit to exceed.
+            // The correct way is to convert it to png/jpeg and then summarize it.
+            // Returning only the SerialConsoleLog text content for now.
 
             if (bootDiagnosticsDataResult.Value.SerialConsoleLogBlobUri != null)
             {

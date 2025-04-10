@@ -4,6 +4,7 @@
 
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation
@@ -76,14 +77,36 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.GetArmResourceAsJsonAsync(resourceId);
         }
 
-        public async Task<string> PowerOnVirtualMachine(string resourceId)
+        public async Task<RemediationResult> PowerOnVirtualMachine(string resourceId)
         {
-            return await _armHelper.PowerOnVirtualMachineAsync(resourceId);
+            bool vmPowerOnResult = true;
+            string message = "Virtual machine powered on successfully";
+            try
+            {
+                vmPowerOnResult = await _armHelper.PowerOnVirtualMachineAsync(resourceId);
+                if (!vmPowerOnResult)
+                {
+                    message = "Failed to power on the virtual machine";
+                }
+            }
+            catch (Exception ex)
+            {
+                vmPowerOnResult = false;
+                message = $"Error powering on the virtual machine: {ex.Message}";
+            }
+
+            return new RemediationResult(
+                    Success: vmPowerOnResult,
+                    Action: "Power On Azure Virtual Machine",
+                    Details: message,
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
         }
 
         public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId)
         {
-            return await _armHelper.GetVirtualMachineBootDiagnosticsAsync(resourceId);
+            var bootDiagnosticLogs = await _armHelper.GetVirtualMachineBootDiagnosticsAsync(resourceId);
+            return bootDiagnosticLogs;
         }
     }
 }

@@ -21,8 +21,7 @@ public sealed class VmRdpInvestigatorAgentFactory
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
         IAzureSupportCenterPlugin supportCenterPlugin,
-        IApprovalPlugin approvalPlugin
-        )
+        IRecordActionsPlugin recordActionsPlugin)
     {
         var toolSignatures = new List<string>();
 
@@ -42,8 +41,12 @@ public sealed class VmRdpInvestigatorAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.PowerOnVirtualMachine));
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetVirtualMachineBootDiagnostics));
 
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
+        //toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+
+        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
