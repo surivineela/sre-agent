@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Helpers;
 using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
 
@@ -71,6 +72,13 @@ namespace Agent.Plugins.Definitions
         public async Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
         {
             return await _remediationPlugin.StorageAccountDisablePublicContainers(resourceId);
+        }
+
+        [KernelFunction("cosmosdb_set_local_auth_support")]
+        [Description("Sets the key based local auth setting on cosmosdb accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
+        public async Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return await _remediationPlugin.CosmosDbSetLocalAuthSupport(resourceId, featureState);
         }
 
         [KernelFunction("possible_next_sku")]

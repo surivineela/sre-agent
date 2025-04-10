@@ -1,4 +1,4 @@
-﻿using Agent.Core.Extensions;
+using Agent.Core.Extensions;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
@@ -45,7 +45,7 @@ namespace Agent.Runtime.SubAgents
         ///   var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof([MyAgent]), "Filename.txt");
         ///   var systemPrompt = File.ReadAllText(path);
         /// </remarks>
-        public abstract string GetPromptText();
+        public abstract string GetPromptText(TPlanInput input);
 
         public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, TPlanInput input)
         {
@@ -55,7 +55,7 @@ namespace Agent.Runtime.SubAgents
             var userMessage = $"Here are the resources that need updating: {resourcesStr}";
 
             List<ChatMessage> messages = [
-                new ChatMessage(ChatRole.System, GetPromptText()),
+                new ChatMessage(ChatRole.System, GetPromptText(input)),
                 new ChatMessage(ChatRole.User, userMessage)
                 ];
 

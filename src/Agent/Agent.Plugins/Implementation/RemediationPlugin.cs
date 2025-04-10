@@ -1,7 +1,8 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net.Http.Headers;
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -9,10 +10,10 @@ using Agent.Core.Models;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.Core;
+using Azure.ResourceManager;
 using Azure.ResourceManager.Resources.Models;
 using Azure.ResourceManager.Storage.Models;
 using Microsoft.Extensions.Logging;
-using System.Net.Http.Headers;
 
 namespace Agent.Plugins.Implementation
 {
@@ -283,29 +284,21 @@ namespace Agent.Plugins.Implementation
 
                 var storageAccount = await _armHelper.GetStorageAccountAsync(resourceId);
 
-                // Determine if the storage account is locked preventing updates
-                var storageAccountLocks = storageAccount.GetManagementLocks().GetAllAsync();
-
-                await foreach (var storageAccountLock in storageAccountLocks)
-                {
-                    if (storageAccountLock.Data.Level == ManagementLockLevel.ReadOnly)
-                    {
-                        _logger?.LogInformation($"[storage_account_disable_public_containers] Storage account is locked preventing updates");
-                        return new RemediationResult(
-                            Success: false,
-                            Action: "Failed to disable storage account shared key support",
-                            Details: "Storage account is locked preventing updates",
-                            OperationId: null,
-                            FinishedTime: DateTime.Now);
-                    }
-                }
+                // Check for management locks
+                var lockCheckResult = await CheckForManagementLocksAsync(
+                    storageAccount, 
+                    "disable public containers", 
+                    "Storage account");
+                    
+                if (lockCheckResult != null)
+                    return lockCheckResult;
 
                 // Determine if public access is enabled
                 if (storageAccount.Data.AllowBlobPublicAccess == true)
                 {
                     var blobService = storageAccount.GetBlobService();
                     var containers = blobService.GetBlobContainers().GetAllAsync();
-                    
+
                     // Disabling public access to containers.
                     // Disabling public access at the storage account level does not affect existing containers.
                     await foreach (var container in containers)
@@ -328,15 +321,14 @@ namespace Agent.Plugins.Implementation
                         Details: "Public access to all containers was disabled",
                         OperationId: null,
                         FinishedTime: DateTime.Now);
-
                 }
+                
                 return new RemediationResult(
                     Success: true,
                     Action: $"No remediation performed on {storageAccount.Id}",
                     Details: "Remediation did nothing",
                     OperationId: null,
                     FinishedTime: DateTime.Now);
-
             }
             catch (Exception ex)
             {
@@ -368,22 +360,14 @@ namespace Agent.Plugins.Implementation
 
                 var storageAccount = await _armHelper.GetStorageAccountAsync(resourceId);
 
-                // Determine if the storage account is locked preventing updates
-                var storageAccountLocks = storageAccount.GetManagementLocks().GetAllAsync();
-
-                await foreach (var storageAccountLock in storageAccountLocks)
-                {
-                    if (storageAccountLock.Data.Level == ManagementLockLevel.ReadOnly)
-                    {
-                        _logger?.LogInformation($"[storage_account_disable_shared_key_support] Storage account is locked preventing updates");
-                        return new RemediationResult(
-                            Success: false,
-                            Action: "Failed to disable storage account shared key support",
-                            Details: "Storage account is locked preventing updates",
-                            OperationId: null,
-                            FinishedTime: DateTime.Now);
-                    }
-                }
+                // Check for management locks
+                var lockCheckResult = await CheckForManagementLocksAsync(
+                    storageAccount, 
+                    "disable storage account shared key support", 
+                    "Storage account");
+                    
+                if (lockCheckResult != null)
+                    return lockCheckResult;
 
                 //Determine if shared key support is enabled
                 if (storageAccount.Data.AllowSharedKeyAccess == true || storageAccount.Data.AllowSharedKeyAccess == null)
@@ -412,6 +396,46 @@ namespace Agent.Plugins.Implementation
                 return new RemediationResult(
                     Success: false,
                     Action: "Failed to disable storage account shared key support",
+                    Details: ex.Message,
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
+        }
+
+        public async Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            try
+            {
+                _logger?.LogInformation($"[cosmosdb_set_local_auth_support] Invoked with resourceId: {resourceId}");
+
+                var cosmosDbResource = await _armHelper.GetCosmosDbAccountAsync(resourceId);
+
+                // Check for management locks
+                var lockCheckResult = await CheckForManagementLocksAsync(
+                    cosmosDbResource, 
+                    "set local auth support on CosmosDb", 
+                    "CosmosDb");
+                    
+                if (lockCheckResult != null)
+                    return lockCheckResult;
+
+                // Enable local auth support
+                _logger?.LogInformation($"[cosmosdb_set_local_auth_support] Setting local auth support for CosmosDb");
+                await _armHelper.SetCosmosDbLocalAuthSupport(resourceId, featureState);
+
+                _logger?.LogInformation($"[cosmosdb_set_local_auth_support] Storage account is locked preventing updates");
+                return new RemediationResult(
+                    Success: true,
+                    Action: "CosmosDb Local Auth Support Set",
+                    Details: "CosmosDb Local Auth Support Set",
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
+            catch (Exception ex)
+            {
+                return new RemediationResult(
+                    Success: false,
+                    Action: "Failed to set local auth support on CosmosDb",
                     Details: ex.Message,
                     OperationId: null,
                     FinishedTime: DateTime.Now);
@@ -541,6 +565,27 @@ namespace Agent.Plugins.Implementation
             var tokenRequestContext = new TokenRequestContext(["https://management.azure.com/.default"]);
             var token = await credential.GetTokenAsync(tokenRequestContext, default);
             return token.Token;
+        }
+
+        private async Task<RemediationResult?> CheckForManagementLocksAsync<T>(T resource, string operationName, string resourceType) where T : ArmResource
+        {
+            var managementLockResources = resource.GetManagementLocks().GetAllAsync();
+
+            await foreach (var managementLock in managementLockResources)
+            {
+                if (managementLock.Data.Level == ManagementLockLevel.ReadOnly)
+                {
+                    _logger?.LogInformation($"[{operationName}] {resourceType} is locked preventing updates");
+                    return new RemediationResult(
+                        Success: false,
+                        Action: $"Failed to {operationName}",
+                        Details: $"{resourceType} is locked preventing updates",
+                        OperationId: null,
+                        FinishedTime: DateTime.Now);
+                }
+            }
+
+            return null;
         }
     }
 }

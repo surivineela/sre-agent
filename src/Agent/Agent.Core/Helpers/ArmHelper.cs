@@ -2,22 +2,21 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
+using Azure.ResourceManager.CosmosDB;
+using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
-using Octokit;
-using System.Text;
-using System.Text.Json;
 
 namespace Agent.Core.Helpers;
 
@@ -414,7 +413,7 @@ public class ArmHelper
     public async Task<bool> RestartWebAppAsync(string appResourceId)
     {
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/restart?api-version=2024-04-01");
-        
+
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
@@ -432,52 +431,20 @@ public class ArmHelper
         return response.IsSuccessStatusCode;
     }
 
+    // Use the generic method for all specific cases:
     public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)
     {
-        var output = new List<TlsStatus>();
-        if (resourceIds == null || resourceIds.Count == 0) return output;
-
-        const int batchSize = 5;
-        for (int i = 0; i < resourceIds.Count; i += batchSize)
-        {
-            // Take a slice of up to 5 resource IDs
-            var chunk = resourceIds.Skip(i).Take(batchSize).ToList();
-
-            // Create tasks for each resource in this chunk
-            var tasks = chunk.Select(rid => FetchTlsStatusAsync(rid)).ToList();
-
-            // Run them in parallel
-            var results = await Task.WhenAll(tasks);
-
-            // Add them to the output (filter out any null if the call failed)
-            output.AddRange(results.Where(r => r != null));
-        }
-
-        return output;
+        return await GetResourceSettings(resourceIds, FetchTlsStatusAsync);
     }
 
     public async Task<List<Models.StorageAccountStatus>> GetStorageSettings(List<string> resourceIds)
     {
-        var output = new List<Models.StorageAccountStatus>();
-        if (resourceIds == null || resourceIds.Count == 0) return output;
+        return await GetResourceSettings(resourceIds, FetchStorageAccountStatusAsync);
+    }
 
-        const int batchSize = 5;
-        for (int i = 0; i < resourceIds.Count; i += batchSize)
-        {
-            // Take a slice of up to 5 resource IDs
-            var chunk = resourceIds.Skip(i).Take(batchSize).ToList();
-
-            // Create tasks for each resource in this chunk
-            var tasks = chunk.Select(rid => FetchStorageAccountStatusAsync(rid)).ToList();
-
-            // Run them in parallel
-            var results = await Task.WhenAll(tasks);
-
-            // Add them to the output (filter out any null if the call failed)
-            output.AddRange(results.Where(r => r != null));
-        }
-
-        return output;
+    public async Task<List<CosmosDbStatus>> GetCosmosDbSettings(List<string> resourceIds)
+    {
+        return await GetResourceSettings(resourceIds, FetchCosmosDbStatusAsync);
     }
 
     /// <summary>
@@ -549,6 +516,13 @@ public class ArmHelper
         var armClient = _armClientFactory.GetArmClient();
         var storageAccount = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
         return await storageAccount.GetAsync();
+    }
+
+    public async Task<CosmosDBAccountResource> GetCosmosDbAccountAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var cosmosDBAccountResource = armClient.GetCosmosDBAccountResource(new ResourceIdentifier(resourceId));
+        return await cosmosDBAccountResource.GetAsync();
     }
 
     public async Task DisableSharedKeySupportAsync(string resourceId)
@@ -686,7 +660,7 @@ public class ArmHelper
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Models.StorageAccountStatus>FetchStorageAccountStatusAsync(string resourceId)
+    public async Task<Models.StorageAccountStatus> FetchStorageAccountStatusAsync(string resourceId)
     {
         var storageAccount = await GetStorageAccountAsync(resourceId);
         return new Models.StorageAccountStatus(
@@ -694,42 +668,49 @@ public class ArmHelper
             Name: storageAccount.Data.Name,
             Location: storageAccount.Data.Location,
             StorageKeyEnabled: storageAccount.Data.AllowSharedKeyAccess ?? false,
-            PublicContainersEnabled: storageAccount.Data.AllowBlobPublicAccess ?? false 
+            PublicContainersEnabled: storageAccount.Data.AllowBlobPublicAccess ?? false
             );
-
     }
 
-    private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId)
+    public async Task<CosmosDbStatus> FetchCosmosDbStatusAsync(string resourceId)
     {
-        var tlsCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/config/web?api-version=2022-03-01");
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tlsCheckUrl);
-
-        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-        var response = await httpClient.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-
-        string responseJson = await response.Content.ReadAsStringAsync();
-        var jsonObject = JObject.Parse(responseJson);
-
-        var properties = jsonObject["properties"];
-        var minimumTlsVersion = properties != null
-            ? properties["minTlsVersion"]?.ToString()
-            : null;
-
-        var tlsStatus = new TlsStatus(
+        var cosmosDBAccountResource = await GetCosmosDbAccountAsync(resourceId);
+        return new CosmosDbStatus(
             ResourceId: resourceId,
-            Name: resourceId.Split('/').Last(),
-            Location: jsonObject["location"]?.ToString(),
-            MinimumTlsVersion: minimumTlsVersion);
+            Name: cosmosDBAccountResource.Data.Name,
+            Location: cosmosDBAccountResource.Data.Location,
+            LocalAuthEnabled: cosmosDBAccountResource.Data.DisableLocalAuth ?? false
+            );
+    }
 
-        return tlsStatus;
+    public async Task SetCosmosDbLocalAuthSupport(string resourceId, FeatureState featureState)
+    {
+        var cosmosDBAccountResource = await GetCosmosDbAccountAsync(resourceId);
+        var cosmosDbPatch = new CosmosDBAccountPatch();
+        bool updateCosmosDb = false;
+
+        if (featureState == FeatureState.Disabled && cosmosDBAccountResource.Data.DisableLocalAuth != false)
+        {
+            cosmosDbPatch.DisableLocalAuth = false;
+            updateCosmosDb = true;
+        }
+        else if (featureState == FeatureState.Enabled && cosmosDBAccountResource.Data.DisableLocalAuth != true)
+        {
+            cosmosDbPatch.DisableLocalAuth = true;
+            updateCosmosDb = true;
+        }
+
+        if (updateCosmosDb)
+        {
+            await cosmosDBAccountResource.UpdateAsync(WaitUntil.Completed, cosmosDbPatch);
+        }
     }
 
     public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
     {
         var armClient = _armClientFactory.GetArmClient();
         var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
-        if(virtualMachineResource == null)
+        if (virtualMachineResource == null)
         {
             throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
         }
@@ -818,6 +799,59 @@ public class ArmHelper
     }
 
     #region Private Methods
+
+    private async Task<List<T>> GetResourceSettings<T>(
+    List<string> resourceIds,
+    Func<string, Task<T>> fetchStatusFunc)
+    where T : class
+    {
+        var output = new List<T>();
+        if (resourceIds == null || resourceIds.Count == 0) return output;
+
+        const int batchSize = 5;
+        for (int i = 0; i < resourceIds.Count; i += batchSize)
+        {
+            // Take a slice of up to 5 resource IDs
+            var chunk = resourceIds.Skip(i).Take(batchSize).ToList();
+
+            // Create tasks for each resource in this chunk
+            var tasks = chunk.Select(rid => fetchStatusFunc(rid)).ToList();
+
+            // Run them in parallel
+            var results = await Task.WhenAll(tasks);
+
+            // Add them to the output (filter out any null if the call failed)
+            output.AddRange(results.Where(r => r != null));
+        }
+
+        return output;
+    }
+
+    private async Task<TlsStatus> FetchTlsStatusAsync(string resourceId)
+    {
+        var tlsCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/config/web?api-version=2022-03-01");
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tlsCheckUrl);
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var response = await httpClient.SendAsync(request);
+        response.EnsureSuccessStatusCode();
+
+        string responseJson = await response.Content.ReadAsStringAsync();
+        var jsonObject = JObject.Parse(responseJson);
+
+        var properties = jsonObject["properties"];
+        var minimumTlsVersion = properties != null
+            ? properties["minTlsVersion"]?.ToString()
+            : null;
+
+        var tlsStatus = new TlsStatus(
+            ResourceId: resourceId,
+            Name: resourceId.Split('/').Last(),
+            Location: jsonObject["location"]?.ToString(),
+            MinimumTlsVersion: minimumTlsVersion);
+
+        return tlsStatus;
+    }
 
     private static string GetFamilyFromSku(string sku)
     {

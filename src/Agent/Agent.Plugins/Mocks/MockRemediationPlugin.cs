@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 
@@ -111,6 +112,18 @@ namespace Agent.Plugins.Mocks
                     Success: true,
                     Action: "DisablePublicContainers",
                     Details: $"All Containers in {resourceId} have been set to private and public container feature disabled.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
+
+        public Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "SetLocalAuthSupport",
+                    Details: $"Local Auth in {resourceId} have been set to {featureState}.",
                     OperationId: Guid.NewGuid().ToString(),
                     FinishedTime: _timeProvider.GetUtcNow().DateTime
             ));

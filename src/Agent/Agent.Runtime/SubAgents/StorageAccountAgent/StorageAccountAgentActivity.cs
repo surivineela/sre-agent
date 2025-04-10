@@ -1,17 +1,11 @@
+using System.ComponentModel;
+using Agent.Core.Helpers;
+using Kusto.Cloud.Platform.Utils;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using System.ComponentModel;
 
 namespace Agent.Runtime.SubAgents.StorageAccountAgent
 {
-    [Description("Describes whether a feature is enabled or disabled")]
-    public enum FeatureState {
-        [Description("The feature should be enabled.")]
-        Enabled,
-        [Description("The feature should be disabled.")]
-        Disabled
-    }
-
     public record StorageAccountAgentActivityInput(
         [Description("Into what state should we put key-based access for these storage accounts?")]
         FeatureState KeyBasedAccessDesiredState,
@@ -38,12 +32,12 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
         {
         }
 
-        public override string GetPromptText()
+        public override string GetPromptText(StorageAccountAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(StorageAccountAgent), "StorageAccountAgentPlan.txt");
             var systemPrompt = File.ReadAllText(path)
-                .Replace("{{desiredStorageAccountKeyAccess}}", "Disabled")
-                .Replace("{{desiredStorageAccountBlobPublicAccess}}", "Disabled");
+                .Replace("{{desiredStorageAccountKeyAccess}}", input.KeyBasedAccessDesiredState.ToString())
+                .Replace("{{desiredStorageAccountBlobPublicAccess}}", input.BlobPublicAccessDesiredState.ToString());
             return systemPrompt;
         }
     }

@@ -32,6 +32,9 @@
     <None Update="SubAgents\DailySummaryAgent\Dashboards\Azure App Service Monitoring.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	<None Update="SubAgents\CosmosDbAgent\CosmosDbAgentPlan.txt">
+	 <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>	  
     <None Update="SubAgents\StorageAccountAgent\StorageAccountAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

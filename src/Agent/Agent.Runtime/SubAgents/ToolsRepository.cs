@@ -105,6 +105,7 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => remediationPluginDefinition.CollectMemoryDump);
         Register200(() => remediationPluginDefinition.StorageAccountDisableSharedKeySupport);
         Register200(() => remediationPluginDefinition.StorageAccountDisablePublicContainers);
+        Register200(() => remediationPluginDefinition.CosmosDbSetLocalAuthSupport);
 
         var appIdentityUpdatePluginDefinition = new AppIdentityUpdatePluginDefinition(appIdentityUpdatePlugin);
         Register200(() => appIdentityUpdatePluginDefinition.GetAppManagedIdentityAsync);
