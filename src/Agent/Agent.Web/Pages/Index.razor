@@ -29,8 +29,8 @@
                 @foreach (var thread in threads)
                 {
                     <div class="thread-item @(thread.Id == currentChatId ? "active" : "")"
-                         @onclick="async () => await SelectThread(thread.Id)">
-                         <!-- for backward compatibility, if no lastMessage saved, display title like before-->
+                    @onclick="async () => await SelectThread(thread.Id)">
+                        <!-- for backward compatibility, if no lastMessage saved, display title like before-->
                         <div class="thread-title">@(!string.IsNullOrEmpty(thread.LastMessage) ? thread.LastMessage : thread.Name)</div>
                         <div class="thread-metadata">
                             <span class="thread-created-at" title="Created on @thread.CreatedAt.ToLocalTime().ToString("MMM d, yyyy h:mm tt")">
@@ -94,6 +94,18 @@
                                     @((MarkupString)message.FormattedMessage)
                                 </div>
                                 <div class="message-timestamp">@message.Timestamp.ToString("HH:mm")</div>
+
+                                @if (!message.IsUser)
+                                {
+                                    <div class="feedback-buttons">
+                                        <button class="btn btn-icon thumbs-up" @onclick="() => HandleFeedback(message, true)">
+                                            <i class="bi bi-hand-thumbs-up"></i>
+                                        </button>
+                                        <button class="btn btn-icon thumbs-down" @onclick="() => HandleFeedback(message, false)">
+                                            <i class="bi bi-hand-thumbs-down"></i>
+                                        </button>
+                                    </div>
+                                }
                             </div>
                         </div>
                     }
@@ -123,12 +135,12 @@
             <div class="chat-input-container">
                 <form @onsubmit="HandleSubmit" @onsubmit:preventDefault class="chat-form">
                     <textarea rows="1"
-                              @bind="currentMessage"
-                              @bind:event="oninput"
-                              @onkeydown="HandleKeyPress"
-                              placeholder="Message the AI..."
-                              @ref="textAreaRef"
-                              class="chat-textarea">
+                    @bind="currentMessage"
+                    @bind:event="oninput"
+                    @onkeydown="HandleKeyPress"
+                    placeholder="Message the AI..."
+                    @ref="textAreaRef"
+                    class="chat-textarea">
                     </textarea>
                     <button type="submit" class="send-button" disabled="@(string.IsNullOrWhiteSpace(currentMessage))">
                         <i class="bi bi-send-fill"></i>
@@ -209,6 +221,26 @@
             </div>
         </div>
     }
+
+    @if (showFeedbackModal)
+    {
+        <div class="modal-overlay">
+            <div class="feedback-modal">
+                <div class="modal-header">
+                    <h4>Thank You for Your Feedback!</h4>
+                    <button class="btn-close" @onclick="CloseFeedbackModal">×</button>
+                </div>
+                <div class="modal-body">
+                    <p>We appreciate your feedback. If you'd like, please provide additional details below:</p>
+                    <textarea @bind="feedbackText" placeholder="Enter additional feedback..." class="feedback-textarea"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseFeedbackModal">Cancel</button>
+                    <button class="btn btn-primary" @onclick="SubmitFeedback">Submit</button>
+                </div>
+            </div>
+        </div>
+    }
 </div>
 
 @code {
@@ -223,6 +255,10 @@
     private bool hasError = false;
     private string errorMessage = "";
     private bool showPurgeConfirmation = false;
+    private bool showFeedbackModal = false;
+    private string feedbackText = "";
+    private ChatMessage? feedbackMessage;
+    private bool isThumbsUpFeedback;
     private List<Action> actions = new();
 
     private readonly MarkdownPipeline _markdownPipeline = new MarkdownPipelineBuilder()
@@ -457,6 +493,57 @@
 
         // Make sure textarea is cleared and resized
         await JS.InvokeVoidAsync("autoAdjustHeight", textAreaRef);
+    }
+
+    private void HandleFeedback(ChatMessage message, bool isThumbsUp)
+    {
+        // Store the message and feedback type
+        feedbackMessage = message;
+        isThumbsUpFeedback = isThumbsUp;
+
+        // Show the feedback modal
+        showFeedbackModal = true;
+        feedbackText = ""; // Clear any previous feedback text
+        StateHasChanged();
+    }
+
+    private void CloseFeedbackModal()
+    {
+        // Close the modal without submitting feedback
+        showFeedbackModal = false;
+        feedbackText = "";
+        feedbackMessage = null;
+        StateHasChanged();
+    }
+
+    private async Task SubmitFeedback()
+    {
+        if (feedbackMessage == null)
+        {
+            return;
+        }
+
+        // Create the feedback request
+        var feedbackRequest = new FeedbackRequest(
+            IsPositive: isThumbsUpFeedback,
+            FeedbackText: feedbackText
+        );
+
+        // Send the feedback to the server
+        var client = HttpClientFactory.CreateClient("Razor");
+        var response = await client.PostAsJsonAsync($"/api/v1/Threads/{currentChatId}/feedbacks", feedbackRequest);
+
+        if (response.IsSuccessStatusCode)
+        {
+            Console.WriteLine("Feedback submitted successfully.");
+        }
+        else
+        {
+            Console.WriteLine($"Failed to submit feedback: {response.StatusCode}");
+        }
+
+        // Close the modal
+        CloseFeedbackModal();
     }
 
     private void AddAssistantMessage(string text)

@@ -43,4 +43,11 @@ public interface IAgentInboundCommunicationService
     /// or handled by the meta-agent to potentially start a new orchestration
     /// </summary>
     Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message);
+
+    /// <summary>
+    /// Processes a user's feedback on a message, which can be positive or negative.
+    /// </summary>
+    /// <param name="messageFeedback"></param>
+    /// <returns></returns>
+    Task<MessageFeedback> ProcessFeedbackAsync(ThreadMessageFeedback messageFeedback);
 }

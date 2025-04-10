@@ -21,6 +21,7 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<Guid, Thread> _threads = new();
         private readonly Dictionary<Guid, ThreadContext> _threadContexts = new();
         private readonly Dictionary<(Guid ThreadId, Guid MessageId), Message> _messages = new();
+        private readonly Dictionary<(Guid ThreadId, Guid MessageFeebackId), MessageFeedback> _messageFeedbacks = new();
         private readonly Dictionary<(Guid ThreadId, Guid ActionId), Action> _actions = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly ILogger<InmemoryThreadRepository> _logger;
@@ -192,6 +193,43 @@ namespace Agent.Data.Repositories
             }
 
             return Task.FromResult(_messages.Remove((threadId, messageId)));
+        }
+
+        #endregion
+
+        #region Message Feedback Operations
+
+        public Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
+        {
+            _messageFeedbacks.TryGetValue((threadId, messageFeedbackId), out var messageFeedback);
+            return Task.FromResult(messageFeedback);
+        }
+
+        public Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, string filter = null, int? skip = null, int? take = null)
+        {
+            var messageFeedbacks = _messageFeedbacks
+                .Where(kvp => kvp.Key.ThreadId == threadId)
+                .Select(kvp => kvp.Value)
+                .OrderBy(m => m.TimeStamp)
+                .AsEnumerable();
+
+            return Task.FromResult(messageFeedbacks);
+        }
+
+        public Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
+        {
+            // Ensure ID is set
+            if (messageFeedback.Id == Guid.Empty)
+                messageFeedback = messageFeedback with { Id = Guid.NewGuid() };
+
+            _messageFeedbacks[(threadId, messageFeedback.Id)] = messageFeedback;
+
+            return Task.FromResult(messageFeedback);
+        }
+
+        public Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
+        {
+            return Task.FromResult(_messageFeedbacks.Remove((threadId, messageFeedbackId)));
         }
 
         #endregion

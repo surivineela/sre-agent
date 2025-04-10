@@ -31,5 +31,10 @@ public interface IThreadRepository
     Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null);
     Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);
+
+    Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
+    Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, string? filter = null, int? skip = null, int? take = null);
+    Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback);
+    Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
 }
 

@@ -176,6 +176,46 @@ namespace Agent.Web.Controllers.v1
             );
         }
 
+        [HttpGet("{threadId}/feedbacks/{messageFeedbackId}")]
+        public async Task<ActionResult<MessageFeedback>> GetFeedback(Guid threadId, Guid messageFeedbackId)
+        {
+            var messageFeedback = await repository.GetMessageFeedbackAsync(threadId, messageFeedbackId);
+
+            if (messageFeedback == null)
+                return NotFound();
+
+            return Ok(messageFeedback);
+        }
+
+        [HttpPost("{threadId}/feedbacks")]
+        public async Task<ActionResult<MessageFeedback>> CreateFeedback(Guid threadId, FeedbackRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            // First check if thread exists
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread == null)
+                return NotFound();
+
+            var messageFeedbackId = Guid.NewGuid();
+
+            var messageFeedback = await agentInboundCommunicationService.ProcessFeedbackAsync(new ThreadMessageFeedback
+            (
+                ThreadId: threadId,
+                MessageFeedbackId: messageFeedbackId,
+                IsPositive: request.IsPositive,
+                FeedbackText: request.FeedbackText
+            ));
+
+            return CreatedAtAction(
+                nameof(GetFeedback),
+                new { threadId, messageFeedbackId },
+                messageFeedback
+            );
+        }
+
         [HttpGet("{threadId}/actions")]
         public async Task<ActionResult<PagedResponse<Action>>> GetActions(Guid threadId, int? skip = null, int? top = null)
         {

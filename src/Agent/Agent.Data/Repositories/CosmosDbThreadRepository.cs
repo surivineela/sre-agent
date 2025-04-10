@@ -653,4 +653,91 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
     #endregion
+
+    #region Message Operations
+
+    public async Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            string messageFeedbackIdStr = messageFeedbackId.ToString();
+
+            MessageFeedbackDocument messageFeedbackDoc = await GetDocumentAsync<MessageFeedbackDocument>(messageFeedbackIdStr, threadIdStr);
+
+            return messageFeedbackDoc?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, string filter = null, int? skip = null, int? take = null)
+    {
+        var messageFeedbacks = new List<MessageFeedback>();
+        string threadIdStr = threadId.ToString();
+
+        var query = _container.GetItemLinqQueryable<MessageFeedbackDocument>()
+            .Where(m => m.DocumentType == "MessageFeedback" && m.ThreadId == threadIdStr)
+            .OrderBy(m => m.TimeStamp);
+
+        // Apply OData filters here if needed
+
+        if (skip.HasValue)
+            query = (IOrderedQueryable<MessageFeedbackDocument>)query.Skip(skip.Value);
+
+        if (take.HasValue)
+            query = (IOrderedQueryable<MessageFeedbackDocument>)query.Take(take.Value);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var messageFeedbackDoc in await iterator.ReadNextAsync())
+            {
+                messageFeedbacks.Add(messageFeedbackDoc.ToDomainModel());
+            }
+        }
+
+        return messageFeedbacks;
+    }
+
+    public async Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
+    {
+        // Ensure ID is set
+        if (messageFeedback.Id == Guid.Empty)
+            messageFeedback = messageFeedback with { Id = Guid.NewGuid() };
+
+        string threadIdStr = threadId.ToString();
+
+        // Create the message document
+        MessageFeedbackDocument messageFeedbackDoc = MessageFeedbackDocument.FromDomainModel(messageFeedback, threadIdStr);
+        await _container.CreateItemAsync(messageFeedbackDoc, new PartitionKey(messageFeedbackDoc.PartitionKey));
+
+        return messageFeedback;
+    }
+
+    public async Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId)
+    {
+        string threadIdStr = threadId.ToString();
+        string messageFeedbackIdStr = messageFeedbackId.ToString();
+
+        try
+        {
+            // Delete the message
+            await _container.DeleteItemAsync<MessageFeedbackDocument>(
+                messageFeedbackIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
+    #endregion
 }

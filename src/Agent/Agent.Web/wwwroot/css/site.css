@@ -752,3 +752,50 @@ html, body {
     font-family: 'Inter', 'Source Sans Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Helvetica Neue', sans-serif;
     color: var(--neutral-800);
 }
+
+.feedback-buttons {
+    display: flex;
+    gap: 8px;
+    margin-top: 8px;
+}
+
+    .feedback-buttons .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        font-size: 1.2rem;
+        color: #6c757d;
+    }
+
+        .feedback-buttons .btn-icon:hover {
+            color: #007bff;
+        }
+
+        .feedback-buttons .btn-icon.thumbs-up:hover {
+            color: #28a745;
+        }
+
+        .feedback-buttons .btn-icon.thumbs-down:hover {
+            color: #dc3545;
+        }
+
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.feedback-modal {
+    background: #fff;
+    border-radius: 8px;
+    width: 400px;
+    padding: 20px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}

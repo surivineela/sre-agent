@@ -167,6 +167,32 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
+    public async Task<MessageFeedback> ProcessFeedbackAsync(ThreadMessageFeedback threadMessageFeedback)
+    {
+        try
+        {
+            // Check if an orchestration already exists for this thread
+            ThreadContext threadContext = await _repository.GetThreadContextAsync(threadMessageFeedback.ThreadId);
+
+            var messageFeedback = new MessageFeedback(
+                Id: threadMessageFeedback.MessageFeedbackId,
+                ThreadId: threadMessageFeedback.ThreadId,
+                TimeStamp: DateTime.UtcNow,
+                Messages: threadContext.RecentMessages.ToList(),
+                IsPositiveFeedback: threadMessageFeedback.IsPositive,
+                FeedbackText: threadMessageFeedback.FeedbackText);
+
+            await _repository.AddMessageFeedbackAsync(threadMessageFeedback.ThreadId, messageFeedback);
+
+            return messageFeedback;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error processing feedback for thread: {ThreadId}", threadMessageFeedback.ThreadId);
+            throw;
+        }
+    }
+
     private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(string title, string message, ThreadSource source, AgentTypeEnum agentTypeEnum)
     {
         var now = DateTime.UtcNow;

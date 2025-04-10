@@ -33,5 +33,10 @@ namespace Agent.Core.Models.Api.v1
         string UserId,
         string DisplayName
     );
+
+    public record FeedbackRequest(
+        [Required] bool IsPositive,
+        string? FeedbackText
+    );
 }
 

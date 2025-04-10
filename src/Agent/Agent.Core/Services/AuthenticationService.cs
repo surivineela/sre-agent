@@ -1,4 +1,4 @@
-﻿using Agent.Core.Configuration;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.Identity;
