@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json;
@@ -169,10 +170,7 @@ namespace FirstPartyAgent.Core.Services
             {
                 var responseString = await response.Content.ReadAsStringAsync();
                 var obj = JsonConvert.DeserializeObject<JObject>(responseString);
-                if (obj["IncidentId"] == null && obj["Id"] != null)
-                {
-                    obj["IncidentId"] = obj["Id"];
-                }
+                obj = TextProcessingHelpers.FillICMAPIIncidentJObject(obj);
                 var incident = JsonConvert.DeserializeObject<Incident>(JsonConvert.SerializeObject(obj));
                 return incident;
             }

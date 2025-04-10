@@ -15,7 +15,7 @@ namespace FirstPartyAgent.Core.Services
 {
     public interface IKernelService
     {
-        Kernel GetKernelForAgentMode(string agentMode);
+        Kernel GetKernelForAgentMode(string agentMode, bool createNew = false);
         List<string> ListAgentModes();
     }
 
@@ -23,9 +23,11 @@ namespace FirstPartyAgent.Core.Services
     {
         private readonly Dictionary<string, Kernel> _kernels;
         private static HttpClient _httpClient;
+        private readonly IServiceProvider _serviceProvider;
 
         public KernelService(IServiceProvider sp)
         {
+            _serviceProvider = sp;
             _httpClient = new HttpClient
             {
                 Timeout = TimeSpan.FromSeconds(300)
@@ -42,8 +44,13 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        public Kernel GetKernelForAgentMode(string agentMode)
+        public Kernel GetKernelForAgentMode(string agentMode, bool createNew = false)
         {
+            if (createNew)
+            {
+                AgentMode agentModeEnum = Enum.Parse<AgentMode>(agentMode, true);
+                return CreateAndConfigureKernel(agentModeEnum, _serviceProvider);
+            }
             if (_kernels.TryGetValue(agentMode, out var agent))
             {
                 return agent;
