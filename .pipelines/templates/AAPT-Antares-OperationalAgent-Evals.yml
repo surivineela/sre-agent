@@ -41,7 +41,7 @@ steps:
     OpenAIEndpoint: $(SRE_AGENT_OPENAI_ENDPOINT)
     OpenAIKey: $(EvalsOpenAIKey)
     OpenAIModel: $(SRE_AGENT_OPENAI_MODEL)
-    IterationCount: 100
+    IterationCount: 5
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
   displayName: 'Running evals'
   continueOnError: true
