@@ -68,7 +68,7 @@ namespace FirstPartyAgent.Plugins
             cluster = cluster.Replace(".kusto.windows.net", "");
             cluster = cluster.Replace("https://", "");
 
-            var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, 100)}...";
+            var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try
             {
