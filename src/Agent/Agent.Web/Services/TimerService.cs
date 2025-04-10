@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -326,6 +326,10 @@ public class TimerService : IHostedService, IDisposable
                     scanner.IsRunning = true;
                     var task = (Task)scanner.ScanMethod.Invoke(scanner.ScanTarget, [cancellationToken]);
                     await task!;
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, $"Error executing scanner '{scanner.Name}' timer.");
                 }
                 finally
                 {
