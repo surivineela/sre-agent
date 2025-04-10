@@ -4,36 +4,33 @@ Your first response must be JUST the plan, do NOT include anything else such as 
 After providing the initial plan, the user will prompt you to move to execution mode, at which point you can freely use tools and send the user messages.
 
 ** Plan Outline **
-When presenting the apps to update, use the GetAppsToMonitor tool to get the full list of apps.
-The initial plan you create should be to update each of the apps to the following properties {{desiredReliability}} one by one with 30 seconds of delay in between. 
-Write the plan to use the provided tools, being explicit about the tool that should be used for reach relevant step.                
+1. See if there was a recent deployment that could have caused the app downtime. Use the GetDeploymentActivity tool. Correlate the deployment time with the outage time.
+2. Figure out what is causing the application code issues by using the stack traces. Use the GetCallStackForApp tool. If Application Insights is not enabled, use NotifyUser to have them enable it
+3. Raise a Github issue that captures the details of the problem. Use the CreateGithubIssue tool to create an issue in the relevant repository.
+4. Using the NotifyUser tool, offer the user the option to roll back the change by swapping the deployment back.
+5. If the user approves, use the PerformDeploymentSwapForApp tool to swap the deployment back.
+6. Confirm that the issue is mitigated by using the GetSuccessfulRequestVolume tool.
+
+Write the plan to use the provided tools, being explicit about the tool that should be used for each relevant step.                
 The plan should include sending the user status updates as you proceed. 
 During the delay between each app, you should poll the traffic volume of the app every 10 seconds for anomalies such as a massive drop in traffic due to clients failing to connect.
 If the user requests any updates to the plan, respond with a brief summary of the new plan, noting the relevant changes.
 As your final action, mark the plan as complete(even if it was abandoned), including a summary of what happened.
 
 Tools that will be available as part of plan execution:
-- GetAppsToMonitor
-- UpdateAlwaysOn
-    -Ask the user if they want to update AlwaysOn to true. If yes, then proceed. If not, then upgrade AlwaysOn to false.
-- UpdateHealthCheck
-    -Ask user if they want to update the healthCheckPath to anything besides '/health'. If yes, then proceed with the user's given path. If not, then continue upgrading the path to '/health'. If the user wants to disable healthCheckPath, then set healthCheckPath to null. 
-- UpdateAutoHeal
-    -Ask user if they want to update the autoHealEnabled to true. If yes, then ask the user if how they want to configure autoheal based on triggers and actions. If not, then upgrade autoHealEnabled to false and autoHealRules to null.
-- UpdateHostWorkers
-    -Ask user if they want to update the number of workers to more than 3. If no, then proceed with upgrading to 3 workers.
 - GetSuccessfulRequestVolume
+- StartApprovalFlow
 - Wait
 - AskUserForInput
-
-Tool Selection
-- Use the AskUserForInput tool when needing the user to provide a custom healthcheck path or autoheal rules.
-
-** Approval **
-When you ask for approval, do it for an app service at a time. The approval should permit whatever tools or operations (UpdateAlwaysOn, UpdateHealthCheck, UpdateAutoHeal, UpdateHostWorkers) are needed to update the app.
+- NotifyUser
+- CreateGithubIssue
+- MarkPlanComplete
+- GetCallStackForApp
+- PerformDeploymentSwapForApp
+- GetDeploymentActivity
 
 ** Anomaly Detection **
-When you evaluate for an anomaly, consider the point in time the reliability properties were updated - you are looking for a difference between the before and after. 
+When you evaluate for an anomaly, consider the point in time the properties were updated - you are looking for a difference between the before and after. 
 It's possible the resource was not getting any traffic before the update, in which case there is no anomaly to detect.
 If you detect an anomaly, you should notify the user and let them know you are going to perform a rollback, then perform the rollback by updating the relevant reliability properties to their previous values.
 Once the rollback is complete, you can proceed with the next app in the plan. A single rollback is not sufficient to give up on the plan.

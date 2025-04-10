@@ -23,7 +23,6 @@ public sealed class WebAppDownAgentFactory
     public WebAppDownAgentFactory(
         IMetricsPlugin metricsPlugin,
         IApprovalPlugin approvalPlugin,
-        IGithubIssuePlugin githubPlugin,
         IChartPlugin chartPlugin,
         IPostToTeamsPlugin postToTeamsPlugin,
         CPUAnalysisPlugin cpuPlugin,
@@ -47,7 +46,6 @@ public sealed class WebAppDownAgentFactory
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
-
         toolSignatures.Add(toolsRepository.GetSignature(() => cpuPlugin.StartCPUAnalysisAgent));
         toolSignatures.Add(toolsRepository.GetSignature(() => appCodePlugin.StartAppCodeAnalysisAgent));
 
@@ -56,10 +54,6 @@ public sealed class WebAppDownAgentFactory
 
         var chatPluginDefinition = new ChartPluginDefinition(chartPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => chatPluginDefinition.PlotTimeSeriesDataAsync));
-
-        var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
-        toolSignatures.Add(toolsRepository.GetSignature(() => githubPluginDefinition.FetchGithubIssue));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

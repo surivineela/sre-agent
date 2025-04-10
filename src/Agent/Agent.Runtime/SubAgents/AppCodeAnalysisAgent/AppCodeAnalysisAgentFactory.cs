@@ -11,6 +11,7 @@ using Agent.Runtime.MetaAgent;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using Agent.Core.Helpers;
+using OperationalAgentCore;
 
 namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 
@@ -21,12 +22,15 @@ public sealed class AppCodeAnalysisAgentFactory
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
     private IAppInsightsPlugin _appInsightsPlugin;
-    private ArmHelper _armHelper; 
+    private ArmHelper _armHelper;
 
     public const string OrchestrationInstanceIdPrefix = nameof(AppCodeAnalysisAgent);
 
     public AppCodeAnalysisAgentFactory(
         IAppInsightsPlugin appInsightsPlugin,
+        IApprovalPlugin approvalPlugin,
+        IMetricsPlugin metricsPlugin,
+        IGithubIssuePlugin githubPlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         ArmHelper armHelper)
@@ -34,14 +38,31 @@ public sealed class AppCodeAnalysisAgentFactory
         //change tool signatures 
         var toolSignatures = new List<string>();
 
+        var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+
+        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
+        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+
+        var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
+
         toolSignatures.Add(toolsRepository.GetSignature(() => GetCallStackForApp));
+        toolSignatures.Add(toolsRepository.GetSignature(() => PerformDeploymentSwapForApp));
+        toolSignatures.Add(toolsRepository.GetSignature(() => GetDeploymentActivity));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
         _appInsightsPlugin = appInsightsPlugin;
-        _armHelper = armHelper; 
+        _armHelper = armHelper;
     }
-        
+
 
     public async Task<string> StartOrchestration(
         AppCodeAnalysisInput input,
@@ -105,7 +126,6 @@ public sealed class AppCodeAnalysisAgentFactory
     public async Task<string> GetDeploymentActivity(
     [Description("resourceId for app")] string resourceId)
     {
-
         try
         {
             // Parse subscriptionId and resourceGroupName from resourceId  

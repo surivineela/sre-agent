@@ -35,6 +35,7 @@ public sealed class CPUAnalysisAgentFactory
     public CPUAnalysisAgentFactory(
         IMetricsPlugin metricsPlugin,
         IApprovalPlugin approvalPlugin,
+        IGithubIssuePlugin githubPlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         ArmHelper armHelper)
@@ -52,8 +53,12 @@ public sealed class CPUAnalysisAgentFactory
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
-        toolSignatures.Add(toolsRepository.GetSignature(() => ScaleUpAppServicePlanBySku)); 
+        var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
+
+        toolSignatures.Add(toolsRepository.GetSignature(() => ScaleUpAppServicePlanBySku));
         toolSignatures.Add(toolsRepository.GetSignature(() => CollectMemoryDumpForApp));
+        toolSignatures.Add(toolsRepository.GetSignature(() => AutoScaleApp));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
@@ -106,7 +111,62 @@ public sealed class CPUAnalysisAgentFactory
             return $"There was an issue collecting the memory dump for {resourceId}";
         }
         return $"The memory dump for {resourceId} has been collected, the link is: {responseString}";
+    }
 
-        // give the path to the user 
+    [KernelFunction("autoscale_app_service")]
+    [Description("Create AutoScale Settings for App to Autoscale App")]
+    public async Task<string> AutoScaleApp(
+        [Description("resourceId of the app")] string subscriptionId,
+        string resourceGroupName,
+        string autoScaleSettingName,
+        string location,
+        string resourceId,
+        int minCount,
+        int maxCount,
+        int targetCount,
+        string profileName = "DefaultProfile",
+        string metricName = "CpuPercentage",
+        string operatorProperty = "GreaterThan",
+        double threshold = 70.0,
+        string timeAggregation = "Average",
+        string statistic = "Average",
+        string timeGrain = "PT1M",
+        string timeWindow = "PT5M",
+        string scaleDirection = "Increase",
+        string scaleType = "ChangeCount",
+        string scaleValue = "1",
+        string cooldown = "PT5M")
+    {
+
+        var response = await _armHelper.CreateAutoScaleSetting(
+             subscriptionId,
+             resourceGroupName,
+             autoScaleSettingName,
+             location,
+             resourceId,
+             minCount,
+             maxCount,
+             targetCount, // Argument 8: Changed from string to int
+             profileName,
+             metricName,
+             operatorProperty,
+             threshold,
+             timeAggregation,
+             statistic,
+             timeGrain,
+             timeWindow,
+             scaleDirection,
+             scaleType,
+             scaleValue,
+             cooldown
+         );
+
+
+        if (String.IsNullOrEmpty(response))
+        {
+            return "There was an issue creating the auto-scaling configuration.";
+        }
+
+        return "Auto-scaling configuration has been successfully applied. ";
     }
 }
