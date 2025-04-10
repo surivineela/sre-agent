@@ -129,5 +129,27 @@ namespace Agent.Plugins
                     AverageMemoryInBytes: m.Value))
                 .ToArray();
         }
+
+        public async Task<IReadOnlyList<ThreadTimeSeriesData>> GetThreadMetrics(
+            string resourceId)
+        {
+            Console.WriteLine($"[get_webapp_thread_metrics] Invoked with resourceId: {resourceId}");
+
+            var metrics = new List<Metric>
+            {
+                new Metric { Name = "Thread", Unit = "Count", Aggregation = "Total" }
+            };
+
+            var metricsData = await _armHelper.FetchMetricsAsync(
+                resourceId.ToString(),
+                metrics);
+
+            return metricsData
+                .Select(m => new ThreadTimeSeriesData(
+                    TimeStamp: m.Timestamp,
+                    // m.Value is cpu time in seconds in a minute
+                    ThreadCount: (int)m.Value))
+                .ToArray();
+        }
     }
 }

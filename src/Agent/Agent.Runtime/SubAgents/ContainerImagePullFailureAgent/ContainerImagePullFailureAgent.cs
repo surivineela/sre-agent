@@ -30,7 +30,7 @@ public class ContainerImagePullFailureAgent : GenericAgentOrchestrator<Container
             agentInput.Context,
             log);
 
-        log.LogInformation("Completed Container App Image Pull Failure investigation for resource: {ResourceId}", 
+        log.LogInformation("Completed Container App Image Pull Failure investigation for resource: {ResourceId}",
             agentInput.ResourceId);
         return "success";
     }

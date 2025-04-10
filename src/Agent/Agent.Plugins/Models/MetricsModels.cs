@@ -19,4 +19,13 @@ namespace Agent.Plugins
     public sealed record MemoryTimeSeriesData(
         DateTime TimeStamp,
         double AverageMemoryInBytes);
+
+    public sealed record ThreadTimeSeriesData(
+        DateTime TimeStamp,
+        int ThreadCount);
+
+    public sealed record LatencySeriesData(
+        DateTime TimeStamp,
+        double AverageLatencyInMilliseconds);
+
 }

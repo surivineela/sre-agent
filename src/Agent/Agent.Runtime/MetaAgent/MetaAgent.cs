@@ -177,6 +177,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _serviceProvider = serviceProvider;
         _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
 
+        _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
+
         _graphDbPlugin = graphDBPlugin;
         _appReliabilityPlugin = appReliabilityPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;

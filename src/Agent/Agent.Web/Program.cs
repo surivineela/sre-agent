@@ -49,6 +49,10 @@ using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
 using Agent.Runtime.SubAgents.KubernetesAgent;
+using Agent.Core.Models;
+using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
+using Agent.Runtime.SubAgents.WebAppDownAgent;
+using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Prometheus.Services;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
@@ -96,6 +100,11 @@ builder.Host.UseSerilog();
     builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
     
 
+    //Configure Azure App Insights settings
+    builder.Services.Configure<AppInsightsSettings>(
+        builder.Configuration.GetSection("AppInsightsSettings")); 
+
+
     // Register a default ConversationReference that can be injected into PostToTeamsPlugin
     // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
 
@@ -112,6 +121,8 @@ builder.Host.UseSerilog();
         .AddSingleton<ITimePlugin, TimePlugin>()
         .AddSingleton<TimePluginDefinition>()
         .AddSingleton<IMetricsPlugin, MetricsPlugin>()
+        .AddSingleton<IAppInsightsPlugin, AppInsightsPlugin>()
+        .AddSingleton<AppInsightsPluginDefinition>()
         .AddSingleton<MetricsPluginDefinition>()
         .AddSingleton<Agent.Plugins.Models.GitHubClient>()
         .AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>()
@@ -129,6 +140,8 @@ builder.Host.UseSerilog();
         .AddSingleton<ReliabilityPluginDefinition>()
         .AddSingleton<AppReliabilityPlugin>()
         .AddSingleton<AppReliabilityAgentFactory>()
+        .AddSingleton<AppCodeAnalysisPlugin>()
+        .AddSingleton<AppCodeAnalysisAgentFactory>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<ContainerImagePullFailureAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
@@ -138,7 +151,7 @@ builder.Host.UseSerilog();
         .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()        
         .AddSingleton<VmRdpInvestigatorAgentFactory>()
         .AddSingleton<VmRdpInvestigatorPlugin>()
-
+        .AddSingleton<AppInsightsSettings>()
         .AddTransient<ContainerAppsRemediationPlugin>()
         .AddTransient<ManagedIdentityMigrationPlugin>()
         .AddTransient<TlsBestPracticesPlugin>()
@@ -153,6 +166,10 @@ builder.Host.UseSerilog();
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<TlsBestPracticesScanner>()
+        .AddSingleton<WebAppDownPlugin>()
+        .AddSingleton<CPUAnalysisPlugin>()
+        .AddSingleton<WebAppDownAgentFactory>()
+        .AddSingleton<CPUAnalysisAgentFactory>()
         .AddSingleton<SourceCodeAgentFactory>()
         .AddSingleton<SourceCodeScanner>()
         .AddSingleton<CVEAgentFactory>()
@@ -180,6 +197,8 @@ builder.Host.UseSerilog();
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<IMetricsRegistry, MetricsRegistry>()
         .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()
+         .AddSingleton<AppInsightsPlugin>()
+
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()

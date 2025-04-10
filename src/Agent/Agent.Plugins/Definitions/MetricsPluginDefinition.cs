@@ -69,4 +69,12 @@ public class MetricsPluginDefinition
     {
         return $"The operation to get cpu metrics has been started for AppService: {resourceId}";
     }
+
+    [KernelFunction("get_webapp_thread_metrics")]
+    [Description("Get the average thread metrics of a specific WebApp instance at per minute granularity")]
+    public async Task<IReadOnlyList<ThreadTimeSeriesData>> GetThreadMetrics(
+        [Description("The resource ID of the WebApp resource.")] string resourceId)
+    {
+        return await _metricsPlugin.GetThreadMetrics(resourceId);
+    }
 }

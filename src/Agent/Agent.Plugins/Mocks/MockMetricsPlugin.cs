@@ -56,5 +56,10 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<IReadOnlyList<ThreadTimeSeriesData>> GetThreadMetrics(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

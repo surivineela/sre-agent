@@ -38,12 +38,12 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("GetApplicationComponentsSummary")]
-        [Description("Returns a structured list of Azure resources that are connected to a specified resource. " +
-            "This function is best used when you need to: 1) Get a quick overview of what resources are part of an application, " +
-            "2) See resource names, types, and IDs in a list format, " +
+        [Description("Returns a structured list of Azure resources connected to a specified resource. " +
+            "This function is best used when you need to: 1) Get overview of what resources are part of an application, " +
+            "2) See resource names, types, and IDs as a list, " +
             "3) Programmatically process the connected resources, or " +
-            "4) Present a text-based summary to the user." +
-            " The output is a List<Node> where each Node contains id, name, type, and essential properties. " +
+            "4) Present a text-based summary" +
+            " The output is a List<Node> where each Node contains id, name, type, essential properties. " +
             "Use this instead of VisualizeApplicationComponents when you don't need to show the relationships between resources.")]
         public async Task<List<Node>> GetApplicationComponentsSummary(
             [Description("Azure Resource Id of the application resource to analyze. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
@@ -53,14 +53,13 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("VisualizeApplicationComponents")]
-        [Description("Creates an interactive visual diagram showing how Azure resources are connected to each other. " +
-            "This function is best used when you need to: 1) Show the topology and relationships between resources, " +
-            "2) Help users understand the architecture visually, 3) Debug connectivity issues, or " +
-            "4) Present a complete picture of the application's infrastructure. " +
-            "The output includes both nodes (resources) and edges (relationships) in a format suitable for visualization. " +
-            "Use this instead of GetApplicationComponentsSummary when users ask to 'show', 'visualize', 'draw', or 'diagram' the connections, or when they need to understand how resources are linked together." +
-            "This method will return the graph as base64 encoded string with the format: 'data:image/png;base64,base64Image', which you can use to render on the chat message." +
-            "Azure Resource Id of the application resource to visualize. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")]
+        [Description("Creates an interactive visual diagram showing how Azure resources are connected. " +
+    "Use this to: 1) Show the topology/relationships between resources, " +
+    "2) Help users understand the architecture visually, 3) Debug connectivity issues, or " +
+    "4) Present a complete picture of the application's infrastructure. " +
+    "The output includes nodes (resources) and edges (relationships). " +
+    "Use instead of GetApplicationComponentsSummary when users ask to 'show', 'visualize', 'draw', or 'diagram' the connections. " +
+    "Returns the graph as a base64-encoded string. Input: Azure Resource Id of the application resource to visualize.")]
         public async Task<string> VisualizeApplicationComponents(
             [Description("Azure Resource Id of the application resource to visualize. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId,
             [Description("Maximum number of relationship hops to include in the visualization. Higher values (1-5) show more distant connections but may make the diagram more complex. Default is 3.")] int hops = 3,
@@ -70,10 +69,11 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("DiscoverApplications")]
-        [Description("Analyzes an Azure subscription and returns a List<ApplicationGraph> where each ApplicationGraph represents a distinct application. " +
-            "Each ApplicationGraph contains: id, name, entryPoint (the main resource Node), nodes (List<Node> of all related resources), and edges (List<Edge> showing relationships between nodes). " +
-            "Entry points are identified from Container Apps, App Services, and AKS clusters. " +
-            "The function maps out complete application topologies including all connected resources and their relationships. Returns an empty list if no applications are found or on error.")]
+        [Description("Analyzes an Azure subscription and returns a List<ApplicationGraph>, where each ApplicationGraph represents a distinct application. " +
+    "Each ApplicationGraph contains: id, name, entryPoint (main resource Node), nodes (List<Node> of related resources), and edges (List<Edge> showing relationships). " +
+    "Entry points are identified from Container Apps, App Services, and AKS clusters. " +
+    "The function maps out application topologies, including all connected resources and relationships. " +
+    "Returns an empty list if no applications are found.")]
         public async Task<List<ApplicationGraph>> DiscoverApplications(
             [Description("Azure Subscription Id to analyze. This is the GUID identifier for the subscription, found in the subscription's overview page or in the resource ID after '/subscriptions/'")] string subscriptionId)
         {
@@ -126,11 +126,11 @@ namespace Agent.Plugins
 
         [KernelFunction("GetResourceCount")]
         [Description("Gets the count of Azure resources of a specified type in the knowledge graph. " +
-            "This function is useful when you need to: 1) Get a quick inventory of resources by type, " +
-            "2) Validate the quantity of deployed resources against expected counts, " +
+            "This function is useful when you need to: 1) Get an inventory of resources by type, " +
+            "2) Validate quantity of deployed resources against expected counts, " +
             "3) Monitor resource proliferation over time, or " +
             "4) Get statistics about your Azure environment composition. " +
-            "Returns a count of matching resources and optionally can group by specific properties.")]
+            "Returns a count of matching resources and can group by specific properties.")]
         public async Task<dynamic> GetResourceCount(
             [Description("Type of the Azure resource to count (e.g., 'microsoft.app/containerapps' for container apps, 'microsoft.web/sites' for webapps, function apps, 'microsoft.containerservice/managedclusters' for AKS)")] string resourceType,
             [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroup'). Leave empty for total count.")] string groupBy = "")
@@ -179,7 +179,7 @@ namespace Agent.Plugins
 
         [Description("Returns a general dashboard provided as daily reports for Resource Counts recorded in the knowledge graph. " +
             "This function is useful when you need to: 1) Need to provide a URL to the daily dashboard " +
-            "2) Provide a very generic dashboard for the knowledge graph overview which is at a very high level." +
+            "2) Provide a very generic dashboard for the knowledge graph overview at a very high level." +
             "3) When asked Have you created a dashboard?")]
         public string GetKnowledgeGraphResourceUsageDashboard()
         {

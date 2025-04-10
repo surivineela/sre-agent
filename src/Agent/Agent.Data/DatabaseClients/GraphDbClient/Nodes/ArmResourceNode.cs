@@ -67,7 +67,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         // costs ($ USD)
         public double? Costs { get; set; }
-
+        
         // average latency (ms)
         public double? AvgLatencyInMs { get; set; }
     }

@@ -4,6 +4,7 @@
 
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
@@ -16,9 +17,29 @@ using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
+using Google.Protobuf.WellKnownTypes;
+using IdentityModel.Client;
+using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
+using Octokit;
+using OpenTelemetry.Resources;
+using System.ComponentModel;
+using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace Agent.Core.Helpers;
+
+public class OperationDetail
+{
+    public string OperationName { get; set; } = string.Empty;
+    public string Status { get; set; } = string.Empty;
+    public DateTime? Timestamp { get; set; }
+    public string ResourceId { get; set; } = string.Empty;
+    public string Caller { get; set; } = string.Empty;
+    public string? ErrorMessage { get; set; }
+    public bool IsSuccessful { get; set; }  // Indicates if the operation was successful 
+}
 
 public class ArmHelper
 {
@@ -77,6 +98,104 @@ public class ArmHelper
         {
             //throw new Exception($"Failed to retrieve resources. Status code: {response.StatusCode}");
             return resourceUrls;
+        }
+    }
+
+    public async Task<string> CreateAutoScaleSetting(
+    string subscriptionId,
+    string resourceGroupName,
+    string autoScaleSettingName,
+    string location,
+    string resourceId,
+    int minCount,
+    int maxCount,
+    int targetCount,
+    string profileName = "DefaultProfile",
+    string metricName = "CpuPercentage",
+    string operatorProperty = "GreaterThan",
+    double threshold = 70.0,
+    string timeAggregation = "Average",
+    string statistic = "Average",
+    string timeGrain = "PT1M",
+    string timeWindow = "PT5M",
+    string scaleDirection = "Increase",
+    string scaleType = "ChangeCount",
+    string scaleValue = "1",
+    string cooldown = "PT5M")
+    {
+        try
+        {
+            var requestUrl = new Uri(new Uri("https://management.azure.com"),
+                $"subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/providers/Microsoft.Insights/autoscalesettings/{autoScaleSettingName}?api-version=2022-10-01");
+
+            var requestBody = new
+            {
+                location = location,
+                properties = new
+                {
+                    profiles = new[]
+                    {
+                    new
+                    {
+                        name = profileName, // Use the customizable name parameter  
+                        capacity = new
+                        {
+                            minimum = minCount.ToString(),
+                            maximum = maxCount.ToString(),
+                            @default = targetCount.ToString()
+                        },
+                        rules = new[]
+                        {
+                            new
+                            {
+                                metricTrigger = new
+                                {
+                                    metricName = metricName,
+                                    metricResourceUri = resourceId,
+                                    operatorProperty = operatorProperty,
+                                    threshold = threshold,
+                                    timeAggregation = timeAggregation,
+                                    statistic = statistic,
+                                    timeGrain = timeGrain,
+                                    timeWindow = timeWindow
+                                },
+                                scaleAction = new
+                                {
+                                    direction = scaleDirection,
+                                    type = scaleType,
+                                    value = scaleValue,
+                                    cooldown = cooldown
+                                }
+                            }
+                        }
+                    }
+                }
+                }
+            };
+
+            string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (response.IsSuccessStatusCode)
+            {
+                return await response.Content.ReadAsStringAsync();
+            }
+            else
+            {
+                string errorMessage = await response.Content.ReadAsStringAsync();
+                return null;
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("An error occurred while creating auto-scale setting", ex);
         }
     }
 
@@ -546,6 +665,32 @@ public class ArmHelper
         };
         await storageAccountResource.UpdateAsync(storageAccountPatch);
     }
+
+    public async Task<string> GetDetectorResponse(string resourceId, string detectorId)
+    {
+        // Construct the request URL to get the Detector URL
+        // may need to add startTime and endTime query params
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/detectors/{detectorId}");
+
+
+        // Prepare the HTTP request
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        // Send the request
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string responseBody = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Failed to retrieve detector details. Status Code: {response.StatusCode}, Response: {responseBody}");
+        }
+
+        // Deserialize the response to extract the SKU and instance count
+        string jsonResponse = await response.Content.ReadAsStringAsync();
+        return jsonResponse;
+    }
+
     public async Task<bool> UpdateAutoHeal(string resourceId, bool autoHealEnabled, AutoHealRules autoHealRules)
     {
         if (string.IsNullOrWhiteSpace(resourceId))
@@ -797,6 +942,160 @@ public class ArmHelper
 
         return bootDiagnosticLogs;
     }
+
+    public async Task<string> ExecuteAppInsightsQuery(string queryString)
+    {
+        try
+        {
+            var appInsightsSettings = new AppInsightsSettings();
+            string baseURL = "https://api.applicationinsights.io/v1/apps/{0}/query";
+            string appId = appInsightsSettings.ApplicationId;
+
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+
+            object requestPayload = new
+            {
+                query = queryString
+            };
+            string jsonBody = JsonSerializer.Serialize(requestPayload);
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, string.Format(baseURL, appId))
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
+
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            return content;
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
+    public async Task<bool> SwapAppServiceSlotsAsync(string resourceId, bool preserveVNetValue, string sourceSlotName, string targetSlotName)
+    {
+        try
+        {
+            // Construct the request URL for swapping slots  
+            string requestUrl = $"https://management.azure.com/subscriptions/{resourceId}/slots/{sourceSlotName}/slotsswap?api-version=2022-03-01";
+
+            // Prepare the request body  
+            var requestBody = new
+            {
+                targetSlot = targetSlotName,
+                preserveVNet = preserveVNetValue
+            };
+
+            // Serialize the request body to JSON  
+            string jsonBody = JsonSerializer.Serialize(requestBody);
+
+            // Create the HTTP request  
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
+            {
+                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+            };
+
+            // Create and send the HTTP request  
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            // Check the response status code  
+            if (response.IsSuccessStatusCode)
+            {
+                return true; // Swap was successful  
+            }
+            else
+            {
+                string responseBody = await response.Content.ReadAsStringAsync();
+                return false; // Swap failed  
+            }
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("An error occurred during the swap operation", ex);
+        }
+    }
+
+    public async Task<(List<OperationDetail> Deployments, List<OperationDetail> Swaps)> GetDeploymentActivity(string subId, string rg, string resourceId, string st = null, string et = null)
+    {
+        try
+        {
+            // Set default values for start time and end time if not provided  
+            if (string.IsNullOrEmpty(st))
+            {
+                st = DateTime.UtcNow.AddHours(-3).ToString("yyyy-MM-ddTHH:mm:ssZ"); // 3 hours ago  
+            }
+
+            if (string.IsNullOrEmpty(et))
+            {
+                et = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"); // Current time  
+            }
+
+            string filter = $"$filter=eventTimestamp ge '{st}' and eventTimestamp le '{et}' and eventChannels eq 'Admin, Operation' and resourceGroupName eq '{rg}' and resourceId eq '{resourceId}' and levels eq 'Informational'";
+            string requestUrl = $"https://management.azure.com/subscriptions/{subId}/providers/microsoft.insights/eventtypes/management/values?api-version=2017-03-01-preview&{filter}";
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to retrieve deployment activity: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Parse the response  
+            JObject jsonResponse = JObject.Parse(content);
+            var events = jsonResponse["value"]?.Children<JObject>();
+
+            // Extract deployment and swap details  
+            var deployments = ExtractOperationDetails(events, "Microsoft.Resources/deployments/write");
+            var swaps = ExtractOperationDetails(events, "Microsoft.Web/sites/slots/slotsswap/action");
+
+            return (deployments, swaps);
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("An error occurred during the deployment activity retrieval", ex);
+        }
+    }
+
+    private List<OperationDetail> ExtractOperationDetails(IEnumerable<JObject> events, string operationFilter)
+    {
+        var operationDetails = new List<OperationDetail>();
+
+        foreach (var evt in events)
+        {
+            var operationName = evt["operationName"]?["value"]?.ToString();
+            if (operationName?.Contains(operationFilter) == true)
+            {
+                var status = evt["status"]?.ToString() ?? string.Empty;
+                var isSuccessful = string.Equals(status, "Succeeded", StringComparison.OrdinalIgnoreCase);
+
+                var detail = new OperationDetail
+                {
+                    OperationName = operationName ?? string.Empty,
+                    Status = status,
+                    Timestamp = DateTime.TryParse(evt["eventTimestamp"]?.ToString(), out var timestamp) ? (DateTime?)timestamp : null,
+                    ResourceId = evt["resourceId"]?.ToString() ?? string.Empty,
+                    Caller = evt["caller"]?.ToString() ?? string.Empty,
+                    ErrorMessage = isSuccessful ? null : evt["properties"]?["statusMessage"]?.ToString(),
+                    IsSuccessful = isSuccessful
+                };
+
+                operationDetails.Add(detail);
+            }
+        }
+
+        return operationDetails;
+    }  
+    
+
 
     #region Private Methods
 
