@@ -1,0 +1,32 @@
+/* Dark background for the entire rendered SVG */
+  
+  /* Node label text: bigger, bold, white */
+  .label, .label * {
+    fill: #0a0a0a !important;
+    color: #030303 !important;
+  }
+  
+  /* Node shapes (Azure-ish look) */
+  .nodeLabel > rect,
+  .node rect {
+    fill: #0072C6;    /* Azure-like blue */
+    stroke-width: 2;
+    rx: 6;            /* Rounded corners */
+    ry: 6;
+  }
+  
+  /* The key for wrapping: fix a width & force line breaks */
+  .nodeLabel > foreignObject > div {
+    width: 160px !important; 
+    white-space: normal !important;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    text-align: center;       /* optional: center align */
+  }
+  
+  /* Edge labels */
+  .edgeLabel {
+    font-size: 16px;
+    fill: #fff;
+  }
+  
