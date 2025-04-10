@@ -79,11 +79,11 @@ async def get_grafana_screenshot_async(grafana_endpoint, grafana_token, dashboar
         element = await page.query_selector(dashboard_selector)
         bounding_box = await element.bounding_box()
 
-        print(f"Setting new viewport to be {bounding_box['width']} x {bounding_box['height']}")
+        print(f"Setting new viewport to be {bounding_box['width'] + 300} x {bounding_box['height'] + 300}")
 
         await page.set_viewport_size({
-            "width": int(bounding_box['width']),
-            "height": int(bounding_box['height']) + 150
+            "width": int(bounding_box['width']) + 300,
+            "height": int(bounding_box['height']) + 300
         })
 
 
@@ -100,17 +100,17 @@ async def get_grafana_screenshot_async(grafana_endpoint, grafana_token, dashboar
 
         await auto_scroll(page)
 
+        await asyncio.sleep(8)
+
         element = await page.query_selector(dashboard_selector)
         bounding_box = await element.bounding_box()
 
-        print(f"Setting new viewport to be {bounding_box['width']} x {bounding_box['height']}")
+        print(f"Setting final viewport to be {bounding_box['width'] + 300} x {bounding_box['height'] + 300}")
 
         await page.set_viewport_size({
-            "width": int(bounding_box['width']),
-            "height": int(bounding_box['height']) + 150
+            "width": int(bounding_box['width']) + 300,
+            "height": int(bounding_box['height']) + 300
         })
-
-        await asyncio.sleep(8)
 
         print("Taking screenshot")
         screenshot = await page.screenshot(full_page=True)
