@@ -55,6 +55,7 @@ public sealed class ContainerImagePullFailureAgentFactory
         var containerRegistryVerificationPluginDefinition = new ContainerImagePullFailurePluginDefinition(containerRegistryVerificationPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.CheckAcrAuthentication));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.VerifyExternalRegistry));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.CheckImagePulling));
 
         //// Remediation plugin for fixing issues
         //var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);

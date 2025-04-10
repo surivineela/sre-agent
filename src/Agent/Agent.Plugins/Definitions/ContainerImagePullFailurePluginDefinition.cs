@@ -43,5 +43,15 @@ namespace Agent.Plugins.Definitions
         {
             return await _containerImagePullFailurePlugin.VerifyExternalRegistry(resourceId, imageReference);
         }
+
+        [KernelFunction("check_image_pulling")]
+        [Description("Checking the status of image pulling for given container resource")]
+        public async Task<ImagePullingResult> CheckImagePulling(
+            [Description("Resource ID of the Container App to check")]
+            string resourceId
+        )
+        {
+            return await _containerImagePullFailurePlugin.CheckImagePulling(resourceId);
+        }
     }
 }

@@ -21,5 +21,11 @@ namespace Agent.Plugins.Definitions
         /// <param name="resourceId">Resource ID of the Container App to check</param>
         /// <param name="imageReference">Image reference to check</param>
         Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId, string imageReference);
+        /// <summary>
+        /// Checks if there is any image pull failure for given container app
+        /// </summary>
+        /// <param name="resourceId">Resource ID of the Container App to check</param>
+        /// <returns></returns>
+        Task<ImagePullingResult> CheckImagePulling(string resourceId);
     }
 }

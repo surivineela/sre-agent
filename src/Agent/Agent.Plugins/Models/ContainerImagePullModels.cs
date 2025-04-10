@@ -163,6 +163,12 @@ namespace Agent.Plugins.Models
         public string RecommendedAction { get; set; }
     }
 
+    public class ImagePullingResult
+    {
+        public bool IsSuccessful { get; set; }
+        public string FailureReason { get; set; }
+    }
+
     /// <summary>
     /// Types of container registries
     /// </summary>

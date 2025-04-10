@@ -19,6 +19,7 @@ using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Net.Http;
 using System.Text.RegularExpressions;
+using Azure.Monitor.Query;
 
 namespace Agent.Plugins.Implementation
 {
@@ -28,16 +29,19 @@ namespace Agent.Plugins.Implementation
         private readonly IContainerAppPlugin _containerAppPlugin;
         private readonly IArmClientFactory _armClientFactory;
         private readonly HttpClient _httpClient;
+        private readonly IAuthenticationService _authService;
 
         public ContainerImagePullFailurePlugin(
             ILogger<ContainerImagePullFailurePlugin> logger,
             IContainerAppPlugin containerAppPlugin,
-            IArmClientFactory armClientFactory)
+            IArmClientFactory armClientFactory,
+            IAuthenticationService authService)
         {
             _logger = logger;
             _containerAppPlugin = containerAppPlugin;
             _armClientFactory = armClientFactory;
             _httpClient = new HttpClient();
+            _authService = authService;
         }
 
         /// <summary>
@@ -229,6 +233,39 @@ namespace Agent.Plugins.Implementation
                 result.ErrorDetails = $"An error occurred during verification: {ex.Message}";
                 result.RecommendedAction = "Review the error details and check registry availability.";
                 return result;
+            }
+        }
+
+        public async Task<ImagePullingResult> CheckImagePulling(string resourceId)
+        {
+            var armClient = _armClientFactory.GetArmClient();
+            var resourceIdentifier = new ResourceIdentifier(resourceId);
+
+            var resourceGroup = armClient.GetResourceGroupResource(new ResourceIdentifier($"/subscriptions/{resourceIdentifier.SubscriptionId}/resourceGroups/{resourceIdentifier.ResourceGroupName}"));
+            var containerApp = (await resourceGroup.GetContainerAppAsync(resourceIdentifier.Name)).Value;
+
+            var managedEnvResource = (await armClient.GetContainerAppManagedEnvironmentResource(new ResourceIdentifier(containerApp.Data.EnvironmentId)).GetAsync()).Value;
+            var logAnalyticsCustomerId = managedEnvResource.Data.AppLogsConfiguration.LogAnalyticsConfiguration.CustomerId;
+
+            string query =
+            $@"
+            ContainerAppSystemLogs_CL 
+            | where ContainerAppName_s == '{containerApp.Id.Name}' 
+            | where Reason_s == 'ContainerTerminated' and Log_s has ""reason 'ImagePullFailure'""
+            | summarize by Log_s
+            ";
+
+            var credential = _authService.GetArmOperationCredential();
+            var logsClient = new LogsQueryClient(credential);
+            var timespan = TimeSpan.FromMinutes(30);
+            var result = (await logsClient.QueryWorkspaceAsync(logAnalyticsCustomerId, query, new QueryTimeRange(timespan))).Value;
+            if (result.Table.Rows.Count == 0)
+            {
+                return new ImagePullingResult() { IsSuccessful= true, FailureReason = ""};
+            } else
+            {
+                string error = result.Table.Rows.FirstOrDefault()[0].ToString();
+                return new ImagePullingResult() { IsSuccessful = false, FailureReason = error };
             }
         }
 

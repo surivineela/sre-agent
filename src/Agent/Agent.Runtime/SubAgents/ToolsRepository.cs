@@ -174,6 +174,7 @@ public sealed class ToolsRepository : IMcpConnectable
         var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
         Register200(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication);
         Register200(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry);
+        Register200(() => containerImagePullFailurePluginDefinition.CheckImagePulling);
     }
 
     public string Register202(
