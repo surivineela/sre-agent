@@ -114,6 +114,7 @@ namespace Agent.Tests.Integration
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
+            services.AddSingleton<IContainerImagePullFailurePlugin>(new MockContainerImagePullFailurePlugin());
             services.AddSingleton<IAzureSupportCenterPlugin>(new MockAzureSupportCenterPlugin());
             services.AddSingleton<IReliabilityPlugin>(new MockReliabilityPlugin());
             services.AddSingleton<IGithubIssuePlugin>(new MockGithubIssuePlugin());

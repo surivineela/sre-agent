@@ -1,0 +1,64 @@
+using Microsoft.DurableTask;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
+
+
+namespace Agent.Runtime.SubAgents.Core.Steps;
+
+public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentStep
+{
+    public FunctionCallContent FunctionCall { get; set; }
+
+    public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
+    {
+        var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAppComponentsStep>();
+        Guid threadId = agent.ThreadContext.ThreadId;
+
+        log.LogInformation("[{ThreadId}] Generating Visualization", threadId);
+
+        // Extract arguments from the function call
+        string resourceId = string.Empty;
+        int hops = 3; // Default value
+
+        if (FunctionCall.Arguments.TryGetValue("resourceId", out var resourceIdObj) && resourceIdObj != null)
+        {
+            resourceId = resourceIdObj.ToString() ?? string.Empty;
+        }
+
+        if (FunctionCall.Arguments.TryGetValue("hops", out var hopsObj) && hopsObj != null)
+        {
+            if (int.TryParse(hopsObj.ToString(), out var parsedHops))
+            {
+                hops = parsedHops;
+            }
+        }
+
+        // Create a new args dictionary with the threadId as a Guid
+        var argsWithThreadId = new Dictionary<string, object>(FunctionCall.Arguments)
+        {
+            ["threadId"] = threadId
+        };
+
+        // Create a new function call with the updated arguments
+        var updatedFunctionCall = new FunctionCallContent(
+            FunctionCall.Name,
+            FunctionCall.CallId,
+            argsWithThreadId
+        );
+
+        // Execute the function with the updated arguments
+        var execInput = new ExecuteActionInput(
+            FunctionCallContent: updatedFunctionCall,
+            ToolSignatures: agent.ToolSignatures);
+
+        var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);
+        agent.ChatHistory.Add(executionResult.ChatMessage);
+
+        // Check if this is a long-running operation
+        if (executionResult.Is202Submit)
+        {
+            agent.Pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
+            log.LogInformation("[{ThreadId}] 202 activity submitted for visualization: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
+        }
+    }
+}

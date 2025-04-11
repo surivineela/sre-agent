@@ -53,6 +53,13 @@ namespace Agent.Tests.Integration.Helpers
                         return;
                     }
                 }
+
+                var parent = await durableTaskClient.GetInstanceAsync(instanceID, true, linkedCts.Token);
+                if(parent.IsCompleted)
+                {
+                    Assert.Fail($"Orchestration {instanceID} completed unexpectedly with status {parent.RuntimeStatus}. Details: {parent.FailureDetails } ");
+                }
+
             }
         }
 
