@@ -10,6 +10,7 @@
 	  <PackageReference Include="Azure.AI.OpenAI" />
 	  <PackageReference Include="Azure.Monitor.Query" />
 	  <PackageReference Include="Azure.ResourceManager.AppContainers" />
+    <PackageReference Include="Azure.ResourceManager.Authorization" />
 	  <PackageReference Include="Azure.ResourceManager.ContainerRegistry" />
     <PackageReference Include="Azure.ResourceManager.ContainerService" />
 	  <PackageReference Include="Azure.ResourceManager.Network" />

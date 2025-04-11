@@ -44,18 +44,15 @@ public sealed class ContainerImagePullFailureAgentFactory
         //toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
 
         // Container App plugin for container operations
-        var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
 
         // Registry verification tools
-        var containerRegistryVerificationPluginDefinition = new ContainerImagePullFailurePluginDefinition(containerRegistryVerificationPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.CheckAcrAuthentication));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.VerifyExternalRegistry));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerRegistryVerificationPluginDefinition.CheckImagePulling));
+        var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerRegistryVerificationPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource));
+        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.IsACRImageManifestAccessibleAsync));
 
         //// Remediation plugin for fixing issues
         //var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);

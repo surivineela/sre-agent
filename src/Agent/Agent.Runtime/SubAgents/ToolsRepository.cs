@@ -175,6 +175,9 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication);
         Register200(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry);
         Register200(() => containerImagePullFailurePluginDefinition.CheckImagePulling);
+        Register200(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId);
+        Register200(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource);
+        Register200(() => containerImagePullFailurePluginDefinition.IsACRImageManifestAccessibleAsync);
     }
 
     public string Register202(
