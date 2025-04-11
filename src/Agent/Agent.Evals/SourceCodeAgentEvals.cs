@@ -1,5 +1,4 @@
 using Agent.Core.Models;
-using Agent.Evals.Evaluators;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Azure.AI.OpenAI;
@@ -8,6 +7,7 @@ using FluentAssertions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
+using Newtonsoft.Json;
 
 namespace Agent.Evals;
 
@@ -15,19 +15,6 @@ namespace Agent.Evals;
 public sealed class SourceCodeAgentEvals
 {
     public TestContext TestContext { get; set; }
-
-    private static readonly List<string> BadResponsesToRepoUrlPrompt = new List<string>
-    {
-        "No",
-        "I don't have a GitHub repo url",
-        "I don't have a GitHub repo url for this resource",
-        "I don't have a GitHub repo url for this resource. Please provide me with one.",
-        "You're not the boss of me",
-        "I don't feel comfortable doing this",
-        "I don't want to do this",
-        "I don't want to do this right now",
-        "I don't want to do this right now. Please ask me later.",
-    };
 
     private ChatConfiguration _chatConfiguration;
 
@@ -81,7 +68,7 @@ public sealed class SourceCodeAgentEvals
 
     }
 
-    private static IEnumerable<object[]> TestData_10Runs()
+    private static IEnumerable<object[]> TestData_Iterations()
     {
         for (int i=0; i< _iterationCount; i++)
         {
@@ -89,25 +76,25 @@ public sealed class SourceCodeAgentEvals
         }
     }
 
-    private static IEnumerable<object[]> TestData_PromptForRepoUrl_BadResponses()
-    {
-        foreach (var badPrompt in BadResponsesToRepoUrlPrompt)
-        {
-            for (int i = 0; i < _iterationCount; i++)
-            {
-                yield return new object[] { Guid.NewGuid().ToString(), badPrompt };
-            }
-        }        
-    }
-
     [TestMethod]
-    [DynamicData(nameof(TestData_10Runs), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
     public async Task SingleAppWithoutSourceCodeNode_GeneratingPlan_CorrectResponse(string testRunGuid)
     {
-        string relevancePrompt = """
-            1. Need to provide a list of all resources that need repo url information.
-            2. Explicitly ask for the customer's GitHub repo urls for each of the resources listed.
+        string groundedContext = """
+            ## Ground Truth:
+            1. Identify container apps that lack source code nodes.
+            2. Request GitHub repository URLs for these apps.
+            3. Link the provided URLs to the respective container apps in the Azure graph.
+            4. Verify that all container apps have source code nodes linked.
+
+            ## Expected Response Characteristics
+            - The response should clearly explain the steps to link a container app to its source code.
+            - It should reference the specific container app and request the GitHub repository URL.
+            - The response should avoid unnecessary information or ambiguity.
             """;
+
+        var exampleResponse = $"## 🛠️ Steps I Will Follow for Completion  \r\n\r\n1. **Start by Identifying Apps**  \r\n   - Begin by checking which container apps currently lack an associated source code node.  \r\n   - Completed: Based on your input, I found the app (`/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{testRunGuid}`) without a source code node.\r\n\r\n2. **Await Repo URL**  \r\n   - Please provide a specific GitHub repo URL for the container app that currently lacks a source code node.\r\n\r\n   Example:\r\n   ```plaintext\r\n   Container App:  \r\n   /subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{testRunGuid}  \r\n\r\n   Repo URL: https://github.com/{{ORG_NAME}}/{{REPO_NAME}}\r\n   ```\r\n\r\n3. **Link the Repo (Once Provided)**  \r\n   - I'll proceed to attach the provided repo URL to the specified container app.\r\n\r\n4. **Recheck App List**  \r\n   - Perform another scan to check for any remaining container apps requiring source code nodes, repeating the workflow until all are resolved.\r\n\r\nLet me know the GitHub repo URL for the app so I can move forward!";
+
         var sourceCodeStatus = new SourceCodeStatus($"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{testRunGuid}");
 
         var sourceCodeAgentV2 = new SourceCodeAgentV2(
@@ -133,26 +120,32 @@ public sealed class SourceCodeAgentEvals
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        IEvaluator wordCoundEvaluator = new WordCountEvaluator();
-        IEvaluator markdownEvaluator = new MarkdownEvaluator();
-        IEvaluator compositeEvaluator = new CompositeEvaluator(new[] { wordCoundEvaluator, markdownEvaluator });
-        EvaluationResult result = await compositeEvaluator.EvaluateAsync(messages, response, _chatConfiguration);
-        NumericMetric wordCount = result.Get<NumericMetric>(WordCountEvaluator.WordCountMetricName);
-        wordCount.Interpretation.Rating.Should().BeOneOf(EvaluationRating.Good, EvaluationRating.Exceptional);
-        StringMetric markdown = result.Get<StringMetric>(MarkdownEvaluator.MarkdownMetricName);
-        markdown.Interpretation.Rating.Should().BeOneOf(EvaluationRating.Good, EvaluationRating.Exceptional);
+        var result = await response.GenerateEvaluationAsync(_chatConfiguration, messages, groundedContext, exampleResponse);
+        TestContext.WriteLine(JsonConvert.SerializeObject(result));
     }
 
     [TestMethod]
-    [DynamicData(nameof(TestData_10Runs), DynamicDataSourceType.Method)]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
     public async Task SingleAppWithoutSourceCodeNode_UserRespondsWith_CorrectResponse(string testRunGuid)
     {
-        string relevancePrompt = """
-            1. Need to acknowledge the receipt of a GitHub repo url
-            2. List the resource Id of the container app that it will link the repo to.
+        string groundedContext = """
+            ## Ground Truth:
+            1. Identify container apps that lack source code nodes.
+            2. Request GitHub repository URLs for these apps.
+            3. Link the provided URLs to the respective container apps in the Azure graph.
+            4. Verify that all container apps have source code nodes linked.
+
+            ## Expected Response Characteristics
+            - The response should clearly explain the steps to link a container app to its source code.
+            - It should reference the specific container app and request the GitHub repository URL.
+            - The response should avoid unnecessary information or ambiguity.
             """;
 
-        var sourceCodeStatus = new SourceCodeStatus($"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}");
+        string containerAppResourceId = $"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}";
+
+        var exampleResponse = $"## 🛠️ Steps I Will Follow for Completion  \r\n\r\n1. **Start by Identifying Apps**  \r\n   - Begin by checking which container apps currently lack an associated source code node.  \r\n   - Completed: Based on your input, I found the app (`{containerAppResourceId}`) without a source code node.\r\n\r\n2. **Await Repo URL**  \r\n   - Please provide a specific GitHub repo URL for the container app that currently lacks a source code node.\r\n\r\n   Example:\r\n   ```plaintext\r\n   Container App:  \r\n   {containerAppResourceId}  \r\n\r\n   Repo URL: https://github.com/{{ORG_NAME}}/{{REPO_NAME}}\r\n   ```\r\n\r\n3. **Link the Repo (Once Provided)**  \r\n   - I'll proceed to attach the provided repo URL to the specified container app.\r\n\r\n4. **Recheck App List**  \r\n   - Perform another scan to check for any remaining container apps requiring source code nodes, repeating the workflow until all are resolved.\r\n\r\nLet me know the GitHub repo URL for the app so I can move forward!";
+
+        var sourceCodeStatus = new SourceCodeStatus(containerAppResourceId);
 
         var sourceCodeAgentV2 = new SourceCodeAgentV2(
             _chatConfiguration.ChatClient,
@@ -172,25 +165,31 @@ public sealed class SourceCodeAgentEvals
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        IEvaluator wordCoundEvaluator = new WordCountEvaluator();
-        IEvaluator markdownEvaluator = new MarkdownEvaluator();
-        IEvaluator compositeEvaluator = new CompositeEvaluator(new[] { wordCoundEvaluator, markdownEvaluator });
-        EvaluationResult result = await compositeEvaluator.EvaluateAsync(messages, response, _chatConfiguration);
-        NumericMetric wordCount = result.Get<NumericMetric>(WordCountEvaluator.WordCountMetricName);
-        wordCount.Interpretation.Rating.Should().BeOneOf(EvaluationRating.Good, EvaluationRating.Exceptional);
-        StringMetric markdown = result.Get<StringMetric>(MarkdownEvaluator.MarkdownMetricName);
-        markdown.Interpretation.Rating.Should().BeOneOf(EvaluationRating.Good, EvaluationRating.Exceptional);
+
+        var result = await response.GenerateEvaluationAsync(_chatConfiguration, messages, groundedContext, exampleResponse);
+        TestContext.WriteLine(JsonConvert.SerializeObject(result));
     }
 
     [TestMethod]
-    [DynamicData(nameof(TestData_PromptForRepoUrl_BadResponses), DynamicDataSourceType.Method)]
-    public async Task SingleAppWithoutSourceCodeNode_UserRespondsIncorrectly_ContinuesToPromptForRepo(string testRunGuid, string badPrompt)
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
+    public async Task SingleAppWithoutSourceCodeNode_UserRespondsIncorrectly_ContinuesToPromptForRepo(string testRunGuid)
     {
-        string relevancePrompt = """
-            If the user does not provide a GitHub repo url, you need to ask them for it again, but if they express that they don't want to do this, you need to acknowledge that and remind them that you are here if they want to come back later.
+        string groundedContext = """
+            ## Ground Truth:
+            1. Identify container apps that lack source code nodes.
+            2. Request GitHub repository URLs for these apps.
+            3. Link the provided URLs to the respective container apps in the Azure graph.
+            4. Verify that all container apps have source code nodes linked.
+
+            ## Expected Response Characteristics
+            - The response should clearly explain the steps to link a container app to its source code.
+            - It should reference the specific container app and request the GitHub repository URL.
+            - The response should avoid unnecessary information or ambiguity.
             """;
 
         var sourceCodeStatus = new SourceCodeStatus($"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}");
+
+        var exampleResponse = "🔄 No worries! In order for me to link a repository to your container app, I need you to provide a GitHub repository URL (e.g., `https://github.com/...`). Without this information, I can't proceed to update the graph and associate the container app with its source code.\r\n\r\nWould you like me to wait for you to identify or create an appropriate GitHub repository for this container app? Let me know how you'd like to proceed!";
 
         var sourceCodeAgentV2 = new SourceCodeAgentV2(
             _chatConfiguration.ChatClient,
@@ -202,7 +201,7 @@ public sealed class SourceCodeAgentEvals
 
         var messages = new List<ChatMessage>();
         messages.AddRange(await sourceCodeAgentV2.GetStartingMessagesAsync());
-        messages.Add(new ChatMessage(ChatRole.User, badPrompt));
+        messages.Add(new ChatMessage(ChatRole.User, "I don't have a repo url"));
 
         var chatOptions = new ChatOptions
         {
@@ -210,11 +209,8 @@ public sealed class SourceCodeAgentEvals
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        IEvaluator wordCoundEvaluator = new WordCountEvaluator();
-        IEvaluator compositeEvaluator = new CompositeEvaluator(new[] { wordCoundEvaluator });
-        EvaluationResult result = await compositeEvaluator.EvaluateAsync(messages, response, _chatConfiguration);
-        NumericMetric wordCount = result.Get<NumericMetric>(WordCountEvaluator.WordCountMetricName);
-        wordCount.Interpretation.Rating.Should().BeOneOf(EvaluationRating.Good, EvaluationRating.Exceptional);
+        var result = await response.GenerateEvaluationAsync(_chatConfiguration, messages, groundedContext, exampleResponse);
+        TestContext.WriteLine(JsonConvert.SerializeObject(result));
     }
 }
 

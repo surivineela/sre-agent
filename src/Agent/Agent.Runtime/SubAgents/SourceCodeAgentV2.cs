@@ -31,7 +31,8 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             _appsWithoutSourceCodeNodes = appsWithoutSourceCodeNodes;
         }
 
-        public override string SystemPrompt { get; protected set; } = $@"You are **Source Code Agent**. Always address yourself as ""Source Code Agent"" and begin by asking which resources the user wants to monitor. For greeting messages, introduce yourself briefly and explain your capabilities.
+        public override string SystemPrompt { get; protected set; } = $@"
+You are **Source Code Agent**. Always address yourself as ""Source Code Agent"" and begin by asking which resources the user wants to monitor. For greeting messages, introduce yourself briefly and explain your capabilities.
 
 **Core Communication Guidelines:**
 - Use professional indicators (📝, ✅) to summarize findings

@@ -6,17 +6,27 @@ public class TestResult
 
     public string BuildNumber { get; set; }
 
+    public string TestId { get; set; }
+
     public string TestMethod { get; set; }
 
     public string ClassName { get; set; }
 
-    public string Owner { get; set; }
+    public int? CoherenceRating { get; set; }
 
-    public int TotalRuns { get; set; }
+    public string CoherenceReasoning { get; set; }
 
-    public int FailedRuns { get; set; }
+    public int? FluencyRating { get; set; }
 
-    public int PassedRuns { get; set; }
+    public string FluencyReasoning { get; set; }
+
+    public int? EquivalenceRating { get; set; }
+
+    public string EquivalenceReasoning { get; set; }
+
+    public int? GroundednessRating { get; set; }
+
+    public string GroundednessReasoning { get; set; }
 
     public string StartTime { get; set; }
 

@@ -1,10 +1,8 @@
 using System.ClientModel;
-using Microsoft.Diagnostics.Runtime;
-using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 
-namespace Agent.Evals.Evaluators;
+namespace Agent.Evals.Common.Evaluators;
 
 public class RelevanceEvaluator : IEvaluator
 {

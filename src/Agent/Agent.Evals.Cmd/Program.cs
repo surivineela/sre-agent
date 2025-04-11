@@ -9,6 +9,8 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Messaging.EventHubs;
+using Agent.Evals.Common;
+using Agent.Evals.Common.Evaluators;
 
 namespace Agent.Evals.Cmd;
 
@@ -72,8 +74,8 @@ public class Program
         var buildId = Environment.GetEnvironmentVariable("Build_BuildId", EnvironmentVariableTarget.Process);
         var buildNumber = Environment.GetEnvironmentVariable("Build_BuildNumber", EnvironmentVariableTarget.Process);
         
-        var testDefinitions = new Dictionary<string, TestResult>();
-        var testIdToTestNameMap = new Dictionary<string, string>();
+        var testResults = new Dictionary<string, TestResult>();
+        var testIdToTestInfoMap = new Dictionary<string, (string, string)>();
 
         XmlNode? testDefinitionsNode = null;
         XmlNode? resultsNode = null;
@@ -105,38 +107,16 @@ public class Program
                 continue;
             }
 
-            var result = new TestResult
-            {
-                BuildId = buildId,
-                BuildNumber = buildNumber
-            };
-
             foreach (XmlNode unittest in definition.ChildNodes)
             {
-                if (unittest.Name == "Owners")
-                {
-                    result.Owner = unittest.FirstChild?.Attributes?.GetNamedItem("name")?.Value;
-                }
-
                 if (unittest.Name == "TestMethod")
                 {
                     var className = unittest.Attributes?.GetNamedItem("className")?.Value;
                     var testMethodName = unittest.Attributes?.GetNamedItem("name")?.Value;
-                    result.ClassName = className;
-                    result.TestMethod = testMethodName;
+
                     if (!string.IsNullOrEmpty(testMethodName))
                     {
-                        testIdToTestNameMap[testId] = testMethodName;
-                    }
-                    else
-                    {
-                        Console.WriteLine($"Test method name is empty for test id {testId}.");
-                        continue;
-                    }
-
-                    if (!testDefinitions.ContainsKey(testMethodName))
-                    {
-                        testDefinitions[testMethodName] = result;
+                        testIdToTestInfoMap[testId] = (testMethodName, className);
                     }
                 }
             }
@@ -151,42 +131,50 @@ public class Program
                 continue;
             }
 
-            var testName = testIdToTestNameMap[testId];
-            var result = testDefinitions[testName];
+            (var testName, var className) = testIdToTestInfoMap[testId];
 
-            result.StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value;
-            result.EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value;
-            result.Duration = testResult.Attributes?.GetNamedItem("duration")?.Value;
-            var outCome = testResult.Attributes?.GetNamedItem("outcome")?.Value;
-            result.TotalRuns++;
-
-            if (outCome == "Failed")
+            var result = new TestResult
             {
-                foreach (XmlNode output in testResult.ChildNodes)
+                TestId = testId,
+                TestMethod = testName,
+                ClassName = className,
+                BuildId = buildId,
+                BuildNumber = buildNumber,
+                StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
+                EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
+            };
+
+            foreach (XmlNode childNode in testResult.ChildNodes)
+            {
+                if (childNode.Name == "Output")
                 {
-                    foreach (XmlNode element in output.ChildNodes)
+                    var stdOut = childNode.ChildNodes[0].InnerText;
+                    var jsonStartIndex = stdOut.IndexOf("{");
+                    var jsonString = stdOut.Substring(jsonStartIndex);
+                    var testResultObj = JsonSerializer.Deserialize<Dictionary<string, EvalsResult>>(jsonString);
+
+                    if (testResultObj == null)
                     {
-                        switch (element.Name)
-                        {
-                            // Output information is too large and cannot be sent to eventhub
-                            //case "StdOut":
-                            //    result.Output = element.InnerText;
-                            //    break;
-                            case "ErrorInfo":
-                                result.ErrorInfo.Add(element.InnerText);
-                                break;
-                        }
+                        Console.WriteLine($"Fail to parse test result {stdOut}");
+                        continue;
                     }
+
+                    var coherence = testResultObj[SreAgentCoherenceEvaluator.SreAgentCoherenceMetricName];
+                    var fluency = testResultObj[SreAgentFluencyEvaluator.SreAgentFluencyMetricName];
+                    var equivalence = testResultObj[SreAgentEquivalenceEvaluator.SreAgentEquivalenceMetricName];
+                    var groundedness = testResultObj[SreAgentGroundednessEvaluator.SreAgentGroundednessMetricName];
+                    result.CoherenceRating = coherence.Value;
+                    result.CoherenceReasoning = coherence.Reason;
+                    result.FluencyRating = fluency.Value;
+                    result.FluencyReasoning = fluency.Reason;
+                    result.EquivalenceRating = equivalence.Value;
+                    result.EquivalenceReasoning = equivalence.Reason;
+                    result.GroundednessRating = groundedness.Value;
+                    result.GroundednessReasoning = groundedness.Reason;
                 }
-
-                result.FailedRuns++;
-            }
-            else
-            {
-                result.PassedRuns++;
             }
 
-            testDefinitions[testName] = result;
+            testResults[testId] = result;
         }
 
         // Send to EventHub
@@ -201,7 +189,7 @@ public class Program
         // Create a batch of events
         using EventDataBatch eventData = await producerClient.CreateBatchAsync();
 
-        foreach (var testResult in testDefinitions)
+        foreach (var testResult in testResults)
         {
             var message = JsonSerializer.Serialize(testResult.Value);
             if (!eventData.TryAdd(new EventData(Encoding.UTF8.GetBytes(message))))
