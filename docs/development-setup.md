@@ -50,6 +50,8 @@ We use an internal NuGet source for packages. To set up:
    vsts-npm-auth -config src\Agent\Agent.Web\Client\.npmrc
    ```
 
+   *If this fails due to the error "Couldn't get an authentication token for ... /npm/registry", then delete your user-level .npmrc (%userprofile%\\.npmrc) and rerun the command.*
+
 ## Configuration Setup
 
 1. Project should automatically start with no additional configuration. Required settings should be pulled from the Azure App Config instance that was set up as part of the private environment deployment. For optional settings, copy appsettings.json to appsettings.development.json and add any settings you need. These settings will override any other settings.

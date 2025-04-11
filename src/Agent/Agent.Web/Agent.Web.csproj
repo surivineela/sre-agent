@@ -34,9 +34,9 @@
   <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
-  <!--<Target Name="BuildReactApp" BeforeTargets="Build">
+  <Target Name="BuildReactApp" BeforeTargets="Build">
     <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
     <Exec Command="npm install" WorkingDirectory="Client" />
     <Exec Command="npm run build" WorkingDirectory="Client" />
-  </Target>-->
+  </Target>
 </Project>
