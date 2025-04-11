@@ -324,6 +324,9 @@ builder.Services.AddControllersWithViews()
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
+// Add GraphService registration
+builder.Services.AddScoped<IGraphService, GraphService>();
+
 var app = builder.Build();
 
 var metricsService = app.Services.GetRequiredService<IGremlinMetricsService>();
