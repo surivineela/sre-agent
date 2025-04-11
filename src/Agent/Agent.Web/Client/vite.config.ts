@@ -8,6 +8,7 @@ export default defineConfig({
     outDir: '../wwwroot/react',
     emptyOutDir: true,
   },
+  publicDir: './src/assets',
   server: {
     watch: {
       usePolling: true,

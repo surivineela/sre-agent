@@ -1,6 +1,7 @@
 import { SelectTabData, Tab, TabList } from "@fluentui/react-components";
 import { FC, useState } from "react";
 import Activities from "./Activities/Activities.ReactView";
+import KnowledgeGraph from "./KnowledgeGraph/KnowledgeGraph";
 
 enum TabValues {
     Activities = "activities",
@@ -24,7 +25,7 @@ const SREAgentSpace: FC = () => {
             </TabList>
             <div>
                 {selectedValue === TabValues.Activities && <Activities />}
-                {selectedValue === TabValues.KnowledgeGraph && <></>}
+                {selectedValue === TabValues.KnowledgeGraph && <KnowledgeGraph />}
             </div>
         </div>
     )

@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useReducer, useState } from 'react';
 
 export type Subscription = {
     subscriptionId: string;
@@ -173,6 +173,24 @@ export const useGraph = () => {
     const [nodes, setNodes] = useState<GraphNode[]>([]);
     const [links, setLinks] = useState<GraphLink[]>([]);
 
+    const addNodes = useCallback((parentNode: GraphNode, nodes: GraphNodeObject[]) => {
+        dispatch({
+            type: 'ADD_NODES',
+            payload: {
+                parentNode: parentNode,
+                nodes: nodes
+            }
+        });
+    }, []);
+
+    const hideNode = useCallback((node: GraphNode) => {
+        dispatch({ type: 'HIDE_NODE', payload: { nodeToClick: node } });
+    }, []);
+
+    const showNode = useCallback((node: GraphNode) => {
+        dispatch({ type: 'SHOW_NODE', payload: { nodeToClick: node } });
+    }, []);
+
 
     useEffect(() => {
         setNodes(Array.from(graph.nodeMap.values()));
@@ -225,6 +243,9 @@ export const useGraph = () => {
     return {
         nodes,
         links,
-        isLoading: isLoading
+        isLoading: isLoading,
+        addNodes,
+        hideNode,
+        showNode,
     };
 };
