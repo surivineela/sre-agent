@@ -29,7 +29,7 @@ export const ThreadContentStyles = mergeStyleSets({
     fontWeight: 600,
     lineHeight: '22px',
     paddingBottom: '-10px',
-    fontSize: '15px',
+    fontSize: '18px',
   },
 });
 
@@ -38,7 +38,7 @@ export const useChatBoxStyles = makeStyles({
     backgroundColor: tokens.colorBrandBackground2, 
     color: tokens.colorNeutralForeground1,
     borderRadius: tokens.borderRadiusXLarge,
-    padding: "8px 12px",
+    padding: "0px 16px",
     maxWidth: "fit-content", 
     display: "inline-block", 
   },
@@ -55,7 +55,7 @@ export const ChatBoxStyles = mergeStyleSets({
     justifyContent: 'space-between',
     alignItems: 'stretch',
     height: 'calc(100vh - 114.023px)',
-    padding: '20px',
+    padding: '20px 0px 20px 20px',
     fontSize: '16px',
     backgroundColor: tokens.colorNeutralForegroundInverted,
     borderRadius: tokens.borderRadiusXLarge,
@@ -75,8 +75,12 @@ export const ChatBoxStyles = mergeStyleSets({
     wordBreak: 'normal',
     overflowWrap: 'anywhere',
     whiteSpace: 'normal',
+    fontSize: '16px',
+    lineHeight: '24px'
   },
   agentMessage: {
+    fontSize: '16px',
+    lineHeight: '24px',
     '.fai-CopilotMessage__content': {
       width: '90%',
     },
@@ -110,11 +114,13 @@ export const useChatInputStyles = () => {
     root: {
       flex: '0 0 auto',
       marginTop: '20px',
+      marginBottom: '20px'
     },
     textFieldContainer: {
       borderColor: colors.buttonBackgroundCheckedHovered,
       borderStyle: 'solid',
-      borderRadius: 8,
+      borderRadius: 3,
+      borderWidth: '2px',
       backgroundColor: colors.inputBackground,
       maxWidth: '1000px',
       margin: 'auto',
@@ -156,7 +162,7 @@ export const useThreadMenuStyle = () => {
   };
 
   const threadList: IStyle = {
-    maxWidth: '500px',
+    maxWidth: '300px',
     height: 'calc(100vh - 150px)',
     overflowX: 'hidden',
     overflowY: 'auto',
