@@ -9,6 +9,9 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using Action = Agent.Core.Models.Api.v1.Action;
 using System;
 using System.Threading;
+using Microsoft.AspNetCore.OData.Query;
+using Agent.Data.DataModels;
+using Gremlin.Net.Process.Traversal;
 
 namespace Agent.Data.Repositories
 {
@@ -40,23 +43,16 @@ namespace Agent.Data.Repositories
             return Task.FromResult(thread);
         }
 
-        public Task<IEnumerable<Thread>> GetThreadsAsync(string? filter = null, int? skip = null, int? take = null)
+        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions)
         {
-            IEnumerable<Thread> threads = _threads.Values;
+            IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
 
-            // Apply skip if specified
-            if (skip.HasValue)
+            if (queryOptions is not null)
             {
-                threads = threads.Skip(skip.Value);
+                threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
             }
 
-            // Apply take if specified
-            if (take.HasValue)
-            {
-                threads = threads.Take(take.Value);
-            }
-
-            return Task.FromResult(threads);
+            return Task.FromResult(threads.AsEnumerable());
         }
 
         public Task<Thread> CreateThreadAsync(Thread thread)
@@ -151,15 +147,20 @@ namespace Agent.Data.Repositories
             return Task.FromResult(message);
         }
 
-        public Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, string filter = null, int? skip = null, int? take = null)
+        public Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions)
         {
             var messages = _messages
                 .Where(kvp => kvp.Key.ThreadId == threadId)
                 .Select(kvp => kvp.Value)
                 .OrderBy(m => m.TimeStamp)
-                .AsEnumerable();
+                .AsQueryable();
 
-            return Task.FromResult(messages);
+            if (queryOptions is not null)
+            {
+                messages = queryOptions.ApplyTo(messages) as IQueryable<Message>;
+            }
+
+            return Task.FromResult(messages.AsEnumerable());
         }
 
         public Task<Message> AddMessageAsync(Guid threadId, Message message)
@@ -205,15 +206,20 @@ namespace Agent.Data.Repositories
             return Task.FromResult(messageFeedback);
         }
 
-        public Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, string filter = null, int? skip = null, int? take = null)
+        public Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, ODataQueryOptions? queryOptions)
         {
             var messageFeedbacks = _messageFeedbacks
                 .Where(kvp => kvp.Key.ThreadId == threadId)
                 .Select(kvp => kvp.Value)
                 .OrderBy(m => m.TimeStamp)
-                .AsEnumerable();
+                .AsQueryable();
 
-            return Task.FromResult(messageFeedbacks);
+            if (queryOptions is not null)
+            {
+                messageFeedbacks = queryOptions.ApplyTo(messageFeedbacks) as IQueryable<MessageFeedback>;
+            }
+
+            return Task.FromResult(messageFeedbacks.AsEnumerable());
         }
 
         public Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
@@ -242,23 +248,16 @@ namespace Agent.Data.Repositories
             return Task.FromResult(action);
         }
 
-        public Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null)
+        public Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(ODataQueryOptions? queryOptions)
         {
-            IEnumerable<ThreadContext> threadContexts = _threadContexts.Values;
+            var threadContexts = _threadContexts.Values.AsQueryable().OrderBy(tc => tc.ThreadId);
 
-            // Apply skip if specified
-            if (skip.HasValue)
+            if (queryOptions is not null)
             {
-                threadContexts = threadContexts.Skip(skip.Value);
+                threadContexts = queryOptions.ApplyTo(threadContexts) as IOrderedQueryable<ThreadContext>;
             }
 
-            // Apply take if specified
-            if (take.HasValue)
-            {
-                threadContexts = threadContexts.Take(take.Value);
-            }
-
-            return Task.FromResult(threadContexts);
+            return Task.FromResult(threadContexts.AsEnumerable());
         }
 
         public Task<ThreadContext> AddThreadContextAsync(ThreadContext context)
@@ -293,15 +292,20 @@ namespace Agent.Data.Repositories
 
         #region Action Operations
 
-        public Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null)
+        public Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, ODataQueryOptions? queryOptions)
         {
             var actions = _actions
                 .Where(kvp => kvp.Key.ThreadId == threadId)
                 .Select(kvp => kvp.Value)
                 .OrderByDescending(a => a.TimeStamp)
-                .AsEnumerable();
+                .AsQueryable();
 
-            return Task.FromResult(actions);
+            if (queryOptions is not null)
+            {
+                actions = queryOptions.ApplyTo(actions) as IQueryable<Action>;
+            }
+
+            return Task.FromResult(actions.AsEnumerable());
         }
 
         public Task<Action> AddActionAsync(Guid threadId, Action action)

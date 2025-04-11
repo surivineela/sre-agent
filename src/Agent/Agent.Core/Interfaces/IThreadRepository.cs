@@ -5,35 +5,36 @@
 using Agent.Core.Models.Api.v1;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace Agent.Core.Interfaces;
 
 public interface IThreadRepository
 {
     Task<Thread> GetThreadAsync(Guid threadId);
-    Task<IEnumerable<Thread>> GetThreadsAsync(string? filter = null, int? skip = null, int? take = null);
+    Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null);
     Task<Thread> CreateThreadAsync(Thread thread);
     Task<bool> DeleteThreadAsync(Guid threadId);
 
     Task<Thread> UpdateThreadTitleAsync(Guid threadId, string newTitle);
 
     Task<Message> GetMessageAsync(Guid threadId, Guid messageId);
-    Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, string? filter = null, int? skip = null, int? take = null);
+    Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
     Task<Message> AddMessageAsync(Guid threadId, Message message);
     Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId);
 
     Task<ThreadContext> GetThreadContextAsync(Guid threadId);
-    Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null);
+    Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(ODataQueryOptions? queryOptions = null);
     Task<ThreadContext> AddThreadContextAsync(ThreadContext context);
     Task<ThreadContext> UpdateThreadContextAsync(ThreadContext context);
     Task<bool> DeleteThreadContextAsync(Guid threadId);
 
-    Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null);
+    Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
     Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);
 
     Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
-    Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, string? filter = null, int? skip = null, int? take = null);
+    Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
     Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback);
     Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
 }

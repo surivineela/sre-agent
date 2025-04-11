@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Microsoft.DurableTask.Client;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 
 namespace Agent.Tests.Unit;
 
@@ -21,7 +22,7 @@ public class TestThreadService
     private readonly ILogger<InMemoryThreadOrchestrationManager> _mappingLogger;
     private readonly ILogger<ThreadService> _serviceLogger;
     private readonly ILogger<SinkService> _sinkLogger;
-    private readonly InmemoryThreadRepository _threadRepository;
+    private readonly IThreadRepository _threadRepository;
     private readonly InMemoryThreadOrchestrationManager _mappingManager;
     private readonly SinkService _sinkService;
     private readonly ThreadService _threadService;

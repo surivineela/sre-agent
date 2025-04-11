@@ -117,8 +117,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             if (string.IsNullOrEmpty(orchestrationInstanceId))
             {
-                var threadMessages = await _repository.GetMessagesAsync(message.ThreadId);
-
                 // No existing orchestration, create a new one
                 _logger.LogInformation("No existing orchestration for thread: {ThreadId}", message.ThreadId);
 

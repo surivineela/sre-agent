@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -10,6 +10,9 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
 using Agent.Core.Helpers;
+using System.Text.Json;
+using Microsoft.Rest.Azure.OData;
+using Agent.Data.DataModels;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -21,23 +24,16 @@ namespace Agent.Web.Controllers.v1
         IChatClient chatClient,
         ILogger<ThreadsController> logger) : ControllerBase
     {
+        // By default, returns threads ordered by timestamp in ascending order.
+        // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
+        // Example: /api/v1/threads?top=10&skip=10
+        // The order by can be overridden by using the `orderby` query option.
+        // Example: If one wants 10 latest threads, they can call /api/v1/threads?top=10&orderby=createdTimestamp+desc
+        // This pattern applies to all the endpoints that return a PagedResponse
         [HttpGet]
-        public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<Thread> queryOptions)
+        public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions)
         {
-            // Extract basic filtering from OData
-            string? filter = null;
-            int? skip = null;
-            int? take = null;
-
-            if (queryOptions.Skip != null)
-                skip = queryOptions.Skip.Value;
-
-            if (queryOptions.Top != null)
-                take = queryOptions.Top.Value;
-
-            // In a full implementation, you would parse queryOptions.Filter into a format 
-            // that your repository can understand
-            var threads = await repository.GetThreadsAsync(filter, skip, take);
+            var threads = await repository.GetThreadsAsync(queryOptions);
 
             // Apply OData filtering and pagination
             return Ok(new PagedResponse<Thread>(threads));
@@ -107,7 +103,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/messages")]
-        public async Task<ActionResult<PagedResponse<Message>>> GetMessages(Guid threadId, ODataQueryOptions<Message> queryOptions)
+        public async Task<ActionResult<PagedResponse<Message>>> GetMessages(Guid threadId, ODataQueryOptions<MessageDocument> queryOptions)
         {
             // First check if thread exists
             var thread = await repository.GetThreadAsync(threadId);
@@ -115,18 +111,7 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
-            // Extract basic filtering from OData
-            string? filter = null;
-            int? skip = null;
-            int? take = null;
-
-            if (queryOptions.Skip != null)
-                skip = queryOptions.Skip.Value;
-
-            if (queryOptions.Top != null)
-                take = queryOptions.Top.Value;
-
-            var messages = await repository.GetMessagesAsync(threadId, filter, skip, take);
+            var messages = await repository.GetMessagesAsync(threadId, queryOptions);
 
             return Ok(new PagedResponse<Message>(messages));
         }
@@ -217,7 +202,7 @@ namespace Agent.Web.Controllers.v1
         }
 
         [HttpGet("{threadId}/actions")]
-        public async Task<ActionResult<PagedResponse<Action>>> GetActions(Guid threadId, int? skip = null, int? top = null)
+        public async Task<ActionResult<PagedResponse<Action>>> GetActions(Guid threadId, ODataQueryOptions<ActionDocument> queryOptions)
         {
             // First check if thread exists
             var thread = await repository.GetThreadAsync(threadId);
@@ -225,7 +210,7 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
-            var actions = await repository.GetActionsAsync(threadId, skip, top);
+            var actions = await repository.GetActionsAsync(threadId, queryOptions);
 
             return Ok(new PagedResponse<Action>(actions));
         }

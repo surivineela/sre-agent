@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -7,6 +7,7 @@ using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
@@ -21,6 +22,16 @@ public class CosmosDbThreadRepository : IThreadRepository
 {
     private readonly Container _container;
     private readonly ILogger<CosmosDbThreadRepository> _logger;
+
+    // Set EnsureStableOrdering to false to avoid odata overwrites `order by` clause.
+    // Because when odata sees `top` and `skip` but `orderby` is not defined, it will implicitly overwrite existing `order by` to `order by id asc`
+    // to keep the order stable.
+    // We disable this to allow using our own `order by` clause for pagination.
+    // If `order by` is defined in odata query, it will overwrite our own `order by` clause.
+    // For example, to get oldest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10` to get the oldest 10 threads, because the default order is `order by timeStamp asc`.
+    // For example, to get latest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10&orderby=timeStamp+desc` to get the latest 10 threads.
+    // For pagination, we can use `top` and `skip` to get the next page of threads.
+    private static readonly ODataQuerySettings oDataQuerySettings = new(){ EnsureStableOrdering = false };
 
     public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, string containerName, ILogger<CosmosDbThreadRepository> logger)
     {
@@ -80,22 +91,19 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<IEnumerable<Thread>> GetThreadsAsync(string? filter = null, int? skip = null, int? take = null)
+    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptins)
     {
         var threads = new List<Thread>();
 
         // Query for thread documents
         var query = _container.GetItemLinqQueryable<ThreadDocument>()
-            .Where(t => t.DocumentType == "Thread");
+            .Where(t => t.DocumentType == "Thread")
+            .OrderBy(t => t.CreatedTimestamp);
 
-        // Apply OData filters here if needed
-        // This is a simplified example without full OData support
-
-        if (skip.HasValue)
-            query = query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = query.Take(take.Value);
+        if (queryOptins is not null)
+        {
+            query = queryOptins.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadDocument>;
+        }
 
         using var iterator = query.ToFeedIterator();
 
@@ -339,7 +347,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, string filter = null, int? skip = null, int? take = null)
+    public async Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions)
     {
         var messages = new List<Message>();
         string threadIdStr = threadId.ToString();
@@ -348,13 +356,13 @@ public class CosmosDbThreadRepository : IThreadRepository
             .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr)
             .OrderBy(m => m.TimeStamp);
 
-        // Apply OData filters here if needed
+        _logger.LogDebug("Query text before odata ApplyTo: {QueryText}", query.ToQueryDefinition().QueryText); // Log the query text
+        if (queryOptions is not null)
+        {
+            query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<MessageDocument>;
+        }
 
-        if (skip.HasValue)
-            query = (IOrderedQueryable<MessageDocument>)query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = (IOrderedQueryable<MessageDocument>)query.Take(take.Value);
+        _logger.LogDebug("Query text after odata ApplyTo: {QueryText}", query.ToQueryDefinition().QueryText); // Log the query text
 
         using var iterator = query.ToFeedIterator();
 
@@ -475,22 +483,19 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(string? filter = null, int? skip = null, int? take = null)
+    public async Task<IEnumerable<ThreadContext>> GetThreadContextsAsync(ODataQueryOptions? queryOptions)
     {
         var threads = new List<ThreadContext>();
 
         // Query for thread documents
         var query = _container.GetItemLinqQueryable<ThreadContextDocument>()
-            .Where(t => t.DocumentType == "ThreadContext");
+            .Where(t => t.DocumentType == "ThreadContext")
+            .OrderBy(t => t.Id); // to support pagination the order must be stable. There's no timestamp in the thread context document
 
-        // Apply OData filters here if needed
-        // This is a simplified example without full OData support
-
-        if (skip.HasValue)
-            query = query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = query.Take(take.Value);
+        if (queryOptions is not null)
+        {
+            query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadContextDocument>;
+        }
 
         using var iterator = query.ToFeedIterator();
 
@@ -556,7 +561,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #region Action Operations
 
-    public async Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, int? skip = null, int? take = null)
+    public async Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, ODataQueryOptions? queryOptions)
     {
         var actions = new List<Action>();
         string threadIdStr = threadId.ToString();
@@ -565,11 +570,10 @@ public class CosmosDbThreadRepository : IThreadRepository
             .Where(a => a.DocumentType == "Action" && a.ThreadId == threadIdStr)
             .OrderByDescending(a => a.TimeStamp);
 
-        if (skip.HasValue)
-            query = (IOrderedQueryable<ActionDocument>)query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = (IOrderedQueryable<ActionDocument>)query.Take(take.Value);
+        if (queryOptions is not null)
+        {
+            query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ActionDocument>;
+        }
 
         using var iterator = query.ToFeedIterator();
 
@@ -673,7 +677,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, string filter = null, int? skip = null, int? take = null)
+    public async Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, ODataQueryOptions? queryOptions)
     {
         var messageFeedbacks = new List<MessageFeedback>();
         string threadIdStr = threadId.ToString();
@@ -682,13 +686,10 @@ public class CosmosDbThreadRepository : IThreadRepository
             .Where(m => m.DocumentType == "MessageFeedback" && m.ThreadId == threadIdStr)
             .OrderBy(m => m.TimeStamp);
 
-        // Apply OData filters here if needed
-
-        if (skip.HasValue)
-            query = (IOrderedQueryable<MessageFeedbackDocument>)query.Skip(skip.Value);
-
-        if (take.HasValue)
-            query = (IOrderedQueryable<MessageFeedbackDocument>)query.Take(take.Value);
+        if (queryOptions is not null)
+        {
+            query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<MessageFeedbackDocument>;
+        }
 
         using var iterator = query.ToFeedIterator();
 
