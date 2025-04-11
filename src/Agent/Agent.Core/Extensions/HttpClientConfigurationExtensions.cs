@@ -32,6 +32,16 @@ namespace Agent.Core.Extensions
                 client.BaseAddress = new Uri(httpClientSvc.BaseUrl);
             });
         }
+
+        public static void AddCrawlerHttpClient(this IServiceCollection services)
+        {
+            services.AddHttpClient("Crawler").AddHttpMessageHandler(sp =>
+            {
+                var authSvc = sp.GetRequiredService<IAuthenticationService>();
+                var cred = authSvc.GetCrawlerCredential();
+                return new ArmHelperAccessTokenHandler(cred);
+            });
+        }
     }
 
     public class ArmHelperAccessTokenHandler : DelegatingHandler

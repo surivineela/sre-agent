@@ -4,7 +4,8 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Interfaces;
+using Agent.Graph.Services;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
@@ -49,7 +50,7 @@ public class TimerService : IHostedService, IDisposable
     }
 
     private readonly ILogger<TimerService> _logger;
-    private readonly ResourceGraphCrawler _crawler;
+    private readonly ICrawlerService _crawlerService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
@@ -62,7 +63,6 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
     private bool _crawlerFinishedOnce = false;
-    private int _crawlerTimerIntervalInSeconds = 30;
 
     private Timer? _bestPracticeTimer = null;
     private bool _bestPracticeTimerIsRunning = false;
@@ -86,7 +86,7 @@ public class TimerService : IHostedService, IDisposable
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     public TimerService(
-        ResourceGraphCrawler crawler,
+        ICrawlerService crawlerService,
         CrawlerSettings settings,
         TimerSettings timerSettings,
         BestPracticeScannerAgent bestPracticeScannerAgent,
@@ -100,7 +100,7 @@ public class TimerService : IHostedService, IDisposable
         )
     {
         _logger = logger;
-        _crawler = crawler;
+        _crawlerService = crawlerService;
         _settings = settings;
         _timerSettings = timerSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
@@ -187,21 +187,13 @@ public class TimerService : IHostedService, IDisposable
             {
                 _crawlerTimerIsRunning = true;
                 var roots = _settings.CrawlRoots.Split(",");
-                int count = await _crawler.Crawl(roots, cancellationToken: cancellationToken);
+                await _crawlerService.CrawlAsync(roots, cancellationToken: cancellationToken);
 
-                // Temp workaround for MVP demo
-                // the UAMI might not have permission when the agent is created
-                if (count > roots.Length)
+                if (!_crawlerFinishedOnce)
                 {
                     _crawlerFinishedOnce = true;
-                    if (_crawlerTimerIntervalInSeconds != _timerSettings.BackgroundCrawlIntervalInMinutes * 60)
-                    {
-                        _logger.LogInformation("Crawled resources. Set timer to normal interval");
-                        _crawlerTimerIntervalInSeconds = _timerSettings.BackgroundCrawlIntervalInMinutes * 60;
-                        _crawlerTimer?.Change(
-                            TimeSpan.FromSeconds(_crawlerTimerIntervalInSeconds),
-                            TimeSpan.FromSeconds(_crawlerTimerIntervalInSeconds));
-                    }
+                    _crawlerService.StartActivityLogCrawler(roots, cancellationToken);
+                    _logger.LogInformation("Started activity log crawler");
                 }
             }
             catch(Exception ex)
@@ -212,7 +204,7 @@ public class TimerService : IHostedService, IDisposable
             {
                 _crawlerTimerIsRunning = false; // Ensure flag resets even if CrawlAsync() fails
             }
-        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(_crawlerTimerIntervalInSeconds));
+        }, null, TimeSpan.Zero, TimeSpan.FromMinutes(_timerSettings.BackgroundCrawlIntervalInMinutes));
     }
 
     public void StartTlsTimer(CancellationToken cancellationToken)

@@ -3,7 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Interfaces;
 using Azure.Core;
 using k8s;
 using k8s.Models;

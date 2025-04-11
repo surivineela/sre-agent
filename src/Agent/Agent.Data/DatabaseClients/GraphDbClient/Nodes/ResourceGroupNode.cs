@@ -5,11 +5,12 @@
 namespace Agent.Data.DatabaseClients.GraphDbClient;
 public sealed class ResourceGroupNode : ArmResourceNode
 {
+    public const string Type = "resourcegroups";
 
     public ResourceGroupNode(
         string subscriptionId,
         string resoureGroupName,
-        string location = null) : base("resourcegroup", subscriptionId, resoureGroupName, location)
+        string location = null) : base(Type, subscriptionId, resoureGroupName, location)
     {
         ResourceName = resoureGroupName.ToLowerInvariant();
         ResourceId = $"/subscriptions/{SubscriptionId}/resourcegroups/{ResourceGroupName}";

@@ -6,6 +6,7 @@ using k8s.Models;
 using Microsoft.Extensions.Logging;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Interfaces;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 

@@ -2,6 +2,7 @@ using System.Linq;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Interfaces;
 using Azure.Core;
 using Azure.ResourceManager;
 using k8s;

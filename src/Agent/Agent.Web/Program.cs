@@ -10,25 +10,34 @@ using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Interfaces;
+using Agent.Graph.Services;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
+using Agent.Runtime.SubAgents.AppReliabilityAgent;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
+using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
 using Agent.Runtime.SubAgents.Core;
+using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
+using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
+using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
+using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
-using Agent.Runtime.SubAgents.AppReliabilityAgent;
 using Agent.Seb.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using Microsoft.Bot.Builder;
@@ -48,14 +57,6 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
-using Agent.Runtime.SubAgents.KubernetesAgent;
-using Agent.Core.Models;
-using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
-using Agent.Runtime.SubAgents.WebAppDownAgent;
-using Agent.Runtime.SubAgents.CPUAnalysisAgent;
-using Agent.Prometheus.Services;
-using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
-using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -98,11 +99,11 @@ builder.Host.UseSerilog();
     builder.Services.AddLogging();
 
     builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-    
+
 
     //Configure Azure App Insights settings
     builder.Services.Configure<AppInsightsSettings>(
-        builder.Configuration.GetSection("AppInsightsSettings")); 
+        builder.Configuration.GetSection("AppInsightsSettings"));
 
 
     // Register a default ConversationReference that can be injected into PostToTeamsPlugin
@@ -131,7 +132,7 @@ builder.Host.UseSerilog();
         .AddSingleton<AzureResourceGraphClient>()
         .AddSingleton<ArmHelper>()
         .AddSingleton<ArmResourceCrawlerFactory>()
-        .AddSingleton<ResourceGraphCrawler>()
+        .AddSingleton<ICrawlerService, ResourceGraphCrawlerService>()
         .AddSingleton<RemediationPluginDefinition>()
         .AddSingleton<IContainerImagePullFailurePlugin, ContainerImagePullFailurePlugin>()
         .AddSingleton<ContainerImagePullFailurePluginDefinition>()
@@ -148,7 +149,7 @@ builder.Host.UseSerilog();
         .AddSingleton<IGraphDbService, GraphDbService>()
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<AzureSupportCenterHelper>()
-        .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()        
+        .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()
         .AddSingleton<VmRdpInvestigatorAgentFactory>()
         .AddSingleton<VmRdpInvestigatorPlugin>()
         .AddSingleton<AppInsightsSettings>()
@@ -238,11 +239,13 @@ builder.Host.UseSerilog();
     builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
     builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
     builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
+    builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
 
     // Register HttpClientService and configure HttpClient with proper BaseAddress
     builder.Services.AddSingleton<HttpClientService>();
     builder.Services.AddArmHelperHttpClient();
     builder.Services.AddRazorHttpClient();
+    builder.Services.AddCrawlerHttpClient();
 
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()

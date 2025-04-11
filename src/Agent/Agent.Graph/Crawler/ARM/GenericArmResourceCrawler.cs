@@ -5,6 +5,7 @@
 using System.Net;
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Interfaces;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;

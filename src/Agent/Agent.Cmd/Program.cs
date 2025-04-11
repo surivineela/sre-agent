@@ -3,10 +3,13 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Interfaces;
+using Agent.Graph.Services;
 using Agent.Runtime;
 using Microsoft.Extensions.CommandLineUtils;
 using Microsoft.Extensions.DependencyInjection;
@@ -31,7 +34,8 @@ namespace Agent.Cmd
             builder.Services.AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>();
             builder.Services.AddSingleton<ArmResourceCrawlerFactory>();
             builder.Services.AddSingleton<AzureResourceGraphClient>();
-            builder.Services.AddSingleton<ResourceGraphCrawler>();
+            builder.Services.AddSingleton<ICrawlerService, ResourceGraphCrawlerService>();
+            builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
             builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
             builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>();
             builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
@@ -39,6 +43,8 @@ namespace Agent.Cmd
 
             builder.Services.AddSingleton<CrawlerCommand>();
             builder.Services.AddSingleton<GraphCommand>();
+
+            builder.Services.AddCrawlerHttpClient();
 
             var host = builder.Build();
             CommandLineApplication commandLineApplication = new(throwOnUnexpectedArg: true);
@@ -50,11 +56,12 @@ namespace Agent.Cmd
                     var cmd = host.Services.GetRequiredService<CrawlerCommand>();
                     cmd.CrawlResourceId(command);
                 });
-            commandLineApplication.Command("CleanUp",
+
+            commandLineApplication.Command("CrawlActivityLog",
                 (command) =>
                 {
                     var cmd = host.Services.GetRequiredService<CrawlerCommand>();
-                    cmd.CleanUp(command);
+                    cmd.CrawlFromActivityLog(command);
                 });
 
             commandLineApplication.Command("ExportGraph",

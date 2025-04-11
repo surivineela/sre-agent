@@ -5,10 +5,11 @@
 namespace Agent.Data.DatabaseClients.GraphDbClient;
 public sealed class SubscriptionNode : ArmResourceNode
 {
+    public const string Type = "subscriptions";
     public string? SubscriptionName;
 
     public SubscriptionNode(string subscriptionId)
-        : base("subscription", subscriptionId)
+        : base(Type, subscriptionId)
     {
         ResourceName = subscriptionId.ToLowerInvariant();
         ResourceId = $"/subscriptions/{SubscriptionId}";

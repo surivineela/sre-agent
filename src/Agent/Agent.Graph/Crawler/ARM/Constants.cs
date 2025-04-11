@@ -2,12 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.GraphDbClient;
+
 namespace Agent.Graph.Crawler.ARM;
 
 public class Constants
 {
-    public const string SubscriptionType = "Subscription";
-    public const string ResourceGroupType = "ResourceGroup";
+    public const string SubscriptionType = SubscriptionNode.Type;
+    public const string ResourceGroupType = ResourceGroupNode.Type;
     public const string ContainerAppType = "Microsoft.App/containerApps";
     public const string ContainerAppEnvironmentType = "Microsoft.App/managedEnvironments";
     public const string VirtualNetworkType = "Microsoft.Network/virtualNetworks";
