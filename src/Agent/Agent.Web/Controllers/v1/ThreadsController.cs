@@ -10,12 +10,21 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
 using Agent.Core.Helpers;
-using System.Text.Json;
-using Microsoft.Rest.Azure.OData;
+using System.ComponentModel.DataAnnotations;
+using System.Text;
 using Agent.Data.DataModels;
 
 namespace Agent.Web.Controllers.v1
 {
+    public record IncidentCallbackRequest(
+        [Required] string Title,
+        [Required] string Description,
+        string? IncidentId,
+        string? Severity,
+        string? Source,  // e.g. "PagerDuty", "ICM"
+        Dictionary<string, string>? AdditionalProperties
+    );
+
     [ApiController]
     [Route("api/v1/[controller]")]
     public class ThreadsController(
@@ -35,7 +44,6 @@ namespace Agent.Web.Controllers.v1
         {
             var threads = await repository.GetThreadsAsync(queryOptions);
 
-            // Apply OData filtering and pagination
             return Ok(new PagedResponse<Thread>(threads));
         }
 
@@ -75,9 +83,10 @@ namespace Agent.Web.Controllers.v1
                 Id: threadId,
                 Title: temporaryTitle,
                 StartMessage: message,
-                LastMessage: message, // when the thread is first created the start message is the last message
+                LastMessage: message,
                 CreatedTimestamp: DateTime.UtcNow,
-                ModifiedTimestamp: DateTime.UtcNow
+                ModifiedTimestamp: DateTime.UtcNow,
+                Source: request.Source ?? ThreadSource.Conversation
             );
 
             thread = await repository.CreateThreadAsync(thread);
@@ -226,6 +235,63 @@ namespace Agent.Web.Controllers.v1
             await repository.DeleteThreadAsync(threadId);
 
             return NoContent();
+        }
+
+        [HttpPost("incidents")]
+        public async Task<ActionResult<Thread>> CreateIncidentThread([FromBody] IncidentCallbackRequest request)
+        {
+            if (!ModelState.IsValid)
+                return BadRequest(ModelState);
+
+            var messageBuilder = new StringBuilder();
+            messageBuilder.AppendLine($"🚨 **New Incident Reported**");
+            messageBuilder.AppendLine();
+            messageBuilder.AppendLine($"**Title:** {request.Title}");
+            messageBuilder.AppendLine();
+            messageBuilder.AppendLine($"**Description:** {request.Description}");
+            
+            if (!string.IsNullOrEmpty(request.IncidentId))
+            {
+                messageBuilder.AppendLine($"**Incident ID:** {request.IncidentId}");
+            }
+            
+            if (!string.IsNullOrEmpty(request.Severity))
+            {
+                messageBuilder.AppendLine($"**Severity:** {request.Severity}");
+            }
+            
+            if (!string.IsNullOrEmpty(request.Source))
+            {
+                messageBuilder.AppendLine($"**Source:** {request.Source}");
+            }
+
+            if (request.AdditionalProperties?.Count > 0)
+            {
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("**Additional Details:**");
+                foreach (var prop in request.AdditionalProperties)
+                {
+                    messageBuilder.AppendLine($"- {prop.Key}: {prop.Value}");
+                }
+            }
+
+            var thread = await agentInboundCommunicationService.CreateAlertThreadWithTeams(
+                title: request.Title,
+                message: messageBuilder.ToString(),
+                agentTypeEnum: AgentTypeEnum.MetaAgent,
+                source: ThreadSource.Incident
+            );
+
+            await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+                ThreadId: thread.Id,
+                MessageId: thread.StartMessage.Id,
+                Message: messageBuilder.ToString(),
+                UserId: "incident-system", // TODO: distinguish between pager duty and icm or any other tool
+                DisplayName: request.Source ?? "Incident System",
+                Timestamp: DateTime.UtcNow
+            ));
+
+            return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
         }
     }
 }

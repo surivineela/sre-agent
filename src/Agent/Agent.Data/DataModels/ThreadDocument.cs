@@ -15,7 +15,7 @@ public record ThreadDocument(
     string LastMessageId, // Reference to the last message
     DateTime CreatedTimestamp,
     DateTime ModifiedTimestamp,
-    ThreadSource Source = ThreadSource.Portal
+    ThreadSource Source = ThreadSource.Conversation
 ) : ICosmosDocument
 {
 

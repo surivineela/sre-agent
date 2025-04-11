@@ -17,13 +17,21 @@ public interface IAgentInboundCommunicationService
     /// </summary>
     /// <param name="title"></param>
     /// <returns></returns>
-    Task<(Models.Api.v1.Thread, Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message, AgentTypeEnum agentTypeEnum);
+    Task<(Models.Api.v1.Thread, Models.Api.v1.ThreadContext)> CreateAgentThread(
+        string title, 
+        string message, 
+        AgentTypeEnum agentTypeEnum,
+        ThreadSource source = ThreadSource.Conversation);
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,
     /// and trigger teams to notify the engineer as well
     /// </summary>
-    Task<Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message, AgentTypeEnum agentTypeEnum);
+    Task<Models.Api.v1.Thread> CreateAlertThreadWithTeams(
+        string title, 
+        string message, 
+        AgentTypeEnum agentTypeEnum,
+        ThreadSource source = ThreadSource.Alert);
 
     /// <summary>
     /// Processes a thread that has been created for an alert, and starts the orchestration

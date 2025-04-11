@@ -54,14 +54,22 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _graphDbPlugin = graphDBPlugin;
     }
 
-    public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(string title, string message, AgentTypeEnum agentTypeEnum)
+    public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
+        string title, 
+        string message, 
+        AgentTypeEnum agentTypeEnum,
+        ThreadSource source = ThreadSource.Agent)
     {
-        return await CreateThread(title, message, ThreadSource.Agent, agentTypeEnum);
+        return await CreateThread(title, message, source, agentTypeEnum);
     }
 
-    public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(string title, string message, AgentTypeEnum agentTypeEnum)
+    public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
+        string title, 
+        string message, 
+        AgentTypeEnum agentTypeEnum,
+        ThreadSource source = ThreadSource.Alert)
     {
-        (var thread, var threadContext) = await CreateThread(title, message, ThreadSource.Alert, agentTypeEnum);
+        (var thread, var threadContext) = await CreateThread(title, message, source, agentTypeEnum);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -191,27 +199,30 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(string title, string message, ThreadSource source, AgentTypeEnum agentTypeEnum)
+    private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(
+        string title, 
+        string message, 
+        ThreadSource source, 
+        AgentTypeEnum agentTypeEnum)
     {
         var now = DateTime.UtcNow;
-        var startMessage = new Message
-            (
-                Guid.NewGuid(),
-                now,
-                new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
-                message,
-                false,
-                new Posted(false)
-            );
-        var thread = new Core.Models.Api.v1.Thread
-        (
+        var startMessage = new Message(
+            Guid.NewGuid(),
+            now,
+            new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
+            message,
+            false,
+            new Posted(false)
+        );
+        
+        var thread = new Core.Models.Api.v1.Thread(
             Id: Guid.NewGuid(),
             Title: title,
-            startMessage,
-            startMessage, // when the thread is first created the start message is the last message
-            now,
-            now,
-            source
+            StartMessage: startMessage,
+            LastMessage: startMessage,
+            CreatedTimestamp: now,
+            ModifiedTimestamp: now,
+            Source: source
         );
 
         // TODO - how should we share implementation with process user message and make sure fan out occurs?
