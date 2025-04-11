@@ -37,6 +37,7 @@ using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
+using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
@@ -153,6 +154,9 @@ builder.Host.UseSerilog();
         .AddSingleton<VmRdpInvestigatorAgentFactory>()
         .AddSingleton<VmRdpInvestigatorPlugin>()
         .AddSingleton<AppInsightsSettings>()
+        .AddSingleton<FunctionAppConnectivityAgentFactory>()
+        .AddSingleton<FunctionAppConnectivityPlugin>()
+
         .AddTransient<ContainerAppsRemediationPlugin>()
         .AddTransient<ManagedIdentityMigrationPlugin>()
         .AddTransient<TlsBestPracticesPlugin>()

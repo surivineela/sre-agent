@@ -16,6 +16,8 @@ namespace Agent.Plugins
         Task<string> GetArmResourceAsJson(string resourceId);
         Task<RemediationResult> PowerOnVirtualMachine(string resourceId);
         Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId);
+        Task<string> CheckConnectivity(string resourceId, string source, string destination, string destinationPort);
+        Task<string> CheckTcpConnectivity(string resourceId, string host, int port);
     }
 }
 

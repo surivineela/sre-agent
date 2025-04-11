@@ -73,6 +73,7 @@ Before initiating any Azure resource operations:
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
 - **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
 - **Web App Down**: Help users mitigate and resolve any issues with Web App Services being slow or having downtime.
+- **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.
@@ -134,6 +135,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly VmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
     private readonly ContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
     private readonly WebAppDownPlugin _webAppDownPlugin;
+    private readonly FunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
@@ -158,7 +160,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         SourceCodePlugin sourceCodePlugin,
         IServiceProvider serviceProvider,
         VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
-        ContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin
+        ContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
+        FunctionAppConnectivityPlugin functionAppConnectivityPlugin
         )
     {
         _chatClient = chatClient;
@@ -187,6 +190,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _appReliabilityPlugin = appReliabilityPlugin;
         _webAppDownPlugin = webAppDownPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
+        _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
     }
 
     public async Task<string> ProcessUserMessage(ThreadContext ctx)
@@ -209,6 +213,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _webAppDownPlugin.Context = ctx;
         _vmRdpInvestigatorPlugin.Context = ctx;
         _containerImageTroubleshooterPlugin.Context = ctx;
+        _functionAppConnectivityPlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.Context = ctx;
@@ -259,7 +264,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
             AIFunctionFactory.Create(_webAppDownPlugin.ListWebAppDownWorkflows),
-            AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent)
+            AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent),
+            AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent)
         ];
 
         // Get all instances of background-scanning subagents and register their methods

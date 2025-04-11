@@ -83,6 +83,7 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => armPluginDefinition.GetArmResourceAsJson);
         Register200(() => armPluginDefinition.PowerOnVirtualMachine);
         Register200(() => armPluginDefinition.GetVirtualMachineBootDiagnostics);
+        Register200(() => armPluginDefinition.CheckTcpConnectivity);
 
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
         Register200(() => timePluginDefinition.GetCurrentUtcTime);

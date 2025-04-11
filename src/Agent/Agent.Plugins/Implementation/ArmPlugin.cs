@@ -108,6 +108,16 @@ namespace Agent.Plugins.Implementation
             var bootDiagnosticLogs = await _armHelper.GetVirtualMachineBootDiagnosticsAsync(resourceId);
             return bootDiagnosticLogs;
         }
+
+        public async Task<string> CheckConnectivity(string resourceId, string source, string destination, string destinationPort)
+        {
+            return await _armHelper.CheckConnectivity(resourceId, source, destination, destinationPort);
+        }
+
+        public async Task<string> CheckTcpConnectivity(string resourceId, string host, int port)
+        {
+            return await _armHelper.CheckTcpConnectivityAsync(resourceId, host, port);
+        }
     }
 }
 

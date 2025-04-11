@@ -1088,6 +1088,59 @@ public class ArmHelper
     
 
 
+
+    public async Task<string> CheckConnectivity(string resourceId, string source, string destination, string destinationPort)
+    {
+        // var armClient = _armClientFactory.GetArmClient();
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(CheckConnectivity));
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/connectivityCheck");
+
+        var payload = new Dictionary<string, string>() {
+            {"source", source},
+            {"destination", Newtonsoft.Json.JsonConvert.SerializeObject(new Dictionary<string, string>()
+                {
+                    {"address", destination },
+                    {"port", destinationPort }
+                })
+            }
+        };
+        request.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
+
+        var connectivityCheckResult = await httpClient.SendAsync(request);
+        if (connectivityCheckResult.IsSuccessStatusCode)
+        {
+            return connectivityCheckResult.ToString();
+        }
+
+        return string.Empty;
+    }
+
+    public async Task<string> CheckTcpConnectivityAsync(string resourceId, string host, int port)
+    {
+        // var armClient = _armClientFactory.GetArmClient();
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(CheckTcpConnectivityAsync));
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/tcpPingCheck?api-version=2022-03-01");
+
+        var payload = new
+        {
+            host = host,
+            port = port
+        };
+        request.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+        var tcpConnectivityCheckResult = await httpClient.SendAsync(request);
+        if (tcpConnectivityCheckResult.IsSuccessStatusCode) 
+        {
+            return tcpConnectivityCheckResult.ToString();
+        }
+
+        return "TCP connectivity check failed";
+    }
+
     #region Private Methods
 
     private async Task<List<T>> GetResourceSettings<T>(
