@@ -32,6 +32,7 @@ export interface IChatBoxProps {
 export interface IChatMessageProps {
   message: Message;
   isTyping?: boolean;
+  threadId: string;
 }
 
 export interface IChatProps {

@@ -1,4 +1,4 @@
-import { memo, useCallback, useMemo } from 'react';
+import { memo, useCallback, useMemo, useState } from 'react';
 import { IChatMessageProps } from '../Contracts/Activities';
 import {
   CopilotMessageV2 as CopilotMessage,
@@ -8,9 +8,13 @@ import {
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 import ReactMarkdown from 'react-markdown';
 import { Activities } from '../../Strings/SREResources.resjson';
+import { sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
 
-const ChatMessage = ({ message, isTyping }: IChatMessageProps) => {
+const ChatMessage = ({ message, isTyping, threadId }: IChatMessageProps) => {
   const chatStyles = useChatBoxStyles();
+  const [showFeedbackPopup, setShowFeedbackPopup] = useState(false); // State to control popup visibility
+  const [feedbackText, setFeedbackText] = useState(''); // State to store feedback text
+  const [isPositiveFeedback, setIsPositiveFeedback] = useState<boolean | null>(null); // State to store thumbs-up/down info
 
   const agentMessageProps = useMemo(() => {
     const messageProps: CopilotMessageProps = {
@@ -46,6 +50,22 @@ const ChatMessage = ({ message, isTyping }: IChatMessageProps) => {
     );
   }, []);
 
+  const handleFeedbackClick = (isPositive: boolean) => {
+    setIsPositiveFeedback(isPositive); // Set thumbs-up or thumbs-down
+    setShowFeedbackPopup(true); // Show the feedback popup
+  };
+
+  const handleFeedbackSubmit = async () => {
+    try {
+      await sendMessageFeedback(threadId, isPositiveFeedback!, feedbackText); // Send feedback to the API
+      console.log(`Feedback sent for message ID: ${message.id}, isPositive: ${isPositiveFeedback}, feedbackText: ${feedbackText}`);
+      setShowFeedbackPopup(false); // Hide the popup
+      setFeedbackText(''); // Clear the feedback text
+    } catch (error) {
+      console.error(`Failed to send feedback for message ID: ${message.id}`, error);
+    }
+  };
+
   switch (message.author.role) {
     case 'SREAgent':
       return (
@@ -56,12 +76,101 @@ const ChatMessage = ({ message, isTyping }: IChatMessageProps) => {
           className={ChatBoxStyles.agentMessage}
         >
           <ReactMarkdown components={{ a: aLinkRenderer }}>{message.text}</ReactMarkdown>
+          {!isTyping && ( // Only show buttons when the agent is not typing
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+              <button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  marginRight: '8px',
+                  color: '#0078D4',
+                }}
+                onClick={() => handleFeedbackClick(true)} // Thumbs up
+              >
+                👍
+              </button>
+              <button
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#0078D4',
+                }}
+                onClick={() => handleFeedbackClick(false)} // Thumbs down
+              >
+                👎
+              </button>
+            </div>
+          )}
+          {showFeedbackPopup && (
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '10px',
+                right: '10px',
+                backgroundColor: 'white',
+                color: 'black',
+                padding: '16px',
+                borderRadius: '8px',
+                boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                zIndex: 1000,
+                width: '300px',
+              }}
+            >
+              <h4>Thank you for your feedback!</h4>
+              <textarea
+                style={{
+                  width: '100%',
+                  height: '60px',
+                  marginTop: '8px',
+                  padding: '8px',
+                  borderRadius: '4px',
+                  border: '1px solid #ccc',
+                }}
+                placeholder="Enter your feedback here..."
+                value={feedbackText}
+                onChange={(e) => setFeedbackText(e.target.value)}
+              />
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button
+                  style={{
+                    backgroundColor: '#0078D4',
+                    color: 'white',
+                    border: 'none',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    marginRight: '8px',
+                  }}
+                  onClick={handleFeedbackSubmit}
+                >
+                  Submit
+                </button>
+                <button
+                  style={{
+                    backgroundColor: '#ccc',
+                    color: 'black',
+                    border: 'none',
+                    padding: '8px 12px',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                  onClick={() => setShowFeedbackPopup(false)}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          )}
         </CopilotMessage>
       );
     default:
       return (
         <div className={ChatBoxStyles.userMessage} key={message.id}>
-          <UserMessage className={chatStyles.userBubble} key={message.id}>{message.text}</UserMessage>
+          <UserMessage className={chatStyles.userBubble} key={message.id}>
+            {message.text}
+          </UserMessage>
         </div>
       );
   }

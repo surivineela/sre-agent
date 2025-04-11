@@ -25,10 +25,10 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
         <CopilotChat className={ChatBoxStyles.chat}>
           {shouldLoadHistory && <ChatLoading />}
           {messages.map((message, index) => (
-            <ChatMessage key={index} message={message} />
+            <ChatMessage key={index} message={message} threadId={threadId || ''} />
           ))}
-          {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} />}
-          {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping />}
+          {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={threadId || ''} />}
+          {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={threadId || ''} />}
         </CopilotChat>
       </div>
       <Input sendMessage={sendMessage} disableInput={disableInput} />

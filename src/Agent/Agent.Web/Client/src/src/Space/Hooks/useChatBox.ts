@@ -26,7 +26,15 @@ const sendMessage = async (threadId: string, message: string) => {
     userId: userId,
   });
 };
-                         
+
+const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
+  const url = `../api/v1/threads/${threadId}/feedbacks`;
+  await axios.post(url, {
+    isPositive: isPositive,
+    feedbackText: feedbackText
+  });
+};
+
 const createThread = async (message: string) => {
   const { userId, displayName } = user;
   const url = `../api/v1/threads`;
@@ -72,7 +80,7 @@ const composeAgentTypingMessage = (): Message => {
   };
 };
 
-export const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
+const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
   const [shouldLoadHistory, setShouldLoadHistory] = useState<boolean>(true);
@@ -91,7 +99,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
   const sendMessageHandler = useCallback(
     async (message: string) => {
-     
+
           setPausePolling(true);
           setTemporaryUserMessage(composeTemporaryUserMessage(message));
           setAgentTypingMessage(composeAgentTypingMessage());
@@ -203,4 +211,9 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     sendMessage: sendMessageHandler,
     disableInput,
   };
+};
+
+export {
+  sendMessageFeedback,
+  useChatBox,
 };
