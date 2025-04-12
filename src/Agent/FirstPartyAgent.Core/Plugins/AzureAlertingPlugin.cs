@@ -25,9 +25,23 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly Kernel _kernel;
         private ITeamsClient _teamsClient;
         private IKustoPlugin _kustoPlugin;
+        private ISessionMessageService _sessionMessageService;
+        private ICosmosDBService _cosmosDBService;
         private readonly bool ICMBacktestingModeEnabled = false;
+        private const string hotsiteAgentConfigCosmosDb = "HotsiteAgent";
+        private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
 
-        public AzureAlertingPlugin(ICMWorkflowSettings icmWorkflowSettings, IStorageService storageService, AzureAlertingClient azureAlertingClient, ILogger<AzureAlertingPlugin> logger, ICMPlugin icmPlugin, Kernel kernel, ITeamsClient teamsClient, IKustoPlugin kustoPlugin)
+        public AzureAlertingPlugin(
+            ICMWorkflowSettings icmWorkflowSettings,
+            IStorageService storageService,
+            AzureAlertingClient azureAlertingClient,
+            ILogger<AzureAlertingPlugin> logger,
+            ICMPlugin icmPlugin,
+            Kernel kernel,
+            ITeamsClient teamsClient,
+            IKustoPlugin kustoPlugin,
+            ISessionMessageService sessionMessageService,
+            ICosmosDBService cosmosDBService)
         {
             ICMBacktestingModeEnabled = icmWorkflowSettings.ICMBacktestingModeEnabled;
             _logger = logger;
@@ -37,31 +51,28 @@ namespace FirstPartyAgent.Core.Plugins
             _kernel = kernel;
             _teamsClient = teamsClient;
             _kustoPlugin = kustoPlugin;
+            _sessionMessageService = sessionMessageService;
+            _cosmosDBService = cosmosDBService;
         }
 
-        private async Task<AlertDetails> GetAzureAlertingDetailsById(
+        private async Task<AlertDetailsBase> GetAzureAlertingDetailsById(
             string azureAlertingId)
         {
             _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. azureAlertingId: {azureAlertingId}");
 
             // First check in local folder
-            if (!_storageService.IsEnabled)
+            if (!_storageService.IsEnabled && !_cosmosDBService.IsEnabled)
             {
                 try
                 {
                     _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from local folder. azureAlertingId: {azureAlertingId}");
                     //Read from local folder called AlertDetails
-                    var folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "AlertDetails");
-                    if (!Directory.Exists(folderPath))
-                    {
-                        Directory.CreateDirectory(folderPath);
-                    }
-                    var filePath = Path.Combine(folderPath, $"{azureAlertingId}.json");
+                    var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "AzureAlertDetails.json");
                     if (File.Exists(filePath))
                     {
                         var fileContent = File.ReadAllText(filePath);
-                        var alertDetails = JsonConvert.DeserializeObject<AlertDetails>(fileContent);
-                        return alertDetails;
+                        var alertDetails = JsonConvert.DeserializeObject<List<AlertDetailsBase>>(fileContent);
+                        return alertDetails.Where(a => a.Id.ToString() == azureAlertingId).FirstOrDefault();
                     }
                     else
                     {
@@ -74,6 +85,25 @@ namespace FirstPartyAgent.Core.Plugins
                 }
             }
 
+            if (_cosmosDBService.IsEnabled)
+            {
+                _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from CosmosDB. azureAlertingId: {azureAlertingId}");
+                try
+                {
+                    var alertDetails = await _cosmosDBService.GetQueryableContainer<AlertDetailsBase>(hotsiteAgentConfigCosmosDb,hotsiteAgentAlertDetailsCosmosDbContainer)
+                        .Where(a => a.Id.ToString() == azureAlertingId)
+                        .ToListAsync();
+                    if (alertDetails != null && alertDetails.Count > 0)
+                    {
+                        return alertDetails.FirstOrDefault();
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError($"Error reading alert details from CosmosDB: {ex.Message}");
+                }
+            }
+
             // If not found in local folder, check in storage
             if (_storageService.IsEnabled)
             {
@@ -81,7 +111,7 @@ namespace FirstPartyAgent.Core.Plugins
                 {
                     _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from Storage. azureAlertingId: {azureAlertingId}");
                     var fileContent = await _storageService.ReadFileFromStorage("alertdetails", $"{azureAlertingId}.json");
-                    var alertDetails = JsonConvert.DeserializeObject<AlertDetails>(fileContent);
+                    var alertDetails = JsonConvert.DeserializeObject<AlertDetailsBase>(fileContent);
                     return alertDetails;
                 }
                 catch (Exception ex)
@@ -120,7 +150,8 @@ namespace FirstPartyAgent.Core.Plugins
             Kernel kernel)
         {
             var logMessage = $"[run_alert_kusto_query][{DateTime.UtcNow}] Invoked with ICMBacktestingModeEnabled: {ICMBacktestingModeEnabled}, impactStartDate: {impactStartDate}, monitoringIterationNumber: {monitoringIterationNumber},  monitoringGapInSeconds: {monitoringGapInSeconds}, correlationId: {correlationId}, alertId: {alertId}, clusterName: {clusterName}, databaseName: {databaseName}.";
-            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
             DateTime? nowOverride = null;
             if (ICMBacktestingModeEnabled)
             {
@@ -128,7 +159,7 @@ namespace FirstPartyAgent.Core.Plugins
                 nowOverride = nowOverride?.AddSeconds(monitoringIterationNumber * monitoringGapInSeconds);
             }
             var alertDetails = await GetAzureAlertingDetailsById(alertId);
-            var alertConfig = AgentFinder.GetICMAlertConfig(alertId);
+            var alertConfig = alertId == customAlertConfig?.AlertingId ? customAlertConfig : await AgentFinder.GetICMAlertConfigAsync(alertId);
             if (alertDetails != null)
             {
                 var kustoQuery = alertDetails.PrimaryKustoQuery.KustoQuery;
@@ -151,17 +182,20 @@ namespace FirstPartyAgent.Core.Plugins
             Kernel kernel)
         {
             var logMessage = $"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Invoked with incidentId: {incidentId}.";
-            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            string sessionId = kernel.Data.TryGetValue("sessionId", out object id) ? (string)id : null;
+            var customAlertConfig = kernel.Data.TryGetValue("customAlertConfig", out object customAlertConfigObj) ? (ICMAlertConfig)customAlertConfigObj : null;
+
             var incidentDetails = await _icmPlugin.GetIncidentInfo(incidentId, _kernel);
             _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details. incidentId: {incidentId}, incidenTtile: {incidentDetails.Title}, owningTeam: {incidentDetails.OwningTeam}, monitoringRole: {incidentDetails.MonitoringRole}, monitoringSlice: {incidentDetails.MonitoringSlice}");
             //match incident details with existing alert configs
-            if (incidentDetails.MonitoringRole == "AzureAlerting")
+            if (incidentDetails.MonitoringRole == "AzureAlerting" || incidentDetails.CreatedBy == "AzureAlerting")
             {
                 try
                 {
-                    var alertId = incidentDetails.MonitoringSlice;
-                    await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Fetching alert details for Azure Alerting Id: {alertId}", _logger, _teamsClient);
-                    var alertConfig = AgentFinder.GetICMAlertConfig(alertId);
+                    string alertId = incidentDetails.MonitoringSlice;
+                    await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Fetching alert details for Azure Alerting Id: {alertId}", _logger, _teamsClient, _sessionMessageService);
+                    var alertConfig = alertId == customAlertConfig?.AlertingId ? customAlertConfig : await AgentFinder.GetICMAlertConfigAsync(alertId);
                     if (alertConfig == null) alertConfig = new ICMAlertConfig() { AlertingId = alertId };
                     var alertDetails = await GetAzureAlertingDetailsById(alertId);
 
@@ -180,8 +214,8 @@ namespace FirstPartyAgent.Core.Plugins
             else
             {
                 await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] AzureAlertingPlugin: This Incident is not from Azure Alerting, finding configuration based on other fields."
-                    , _logger, _teamsClient);
-                var alertConfigs = AgentFinder.GetICMAlertConfigs();
+                    , _logger, _teamsClient, _sessionMessageService);
+                var alertConfigs = await AgentFinder.GetICMAlertConfigsAsync();
                 foreach (var alertId in alertConfigs.Keys)
                 {
                     var alertConfig = alertConfigs[alertId];

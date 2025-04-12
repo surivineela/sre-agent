@@ -72,6 +72,17 @@ namespace FirstPartyAgent.Core.Extensions
                 }
                 return new StorageService(storageAccountSettings);
             });
+
+
+            var config = services.BuildServiceProvider().GetRequiredService<IConfiguration>();
+            if (!string.IsNullOrWhiteSpace(config["AppSettings:Core:External:CosmosDB:AccountUrl"]))
+            {
+                services.AddSingleton<ICosmosDBService, CosmosDBService>();
+            }
+            else
+            {
+                services.AddSingleton<ICosmosDBService, CosmosDBServiceDisabled>();
+            }
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)

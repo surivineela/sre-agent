@@ -18,15 +18,29 @@ namespace FirstPartyAgent.FunctionApp
         private readonly ILogger<ApiController> _logger;
         private readonly IChatService _chatService;
         private readonly IAlertProcessingService _alertProcessingService;
+        private readonly ISessionMessageService _sessionMessageService;
         private readonly IStorageService _storageService;
+        private readonly ICosmosDBService _cosmosDBService;
+        private readonly ICMWorkflowClient _icmWorkflowClient;
+        private const string hotsiteAgentConfigCosmosDb = "HotsiteAgent";
+        private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
 
-        public ApiController(ILogger<ApiController> logger, IChatService chatService, IStorageService storageService, IAlertProcessingService alertProcessingService)
+        public ApiController(
+            ILogger<ApiController> logger, 
+            IChatService chatService, 
+            IStorageService storageService, 
+            IAlertProcessingService alertProcessingService, 
+            ISessionMessageService sessionMessageService,
+            ICosmosDBService cosmosDBService,
+            ICMWorkflowClient icmWorkflowClient)
         {
             _logger = logger;
             _chatService = chatService;
             _storageService = storageService;
-            AgentFinder.SetStorageService(storageService);
             _alertProcessingService = alertProcessingService;
+            _sessionMessageService = sessionMessageService;
+            _cosmosDBService = cosmosDBService;
+            _icmWorkflowClient = icmWorkflowClient;
         }
 
         [Function("ListConfigs")]
@@ -34,7 +48,7 @@ namespace FirstPartyAgent.FunctionApp
              [HttpTrigger(AuthorizationLevel.Function, "get", Route = "ListConfigs")] HttpRequestData req, string alertId)
         {
 
-            var configList = AgentFinder.GetICMAlertConfigs();
+            var configList = await AgentFinder.GetICMAlertConfigsAsync();
             var configInfo = configList.Select(x => new { x.Key, x.Value.AlertingId, x.Value.IncidentTitle, x.Value.AgentMode, x.Value.DefaultHumanInterventionLoop }).ToList();
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(configInfo);
@@ -46,7 +60,7 @@ namespace FirstPartyAgent.FunctionApp
              [HttpTrigger(AuthorizationLevel.Function, "get", Route = "GetConfig/{alertId}")] HttpRequestData req, string alertId)
         {
 
-            var customConfig = AgentFinder.GetICMAlertConfig(alertId);
+            var customConfig = await AgentFinder.GetICMAlertConfigAsync(alertId);
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(customConfig);
             return response;
@@ -113,7 +127,7 @@ namespace FirstPartyAgent.FunctionApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "SaveAlertDetails")] HttpRequestData req)
         {
             var requestContent = await req.ReadAsStringAsync();
-            var alertDetails = JsonConvert.DeserializeObject<AlertDetails>(requestContent);
+            var alertDetails = JsonConvert.DeserializeObject<AlertDetailsBase>(requestContent);
             if (alertDetails == null)
             {
                 var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -216,6 +230,143 @@ namespace FirstPartyAgent.FunctionApp
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(chatResponse);
             return response;
+        }
+
+        [Function("ProcessAlertStream")]
+        public async Task<HttpResponseData> ProcessAlertStream(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ProcessAlertStream")] HttpRequestData req)
+        {
+            _logger.LogInformation("Processing streaming ProcessAlert request");
+            
+            // Create a response with 200 OK status
+            var response = req.CreateResponse(HttpStatusCode.OK);
+            
+            // Set content type
+            response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
+
+            // Deserialize the request body into your AlertRequestBody model.
+            var alertRequest = await req.ReadFromJsonAsync<AlertRequestBody>();
+            {
+                _logger.LogInformation($"Agent Invoked with message - {JsonConvert.SerializeObject(alertRequest)}");
+            }
+
+            if (alertRequest == null || string.IsNullOrEmpty(alertRequest.IncidentId))
+            {
+                var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                await badResponse.WriteAsJsonAsync(new { error = "Invalid request body" });
+                return badResponse;
+            }
+
+            
+            if (!string.IsNullOrWhiteSpace(alertRequest.CustomAlertConfig.AlertingId) )
+            {
+                var incidentDetails = await _icmWorkflowClient.GetIncidentAsync(alertRequest.IncidentId);
+                if (alertRequest.CustomAlertConfig.AlertingId != incidentDetails.MonitoringSlice)
+                {
+                    await response.WriteStringAsync($"The incident `{alertRequest.IncidentId}` was created by alert `{incidentDetails.MonitoringSlice}`, " +
+                        $"not by the alert `{alertRequest.CustomAlertConfig.AlertingId}` you are editing, please try with a correct incident.\0");
+                    await response.Body.FlushAsync();
+                    return response;
+                }
+            }
+
+            // Process the message using the injected chat service.
+            var pair = _alertProcessingService.GetAlertProcessorAndSessionId(alertRequest);
+            var task = _sessionMessageService.Subscribe(pair.sessionId, async (message) =>
+            {
+                await response.WriteStringAsync(message + "\0");
+                await response.Body.FlushAsync();
+            });
+
+
+            var chatResponse = await pair.processor.Invoke();
+
+            await task;
+
+            return response;
+        }
+
+        [Function("ImportAlertDetails")]
+        public async Task<HttpResponseData> ImportAlertDetails(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportAlertDetails")] HttpRequestData req)
+        {
+            _logger.LogInformation("Processing ImportAlertDetails request");
+            
+            try
+            {
+                // Read file content from the request
+                string fileContent = await new StreamReader(req.Body).ReadToEndAsync();
+                
+                if (string.IsNullOrEmpty(fileContent))
+                {
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteAsJsonAsync(new { error = "File content is empty" });
+                    return badResponse;
+                }
+                
+                // Parse the file content into a list of AlertDetails
+                List<WawsAlertDetails> wawsAlertDetailsList;
+                try
+                {
+                    wawsAlertDetailsList = JsonConvert.DeserializeObject<List<WawsAlertDetails>>(fileContent);
+                    
+                    if (wawsAlertDetailsList == null || !wawsAlertDetailsList.Any())
+                    {
+                        var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                        await badResponse.WriteAsJsonAsync(new { error = "No valid AlertDetails found in file" });
+                        return badResponse;
+                    }
+                }
+                catch (JsonException ex)
+                {
+                    _logger.LogError($"Failed to parse file content: {ex.Message}");
+                    var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
+                    await badResponse.WriteAsJsonAsync(new { error = $"Failed to parse file content: {ex.Message}" });
+                    return badResponse;
+                }
+                
+                _logger.LogInformation($"Successfully parsed {wawsAlertDetailsList.Count} AlertDetails from file");
+
+                var teamsJsonPath = Path.Combine(AppContext.BaseDirectory, "IcmTeams.json");
+                var icmTeams = JsonConvert.DeserializeObject<List<IcmTeam>>(File.ReadAllText(teamsJsonPath));
+                var teamNameMap = icmTeams.ToDictionary(t => t.IcmTeamName.ToLower(), t => t.IcmTeamId);
+
+                var alertDetails = wawsAlertDetailsList
+                    .Where(a => a.Actions.Any(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo)))
+                    .Select(a => 
+                    { 
+                        var alertDetail = new AlertDetails(a);
+                        var action = a.Actions.FirstOrDefault(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo));
+                        alertDetail.TeamAssignedTo = action.TeamAssignedTo;
+                        alertDetail.TeamId = teamNameMap.ContainsKey(action.TeamAssignedTo.ToLower()) ? teamNameMap[action.TeamAssignedTo.ToLower()] : null;
+                        alertDetail.RoutingID = action.RoutingID;
+                        alertDetail.Severity = action.Severity;
+                        return alertDetail;
+                    });
+
+                foreach(var group in alertDetails.GroupBy(a => a.TeamId))
+                {
+                    await _cosmosDBService.BulkWriteAsync(
+                        hotsiteAgentConfigCosmosDb,
+                        hotsiteAgentAlertDetailsCosmosDbContainer,
+                        group,
+                        new Microsoft.Azure.Cosmos.PartitionKey(group.Key ?? 0));
+                }
+
+
+                var response = req.CreateResponse(HttpStatusCode.OK);
+
+                
+                await response.WriteStringAsync($"Successfully imported {alertDetails.Count()} alert details");
+                return response;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to process ImportAlertDetails request: {ex.Message}");
+                var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await badResponse.WriteAsJsonAsync(new { error = $"Failed to process request: {ex.Message}" });
+                return badResponse;
+            }
         }
     }
 }

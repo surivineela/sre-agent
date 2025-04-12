@@ -6,6 +6,7 @@ using Azure.Search.Documents.Models;
 using FirstPartyAgent.Constants;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
+using FirstPartyAgent.Core.Plugins;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {

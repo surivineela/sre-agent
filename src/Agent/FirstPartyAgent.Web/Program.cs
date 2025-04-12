@@ -12,6 +12,12 @@ var builder = WebApplication.CreateBuilder(args);
 builder.LoadLocalAppSettings();
 builder.Services.RegisterServiceDependencies();
 
+var config = builder.Configuration;
+config.SetBasePath(builder.Environment.ContentRootPath)
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
+            .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
+            .AddEnvironmentVariables();
+
 if (builder.Environment.IsDevelopment())
 {
     LocalAadAuthenticator.Initialize();
@@ -32,6 +38,7 @@ builder.Services.AddControllersWithViews()
 // Add Blazor services
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+await AgentFinder.InitializeAsync(builder.Services.BuildServiceProvider(), config);
 
 var app = builder.Build();
 

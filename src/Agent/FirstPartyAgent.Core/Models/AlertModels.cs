@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json.Serialization;
+using Newtonsoft.Json;
+
 namespace FirstPartyAgent.Core.Models
 {
     public class ICMAlertConfig
@@ -16,7 +19,7 @@ namespace FirstPartyAgent.Core.Models
         public List<string> Owners { get; set;} = new List<string>();
         public int ActionTimeoutIntervalInMinutes { get; set; }
         public string DefaultHumanInterventionLoop { get; set; }
-        public string RoutingInstructions { get; set; } = string.Empty;
+        public List<string> RoutingInstructions { get; set; } = new List<string>();
         public List<string> MitigationInstructions { get; set; } = new List<string>();
         public List<string> MonitoringInstructions { get; set; } = new List<string>();
         public List<string> IncidentProcessingGuide { get; set; } = new List<string>();
@@ -43,9 +46,11 @@ namespace FirstPartyAgent.Core.Models
         public string Database { get; set; }
     }
 
-    public class AlertDetails
+    public class AlertDetailsBase
     {
-        public Guid Id { get; set; }
+        [JsonProperty("id")]
+        [JsonPropertyName("id")]
+        public Guid Id { get; set; } = Guid.NewGuid();
         public string ServiceName { get; set; }
         public string ServiceId { get; set; }
         public string CreatedBy { get; set; }
@@ -55,5 +60,49 @@ namespace FirstPartyAgent.Core.Models
         public List<KustoQueryModel> SecondaryKustoQueries { get; set; }
         public List<KustoCluster> KustoClusters { get; set; }
     }
-}
 
+    public class AlertDetails : AlertDetailsBase
+    {
+        public int? Severity { get; set; }
+        public string RoutingID { get; set; }
+        public string TeamAssignedTo { get; set; }
+        public int? TeamId { get; set; }
+
+        public AlertDetails() 
+        { 
+        }
+
+        public AlertDetails(AlertDetailsBase alertDetails)
+        {
+            Id = alertDetails.Id;
+            ServiceName = alertDetails.ServiceName;
+            ServiceId = alertDetails.ServiceId;
+            CreatedBy = alertDetails.CreatedBy;
+            Title = alertDetails.Title;
+            Description = alertDetails.Description;
+            PrimaryKustoQuery = alertDetails.PrimaryKustoQuery;
+            SecondaryKustoQueries = alertDetails.SecondaryKustoQueries;
+            KustoClusters = alertDetails.KustoClusters;
+        }
+    }
+
+    public class WawsAlertDetails:AlertDetailsBase
+    {
+        public List<WawsAlertAction> Actions { get; set; }
+    }
+
+    public class WawsAlertAction
+    {
+        public int? Severity { get; set; }
+        public string RoutingID { get; set; }
+        public string TeamAssignedTo { get; set; }
+    }
+
+    public class IcmTeam
+    {
+        public int? IcmServiceId { get; set; }
+        public string IcmServiceName { get; set; }
+        public string IcmTeamName { get; set; }
+        public int? IcmTeamId { get; set; }
+    }
+}

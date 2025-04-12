@@ -6,6 +6,8 @@ using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Models.Attributes;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Models;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System.Reflection;
 
@@ -14,13 +16,18 @@ namespace FirstPartyAgent.Core.Helpers
     public static class AgentFinder
     {
         private static IStorageService _storageService;
+        private static ICosmosDBService? _cosmosDbService;
 
         private static string icmAlertConfigsContainerName = "icmalertconfigs";
         private static Dictionary<string, ICMAlertConfig> _icmAlertConfigs
             = new Dictionary<string, ICMAlertConfig>(StringComparer.OrdinalIgnoreCase);
 
+        private static string hotsiteAgentConfigCosmosDb = "HotsiteAgent";
+        private static string hotsiteAgentConfigCosmosDbContainer = "IcmAlertConfigs";
 
-        //TODO: Move it to JSON
+        private static IServiceProvider _serviceProvider;
+        private static IConfiguration _config;
+        private static string _tempCustomConfig;
         private static Dictionary<string, List<string>> AgentPluginsConfig = new Dictionary<string, List<string>>()
         {
             { "None", new List<string>(){ "KustoPlugin", "TimePlugin", "HttpRequestPlugin" } },
@@ -54,14 +61,34 @@ namespace FirstPartyAgent.Core.Helpers
             return new List<string>();
         }
 
-        public static Dictionary<string, ICMAlertConfig> GetICMAlertConfigs()
+        public static async Task<Dictionary<string, ICMAlertConfig>> GetICMAlertConfigsAsync(bool reload = false)
         {
+            if (reload)
+            {
+                await ReloadAsync();
+            }
+
             return _icmAlertConfigs;
         }
 
-        public static ICMAlertConfig GetICMAlertConfig(string alertingId)
+        public static async Task<ICMAlertConfig> GetICMAlertConfigAsync(string alertingId)
         {
-            if (_icmAlertConfigs.TryGetValue(alertingId, out var config))
+            ICMAlertConfig config;
+            if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
+            {
+                var queryable = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(hotsiteAgentConfigCosmosDb, hotsiteAgentConfigCosmosDbContainer);
+
+                var result = await queryable.Where(x => x.AlertingId == alertingId).ToListAsync();
+                config = result.FirstOrDefault();
+
+                if (config != null)
+                {
+                    return config;
+                }
+            }
+
+
+            if (_icmAlertConfigs.TryGetValue(alertingId, out config))
             {
                 return config;
             }
@@ -91,10 +118,19 @@ namespace FirstPartyAgent.Core.Helpers
             return string.Empty;
         }
 
-        public static void SetStorageService(IStorageService storageService)
+        public static void Initialize(IServiceProvider serviceProvider, IConfiguration config)
         {
-            _storageService = storageService;
-            if (_storageService != null && _storageService.IsEnabled)
+            _serviceProvider = serviceProvider;
+            _config = config;
+
+            _cosmosDbService = _serviceProvider.GetService<ICosmosDBService>();
+            _storageService = _serviceProvider.GetService<IStorageService>();
+
+            if(_cosmosDbService != null && _cosmosDbService.IsEnabled)
+            {
+                LoadICMAlertConfigsFromCosmosDb();
+            }
+            else if (_storageService != null && _storageService.IsEnabled)
             {
                 LoadICMAlertConfigsFromStorage();
             }
@@ -104,15 +140,57 @@ namespace FirstPartyAgent.Core.Helpers
             }
         }
 
-        static AgentFinder()
+        public static async Task InitializeAsync(IServiceProvider serviceProvider, IConfiguration config)
         {
-            if (_storageService != null && _storageService.IsEnabled)
+            _serviceProvider = serviceProvider;
+            _config = config;
+
+            _cosmosDbService = _serviceProvider.GetService<ICosmosDBService>();
+            _storageService = _serviceProvider.GetService<IStorageService>();
+
+            await ReloadAsync();
+        }
+
+        public static async Task ReloadAsync()
+        {
+            if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
+            {
+                await LoadICMAlertConfigsFromCosmosDbAsync();
+            }
+            else if (_storageService != null && _storageService.IsEnabled)
             {
                 LoadICMAlertConfigsFromStorage();
             }
             else
             {
                 LoadICMAlertConfigsFromLocal();
+            }
+            
+        }
+
+
+        // better to be an async method
+        private static void LoadICMAlertConfigsFromCosmosDb()
+        {
+            if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
+            {
+                var configs = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(hotsiteAgentConfigCosmosDb, hotsiteAgentConfigCosmosDbContainer).ToList();
+                foreach (var config in configs)
+                {
+                    _icmAlertConfigs[config.AlertingId] = config;
+                }
+            }
+        }
+
+        private static async Task LoadICMAlertConfigsFromCosmosDbAsync()
+        {
+            if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
+            {
+                var configs = await _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(hotsiteAgentConfigCosmosDb, hotsiteAgentConfigCosmosDbContainer).ToListAsync();
+                foreach (var config in configs)
+                {
+                    _icmAlertConfigs[config.AlertingId] = config;
+                }
             }
         }
 

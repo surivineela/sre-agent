@@ -23,6 +23,8 @@ public class SessionInformation
     public DateTime Timestamp { get; set; }
     public ChatHistory ChatHistory { get; set; }
     public bool AgentLoopRunning { get; set; }
+    public Kernel Kernel { get; set; }
+    public Dictionary<string, object> Data { get; set; }
 
     public SessionInformation(string sessionId, string agentMode)
     {
@@ -44,11 +46,12 @@ public class ChatProcessingService : IChatService
     private readonly ILogger<ChatProcessingService> _logger;
     private readonly IKernelService _kernelService;
     private readonly Kernel _kernel;
+    private readonly ISessionMessageService _sessionMessageService;
     private readonly MarkdownPipeline _markdownPipeline;
     private readonly ITeamsClient _teamsClient;
     private Dictionary<string, SessionInformation> _sessionCollection;
 
-    public ChatProcessingService(IConfiguration config, ILogger<ChatProcessingService> logger, IKernelService kernelService, ITeamsClient teamsClient, Kernel kernel)
+    public ChatProcessingService(IConfiguration config, ILogger<ChatProcessingService> logger, IKernelService kernelService, ITeamsClient teamsClient, Kernel kernel, ISessionMessageService sessionMessageService)
     {
         _teamsClient = teamsClient;
         _config = config;
@@ -60,6 +63,7 @@ public class ChatProcessingService : IChatService
             .DisableHtml()           // Disable HTML parsing
             .Build();
         _kernel = kernel;
+        _sessionMessageService = sessionMessageService;
     }
 
     private async Task ResetSessionChatHistory(string sessionId)
@@ -181,7 +185,19 @@ public class ChatProcessingService : IChatService
         _logger.LogInformation($"ChatProcessingService:RunAgentLoop:Start - sessionId: {sessionInfo.SessionId}, chatHistoryLength: {sessionInfo.ChatHistory.Count}");
         ChatMessageContent chatCompletionResult = null;
         FunctionChoiceBehaviorOptions options = new() { AllowConcurrentInvocation = false };
-        var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
+
+        var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString()).Clone();
+        _kernel.Data["sessionId"] = sessionInfo.SessionId;
+
+        if(sessionInfo.Data != null)
+        {
+            foreach (var key in sessionInfo.Data.Keys)
+            {
+                _kernel.Data[key] = sessionInfo.Data[key];
+            }
+        }
+
+        sessionInfo.Kernel = _kernel;
         var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
         var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
         {
@@ -253,6 +269,7 @@ public class ChatProcessingService : IChatService
         }
 
         var sessionInfo = _sessionCollection[message.SessionId];
+        sessionInfo.Data = message.Data;
 
         if ((message.Message == "clear state" || message.Message == "<p>clear state</p>"))
         {
@@ -307,6 +324,9 @@ public class ChatProcessingService : IChatService
                 _logger.LogInformation($"Posting message to Teams: {htmlContent}");
                 await _teamsClient.PostMessageOnTeams(htmlContent, message.AgentMode);
             }
+
+            await _sessionMessageService.GetPublisher(sessionInfo.SessionId).Invoke(content);
+            _sessionMessageService.DeleteSession(sessionInfo.SessionId);
 
             sessionInfo.AgentLoopRunning = false;
 

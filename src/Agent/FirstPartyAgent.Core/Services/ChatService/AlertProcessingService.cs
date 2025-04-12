@@ -15,6 +15,8 @@ namespace FirstPartyAgent.Core.Services;
 public interface IAlertProcessingService
 {
     Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest);
+
+    (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest);
 }
 
 public class AlertProcessingService : IAlertProcessingService
@@ -85,7 +87,7 @@ public class AlertProcessingService : IAlertProcessingService
         return null;
     }
 
-    public async Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest)
+    private async Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest, string sessionId)
     {
         if (alertRequest == null) {
             throw new ArgumentNullException(nameof(alertRequest), "AlertRequestBody cannot be null");
@@ -110,7 +112,10 @@ public class AlertProcessingService : IAlertProcessingService
         try
         {
             //apply preprocessing, guardrails , etc.
-            var incidentDetails = await _icmPlugin.GetIncidentInfo(alertRequest.IncidentId, _kernel);
+
+            var kernel = _kernel.Clone();
+            kernel.Data["sessionId"] = sessionId;
+            var incidentDetails = await _icmPlugin.GetIncidentInfo(alertRequest.IncidentId, kernel);
 
             var guardrailMessage = await ApplyGuardrails(incidentDetails);
             if (guardrailMessage != null)
@@ -122,9 +127,15 @@ public class AlertProcessingService : IAlertProcessingService
             {
                 Message = !string.IsNullOrWhiteSpace(alertRequest.CustomMessage) ? alertRequest.CustomMessage : $"A new Severity {incidentDetails.Severity} incident has been created. IncidentId - {alertRequest.IncidentId}",
                 Sender = !string.IsNullOrWhiteSpace(alertRequest.Source) ? alertRequest.Source : "icm_automation",
-                SessionId = $"ICMProcessing-{alertRequest.IncidentId}",
+                SessionId = sessionId,
                 AgentMode = alertRequest.AgentMode,
             };
+
+            if(alertRequest.CustomAlertConfig != null)
+            {
+                messageRequestBody.Data["customAlertConfig"] = alertRequest.CustomAlertConfig;
+            }
+
             return await _chatService.ProcessMessageAsync(messageRequestBody);
 
             /*//match incident details with existing alert configs
@@ -186,9 +197,28 @@ public class AlertProcessingService : IAlertProcessingService
             {
                 await Task.Delay(30000);
                 alertRequest.CustomMessage = "Continue";
-                return await ProcessAlertAsync(alertRequest);
+                return await ProcessAlertAsync(alertRequest, sessionId);
             }
             throw;
         }
     }
+
+    public (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest)
+    {
+        string sessionId = GetSessionId(alertRequest);
+        return (() => ProcessAlertAsync(alertRequest, sessionId), sessionId);
+    }
+
+    public Task<ChatMessage> ProcessAlertAsync(AlertRequestBody alertRequest)
+    {
+        string sessionId = GetSessionId(alertRequest);
+        return ProcessAlertAsync(alertRequest, sessionId);
+    }
+
+    private string GetSessionId(AlertRequestBody alertRequest)
+    {
+        return $"ICMProcessing-{alertRequest.IncidentId}";
+    }
+
+    
 }

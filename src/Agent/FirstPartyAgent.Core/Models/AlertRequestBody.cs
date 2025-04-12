@@ -12,6 +12,7 @@ namespace FirstPartyAgent.Core.Models
         public string AgentMode { get; set; }
         public string? AlertId { get; set; }
         public string? AdditionalPayload { get; set; }
+        public ICMAlertConfig? CustomAlertConfig { get; set; }
     }
 }
 
