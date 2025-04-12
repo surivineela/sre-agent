@@ -6,4 +6,4 @@ const App: React.FC = () => {
   return (<SREAgentSpace />);
 }
 
-export default App
+export default App;

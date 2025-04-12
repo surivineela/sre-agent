@@ -45,6 +45,13 @@ export enum SreAgentResources {
   tasks = 'Tasks',
   task = 'Task',
   threadCount = 'Thread count',
+  logicAppName = 'Logic App name',
+}
+
+export enum SreAgentTabs {
+  activities = 'Activities',
+  settings = 'Settings',
+  managedResources = 'Managed resources',
 }
 
 export enum ActionsResources {
@@ -60,6 +67,12 @@ export enum ActionsResources {
 
 export enum Locations {
   centraluseuap = 'Central US EUAP',
+}
+
+export enum AccessControlResources {
+  accessControl = 'Access control',
+  accessControlDescription = 'Manage access to the SRE Agent resource by clicking on the link below.',
+  openAccessControl = 'Open Access control',
 }
 
 export enum Activities {
@@ -80,4 +93,22 @@ export enum Actions_Status {
   completed = 'Completed',
   inProgress = 'In progress',
   pending = 'Pending',
+}
+
+export enum incidentManagementResources {
+  incidentManagement = 'Incident management',
+  incidentManagementDescription = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+  incidentPlatform = 'Incident platform',
+}
+
+export enum pagerDutyResources {
+  pagerDuty = 'PagerDuty',
+  pagerDutyDescription = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+  pagerDutyApiKey = 'PagerDuty API Key',
+}
+
+export enum Settings_Tabs {
+  incidentManagement = 'Incident management',
+  accessControl = 'Access control',
+  agentDetails = 'Agent details',
 }
