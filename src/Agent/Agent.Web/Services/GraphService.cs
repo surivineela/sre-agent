@@ -22,7 +22,7 @@ public class GraphService : IGraphService
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
     {
         _logger.LogInformation("Querying subscriptions from graph database");
-        string query = @"g.V().has('resourceType', 'subscription')
+        string query = @"g.V().has('resourceType', 'subscriptions')
                          .project('name', 'id')
                          .by('subscriptionName')
                          .by('subscriptionId')";
@@ -60,7 +60,8 @@ public class GraphService : IGraphService
         return await _graphDatabaseClient.Query(query);
     }
 
-    private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId, int hops) {
+    private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId, int hops)
+    {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
                    .union(
                        identity(),
@@ -97,7 +98,7 @@ public class GraphService : IGraphService
                 Name = item["name"]?.ToString() ?? string.Empty,
                 Type = item["type"]?.ToString() ?? string.Empty,
                 ResourceId = item["id"],
-                ScoreCard = properties != null && properties.ContainsKey("scorecard") ? properties["scorecard"] as Scorecard: null,
+                ScoreCard = properties != null && properties.ContainsKey("scorecard") ? properties["scorecard"] as Scorecard : null,
                 SubItems = subItems
             };
             appGroupItems.Add(appGroupItem);
@@ -115,7 +116,7 @@ public class GraphService : IGraphService
 
         // First hop: Get related resources for the given resourceId
         var resultSet = await GetRelatedResourcesAsync(resourceId, 1);
-        
+
         // Iterate through the first hop results to fetch second hop related resources
         var secondHopAppGroupItems = new List<AppGroupItem>();
         foreach (var resource in resultSet)
@@ -130,7 +131,7 @@ public class GraphService : IGraphService
                 thirdHopAppGroupItems = ConvertToAppGroupItems(thirdHopResources, relatedResource["id"], null);
             }
 
-            secondHopAppGroupItems = ConvertToAppGroupItems (relatedResources, resource["id"], thirdHopAppGroupItems);
+            secondHopAppGroupItems = ConvertToAppGroupItems(relatedResources, resource["id"], thirdHopAppGroupItems);
         }
 
         appGroupItems.AddRange(ConvertToAppGroupItems(resultSet, resourceId, secondHopAppGroupItems));

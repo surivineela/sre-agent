@@ -1,28 +1,30 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods, LinkObject, NodeObject } from 'react-force-graph-2d';
 import { forceCollide } from 'd3-force';
-import { GraphLink, GraphNode, GraphNodeObject } from '../Hooks/useGraph';
+import { GraphLink, GraphNode } from '../Hooks/useGraph';
 import Panel from './Panel';
 
 interface IGraphProps {
     nodes: GraphNode[];
     links: GraphLink[];
-    addNodes: (parentNode: GraphNode, nodes: GraphNodeObject[]) => void;
+    addNodes: (parentNode: GraphNode, nodes: GraphNode[]) => void;
     hideNode: (node: GraphNode) => void;
     showNode: (node: GraphNode) => void;
+    queryNodes: (parentNode: GraphNode) => Promise<GraphNode[]>;
 }
 
-const Graph = ({ nodes, links }: IGraphProps) => {
+const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes }: IGraphProps) => {
     const [initialCenter, setInitialCenter] = useState(true);
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
     const [selectedNode, setSelectedNode] = useState<GraphNode>();
+    const [loadingNodeId, setLoadingNodeId] = useState<string>();
 
     const forceRef = useRef<ForceGraphMethods<NodeObject<GraphNode>, LinkObject<GraphNode, GraphLink>>>();
 
     useEffect(() => {
         forceRef.current?.d3Force('charge')?.distanceMax(100);
-        forceRef.current?.d3Force('charge')?.strength(-40);
+        forceRef.current?.d3Force('charge')?.strength((node: NodeObject<GraphNode>) => node.links.length === 0 ? -1 : -40);
         forceRef.current?.d3Force('link')?.distance(60);
         forceRef.current?.d3Force(
             'collide',
@@ -57,8 +59,22 @@ const Graph = ({ nodes, links }: IGraphProps) => {
                 nodeVisibility={(node: GraphNode) => node.isVisible}
                 linkVisibility={(link: GraphLink) => link.isVisible}
                 nodeColor={node => node.type === 'subscription' ? '#0e4775' : node.type === 'appGroup' ? '#0f6cbd' : '#62abf5'}
-                onNodeClick={node => {
-                    setSelectedNode(node);
+                onNodeClick={async (node: GraphNode) => {
+                    if (node.id !== loadingNodeId) {
+                        setSelectedNode(node);
+
+                        if (node.links.length === 0) {
+                            setLoadingNodeId(node.id);
+                            const nodes = await queryNodes(node);
+                            setLoadingNodeId(undefined)
+                            addNodes(node, nodes);
+                        } else if (node.areChildrenVisible) {
+                            hideNode(node);
+                        } else {
+                            showNode(node);
+                        }
+                    }
+
                 }}
                 onBackgroundClick={() => setSelectedNode(undefined)}
                 onNodeDragEnd={node => {
@@ -72,11 +88,11 @@ const Graph = ({ nodes, links }: IGraphProps) => {
                     setInitialCenter(false);
                 }}
                 nodeCanvasObjectMode={() => 'after'}
-                nodeCanvasObject={(node, ctx, globalScale) => {
-                    const isNodeHealthy = node?.properties?.scorecard?.health !== 'unhealthy';
+                nodeCanvasObject={(node: NodeObject<GraphNode>, ctx, globalScale) => {
+                    const isNodeHealthy = node?.properties?.scoreCard?.health !== 'unhealthy';
                     const iconSize = isNodeHealthy ? 0 : 26 / (globalScale * 1.2); // Adjust icon size
 
-                    const text = node.name;
+                    const text = node.id === loadingNodeId ? 'Loading...' : node.name;
                     const fontSize = (node.type === 'subscription' ? 20 : node.type === 'appGroup' ? 16 : 14) / (globalScale * 1.2);
                     ctx.font = `${fontSize}px Sans-Serif`;
                     ctx.textBaseline = 'middle';

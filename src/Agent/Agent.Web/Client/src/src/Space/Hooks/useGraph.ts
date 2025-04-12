@@ -2,8 +2,32 @@ import axios from 'axios';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 
 export type Subscription = {
-    subscriptionId: string;
-    subscriptionName: string;
+    id: string;
+    name: string;
+}
+
+export type ResourceExtended = {
+    id: string; // the string has underscore
+    name: string;
+    type: string;
+    scoreCard?: ScoreCard;
+    properties: {
+        resourceType: string[];
+        resourceName: string[];
+        resourceId: string[];
+        subscriptionId: string[];
+        resourceGroupName: string[];
+        location: string[];
+        runningStatus: string;
+    }
+}
+
+export type Resource = {
+    name: string;
+    type: string;
+    resourceId: string; // the string has underscore
+    scoreCard?: ScoreCard;
+    subItems?: Resource[];
 }
 
 export type ScoreCard = {
@@ -14,18 +38,14 @@ export type ScoreCard = {
     timestamp: string | Date;
 }
 
-export type GraphNodeProperties = {
-    resourceId: string;
-    resourceName: string;
-    type: string;
-    scorecard?: ScoreCard;
-}
+export type GraphNodeProperties = ResourceExtended | Resource;
 
 export type GraphNodeObject = {
     id: string;
     name: string;
     type: 'subscription' | 'appGroup' | 'resource';
-    properties: GraphNodeProperties;
+    subscriptionId: string;
+    properties?: GraphNodeProperties;
 }
 
 export type GraphNode = GraphNodeObject & {
@@ -48,80 +68,175 @@ export type GraphLink = {
 export const getSubscriptions = async (): Promise<Subscription[]> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/subscriptions`);
-        return data.value ?? [];
+        console.log('data', data)
+        return data ?? [];
     } catch {
         return [];
     }
 }
 
-export const getAppGroups = async (subscriptionId: string): Promise<GraphNodeProperties[]> => {
+export const getAppGroups = async (subscriptionId: string): Promise<ResourceExtended[]> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups`);
-        return data.value ?? [];
+        return data ?? [];
     } catch {
         return [];
     }
 }
 
-export const getResources = async (subscriptionId: string, appGroupId: string): Promise<GraphNodeProperties[]> => {
+export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
     try {
-        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups/${appGroupId}`);
-        return data.value ?? [];
+        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups/${resourceId}`);
+        return (data ?? []).length > 0 ? data[0]?.subItems ?? [] : [];
     } catch {
         return [];
     }
+}
+
+export const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
+    try {
+        const { data } = await axios.get(`../api/v1/graph/resource/${resourceId}`);
+        return data ?? [];
+    } catch {
+        return undefined;
+    }
+}
+
+export const createSubscriptionNode = (subscription: Subscription): GraphNode => {
+    const { id, name } = subscription;
+    const node: GraphNode = {
+        id,
+        name,
+        subscriptionId: id,
+        type: 'subscription',
+        areChildrenVisible: false,
+        isVisible: true,
+        links: [],
+    };
+    return node;
+}
+
+export const createAppGroupNode = (appGroup: ResourceExtended): GraphNode => {
+    const { id, name } = appGroup;
+
+    const resourceId = id.replace(/_/g, '/');
+    const subscriptionId = resourceId.split('_')[2];
+
+    const node: GraphNode = {
+        id,
+        name,
+        type: 'appGroup',
+        subscriptionId,
+        properties: {
+            ...appGroup
+        },
+        areChildrenVisible: false,
+        isVisible: true,
+        links: [],
+    }
+
+    return node;
+}
+
+export const createResourceNode = (resource: Resource): GraphNode => {
+    const { name, resourceId } = resource;
+
+    const subscriptionId = resourceId.replace(/_/g, '/').split('_')[2];
+
+    const node: GraphNode = {
+        id: resourceId,
+        name,
+        type: 'resource',
+        subscriptionId,
+        properties: {
+            ...resource
+        },
+        areChildrenVisible: false,
+        isVisible: true,
+        links: [],
+    }
+
+    return node;
 }
 
 const GraphReducer = (
     state: { nodeMap: Map<string, GraphNode>, linkMap: Map<string, GraphLink> },
-    action: { type: 'HIDE_NODE' | 'SHOW_NODE' | 'ADD_NODES', payload: { nodeToClick?: GraphNode, parentNode?: GraphNode, nodes?: GraphNodeObject[] } }
+    action: { type: 'HIDE_NODE' | 'SHOW_NODE' | 'ADD_NODES', payload: { nodeToClick?: GraphNode, parentNode?: GraphNode, nodes?: GraphNode[] } }
 ) => {
     const { type, payload: { nodeToClick, parentNode, nodes } } = action;
 
     const { nodeMap, linkMap } = state;
 
     if (type === 'HIDE_NODE' && nodeToClick) {
-        const markAllNodeInvisibleUnderParent = (node: GraphNode, setCurrentNodeInvisible: boolean) => {
-            const newNode: GraphNode = { ...node, areChildrenVisible: false, isVisible: !setCurrentNodeInvisible };
-            nodeMap.set(node.id, newNode);
-            if (node.links.length > 0) {
-                node.links.forEach((childLinkId) => {
-                    const link: GraphLink | undefined = linkMap.get(childLinkId);
-                    if (link) {
-                        const newLink: GraphLink = { ...link, isVisible: false }
-                        linkMap.set(childLinkId, newLink);
+        const links = nodeToClick.links;
+        const nodeIdSet = new Set<string>();
+        const nodeIdArray = links.map(linkId => linkMap.get(linkId)).filter(link => link !== undefined).map(link => link.to);
 
-                        const childNode: GraphNode | undefined = nodeMap.get(link.to);
+        while (nodeIdArray.length > 0) {
+            const nodeId = nodeIdArray.shift();
+            if (nodeId && !nodeIdSet.has(nodeId)) {
+                nodeIdSet.add(nodeId);
 
-                        if (childNode) {
-                            markAllNodeInvisibleUnderParent(childNode, true);
-                        }
-                    }
-
-                });
+                const newNodeIds = nodeMap.get(nodeId)?.links.map(linkId => linkMap.get(linkId)).filter(link => link !== undefined).map(link => link.to);
+                if (newNodeIds) {
+                    nodeIdArray.push(...newNodeIds);
+                }
             }
         }
 
-        markAllNodeInvisibleUnderParent(nodeToClick, false);
+        const nodesToHide = Array.from(nodeIdSet);
+
+        for (const nodeId of nodesToHide) {
+            const node = nodeMap.get(nodeId);
+            if (node) {
+                nodeMap.set(nodeId, { ...node, isVisible: false });
+            }
+        }
+
+        for (const linkId of linkMap.keys()) {
+            const link = linkMap.get(linkId);
+            if (link && nodesToHide.includes(link.to)) {
+                linkMap.set(linkId, { ...link, isVisible: false });
+            }
+        }
+
+        for (const nodeId of nodeMap.keys()) {
+            const node = nodeMap.get(nodeId);
+            if (node && node.links.length > 0 && node.links.every(linkId => !linkMap.get(linkId)?.isVisible)) {
+                nodeMap.set(nodeId, { ...node, areChildrenVisible: false });
+
+            }
+        }
 
         return {
             nodeMap,
             linkMap,
         }
     } else if (type === 'SHOW_NODE' && nodeToClick) {
-        const newNode: GraphNode = { ...nodeToClick, areChildrenVisible: true, isVisible: true };
+        const links = nodeToClick.links;
+        const nodesToShow = links.map(linkId => linkMap.get(linkId)).filter(link => link !== undefined).map(link => link.to);
 
-        nodeMap.set(nodeToClick.id, newNode);
-        newNode.links.forEach((childLinkId) => {
-            const childLink: GraphLink | undefined = linkMap.get(childLinkId);
-            if (childLink) {
-                linkMap.set(childLinkId, { ...childLink, isVisible: true });
-                const childNode = nodeMap.get(childLink.to);
-                if (childNode) {
-                    nodeMap.set(childNode.id, { ...childNode, isVisible: true });
-                }
+        for (const nodeId of nodesToShow) {
+            const node = nodeMap.get(nodeId);
+            if (node) {
+                nodeMap.set(nodeId, { ...node, isVisible: true });
             }
-        });
+        }
+
+        for (const linkId of linkMap.keys()) {
+            const link = linkMap.get(linkId);
+            if (link && nodesToShow.includes(link.to)) {
+                linkMap.set(linkId, { ...link, isVisible: true });
+            }
+        }
+
+        for (const nodeId of nodeMap.keys()) {
+            const node = nodeMap.get(nodeId);
+            if (node && node.links.length > 0 && node.links.every(linkId => linkMap.get(linkId)?.isVisible)) {
+                nodeMap.set(nodeId, { ...node, areChildrenVisible: true });
+
+            }
+        }
 
         return {
             nodeMap,
@@ -131,7 +246,7 @@ const GraphReducer = (
         const links: string[] = [];
 
         nodes.forEach((node) => {
-            nodeMap.set(node.id, { ...node, isVisible: true, areChildrenVisible: false, links: [] });
+            nodeMap.set(node.id, { ...node });
 
             if (parentNode) {
                 const linkId = `${parentNode.id}-${node.id}`;
@@ -165,7 +280,6 @@ const GraphReducer = (
     return state;
 }
 
-
 export const useGraph = () => {
     const [graph, dispatch] = useReducer(GraphReducer, { nodeMap: new Map<string, GraphNode>(), linkMap: new Map<string, GraphLink>() });
     const [isLoading, setIsLoading] = useState(false);
@@ -173,7 +287,7 @@ export const useGraph = () => {
     const [nodes, setNodes] = useState<GraphNode[]>([]);
     const [links, setLinks] = useState<GraphLink[]>([]);
 
-    const addNodes = useCallback((parentNode: GraphNode, nodes: GraphNodeObject[]) => {
+    const addNodes = useCallback((parentNode: GraphNode, nodes: GraphNode[]) => {
         dispatch({
             type: 'ADD_NODES',
             payload: {
@@ -191,6 +305,17 @@ export const useGraph = () => {
         dispatch({ type: 'SHOW_NODE', payload: { nodeToClick: node } });
     }, []);
 
+    const queryNodes = useCallback(async (parentNode: GraphNode) => {
+        const { id, subscriptionId, type } = parentNode;
+
+        if (type === 'subscription') {
+            const appGroups = await getAppGroups(id);
+            return appGroups.map(appGroup => createAppGroupNode(appGroup));
+        } else {
+            const resources = await getResources(subscriptionId, id);
+            return resources.map(resource => createResourceNode(resource));
+        }
+    }, []);
 
     useEffect(() => {
         setNodes(Array.from(graph.nodeMap.values()));
@@ -211,25 +336,14 @@ export const useGraph = () => {
         const init = async () => {
             setIsLoading(true);
             const subscriptions = await getSubscriptions();
-            if (isSubscribed) {
-                const nodeObjects = subscriptions.map((subscription) => {
-                    const node: GraphNodeObject = {
-                        id: subscription.subscriptionId,
-                        name: subscription.subscriptionName,
-                        type: 'subscription',
-                        properties: {
-                            resourceId: subscription.subscriptionId,
-                            resourceName: subscription.subscriptionName,
-                            type: 'subscription',
-                        },
-                    }
-                    return node;
-                });
 
-                if (isSubscribed) {
-                    dispatch({ type: 'ADD_NODES', payload: { nodes: nodeObjects } });
-                    setIsLoading(false);
-                }
+            const nodes = subscriptions.map((subscription) => {
+                return createSubscriptionNode(subscription)
+            });
+
+            if (isSubscribed) {
+                dispatch({ type: 'ADD_NODES', payload: { nodes } });
+                setIsLoading(false);
             }
         }
 
@@ -240,6 +354,8 @@ export const useGraph = () => {
         }
     }, []);
 
+    console.log(nodes)
+
     return {
         nodes,
         links,
@@ -247,5 +363,6 @@ export const useGraph = () => {
         addNodes,
         hideNode,
         showNode,
+        queryNodes
     };
 };

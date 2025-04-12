@@ -4,11 +4,11 @@ import { Spinner } from "@fluentui/react-components";
 import Graph from "./Graph";
 
 const KnowledgeGraph = () => {
-    const { nodes, links, isLoading, addNodes, hideNode, showNode } = useGraph();
+    const { nodes, links, isLoading, addNodes, hideNode, showNode, queryNodes } = useGraph();
 
     return isLoading ?
         <Spinner size={'large'} style={{ position: 'fixed', top: '50%', left: '50%' }} /> :
-        <Graph nodes={nodes} links={links} addNodes={addNodes} hideNode={hideNode} showNode={showNode} />;
+        <Graph nodes={nodes} links={links} addNodes={addNodes} hideNode={hideNode} showNode={showNode} queryNodes={queryNodes} />;
 };
 
 export default memo(KnowledgeGraph);
