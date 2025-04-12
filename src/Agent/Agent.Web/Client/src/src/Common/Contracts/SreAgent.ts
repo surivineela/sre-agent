@@ -29,6 +29,12 @@ export interface Agent {
       identity: string;
     };
   }
+
+  export enum IncidentStatus {
+    error = 'error',
+    warning = 'warning',
+    success = 'success',
+  }
   
   export interface Thread {
     id: string;
@@ -36,6 +42,7 @@ export interface Agent {
     startMessage: Message;
     createdTimestamp: string;
     modifiedTimestamp: string;
+    incidentStatus?: IncidentStatus;
   }
   
   export interface Message {

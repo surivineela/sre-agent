@@ -1,6 +1,7 @@
 export enum SreAgentResources {
   actions = 'Actions',
   activeThreads = 'Active threads',
+  allThreads = 'All threads',
   agent = 'Agent',
   agentDetails = 'Agent details',
   agents = 'Agents',
@@ -16,6 +17,7 @@ export enum SreAgentResources {
   failed = 'Failed',
   filterMessage = 'Showing the first 1000 results. Filter to narrow down the list.',
   fieldRequired = 'This field is required',
+  incidents = 'Incidents',
   location = 'Location',
   managedResources = 'Managed resources',
   managedResourceGroups = 'Managed resource groups',
