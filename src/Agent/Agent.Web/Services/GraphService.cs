@@ -64,7 +64,6 @@ public class GraphService : IGraphService
     {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
                    .union(
-                       identity(),
                        repeat(
                            union(
                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
@@ -109,35 +108,59 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId)
     {
-        // Initialize an empty list to hold AppGroupItem objects
-        var appGroupItems = new List<AppGroupItem>();
+        // HashSet to track visited nodes to avoid cycles
+        var processedNodes = new HashSet<string>();
+        
+        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, 4);
+        
+        return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
+    }
 
-        // Stacy To DO add first app group item to return list
-
-        // First hop: Get related resources for the given resourceId
+    // Recursive method to explore the connected resources for a given resource
+    private async Task<List<AppGroupItem>> ProcessResourceHierarchyAsync(string resourceId, HashSet<string> processedNodes, int remainingLevels)
+    {
+        if (remainingLevels <= 0 || processedNodes.Contains(resourceId))
+        {
+            return new List<AppGroupItem>();
+        }
+        
+        processedNodes.Add(resourceId);
+        
         var resultSet = await GetRelatedResourcesAsync(resourceId, 1);
-
-        // Iterate through the first hop results to fetch second hop related resources
-        var secondHopAppGroupItems = new List<AppGroupItem>();
+        
+        if (resultSet == null || !resultSet.Any())
+        {
+            return new List<AppGroupItem>();
+        }
+        
+        var appGroupItems = new List<AppGroupItem>();
+        
         foreach (var resource in resultSet)
         {
-            var relatedResources = await GetRelatedResourcesAsync(resource["id"], 1); // Second hop
-            var thirdHopAppGroupItems = new List<AppGroupItem>();
-
-            // Iterate through the second hop results to fetch third hop related resources
-            foreach (var relatedResource in relatedResources)
+            string relatedResourceId = resource["id"];
+            
+            if (processedNodes.Contains(relatedResourceId))
             {
-                var thirdHopResources = await GetRelatedResourcesAsync(relatedResource["id"], 1); // Third hop
-                thirdHopAppGroupItems = ConvertToAppGroupItems(thirdHopResources, relatedResource["id"], null);
+                continue;
             }
+            
+            var childItems = await ProcessResourceHierarchyAsync(relatedResourceId, processedNodes, remainingLevels - 1);
 
-            secondHopAppGroupItems = ConvertToAppGroupItems(relatedResources, resource["id"], thirdHopAppGroupItems);
+            var properties = resource["properties"] as IDictionary<string, object>;
+
+            var item = new AppGroupItem
+            {
+                Name = resource["name"],
+                Type = resource["type"],
+                ResourceId = relatedResourceId,
+                ScoreCard = properties != null && properties.ContainsKey("scorecard") ? properties["scorecard"] as Scorecard : null,
+                SubItems = childItems.Count > 0 ? childItems : null
+            };
+            
+            appGroupItems.Add(item);
         }
-
-        appGroupItems.AddRange(ConvertToAppGroupItems(resultSet, resourceId, secondHopAppGroupItems));
-
-        // Create and return a ResultSet<AppGroupItem> with the collected AppGroupItems
-        return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
+        
+        return appGroupItems;
     }
 
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
@@ -152,7 +175,6 @@ public class GraphService : IGraphService
 
         return await _graphDatabaseClient.Query(query);
     }
-
 
     public class AppGroupItem
     {
