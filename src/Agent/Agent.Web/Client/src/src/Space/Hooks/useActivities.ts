@@ -9,7 +9,7 @@ const getThreads = async () => {
   return data.value ?? [];
 };
 
-export const useActivities = () => {
+export const useActivities = (initialThreadId?: string | null) => {
   const [threads, setThreads] = useState<Thread[]>([]);
   const [threadsInitialized, setThreadsInitialized] = useState<boolean>(false);
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
@@ -17,15 +17,15 @@ export const useActivities = () => {
   const [activeThreadId, setActiveThreadId] = useState<string>('');
 
   const addThread = useCallback((thread: Thread) => {
-      setThreads(prevThreads => [thread, ...prevThreads]);
-      setActiveThreadId(thread.id);
-      selectThread(thread);
+    setThreads(prevThreads => [thread, ...prevThreads]);
+    setActiveThreadId(thread.id);
+    selectThread(thread);
   }, []);
 
   const selectThread = useCallback((thread: Thread | null) => {
-      setSelectedThread(thread);
-      setThreadContentKey(Guid.newGuid());
-      setActiveThreadId(thread?.id || '');
+    setSelectedThread(thread);
+    setThreadContentKey(Guid.newGuid());
+    setActiveThreadId(thread?.id || '');
   }, []);
 
   useEffect(() => setThreadContentKey(Guid.newGuid()), [selectedThread]);
@@ -34,13 +34,19 @@ export const useActivities = () => {
     let isSubscribed = true;
 
     const getThreadsRequest = async () => {
-        setThreadsInitialized(false);
-        const threads = await getThreads();
-        threads.sort((a: any, b: any) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
-        if (isSubscribed) {
-            setThreads(threads);
-            setThreadsInitialized(true);
+      setThreadsInitialized(false);
+      const threads = await getThreads();
+      threads.sort((a: any, b: any) => getSafeDateTime(b.modifiedTimestamp).getTime() - getSafeDateTime(a.modifiedTimestamp).getTime());
+      if (isSubscribed) {
+        setThreads(threads);
+        if (initialThreadId) {
+          const thread = threads.find((thread: Thread) => thread.id === initialThreadId);
+          if (thread) {
+            selectThread(thread);
+          }
         }
+        setThreadsInitialized(true);
+      }
     };
 
     getThreadsRequest();
@@ -48,7 +54,7 @@ export const useActivities = () => {
     return () => {
       isSubscribed = false;
     };
-  }, []);
+  }, [initialThreadId, selectThread]);
 
   return {
     threads: threads,

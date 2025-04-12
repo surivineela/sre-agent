@@ -11,9 +11,10 @@ interface IGraphProps {
     hideNode: (node: GraphNode) => void;
     showNode: (node: GraphNode) => void;
     queryNodes: (parentNode: GraphNode) => Promise<GraphNode[]>;
+    transferDataToActivities: (threadId?: string | null) => void
 }
 
-const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes }: IGraphProps) => {
+const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, transferDataToActivities }: IGraphProps) => {
     const [initialCenter, setInitialCenter] = useState(true);
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
@@ -60,7 +61,7 @@ const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes }: IGrap
                 linkVisibility={(link: GraphLink) => link.isVisible}
                 nodeColor={node => node.type === 'subscription' ? '#0e4775' : node.type === 'appGroup' ? '#0f6cbd' : '#62abf5'}
                 onNodeClick={async (node: GraphNode) => {
-                    if (node.id !== loadingNodeId) {
+                    if (!loadingNodeId) {
                         setSelectedNode(node);
 
                         if (node.links.length === 0) {
@@ -128,6 +129,7 @@ const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes }: IGrap
             <Panel
                 node={selectedNode}
                 setSelectedNode={setSelectedNode}
+                transferDataToActivities={transferDataToActivities}
             />
         </div>
     );

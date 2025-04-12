@@ -35,19 +35,19 @@ export const ThreadContentStyles = mergeStyleSets({
 
 export const useChatBoxStyles = makeStyles({
   userBubble: {
-    backgroundColor: tokens.colorBrandBackground2, 
+    backgroundColor: tokens.colorBrandBackground2,
     color: tokens.colorNeutralForeground1,
     borderRadius: tokens.borderRadiusXLarge,
     padding: "0px 16px",
-    maxWidth: "fit-content", 
-    display: "inline-block", 
+    maxWidth: "fit-content",
+    display: "inline-block",
   },
 });
 
 export const ChatBoxStyles = mergeStyleSets({
   chatBox: {
-   padding: '0px',
-   paddingRight: '10px',
+    padding: '0px',
+    paddingRight: '10px',
   },
   root: {
     display: 'flex',
@@ -187,7 +187,7 @@ export const useThreadMenuStyle = () => {
     borderLeftColor: tokens.colorNeutralForeground2BrandSelected,
     boxSizing: 'border-box',
     backgroundColor: tokens.colorNeutralBackground3Selected,
-    borderRadius: tokens.borderRadiusLarge, 
+    borderRadius: tokens.borderRadiusLarge,
   };
 
   return mergeStyleSets({
@@ -240,7 +240,7 @@ export const useThreadActionsStyle = () => {
   const searchBox: IStyle = {
     margin: '0px 10px',
     borderRadius: tokens.borderRadiusLarge,
-    width: '100%', 
+    width: '100%',
     marginLeft: '-2px',
     minWidth: '275px',
   };
@@ -277,7 +277,7 @@ export const useThreadActionsStyles = makeStyles({
   searchBox: {
     margin: '0px 10px',
     borderRadius: tokens.borderRadiusLarge,
-    width: '100%', 
+    width: '100%',
     marginLeft: '-2px',
   },
   title: {
@@ -292,7 +292,7 @@ export const useThreadActionsStyles = makeStyles({
     fontWeight: '550px',
   },
   pendingIcon: {
-    backgroundColor:tokens.colorPaletteBlueBorderActive,
+    backgroundColor: tokens.colorPaletteBlueBorderActive,
     borderRadius: tokens.borderRadiusCircular,
     display: "flex",
     justifyContent: "center",
@@ -301,7 +301,7 @@ export const useThreadActionsStyles = makeStyles({
     height: "16px",
   },
   completedIcon: {
-    backgroundColor: tokens.colorPaletteGreenBorderActive, 
+    backgroundColor: tokens.colorPaletteGreenBorderActive,
     borderRadius: tokens.borderRadiusCircular,
     display: "flex",
     justifyContent: "center",
@@ -309,7 +309,7 @@ export const useThreadActionsStyles = makeStyles({
     width: '16px',
   },
   errorIcon: {
-    backgroundColor: tokens.colorPaletteRedBackground3, 
+    backgroundColor: tokens.colorPaletteRedBackground3,
     borderRadius: tokens.borderRadiusCircular,
     display: "flex",
     justifyContent: "center",
@@ -319,6 +319,6 @@ export const useThreadActionsStyles = makeStyles({
   iconStatusRow: {
     display: "flex",
     alignItems: "center",
-    gap: "4px", 
+    gap: "4px",
   }
 });

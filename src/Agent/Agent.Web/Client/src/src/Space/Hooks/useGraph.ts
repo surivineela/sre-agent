@@ -34,7 +34,7 @@ export type ScoreCard = {
     cost: string;
     availability: string;
     health: 'healthy' | 'unhealthy' | 'unknown';
-    requests: unknown[];
+    requests: unknown[] | number;
     timestamp: string | Date;
 }
 
@@ -68,7 +68,6 @@ export type GraphLink = {
 export const getSubscriptions = async (): Promise<Subscription[]> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/subscriptions`);
-        console.log('data', data)
         return data ?? [];
     } catch {
         return [];
@@ -90,15 +89,6 @@ export const getResources = async (subscriptionId: string, resourceId: string): 
         return (data ?? []).length > 0 ? data[0]?.subItems ?? [] : [];
     } catch {
         return [];
-    }
-}
-
-export const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/resource/${resourceId}`);
-        return data ?? [];
-    } catch {
-        return undefined;
     }
 }
 
@@ -353,8 +343,6 @@ export const useGraph = () => {
             isSubscribed = false;
         }
     }, []);
-
-    console.log(nodes)
 
     return {
         nodes,

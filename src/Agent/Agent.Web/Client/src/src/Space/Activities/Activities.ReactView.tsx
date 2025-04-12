@@ -12,8 +12,12 @@ export const AgentContext = createContext<AgentContextProps>({
   activeThreadId: '',
 });
 
-const Activities: FC = () => {
-  const { threads, threadsInitialized, selectedThread, threadContentKey, selectThread, addThread, activeThreadId } = useActivities();
+interface IActivitiesProps {
+  initialThreadId?: string | null;
+}
+
+const Activities: FC<IActivitiesProps> = ({ initialThreadId }: IActivitiesProps) => {
+  const { threads, threadsInitialized, selectedThread, threadContentKey, selectThread, addThread, activeThreadId } = useActivities(initialThreadId);
 
   return (
     <AgentContext.Provider value={{ threadContentKey, threadsInitialized, activeThreadId }}>
