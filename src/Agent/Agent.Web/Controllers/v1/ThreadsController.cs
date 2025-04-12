@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -244,25 +244,29 @@ namespace Agent.Web.Controllers.v1
                 return BadRequest(ModelState);
 
             var messageBuilder = new StringBuilder();
-            messageBuilder.AppendLine($"🚨 **New Incident Reported**");
+
+            // (stacy zeng) todo:
+            // check if request has existing thread in case we send same request twice or incident reactivations
+
+            messageBuilder.AppendLine($"🚨 **New {(!string.IsNullOrEmpty(request.Source) ? request.Source : String.Empty)} Incident Reported**");
             messageBuilder.AppendLine();
             messageBuilder.AppendLine($"**Title:** {request.Title}");
             messageBuilder.AppendLine();
-            messageBuilder.AppendLine($"**Description:** {request.Description}");
+            messageBuilder.AppendLine($"**Description:** {request.Description}\n");
             
             if (!string.IsNullOrEmpty(request.IncidentId))
             {
-                messageBuilder.AppendLine($"**Incident ID:** {request.IncidentId}");
+                messageBuilder.AppendLine($"**Incident ID:** {request.IncidentId}\n");
             }
             
             if (!string.IsNullOrEmpty(request.Severity))
             {
-                messageBuilder.AppendLine($"**Severity:** {request.Severity}");
+                messageBuilder.AppendLine($"**Severity:** {request.Severity}\n");
             }
             
             if (!string.IsNullOrEmpty(request.Source))
             {
-                messageBuilder.AppendLine($"**Source:** {request.Source}");
+                messageBuilder.AppendLine($"**Source:** {request.Source}\n");
             }
 
             if (request.AdditionalProperties?.Count > 0)
@@ -275,7 +279,20 @@ namespace Agent.Web.Controllers.v1
                 }
             }
 
-            var thread = await agentInboundCommunicationService.CreateAlertThreadWithTeams(
+            messageBuilder.AppendLine();
+            messageBuilder.AppendLine($"**🔎 SRE Agent**\n");
+            messageBuilder.AppendLine($"I'm starting to crawl relevant resources and investigate.");
+
+            // commenting out for now since we are not supporting the teams scenario currently
+            // this throws an error when it fails to sent message to teams
+            //var thread = await agentInboundCommunicationService.CreateAlertThreadWithTeams(
+            //    title: request.Title,
+            //    message: messageBuilder.ToString(),
+            //    agentTypeEnum: AgentTypeEnum.MetaAgent,
+            //    source: ThreadSource.Incident
+            //);
+
+            var thread = await agentInboundCommunicationService.CreateAgentThread(
                 title: request.Title,
                 message: messageBuilder.ToString(),
                 agentTypeEnum: AgentTypeEnum.MetaAgent,
@@ -283,15 +300,15 @@ namespace Agent.Web.Controllers.v1
             );
 
             await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-                ThreadId: thread.Id,
-                MessageId: thread.StartMessage.Id,
+                ThreadId: thread.Item1.Id,
+                MessageId: thread.Item1.StartMessage.Id,
                 Message: messageBuilder.ToString(),
                 UserId: "incident-system", // TODO: distinguish between pager duty and icm or any other tool
                 DisplayName: request.Source ?? "Incident System",
                 Timestamp: DateTime.UtcNow
             ));
 
-            return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
+            return CreatedAtAction(nameof(GetThread), new { id = thread.Item1.Id }, thread);
         }
     }
 }

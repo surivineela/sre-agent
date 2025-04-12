@@ -257,7 +257,7 @@ namespace Agent.Plugins
                     return "ERROR: Chart generation returned an empty image.";
                 }
 
-                var threadId = Context.ThreadId.ToString();
+                var threadId = Context?.ThreadId.ToString();
                 if (string.IsNullOrEmpty(threadId))
                 {
                     return "ERROR: No thread ID available for posting the chart.";

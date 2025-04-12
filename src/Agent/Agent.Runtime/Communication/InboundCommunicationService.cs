@@ -103,7 +103,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             ThreadContext threadContext = await _repository.GetThreadContextAsync(message.ThreadId);
             orchestrationInstanceId = threadContext != null ? await _threadService.GetOrchestrationInstanceId(threadContext) : orchestrationInstanceId;
 
-            await _sinkService.SinkUserMessageAsync(threadContext, message);
+            // we don't need to sink user message if the message is the start message
+            var thread = await _repository.GetThreadAsync(message.ThreadId);
+            if (message?.MessageId != thread?.StartMessage?.Id)
+            {
+                await _sinkService.SinkUserMessageAsync(threadContext, message);
+            }
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
             {
