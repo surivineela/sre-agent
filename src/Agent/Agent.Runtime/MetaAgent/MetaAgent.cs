@@ -128,7 +128,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly ChartPlugin _chartplugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
-    private readonly SourceCodePlugin _sourceCodePlugin;
     private readonly IServiceProvider _serviceProvider;
     private readonly StorageAccountPlugin _storageAccountPlugin;
     private readonly AppReliabilityPlugin _appReliabilityPlugin;
@@ -157,7 +156,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IGraphDBPlugin graphDBPlugin,
         AppReliabilityPlugin appReliabilityPlugin,
         WebAppDownPlugin webAppDownPlugin,
-        SourceCodePlugin sourceCodePlugin,
         IServiceProvider serviceProvider,
         VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         ContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
@@ -180,7 +178,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _containerAppPlugin = containerAppPlugin;
         _chartplugin = chartplugin;
         _githubIssuePlugin = githubIssuePlugin;
-        _sourceCodePlugin = sourceCodePlugin;
         _serviceProvider = serviceProvider;
         _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
 
@@ -207,7 +204,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _appServiceRemediationPlugin.Context = ctx;
         _containerAppsRemediationPlugin.Context = ctx;
         _kubernetesAgentPlugin.Context = ctx;
-        _sourceCodePlugin.Context = ctx;
         _graphDbPlugin.Context = ctx;
         _appReliabilityPlugin.Context = ctx;
         _webAppDownPlugin.Context = ctx;

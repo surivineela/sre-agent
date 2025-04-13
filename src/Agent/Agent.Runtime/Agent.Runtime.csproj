@@ -41,9 +41,6 @@
     <None Update="SubAgents\CVEAgent\CVEPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="SubAgents\SourceCodeAgent\SourceCodePlan.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
     <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesInfo.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

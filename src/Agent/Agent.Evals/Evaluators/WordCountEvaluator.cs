@@ -44,7 +44,7 @@ public class WordCountEvaluator : IEvaluator
     /// (acceptable) if the detected word count is at or under 100. Otherwise, the/ <paramref name="metric"/> is
     /// considered as failed.
     /// </remarks>
-    private static void Interpret(NumericMetric metric)
+    private static void Interpret(StringMetric metric)
     {
         if (metric.Value is null)
         {
@@ -54,17 +54,35 @@ public class WordCountEvaluator : IEvaluator
                     failed: true,
                     reason: "Failed to calculate word count for the response.");
         }
-        else
+
+        if (string.IsNullOrWhiteSpace(metric.Value))
         {
             metric.Interpretation =
-                metric.Value <= 200
+                new EvaluationMetricInterpretation(
+                    EvaluationRating.Unknown,
+                    failed: true,
+                    reason: "Failed to detect word count score used in the response.");
+        }
+        else if (int.TryParse(metric.Value, out int markdownScore))
+        {
+            metric.Value = markdownScore.ToString();
+            metric.Interpretation =
+                markdownScore is >= 4
                     ? new EvaluationMetricInterpretation(
                         EvaluationRating.Good,
-                        reason: "The response was shorter than 200 words.")
+                        reason: $"Detected word count score '{metric.Value}' was >= 4.")
                     : new EvaluationMetricInterpretation(
                         EvaluationRating.Unacceptable,
                         failed: true,
-                        reason: "The response was longer than 200 words.");
+                        reason: $"Detected word count score '{metric.Value}' was < 4.");
+        }
+        else
+        {
+            metric.Interpretation =
+                new EvaluationMetricInterpretation(
+                    EvaluationRating.Inconclusive,
+                    failed: true,
+                    reason: $"The detected word count score '{metric.Value}' was not valid.");
         }
     }
 
@@ -79,13 +97,31 @@ public class WordCountEvaluator : IEvaluator
         /// Count the number of words in the supplied <see cref="modelResponse"/>.
         int wordCount = CountWords(modelResponse.Text);
 
+        var value = 1;
+        if (wordCount < 150)
+        {
+            value = 5;
+        }
+        else if (wordCount < 175)
+        {
+            value = 4;
+        }
+        else if (wordCount < 200)
+        {
+            value = 3;
+        }
+        else if (wordCount < 225)
+        {
+            value = 2;
+        }
+
         var reason =
-            $"This {WordCountMetricName} metric has value {wordCount} because the evaluated model response contained {wordCount} words.";
+            $"This {WordCountMetricName} metric has value {value} because the evaluated model response contained {wordCount} words.";
 
         /// Create a <see cref="NumericMetric"/> with value set to the word count. Also include a reason that provides
         /// some commentary around the result. An <see cref="IEvaluator"/> can optionally include such commentary
         /// to explain the scores present within any <see cref="EvaluationMetric"/> that it returns.
-        var metric = new NumericMetric(WordCountMetricName, value: wordCount, reason);
+        var metric = new StringMetric(WordCountMetricName, value: value.ToString(), reason);
 
         /// Attach a default <see cref="EvaluationMetricInterpretation"/> for the metric. An evaluator can provide a
         /// default interpretation for each metric that it produces. This default interpretation can be overridden by

@@ -2,15 +2,27 @@ using Evaluation.Evaluators;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.AI.Evaluation;
-using Agent.Evals.Common.Evaluators;
+using Agent.Evals.Evaluators;
 using Agent.Evals.Common;
+using EvaluationResult = Agent.Evals.Common.EvaluationResult;
+using Newtonsoft.Json;
 
 namespace Agent.Evals;
 
 public static class EvaluatorExtensions
 {
-    public static async Task<Dictionary<string, EvalsResult>> GenerateEvaluationAsync(
+    public static EvaluationResult GetEvaluationResult(this StringMetric metric)
+    {
+        return new EvaluationResult
+        {
+            Value = int.Parse(metric.Value),
+            Reason = metric.Reason,
+        };
+    }
+
+    public static async Task EvaluateAsync(
         this ChatResponse chatResponse,
+        TestContext testContext,
         ChatConfiguration? chatConfiguration,
         List<ChatMessage> messages,
         string groundedContext,
@@ -20,42 +32,24 @@ public static class EvaluatorExtensions
         IEvaluator sreAgentFluencyEvaluator = new SreAgentFluencyEvaluator();
         IEvaluator equivalenceEvaluator = new SreAgentEquivalenceEvaluator(groundedTruth: exampleResponse, question: messages.Last().Text, chatResponse.Text);
         IEvaluator groundednessEvaluator = new SreAgentGroundednessEvaluator(groundedContext: groundedContext, question: messages.Last().Text, chatResponse.Text);
-        IEvaluator relevanceTrusthAndCompletenessEvaluator = new RelevanceTruthAndCompletenessEvaluator();
         IEvaluator wordCoundEvaluator = new WordCountEvaluator();
-        IEvaluator markdownEvaluator = new MarkdownEvaluator();
-        IEvaluator compositeEvaluator = new CompositeEvaluator(new[] { wordCoundEvaluator, markdownEvaluator, sreAgentCoherenceEvaluator, sreAgentFluencyEvaluator, equivalenceEvaluator, groundednessEvaluator });
-        EvaluationResult result = await compositeEvaluator.EvaluateAsync(messages, chatResponse, chatConfiguration);
-        NumericMetric wordCount = result.Get<NumericMetric>(WordCountEvaluator.WordCountMetricName);
-        StringMetric markdown = result.Get<StringMetric>(MarkdownEvaluator.MarkdownMetricName);
+        IEvaluator compositeEvaluator = new CompositeEvaluator(new[] { wordCoundEvaluator, sreAgentCoherenceEvaluator, sreAgentFluencyEvaluator, equivalenceEvaluator, groundednessEvaluator });
+        var result = await compositeEvaluator.EvaluateAsync(messages, chatResponse, chatConfiguration);
+        StringMetric wordCount = result.Get<StringMetric>(WordCountEvaluator.WordCountMetricName);
         StringMetric coherence = result.Get<StringMetric>(SreAgentCoherenceEvaluator.SreAgentCoherenceMetricName);
         StringMetric fluency = result.Get<StringMetric>(SreAgentFluencyEvaluator.SreAgentFluencyMetricName);
         StringMetric equivalence = result.Get<StringMetric>(SreAgentEquivalenceEvaluator.SreAgentEquivalenceMetricName);
         StringMetric groundedness = result.Get<StringMetric>(SreAgentGroundednessEvaluator.SreAgentGroundednessMetricName);
 
-        var evaluatorToResultsMap = new Dictionary<string, EvalsResult>
+        var evaluationResults = new EvaluationResults
         {
-            [SreAgentCoherenceEvaluator.SreAgentCoherenceMetricName] = new EvalsResult
-            {
-                Value = int.Parse(coherence.Value),
-                Reason = coherence.Reason,
-            },
-            [SreAgentFluencyEvaluator.SreAgentFluencyMetricName] = new EvalsResult
-            {
-                Value = int.Parse(fluency.Value),
-                Reason = fluency.Reason,
-            },
-            [SreAgentEquivalenceEvaluator.SreAgentEquivalenceMetricName] = new EvalsResult
-            {
-                Value = int.Parse(equivalence.Value),
-                Reason = equivalence.Reason,
-            },
-            [SreAgentGroundednessEvaluator.SreAgentGroundednessMetricName] = new EvalsResult
-            {
-                Value = int.Parse(groundedness.Value),
-                Reason = groundedness.Reason,
-            },
+            WordCount = wordCount.GetEvaluationResult(),
+            Coherence = coherence.GetEvaluationResult(),
+            Fluency = fluency.GetEvaluationResult(),
+            Equivalence = equivalence.GetEvaluationResult(),
+            Groundedness = groundedness.GetEvaluationResult(),
         };
 
-        return evaluatorToResultsMap;
+        testContext.WriteLine(JsonConvert.SerializeObject(evaluationResults));
     }
 }

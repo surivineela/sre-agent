@@ -135,11 +135,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                 string agentResponse = string.Empty;
                 bool isComplete = false;
-                if (threadContext.AgentTypeEnum == AgentTypeEnum.SourceCodeAgentV2)
+                if (threadContext.AgentTypeEnum == AgentTypeEnum.SourceCodeAgent)
                 {
-                    var sourceCodeAgentV2 = new SourceCodeAgentV2(_chatClient, _graphDbPlugin);
-                    sourceCodeAgentV2.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
-                    (agentResponse, isComplete) = await sourceCodeAgentV2.DoWork(message.Message);
+                    var sourceCodeAgent = new SourceCodeAgent(_chatClient, _graphDbPlugin);
+                    sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
+                    (agentResponse, isComplete) = await sourceCodeAgent.DoWork(message.Message);
                 }
                 else
                 {

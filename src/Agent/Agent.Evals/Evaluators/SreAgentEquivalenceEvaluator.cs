@@ -1,4 +1,4 @@
-namespace Agent.Evals.Common.Evaluators;
+namespace Agent.Evals.Evaluators;
 
 public class SreAgentEquivalenceEvaluator : CustomRatingEvaluatorWithReasoning
 {

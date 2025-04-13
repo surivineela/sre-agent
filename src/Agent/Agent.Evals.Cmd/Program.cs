@@ -10,7 +10,6 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Messaging.EventHubs;
 using Agent.Evals.Common;
-using Agent.Evals.Common.Evaluators;
 
 namespace Agent.Evals.Cmd;
 
@@ -151,26 +150,24 @@ public class Program
                     var stdOut = childNode.ChildNodes[0].InnerText;
                     var jsonStartIndex = stdOut.IndexOf("{");
                     var jsonString = stdOut.Substring(jsonStartIndex);
-                    var testResultObj = JsonSerializer.Deserialize<Dictionary<string, EvalsResult>>(jsonString);
+                    var evaluationResults = JsonSerializer.Deserialize<EvaluationResults>(jsonString);
 
-                    if (testResultObj == null)
+                    if (evaluationResults == null)
                     {
                         Console.WriteLine($"Fail to parse test result {stdOut}");
                         continue;
                     }
 
-                    var coherence = testResultObj[SreAgentCoherenceEvaluator.SreAgentCoherenceMetricName];
-                    var fluency = testResultObj[SreAgentFluencyEvaluator.SreAgentFluencyMetricName];
-                    var equivalence = testResultObj[SreAgentEquivalenceEvaluator.SreAgentEquivalenceMetricName];
-                    var groundedness = testResultObj[SreAgentGroundednessEvaluator.SreAgentGroundednessMetricName];
-                    result.CoherenceRating = coherence.Value;
-                    result.CoherenceReasoning = coherence.Reason;
-                    result.FluencyRating = fluency.Value;
-                    result.FluencyReasoning = fluency.Reason;
-                    result.EquivalenceRating = equivalence.Value;
-                    result.EquivalenceReasoning = equivalence.Reason;
-                    result.GroundednessRating = groundedness.Value;
-                    result.GroundednessReasoning = groundedness.Reason;
+                    result.WordCountRating = evaluationResults.WordCount?.Value;
+                    result.WordCountReasoning = evaluationResults.WordCount?.Reason;
+                    result.CoherenceRating = evaluationResults.Coherence?.Value;
+                    result.CoherenceReasoning = evaluationResults.Coherence?.Reason;
+                    result.FluencyRating = evaluationResults.Fluency?.Value;
+                    result.FluencyReasoning = evaluationResults.Fluency?.Reason;
+                    result.EquivalenceRating = evaluationResults.Equivalence?.Value;
+                    result.EquivalenceReasoning = evaluationResults.Equivalence?.Reason;
+                    result.GroundednessRating = evaluationResults.Groundedness?.Value;
+                    result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
                 }
             }
 

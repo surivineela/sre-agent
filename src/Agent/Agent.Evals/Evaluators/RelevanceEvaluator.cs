@@ -2,7 +2,7 @@ using System.ClientModel;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 
-namespace Agent.Evals.Common.Evaluators;
+namespace Agent.Evals.Evaluators;
 
 public class RelevanceEvaluator : IEvaluator
 {
@@ -17,7 +17,7 @@ public class RelevanceEvaluator : IEvaluator
 
     public IReadOnlyCollection<string> EvaluationMetricNames => [RelevanceMetricName];
 
-    public async ValueTask<EvaluationResult> EvaluateAsync(IEnumerable<ChatMessage> messages, ChatResponse modelResponse, ChatConfiguration? chatConfiguration = null, IEnumerable<EvaluationContext>? additionalContext = null, CancellationToken cancellationToken = default)
+    public async ValueTask<Microsoft.Extensions.AI.Evaluation.EvaluationResult> EvaluateAsync(IEnumerable<ChatMessage> messages, ChatResponse modelResponse, ChatConfiguration? chatConfiguration = null, IEnumerable<EvaluationContext>? additionalContext = null, CancellationToken cancellationToken = default)
     {
         string evaluationPrompt = GetEvaluationPrompt(modelResponse.Text);
         ChatMessage[] evaluationMessages = [
@@ -58,7 +58,7 @@ public class RelevanceEvaluator : IEvaluator
 
         Interpret(metric);
 
-        return new EvaluationResult(metric);
+        return new Microsoft.Extensions.AI.Evaluation.EvaluationResult(metric);
     }
 
     private static void Interpret(StringMetric metric)

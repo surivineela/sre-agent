@@ -11,7 +11,26 @@ namespace Agent.Plugins.Mocks
 {
     public class MockGraphDBPlugin : IGraphDBPlugin
     {
+        private List<string> _containerAppsWithNodesWithoutSourceCodeNodes;
+        private Dictionary<string, string> _containerAppsToSourceCodeNodeMapping;
+
+        public MockGraphDBPlugin()
+        {
+            _containerAppsToSourceCodeNodeMapping = new Dictionary<string, string>();
+        }
+
+        public MockGraphDBPlugin(List<string> containerAppsWithNodesWithoutSourceCodeNodes)
+            : this()
+        {
+            _containerAppsWithNodesWithoutSourceCodeNodes = containerAppsWithNodesWithoutSourceCodeNodes;
+        }
+
         public ThreadContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public Dictionary<string, string> GetContainerAppsToSourceCodeNodeMapping()
+        {
+            return _containerAppsToSourceCodeNodeMapping;
+        }
 
         public Task<List<ApplicationGraph>> DiscoverApplications(string subscriptionId)
         {
@@ -25,7 +44,8 @@ namespace Agent.Plugins.Mocks
 
         public Task AddSourceCodeNodeToContainerAppNodeAsync(string resourceId, string repoUrl)
         {
-            throw new NotImplementedException();
+            _containerAppsToSourceCodeNodeMapping[resourceId] = repoUrl;
+            return Task.CompletedTask;
         }
 
         public Task<string> FindAllNetworkConnectedResources(string resourceId = "")
@@ -35,7 +55,7 @@ namespace Agent.Plugins.Mocks
 
         public Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync()
         {
-            throw new NotImplementedException();
+            return Task.FromResult(_containerAppsWithNodesWithoutSourceCodeNodes ?? new List<string>());
         }
 
         public Task<ResultSet<dynamic>> Query(string query)

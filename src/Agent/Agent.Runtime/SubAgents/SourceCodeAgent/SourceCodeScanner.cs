@@ -5,12 +5,9 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
-using Grpc.Core;
-using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -19,9 +16,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
     public class SourceCodeScanner
     {
         private readonly ILogger<SourceCodeScanner> _logger;
-        private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadRepository _threadRepository;
-        private readonly SourceCodeAgentFactory _sourceCodeAgentFactory;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly IGraphDatabaseClient _graphDatabaseClient;
         private readonly SinkService _sinkService;
@@ -29,9 +24,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         private readonly IChatClient _chatClient;
 
         public SourceCodeScanner(
-            DurableTaskClient durableTaskClient,
             IThreadRepository threadRepository,
-            SourceCodeAgentFactory sourceCodeAgentFactory,
             ILogger<SourceCodeScanner> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
             IGraphDatabaseClient graphDatabaseClient,
@@ -40,9 +33,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             IChatClient chatClient)
         {
             _logger = logger;
-            _durableTaskClient = durableTaskClient;
             _threadRepository = threadRepository;
-            _sourceCodeAgentFactory = sourceCodeAgentFactory;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
             _sinkService = sinkService;
@@ -53,7 +44,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         public async Task Scan(CancellationToken cancellationToken)
         {
             var sourceCodeAgentV2ThreadContext = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCodeAgentV2)
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCodeAgent)
                 ?.ToList();
 
             if (sourceCodeAgentV2ThreadContext != null && sourceCodeAgentV2ThreadContext.Count > 0)
@@ -81,17 +72,17 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     Hi there! I found at least one Container App that does not have the source code repo url provided.
                     Preparing details...  
                     """,
-                    agentTypeEnum: AgentTypeEnum.SourceCodeAgentV2);
+                    agentTypeEnum: AgentTypeEnum.SourceCodeAgent);
 
-                var sourceCodeAgentV2 = new SourceCodeAgentV2(
+                var sourceCodeAgent = new SourceCodeAgent(
                     _chatClient,
                     _graphDbPlugin,
                     appsWithoutSourceCodeNodes: resources.Select(r => new SourceCodeStatus(r)).ToList());
-                sourceCodeAgentV2.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
+                sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
-                await sourceCodeAgentV2.PrepareAgentForUserInput();
-                var messagesToAddToChatHistory = sourceCodeAgentV2.GetUserVisibleChatHistory();
-                foreach (var messageToAddToChatHistory in sourceCodeAgentV2.ChatHistory)
+                await sourceCodeAgent.PrepareAgentForUserInput();
+                var messagesToAddToChatHistory = sourceCodeAgent.GetUserVisibleChatHistory();
+                foreach (var messageToAddToChatHistory in sourceCodeAgent.ChatHistory)
                 {
                     if (messageToAddToChatHistory.Role == ChatRole.User)
                     {

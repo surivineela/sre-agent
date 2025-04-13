@@ -1,12 +1,17 @@
 using Agent.Core.Models;
+using Agent.Plugins;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Azure.AI.OpenAI;
+using Azure.ResourceManager.AppContainers;
 using Evaluation.Evaluators;
 using FluentAssertions;
+using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftAntimalwareAMFilter;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
+using Microsoft.Extensions.DependencyInjection;
+using Moq;
 using Newtonsoft.Json;
 
 namespace Agent.Evals;
@@ -65,7 +70,6 @@ public sealed class SourceCodeAgentEvals
 
         IEvaluationTokenCounter? tokenCounter = null;
         _chatConfiguration = new ChatConfiguration(client, tokenCounter);
-
     }
 
     private static IEnumerable<object[]> TestData_Iterations()
@@ -93,35 +97,74 @@ public sealed class SourceCodeAgentEvals
             - The response should avoid unnecessary information or ambiguity.
             """;
 
-        var exampleResponse = $"## 🛠️ Steps I Will Follow for Completion  \r\n\r\n1. **Start by Identifying Apps**  \r\n   - Begin by checking which container apps currently lack an associated source code node.  \r\n   - Completed: Based on your input, I found the app (`/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{testRunGuid}`) without a source code node.\r\n\r\n2. **Await Repo URL**  \r\n   - Please provide a specific GitHub repo URL for the container app that currently lacks a source code node.\r\n\r\n   Example:\r\n   ```plaintext\r\n   Container App:  \r\n   /subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{testRunGuid}  \r\n\r\n   Repo URL: https://github.com/{{ORG_NAME}}/{{REPO_NAME}}\r\n   ```\r\n\r\n3. **Link the Repo (Once Provided)**  \r\n   - I'll proceed to attach the provided repo URL to the specified container app.\r\n\r\n4. **Recheck App List**  \r\n   - Perform another scan to check for any remaining container apps requiring source code nodes, repeating the workflow until all are resolved.\r\n\r\nLet me know the GitHub repo URL for the app so I can move forward!";
+        string containerAppResourceId = $"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}";
+        var exampleResponse = $"""
+            ## 🔍 Summary of Steps
 
-        var sourceCodeStatus = new SourceCodeStatus($"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{testRunGuid}");
+            I need to associate source code repository URLs with specific container apps. Here's how I will proceed:
 
-        var sourceCodeAgentV2 = new SourceCodeAgentV2(
-            _chatConfiguration.ChatClient,
-            new MockGraphDBPlugin(),
-            new List<SourceCodeStatus>
-            {
-                sourceCodeStatus
-            });
+            1. **Gather Source Code URLs from You**:
+               - I need the GitHub repo URL (e.g., `https://github.com/...`) for the container app mentioned:
+                 ```plaintext
+                 /subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/caef7f3cf8-3fb0-458d-aef0-713828241604
+                 ```
+               - Please share the repo URL so I can create the mapping.
+
+            2. **Update Graph**:
+               - Once I have the repo URL, I will link it with the container app in the system.
+
+            3. **Confirm Completion**:
+               - After the update, I'll recheck to ensure no further containers are missing source code nodes.
+
+            ---
+
+            Let me know the corresponding GitHub repo URL for the app, and I will proceed! ✅
+            """;
+
+        var sourceCodeStatus = new SourceCodeStatus(containerAppResourceId);
+
+        var services = new ServiceCollection();
+
+        // Step 2: Register the mock implementation
+        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
+        services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
+
+        // Step 3: Register other required dependencies
+        var chatClient = _chatConfiguration.ChatClient
+            .AsBuilder()
+            .UseFunctionInvocation()
+            .Build();
+        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped<SourceCodeAgent>();
+
+        var sourceCodeStatusList = new List<SourceCodeStatus>
+        {
+            sourceCodeStatus
+        };
+        services.AddSingleton(sourceCodeStatusList);
+
+        // Step 4: Build the service provider
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Step 5: Resolve the class under test
+        var sourceCodeAgent = serviceProvider.GetRequiredService<SourceCodeAgent>();
 
         var messages = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.System, sourceCodeAgentV2.SystemPrompt)
+            new ChatMessage(ChatRole.System, sourceCodeAgent.SystemPrompt)
         };
-        messages.AddRange(SourceCodeAgentV2.GetMessagesToInformAgentAboutAppsWithoutSourceCode(new List<Core.Models.SourceCodeStatus>
+        messages.AddRange(SourceCodeAgent.GetMessagesToInformAgentAboutAppsWithoutSourceCode(new List<Core.Models.SourceCodeStatus>
         {
             sourceCodeStatus
         }));
 
         var chatOptions = new ChatOptions
         {
-            Tools = sourceCodeAgentV2.Tools(),
+            Tools = sourceCodeAgent.Tools(),
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        var result = await response.GenerateEvaluationAsync(_chatConfiguration, messages, groundedContext, exampleResponse);
-        TestContext.WriteLine(JsonConvert.SerializeObject(result));
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
     }
 
     [TestMethod]
@@ -130,10 +173,10 @@ public sealed class SourceCodeAgentEvals
     {
         string groundedContext = """
             ## Ground Truth:
-            1. Identify container apps that lack source code nodes.
-            2. Request GitHub repository URLs for these apps.
-            3. Link the provided URLs to the respective container apps in the Azure graph.
-            4. Verify that all container apps have source code nodes linked.
+            1. Receive the GitHub repository URLs for these apps.
+            2. Link the provided URLs to the respective container apps in the Azure graph.
+            3. Verify that all container apps have source code nodes linked.
+            4. Acknowledge that the loop is complete.
 
             ## Expected Response Characteristics
             - The response should clearly explain the steps to link a container app to its source code.
@@ -142,32 +185,78 @@ public sealed class SourceCodeAgentEvals
             """;
 
         string containerAppResourceId = $"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}";
+        string gitHubRepo = $"https://github.com/user-{testRunGuid}/repo-{testRunGuid}";
 
-        var exampleResponse = $"## 🛠️ Steps I Will Follow for Completion  \r\n\r\n1. **Start by Identifying Apps**  \r\n   - Begin by checking which container apps currently lack an associated source code node.  \r\n   - Completed: Based on your input, I found the app (`{containerAppResourceId}`) without a source code node.\r\n\r\n2. **Await Repo URL**  \r\n   - Please provide a specific GitHub repo URL for the container app that currently lacks a source code node.\r\n\r\n   Example:\r\n   ```plaintext\r\n   Container App:  \r\n   {containerAppResourceId}  \r\n\r\n   Repo URL: https://github.com/{{ORG_NAME}}/{{REPO_NAME}}\r\n   ```\r\n\r\n3. **Link the Repo (Once Provided)**  \r\n   - I'll proceed to attach the provided repo URL to the specified container app.\r\n\r\n4. **Recheck App List**  \r\n   - Perform another scan to check for any remaining container apps requiring source code nodes, repeating the workflow until all are resolved.\r\n\r\nLet me know the GitHub repo URL for the app so I can move forward!";
+        var exampleResponse = $"""
+            ### ✅ Repository URL Received
+
+            We are linking the following:
+
+            - **Azure Container App**:  
+              `{containerAppResourceId}`
+            - **GitHub Repository**:  
+              [{gitHubRepo}]({gitHubRepo})
+
+            Let me link this repository to the container app!
+            ### ✅ Repository Successfully Linked
+
+            The following connection has been established:
+
+            - **Azure Container App**:  
+              `{containerAppResourceId}`
+            - **GitHub Repository**:  
+              [{gitHubRepo}]({gitHubRepo})
+
+            Now, let me recheck if any container apps are still pending a source code node.
+            ### 🎉 All Tasks Completed
+
+            There are no container apps remaining without a linked source code node. The process has been successfully completed! Let me know if you need assistance with anything else.
+            """;
 
         var sourceCodeStatus = new SourceCodeStatus(containerAppResourceId);
 
-        var sourceCodeAgentV2 = new SourceCodeAgentV2(
-            _chatConfiguration.ChatClient,
-            new MockGraphDBPlugin(),
-            new List<SourceCodeStatus>
-            {
-                sourceCodeStatus
-            });
+        var services = new ServiceCollection();
+
+        // Step 2: Register the mock implementation
+        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> ());
+        services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
+
+        // Step 3: Register other required dependencies
+        var chatClient = _chatConfiguration.ChatClient
+            .AsBuilder()
+            .UseFunctionInvocation()
+            .Build();
+        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped<SourceCodeAgent>();
+
+        var sourceCodeStatusList = new List<SourceCodeStatus>
+        {
+            sourceCodeStatus
+        };
+        services.AddSingleton(sourceCodeStatusList);
+
+        // Step 4: Build the service provider
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Step 5: Resolve the class under test
+        var sourceCodeAgent = serviceProvider.GetRequiredService<SourceCodeAgent>();
 
         var messages = new List<ChatMessage>();
-        messages.AddRange(await sourceCodeAgentV2.GetStartingMessagesAsync());
-        messages.Add(new ChatMessage(ChatRole.User, $"https://github.com/user-{testRunGuid}/repo-{testRunGuid}"));
+        messages.AddRange(await sourceCodeAgent.GetStartingMessagesAsync());
+        messages.Add(new ChatMessage(ChatRole.User, gitHubRepo));
 
         var chatOptions = new ChatOptions
         {
-            Tools = sourceCodeAgentV2.Tools(),
+            Tools = sourceCodeAgent.Tools()
         };
 
-        var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
+        var response = await chatClient.GetResponseAsync(messages, chatOptions);
 
-        var result = await response.GenerateEvaluationAsync(_chatConfiguration, messages, groundedContext, exampleResponse);
-        TestContext.WriteLine(JsonConvert.SerializeObject(result));
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
+
+        var mapping = mockGraphDBPlugin.GetContainerAppsToSourceCodeNodeMapping();
+        mapping.Should().ContainKey(containerAppResourceId);
+        mapping[containerAppResourceId].Should().Be(gitHubRepo);
     }
 
     [TestMethod]
@@ -176,10 +265,9 @@ public sealed class SourceCodeAgentEvals
     {
         string groundedContext = """
             ## Ground Truth:
-            1. Identify container apps that lack source code nodes.
-            2. Request GitHub repository URLs for these apps.
-            3. Link the provided URLs to the respective container apps in the Azure graph.
-            4. Verify that all container apps have source code nodes linked.
+            1. Receive the GitHub repository URLs for these apps.
+            2. Acknowledge that this is not a valid GitHub repository url
+            3. Acknowledge that this agent is available whenever the urls are ready.
 
             ## Expected Response Characteristics
             - The response should clearly explain the steps to link a container app to its source code.
@@ -187,30 +275,49 @@ public sealed class SourceCodeAgentEvals
             - The response should avoid unnecessary information or ambiguity.
             """;
 
-        var sourceCodeStatus = new SourceCodeStatus($"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}");
+        var containerAppResourceId = $"/subscriptions/e7d12d69-614e-4bc8-98cb-c93ab4e91017/resourceGroups/hackathon-2024-rg/providers/Microsoft.App/containerApps/ca{Guid.NewGuid()}";
 
         var exampleResponse = "🔄 No worries! In order for me to link a repository to your container app, I need you to provide a GitHub repository URL (e.g., `https://github.com/...`). Without this information, I can't proceed to update the graph and associate the container app with its source code.\r\n\r\nWould you like me to wait for you to identify or create an appropriate GitHub repository for this container app? Let me know how you'd like to proceed!";
 
-        var sourceCodeAgentV2 = new SourceCodeAgentV2(
-            _chatConfiguration.ChatClient,
-            new MockGraphDBPlugin(),
-            new List<SourceCodeStatus>
-            {
-                sourceCodeStatus
-            });
+        var sourceCodeStatus = new SourceCodeStatus(containerAppResourceId);
+
+        var services = new ServiceCollection();
+
+        // Step 2: Register the mock implementation
+        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
+        services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
+
+        // Step 3: Register other required dependencies
+        var chatClient = _chatConfiguration.ChatClient
+            .AsBuilder()
+            .UseFunctionInvocation()
+            .Build();
+        services.AddScoped<IChatClient>(_ => chatClient);
+        services.AddScoped<SourceCodeAgent>();
+
+        var sourceCodeStatusList = new List<SourceCodeStatus>
+        {
+            sourceCodeStatus
+        };
+        services.AddSingleton(sourceCodeStatusList);
+
+        // Step 4: Build the service provider
+        var serviceProvider = services.BuildServiceProvider();
+
+        // Step 5: Resolve the class under test
+        var sourceCodeAgent = serviceProvider.GetRequiredService<SourceCodeAgent>();
 
         var messages = new List<ChatMessage>();
-        messages.AddRange(await sourceCodeAgentV2.GetStartingMessagesAsync());
+        messages.AddRange(await sourceCodeAgent.GetStartingMessagesAsync());
         messages.Add(new ChatMessage(ChatRole.User, "I don't have a repo url"));
 
         var chatOptions = new ChatOptions
         {
-            Tools = sourceCodeAgentV2.Tools(),
+            Tools = sourceCodeAgent.Tools(),
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        var result = await response.GenerateEvaluationAsync(_chatConfiguration, messages, groundedContext, exampleResponse);
-        TestContext.WriteLine(JsonConvert.SerializeObject(result));
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
     }
 }
 
