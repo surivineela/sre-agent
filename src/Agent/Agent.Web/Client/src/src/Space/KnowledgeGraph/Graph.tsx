@@ -1,7 +1,7 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import ForceGraph2D, { ForceGraphMethods, LinkObject, NodeObject } from 'react-force-graph-2d';
 import { forceCollide } from 'd3-force';
-import { GraphLink, GraphNode } from '../Hooks/useGraph';
+import { GraphLink, GraphNode, ResourceExtended, ScoreCardObject } from '../Hooks/useGraph';
 import Panel from './Panel';
 
 interface IGraphProps {
@@ -11,10 +11,11 @@ interface IGraphProps {
     hideNode: (node: GraphNode) => void;
     showNode: (node: GraphNode) => void;
     queryNodes: (parentNode: GraphNode) => Promise<GraphNode[]>;
+    shouldShowNode: (node: GraphNode) => boolean;
     transferDataToActivities: (threadId?: string | null) => void
 }
 
-const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, transferDataToActivities }: IGraphProps) => {
+const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, shouldShowNode, transferDataToActivities }: IGraphProps) => {
     const [initialCenter, setInitialCenter] = useState(true);
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
@@ -25,7 +26,7 @@ const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, transfe
 
     useEffect(() => {
         forceRef.current?.d3Force('charge')?.distanceMax(100);
-        forceRef.current?.d3Force('charge')?.strength((node: NodeObject<GraphNode>) => node.links.length === 0 ? -1 : -40);
+        forceRef.current?.d3Force('charge')?.strength((node: NodeObject<GraphNode>) => (node.links ?? []).length === 0 ? -1 : -40);
         forceRef.current?.d3Force('link')?.distance(60);
         forceRef.current?.d3Force(
             'collide',
@@ -64,15 +65,15 @@ const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, transfe
                     if (!loadingNodeId) {
                         setSelectedNode(node);
 
-                        if (node.links.length === 0) {
+                        if (!node.links) {
                             setLoadingNodeId(node.id);
                             const nodes = await queryNodes(node);
                             setLoadingNodeId(undefined)
                             addNodes(node, nodes);
-                        } else if (node.areChildrenVisible) {
-                            hideNode(node);
-                        } else {
+                        } else if (shouldShowNode(node)) {
                             showNode(node);
+                        } else {
+                            hideNode(node);
                         }
                     }
 
@@ -90,7 +91,26 @@ const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, transfe
                 }}
                 nodeCanvasObjectMode={() => 'after'}
                 nodeCanvasObject={(node: NodeObject<GraphNode>, ctx, globalScale) => {
-                    const isNodeHealthy = node?.properties?.scoreCard?.health !== 'unhealthy';
+                    let scoreCard: string[] | null | undefined = null;
+                    const nodeProperties = node.properties;
+
+                    if (nodeProperties) {
+                        if ('properties' in nodeProperties) {
+                            const resourceExtended: ResourceExtended = nodeProperties as ResourceExtended;
+                            scoreCard = resourceExtended.properties?.appHealthInfo
+                        } else {
+                            scoreCard = nodeProperties.appHealthInfo;
+                        }
+                    }
+
+                    let scoreCardObject: ScoreCardObject | null | undefined = null;
+                    try {
+                        scoreCardObject = scoreCard?.[0] ? JSON.parse(scoreCard[0]) : null;
+                    } catch {
+                        scoreCardObject = null;
+                    }
+
+                    const isNodeHealthy = !scoreCardObject || scoreCardObject.Health.toLowerCase() !== 'unhealthy';
                     const iconSize = isNodeHealthy ? 0 : 26 / (globalScale * 1.2); // Adjust icon size
 
                     const text = node.id === loadingNodeId ? 'Loading...' : node.name;

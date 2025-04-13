@@ -1,6 +1,6 @@
 import { Button, DrawerBody, DrawerHeader, DrawerHeaderTitle, OverlayDrawer, Field, Label, Image, Spinner, Link } from "@fluentui/react-components";
 import { memo, useEffect, useState } from "react";
-import { GraphNode, ResourceExtended } from "../Hooks/useGraph";
+import { GraphNode, ResourceExtended, ScoreCardObject } from "../Hooks/useGraph";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { Guid } from "../../Common/Helpers/Guid";
 import axios from "axios";
@@ -52,6 +52,10 @@ const getSafeDateString = (dateTime: Date | string): string => {
     }
 }
 
+const isNullOrUndefined = (input?: unknown): boolean => {
+    return input === undefined || input === null;
+}
+
 
 type FieldSummary = { label: string, value: JSX.Element | string }
 
@@ -79,7 +83,7 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
                 setIsLoading(true);
                 getResource(node.id).then((resource) => {
                     if (resource && isSubscribed) {
-                        const { scoreCard, properties: { resourceType, resourceName, resourceGroupName, subscriptionId, resourceId } } = resource;
+                        const { properties: { resourceType, resourceName, resourceGroupName, subscriptionId, resourceId, appHealthInfo: appHealthInfoResponse } } = resource;
                         const summary: FieldSummary[] = [];
 
                         if (resourceName && resourceName.length > 0) {
@@ -95,24 +99,41 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
                             summary.push({ label: 'Subscription ID', value: subscriptionId[0] });
                         }
 
+                        let scoreCard: ScoreCardObject | null = null;
+
+                        try {
+                            scoreCard = appHealthInfoResponse?.[0] ? JSON.parse(appHealthInfoResponse[0]) : null;
+                        } catch {
+                            scoreCard = null;
+                        }
+
                         if (scoreCard) {
                             const {
-                                cost,
-                                availability,
-                                health,
-                                requests,
-                                timestamp
+                                Costs,
+                                Availability,
+                                Health,
+                                Transactions,
+                                AvgLatencyInMs,
+                                AvgMemoryUsage,
+                                AvgCpuUsage,
+                                LastDataCaptureTimeStampInUTC,
+                                IsActive
                             } = scoreCard;
 
 
                             summary.push(
-                                { label: 'Cost', value: cost },
-                                { label: 'Availability', value: availability },
+                                { label: 'Costs for the past 7 days', value: `${Costs} USD` },
                             );
+
+                            if (!isNullOrUndefined(Availability)) {
+                                summary.push(
+                                    { label: 'Availability', value: `${(Availability ?? 0).toString()}%` },
+                                );
+                            }
 
                             let healthIconSrc = "";
                             let isNodeUnhealthy = false;
-                            switch (health?.toLowerCase()) {
+                            switch (Health?.toLowerCase()) {
                                 case "unhealthy":
                                     healthIconSrc = "./failed.svg";
                                     isNodeUnhealthy = true;
@@ -124,7 +145,7 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
 
                             const healthValue = <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: '5px' }}>
                                 {healthIconSrc && <Image src={healthIconSrc} width={16} height={16} />}
-                                <span>{health}</span>
+                                <span>{Health}</span>
                                 {
                                     isNodeUnhealthy && (
                                         sendingReport ?
@@ -144,8 +165,35 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
 
                             summary.push(
                                 { label: 'Health', value: healthValue },
-                                { label: 'Number of requests for the past 30 minutes', value: `${(typeof requests === 'number' ? requests : requests.length) ?? ''}` },
-                                { label: 'Lastest update', value: getSafeDateTime(timestamp).toLocaleString() }
+                                { label: 'Number of transactions for the past 30 minutes', value: Transactions.toString() },
+                            );
+
+                            if (!isNullOrUndefined(AvgLatencyInMs)) {
+                                summary.push(
+                                    { label: 'Average latency', value: `${(AvgLatencyInMs ?? 0) / 1000} seconds` },
+                                );
+                            }
+
+                            if (!isNullOrUndefined(AvgMemoryUsage)) {
+                                summary.push(
+                                    { label: 'Average memory usage', value: `${AvgMemoryUsage} bytes` },
+                                );
+                            }
+
+                            if (!isNullOrUndefined(AvgCpuUsage)) {
+                                summary.push(
+                                    { label: 'Average CPU usage', value: `${AvgCpuUsage}%` },
+                                );
+                            }
+
+                            if (!isNullOrUndefined(LastDataCaptureTimeStampInUTC)) {
+                                summary.push(
+                                    { label: 'Lastest data capture time', value: LastDataCaptureTimeStampInUTC ? getSafeDateTime(LastDataCaptureTimeStampInUTC).toLocaleString() : 'N/A' },
+                                );
+                            }
+
+                            summary.push(
+                                { label: 'Active status', value: IsActive ? 'Active' : 'Inactive' },
                             );
                         }
                         setSummary(summary);
