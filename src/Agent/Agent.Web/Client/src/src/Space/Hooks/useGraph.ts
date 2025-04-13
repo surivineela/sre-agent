@@ -270,14 +270,6 @@ export const useGraph = () => {
         });
     }, []);
 
-    const hideNode = useCallback((node: GraphNode) => {
-        dispatch({ type: 'HIDE_NODE', payload: { nodeToClick: node } });
-    }, []);
-
-    const showNode = useCallback((node: GraphNode) => {
-        dispatch({ type: 'SHOW_NODE', payload: { nodeToClick: node } });
-    }, []);
-
     const queryNodes = useCallback(async (parentNode: GraphNode) => {
         const { id, subscriptionId, type } = parentNode;
 
@@ -289,16 +281,6 @@ export const useGraph = () => {
             return resources.map(resource => createResourceNode(resource));
         }
     }, []);
-
-    const shouldShowNode = useCallback((node: GraphNode) => {
-        const subLinks = node.links;
-        if (!subLinks) {
-            return true;
-        } else if (subLinks.some(link => graph.linkMap.get(link)?.isVisible)) {
-            return false;
-        }
-        return true;
-    }, [graph.linkMap]);
 
     useEffect(() => {
         setNodes(Array.from(graph.nodeMap.values()));
@@ -342,9 +324,6 @@ export const useGraph = () => {
         links,
         isLoading: isLoading,
         addNodes,
-        hideNode,
-        showNode,
         queryNodes,
-        shouldShowNode
     };
 };

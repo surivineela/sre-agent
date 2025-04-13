@@ -8,14 +8,11 @@ interface IGraphProps {
     nodes: GraphNode[];
     links: GraphLink[];
     addNodes: (parentNode: GraphNode, nodes: GraphNode[]) => void;
-    hideNode: (node: GraphNode) => void;
-    showNode: (node: GraphNode) => void;
     queryNodes: (parentNode: GraphNode) => Promise<GraphNode[]>;
-    shouldShowNode: (node: GraphNode) => boolean;
     transferDataToActivities: (threadId?: string | null) => void
 }
 
-const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, shouldShowNode, transferDataToActivities }: IGraphProps) => {
+const Graph = ({ nodes, links, addNodes, queryNodes, transferDataToActivities }: IGraphProps) => {
     const [initialCenter, setInitialCenter] = useState(true);
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
@@ -70,10 +67,6 @@ const Graph = ({ nodes, links, addNodes, hideNode, showNode, queryNodes, shouldS
                             const nodes = await queryNodes(node);
                             setLoadingNodeId(undefined)
                             addNodes(node, nodes);
-                        } else if (shouldShowNode(node)) {
-                            showNode(node);
-                        } else {
-                            hideNode(node);
                         }
                     }
 
