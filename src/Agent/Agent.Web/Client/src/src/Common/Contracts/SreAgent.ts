@@ -35,6 +35,12 @@ export interface Agent {
     warning = 'warning',
     success = 'success',
   }
+
+export enum ThreadSource {
+    conversation = 'Conversation',
+    incident = 'Incident',
+    Portal = 'Portal' // legacy
+}
   
   export interface Thread {
     id: string;
@@ -43,8 +49,9 @@ export interface Agent {
     createdTimestamp: string;
     modifiedTimestamp: string;
     incidentStatus?: IncidentStatus;
+    source?: ThreadSource; 
   }
-  
+
   export interface Message {
     id: string;
     timestamp: string;
@@ -72,4 +79,3 @@ export interface Agent {
     timeStamp: Date;
     status: ActionStatus;
   }
-  

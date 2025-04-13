@@ -248,40 +248,31 @@ namespace Agent.Web.Controllers.v1
             // (stacy zeng) todo:
             // check if request has existing thread in case we send same request twice or incident reactivations
 
-            messageBuilder.AppendLine($"🚨 **New {(!string.IsNullOrEmpty(request.Source) ? request.Source : String.Empty)} Incident Reported**");
-            messageBuilder.AppendLine();
-            messageBuilder.AppendLine($"**Title:** {request.Title}");
-            messageBuilder.AppendLine();
-            messageBuilder.AppendLine($"**Description:** {request.Description}\n");
-            
+            var incidentMessage = $"🚨 **New {(!string.IsNullOrEmpty(request.Source) ? request.Source : String.Empty)} Incident Reported**\n\n" +
+                $"**Title:** {request.Title}\n\n" +
+                $"**Description:** {request.Description}\n\n";
+
             if (!string.IsNullOrEmpty(request.IncidentId))
             {
-                messageBuilder.AppendLine($"**Incident ID:** {request.IncidentId}\n");
+                incidentMessage += $"**Incident ID:** {request.IncidentId}\n\n";
             }
-            
             if (!string.IsNullOrEmpty(request.Severity))
             {
-                messageBuilder.AppendLine($"**Severity:** {request.Severity}\n");
+                incidentMessage += $"**Severity:** {request.Severity}\n\n";
             }
-            
             if (!string.IsNullOrEmpty(request.Source))
             {
-                messageBuilder.AppendLine($"**Source:** {request.Source}\n");
+                incidentMessage += $"**Source:** {request.Source}\n\n";
             }
-
             if (request.AdditionalProperties?.Count > 0)
             {
-                messageBuilder.AppendLine();
-                messageBuilder.AppendLine("**Additional Details:**");
+                incidentMessage += "**Additional Details:**\n";
                 foreach (var prop in request.AdditionalProperties)
                 {
-                    messageBuilder.AppendLine($"- {prop.Key}: {prop.Value}");
+                    incidentMessage += $"- {prop.Key}: {prop.Value}\n";
                 }
+                incidentMessage += "\n";
             }
-
-            messageBuilder.AppendLine();
-            messageBuilder.AppendLine($"**🔎 SRE Agent**\n");
-            messageBuilder.AppendLine($"I'm starting to crawl relevant resources and investigate.");
 
             // commenting out for now since we are not supporting the teams scenario currently
             // this throws an error when it fails to sent message to teams
@@ -293,11 +284,14 @@ namespace Agent.Web.Controllers.v1
             //);
 
             var thread = await agentInboundCommunicationService.CreateAgentThread(
-                title: request.Title,
-                message: messageBuilder.ToString(),
+                title: $"Incident Report - {request.Title}",
+                message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.MetaAgent,
                 source: ThreadSource.Incident
             );
+
+            var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
+            await repository.AddMessageAsync(thread.Item1.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
             await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                 ThreadId: thread.Item1.Id,

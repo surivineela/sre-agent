@@ -99,13 +99,13 @@ export enum Actions_Status {
 
 export enum incidentManagementResources {
   incidentManagement = 'Incident management',
-  incidentManagementDescription = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    incidentManagementDescription = 'Automate incident response with AI-powered monitoring and resolution..',
   incidentPlatform = 'Incident platform',
 }
 
 export enum pagerDutyResources {
   pagerDuty = 'PagerDuty',
-  pagerDutyDescription = 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.',
+    pagerDutyDescription = 'Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.',
   pagerDutyApiKey = 'PagerDuty API Key',
 }
 

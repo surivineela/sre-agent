@@ -7,7 +7,7 @@ import { Activities, SreAgentResources } from '../../Strings/SREResources.resjso
 import debounce from 'lodash/debounce';
 import { AgentContext } from './Activities.ReactView';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
-import { IncidentStatus, Thread } from '../../Common/Contracts/SreAgent';
+import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/SreAgent';
 import { Button, InputOnChangeData, Radio, RadioGroup, SearchBox, SearchBoxChangeEvent, tokens } from '@fluentui/react-components';
 import { AddRegular, CheckmarkCircle16Filled, ErrorCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
 import ThreadStatusBar, { SelectedTimes } from './IncidentStatusBar';
@@ -29,11 +29,22 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
   const filteredThreads = useMemo(() => {
     let newThreads = threads;
     if (threadMode === ThreadMode.incidents) {
-      const potentialValues = [IncidentStatus.success, IncidentStatus.error, IncidentStatus.warning];
-      newThreads = threads.map(thread => ({
-        ...thread,
-        incidentStatus: potentialValues[Math.floor(Math.random() * potentialValues.length)]
-      }));
+        newThreads = threads.filter(thread => thread.source === ThreadSource.incident)
+            // Set all incidents to active right now as Status is not populated in the backend
+            .map(thread => ({
+            ...thread,
+            incidentStatus: IncidentStatus.error
+        }));
+
+        if (selectedTime) {
+            const filterByDays = (time: string) => {
+                const days = time === SelectedTimes.OneDay ? 1 : (time === SelectedTimes.SevenDays) ? 7 : 30;
+                const now = new Date();
+                const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+                return newThreads.filter(item => new Date(item.modifiedTimestamp) > cutoff);
+            }
+            newThreads = filterByDays(selectedTime);
+        }
 
       if (selectedTime) {
         const filterByDays = (time: string) => {
