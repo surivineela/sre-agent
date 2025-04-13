@@ -906,7 +906,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
         {
             try
             {
-                string query = @"g.V().has('resourceType', 'subscription')
+                string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}')
                           .project('name', 'id')
                           .by('subscriptionName')
                           .by('subscriptionId')";

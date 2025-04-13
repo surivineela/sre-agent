@@ -22,7 +22,7 @@ public class GraphService : IGraphService
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
     {
         _logger.LogInformation("Querying subscriptions from graph database");
-        string query = @"g.V().has('resourceType', 'subscriptions')
+        string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}')
                          .project('name', 'id')
                          .by('subscriptionName')
                          .by('subscriptionId')";
