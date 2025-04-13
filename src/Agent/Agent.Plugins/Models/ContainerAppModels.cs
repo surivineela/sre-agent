@@ -1,6 +1,8 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+
+using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Plugins.Models
 {
@@ -14,7 +16,8 @@ namespace Agent.Plugins.Models
         string Fqdn,
         string EnvironmentName = "N/A",
         bool IsIngressEnabled = false,
-        IReadOnlyList<RevisionInfo> Revisions = null);
+        IReadOnlyList<RevisionInfo> Revisions = null,
+        AppHealthInfo AppHealthInfo = null);
     
     public sealed record RevisionInfo(
         string RevisionName,

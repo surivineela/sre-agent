@@ -97,7 +97,7 @@ public class GraphService : IGraphService
                 Name = item["name"]?.ToString() ?? string.Empty,
                 Type = item["type"]?.ToString() ?? string.Empty,
                 ResourceId = item["id"],
-                ScoreCard = properties != null && properties.ContainsKey("scorecard") ? properties["scorecard"] as Scorecard : null,
+                AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
                 SubItems = subItems
             };
             appGroupItems.Add(appGroupItem);
@@ -153,7 +153,7 @@ public class GraphService : IGraphService
                 Name = resource["name"],
                 Type = resource["type"],
                 ResourceId = relatedResourceId,
-                ScoreCard = properties != null && properties.ContainsKey("scorecard") ? properties["scorecard"] as Scorecard : null,
+                AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
                 SubItems = childItems.Count > 0 ? childItems : null
             };
             
@@ -181,7 +181,7 @@ public class GraphService : IGraphService
         public string Name { get; set; }
         public string Type { get; set; }
         public string ResourceId { get; set; }
-        public Scorecard? ScoreCard { get; set; } // this is a JSON string of the properties
+        public AppHealthInfo? AppHealthInfo { get; set; } // this is a JSON string of the properties
         public List<AppGroupItem>? SubItems { get; set; } // this is children of the resource
     }
 }

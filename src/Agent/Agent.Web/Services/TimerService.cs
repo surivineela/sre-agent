@@ -2,11 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Graph.Crawler;
 using Agent.Graph.Interfaces;
-using Agent.Graph.Services;
-using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
@@ -15,7 +15,6 @@ using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Microsoft.Extensions.AI;
-using System.Reflection;
 
 namespace Agent.Seb.Services;
 
@@ -59,6 +58,7 @@ public class TimerService : IHostedService, IDisposable
     private DailyReportScanner _dailyReportScanner;
     private SourceCodeScanner _sourceCodeScanner;
     private CVEScanner _cveScanner;
+    private ScoreCardService _scoreCardService;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -83,6 +83,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _cveCrawlerTimerIsRunning = false;
     private TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _scoreCardTimer = null;
+    private bool _scoreCardTimerIsRunning = false;
+    private TimeSpan _scoreCardTimerInterval = TimeSpan.FromMinutes(30);
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     public TimerService(
@@ -96,8 +100,8 @@ public class TimerService : IHostedService, IDisposable
         SourceCodeScanner sourceCodeScanner,
         CVEScanner cveScanner,
         ILogger<TimerService> logger,
-        IServiceProvider serviceProvider
-        )
+        IServiceProvider serviceProvider,
+        ScoreCardService scoreCardService)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -109,6 +113,7 @@ public class TimerService : IHostedService, IDisposable
         _dailyReportScanner = dailyReportScanner;
         _sourceCodeScanner = sourceCodeScanner;
         _cveScanner = cveScanner;
+        _scoreCardService = scoreCardService;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
 
         // Register all the scanners that implement this base type
@@ -123,7 +128,6 @@ public class TimerService : IHostedService, IDisposable
             // TODO: Would it be neater if instead of method+instance, we created an Action<Task> at this point?
             GenericSubAgentScannerTimers.Add(new ScannerTimerInformation(type.Name, scanMethod, instance));
         }
-
     }
 
     public Task StartAsync(CancellationToken cancellationToken)
@@ -148,6 +152,9 @@ public class TimerService : IHostedService, IDisposable
         StartCVETimer(cancellationToken);
 
         StartAllGenericSubAgentTimers(cancellationToken);
+
+        _logger.LogInformation($"Starting Score Card timer...");
+        StartScoreCardTimer(cancellationToken);
 
         _logger.LogInformation($"Finished starting background services");
 
@@ -196,7 +203,7 @@ public class TimerService : IHostedService, IDisposable
                     _logger.LogInformation("Started activity log crawler");
                 }
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 _logger.LogError(ex, "Error executing crawler timer.");
             }
@@ -419,6 +426,31 @@ public class TimerService : IHostedService, IDisposable
                 _dailyReportTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _dailyReportTimerInterval);
+    }
+
+    public void StartScoreCardTimer(CancellationToken cancellationToken)
+    {
+        _scoreCardTimer = new Timer(async _ =>
+        {
+            if (_scoreCardTimerIsRunning)
+            {
+                _logger.LogInformation("Score card update service is already running. Skip this round!");
+                return;
+            }
+            try
+            {
+                _scoreCardTimerIsRunning = true;
+                await _scoreCardService.UpdateAllScoreCardsAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing score card update service.");
+            }
+            finally
+            {
+                _scoreCardTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _scoreCardTimerInterval);
     }
 
     public void Dispose()

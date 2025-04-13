@@ -312,12 +312,12 @@ public class ArmHelper
         return result.All(p => p.IsSuccessStatusCode);
     }
 
-    public async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics)
+    public async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics, string filter = "")
     {
-        return await FetchMetricsAsync(resourceId, metrics, CancellationToken.None);
+        return await FetchMetricsAsync(resourceId, metrics, filter, CancellationToken.None);
     }
 
-    public async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics, CancellationToken cancellationToken)
+    public async Task<List<TimeSeriesData>> FetchMetricsAsync(string resourceId, List<Metric> metrics, string filter, CancellationToken cancellationToken)
     {
         var timeSeriesData = new List<TimeSeriesData>();
         if (metrics == null) return timeSeriesData;
@@ -325,7 +325,9 @@ public class ArmHelper
         string metricNamesString = string.Join(",", metrics.Select(m => m.Name));
         string aggregationsString = string.Join(",", metrics.Select(m => m.Aggregation));
 
-        var requestUri = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames={metricNamesString}&aggregation={aggregationsString}&timespan=PT30M");
+        string filterParam = string.IsNullOrEmpty(filter) ? string.Empty : $"&{filter}";
+
+        var requestUri = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/providers/microsoft.insights/metrics?api-version=2018-01-01&metricnames={metricNamesString}&aggregation={aggregationsString}&timespan=PT30M{filterParam}");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
@@ -347,6 +349,8 @@ public class ArmHelper
             string metricName = metric["name"]["value"].ToString();
             var timeSeries = metric["timeseries"];
             var metricDefinition = metrics.First(m => m.Name == metricName);
+
+            if (timeSeries == null || timeSeries.Count() == 0) continue;
 
             foreach (var dataPoint in timeSeries[0]["data"])
             {

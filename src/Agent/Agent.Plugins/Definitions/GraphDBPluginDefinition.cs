@@ -6,7 +6,6 @@ using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins

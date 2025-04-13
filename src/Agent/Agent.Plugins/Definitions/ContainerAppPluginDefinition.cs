@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -20,8 +20,9 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("get_container_app")]
         [Description("PREFERRED METHOD FOR CONTAINER APP DETAILS: Gets detailed information about a specific Azure Container App by its resource ID. " +
-            "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, and environment details. " +
-            "Always use this specialized method for Container Apps instead of generic resource search functions for more complete and accurate information.")]
+            "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, AppHealthInfo, and environment details. " +
+            "Always use this specialized method for Container Apps instead of generic resource search functions for more complete and accurate information." +
+            "For the AppHealthInfo information (such requests, cpu, and memory metrics, cost etc. format the output in markdown tabular format.")]
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(
             [Description("The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")] string resourceId)
         {   

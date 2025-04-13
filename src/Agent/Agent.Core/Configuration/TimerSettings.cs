@@ -16,5 +16,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public int ReliabilityScanIntervalInMinutes { get; set; } = 60;
+
+        [Required]
+        public int ScoreCardUpdateIntervalInMinutes { get; set; } = 30;
     }
 }

@@ -1,0 +1,178 @@
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
+using Agent.Core.Models;
+using Agent.Data.DatabaseClients.GraphDbClient;
+using Microsoft.Extensions.Logging;
+
+namespace Agent.Graph.Crawler.Metrics;
+public class RedisMetricsCollector : IResourceMetricsCollector
+{
+    private readonly ILogger<RedisMetricsCollector> _logger;
+    private readonly IAzureMetricsClient _azureMetricsClient;
+    public string ResourceType => "microsoft.cache/redis";
+
+    public RedisMetricsCollector(ILogger<RedisMetricsCollector> logger, IAzureMetricsClient azureMetricsClient)
+    {
+        _logger = logger;
+        _azureMetricsClient = azureMetricsClient;
+    }
+
+    public async Task<AppHealthInfo> CollectMetricsAsync(ArmResourceNode node)
+    {
+        var resourceId = node.GetNodeId();
+
+        if (resourceId == null)
+        {
+            _logger.LogWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
+            return new AppHealthInfo { };
+        }
+
+        var now = DateTime.UtcNow;
+        var startTime = now.AddMinutes(-30);
+
+        try
+        {
+            var cacheHits = await GetCacheHitsAsync(resourceId);
+            var cpuUsage = await GetCpuUsageAsync(resourceId);
+            var memoryUsage = await GetMemoryUsageAsync(resourceId);
+            var serverLoad = await GetServerLoadAsync(resourceId);
+            var cost = await _azureMetricsClient.GetCostAsync(resourceId, now);
+            
+            // Determine health based on CPU and memory metrics
+            var health = DetermineHealthState(cpuUsage, memoryUsage);
+
+            var appHealthInfo = new AppHealthInfo
+            {
+                Transactions = (int)Math.Round(cacheHits),
+                AvgMemoryUsage = Math.Round(memoryUsage, 2),
+                AvgCpuUsage = Math.Round(cpuUsage, 2),
+                // Use AdditionalMetrics for Redis-specific metrics
+                AdditionalMetrics = new Dictionary<string, object>
+                {
+                    { "ServerLoad", Math.Round(serverLoad, 2) }
+                },
+                Costs = Math.Round(cost, 2),
+                Health = health
+            };
+
+            return appHealthInfo;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to get metrics for the Redis Cache {node.GetNodeId()}");
+        }
+
+        return new AppHealthInfo { };
+    }
+
+    private async Task<double> GetCpuUsageAsync(string resourceId)
+    {
+        _logger.LogInformation($"Getting CPU usage for Redis Cache: {resourceId}");
+        try
+        {
+            var metrics = new List<Metric>
+        {
+            new Metric { Name = "percentProcessorTime", Unit = "Percent", Aggregation = "Average" },
+        };
+
+            var metricsData = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics);
+
+            return metricsData.Any() ? metricsData.Select(s => s.Value).Average() : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to get CPU metrics for Redis Cache: {resourceId}. Will return 0.");
+            return 0;
+        }
+    }
+
+    private async Task<double> GetMemoryUsageAsync(string resourceId)
+    {
+        _logger.LogInformation($"Getting memory usage for Redis Cache: {resourceId}");
+        try
+        {
+            var metrics = new List<Metric>
+        {
+            new Metric { Name = "usedmemorypercentage", Unit = "Percent", Aggregation = "Average" },
+        };
+
+            var metricsData = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics);
+
+            return metricsData.Any() ? metricsData.Select(s => s.Value).Average() : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to get memory metrics for Redis Cache: {resourceId}. Will return 0.");
+            return 0;
+        }
+    }
+
+    private async Task<double> GetCacheHitsAsync(string resourceId)
+    {
+        _logger.LogInformation($"Getting cache hits for Redis Cache: {resourceId}");
+        try
+        {
+            var metrics = new List<Metric>
+        {
+            new Metric { Name = "totalcommandsprocessed", Unit = "Count", Aggregation = "Total" },
+        };
+
+            var metricsData = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics);
+
+            return metricsData.Any() ? metricsData.Select(s => s.Value).Sum() : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to get cache hits metrics for Redis Cache: {resourceId}. Will return 0.");
+            return 0;
+        }
+    }
+
+    private async Task<double> GetServerLoadAsync(string resourceId)
+    {
+        _logger.LogInformation($"Getting server load for Redis Cache: {resourceId}");
+        try
+        {
+            var metrics = new List<Metric>
+        {
+            new Metric { Name = "connectedclients", Unit = "Count", Aggregation = "Maximum" },
+        };
+
+            var metricsData = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics);
+
+            return metricsData.Any() ? metricsData.Select(s => s.Value).Average() : 0;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to get server load metrics for Redis Cache: {resourceId}. Will return 0.");
+            return 0;
+        }
+    }
+
+    private ScorecardHealthState DetermineHealthState(double cpuUsage, double memoryUsage)
+    {
+        // For Redis, we consider high CPU or memory usage as warnings
+        if (cpuUsage > 90 || memoryUsage > 90)
+        {
+            return ScorecardHealthState.Unhealthy;
+        }
+        else if (cpuUsage > 75 || memoryUsage > 75)
+        {
+            return ScorecardHealthState.Unknown; // Using Unknown as a middle state
+        }
+        else
+        {
+            return ScorecardHealthState.Healthy;
+        }
+    }
+}

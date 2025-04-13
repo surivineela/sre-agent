@@ -9,7 +9,9 @@ using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
+using Agent.Graph.Crawler.Metrics;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
 using Agent.Plugins;
@@ -30,6 +32,7 @@ using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
+using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
@@ -37,7 +40,6 @@ using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
-using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
@@ -217,7 +219,15 @@ builder.Host.UseSerilog();
         // Register all SubAgent types as singletons
         .AddSingleton<GraphDBQueryAgent>()
         .AddSingleton<ArchitectureAgent>()
-        .AddSingleton<LogsAndMetricsAgent>();
+        .AddSingleton<LogsAndMetricsAgent>()
+
+        // Register Metrics collectors
+        .AddSingleton<ScoreCardService>()
+        .AddSingleton<IAzureMetricsClient, AzureMetricsClient>()
+        .AddSingleton<IResourceMetricsCollector, ContainerAppMetricsCollector>()
+        .AddSingleton<IResourceMetricsCollector, FunctionAppMetricsCollector>()
+        .AddSingleton<IResourceMetricsCollector, AppServiceMetricsCollector>()
+        .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>();
 
 
     // Register all subagent factories that derive from the shared impl

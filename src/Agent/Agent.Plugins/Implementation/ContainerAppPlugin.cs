@@ -1,7 +1,8 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections;
 using System.ComponentModel;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -84,6 +85,40 @@ namespace Agent.Plugins.Implementation
                     }
                 }
 
+                AppHealthInfo appHealthInfo = null;
+                if (properties.ContainsKey("appHealthInfo") && properties["appHealthInfo"] != null)
+                {
+                    try
+                    {
+                        var scorecardValue = properties["appHealthInfo"];
+                        
+                        if (scorecardValue is IEnumerable enumerable)
+                        {
+                            foreach (var item in enumerable)
+                            {
+                                if (item != null)
+                                {
+                                    string json = item.ToString();
+                                    if (!string.IsNullOrEmpty(json))
+                                    {
+                                        appHealthInfo = System.Text.Json.JsonSerializer.Deserialize<AppHealthInfo>(json);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                        else if (scorecardValue is string json)
+                        {
+                            appHealthInfo = System.Text.Json.JsonSerializer.Deserialize<AppHealthInfo>(json);
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, $"Error deserializing appHealthInfo: {ex.Message}");
+                        appHealthInfo = new AppHealthInfo();
+                    }
+                }
+
                 return new ContainerAppDescriptor(
                     ResourceId: resourceId,
                     Name: name,
@@ -94,13 +129,30 @@ namespace Agent.Plugins.Implementation
                     Fqdn: fqdn,
                     EnvironmentName: environmentName,
                     IsIngressEnabled: isIngressEnabled,
-                    Revisions: null); // Not including revisions for now
+                    Revisions: null,
+                    AppHealthInfo: appHealthInfo);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error in GetContainerAppInfoAsync with resourceId {resourceId}");
                 return null;
             }
+        }
+
+        // Helper method to extract property values from AppHealthInfo object
+        private object GetPropertyValue(object obj, string propertyName)
+        {
+            if (obj == null)
+                return null;
+
+            // If obj is a dictionary
+            if (obj is IDictionary<string, object> dict)
+            {
+                if (dict.TryGetValue(propertyName, out var value))
+                    return value;
+            }
+
+            return null;
         }
 
         private string GetFirstPropertyValue(dynamic properties, string propertyName)
