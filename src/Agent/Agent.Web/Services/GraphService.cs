@@ -88,7 +88,8 @@ public class GraphService : IGraphService
                    .union(
                        repeat(
                            union(
-                               inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV()
+                               inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV(),
+                               outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV()
                            )
                            .not(has('resourceType', within('resourcegroup', 'subscription')))
                            .simplePath()
@@ -132,9 +133,9 @@ public class GraphService : IGraphService
     {
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();
-        
+
         var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, 4);
-        
+
         return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
     }
 
@@ -145,27 +146,27 @@ public class GraphService : IGraphService
         {
             return new List<AppGroupItem>();
         }
-        
+
         processedNodes.Add(resourceId);
-        
+
         var resultSet = await GetRelatedResourcesAsync(resourceId, 1);
-        
+
         if (resultSet == null || !resultSet.Any())
         {
             return new List<AppGroupItem>();
         }
-        
+
         var appGroupItems = new List<AppGroupItem>();
-        
+
         foreach (var resource in resultSet)
         {
             string relatedResourceId = resource["id"];
-            
+
             if (processedNodes.Contains(relatedResourceId))
             {
                 continue;
             }
-            
+
             var childItems = await ProcessResourceHierarchyAsync(relatedResourceId, processedNodes, remainingLevels - 1);
 
             var properties = resource["properties"] as IDictionary<string, object>;
@@ -178,10 +179,10 @@ public class GraphService : IGraphService
                 AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
                 SubItems = childItems.Count > 0 ? childItems : null
             };
-            
+
             appGroupItems.Add(item);
         }
-        
+
         return appGroupItems;
     }
 
