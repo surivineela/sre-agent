@@ -144,6 +144,9 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
                                 case "healthy":
                                     healthIconSrc = "./success.svg";
                                     break;
+                                case "degraded":
+                                    healthIconSrc = "./warning.svg";
+                                    break;
                             }
 
                             const healthValue = <div style={{ display: 'flex', flexDirection: 'row', justifyContent: 'flex-start', alignItems: 'center', gap: '5px' }}>

@@ -47,7 +47,9 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
                 AvgCpuUsage = Math.Round(avgCpuUsage, 2),
                 Costs = Math.Round(cost, 2),
                 Availability = Math.Round(availability, 2),
-                Health = availability >= 99.0 ? ScorecardHealthState.Healthy : availability >= 95.0 ? ScorecardHealthState.Unhealthy : ScorecardHealthState.Unknown,
+                Health = availability >= 99.0 ? ScorecardHealthState.Healthy : 
+                         availability >= 95.0 ? ScorecardHealthState.Degraded : 
+                         ScorecardHealthState.Unhealthy,
             };
 
             return appHealthInfo;
@@ -131,28 +133,39 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetAvailabilityAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting availability for App Service: {resourceId}");
+        _logger.LogInformation($"Getting availability for Container App: {resourceId}");
 
-        var metrics = new List<Metric>
+        try
         {
-                new() { Name = "Requests", Unit = "Count", Aggregation = "Average" },
-        };
+            var metrics = new List<Metric>
+            {
+                new() { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+            };
 
-        var totalRequests = await _azureMetricsClient.GetMetricsAsync(
-            resourceId,
-            metrics);
+            var totalRequests = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics);
 
-        var errorRequests = await _azureMetricsClient.GetMetricsAsync(
-            resourceId,
-            metrics,
-            filter: "$filter=(statusCodeCategory ne '2xx')");
+            var errorRequests = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics,
+                filter: "$filter=(statusCodeCategory ne '2xx')");
 
-        double totalRequestCount = totalRequests.Sum(s => s.Value);
-        double errorRequestCount = errorRequests.Sum(s => s.Value);
+            double totalRequestCount = totalRequests.Sum(s => s.Value);
+            double errorRequestCount = errorRequests.Sum(s => s.Value);
 
-        if (totalRequestCount == 0)
-            return 100; // No requests = 100% availability by default
+            // Ensure error count doesn't exceed total count
+            errorRequestCount = Math.Min(errorRequestCount, totalRequestCount);
 
-        return ((totalRequestCount - errorRequestCount) / totalRequestCount) * 100;
+            if (totalRequestCount == 0)
+                return 100; // No requests = 100% availability by default
+
+            return Math.Max(0, ((totalRequestCount - errorRequestCount) / totalRequestCount) * 100);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to calculate availability for Container App: {resourceId}. Will return 0.");
+            return 0;
+        }
     }
 }

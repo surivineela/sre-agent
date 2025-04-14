@@ -113,6 +113,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     public enum ScorecardHealthState
     {
         Healthy,
+        Degraded,
         Unhealthy,
         Unknown
     }

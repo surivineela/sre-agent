@@ -48,8 +48,8 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
                 Availability = Math.Round(availability, 2),
                 Costs = Math.Round(cost, 2),
                 Health = availability >= 99.0 ? ScorecardHealthState.Healthy : 
-                        availability >= 95.0 ? ScorecardHealthState.Unhealthy : 
-                        ScorecardHealthState.Unknown,
+                        availability >= 95.0 ? ScorecardHealthState.Degraded : 
+                        ScorecardHealthState.Unhealthy,
             };
 
             return appHealthInfo;
@@ -154,10 +154,13 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
             var requests = metricsData.FirstOrDefault(m => m.Name == "Requests")?.Value ?? 0;
             var errors = metricsData.FirstOrDefault(m => m.Name == "Http5xx")?.Value ?? 0;
 
+            // Ensure error count doesn't exceed total requests count
+            errors = Math.Min(errors, requests);
+
             if (requests == 0)
                 return 100; // No requests = 100% availability by default
 
-            return ((requests - errors) / requests) * 100;
+            return Math.Max(0, ((requests - errors) / requests) * 100);
         }
         catch (Exception ex)
         {

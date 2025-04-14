@@ -164,11 +164,11 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         // For Redis, we consider high CPU or memory usage as warnings
         if (cpuUsage > 90 || memoryUsage > 90)
         {
-            return ScorecardHealthState.Unhealthy;
+            return ScorecardHealthState.Degraded;
         }
         else if (cpuUsage > 75 || memoryUsage > 75)
         {
-            return ScorecardHealthState.Unknown; // Using Unknown as a middle state
+            return ScorecardHealthState.Unhealthy;
         }
         else
         {
