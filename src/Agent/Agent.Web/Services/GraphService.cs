@@ -66,9 +66,7 @@ public class GraphService : IGraphService
         }
 
         string query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}')
-                        .out('{ArmConstants.Relationships.Contains}')
-                        .out('{ArmConstants.Relationships.Contains}')
-                        .hasLabel(within(
+                        .has('resourceType', within(
                             '{ArmConstants.ContainerAppType.ToLower()}',
                             '{ArmConstants.AppServiceType.ToLower()}',
                             '{ArmConstants.AzureKubernetesServiceType.ToLower()}',
@@ -91,7 +89,7 @@ public class GraphService : IGraphService
                                inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV(),
                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV()
                            )
-                           .not(has('resourceType', within('resourcegroup', 'subscription')))
+                           .not(has('resourceType', within('resourcegroups', 'subscription')))
                            .simplePath()
                        )
                        .times({hops})
@@ -285,7 +283,7 @@ public class GraphService : IGraphService
                     dashboardUrl = AddQueryParameters(dashboardUrl, queryParams);
 
                     // Add the dashboard URL to the result
-                    ((IDictionary<string, object>)item)["dashboardUrl"] = _grafanaUrl+dashboardUrl;
+                    ((IDictionary<string, object>)item)["dashboardUrl"] = dashboardUrl;
                 }
                 else
                 {
