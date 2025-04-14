@@ -7,12 +7,10 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Authorization;
-using Azure.ResourceManager.Authorization.Models;
 using Azure.ResourceManager.ContainerRegistry;
 using Azure.ResourceManager.Models;
 using Azure.ResourceManager.Network;
@@ -20,15 +18,12 @@ using Azure.ResourceManager.Network.Models;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using System.Net;
-using System.Net.Http;
 using System.Text.RegularExpressions;
 using Azure.Monitor.Query;
 using Azure.Monitor.Query.Models;
 using System.IO.Compression;
 using System.Text.Json;
-using YamlDotNet.Core.Tokens;
 using System.Net.Http.Headers;
 
 namespace Agent.Plugins.Implementation
@@ -60,12 +55,11 @@ namespace Agent.Plugins.Implementation
         public async Task<string> GetImageReferenceFromResourceId(string resourceId)
         {
             _logger.LogInformation($"Getting image reference for resource: {resourceId}");
-            
+
             try
             {
                 // Get the ARM client
                 var armClient = _armClientFactory.GetArmClient();
-
                 // Check if this is a Container App
                 if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
                 {
@@ -75,7 +69,7 @@ namespace Agent.Plugins.Implementation
 
                     // Get the active revision directly through ARM API instead of using _containerAppPlugin
                     string latestRevisionName = containerApp.Value.Data.LatestRevisionName;
-                    
+
                     // If we have a latest revision name, get that revision specifically
                     if (!string.IsNullOrEmpty(latestRevisionName))
                     {
@@ -84,9 +78,9 @@ namespace Agent.Plugins.Implementation
                         {
                             var revisionResource = armClient.GetContainerAppRevisionResource(new ResourceIdentifier(revisionResourceId));
                             var revision = await revisionResource.GetAsync();
-                            
+
                             // Get the container image from the revision
-                            if (revision.Value.Data.Template?.Containers != null && 
+                            if (revision.Value.Data.Template?.Containers != null &&
                                 revision.Value.Data.Template.Containers.Count > 0)
                             {
                                 return revision.Value.Data.Template.Containers[0].Image;
@@ -106,47 +100,42 @@ namespace Agent.Plugins.Implementation
                     }
                 }
                 // Support for Linux Web Apps
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (await CheckIsLinuxApp(resourceId))
                 {
                     // Get the Web App resource
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var webApp = await webAppResource.GetAsync();
-                    
-                    // Check if this is a Linux Web App
-                    if (webApp.Value.Data.Kind != null && webApp.Value.Data.Kind.ToLower().Contains("linux"))
-                    {
-                        // Get the site configuration which contains the container information
-                        var siteConfig = webApp.Value.Data.SiteConfig;
-                        if (siteConfig?.LinuxFxVersion != null)
-                        {
-                            _logger.LogInformation($"Found LinuxFxVersion: {siteConfig.LinuxFxVersion}");
-                            
-                            // For Docker container apps, the image reference will be in LinuxFxVersion
-                            if (siteConfig.LinuxFxVersion.StartsWith("DOCKER|", StringComparison.OrdinalIgnoreCase))
-                            {
-                                return siteConfig.LinuxFxVersion.Substring("DOCKER|".Length).Trim();
-                            }
-                        }
 
-                        // Fallback: Try siteContainers
-                        var containers = await webApp.Value.GetSiteContainers().ToListAsync();
-                        if (containers.Count > 0)
-                        {
-                            var containerImage = containers[0].Data.Image;
-                            if (!string.IsNullOrEmpty(containerImage))
-                            {
-                                return containerImage;
-                            }
-                        }
-
-                        _logger.LogWarning($"Could not determine container image from configuration for {resourceId}");
-                    }
-                    else
+                    // Get the site configuration which contains the container information
+                    var siteConfig = webApp.Value.Data.SiteConfig;
+                    if (siteConfig?.LinuxFxVersion != null)
                     {
-                        _logger.LogWarning($"Resource {resourceId} is not a Linux Web App");
+                        _logger.LogInformation($"Found LinuxFxVersion: {siteConfig.LinuxFxVersion}");
+
+                        // For Docker container apps, the image reference will be in LinuxFxVersion
+                        if (siteConfig.LinuxFxVersion.StartsWith("DOCKER|", StringComparison.OrdinalIgnoreCase))
+                        {
+                            return siteConfig.LinuxFxVersion.Substring("DOCKER|".Length).Trim();
+                        }
                     }
+
+                    // Fallback: Try siteContainers
+                    var containers = await webApp.Value.GetSiteContainers().ToListAsync();
+                    if (containers.Count > 0)
+                    {
+                        var containerImage = containers[0].Data.Image;
+                        if (!string.IsNullOrEmpty(containerImage))
+                        {
+                            return containerImage;
+                        }
+                    }
+
+                    _logger.LogWarning($"Could not determine container image from configuration for {resourceId}");
                 }
-
+                else
+                {
+                    _logger.LogWarning($"Resource {resourceId} is not Container app or Linux App");
+                }
                 _logger.LogWarning($"Could not find image reference for resource: {resourceId}");
                 return null;
             }
@@ -171,14 +160,14 @@ namespace Agent.Plugins.Implementation
             {
                 // Get the ARM client
                 var armClient = _armClientFactory.GetArmClient();
-                
+
                 // Check if this is a Container App
                 if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
                 {
                     // Get Container App resource
                     var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                     var containerApp = await containerAppResource.GetAsync();
-                    
+
                     // Get the environment resource ID from the Container App
                     var environmentId = containerApp.Value.Data.EnvironmentId;
                     if (environmentId == null)
@@ -186,11 +175,11 @@ namespace Agent.Plugins.Implementation
                         _logger.LogWarning($"Container App {resourceId} does not have an environment ID");
                         return result;
                     }
-                    
+
                     // Get the Container App Environment
                     var environmentResource = armClient.GetContainerAppManagedEnvironmentResource(new ResourceIdentifier(environmentId));
                     var environment = await environmentResource.GetAsync();
-                    
+
                     // Check if the environment has a VNet configuration
                     var vnetConfiguration = environment.Value.Data.VnetConfiguration;
                     if (vnetConfiguration == null)
@@ -198,7 +187,7 @@ namespace Agent.Plugins.Implementation
                         _logger.LogInformation($"Container App Environment {environmentId} does not have VNet integration");
                         return result;
                     }
-                    
+
                     // Get the infrastructure subnet ID
                     var infrastructureSubnetId = vnetConfiguration.InfrastructureSubnetId?.ToString();
                     if (string.IsNullOrEmpty(infrastructureSubnetId))
@@ -206,30 +195,30 @@ namespace Agent.Plugins.Implementation
                         _logger.LogWarning($"Container App Environment {environmentId} has VNet configuration but no infrastructure subnet ID");
                         return result;
                     }
-                    
+
                     // Get the infrastructure subnet
                     var subnetResource = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
                     var subnet = await subnetResource.GetAsync();
-                    
+
                     // Get NSGs associated with this subnet
                     var nsgId = subnet.Value.Data.NetworkSecurityGroup?.Id;
                     if (nsgId != null)
                     {
                         var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
                         var nsg = await nsgResource.GetAsync();
-                        
+
                         var securityRules = nsg.Value.Data.SecurityRules.ToList();
                         result.Add(nsg.Value.Data.Name, securityRules);
                         _logger.LogInformation($"Found NSG {nsg.Value.Data.Name} with {securityRules.Count} rules for subnet {subnet.Value.Data.Name}");
                     }
                 }
                 // Support for Linux Web Apps
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (await CheckIsLinuxApp(resourceId))
                 {
                     // Get the Web App resource
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var webApp = await webAppResource.GetAsync();
-                    
+
                     // Check if this Web App has VNet integration
                     var vnetConnections = webAppResource.GetSiteVirtualNetworkConnections();
                     if (vnetConnections != null)
@@ -268,7 +257,7 @@ namespace Agent.Plugins.Implementation
                         _logger.LogInformation($"Web App {resourceId} does not have VNet integration");
                     }
                 }
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -287,7 +276,7 @@ namespace Agent.Plugins.Implementation
 
             // Get the image reference from the resource ID
             string imageReference = await GetImageReferenceFromResourceId(resourceId);
-            
+
             var result = new AcrAuthenticationStatus
             {
                 ResourceId = resourceId,
@@ -313,7 +302,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Verify this is actually an Azure Container Registry
-                if (!imageReference.Contains(".azurecr.io/", StringComparison.OrdinalIgnoreCase) && 
+                if (!imageReference.Contains(".azurecr.io/", StringComparison.OrdinalIgnoreCase) &&
                     !imageReference.Contains(".acr.io/", StringComparison.OrdinalIgnoreCase))
                 {
                     result.ErrorMessage = "Image is not from Azure Container Registry. Use verify_external_registry tool for non-ACR images.";
@@ -323,14 +312,14 @@ namespace Agent.Plugins.Implementation
 
                 // Get the ARM client
                 var armClient = _armClientFactory.GetArmClient();
-                
+
                 // Check if this is a Container App or a Web App
                 if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
                 {
                     // Container App ACR Authentication Check
                     return await CheckContainerAppAcrAuth(armClient, resourceId, registryName, imageReference);
                 }
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (await CheckIsLinuxApp(resourceId))
                 {
                     // Web App ACR Authentication Check
                     return await CheckWebAppAcrAuth(armClient, resourceId, registryName, imageReference);
@@ -351,9 +340,9 @@ namespace Agent.Plugins.Implementation
 
         // New method to handle Container App ACR authentication check
         private async Task<AcrAuthenticationStatus> CheckContainerAppAcrAuth(
-            ArmClient armClient, 
-            string resourceId, 
-            string registryName, 
+            ArmClient armClient,
+            string resourceId,
+            string registryName,
             string imageReference)
         {
             var result = new AcrAuthenticationStatus
@@ -369,21 +358,21 @@ namespace Agent.Plugins.Implementation
 
             // Check how the Container App is configured to authenticate to ACR
             var registryConfiguration = containerApp.Value.Data.Configuration?.Registries;
-            
+
             // If explicit registry credentials are configured for this ACR
-            if (registryConfiguration != null && registryConfiguration.Any(r => 
+            if (registryConfiguration != null && registryConfiguration.Any(r =>
                 r.Server != null && r.Server.Contains(registryName, StringComparison.OrdinalIgnoreCase)))
             {
-                var registryConfig = registryConfiguration.First(r => 
+                var registryConfig = registryConfiguration.First(r =>
                     r.Server != null && r.Server.Contains(registryName, StringComparison.OrdinalIgnoreCase));
-                
+
                 // Check if using managed identity for this registry
                 if (registryConfig.Identity != null)
                 {
                     _logger.LogInformation($"Container App is configured to use managed identity for ACR {registryName}");
-                    
+
                     // Now we need to check if the specified identity has proper ACR Pull permissions
-                    
+
                     // Get registry resource for ACR-Pull role check
                     var registry = await FindAcrResourceByName(armClient, resourceId, registryName);
                     if (registry == null)
@@ -393,15 +382,15 @@ namespace Agent.Plugins.Implementation
                         result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
                         return result;
                     }
-                    
+
                     // Get the identity that's being used for registry auth
                     var identityName = registryConfig.Identity;
-                    
+
                     // Check if this is referring to system-assigned identity
                     if (identityName == "system")
                     {
                         // Verify system-assigned identity is enabled
-                        if (containerApp.Value.Data.Identity == null || 
+                        if (containerApp.Value.Data.Identity == null ||
                             containerApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned ||
                             !containerApp.Value.Data.Identity.PrincipalId.HasValue)
                         {
@@ -410,14 +399,14 @@ namespace Agent.Plugins.Implementation
                             result.PotentialSolution = "Enable system-assigned managed identity for the Container App";
                             return result;
                         }
-                        
+
                         // Check if the system-assigned identity has proper role assignments
                         bool hasProperRoleAssignment = await CheckManagedIdentityRoleAssignmentAsync(
                             armClient,
                             containerApp.Value.Data.Identity,
                             registry.Id,
                             true);  // Check only system-assigned identity
-                        
+
                         if (!hasProperRoleAssignment)
                         {
                             result.IsAuthenticated = false;
@@ -437,10 +426,10 @@ namespace Agent.Plugins.Implementation
                             result.PotentialSolution = "Configure the user-assigned managed identity for the Container App";
                             return result;
                         }
-                        
+
                         // Check if the specified identity exists in the Container App's user-assigned identities
                         var userAssignedIdentities = containerApp.Value.Data.Identity.UserAssignedIdentities;
-                        
+
                         // The identity reference in registry config might be the full resource ID or just the name
                         bool identityFound = false;
                         foreach (var identity in userAssignedIdentities)
@@ -477,11 +466,11 @@ namespace Agent.Plugins.Implementation
                                     result.PotentialSolution = "Ensure the user-assigned managed identity is properly configured.";
                                     return result;
                                 }
-                                
+
                                 break;
                             }
                         }
-                        
+
                         if (!identityFound)
                         {
                             result.IsAuthenticated = false;
@@ -495,7 +484,7 @@ namespace Agent.Plugins.Implementation
                 {
                     // App is using username/password auth for this registry
                     _logger.LogInformation($"Container App is configured to use username/password authentication for ACR {registryName}");
-                    
+
                     // We can't verify the actual credentials as we don't have access to the password secret
                     // but we can note that username/password auth is being used
                     result.IsAuthenticated = true;  // Assume authentication is properly configured
@@ -515,7 +504,7 @@ namespace Agent.Plugins.Implementation
             {
                 // No explicit registry configuration for this ACR
                 _logger.LogInformation($"No explicit registry configuration found for ACR {registryName}. Checking for default managed identity configuration.");
-                
+
                 // Check if the Container App has managed identity configured for default use
                 if (containerApp.Value.Data.Identity == null ||
                     (!containerApp.Value.Data.Identity.UserAssignedIdentities.Any() &&
@@ -539,11 +528,11 @@ namespace Agent.Plugins.Implementation
 
                 // Check if any managed identity has proper role assignments on the ACR
                 bool hasProperRoleAssignment = await CheckManagedIdentityRoleAssignmentAsync(
-                    armClient, 
-                    containerApp.Value.Data.Identity, 
+                    armClient,
+                    containerApp.Value.Data.Identity,
                     registry.Id,
                     false);  // Check all identities
-                
+
                 if (!hasProperRoleAssignment)
                 {
                     result.IsAuthenticated = false;
@@ -591,9 +580,9 @@ namespace Agent.Plugins.Implementation
 
         // New method to handle Web App ACR authentication check
         private async Task<AcrAuthenticationStatus> CheckWebAppAcrAuth(
-            ArmClient armClient, 
-            string resourceId, 
-            string registryName, 
+            ArmClient armClient,
+            string resourceId,
+            string registryName,
             string imageReference)
         {
             var result = new AcrAuthenticationStatus
@@ -608,28 +597,28 @@ namespace Agent.Plugins.Implementation
             var webApp = await webAppResource.GetAsync();
 
             // Check how the Web App is configured to authenticate to ACR
-            
+
             // Get the app settings to check for registry credentials
             var appSettingsResult = await webAppResource.GetApplicationSettingsAsync();
             var appSettings = appSettingsResult.Value.Properties;
 
             // First, check if there are explicit registry credentials in app settings
             bool hasExplicitCredentials = false;
-            if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) && 
-                !string.IsNullOrEmpty(registryUrl) && 
+            if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) &&
+                !string.IsNullOrEmpty(registryUrl) &&
                 registryUrl.Contains(registryName, StringComparison.OrdinalIgnoreCase))
             {
                 hasExplicitCredentials = true;
-                
+
                 // Check if username/password auth is configured
-                bool hasUsernamePassword = appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_USERNAME", out string username) && 
+                bool hasUsernamePassword = appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_USERNAME", out string username) &&
                                         !string.IsNullOrEmpty(username) &&
                                         appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_PASSWORD");
-                
+
                 if (hasUsernamePassword)
                 {
                     _logger.LogInformation($"Web App is configured to use username/password authentication for ACR {registryName}");
-                    
+
                     // We can't verify the actual password, but we can note that username/password auth is being used
                     result.IsAuthenticated = true;  // Assume authentication is properly configured
                     result.ErrorMessage = "Web App is using username/password authentication for ACR. Cannot verify if credentials are correct.";
@@ -639,12 +628,12 @@ namespace Agent.Plugins.Implementation
             }
 
             // If no explicit credentials, or credentials are incomplete, check for managed identity
-            if (!hasExplicitCredentials || 
-                !appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_USERNAME") || 
+            if (!hasExplicitCredentials ||
+                !appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_USERNAME") ||
                 !appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_PASSWORD"))
             {
                 _logger.LogInformation($"Checking managed identity configuration for Web App {resourceId}");
-                
+
                 // Check if managed identity is enabled
                 if (webApp.Value.Data.Identity == null ||
                     (webApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned &&
@@ -656,7 +645,7 @@ namespace Agent.Plugins.Implementation
                     result.PotentialSolution = "Configure registry credentials in app settings or enable Managed Identity";
                     return result;
                 }
-                
+
                 // Get registry resource for ACR-Pull role check
                 var registry = await FindAcrResourceByName(armClient, resourceId, registryName);
                 if (registry == null)
@@ -666,7 +655,7 @@ namespace Agent.Plugins.Implementation
                     result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
                     return result;
                 }
-                
+
                 // Check for system-assigned identity role assignment
                 bool hasProperRoleAssignment = false;
 
@@ -682,9 +671,9 @@ namespace Agent.Plugins.Implementation
                             registry.Id);
                     }
                 }
-                
+
                 // If system-assigned doesn't have permission, check user-assigned identities
-                if (!hasProperRoleAssignment && 
+                if (!hasProperRoleAssignment &&
                     (webApp.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.UserAssigned ||
                      webApp.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned))
                 {
@@ -698,7 +687,7 @@ namespace Agent.Plugins.Implementation
                                     armClient,
                                     identity.Value.PrincipalId.Value,
                                     registry.Id);
-                                
+
                                 if (identityHasRole)
                                 {
                                     hasProperRoleAssignment = true;
@@ -708,7 +697,7 @@ namespace Agent.Plugins.Implementation
                         }
                     }
                 }
-                
+
                 if (!hasProperRoleAssignment)
                 {
                     result.IsAuthenticated = false;
@@ -717,7 +706,7 @@ namespace Agent.Plugins.Implementation
                     return result;
                 }
             }
-            
+
             // Check for network connectivity issues via NSG rules
             var nsgRules = await GetNetworkSecurityRulesForResource(resourceId);
             bool hasBlockingRules = CheckForBlockingNsgRules(nsgRules, registryName);
@@ -761,7 +750,7 @@ namespace Agent.Plugins.Implementation
         {
             // Get the image reference from the resource ID
             string imageReference = await GetImageReferenceFromResourceId(resourceId);
-            
+
             _logger.LogInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
             return await VerifyExternalRegistryAsync(imageReference, resourceId);
         }
@@ -1010,10 +999,10 @@ namespace Agent.Plugins.Implementation
                 var imageReference = await GetImageReferenceFromResourceId(resourceId);
                 if (string.IsNullOrEmpty(imageReference))
                 {
-                    return new ImagePullingResult 
-                    { 
-                        IsSuccessful = false, 
-                        FailureReason = "Could not determine container image reference" 
+                    return new ImagePullingResult
+                    {
+                        IsSuccessful = false,
+                        FailureReason = "Could not determine container image reference"
                     };
                 }
 
@@ -1022,20 +1011,20 @@ namespace Agent.Plugins.Implementation
                 {
                     var resourceGroup = armClient.GetResourceGroupResource(
                         new ResourceIdentifier($"/subscriptions/{resourceIdentifier.SubscriptionId}/resourceGroups/{resourceIdentifier.ResourceGroupName}"));
-                    
+
                     var containerApp = (await resourceGroup.GetContainerAppAsync(resourceIdentifier.Name)).Value;
                     if (containerApp == null)
                     {
-                        return new ImagePullingResult 
-                        { 
-                            IsSuccessful = false, 
-                            FailureReason = "Container App not found" 
+                        return new ImagePullingResult
+                        {
+                            IsSuccessful = false,
+                            FailureReason = "Container App not found"
                         };
                     }
 
                     var managedEnvResource = (await armClient.GetContainerAppManagedEnvironmentResource(
                         new ResourceIdentifier(containerApp.Data.EnvironmentId)).GetAsync()).Value;
-                    
+
                     // Check for image pull errors in the logs
                     var logAnalyticsCustomerId = managedEnvResource.Data.AppLogsConfiguration?.LogAnalyticsConfiguration?.CustomerId;
                     if (!string.IsNullOrEmpty(logAnalyticsCustomerId))
@@ -1046,8 +1035,8 @@ namespace Agent.Plugins.Implementation
                         | where ContainerAppName_s == '{containerApp.Id.Name}'
                         | where Reason_s == 'ContainerTerminated'
                         | where Log_s has_any ('ImagePullBackOff', 'ErrImagePull','ImagePullFailure')
-                        | project TimeGenerated, Log_s, ContainerAppName_s
-                        | summarize by Log_s
+                        | top 1 by TimeGenerated desc
+                        | project Log_s
                         ";
 
                         var credential = _authService.GetArmOperationCredential();
@@ -1064,7 +1053,7 @@ namespace Agent.Plugins.Implementation
                     };
                 }
                 // Handle Linux Web Apps
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (await CheckIsLinuxApp(resourceId))
                 {
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var webApp = await webAppResource.GetAsync();
@@ -1075,7 +1064,7 @@ namespace Agent.Plugins.Implementation
                         return new ImagePullingResult
                         {
                             IsSuccessful = false,
-                            FailureReason = "Image reference is ACR. Use IsACRImageManifestAccessibleAsync tool to check image accessibility."
+                            FailureReason = "Image reference is ACR. Use IsAzureContainerRegistryImageAccessibleAsync tool to check image accessibility."
                         };
                     }
 
@@ -1107,15 +1096,15 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error checking image pulling status for {resourceId}");
-                return new ImagePullingResult 
-                { 
-                    IsSuccessful = false, 
-                    FailureReason = $"Error checking pull status: {ex.Message}" 
+                return new ImagePullingResult
+                {
+                    IsSuccessful = false,
+                    FailureReason = $"Error checking pull status: {ex.Message}"
                 };
             }
         }
 
-        public async Task<ImagePullingResult> IsACRImageManifestAccessibleAsync(string resourceId)
+        public async Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string resourceId)
         {
             try
             {
@@ -1262,28 +1251,28 @@ namespace Agent.Plugins.Implementation
             // Common error patterns
             var errorPatterns = new Dictionary<string, (string Diagnosis, string Fix)>
             {
-                { @"unauthorized|authentication required|access denied", 
-                    ("Authentication failure when pulling the image", 
+                { @"unauthorized|authentication required|access denied",
+                    ("Authentication failure when pulling the image",
                      "Verify registry credentials or managed identity configuration") },
-                
-                { @"not found|404|no such image", 
-                    ("Image not found in the registry", 
+
+                { @"not found|404|no such image",
+                    ("Image not found in the registry",
                      "Verify the image name and tag are correct") },
-                
-                { @"exceeded rate limit|rate limited|too many requests", 
-                    ("Registry rate limit exceeded", 
+
+                { @"exceeded rate limit|rate limited|too many requests",
+                    ("Registry rate limit exceeded",
                      "Use authenticated pulls or wait for rate limit reset") },
-                
-                { @"network timeout|connection refused|cannot connect", 
-                    ("Network connectivity issues", 
+
+                { @"network timeout|connection refused|cannot connect",
+                    ("Network connectivity issues",
                      "Check network configuration and NSG rules") },
-                
-                { @"insufficient memory|no space left|disk pressure", 
-                    ("Resource constraints preventing image pull", 
+
+                { @"insufficient memory|no space left|disk pressure",
+                    ("Resource constraints preventing image pull",
                      "Check available resources and cleanup unused images") },
-                
-                { @"manifest unknown|manifest invalid|unsupported manifest", 
-                    ("Invalid or unsupported image manifest", 
+
+                { @"manifest unknown|manifest invalid|unsupported manifest",
+                    ("Invalid or unsupported image manifest",
                      "Verify image architecture compatibility and manifest format") }
             };
 
@@ -1320,7 +1309,7 @@ namespace Agent.Plugins.Implementation
                                 result.DetailedDiagnosis = "Command not found error, possible container runtime issue";
                                 result.SuggestedFix = "Verify container runtime installation and configuration";
                                 break;
-                            // Add more exit codes as needed
+                                // Add more exit codes as needed
                         }
 
                         if (result.HasPullFailure)
@@ -1351,15 +1340,15 @@ namespace Agent.Plugins.Implementation
             try
             {
                 var armClient = _armClientFactory.GetArmClient();
-                
+
                 if (resourceId.Contains("Microsoft.App/containerApps"))
                 {
                     var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                     var containerApp = await containerAppResource.GetAsync();
-                    
+
                     var managedEnvResource = await armClient.GetContainerAppManagedEnvironmentResource(
                         new ResourceIdentifier(containerApp.Value.Data.EnvironmentId)).GetAsync();
-                    
+
                     var logAnalyticsCustomerId = managedEnvResource.Value.Data.AppLogsConfiguration?.LogAnalyticsConfiguration?.CustomerId;
                     if (!string.IsNullOrEmpty(logAnalyticsCustomerId))
                     {
@@ -1375,14 +1364,14 @@ namespace Agent.Plugins.Implementation
                         var credential = _authService.GetArmOperationCredential();
                         var logsClient = new LogsQueryClient(credential);
                         var timeRange = new QueryTimeRange(TimeSpan.FromHours(1));
-                        
+
                         var queryResult = await logsClient.QueryWorkspaceAsync(logAnalyticsCustomerId, query, timeRange);
                         var logs = queryResult.Value.Table.Rows.Select(row => row[1].ToString()).ToList();
-                        
+
                         return AnalyzeContainerLogs(logs);
                     }
                 }
-                else if (resourceId.Contains("Microsoft.Web/sites"))
+                else if (await CheckIsLinuxApp(resourceId))
                 {
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var logs = await webAppResource.GetWebSiteContainerLogsAsync();
@@ -1416,7 +1405,20 @@ namespace Agent.Plugins.Implementation
                     HasPullFailure = false,
                     ErrorMessage = $"Error analyzing logs: {ex.Message}"
                 };
-            }            
+            }
+        }
+
+        private async Task<bool> CheckIsLinuxApp(string resourceId)
+        {
+            var resourceIdentifier = new ResourceIdentifier(resourceId);
+            if (resourceIdentifier.ResourceType != new ResourceType("Microsoft.Web/sites"))
+            {
+                return false;
+            }
+            var armClient = _armClientFactory.GetArmClient();
+            var app = (await armClient.GetWebSiteResource(resourceIdentifier).GetAsync()).Value;
+            string kind = app.Data.Kind.ToLower();
+            return kind.IndexOf("linux") >= 0;
         }
 
         #region Helper Methods
@@ -1530,7 +1532,7 @@ namespace Agent.Plugins.Implementation
                 // Try HTTPS first
                 var httpsUrl = $"https://{hostname}/v2/";
                 var request = new HttpRequestMessage(HttpMethod.Head, httpsUrl);
-                
+
                 try
                 {
                     var httpResponse = await _httpClient.SendAsync(request);
@@ -1668,7 +1670,7 @@ namespace Agent.Plugins.Implementation
                 if (slashIndex > 0)
                 {
                     var possibleHostname = imageReference.Substring(0, slashIndex);
-                    
+
                     // If it contains a dot, it's likely a hostname
                     if (possibleHostname.Contains('.'))
                     {
@@ -1774,7 +1776,7 @@ namespace Agent.Plugins.Implementation
             public ContainerLogAnalysisResult AnalyzeContainerAppLogs(IEnumerable<(DateTime Timestamp, string Message)> logs)
             {
                 var result = new ContainerLogAnalysisResult { HasPullFailure = false };
-                
+
                 if (logs?.Any() != true)
                 {
                     result.ErrorMessage = "No logs available for analysis";
@@ -1783,7 +1785,7 @@ namespace Agent.Plugins.Implementation
 
                 // Get the most recent logs first
                 var orderedLogs = logs.OrderByDescending(l => l.Timestamp);
-                
+
                 foreach (var (timestamp, message) in orderedLogs)
                 {
                     foreach (var errorPattern in _errorPatterns)
@@ -1815,7 +1817,7 @@ namespace Agent.Plugins.Implementation
             public ContainerLogAnalysisResult AnalyzeWebAppLogs(IEnumerable<string> logs)
             {
                 var result = new ContainerLogAnalysisResult { HasPullFailure = false };
-                
+
                 if (logs?.Any() != true)
                 {
                     result.ErrorMessage = "No logs available for analysis";
@@ -1845,7 +1847,7 @@ namespace Agent.Plugins.Implementation
                         {
                             result.HasPullFailure = true;
                             result.ErrorMessage = message;
-                            result.DetailedDiagnosis = timestamp != DateTime.MinValue 
+                            result.DetailedDiagnosis = timestamp != DateTime.MinValue
                                 ? $"[{timestamp:yyyy-MM-dd HH:mm:ss}] {errorPattern.Value.Message}"
                                 : errorPattern.Value.Message;
                             result.SuggestedFix = errorPattern.Value.Solution;
@@ -1879,8 +1881,8 @@ namespace Agent.Plugins.Implementation
                     @"required configuration .* missing"
                 };
 
-                return logs.Any(log => 
-                    envIssuePatterns.Any(pattern => 
+                return logs.Any(log =>
+                    envIssuePatterns.Any(pattern =>
                         Regex.IsMatch(log, pattern, RegexOptions.IgnoreCase)));
             }
 
@@ -1891,7 +1893,7 @@ namespace Agent.Plugins.Implementation
 
                 var recentFailures = logs
                     .Where(l => DateTime.UtcNow.Subtract(l.Timestamp).TotalMinutes <= timeWindowMinutes)
-                    .Where(l => l.Message.Contains("failed to pull") || 
+                    .Where(l => l.Message.Contains("failed to pull") ||
                                l.Message.Contains("ImagePullBackOff") ||
                                l.Message.Contains("ErrImagePull"))
                     .Take(failureThreshold + 1)
@@ -1913,7 +1915,7 @@ namespace Agent.Plugins.Implementation
                     @"operation not permitted"
                 };
 
-                return criticalPatterns.Any(pattern => 
+                return criticalPatterns.Any(pattern =>
                     Regex.IsMatch(logMessage, pattern, RegexOptions.IgnoreCase));
             }
 
@@ -1940,12 +1942,12 @@ namespace Agent.Plugins.Implementation
             {
                 var registryResource = armClient.GetContainerRegistryResource(registryId);
                 var roleAssignments = await registryResource.GetRoleAssignments().GetAllAsync().ToListAsync();
-                
+
                 if (checkOnlySystemAssigned)
                 {
                     return await CheckSystemAssignedIdentityRoleAsync(armClient, identity, roleAssignments);
                 }
-                
+
                 return await CheckAllIdentitiesRoleAsync(armClient, identity, roleAssignments);
             }
             catch (Exception ex)
@@ -2125,8 +2127,8 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                var endpoint = isAcr ? 
-                    $"https://{registryName}.azurecr.io/v2/" : 
+                var endpoint = isAcr ?
+                    $"https://{registryName}.azurecr.io/v2/" :
                     $"https://{registryName}/v2/";
 
                 var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
@@ -2174,8 +2176,8 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Check TLS/HTTPS connectivity
-                var endpoint = isAcr ? 
-                    $"https://{registryName}.azurecr.io/v2/" : 
+                var endpoint = isAcr ?
+                    $"https://{registryName}.azurecr.io/v2/" :
                     $"https://{registryName}/v2/";
 
                 var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
@@ -2433,5 +2435,1134 @@ namespace Agent.Plugins.Implementation
         }
 
         #endregion
+
+        /// <summary>
+        /// Rolls back a Container App or Web App to the last known working image
+        /// </summary>
+        /// <param name="resourceId">The resource ID of the Container App or Web App</param>
+        /// <returns>Result of the rollback operation</returns>
+        public async Task<RollbackImageResult> RollbackToLastWorkingImage(string resourceId)
+        {
+            _logger.LogInformation($"Rolling back to last known working image for resource: {resourceId}");
+            
+            var result = new RollbackImageResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = false
+            };
+
+            try
+            {
+                // Get the ARM client
+                var armClient = _armClientFactory.GetArmClient();
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
+
+                // Check if this is a Container App
+                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await RollbackContainerApp(armClient, resourceId);
+                }
+                // Check if this is a Web App
+                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await RollbackWebApp(armClient, resourceId);
+                }
+                else
+                {
+                    result.ErrorMessage = "Resource type not supported for rollback";
+                    result.PotentialSolution = "Only Container Apps and Linux Web Apps are supported for image rollback";
+                    _logger.LogWarning($"Unsupported resource type for rollback: {resourceId}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error rolling back resource {resourceId} to last working image");
+                result.ErrorMessage = $"Error during rollback: {ex.Message}";
+                result.PotentialSolution = "Check logs for more details and try again";
+                return result;
+            }
+        }
+
+        private async Task<RollbackImageResult> RollbackContainerApp(ArmClient armClient, string resourceId)
+        {
+            var result = new RollbackImageResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = false
+            };
+
+            try
+            {
+                // Get the Container App resource
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+
+                // Get all revisions for this Container App
+                var revisions = await containerAppResource.GetContainerAppRevisions().ToListAsync();
+                
+                // Sort revisions by created time in descending order (newest first)
+                revisions = revisions
+                    .OrderByDescending(r => r.Data.CreatedOn)
+                    .ToList();
+
+                // We need at least 2 revisions to perform a rollback
+                if (revisions.Count < 2)
+                {
+                    result.ErrorMessage = "Not enough revisions found for rollback";
+                    result.PotentialSolution = "At least 2 revisions are needed for rollback";
+                    return result;
+                }
+
+                // Get current active revision name
+                string currentRevisionName = containerApp.Value.Data.LatestRevisionName;
+                result.CurrentImage = await GetImageReferenceFromResourceId(resourceId);
+
+                // Find the most recent inactive revision that is not the current one and is in a "Ready" state
+                var targetRevision = revisions
+                    .Where(r => r.Data.Name != currentRevisionName)
+                    .Where(r => r.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned)
+                    .FirstOrDefault();
+
+                if (targetRevision == null)
+                {
+                    result.ErrorMessage = "No suitable previous revision found for rollback";
+                    result.PotentialSolution = "Deploy a new revision with a working image";
+                    return result;
+                }
+
+                // Find the image reference in the target revision
+                string? targetImageReference = null;
+                if (targetRevision.Data.Template?.Containers != null && targetRevision.Data.Template.Containers.Count > 0)
+                {
+                    targetImageReference = targetRevision.Data.Template.Containers[0].Image;
+                }
+
+                if (string.IsNullOrEmpty(targetImageReference))
+                {
+                    result.ErrorMessage = "Could not determine image reference in previous revision";
+                    result.PotentialSolution = "Deploy a new revision with a working image";
+                    return result;
+                }
+
+                // Create a data object for the update
+                ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
+                {
+                    Template = containerApp.Value.Data.Template
+                };
+
+                // Update image in the template containers
+                if (updateData.Template?.Containers != null && updateData.Template.Containers.Count > 0)
+                {
+                    updateData.Template.Containers[0].Image = targetImageReference;
+                }
+                else
+                {
+                    result.ErrorMessage = "Current Container App template does not contain valid containers";
+                    result.PotentialSolution = "Deploy a new revision manually with a working image";
+                    return result;
+                }
+
+                // Update the Container App with the new template
+                _logger.LogInformation($"Updating Container App {resourceId} with previous working image: {targetImageReference}");
+                var updateOperation = await containerAppResource.UpdateAsync(
+                   WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
+                   updateData,          // The ContainerAppData object to update
+                   CancellationToken.None // Provide a CancellationToken (use CancellationToken.None if no cancellation is needed)
+                );
+                var updatedApp = updateOperation.Value;
+
+                // Add information to result
+                result.IsSuccessful = true;
+                result.RolledBackToImage = targetImageReference;
+                result.PreviousRevision = targetRevision.Data.Name;
+                result.PotentialSolution = "Monitor the app to ensure it starts successfully";
+                _logger.LogInformation($"Successfully rolled back Container App {resourceId} to image: {targetImageReference}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error rolling back Container App {resourceId}");
+                result.ErrorMessage = $"Error during rollback: {ex.Message}";
+                result.PotentialSolution = "Check permissions and try again, or deploy manually with a working image";
+                return result;
+            }
+        }
+
+        private async Task<RollbackImageResult> RollbackWebApp(ArmClient armClient, string resourceId)
+        {
+            var result = new RollbackImageResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = false
+            };
+
+            try
+            {
+                // Get the Web App resource
+                var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
+                var webApp = await webAppResource.GetAsync();
+
+                // Check if this is a Linux Web App
+                if (webApp.Value.Data.Kind == null || !webApp.Value.Data.Kind.ToLower().Contains("linux"))
+                {
+                    result.ErrorMessage = "Web App is not a Linux Web App";
+                    result.PotentialSolution = "Only Linux Web Apps with container configurations can be rolled back";
+                    return result;
+                }
+
+                // Get the current image reference
+                result.CurrentImage = await GetImageReferenceFromResourceId(resourceId);
+                if (string.IsNullOrEmpty(result.CurrentImage))
+                {
+                    result.ErrorMessage = "Could not determine current image reference";
+                    result.PotentialSolution = "Verify that the Web App is using a container configuration";
+                    return result;
+                }
+
+                // Get deployment history to find previous images
+                var deploymentHistoryResponse = webAppResource.GetSiteDeployments();
+                var deployments = await deploymentHistoryResponse.GetAllAsync().ToListAsync();
+
+                // Sort deployments by time in descending order (newest first)
+                deployments = deployments
+                    .OrderByDescending(d => d.Data.StartOn)
+                    .ToList();
+
+                // We need at least 2 deployments to perform a rollback
+                if (deployments.Count < 2)
+                {
+                    result.ErrorMessage = "Not enough deployment history found for rollback";
+                    result.PotentialSolution = "At least 2 deployments are needed for rollback";
+                    return result;
+                }
+
+                // Find the previous successful deployment
+                var targetDeployment = deployments
+                    .Skip(1) // Skip current deployment
+                    .FirstOrDefault(d => d.Data.Status == 200);
+
+                if (targetDeployment == null)
+                {
+                    result.ErrorMessage = "No suitable previous deployment found for rollback";
+                    result.PotentialSolution = "Deploy a new version with a working image";
+                    return result;
+                }
+
+                // Get the configuration from when the target deployment was active
+                var configs = await webAppResource.GetAllConfigurationDataAsync().ToListAsync();
+                //var previousConfigs = await configs.Value.GetAllAsync().ToListAsync();
+                var targetConfig = configs
+                    .Where(c => c != null && c.LinuxFxVersion != null && c.LinuxFxVersion != webApp.Value.Data.SiteConfig?.LinuxFxVersion)
+                    .FirstOrDefault();
+
+                if (targetConfig == null)
+                {
+                    // Check for backup configurations
+                    var snapshots = await webAppResource.GetSnapshotsAsync().ToListAsync();
+                    if (!snapshots.Any())
+                    {
+                        result.ErrorMessage = "No suitable previous container configuration found for rollback";
+                        result.PotentialSolution = "Deploy a new version with a working image manually";
+                        return result;
+                    }
+
+                    // Try to use the config snapshot:
+                    var snapshotId = snapshots.First().Id;
+                    var snapshotResponse = await webAppResource.GetSnapshotsAsync().FirstOrDefaultAsync(s => s.Id == snapshotId);
+
+                    if (snapshotResponse == null)
+                    {
+                        throw new InvalidOperationException($"Snapshot with ID {snapshotId} not found.");
+                    }
+                    var snapshot = snapshotResponse;
+
+                    if (snapshot.Kind == null ||
+                        !snapshot.Kind.StartsWith("DOCKER|", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.ErrorMessage = "No suitable previous container configuration found in snapshots";
+                        result.PotentialSolution = "Deploy a new version with a working image manually";
+                        return result;
+                    }
+
+                    // Extract image reference from snapshot
+                    string targetImageReference = snapshot.Kind.Substring("DOCKER|".Length).Trim();
+                    // Update the SiteConfigData to SiteConfigProperties conversion
+                    var siteConfigUpdate = new SiteConfigProperties
+                    {
+                        LinuxFxVersion = snapshot.Kind
+                    };
+
+                    // Update the Web App with the previous image
+                    _logger.LogInformation($"Rolling back Web App {resourceId} to previous image: {targetImageReference}");
+                    await webAppResource.UpdateAsync(new SitePatchInfo { SiteConfig = siteConfigUpdate });
+
+                    // Add information to result
+                    result.IsSuccessful = true;
+                    result.RolledBackToImage = targetImageReference;
+                    result.PreviousRevision = targetDeployment.Data.Id.Name;
+                    result.PotentialSolution = "Monitor the Web App to ensure it restarts successfully";
+                    _logger.LogInformation($"Successfully rolled back Web App {resourceId} to image: {targetImageReference}");
+
+                    return result;
+                }
+                else
+                {
+                    // Extract image reference from previous configuration
+                    string targetImageReference = null;
+                    if (targetConfig.LinuxFxVersion.StartsWith("DOCKER|", StringComparison.OrdinalIgnoreCase))
+                    {
+                        targetImageReference = targetConfig.LinuxFxVersion.Substring("DOCKER|".Length).Trim();
+                    }
+
+                    if (string.IsNullOrEmpty(targetImageReference))
+                    {
+                        result.ErrorMessage = "Could not determine previous image reference";
+                        result.PotentialSolution = "Deploy a new version with a working image manually";
+                        return result;
+                    }
+
+                    // Apply the rollback
+                    var siteConfigUpdate = new SiteConfigProperties
+                    {
+                        LinuxFxVersion = targetConfig.LinuxFxVersion
+                    };
+
+                    // Update the Web App with the previous image
+                    _logger.LogInformation($"Rolling back Web App {resourceId} to previous image: {targetImageReference}");
+                    await webAppResource.UpdateAsync(new SitePatchInfo { SiteConfig = siteConfigUpdate });
+
+                    // Add information to result
+                    result.IsSuccessful = true;
+                    result.RolledBackToImage = targetImageReference;
+                    result.PreviousRevision = targetDeployment.Data.Id.Name;
+                    result.PotentialSolution = "Monitor the Web App to ensure it restarts successfully";
+                    _logger.LogInformation($"Successfully rolled back Web App {resourceId} to image: {targetImageReference}");
+
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error rolling back Web App {resourceId}");
+                result.ErrorMessage = $"Error during rollback: {ex.Message}";
+                result.PotentialSolution = "Check permissions and try again, or deploy manually with a working image";
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Updates the container image reference for a Container App or Web App
+        /// </summary>
+        /// <param name="resourceId">The resource ID of the Container App or Web App</param>
+        /// <param name="newImageReference">The new image reference to use</param>
+        /// <param name="containerName">Optional container name for multi-container apps</param>
+        /// <returns>Result of the update operation</returns>
+        public async Task<ContainerUpdateResult> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
+        {
+            _logger.LogInformation($"Updating container image for resource: {resourceId} to {newImageReference}");
+            
+            var result = new ContainerUpdateResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = false,
+                NewImage = newImageReference
+            };
+
+            try
+            {
+                // Get the ARM client
+                var armClient = _armClientFactory.GetArmClient();
+
+                // Check if this is a Container App
+                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await UpdateContainerAppImage(armClient, resourceId, newImageReference, containerName);
+                }
+                // Check if this is a Linux Web App
+                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await UpdateWebAppImage(armClient, resourceId, newImageReference);
+                }
+                else
+                {
+                    result.ErrorMessage = "Resource type not supported for container image update";
+                    result.PotentialSolution = "Only Container Apps and Linux Web Apps are supported for image updates";
+                    _logger.LogWarning($"Unsupported resource type for container image update: {resourceId}");
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating container image for resource {resourceId}");
+                result.ErrorMessage = $"Error during update: {ex.Message}";
+                result.PotentialSolution = "Check logs for more details and try again";
+                return result;
+            }
+        }
+
+        private async Task<ContainerUpdateResult> UpdateContainerAppImage(ArmClient armClient, string resourceId, string newImageReference, string containerName = null)
+        {
+            var result = new ContainerUpdateResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = false,
+                NewImage = newImageReference
+            };
+
+            try
+            {
+                // Get the Container App resource
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+
+                // Store the current image for reference
+                result.PreviousImage = await GetImageReferenceFromResourceId(resourceId);
+
+                // Create a data object for the update
+                ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
+                {
+                    Template = containerApp.Value.Data.Template
+                };
+
+                // Check if we have containers in the template
+                if (updateData.Template?.Containers == null || updateData.Template.Containers.Count == 0)
+                {
+                    result.ErrorMessage = "No containers found in the Container App template";
+                    result.PotentialSolution = "Verify the Container App configuration";
+                    return result;
+                }
+
+                // Update specific container by name if provided, otherwise update the first container
+                var containerToUpdate = string.IsNullOrEmpty(containerName)
+                    ? updateData.Template.Containers[0]
+                    : updateData.Template.Containers.FirstOrDefault(c => c.Name == containerName);
+
+                if (containerToUpdate == null)
+                {
+                    result.ErrorMessage = $"Container with name '{containerName}' not found in the Container App";
+                    result.PotentialSolution = "Verify the container name and try again";
+                    return result;
+                }
+
+                // Save the container name for reference
+                result.ContainerName = containerToUpdate.Name;
+
+                // Update the image reference
+                containerToUpdate.Image = newImageReference;
+
+                // Update the Container App with the new template
+                _logger.LogInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
+                var updateOperation = await containerAppResource.UpdateAsync(
+                    WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
+                    updateData,          // The ContainerAppData object to update
+                    CancellationToken.None // Provide a CancellationToken (use CancellationToken.None if no cancellation is needed)
+                );
+                var updatedApp = updateOperation.Value;
+
+                // Add information to result
+                result.IsSuccessful = true;
+                result.UpdatedAt = DateTimeOffset.UtcNow;
+                _logger.LogInformation($"Successfully updated Container App {resourceId} to image: {newImageReference}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating Container App {resourceId}");
+                result.ErrorMessage = $"Error during update: {ex.Message}";
+                result.PotentialSolution = "Check permissions and try again, or update manually with the correct image";
+                return result;
+            }
+        }
+
+        private async Task<ContainerUpdateResult> UpdateWebAppImage(ArmClient armClient, string resourceId, string newImageReference)
+        {
+            var result = new ContainerUpdateResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = false,
+                NewImage = newImageReference
+            };
+
+            try
+            {
+                // Get the Web App resource
+                var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
+                var webApp = await webAppResource.GetAsync();
+
+                // Check if this is a Linux Web App
+                if (webApp.Value.Data.Kind == null || !webApp.Value.Data.Kind.ToLower().Contains("linux"))
+                {
+                    result.ErrorMessage = "Web App is not a Linux Web App";
+                    result.PotentialSolution = "Only Linux Web Apps with container configurations can be updated";
+                    return result;
+                }
+
+                // Get the current image reference
+                result.PreviousImage = await GetImageReferenceFromResourceId(resourceId);
+                if (string.IsNullOrEmpty(result.PreviousImage))
+                {
+                    result.ErrorMessage = "Could not determine current image reference";
+                    result.PotentialSolution = "Verify that the Web App is using a container configuration";
+                    return result;
+                }
+
+                // Format the Docker config string
+                string linuxFxVersion = $"DOCKER|{newImageReference}";
+
+                // Apply the update
+                var siteConfigUpdate = new SiteConfigProperties
+                {
+                    LinuxFxVersion = linuxFxVersion
+                };
+
+                // Update the Web App with the new image
+                _logger.LogInformation($"Updating Web App {resourceId} to use image: {newImageReference}");
+                await webAppResource.UpdateAsync(new SitePatchInfo { SiteConfig = siteConfigUpdate });
+
+                // Restart the app to apply changes
+                await webAppResource.RestartAsync();
+
+                // Add information to result
+                result.IsSuccessful = true;
+                result.ContainerName = "default"; // Web Apps typically have a single container
+                result.UpdatedAt = DateTimeOffset.UtcNow;
+                _logger.LogInformation($"Successfully updated Web App {resourceId} to image: {newImageReference}");
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating Web App {resourceId}");
+                result.ErrorMessage = $"Error during update: {ex.Message}";
+                result.PotentialSolution = "Check permissions and try again, or update manually with the correct image";
+                return result;
+            }
+        }
+
+        /// <summary>
+        /// Attempts to pull an image to verify accessibility and authentication
+        /// </summary>
+        /// <param name="imageReference">The image reference to try pulling</param>
+        /// <param name="resourceId">Optional resource ID to use its authentication context</param>
+        /// <param name="useResourceAuth">Whether to use the resource's authentication configuration</param>
+        /// <returns>Result of the image pull attempt</returns>
+        public async Task<ImagePullResult> RetryImagePull(string imageReference, string resourceId = null, bool useResourceAuth = true)
+        {
+            _logger.LogInformation($"Attempting to pull image: {imageReference}. Using resource auth: {useResourceAuth}");
+            var startTime = DateTimeOffset.UtcNow;
+            
+            var result = new ImagePullResult
+            {
+                ImageReference = imageReference,
+                IsSuccessful = false,
+                PullAttemptedAt = startTime,
+                RegistryType = DetermineRegistryType(imageReference)
+            };
+
+            try
+            {
+                // Extract registry information
+                string registryHost = ExtractRegistryHostname(imageReference);
+                
+                if (string.IsNullOrEmpty(registryHost))
+                {
+                    result.ErrorMessage = "Could not determine registry hostname from image reference";
+                    result.SuggestedFix = "Make sure the image reference has a valid format (e.g. registry.com/repository:tag)";
+                    return result;
+                }
+                
+                // If using resource auth and resourceId is provided, get the resource's authentication configuration
+                if (useResourceAuth && !string.IsNullOrEmpty(resourceId))
+                {
+                    return await PullImageWithResourceAuth(imageReference, resourceId, result);
+                }
+                else
+                {
+                    // Use default authentication
+                    return await PullImageWithDefaultAuth(imageReference, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                var endTime = DateTimeOffset.UtcNow;
+                result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                result.ErrorMessage = $"Error attempting to pull image: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check network connectivity and authentication configuration";
+                _logger.LogError(ex, $"Error in RetryImagePull for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<ImagePullResult> PullImageWithResourceAuth(
+            string imageReference, 
+            string resourceId, 
+            ImagePullResult result)
+        {
+            var startTime = DateTimeOffset.UtcNow;
+            try
+            {
+                var armClient = _armClientFactory.GetArmClient();
+                
+                // Check if this is a Container App or Web App
+                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Get the Container App resource
+                    var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                    var containerApp = await containerAppResource.GetAsync();
+                    
+                    // Extract auth configs from the Container App
+                    var registryConfiguration = containerApp.Value.Data.Configuration?.Registries;
+                    string registryHost = ExtractRegistryHostname(imageReference);
+                    
+                    // Result metadata
+                    result.AuthenticationMethod = "Container App Configuration";
+                    
+                    // If the registry is ACR
+                    if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                    {
+                        result.Details = "Using ACR authentication from Container App configuration";
+                        
+                        // Find the matching registry config
+                        var matchingConfig = registryConfiguration?.FirstOrDefault(r => 
+                            r.Server != null && r.Server.Contains(registryHost, StringComparison.OrdinalIgnoreCase));
+                        
+                        if (matchingConfig != null)
+                        {
+                            // Use the identity if configured
+                            if (!string.IsNullOrEmpty(matchingConfig.Identity))
+                            {
+                                var pullResult = await PullWithManagedIdentity(
+                                    imageReference, 
+                                    containerApp.Value.Data.Identity, 
+                                    matchingConfig.Identity,
+                                    result);
+                                
+                                var endTime = DateTimeOffset.UtcNow;
+                                pullResult.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                                return pullResult;
+                            }
+                            // Otherwise try username/password
+                            else if (!string.IsNullOrEmpty(matchingConfig.Username) && 
+                                     !string.IsNullOrEmpty(matchingConfig.PasswordSecretRef))
+                            {
+                                // We can't actually access the secret, so simulate pull
+                                _logger.LogInformation($"Container App using username/password auth for {registryHost}");
+                                result.IsSuccessful = await CheckImageExistsInAcr(imageReference);
+                                result.AuthenticationMethod = "Username/Password (simulated)";
+                                result.Details = "Cannot perform actual pull with username/password; verifying image exists only";
+                                
+                                if (!result.IsSuccessful)
+                                {
+                                    result.ErrorMessage = "Image not found in registry";
+                                    result.SuggestedFix = "Verify image exists";
+                                }
+                                
+                                var endTime = DateTimeOffset.UtcNow;
+                                result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                                return result;
+                            }
+                            return await PullWithDefaultAcrAuth(imageReference, containerApp.Value.Data.Identity, result);
+                        }
+                        else
+                        {
+                            // No explicit config for this registry, try system identity
+                            return await PullWithDefaultAcrAuth(imageReference, containerApp.Value.Data.Identity, result);
+                        }
+                    }
+                    // For Docker Hub and other registries
+                    else 
+                    {
+                        var matchingConfig = registryConfiguration?.FirstOrDefault(r => 
+                            r.Server != null && r.Server.Contains(registryHost, StringComparison.OrdinalIgnoreCase));
+                        
+                        if (matchingConfig != null)
+                        {
+                            _logger.LogInformation($"Container App has explicit config for registry {registryHost}");
+                            
+                            // For external registries, we can only simulate with check if image exists
+                            bool imageExists = await CheckImageExistsInRegistry(imageReference, registryHost);
+                            result.IsSuccessful = imageExists;
+                            result.AuthenticationMethod = "External Registry Config (simulated)";
+                            result.Details = "Cannot perform actual pull; verifying image exists only";
+                            
+                            if (!result.IsSuccessful)
+                            {
+                                result.ErrorMessage = "Image not found in registry or credentials are invalid";
+                                result.SuggestedFix = "Verify image exists and credentials are correct";
+                            }
+                            
+                            var endTime = DateTimeOffset.UtcNow;
+                            result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                            return result;
+                        }
+                        else
+                        {
+                            // No registry config - try anonymous pull
+                            return await PullWithAnonymousAuth(imageReference, result);
+                        }
+                    }
+                }
+                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                {
+                    // Get the Web App resource
+                    var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
+                    var webApp = await webAppResource.GetAsync();
+                    
+                    // Get app settings for registry auth
+                    var appSettingsResult = await webAppResource.GetApplicationSettingsAsync();
+                    var appSettings = appSettingsResult.Value.Properties;
+                    
+                    // Result metadata
+                    result.AuthenticationMethod = "Web App Configuration";
+                    result.Details = "Using Web App configuration for pull authentication";
+                    
+                    string registryHost = ExtractRegistryHostname(imageReference);
+                    
+                    // Check if registry is ACR
+                    if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                    {
+                        // Check if using username/password auth
+                        if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) && 
+                            !string.IsNullOrEmpty(registryUrl) &&
+                            appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_USERNAME", out _) &&
+                            appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_PASSWORD", out _))
+                        {
+                            // Simulate pull with credentials check
+                            _logger.LogInformation($"Web App using username/password auth for {registryHost}");
+                            result.IsSuccessful = await CheckImageExistsInAcr(imageReference);
+                            result.AuthenticationMethod = "Username/Password (simulated)";
+                            result.Details = "Cannot perform actual pull with credentials; verifying image exists only";
+                            
+                            if (!result.IsSuccessful)
+                            {
+                                result.ErrorMessage = "Image not found in registry ";
+                                result.SuggestedFix = "Verify image exists and credentials are correct";
+                            }
+                            
+                            var endTime = DateTimeOffset.UtcNow;
+                            result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                            return result;
+                        }
+                        else
+                        {
+                            // Try managed identity
+                            return await PullWithDefaultAcrAuth(imageReference, webApp.Value.Data.Identity, result);
+                        }
+                    }
+                    else
+                    {
+                        // For Docker Hub and other registries, check app settings
+                        if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) && 
+                            !string.IsNullOrEmpty(registryUrl) &&
+                            registryUrl.Contains(registryHost, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // Simulate pull for external registry
+                            _logger.LogInformation($"Web App has explicit config for registry {registryHost}");
+                            
+                            bool imageExists = await CheckImageExistsInRegistry(imageReference, registryHost);
+                            result.IsSuccessful = imageExists;
+                            result.AuthenticationMethod = "External Registry Config (simulated)";
+                            result.Details = "Cannot perform actual pull; verifying image exists only";
+                            
+                            if (!result.IsSuccessful)
+                            {
+                                result.ErrorMessage = "Image not found in registry or credentials are invalid";
+                                result.SuggestedFix = "Verify image exists and credentials are correct";
+                            }
+                            
+                            var endTime = DateTimeOffset.UtcNow;
+                            result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                            return result;
+                        }
+                        else
+                        {
+                            // No registry config - try anonymous pull
+                            return await PullWithAnonymousAuth(imageReference, result);
+                        }
+                    }
+                }
+                else
+                {
+                    result.ErrorMessage = "Unsupported resource type";
+                    result.SuggestedFix = "Only Container Apps and Linux Web Apps are supported for authenticated pulls";
+                    result.AuthenticationMethod = "None";
+                    
+                    var endTime = DateTimeOffset.UtcNow;
+                    result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                    return result;
+                }
+            }
+            catch (Exception ex)
+            {
+                var endTime = DateTimeOffset.UtcNow;
+                result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                result.ErrorMessage = $"Error pulling image with resource auth: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check resource authentication configuration";
+                _logger.LogError(ex, $"Error in PullImageWithResourceAuth for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<ImagePullResult> PullWithManagedIdentity(
+            string imageReference, 
+            ManagedServiceIdentity identity, 
+            string identityName,
+            ImagePullResult result)
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to pull {imageReference} using managed identity: {identityName}");
+                result.AuthenticationMethod = $"Managed Identity ({identityName})";
+                
+                // Get token credential for ACR
+                string registryHost = ExtractRegistryHostname(imageReference);
+                string registryName = ExtractRegistryName(imageReference);
+                
+                // Check if this is a system-assigned identity
+                if (identityName == "system")
+                {
+                    if (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned && 
+                        identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned)
+                    {
+                        result.IsSuccessful = false;
+                        result.ErrorMessage = "System-assigned identity is not enabled";
+                        result.SuggestedFix = "Enable system-assigned managed identity for the resource";
+                        return result;
+                    }
+                    
+                    // Use system-assigned identity to check if image exists
+                    var credential = _authService.GetArmOperationCredential();
+                    return await PerformImagePullWithToken(imageReference, credential, result);
+                }
+                else
+                {
+                    // This is a user-assigned identity
+                    if (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned && 
+                        identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned)
+                    {
+                        result.IsSuccessful = false;
+                        result.ErrorMessage = "User-assigned identity is not enabled";
+                        result.SuggestedFix = "Enable user-assigned managed identity for the resource";
+                        return result;
+                    }
+                    
+                    // Since we can't actually get the specific user-assigned identity credential,
+                    // we'll use our access token and check if the image exists in ACR
+                    if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                    {
+                        bool imageExists = await CheckImageExistsInAcr(imageReference);
+                        result.IsSuccessful = imageExists;
+                        result.Details = "Simulating pull with user-assigned identity; verifying image existence";
+                        
+                        if (!imageExists)
+                        {
+                            result.ErrorMessage = "Image not found in ACR or identity lacks permissions";
+                            result.SuggestedFix = "Verify image exists and identity has AcrPull role";
+                        }
+                        
+                        return result;
+                    }
+                    else
+                    {
+                        result.IsSuccessful = false;
+                        result.ErrorMessage = "User-assigned identities are only supported for ACR";
+                        result.SuggestedFix = "Use username/password authentication for non-ACR registries";
+                        return result;
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccessful = false;
+                result.ErrorMessage = $"Error pulling with managed identity: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check managed identity configuration and permissions";
+                _logger.LogError(ex, $"Error in PullWithManagedIdentity for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<ImagePullResult> PullWithDefaultAcrAuth(
+            string imageReference, 
+            ManagedServiceIdentity identity,
+            ImagePullResult result)
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to pull {imageReference} using default ACR auth");
+                
+                string registryHost = ExtractRegistryHostname(imageReference);
+                
+                if (!registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.IsSuccessful = false;
+                    result.ErrorMessage = "Default ACR auth only works with Azure Container Registry";
+                    result.SuggestedFix = "Use explicit authentication for non-ACR registries";
+                    return result;
+                }
+                
+                // Check if managed identity is enabled
+                if (identity == null || 
+                    (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned && 
+                     identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned &&
+                     identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned))
+                {
+                    result.IsSuccessful = false;
+                    result.ErrorMessage = "No managed identity is enabled for ACR authentication";
+                    result.SuggestedFix = "Enable managed identity or configure explicit registry credentials";
+                    return result;
+                }
+                
+                // Try to pull using our ARM credential
+                var credential = _authService.GetArmOperationCredential();
+                result.AuthenticationMethod = "Default ACR Authentication";
+                
+                return await PerformImagePullWithToken(imageReference, credential, result);
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccessful = false;
+                result.ErrorMessage = $"Error pulling with default ACR auth: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check ACR access and network connectivity";
+                _logger.LogError(ex, $"Error in PullWithDefaultAcrAuth for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<ImagePullResult> PullWithAnonymousAuth(string imageReference, ImagePullResult result)
+        {
+            try
+            {
+                _logger.LogInformation($"Attempting to pull {imageReference} anonymously");
+                
+                result.AuthenticationMethod = "Anonymous";
+                string registryHost = ExtractRegistryHostname(imageReference);
+                
+                if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                {
+                    result.IsSuccessful = false;
+                    result.ErrorMessage = "Anonymous pull not allowed for Azure Container Registry";
+                    result.SuggestedFix = "Configure ACR authentication using managed identity or credentials";
+                    return result;
+                }
+                
+                // For Docker Hub and other registries
+                bool imageExists = await CheckImageExistsInRegistry(imageReference, registryHost);
+                result.IsSuccessful = imageExists;
+                
+                if (!imageExists)
+                {
+                    result.ErrorMessage = "Image not found or requires authentication";
+                    result.SuggestedFix = "Verify image exists and configure registry authentication if needed";
+                }
+                
+                return result;
+            }
+            catch (Exception ex)
+            {
+                result.IsSuccessful = false;
+                result.ErrorMessage = $"Error pulling anonymously: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check image reference and network connectivity";
+                _logger.LogError(ex, $"Error in PullWithAnonymousAuth for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<ImagePullResult> PullImageWithDefaultAuth(string imageReference, ImagePullResult result)
+        {
+            var startTime = DateTimeOffset.UtcNow;
+            try
+            {
+                string registryHost = ExtractRegistryHostname(imageReference);
+                
+                // For ACR, try to use ARM credential
+                if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                {
+                    var credential = _authService.GetArmOperationCredential();
+                    result.AuthenticationMethod = "ARM Credential";
+                    
+                    return await PerformImagePullWithToken(imageReference, credential, result);
+                }
+                // For other registries, try anonymous pull
+                else
+                {
+                    return await PullWithAnonymousAuth(imageReference, result);
+                }
+            }
+            catch (Exception ex)
+            {
+                var endTime = DateTimeOffset.UtcNow;
+                result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                result.ErrorMessage = $"Error pulling with default auth: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check registry authentication requirements";
+                _logger.LogError(ex, $"Error in PullImageWithDefaultAuth for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<ImagePullResult> PerformImagePullWithToken(
+            string imageReference, 
+            TokenCredential credential,
+            ImagePullResult result)
+        {
+            var startTime = DateTimeOffset.UtcNow;
+            try
+            {
+                string registryHost = ExtractRegistryHostname(imageReference);
+                string registryName = registryHost.Replace(".azurecr.io", "", StringComparison.OrdinalIgnoreCase);
+                
+                // Get token for ACR
+                var tokenRequestContext = new TokenRequestContext(new[] { $"https://{registryHost}/.default" });
+                var token = await credential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
+
+                if (string.IsNullOrEmpty(token.Token))
+                {
+                    result.IsSuccessful = false;
+                    result.ErrorMessage = "Failed to obtain token for registry access";
+                    result.SuggestedFix = "Check managed identity permissions";
+                    return result;
+                }
+                
+                // Get the repository and tag
+                var (repository, tag) = ExtractRepositoryAndTag(imageReference);
+                
+                // Check manifest using the token
+                var manifestUrl = $"https://{registryHost}/v2/{repository}/manifests/{tag}";
+                var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
+                request.Headers.Add("Authorization", $"Bearer {token.Token}");
+                request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
+                
+                var response = await _httpClient.SendAsync(request);
+                
+                result.IsSuccessful = response.IsSuccessStatusCode;
+                result.Details = $"HTTP Status: {(int)response.StatusCode} {response.StatusCode}";
+                
+                if (!response.IsSuccessStatusCode)
+                {
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        result.ErrorMessage = "Image not found in registry";
+                        result.SuggestedFix = "Verify image reference is correct and the image exists";
+                    }
+                    else if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        result.ErrorMessage = "Unauthorized access to registry";
+                        result.SuggestedFix = "Verify identity has AcrPull role on the registry";
+                    }
+                    else
+                    {
+                        result.ErrorMessage = $"Registry returned error: {response.StatusCode}";
+                        result.SuggestedFix = "Check registry configuration and network connectivity";
+                    }
+                }
+                
+                var endTime = DateTimeOffset.UtcNow;
+                result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                return result;
+            }
+            catch (Exception ex)
+            {
+                var endTime = DateTimeOffset.UtcNow;
+                result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
+                result.IsSuccessful = false;
+                result.ErrorMessage = $"Error during token-based pull: {ex.Message}";
+                result.Details = ex.ToString();
+                result.SuggestedFix = "Check token credentials and network connectivity";
+                _logger.LogError(ex, $"Error in PerformImagePullWithToken for {imageReference}");
+                return result;
+            }
+        }
+
+        private async Task<bool> CheckImageExistsInRegistry(string imageReference, string registryHost)
+        {
+            try
+            {
+                // For Docker Hub
+                if (registryHost.Contains("docker.io", StringComparison.OrdinalIgnoreCase) || 
+                    string.IsNullOrEmpty(registryHost))
+                {
+                    return await CheckImageExistsInDockerHub(imageReference);
+                }
+                // For ACR
+                else if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
+                {
+                    return await CheckImageExistsInAcr(imageReference);
+                }
+                // For other registries
+                else
+                {
+                    // Extract repository and tag for non-standard registries
+                    // Properly remove the registry hostname from the repository path
+                    string repository = imageReference;
+                    string tag = "latest";
+
+                    // First remove the registry hostname from the repository path
+                    if (repository.StartsWith(registryHost, StringComparison.OrdinalIgnoreCase))
+                    {
+                        repository = repository.Substring(registryHost.Length);
+                    }
+                    
+                    // If it starts with a slash, remove it
+                    if (repository.StartsWith("/"))
+                    {
+                        repository = repository.Substring(1);
+                    }
+
+                    // Extract the tag if present
+                    int tagSeparatorIndex = repository.LastIndexOf(':');
+                    if (tagSeparatorIndex > 0)
+                    {
+                        tag = repository.Substring(tagSeparatorIndex + 1);
+                        repository = repository.Substring(0, tagSeparatorIndex);
+                    }
+                    
+                    _logger.LogInformation($"Checking image existence in registry {registryHost}, repository: {repository}, tag: {tag}");
+                    
+                    // Try anonymous pull
+                    var registryUrl = $"https://{registryHost}/v2/{repository}/manifests/{tag}";
+                    var request = new HttpRequestMessage(HttpMethod.Head, registryUrl);
+                    request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
+                    
+                    var response = await _httpClient.SendAsync(request);
+                    
+                    _logger.LogInformation($"Registry response: {(int)response.StatusCode} {response.StatusCode}, URL: {registryUrl}");
+                    
+                    if (response.IsSuccessStatusCode)
+                    {
+                        return true;
+                    }
+                    
+                    if (response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        // Try to get authentication details from WWW-Authenticate header
+                        var authHeader = response.Headers.WwwAuthenticate.FirstOrDefault();
+                        if (authHeader != null)
+                        {
+                            _logger.LogInformation($"Registry {registryHost} requires authentication: {authHeader.Scheme}");
+                            
+                            // For non-standard registries, we could try basic auth or bearer token in a future enhancement
+                            // For now, just report that authentication is required
+                        }
+                        
+                        return false;
+                    }
+                    
+                    return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, $"Error checking if image exists in registry: {imageReference}");
+                return false;
+            }
+        }
     }
 }

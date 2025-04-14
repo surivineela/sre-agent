@@ -62,19 +62,57 @@ namespace Agent.Plugins.Definitions
         [Description("Checking the status of image pulling for given container resource")]
         public async Task<ImagePullingResult> CheckImagePulling(
             [Description("Resource ID of the Container App to check")]
-            string resourceId
-        )
+            string resourceId)
         {
             return await _containerImagePullFailurePlugin.CheckImagePulling(resourceId);
         }
 
         [KernelFunction("is_acr_image_manifest_accessible")]
-        [Description("Check if the image manifest in ACR is accessible. Validates ACR connectivity.")]
-        public async Task<ImagePullingResult> IsACRImageManifestAccessibleAsync(
+        [Description("Check if the image in ACR is accessible. Validates ACR connectivity.")]
+        public async Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(
             [Description("Resource ID of the Container App to check")]
             string resourceId)
         {
-            return await _containerImagePullFailurePlugin.IsACRImageManifestAccessibleAsync(resourceId);
+            return await _containerImagePullFailurePlugin.IsAzureContainerRegistryImageAccessibleAsync(resourceId);
+        }
+
+        [KernelFunction("rollback_to_last_working_image")]
+        [Description("Rolls back a Container App or Linux Web App to the last known working image. This is useful when a new image deployment causes pull failures or other issues.")]
+        public async Task<RollbackImageResult> RollbackToLastWorkingImage(
+            [Description("Resource ID of the Container App or Linux Web App to roll back")]
+            string resourceId)
+        {
+            return await _containerImagePullFailurePlugin.RollbackToLastWorkingImage(resourceId);
+        }
+
+        [KernelFunction("update_container_image")]
+        [Description("Updates the container image for a Container App or Linux Web App. This enables changing to a new image version or completely different image.")]
+        public async Task<ContainerUpdateResult> UpdateContainerImage(
+            [Description("Resource ID of the Container App or Linux Web App")]
+            string resourceId,
+            
+            [Description("New image reference to use (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string newImageReference,
+            
+            [Description("Optional container name for multi-container apps. If not specified, the first container will be updated.")]
+            string containerName = null)
+        {
+            return await _containerImagePullFailurePlugin.UpdateContainerImage(resourceId, newImageReference, containerName);
+        }
+
+        [KernelFunction("retry_image_pull")]
+        [Description("Attempts to pull a container image to verify that it's accessible and properly authenticated. This can help troubleshoot image pull failures.")]
+        public async Task<ImagePullResult> RetryImagePull(
+            [Description("The full image reference to try pulling (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string imageReference,
+            
+            [Description("Optional resource ID to use its authentication context for pulling the image")]
+            string resourceId = null,
+            
+            [Description("Whether to use the resource's authentication configuration. Default is true.")]
+            bool useResourceAuth = true)
+        {
+            return await _containerImagePullFailurePlugin.RetryImagePull(imageReference, resourceId, useResourceAuth);
         }
     }
 }

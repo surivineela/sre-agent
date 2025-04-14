@@ -1,42 +1,108 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
 
-namespace Agent.Plugins.Mocks;
-public class MockContainerImagePullFailurePlugin : IContainerImagePullFailurePlugin
+namespace Agent.Plugins.Mocks
 {
-    public Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId)
+    public class MockContainerImagePullFailurePlugin : IContainerImagePullFailurePlugin
     {
-        throw new NotImplementedException();
-    }
+        public Task<string> GetImageReferenceFromResourceId(string resourceId)
+        {
+            return Task.FromResult("myregistry.azurecr.io/myapp:latest");
+        }
 
-    public Task<ImagePullingResult> CheckImagePulling(string resourceId)
-    {
-        throw new NotImplementedException();
-    }
+        public Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetNetworkSecurityRulesForResource(string resourceId)
+        {
+            return Task.FromResult<IDictionary<string, IReadOnlyList<SecurityRuleData>>>(
+                new Dictionary<string, IReadOnlyList<SecurityRuleData>>());
+        }
 
-    public Task<string> GetImageReferenceFromResourceId(string resourceId)
-    {
-        throw new NotImplementedException();
-    }
+        public Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId)
+        {
+            var result = new AcrAuthenticationStatus
+            {
+                ResourceId = resourceId,
+                ImageReference = "myregistry.azurecr.io/myapp:latest",
+                IsAuthenticated = true
+            };
+            return Task.FromResult(result);
+        }
 
-    public Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetNetworkSecurityRulesForResource(string resourceId)
-    {
-        throw new NotImplementedException();
-    }
+        public Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId)
+        {
+            var result = new ExternalRegistryVerificationResult
+            {
+                ResourceId = resourceId,
+                ImageReference = "docker.io/library/nginx:latest",
+                RegistryType = RegistryType.DockerHub,
+                IsSuccessful = true,
+                RegistryAccessible = true
+            };
+            return Task.FromResult(result);
+        }
 
-    public Task<ImagePullingResult> IsACRImageManifestAccessibleAsync(string resourceId)
-    {
-        throw new NotImplementedException();
-    }
+        public Task<ImagePullingResult> CheckImagePulling(string resourceId)
+        {
+            var result = new ImagePullingResult
+            {
+                IsSuccessful = true
+            };
+            return Task.FromResult(result);
+        }
 
-    public Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId)
-    {
-        throw new NotImplementedException();
+        public Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string resourceId)
+        {
+            var result = new ImagePullingResult
+            {
+                IsSuccessful = true
+            };
+            return Task.FromResult(result);
+        }
+
+        public Task<RollbackImageResult> RollbackToLastWorkingImage(string resourceId)
+        {
+            var result = new RollbackImageResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = true,
+                CurrentImage = "myregistry.azurecr.io/myapp:latest",
+                RolledBackToImage = "myregistry.azurecr.io/myapp:stable",
+                PreviousRevision = "rev-1"
+            };
+            return Task.FromResult(result);
+        }
+
+        public Task<ContainerUpdateResult> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
+        {
+            var result = new ContainerUpdateResult
+            {
+                ResourceId = resourceId,
+                IsSuccessful = true,
+                NewImage = newImageReference,
+                PreviousImage = "myregistry.azurecr.io/myapp:latest",
+                ContainerName = containerName ?? "default",
+                UpdatedAt = DateTimeOffset.UtcNow
+            };
+            return Task.FromResult(result);
+        }
+
+        public Task<ImagePullResult> RetryImagePull(string imageReference, string resourceId = null, bool useResourceAuth = true)
+        {
+            var result = new ImagePullResult
+            {
+                ImageReference = imageReference,
+                IsSuccessful = true,
+                PullAttemptedAt = DateTimeOffset.UtcNow,
+                RegistryType = RegistryType.AzureContainerRegistry,
+                AuthenticationMethod = "Managed Identity",
+                Details = "Successfully accessed image manifest",
+                PullDurationSeconds = 1.5
+            };
+            return Task.FromResult(result);
+        }
     }
 }

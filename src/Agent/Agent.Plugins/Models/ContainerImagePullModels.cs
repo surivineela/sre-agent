@@ -170,6 +170,144 @@ namespace Agent.Plugins.Models
     }
 
     /// <summary>
+    /// Result of a rollback operation to a previous working container image
+    /// </summary>
+    public class RollbackImageResult
+    {
+        /// <summary>
+        /// Resource ID of the container app or web app
+        /// </summary>
+        public string ResourceId { get; set; }
+
+        /// <summary>
+        /// Whether the rollback was successful
+        /// </summary>
+        public bool IsSuccessful { get; set; }
+
+        /// <summary>
+        /// The current image reference before rollback
+        /// </summary>
+        public string CurrentImage { get; set; }
+
+        /// <summary>
+        /// The image reference that was rolled back to
+        /// </summary>
+        public string RolledBackToImage { get; set; }
+
+        /// <summary>
+        /// The name/ID of the previous revision or deployment that was used for rollback
+        /// </summary>
+        public string PreviousRevision { get; set; }
+
+        /// <summary>
+        /// Error message if rollback failed
+        /// </summary>
+        public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Potential solution to fix the rollback issue
+        /// </summary>
+        public string PotentialSolution { get; set; }
+    }
+
+    /// <summary>
+    /// Result of updating a container image in a Container App or Web App
+    /// </summary>
+    public class ContainerUpdateResult
+    {
+        /// <summary>
+        /// Resource ID of the container app or web app
+        /// </summary>
+        public string ResourceId { get; set; }
+
+        /// <summary>
+        /// Whether the update was successful
+        /// </summary>
+        public bool IsSuccessful { get; set; }
+
+        /// <summary>
+        /// The previous image reference before update
+        /// </summary>
+        public string PreviousImage { get; set; }
+
+        /// <summary>
+        /// The new image reference after update
+        /// </summary>
+        public string NewImage { get; set; }
+
+        /// <summary>
+        /// Name of the container that was updated (for multi-container apps)
+        /// </summary>
+        public string ContainerName { get; set; }
+
+        /// <summary>
+        /// Error message if update failed
+        /// </summary>
+        public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Potential solution to fix the update issue
+        /// </summary>
+        public string PotentialSolution { get; set; }
+
+        /// <summary>
+        /// When the update was performed
+        /// </summary>
+        public DateTimeOffset UpdatedAt { get; set; } = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
+    /// Result of attempting to pull a container image
+    /// </summary>
+    public class ImagePullResult
+    {
+        /// <summary>
+        /// Whether the image pull was successful
+        /// </summary>
+        public bool IsSuccessful { get; set; }
+
+        /// <summary>
+        /// The image reference that was attempted to pull
+        /// </summary>
+        public string ImageReference { get; set; }
+
+        /// <summary>
+        /// Registry type of the image
+        /// </summary>
+        public RegistryType RegistryType { get; set; }
+
+        /// <summary>
+        /// Authentication method used for the pull attempt
+        /// </summary>
+        public string AuthenticationMethod { get; set; }
+
+        /// <summary>
+        /// Detailed error message if pull failed
+        /// </summary>
+        public string ErrorMessage { get; set; }
+
+        /// <summary>
+        /// Technical details about the pull operation
+        /// </summary>
+        public string Details { get; set; }
+
+        /// <summary>
+        /// Suggested fix if the pull failed
+        /// </summary>
+        public string SuggestedFix { get; set; }
+        
+        /// <summary>
+        /// Time taken in seconds to attempt the pull
+        /// </summary>
+        public double PullDurationSeconds { get; set; }
+
+        /// <summary>
+        /// When the pull was attempted
+        /// </summary>
+        public DateTimeOffset PullAttemptedAt { get; set; } = DateTimeOffset.UtcNow;
+    }
+
+    /// <summary>
     /// Types of container registries
     /// </summary>
     public enum RegistryType

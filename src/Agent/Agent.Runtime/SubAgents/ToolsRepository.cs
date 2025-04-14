@@ -178,7 +178,10 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => containerImagePullFailurePluginDefinition.CheckImagePulling);
         Register200(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId);
         Register200(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource);
-        Register200(() => containerImagePullFailurePluginDefinition.IsACRImageManifestAccessibleAsync);
+        Register200(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync);
+        Register200(() => containerImagePullFailurePluginDefinition.RollbackToLastWorkingImage);
+        Register200(() => containerImagePullFailurePluginDefinition.UpdateContainerImage);
+        Register200(() => containerImagePullFailurePluginDefinition.RetryImagePull);
     }
 
     public string Register202(

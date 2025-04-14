@@ -49,10 +49,35 @@ namespace Agent.Plugins.Definitions
         Task<ImagePullingResult> CheckImagePulling(string resourceId);
 
         /// <summary>
-        /// Checks if the ACR image manifest is accessible
+        /// Checks if the ACR image is accessible
         /// </summary>
-        /// <param name="resourceId">The resource ID to check ACR image manifest accessibility for</param>
-        /// <returns>Result indicating if the manifest is accessible</returns>
-        Task<ImagePullingResult> IsACRImageManifestAccessibleAsync(string resourceId);
+        /// <param name="resourceId">The resource ID to check ACR image accessibility for</param>
+        /// <returns>Result indicating if the image is accessible</returns>
+        Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string resourceId);
+
+        /// <summary>
+        /// Rolls back a Container App or Web App to the last known working image
+        /// </summary>
+        /// <param name="resourceId">The resource ID of the Container App or Web App</param>
+        /// <returns>Result of the rollback operation</returns>
+        Task<RollbackImageResult> RollbackToLastWorkingImage(string resourceId);
+
+        /// <summary>
+        /// Updates the container image reference for a Container App or Web App
+        /// </summary>
+        /// <param name="resourceId">The resource ID of the Container App or Web App</param>
+        /// <param name="newImageReference">The new image reference to use</param>
+        /// <param name="containerName">Optional container name for multi-container apps</param>
+        /// <returns>Result of the update operation</returns>
+        Task<ContainerUpdateResult> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null);
+
+        /// <summary>
+        /// Attempts to pull an image to verify accessibility and authentication
+        /// </summary>
+        /// <param name="imageReference">The image reference to try pulling</param>
+        /// <param name="resourceId">Optional resource ID to use its authentication context</param>
+        /// <param name="useResourceAuth">Whether to use the resource's authentication configuration</param>
+        /// <returns>Result of the image pull attempt</returns>
+        Task<ImagePullResult> RetryImagePull(string imageReference, string resourceId = null, bool useResourceAuth = true);
     }
 }
