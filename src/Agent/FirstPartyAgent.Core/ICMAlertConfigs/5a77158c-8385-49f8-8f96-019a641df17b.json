@@ -1,0 +1,37 @@
+{
+  "AlertingId": "5a77158c-8385-49f8-8f96-019a641df17b",
+  "AgentMode": "ICMAgent",
+  "OwningTeams": [ "APPSERVICEWEBAPPS\\AntaresDataRole&FrontEndRole" ],
+  "ActionTimeoutIntervalInMinutes": 15,
+  "DefaultHumanInterventionLoop": "",
+  "KustoQueries": [
+    {
+      "Title": "",
+      "KustoQuery": ""
+    }
+  ],
+  "IncidentProcessingGuide": [
+    "  - To start with extract the following details from the Incident:",
+    "    - Incident Title",
+    "    - User Ask",
+    "    - Incident Summary",
+    "Proceed with following instructions based on what case fits best for the icm",
+    "  - Case 1: Customer is seeing 404 status code for their requests",
+    "  - If there is 404 status code error mentioned, then fetch the Incident discussion entries and check if the customer/user provided nslookup command",
+    "    - Check if nslookup of app resolves to 2 ip addresses in the discussion, then recommend or add FALCON-CRI-OrphanedARecord, FALCON-CRI-CrossStampScale tags to the incident",
+    "    - If the discussion mentions cross stamp scale or stale dns, recommend or add FALCON-CRI-OrphanedARecord, FALCON-CRI-CrossStampScale tags to the incident",
+    "  - Case 2: Customer is reporting tcp packet loss or sudden drop in requests",
+    "    - If there is mention of ddos or throttling related to high traffic, then fetch discussion entries",
+    "    - If discussion mentions DDOS or high traffic or tcp packet loss or sudden drop in requests this is likely a DDOS incident",
+    "      - recommend or add FALCON-CRI-Ddos tag to the incident",
+    "  - Case 3: Customer is complaining about requests returning 502.8 status code or 400.604 status code",
+    "    - If yes then fetch ICM discussion entries",
+    "       - Check if site or app has ElasticScaleEnabled is true or on or 1 and if requests are being routed to unhealthy frontend instance",
+    "       - Then recommend or add tag FALCON-CRI-HTTPScaleV2 to the incident",
+    "  - Case 4: Customer is seeing TLS Handshake errors and does not have DDOS errors",
+    "    - If customer is seeing outbound network connection errors then fetch discussion entries",
+    "      - Confirm if discussion mentions TLS handshake error",
+    "      - If yes, add or recommend tag FALCON-CRI-TLSHandshake to the icm"  
+  ],
+  "Owners": [ "rukulkar" ]
+}
