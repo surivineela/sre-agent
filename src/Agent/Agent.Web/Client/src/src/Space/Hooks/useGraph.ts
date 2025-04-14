@@ -10,8 +10,10 @@ export type ResourceExtended = {
     id: string; // the string has underscore
     name: string;
     type: string;
+    dashboardUrl: string;
     appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
     properties: {
+        dashboardUrl: string[];
         resourceType: string[];
         resourceName: string[];
         resourceId: string[];
@@ -26,6 +28,7 @@ export type ResourceExtended = {
 export type Resource = {
     name: string;
     type: string;
+    dashboardUrl: string;
     resourceId: string; // the string has underscore
     appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
     subItems?: Resource[];

@@ -83,7 +83,7 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
                 setIsLoading(true);
                 getResource(node.id).then((resource) => {
                     if (resource && isSubscribed) {
-                        const { properties: { resourceType, resourceName, resourceGroupName, subscriptionId, resourceId, appHealthInfo: appHealthInfoResponse } } = resource;
+                        const { dashboardUrl, properties: { resourceType, resourceName, resourceGroupName, subscriptionId, resourceId, appHealthInfo: appHealthInfoResponse } } = resource;
                         const summary: FieldSummary[] = [];
 
                         if (resourceName && resourceName.length > 0) {
@@ -201,6 +201,20 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
                             summary.push(
                                 { label: 'Active status', value: IsActive ? 'Active' : 'Inactive' },
                             );
+
+                            if (dashboardUrl && dashboardUrl.length > 0) {
+                                summary.push(
+                                    {
+                                        label: 'Dashboard URL',
+                                        value: (
+                                            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', gap: '5px' }}>
+                                                <Image src="./grafana-logo.svg" width={16} height={16} alt="Grafana logo" />
+                                                <Link href={dashboardUrl} target="_blank">View here</Link>
+                                            </div>
+                                        )
+                                    },
+                                );
+                            }
                         }
                         setSummary(summary);
                     }

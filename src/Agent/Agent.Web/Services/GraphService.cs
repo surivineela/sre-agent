@@ -2,9 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
+using Microsoft.Graph.Models.ExternalConnectors;
 
 namespace Agent.Core.Services;
 
@@ -12,11 +15,30 @@ public class GraphService : IGraphService
 {
     private readonly IGraphDatabaseClient _graphDatabaseClient;
     private readonly ILogger<GraphService> _logger;
+    private readonly string _grafanaUrl;
+    private readonly string _grafanaToken;
+    private readonly HttpClient _httpClient;
+    private readonly DashboardSettings _dashboardSettings;
 
-    public GraphService(IGraphDatabaseClient graphDatabaseClient, ILogger<GraphService> logger)
+    private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+        {
+            { "microsoft.app/containerapps", "azure-container-apps-container-app-view" },
+            { "microsoft.storage/storageaccounts", "azure-insights-storage-accounts" },
+            { "microsoft.documentdb/databaseaccounts", "azure-insights-cosmos-db" },
+            { "microsoft.cache/redis", "azure-redis" },
+            { "microsoft.web/sites", "azure-app-service-monitoring" },
+            // Pending: webapp, sql
+        };
+
+    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger)
     {
         _graphDatabaseClient = graphDatabaseClient;
         _logger = logger;
+        _dashboardSettings = dashboardSettings;
+
+        _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
+        _grafanaToken = dashboardSettings.GrafanaApiKey;
+        _httpClient = new HttpClient();
     }
 
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
@@ -163,6 +185,7 @@ public class GraphService : IGraphService
         return appGroupItems;
     }
 
+    /*
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
     {
         _logger.LogInformation("Querying graph resource {resourceId}", resourceId);
@@ -173,7 +196,157 @@ public class GraphService : IGraphService
                         .by(label())
                         .by(valueMap())";
 
-        return await _graphDatabaseClient.Query(query);
+        var result = await _graphDatabaseClient.Query(query);
+        return result;
+    }
+    */
+
+    public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
+    {
+        _logger.LogInformation("Querying graph resource {resourceId}", resourceId);
+        string query = $@"g.V().has('id', '{resourceId}')
+                    .project('id', 'name', 'type', 'properties')
+                    .by(id())
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(label())
+                    .by(valueMap())";
+        var result = await _graphDatabaseClient.Query(query);
+
+        foreach (var item in result)
+        {
+            try
+            {
+                var dict = (IDictionary<string, object>)item;
+
+                if (!dict.TryGetValue("properties", out var propertiesObj) || propertiesObj == null)
+                {
+                    _logger.LogWarning("Properties not found or null");
+                    continue;
+                }
+
+                var properties = (IDictionary<string, object>)propertiesObj;
+                string resourceType = GetFirstValueAsString(properties, "resourceType")?.ToLowerInvariant() ?? "";
+                string resourceName = dict["name"]?.ToString() ??
+                                     GetFirstValueAsString(properties, "resourceName") ?? "";
+                string resourceGroupName = GetFirstValueAsString(properties, "resourceGroupName") ?? "";
+                string subscription = GetFirstValueAsString(properties, "subscriptionId") ?? "";
+                if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out string dashboardType))
+                {
+                    string baseUrl = $"{_grafanaUrl}/d/{dashboardType}";
+                    var queryParams = new Dictionary<string, string>
+                {
+                    { "var-ds", "azure-monitor-oob" },
+                    { "var-ns", resourceType },
+                    { "var-sub", subscription },
+                    { "var-rg", resourceGroupName.ToLowerInvariant() },
+                    { "var-resource", resourceName.ToLowerInvariant() }
+                };
+
+                    // Add dashboard-specific parameters
+                    switch (dashboardType)
+                    {
+                        case "azure-container-apps-container-app-view":
+                            queryParams["var-containerapp"] = resourceName.ToLowerInvariant();
+                            break;
+                        case "azure-redis":
+                        case "azure-app-service-monitoring":
+                            queryParams["var-name"] = resourceName.ToLowerInvariant();
+                            break;
+                    }
+
+                    // Try to get actual dashboard URL from Grafana API
+                    string dashboardUrl = baseUrl;
+                    try
+                    {
+                        _httpClient.DefaultRequestHeaders.Clear();
+                        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_dashboardSettings.GrafanaApiKey}");
+                        var dashboardResponse = await _httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
+                        dashboardResponse.EnsureSuccessStatusCode();
+                        var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
+                        var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
+
+                        foreach (var dashboard in dashboards.EnumerateArray())
+                        {
+                            if (dashboard.TryGetProperty("url", out var urlElement) &&
+                                urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                            {
+                                dashboardUrl = $"{urlElement.GetString()}";
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogWarning(ex, "Failed to get dashboard URL from API, using base URL");
+                    }
+
+                    // Add query parameters to URL
+                    dashboardUrl = AddQueryParameters(dashboardUrl, queryParams);
+
+                    // Add the dashboard URL to the result
+                    ((IDictionary<string, object>)item)["dashboardUrl"] = _grafanaUrl+dashboardUrl;
+                }
+                else
+                {
+                    // No dashboard available for this resource type
+                    ((IDictionary<string, object>)item)["dashboardUrl"] = null;
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to add dashboard URL to result");
+                // Ensure the property exists even if there's an error
+                try
+                {
+                    ((IDictionary<string, object>)item)["dashboardUrl"] = null;
+                }
+                catch
+                {
+                    // best try
+                }
+            }
+        }
+
+        return result;
+    }
+
+    private string GetFirstValueAsString(IDictionary<string, object> properties, string key)
+    {
+        if (!properties.TryGetValue(key, out var value) || value == null)
+        {
+            return null;
+        }
+
+        // Handle the IEnumerableSelectIterator using non-generic IEnumerable
+        if (value is System.Collections.IEnumerable enumerable)
+        {
+            var enumerator = enumerable.GetEnumerator();
+            if (enumerator.MoveNext() && enumerator.Current != null)
+            {
+                return enumerator.Current.ToString();
+            }
+        }
+
+        return value.ToString();
+    }
+
+    private string AddQueryParameters(string url, Dictionary<string, string> parameters)
+    {
+        // Return the original URL if there are no parameters to add
+        if (string.IsNullOrEmpty(url) || parameters == null || parameters.Count == 0)
+        {
+            return url;
+        }
+
+        // Convert dictionary to a query string with URL-encoded parameters
+        var queryString = string.Join("&", parameters
+            .Select(param => $"{Uri.EscapeDataString(param.Key)}={Uri.EscapeDataString(param.Value)}"));
+
+        // Determine the correct separator: ? if no query exists, otherwise use &
+        char separator = url.Contains("?") ? '&' : '?';
+
+        // Append the query string to the URL
+        return $"{url}{separator}{queryString}";
     }
 
     public class AppGroupItem
