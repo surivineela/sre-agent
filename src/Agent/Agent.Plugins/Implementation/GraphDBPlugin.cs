@@ -206,7 +206,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(threadId ?? Guid.Empty, Core.Helpers.AgentTypeEnum.MetaAgent), $"![DailyReport Dashboard](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(threadId ?? Guid.Empty, Core.Helpers.AgentTypeEnum.MetaAgent), $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r\n");
 
                     return "Visualization Rendered!";
                 }

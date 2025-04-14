@@ -2,14 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
 using System.Globalization;
-using ScottPlot;
 using Agent.Core.Helpers;
-using Agent.Core.Models.Charts;
-using Agent.Core.Models.Api.v1;
-using Microsoft.Bot.Builder;
 using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.Charts;
+using Microsoft.Bot.Builder;
+using Microsoft.Extensions.Logging;
+using ScottPlot;
+using ScottPlot.AxisLimitManagers;
 using TeamsAttachment = Microsoft.Bot.Schema.Attachment;
 
 namespace Agent.Plugins
@@ -57,6 +58,22 @@ namespace Agent.Plugins
                 () => ChartHelper.GenerateChartBase64String(input),
                 description,
                 "Failed to generate chart with ScottPlot.");
+        }
+
+        // adding this method to directly get Pie chart image
+        // plot pie chart doesn't work because it calls a team message not agent message when plotting
+        public string GetPieChartBase64Image(string chartTitle,
+            string dataPoints,
+            string description)
+        {
+            var slices = ParsePieData(dataPoints);
+
+            if (!slices.Any())
+            {
+                return "ERROR: Could not parse any valid slice data from 'dataPoints'.";
+            }
+
+            return ChartHelper.GeneratePieChartBase64String(slices); ;
         }
 
         public async Task<string> PlotPieChartAsync(

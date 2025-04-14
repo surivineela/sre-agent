@@ -122,7 +122,10 @@ const Panel = ({ node, setSelectedNode, transferDataToActivities }: IPanelProps)
 
 
                             summary.push(
-                                { label: 'Costs for the past 7 days', value: `${Costs} USD` },
+                                { 
+                                    label: 'Costs for the past 7 days', 
+                                    value: isNullOrUndefined(Costs) || Costs === 0 ? "Cost calculation pending" : `${Costs} USD` 
+                                },
                             );
 
                             if (!isNullOrUndefined(Availability)) {

@@ -55,6 +55,24 @@ namespace Agent.Data.Repositories
             return Task.FromResult(threads.AsEnumerable());
         }
 
+        public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null)
+        {
+            IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
+
+            if (source != null)
+            {
+                threads.Where(t => t.Source == source);
+            }
+
+            if (queryOptions is not null)
+            {
+                threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
+            }
+
+            return Task.FromResult(threads.AsEnumerable());
+        }
+
+
         public Task<Thread> CreateThreadAsync(Thread thread)
         {
             // Ensure IDs are set

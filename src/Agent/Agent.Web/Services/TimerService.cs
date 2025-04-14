@@ -2,10 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.Generic;
 using System.Reflection;
+using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Graph.Crawler;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Graph.Interfaces;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
@@ -14,7 +19,16 @@ using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
+using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
+using Microsoft.Graph.Models;
+using Microsoft.Graph.Models.Security;
+using Microsoft.OData.Edm;
+using Newtonsoft.Json;
+using Octokit;
+using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
+using Agent.Plugins;
+using Agent.Runtime.Communication;
 
 namespace Agent.Seb.Services;
 
@@ -51,6 +65,12 @@ public class TimerService : IHostedService, IDisposable
     private readonly ILogger<TimerService> _logger;
     private readonly ICrawlerService _crawlerService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
+    private readonly IGraphDBPlugin _graphPlugin;
+    private readonly ChartPlugin _chartPlugin;
+    private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
+    private readonly IThreadRepository _repository;
+    private readonly SinkService _sinkService;
+
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
     private BestPracticeScannerAgent _bestPracticeScannerAgent;
@@ -89,6 +109,10 @@ public class TimerService : IHostedService, IDisposable
 
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
+    private bool _pagerDutyWelcomeSent = false;
+    private Timer? _pagerDutyWelcomeTimer = null;
+
+
     public TimerService(
         ICrawlerService crawlerService,
         CrawlerSettings settings,
@@ -101,11 +125,20 @@ public class TimerService : IHostedService, IDisposable
         CVEScanner cveScanner,
         ILogger<TimerService> logger,
         IServiceProvider serviceProvider,
-        ScoreCardService scoreCardService)
+        IGraphDBPlugin graphPlugin,
+        IAgentInboundCommunicationService agentInboundCommunicationService,
+        IThreadRepository repository,
+        ChartPlugin chartPlugin,
+        ScoreCardService scoreCardService,
+        SinkService sinkService)
     {
         _logger = logger;
         _crawlerService = crawlerService;
+        _graphPlugin = graphPlugin;
         _settings = settings;
+        _repository = repository;
+        _agentInboundCommunicationService = agentInboundCommunicationService;
+        _chartPlugin = chartPlugin;
         _timerSettings = timerSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
@@ -115,6 +148,7 @@ public class TimerService : IHostedService, IDisposable
         _cveScanner = cveScanner;
         _scoreCardService = scoreCardService;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
+        _sinkService = sinkService;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -157,6 +191,9 @@ public class TimerService : IHostedService, IDisposable
         StartScoreCardTimer(cancellationToken);
 
         _logger.LogInformation($"Finished starting background services");
+
+        _logger.LogInformation("Starting Send Welcome Message timer...");
+        SendWelcomeToPagerDutyMessageTimer(cancellationToken);
 
         return Task.CompletedTask;
     }
@@ -451,6 +488,213 @@ public class TimerService : IHostedService, IDisposable
                 _scoreCardTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _scoreCardTimerInterval);
+    }
+
+    public void SendWelcomeToPagerDutyMessageTimer(CancellationToken cancellationToken)
+    {
+        _pagerDutyWelcomeTimer = new Timer(async _ =>
+        {
+            if (_pagerDutyWelcomeSent)
+            {
+                _logger.LogInformation("PagerDuty welcome message already sent, skipping.");
+                return;
+            }
+
+            try
+            {
+                if (!_crawlerFinishedOnce)
+                {
+                    _logger.LogInformation("Waiting for first crawler run to complete before sending PagerDuty welcome message.");
+                    return;
+                }
+                // STACY TO DO:
+                // clean up code
+
+                // STACY TO DO:
+                // this is hard coded to check for pagerDutyLa logic app need to not hard code this
+                // actually I need find another way to check the pagerDuty connection because I don't think logic apps are always discovered....
+                // i think another way to do this is update logic app bicep to send a http call to trigger this timer idk
+
+                //var pagerDutyLaQuery = "g.V().has('resourceName', 'pagerdutyla')";
+                //var pagerDutyLaResult = await _graphPlugin.Query(pagerDutyLaQuery);
+
+                //if (!pagerDutyLaResult.Any())
+                //{
+                //    _logger.LogInformation("PagerDuty Logic App resource not found in graph, skipping welcome message.");
+                //    return;
+                //}
+
+                var welcomeThreads = await _repository.GetThreadsBySourceAsync(null, ThreadSource.WelcomeMessage);
+                if (welcomeThreads.Any())
+                {
+                    _logger.LogInformation("Welcome message already sent, skipping.");
+                    return;
+                }
+
+                var messageBuilder = new StringBuilder();
+                messageBuilder.AppendLine("# 👋 Hi, I'm your new Azure SRE Partner!");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("I'm here to help monitor your applications and keep everything running smoothly. **I'm now connected to PagerDuty** and ready to process incidents for your environment.");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("I've **already started scanning your applications** and will let you know shortly if I find anything that needs attention.");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("Think of me as your reliable sidekick for all things related to system reliability and operations. Whether you need help with security updates, monitoring metrics, or troubleshooting issues, I've got your back!");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("### ⚙️ **Autopilot Mode**:");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("I'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("### 🚨 **PagerDuty Integration Active**:");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("With PagerDuty integration active, I can:");
+                messageBuilder.AppendLine("- Alert you about critical incidents in real-time");
+                messageBuilder.AppendLine("- Provide incident details and suggested resolutions");
+                messageBuilder.AppendLine("- Track incident status and resolution progress");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("### **How to get started**:");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("If you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("- \"Monitor my application performance\"");
+                messageBuilder.AppendLine("- \"Check on my app's metrics\"");
+                messageBuilder.AppendLine("- \"Create an app migration plan\"");
+                messageBuilder.AppendLine("- \"Help diagnose why my service is slow\"");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("No fancy commands needed - just chat with me like you would with a colleague, and I'll help you tackle whatever challenges come your way.");
+                messageBuilder.AppendLine();
+                messageBuilder.AppendLine("Looking forward to working together and keeping your systems running at their best!");
+
+                var title = "Azure SRE Partner Active";
+
+                var thread = await _agentInboundCommunicationService.CreateAgentThread(
+                               title: title,
+                               message: messageBuilder.ToString(),
+                               agentTypeEnum: AgentTypeEnum.MetaAgent,
+                               source: ThreadSource.WelcomeMessage
+                           );
+
+                var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
+                _chartPlugin.Context = thread.Item2;
+
+                // count number of resources
+                var totalResourceCountQuery = "g.V().dedup().by('id').count()";
+                var totalResourceQueryResult = await _graphPlugin.Query(totalResourceCountQuery);
+                var totalResourceCount = JsonConvert.SerializeObject(totalResourceQueryResult).Replace("[", "").Replace("]", "");
+
+                // break down by type
+                var resourceTypeCountQuery = "g.V().groupCount().by(label)";
+                var resourceTypeCountQueryResult = await _graphPlugin.Query(resourceTypeCountQuery);
+                var resourceTypeCountBreakDownQuery = $@"g.V().dedup().by('id').groupCount().by(
+                                      coalesce(
+                                        hasLabel('{ArmConstants.AppServiceType.ToLower()}').constant('App Service Web Apps'),
+                                        hasLabel('{ArmConstants.FunctionAppType.ToLower()}').constant('Function Apps'),
+                                        hasLabel('{ArmConstants.ContainerAppType.ToLower()}').constant('Container Apps'),
+                                        hasLabel('{ArmConstants.AzureSQLType.ToLower()}').constant('SQL'),
+                                        hasLabel('{ArmConstants.CosmosDbType.ToLower()}').constant('Cosmos'),
+                                        hasLabel('{ArmConstants.AzureRedisCacheType.ToLower()}').constant('Redis'),
+                                        hasLabel('{ArmConstants.StorageType.ToLower()}').constant('Storage'),
+                                        constant('Other')))";
+                var resourceTypeCountBreakDownQueryResult = await _graphPlugin.Query(resourceTypeCountBreakDownQuery);
+                var resourceTypeCountBreakDown = JsonConvert.SerializeObject(resourceTypeCountBreakDownQueryResult).Replace("[", "").Replace("]", "").Replace("{", "").Replace("}", "").Replace("\"", "");
+
+                // Parse the breakdown and format it with each item on a new line
+                var breakdownItems = resourceTypeCountBreakDown.Split(',')
+                    .Select(item => item.Trim())
+                    .Where(item => !string.IsNullOrEmpty(item))
+                    .Select(item => {
+                        var parts = item.Split(':');
+                        return new { Type = parts[0].Trim(), Count = parts[1].Trim() };
+                    })
+                    .OrderBy(item => item.Type == "Other" ? 1 : 0) // Put "other" last
+                    .ToList();
+
+                // count number of all groups
+                string appGroupTotalCountQuery = $@"g.V()
+                        .out('{ArmConstants.Relationships.Contains}')
+                        .out('{ArmConstants.Relationships.Contains}')
+                        .hasLabel(within(
+                            '{ArmConstants.ContainerAppType.ToLower()}',
+                            '{ArmConstants.AppServiceType.ToLower()}',
+                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}',
+                        ))
+                        .dedup().by('id').count()";
+                var appGroupTotalCountQueryResult = await _graphPlugin.Query(appGroupTotalCountQuery);
+                var appGroupTotalCount = JsonConvert.SerializeObject(appGroupTotalCountQueryResult).Replace("[", "").Replace("]", "");
+
+                // break down by type
+                string appGroupTypeQuery = $@"g.V()
+                        .out('{ArmConstants.Relationships.Contains}')
+                        .out('{ArmConstants.Relationships.Contains}')
+                        .hasLabel(within(
+                            '{ArmConstants.ContainerAppType.ToLower()}',
+                            '{ArmConstants.AppServiceType.ToLower()}',
+                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}',
+                        ))
+                        .groupCount().by(
+                            coalesce(
+                                hasLabel('{ArmConstants.ContainerAppType.ToLower()}').constant('Container Apps'),
+                                hasLabel('{ArmConstants.AppServiceType.ToLower()}').constant('Web Apps'),
+                                hasLabel('{ArmConstants.AzureKubernetesServiceType.ToLower()}').constant('Managed Clusters'),
+                                label()
+                            )
+                        )";
+                var appGroupsCountByTypeResult = await _graphPlugin.Query(appGroupTypeQuery);
+                var appGroupsCountByType = JsonConvert.SerializeObject(appGroupsCountByTypeResult).Replace("[", "").Replace("]", "").Replace("{", "").Replace("}", "").Replace("\"", "");
+
+                // Parse the breakdown and format it with each item on a new line
+                var appGroupBreakdownItems = appGroupsCountByType.Split(',')
+                    .Select(item => item.Trim())
+                    .Where(item => !string.IsNullOrEmpty(item))
+                    .Select(item => {
+                        var parts = item.Split(':');
+                        return new { Type = parts[0].Trim(), Count = parts[1].Trim() };
+                    })
+                    .ToList();
+
+                var combinedDescription = new StringBuilder();
+                combinedDescription.AppendLine("### **🔍 Here's what I found:**");
+                combinedDescription.AppendLine();
+                combinedDescription.AppendLine($"📊 Found **{totalResourceCount}** total resources. Here is a breakdown by type:");
+                foreach (var item in breakdownItems)
+                {
+                    combinedDescription.AppendLine($"- **{item.Type}**: {item.Count}");
+                }
+                combinedDescription.AppendLine();
+                combinedDescription.AppendLine($"📊 Found **{appGroupTotalCount}** app groups. Here is a breakdown by type:");
+                foreach (var item in appGroupBreakdownItems)
+                {
+                    combinedDescription.AppendLine($"- **{item.Type}**: {item.Count}");
+                }
+
+                await _sinkService.SinkAgentMessageAsync(thread.Item2, combinedDescription.ToString());
+
+                //// generate resource pie chart
+                //var resourceTypeCountQueryResultDataPoint = JsonConvert.SerializeObject(resourceTypeCountBreakDownQueryResult).Replace("[", "").Replace("]", "").Replace("\\", "").Replace("/", "").Replace("{", "").Replace("}", "").Replace (":", "|").Replace(",",";");
+
+                //var chartTitle = "Resource by Type";               
+                //var resourcePieChart = _chartPlugin.GetPieChartBase64Image(chartTitle, resourceTypeCountQueryResultDataPoint, "");
+                //var resourcePieMessageString = $"![resource pie chart]({resourcePieChart})";
+                //await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Item2, resourcePieMessageString);
+
+                //// generate app group pie chart
+                //var appGroupsCountByTypeResultDataPoint = JsonConvert.SerializeObject(appGroupsCountByTypeResult).Replace("[", "").Replace("]", "").Replace("\\", "").Replace("/", "").Replace("{", "").Replace("}", "").Replace (":", "|").Replace(",",";");
+
+                //// generate chart
+                //var appGroupChartTitle = "App Groups by Type";                
+
+                //var appGroupResourcePieChart = _chartPlugin.GetPieChartBase64Image(appGroupChartTitle, appGroupsCountByTypeResultDataPoint, "");
+                //var appGroupMessageString = $"![app group resource pie chart]({appGroupResourcePieChart})";
+
+                //await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Item2, appGroupMessageString);
+
+                _logger.LogInformation("PagerDuty welcome message sent successfully.");
+                _pagerDutyWelcomeSent = true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error sending PagerDuty welcome message.");
+            }
+        }, null, TimeSpan.Zero, TimeSpan.FromMinutes(2));
     }
 
     public void Dispose()

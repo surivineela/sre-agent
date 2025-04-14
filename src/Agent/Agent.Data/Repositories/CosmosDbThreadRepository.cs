@@ -1,4 +1,4 @@
-﻿﻿// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -89,6 +89,62 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             return null;
         }
+    }
+
+    public async Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptins, ThreadSource? source = null)
+    {
+        var threads = new List<Thread>();
+        // Query for thread documents
+        var query = _container.GetItemLinqQueryable<ThreadDocument>()
+            .Where(t => t.DocumentType == "Thread");
+
+        // Add filter by ThreadSource if specified
+        if (source.HasValue)
+        {
+            query = query.Where(t => t.Source == source.Value);
+        }
+
+        // Sort by creation timestamp
+        query = query.OrderBy(t => t.CreatedTimestamp);
+
+        if (queryOptins is not null)
+        {
+            query = queryOptins.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadDocument>;
+        }
+
+        using var iterator = query.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var threadDoc in await iterator.ReadNextAsync())
+            {
+                // Get the start message for each thread
+                MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
+                    threadDoc.MessageId,
+                    threadDoc.Id
+                );
+                // last message may be null if thread was created before we started saving last message id
+                // & a new message has not been added to the thread
+                Message lastMessageDocDomainModel;
+                if (threadDoc.LastMessageId == null)
+                {
+                    _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                    lastMessageDocDomainModel = null;
+                }
+                else
+                {
+                    MessageDocument lastMessageDoc = await GetDocumentAsync<MessageDocument>(
+                        threadDoc.LastMessageId,
+                        threadDoc.Id
+                    );
+                    lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
+                }
+                if (startMessageDoc != null)
+                {
+                    threads.Add(threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel));
+                }
+            }
+        }
+        return threads;
     }
 
     public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptins)

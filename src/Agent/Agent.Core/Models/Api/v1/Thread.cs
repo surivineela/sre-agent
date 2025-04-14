@@ -13,7 +13,8 @@ namespace Agent.Core.Models.Api.v1
         Agent,         // Agent proactively created thread, e.g. daily report
         Teams,         // Agent tagged in teams channel, chat group or direct message
         Alert,         // Agent invoked by alert or IcM webhook
-        Incident       // For incident/security related threads
+        Incident,       // For incident/security related threads
+        WelcomeMessage,
     }
 
     public record Thread(
