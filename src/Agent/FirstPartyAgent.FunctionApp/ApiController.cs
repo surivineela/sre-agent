@@ -22,8 +22,8 @@ namespace FirstPartyAgent.FunctionApp
         private readonly IStorageService _storageService;
         private readonly ICosmosDBService _cosmosDBService;
         private readonly ICMWorkflowClient _icmWorkflowClient;
-        private const string hotsiteAgentConfigCosmosDb = "HotsiteAgent";
         private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
+        private readonly AlertHandlerService _alertHandlerService;
 
         public ApiController(
             ILogger<ApiController> logger, 
@@ -32,7 +32,8 @@ namespace FirstPartyAgent.FunctionApp
             IAlertProcessingService alertProcessingService, 
             ISessionMessageService sessionMessageService,
             ICosmosDBService cosmosDBService,
-            ICMWorkflowClient icmWorkflowClient)
+            ICMWorkflowClient icmWorkflowClient,
+            AlertHandlerService alertHandlerService)
         {
             _logger = logger;
             _chatService = chatService;
@@ -41,6 +42,7 @@ namespace FirstPartyAgent.FunctionApp
             _sessionMessageService = sessionMessageService;
             _cosmosDBService = cosmosDBService;
             _icmWorkflowClient = icmWorkflowClient;
+            _alertHandlerService = alertHandlerService;
         }
 
         [Function("ListConfigs")]
@@ -48,7 +50,7 @@ namespace FirstPartyAgent.FunctionApp
              [HttpTrigger(AuthorizationLevel.Function, "get", Route = "ListConfigs")] HttpRequestData req, string alertId)
         {
 
-            var configList = await AgentFinder.GetICMAlertConfigsAsync();
+            var configList = await _alertHandlerService.GetICMAlertConfigsAsync();
             var configInfo = configList.Select(x => new { x.Key, x.Value.AlertingId, x.Value.IncidentTitle, x.Value.AgentMode, x.Value.DefaultHumanInterventionLoop }).ToList();
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(configInfo);
@@ -60,7 +62,7 @@ namespace FirstPartyAgent.FunctionApp
              [HttpTrigger(AuthorizationLevel.Function, "get", Route = "GetConfig/{alertId}")] HttpRequestData req, string alertId)
         {
 
-            var customConfig = await AgentFinder.GetICMAlertConfigAsync(alertId);
+            var customConfig = await _alertHandlerService.GetICMAlertConfigAsync(alertId);
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(customConfig);
             return response;
@@ -72,7 +74,7 @@ namespace FirstPartyAgent.FunctionApp
         {
             var customConfig = await req.ReadAsStringAsync();
             var configObject = JsonConvert.DeserializeObject<ICMAlertConfig>(customConfig);
-            await AgentFinder.SaveICMAlertConfig(configObject.AlertingId, customConfig);
+            await _alertHandlerService.SaveICMAlertConfig(configObject.AlertingId, customConfig);
             var response = req.CreateResponse(HttpStatusCode.OK);
             await response.WriteAsJsonAsync(customConfig);
             return response;
@@ -347,7 +349,7 @@ namespace FirstPartyAgent.FunctionApp
                 foreach(var group in alertDetails.GroupBy(a => a.TeamId))
                 {
                     await _cosmosDBService.BulkWriteAsync(
-                        hotsiteAgentConfigCosmosDb,
+                        _cosmosDBService.IcmConfigsDatabaseName,
                         hotsiteAgentAlertDetailsCosmosDbContainer,
                         group,
                         new Microsoft.Azure.Cosmos.PartitionKey(group.Key ?? 0));

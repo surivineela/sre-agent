@@ -6,6 +6,20 @@ using System.ComponentModel.DataAnnotations;
 
 namespace FirstPartyAgent.Core.Configuration
 {
+
+    public class BaseIcmWorkflowSettings
+    {
+        [Required]
+        public string WorkflowsEndpoint { get; set; } = string.Empty;
+        public string CertificateSubjectName { get; set; } = string.Empty;
+        public string CertificateFilePath { get; set; } = string.Empty;
+        public string UserToken { get; set; } = string.Empty;
+        public bool UseFunctionApp { get; set; } = false;
+        public string FunctionAppEndpoint { get; set; } = string.Empty;
+        public string FunctionAppKey { get; set; } = string.Empty;
+        public bool ReadOnly { get; set; } = false;
+    }
+
     public class ICMWorkflowSettings
     {
         [Required]

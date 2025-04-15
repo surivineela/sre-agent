@@ -12,6 +12,7 @@ using FirstPartyAgent.Core.Services;
 using Gremlin.Net.Process.Traversal;
 using Microsoft.Azure.Cosmos.Linq;
 using System.Collections.Concurrent;
+using Microsoft.Extensions.Hosting;
 
 
 namespace FirstPartyAgent.Core.Services
@@ -27,6 +28,7 @@ namespace FirstPartyAgent.Core.Services
         Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey);
 
         bool IsEnabled { get; }
+        string IcmConfigsDatabaseName { get; }
     }
 
     public class CosmosDBServiceDisabled : ICosmosDBService
@@ -41,6 +43,8 @@ namespace FirstPartyAgent.Core.Services
             return Task.CompletedTask;
         }
 
+        public string IcmConfigsDatabaseName => "IcmConfigs";
+
         public bool IsEnabled => false;
     }
 
@@ -50,37 +54,45 @@ namespace FirstPartyAgent.Core.Services
         private readonly CosmosClient _cosmosClient;
         private string _accountUrl;
         private string _managedIdentityClient;
+        public string _icmConfigsDatabaseName;
+        private bool Enabled = true;
 
-        public bool IsEnabled => true;
+        public bool IsEnabled => Enabled;
+
+        public string IcmConfigsDatabaseName => _icmConfigsDatabaseName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CosmosDBService"/> class.
         /// </summary>
         /// <param name="configuration">The application configuration</param>
         /// <param name="logger">The logger</param>
-        public CosmosDBService(IConfiguration configuration, ILogger<CosmosDBService> logger)
+        public CosmosDBService(IHostEnvironment hostEnvironment, IConfiguration configuration, ILogger<CosmosDBService> logger)
         {
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
             var config = configuration ?? throw new ArgumentNullException(nameof(configuration));
 
             _accountUrl = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:AccountUrl", string.Empty);
             _managedIdentityClient = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:MsiClientId", string.Empty); //"051f9d76-ce6d-4428-b55c-048b6ded238a"; //configuration.GetValue<string>("CosmosDb:ManagedIdentityClient", string.Empty);
+            _icmConfigsDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmConfigsDatabaseName", string.Empty); // "IcmConfigs"; //configuration.GetValue<string>("CosmosDb:IcmConfigsDatabaseName", string.Empty);
 
-            if (string.IsNullOrWhiteSpace(_accountUrl))
+            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(_accountUrl))
             {
                 throw new InvalidOperationException("CosmosDb:AccountUrl is not configured");
             }
 
 
-            if (!Debugger.IsAttached)
+            if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(_managedIdentityClient))
             {
-                if (string.IsNullOrWhiteSpace(_managedIdentityClient))
-                {
-                    throw new InvalidOperationException("CosmosDb:ManagedIdentityClient is not configured");
-                }
+                throw new InvalidOperationException("CosmosDb:ManagedIdentityClient is not configured");
             }
 
             _logger.LogInformation("Initializing CosmosDB service with endpoint {Endpoint}", _accountUrl);
+
+            if (string.IsNullOrWhiteSpace(_accountUrl))
+            {
+                Enabled = false;
+                return;
+            }
             
             // Create the CosmosClient based on environment
             _cosmosClient = CreateCosmosClient(_accountUrl);

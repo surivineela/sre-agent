@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json;
 
@@ -15,6 +16,8 @@ namespace FirstPartyAgent.Core.Models
         public List<string> OwningTeams { get; set; } = new List<string>();
         public string AgentMode { get; set; }
         public bool UseCorrelationIdForKustoQuery { get; set; }
+        public List<GenevaActionConfigBase> GenevaActions { get; set; }
+        public List<string> AllowedGenevaActions { get; set; }
         public List<ICMConfigKustoQueryModel> KustoQueries { get; set; } = new List<ICMConfigKustoQueryModel>();
         public List<string> Owners { get; set;} = new List<string>();
         public int ActionTimeoutIntervalInMinutes { get; set; }
@@ -23,6 +26,29 @@ namespace FirstPartyAgent.Core.Models
         public List<string> MitigationInstructions { get; set; } = new List<string>();
         public List<string> MonitoringInstructions { get; set; } = new List<string>();
         public List<string> IncidentProcessingGuide { get; set; } = new List<string>();
+    }
+
+    public class GenevaActionConfig : GenevaActionConfigBase
+    {
+        [Required]
+        public bool IsWriteAction { get; set; }
+        [Required]
+        public bool IsAllowedOnExternalSubs { get; set; }
+    }
+
+    public class GenevaActionsConfigCosmos {
+        [JsonProperty("id")]
+        [JsonPropertyName("id")]
+        public string Id { get; set; }
+        public List<GenevaActionConfig> GenevaActions { get; set; }
+    }
+
+    public class GenevaActionConfigBase
+    {
+        public string ActionName { get; set; }
+        public string TenantId { get; set; }
+        public string WorkflowName { get; set; }
+        public List<string> WorkflowInputParameters { get; set; }
     }
 
     public class ICMConfigKustoQueryModel : KustoQueryModel

@@ -6,6 +6,7 @@
   "UseCorrelationIdForKustoQuery": true,
   "KustoQueries": [
   ],
+  "AllowedGenevaActions": [ "RebootWebWorker" ],
   "IncidentProcessingGuide": [
     "Create an EXECUTION_PLAN using the below guidelines:",
     "- Identify the list of Impacted Endpoints and their stamp name from azure alerting discussion entry.",
@@ -26,7 +27,7 @@
     "- Non transient issue handling:",
     "  - For each impacted endpoint where the issue is non-transient, first fetch the web worker details.",
     "  - Post a discussion entry in the ICM incident with the following details: Impacted Endpoint, Web Worker Details (StampName, GeomasterName, Role, RoleInstance, Location)",
-    "  - If web worker details have been fetched, and discussion entry has been posted, then Reboot the web worker",
+    "  - If web worker details have been fetched, and discussion entry has been posted, then Reboot the web worker using the Geneva Action 'RebootWebWorker'",
     "  - If web worker has been rebooted successfully, **post a discussion entry** in the ICM incident with the following details: Impacted Endpoint, Web Worker Details (StampName, GeomasterName, Role, RoleInstance, Location), Reboot Result",
     "  - Wait for 2 minutes.",
     "  - Run HTTP get request to each non-transient endpoint to confirm recovery.",

@@ -79,7 +79,6 @@ var host = new HostBuilder()
         services.RegisterServiceDependencies();
         services.ConfigureSemanticKernel();
         services.AddSingleton<IChatService, ChatProcessingService>();
-        await AgentFinder.InitializeAsync(services.BuildServiceProvider(), configuration);
     })
     .Build();
 

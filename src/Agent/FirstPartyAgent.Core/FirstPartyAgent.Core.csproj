@@ -39,13 +39,25 @@
 	  <None Include="ICMAlertConfigs\97950ded-8bbc-4bda-bcfa-e74aa45c1381.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
-	  <Page Include="ICMAlertConfigs\c1168c0a-13db-43d0-8188-062d5c273c08.json">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </Page>
 	  <None Include="ICMAlertConfigs\e6f9db3c-80ab-485c-a428-ed3a0b4c24c3.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Include="Plugins\PluginConfig.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <None Update="ICMAlertConfigs\5a77158c-8385-49f8-8f96-019a641df17b.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="ICMAlertConfigs\c1168c0a-13db-43d0-8188-062d5c273c08.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="ICMAlertConfigs\f9110571-1b04-484b-b10f-ee3d130b1447.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\GenevaActionsPlugin\GenevaActions.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>

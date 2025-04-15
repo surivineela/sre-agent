@@ -10,6 +10,7 @@
       "KustoQuery": ""
     }
   ],
+  "AllowedGenevaActions": [ "GetRedisCacheDeploymentDetails", "GetRedisCacheDeploymentHistory" ],
   "IncidentProcessingGuide": [
     "  - If the incident is pertaining to Azure Redis Cache, then extract the following details from the Incident:",
     "    - Redis cache name",

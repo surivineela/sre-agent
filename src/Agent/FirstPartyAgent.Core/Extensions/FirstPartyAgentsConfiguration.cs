@@ -29,7 +29,9 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<FirstPartyAgent.Core.Plugins.TimePlugin>();
             services.AddSingleton<IICMAPIClient, ICMAPIClient>();
             services.AddSingleton<ObserverClientService>();
-            services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
+            services.AddSingleton<BaseIcmWorkflowClient>();
+            services.AddSingleton<AlertHandlerService>();
+            services.AddSingleton<ICMWorkflowClient>();
             services.AddSingleton<ICMPlugin>();
             services.AddSingleton<GenevaActionsPlugin>();
             services.AddSingleton<HttpRequestPlugin>();

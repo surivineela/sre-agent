@@ -38,7 +38,6 @@ builder.Services.AddControllersWithViews()
 // Add Blazor services
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
-await AgentFinder.InitializeAsync(builder.Services.BuildServiceProvider(), config);
 
 var app = builder.Build();
 
