@@ -13,6 +13,7 @@ public record ThreadContextDocument(
     string ThreadId,
     int AgentType,
     List<Message> Messages,
+    bool IsThreadActive,
     OutboundConfiguration? OutboundConfiguration = null
 ) : ICosmosDocument
 {
@@ -26,6 +27,7 @@ public record ThreadContextDocument(
             threadContext.ThreadId.ToString(),
             AgentType: (int)threadContext.AgentTypeEnum,
             Messages: threadContext.RecentMessages.ToList(),
+            IsThreadActive: threadContext.IsThreadActive,
             OutboundConfiguration: threadContext.OutboundConfiguration
         );
 
@@ -33,6 +35,7 @@ public record ThreadContextDocument(
         new ThreadContext(
             Guid.Parse(ThreadId),
             (AgentTypeEnum)AgentType,
+            IsThreadActive,
             new Queue<Message>(Messages),
             OutboundConfiguration
         );

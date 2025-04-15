@@ -4,14 +4,16 @@
 
 using System.Text;
 using Agent.Core.Extensions;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Plugins;
+using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
 {
-    public class CVEAgent : SubAgent
+    public class CVEAgent : ScannerSubAgent
     {
         private readonly IGraphDBPlugin _graphDBPlugin;
         private readonly IGithubIssuePlugin _githubIssuePlugin;
@@ -21,8 +23,10 @@ namespace Agent.Runtime.SubAgents.CVEAgent
             IChatClient chatClient,
             IGraphDBPlugin graphDBPlugin,
             IGithubIssuePlugin gitHubIssuePlugin,
+            SinkService sinkService,
+            IThreadRepository repository,
             List<RepoUrlStatus>? reposToScan = null) 
-            : base("CVE Agent", chatClient)
+            : base("CVE Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: true)
         {
             _githubIssuePlugin = gitHubIssuePlugin;
             _graphDBPlugin = graphDBPlugin;
@@ -96,18 +100,6 @@ You are **CVE Agent**. Always address yourself as ""CVE Agent"". For greeting me
             }
 
             return messages;
-        }
-
-        public override async Task<(string Response, bool IsComplete)> DoWork(string question)
-        {
-            var agentResponse = await base.DoWork(question);
-
-            ChatHistory.Add(new AIChatMessage(ChatRole.User, "Answering only with \"yes\" or \"no\", is this thread complete?"));
-            var response = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-
-            var isComplete = response.Text.Contains("yes", StringComparison.OrdinalIgnoreCase);
-
-            return (agentResponse.Response, IsComplete: isComplete);
         }
     }
 }

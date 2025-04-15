@@ -32,6 +32,8 @@ public class ThreadContext
     /// </summary>
     public readonly Queue<Message> RecentMessages;
 
+    public bool IsThreadActive { get; set; }
+
     public OutboundConfiguration OutboundConfiguration { get; set; } = new OutboundConfiguration();
 
     // TODO(jianbo): use ThreadService only to add/read properties, in case we forget to sync in cosmosdb.
@@ -43,12 +45,13 @@ public class ThreadContext
     /// Initializes a new instance of the ThreadContext class with the specified thread ID and messages.
     /// </summary>
     /// <param name="threadId">The unique identifier for the thread.</param>
-    public ThreadContext(Guid threadId, AgentTypeEnum agentTypeEnum, Queue<Message>? recentMessages = null, OutboundConfiguration? outboundConfiguration = null)
+    public ThreadContext(Guid threadId, AgentTypeEnum agentTypeEnum, bool isThreadActive = true, Queue<Message>? recentMessages = null, OutboundConfiguration? outboundConfiguration = null)
     {
         ThreadId = threadId;
         AgentTypeEnum = agentTypeEnum;
         RecentMessages = recentMessages ?? new Queue<Message>();
         OutboundConfiguration = outboundConfiguration ?? new OutboundConfiguration();
+        IsThreadActive = isThreadActive;
     }
 
 
@@ -60,6 +63,16 @@ public class ThreadContext
         }
 
         RecentMessages.Enqueue(message);
+    }
+
+    public void ResumeThreadContext()
+    {
+        IsThreadActive = true;
+    }
+
+    public void ConcludeThreadContext()
+    {
+        IsThreadActive = false;
     }
 }
 

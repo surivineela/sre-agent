@@ -8,7 +8,6 @@ using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
-using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -48,7 +47,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         public async Task Scan(CancellationToken cancellationToken)
         {
             var cveAgentThreadContexts = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVEAgent)
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVEAgent && x.IsThreadActive)
                 ?.ToList();
 
             if (cveAgentThreadContexts != null && cveAgentThreadContexts.Count > 0)
@@ -87,26 +86,10 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     _chatClient,
                     _graphDbPlugin,
                     _githubIssuePlugin,
+                    _sinkService,
+                    _threadRepository,
                     reposToScan: repos.Select(r => new RepoUrlStatus(r)).ToList());
-                cveAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
-
-                await cveAgent.PrepareAgentForUserInput();
-                var messagesToAddToChatHistory = cveAgent.GetUserVisibleChatHistory();
-                foreach (var messageToAddToChatHistory in cveAgent.ChatHistory)
-                {
-                    if (messageToAddToChatHistory.Role == ChatRole.User)
-                    {
-                        await _sinkService.SinkUserMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                    }
-                    else if (messageToAddToChatHistory.Role == ChatRole.Assistant)
-                    {
-                        await _sinkService.SinkAgentMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                    }
-                    else
-                    {
-                        await _sinkService.SinkSystemMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                    }
-                }
+                await cveAgent.PrepareAgentForUserInput(threadContext);
             }
         }
     }

@@ -44,7 +44,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         public async Task Scan(CancellationToken cancellationToken)
         {
             var sourceCodeAgentV2ThreadContext = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCodeAgent)
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCodeAgent && x.IsThreadActive)
                 ?.ToList();
 
             if (sourceCodeAgentV2ThreadContext != null && sourceCodeAgentV2ThreadContext.Count > 0)
@@ -77,26 +77,13 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                 var sourceCodeAgent = new SourceCodeAgent(
                     _chatClient,
                     _graphDbPlugin,
+                    sinkService: _sinkService,
+                    repository: _threadRepository,
                     appsWithoutSourceCodeNodes: resources.Select(r => new SourceCodeStatus(r)).ToList());
-                sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
-                await sourceCodeAgent.PrepareAgentForUserInput();
-                var messagesToAddToChatHistory = sourceCodeAgent.GetUserVisibleChatHistory();
-                foreach (var messageToAddToChatHistory in sourceCodeAgent.ChatHistory)
-                {
-                    if (messageToAddToChatHistory.Role == ChatRole.User)
-                    {
-                        await _sinkService.SinkUserMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                    }
-                    else if (messageToAddToChatHistory.Role == ChatRole.Assistant)
-                    {
-                        await _sinkService.SinkAgentMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                    }
-                    else
-                    {
-                        await _sinkService.SinkSystemMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                    }
-                }
+                await sourceCodeAgent.PrepareAgentForUserInput(threadContext);
+
+                sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
             }
         }
     }

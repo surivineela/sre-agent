@@ -14,6 +14,7 @@ using Agent.Core.Helpers;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Plugins;
 using Agent.Runtime.SubAgents.CVEAgent;
+using Agent.Runtime.SubAgents;
 
 namespace Agent.Runtime.Communication;
 
@@ -140,17 +141,29 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                 string agentResponse = string.Empty;
                 bool isComplete = false;
-                if (threadContext.AgentTypeEnum == AgentTypeEnum.SourceCodeAgent)
+
+                if (AgentTypeHelper.IsScannerAgent(threadContext.AgentTypeEnum))
                 {
-                    var sourceCodeAgent = new SourceCodeAgent(_chatClient, _graphDbPlugin);
-                    sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
-                    (agentResponse, isComplete) = await sourceCodeAgent.DoWork(message.Message);
-                }
-                else if (threadContext.AgentTypeEnum == AgentTypeEnum.CVEAgent)
-                {
-                    var cveAgentV2 = new CVEAgent(_chatClient, _graphDbPlugin, _githubIssuePlugin);
-                    cveAgentV2.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
-                    (agentResponse, isComplete) = await cveAgentV2.DoWork(message.Message);
+                    threadContext.ResumeThreadContext();
+                    await _repository.UpdateThreadContextAsync(threadContext);
+
+                    ScannerSubAgent scannerSubAgent = null;
+                    switch (threadContext.AgentTypeEnum)
+                    {
+                        case AgentTypeEnum.CVEAgent:
+                            scannerSubAgent = new CVEAgent(_chatClient, _graphDbPlugin, _githubIssuePlugin, _sinkService, _repository);
+                            break;
+                        case AgentTypeEnum.SourceCodeAgent:
+                            scannerSubAgent = new SourceCodeAgent(_chatClient, _graphDbPlugin, _sinkService, _repository);
+                            break;
+                        default:
+                            throw new NotSupportedException($"Scanner agent type {threadContext.AgentTypeEnum} is not supported.");
+                    }
+
+                    if (scannerSubAgent != null)
+                    {
+                        agentResponse = await scannerSubAgent.DoWork(threadContext, message.Message);
+                    }
                 }
                 else
                 {
@@ -159,11 +172,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 }
 
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(threadContext, agentResponse);
-
-                if (isComplete)
-                {
-                    await _repository.DeleteThreadContextAsync(threadContext.ThreadId);
-                }
             }
             else
             {

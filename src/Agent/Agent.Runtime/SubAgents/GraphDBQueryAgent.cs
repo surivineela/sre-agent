@@ -65,7 +65,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ];
         }
 
-        public override async Task<(string Response, bool IsComplete)> DoWork(string question)
+        public override async Task<string> DoWork(string question)
         {
             if (!_fetchedPrelimData)
             {
@@ -77,7 +77,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             var agentMessage = completion.GetMessage().Text;
             ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
-            return (Response: agentMessage, IsComplete: false);
+            return agentMessage;
         }
 
         public async Task PrelimData()

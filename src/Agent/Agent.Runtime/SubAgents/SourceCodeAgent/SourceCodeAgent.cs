@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
+using Agent.Runtime.Communication;
 using Google.Protobuf;
 using Microsoft.Extensions.AI;
 using OpenAI.Chat;
@@ -16,7 +17,7 @@ using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Runtime.SubAgents.SourceCodeAgent
 {
-    public class SourceCodeAgent : SubAgent
+    public class SourceCodeAgent : ScannerSubAgent
     {
         private readonly IGraphDBPlugin _graphDBPlugin;
         private readonly List<SourceCodeStatus>? _appsWithoutSourceCodeNodes;
@@ -24,8 +25,10 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         public SourceCodeAgent(
             IChatClient chatClient,
             IGraphDBPlugin graphDBPlugin,
+            SinkService sinkService,
+            IThreadRepository repository,
             List<SourceCodeStatus>? appsWithoutSourceCodeNodes = null) 
-            : base("Source Code Agent", chatClient)
+            : base("Source Code Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: false)
         {
             _graphDBPlugin = graphDBPlugin;
             _appsWithoutSourceCodeNodes = appsWithoutSourceCodeNodes;
@@ -115,18 +118,6 @@ This workflow does not need to wait for explicit user approval to proceed. Just 
             ));
 
             return messages;
-        }
-
-        public override async Task<(string Response, bool IsComplete)> DoWork(string question)
-        {
-            var agentResponse = await base.DoWork(question);
-
-            ChatHistory.Add(new AIChatMessage(ChatRole.User, "Answering only with \"yes\" or \"no\", is this thread complete?"));
-            var response = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
-
-            bool isComplete = response.Text.Contains("yes", StringComparison.OrdinalIgnoreCase);
-
-            return (Response: agentResponse.Response, IsComplete: isComplete);
         }
     }
 }

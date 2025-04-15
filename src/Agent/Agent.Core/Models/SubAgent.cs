@@ -45,25 +45,6 @@ namespace Agent.Core.Models
             ChatHistory = [new(ChatRole.System, SystemPrompt)];
         }
 
-        public void InitChatHistoryFromMessageQueue(Queue<Message> messages)
-        {
-            foreach (var message in messages)
-            {
-                if (message.Author.Role == Role.User)
-                {
-                    ChatHistory.Add(new(ChatRole.User, message.Text));
-                }
-                else if (message.Author.Role == Role.SREAgent)
-                {
-                    ChatHistory.Add(new(ChatRole.Assistant, message.Text));
-                }
-                else if (message.Author.Role == Role.System)
-                {
-                    ChatHistory.Add(new(ChatRole.System, message.Text));
-                }
-            }
-        }
-
         public abstract IList<AITool> Tools();
 
         public abstract Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync();
@@ -84,13 +65,13 @@ namespace Agent.Core.Models
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        public virtual async Task<(string Response, bool IsComplete)> DoWork(string question)
+        public virtual async Task<string> DoWork(string question)
         {
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             var agentMessage = completion.Text;
             ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
-            return (Response: agentMessage, IsComplete: false);
+            return agentMessage;
         }
 
         public virtual async Task DoWorkWithHistory(string question, ChatHistory externalHistory)

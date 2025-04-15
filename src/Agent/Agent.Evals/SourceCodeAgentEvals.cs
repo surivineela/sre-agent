@@ -1,6 +1,9 @@
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Mocks;
+using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Azure.AI.OpenAI;
 using Azure.ResourceManager.AppContainers;
@@ -11,6 +14,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
 
@@ -129,6 +133,11 @@ public sealed class SourceCodeAgentEvals
         var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
 
+        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
+        services.AddSingleton<IThreadRepository>(threadRepository);
+        services.AddSingleton<SinkService>(sinkService);
+
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration.ChatClient
             .AsBuilder()
@@ -220,6 +229,10 @@ public sealed class SourceCodeAgentEvals
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> ());
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
+        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
+        services.AddSingleton<IThreadRepository>(threadRepository);
+        services.AddSingleton<SinkService>(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration.ChatClient
@@ -286,6 +299,10 @@ public sealed class SourceCodeAgentEvals
         // Step 2: Register the mock implementation
         var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> { containerAppResourceId });
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
+        var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+        var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
+        services.AddSingleton<IThreadRepository>(threadRepository);
+        services.AddSingleton<SinkService>(sinkService);
 
         // Step 3: Register other required dependencies
         var chatClient = _chatConfiguration.ChatClient
