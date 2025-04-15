@@ -21,6 +21,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Plugins
 {
@@ -28,6 +29,7 @@ namespace Agent.Plugins
     {
         private readonly ILogger? _logger;
         private IKubernetes _client;
+        private IChatClient _chatClient;
 
         private readonly IAuthenticationService _authService;
 
@@ -36,10 +38,11 @@ namespace Agent.Plugins
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(60);
         private readonly ConcurrentDictionary<string, DateTimeOffset> _cacheTimestamps = new();
 
-        public KubePlugin(IConfiguration configuration, IAuthenticationService authenticationService, ILogger<KubePlugin>? logger)
+        public KubePlugin(IConfiguration configuration, IAuthenticationService authenticationService, IChatClient chatClient, ILogger<KubePlugin>? logger)
         {
             _logger = logger;
             _authService = authenticationService;
+            _chatClient = chatClient;
         }
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
@@ -410,7 +413,29 @@ namespace Agent.Plugins
 
             // read the stream to string
             using var reader = new StreamReader(await response.Response.Content.ReadAsStreamAsync());
-            return await reader.ReadToEndAsync();
+            var rawLogs = await reader.ReadToEndAsync();
+            var prompt = $"Summarize these logs from pod '{pod}' in namespace '{_namespace}'. IMPORTANT INSTRUCTIONS:\n" +
+                         $"1. Preserve ALL error and warning messages with their complete context and timestamps\n" +
+                         $"2. Maintain the full text of any exceptions, stack traces, or crash reports\n" +
+                         $"3. Include startup/initialization messages and important state changes\n" +
+                         $"4. For repetitive log patterns, show counts but include representative examples\n" +
+                         $"5. Organize by log level (ERROR, WARNING, INFO) when possible\n" +
+                         $"6. Keep exact text for any unusual or anomalous log entries\n" +
+                         $"7. Preserve timing information for performance-related entries\n" +
+                         $"---------------------------------------\n" +
+                         $"Logs:\n" +
+                         $"{rawLogs}";
+
+            try
+            {
+                var chatResponse = await _chatClient.GetResponseAsync(prompt);
+                return chatResponse.Messages.FirstOrDefault()?.Text ?? rawLogs;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error summarizing logs with chat service");
+                return rawLogs; // Return raw logs if summarization fails
+            }
         }
 
         // exec a command in a pod and get the output, container is optional, choose the first one if not specified
