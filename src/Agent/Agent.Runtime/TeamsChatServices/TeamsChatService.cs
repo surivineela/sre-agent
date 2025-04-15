@@ -471,26 +471,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     {
         // Make a copy of the current mapping to avoid locking issues during enumeration
         var currentMappings = await _conversationThreadMapping.ListActiveConversationsAsync();
-        var threadContexts = await _threadRepository.GetThreadContextsAsync();
 
-        // Create a dictionary of thread IDs to thread contexts for quick lookup
-        var threadContextDict = threadContexts.ToDictionary(tc => tc.ThreadId.ToString(), tc => tc);
-
-        // Filter mappings to only those with Teams outbound enabled
-        var filteredMappings = currentMappings.Where(mapping =>
-        {
-            return threadContextDict.TryGetValue(mapping.ThreadId, out var context) &&
-                   context.OutboundConfiguration?.Teams?.Enabled == true;
-        }).ToList();
-        if (filteredMappings.Count == 0)
-        {
-            _logger.LogDebug("No active Teams outbound mappings found");
-            return;
-        }
-
-        _logger.LogDebug($"Found {filteredMappings.Count} mappings with Teams outbound enabled out of {currentMappings.Count()} total mappings");
-
-        foreach (var mapping in filteredMappings)
+        foreach (var mapping in currentMappings)
         {
             try
             {
@@ -505,6 +487,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 if (!Guid.TryParse(threadId, out Guid threadGuid))
                 {
                     _logger.LogError($"Failed to poll Teams messages due to invalid thread ID format: {threadId}");
+                    continue;
+                }
+
+                var threadContext = await _threadRepository.GetThreadContextAsync(threadGuid);
+                if (threadContext == null || threadContext.OutboundConfiguration == null ||
+                    threadContext.OutboundConfiguration.Teams == null || threadContext.OutboundConfiguration.Teams.Enabled != true)
+                {
+                    _logger.LogWarning($"Thread context not found or outbound configuration to teams not enabled for thread ID {threadId}");
                     continue;
                 }
 

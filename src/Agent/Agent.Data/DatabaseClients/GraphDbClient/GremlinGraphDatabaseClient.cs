@@ -66,7 +66,12 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                             return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
                         }
 
-                        return TimeSpan.Parse(respEx.StatusAttributes["x-ms-retry-after-ms"].ToString());
+                        var retryDuration = TimeSpan.Parse(respEx.StatusAttributes["x-ms-retry-after-ms"].ToString());
+                        if (retryDuration.TotalMilliseconds <= 0)
+                        {
+                            return TimeSpan.FromSeconds(Math.Pow(2, retryAttempt));
+                        }
+                        return retryDuration;
                     },
                     onRetryAsync: (ex, ts, retryCount, context) =>
                     {

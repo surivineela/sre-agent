@@ -248,17 +248,18 @@ namespace Agent.Plugins
                     var responseText = await ChatClient.GetResponseAsync(prompt);
                     _logger.LogInformation($"Relationships generated successfully: {responseText.Text}");
 
-                    prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, create a Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram. 
+                    prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, create a valid Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram. 
 Strict Requirements:
 * Please ensure that each unique dependency is listed only once.
 * Use deployment/statefulset name as the node identifier.
-* Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.
+* Output ONLY the raw Mermaid specification as plain text starting with 'graph LR;'. Do not include any markdown formatting, code fences, or additional text.
+* Use '-->' to represent the dependency between two components.
 
 Input JSON:
 {jsonResult}";
                     var response = await ChatClient.GetResponseAsync(prompt);
                     var mermaidSpec = response.Text;
-                    _logger.LogInformation("Generated Mermaid specification successfully");
+                    _logger.LogInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
