@@ -1,13 +1,22 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Octokit;
 
 namespace Agent.Plugins.Mocks;
 public class MockGithubIssuePlugin : IGithubIssuePlugin
 {
+    private readonly List<string> _reposScanned;
+    private readonly List<GithubIssuePluginDependabotVulnerability> _githubIssuePluginDependabotVulnerabilities;
+
+    public MockGithubIssuePlugin()
+    {
+        _reposScanned = new List<string>();
+    }
+
+    public MockGithubIssuePlugin(List<GithubIssuePluginDependabotVulnerability> githubIssuePluginDependabotVulnerabilities)
+        : this()
+    {
+        _githubIssuePluginDependabotVulnerabilities = githubIssuePluginDependabotVulnerabilities;
+    }
+
     public Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags)
     {
         throw new NotImplementedException();
@@ -40,7 +49,14 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
 
     public Task<IEnumerable<GithubIssuePluginDependabotVulnerability>> FetchGithubSecurityDependabotAlerts(string repoUrl)
     {
-        throw new NotImplementedException();
+        _reposScanned.Add(repoUrl);
+
+        if (_githubIssuePluginDependabotVulnerabilities == null)
+        {
+            return Task.FromResult(Enumerable.Empty<GithubIssuePluginDependabotVulnerability>());
+        }
+
+        return Task.FromResult(_githubIssuePluginDependabotVulnerabilities.AsEnumerable());
     }
 
     public Task<IEnumerable<string>> GetUserOrganizations(string username)
@@ -56,5 +72,10 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     public Task<IssueComment> UpdateGithubIssueComment(string repoUrl, long id, string newCommentBody)
     {
         throw new NotImplementedException();
+    }
+
+    public List<string> GetReposScanned()
+    {
+        return _reposScanned;
     }
 }

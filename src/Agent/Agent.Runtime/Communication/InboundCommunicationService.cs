@@ -13,6 +13,7 @@ using Agent.Plugins.Definitions;
 using Agent.Core.Helpers;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Plugins;
+using Agent.Runtime.SubAgents.CVEAgent;
 
 namespace Agent.Runtime.Communication;
 
@@ -27,6 +28,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     private readonly ThreadService _threadService;
     private readonly IChatClient _chatClient;
     private readonly IGraphDBPlugin _graphDbPlugin;
+    private readonly IGithubIssuePlugin _githubIssuePlugin;
 
     private readonly IPostToTeamsPlugin _teamsPlugin;
 
@@ -40,7 +42,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         IPostToTeamsPlugin teamsPlugin,
         ILogger<InboundCommunicationService> logger,
         IChatClient chatClient,
-        IGraphDBPlugin graphDBPlugin)
+        IGraphDBPlugin graphDBPlugin,
+        IGithubIssuePlugin githubIssuePlugin)
     {
         _metaAgent = metaAgent;
         _durableTaskClient = durableTaskClient;
@@ -52,6 +55,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _logger = logger;
         _chatClient = chatClient;
         _graphDbPlugin = graphDBPlugin;
+        _githubIssuePlugin = githubIssuePlugin;
     }
 
     public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
@@ -140,6 +144,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     var sourceCodeAgent = new SourceCodeAgent(_chatClient, _graphDbPlugin);
                     sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
                     (agentResponse, isComplete) = await sourceCodeAgent.DoWork(message.Message);
+                }
+                else if (threadContext.AgentTypeEnum == AgentTypeEnum.CVEAgent)
+                {
+                    var cveAgentV2 = new CVEAgent(_chatClient, _graphDbPlugin, _githubIssuePlugin);
+                    cveAgentV2.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
+                    (agentResponse, isComplete) = await cveAgentV2.DoWork(message.Message);
                 }
                 else
                 {

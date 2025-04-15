@@ -95,6 +95,13 @@ namespace Agent.Plugins
             return await _plugin.GetContainerAppsWithNodesWithoutSourceCodeNodesAsync();
         }
 
+        [KernelFunction("UpdateRepoNodeWithLastScanTime")]
+        [Description("Updates the source code node's lastScanTime property with the updated scan time.")]
+        public async Task UpdateRepoNodeWithLastScanTime(string repoUrl)
+        {
+            await _plugin.UpdateRepoNodeWithLastScanTime(repoUrl);
+        }
+
         [KernelFunction("GetGeneralHealth")]
         [Description("Retrieves dashboard metrics for a specific Azure resource and generates an AI-powered health summary. " +
             "This function is useful when you need to: 1) Get a quick health assessment of a resource/general health of the resource for questions like how i my resource doing?, " +

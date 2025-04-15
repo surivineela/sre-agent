@@ -5,10 +5,11 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Grpc.Core;
-using Microsoft.DurableTask.Client;
+using Agent.Plugins;
+using Agent.Runtime.Communication;
+using Agent.Runtime.SubAgents.SourceCodeAgent;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
@@ -16,47 +17,61 @@ namespace Agent.Runtime.SubAgents.CVEAgent
     public class CVEScanner
     {
         private readonly ILogger<CVEScanner> _logger;
-        private readonly DurableTaskClient _durableTaskClient;
-        private readonly IThreadRepository _threadRepository;
-        private readonly CVEAgentFactory _cveAgentFactory;
         private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
         private readonly IGraphDatabaseClient _graphDatabaseClient;
+        private readonly IChatClient _chatClient;
+        private readonly IGraphDBPlugin _graphDbPlugin;
+        private readonly IGithubIssuePlugin _githubIssuePlugin;
+        private readonly SinkService _sinkService;
+        private readonly IThreadRepository _threadRepository;
 
         public CVEScanner(
-            DurableTaskClient durableTaskClient,
-            IThreadRepository threadRepository,
-            CVEAgentFactory cveAgentFactor,
             ILogger<CVEScanner> logger,
             IAgentInboundCommunicationService agentInboundCommunicationService,
-            IGraphDatabaseClient graphDatabaseClient)
+            IGraphDatabaseClient graphDatabaseClient,
+            IChatClient chatClient,
+            IGraphDBPlugin graphDBPlugin,
+            IGithubIssuePlugin githubIssuePlugin,
+            SinkService sinkService,
+            IThreadRepository threadRepository)
         {
             _logger = logger;
-            _durableTaskClient = durableTaskClient;
-            _threadRepository = threadRepository;
-            _cveAgentFactory = cveAgentFactor;
             _agentInboundCommunicationService = agentInboundCommunicationService;
             _graphDatabaseClient = graphDatabaseClient;
+            _chatClient = chatClient;
+            _graphDbPlugin = graphDBPlugin;
+            _githubIssuePlugin = githubIssuePlugin;
+            _sinkService = sinkService;
+            _threadRepository = threadRepository;
         }
 
         public async Task Scan(CancellationToken cancellationToken)
         {
-            var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
-            {
-                Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                InstanceIdPrefix = CVEAgentFactory.OrchestrationInstanceIdPrefix
-            }).ToListAsync();
+            var cveAgentThreadContexts = (await _threadRepository.GetThreadContextsAsync())
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVEAgent)
+                ?.ToList();
 
-            if (runningAgents.Count > 0)
+            if (cveAgentThreadContexts != null && cveAgentThreadContexts.Count > 0)
             {
-                _logger.LogInformation("CVE agent already running, skipping the scan.");
+                _logger.LogInformation("CVEAgent thread context already exists. Skipping scan.");
                 return;
             }
 
-            var queryResults = await _graphDatabaseClient.Query(@"
+            var unscannedQueryResults = await _graphDatabaseClient.Query(@"
                 g.V().has('resourceType', 'microsoft.source/repository')
+                .not(has('lastScanTime'))
                 .values('resourceId')");
 
-            var repos = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
+            var expiredScanQueryResults = await _graphDatabaseClient.Query($@"
+                g.V().has('resourceType', 'microsoft.source/repository')
+                .has('lastScanTime', lt('{DateTime.UtcNow.AddDays(-1)}'))
+                .values('resourceId')");
+
+            var repos = unscannedQueryResults
+                .Select(x => (string)x)
+                .OrderBy(resourceId => resourceId.Split("/").Last())
+                .Union(expiredScanQueryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()))
+                .ToList();
 
             if (repos.Count > 0)
             {
@@ -66,32 +81,32 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
 
                     """,
-                    agentTypeEnum: AgentTypeEnum.DurableAgent);
+                    agentTypeEnum: AgentTypeEnum.CVEAgent);
 
+                var cveAgent = new CVEAgent(
+                    _chatClient,
+                    _graphDbPlugin,
+                    _githubIssuePlugin,
+                    reposToScan: repos.Select(r => new RepoUrlStatus(r)).ToList());
+                cveAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
-                var input = new CVEInput()
+                await cveAgent.PrepareAgentForUserInput();
+                var messagesToAddToChatHistory = cveAgent.GetUserVisibleChatHistory();
+                foreach (var messageToAddToChatHistory in cveAgent.ChatHistory)
                 {
-                    ReposToScan = repos.Select(r => new RepoUrlStatus(r)).ToList(),
-                };
-
-                var instanceId = await _cveAgentFactory.StartOrchestration(input, threadContext);
-
-                // work around "bad grpc response 504" error
-                bool completed = false;
-                while (!completed)
-                {
-                    try
+                    if (messageToAddToChatHistory.Role == ChatRole.User)
                     {
-                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
-                        completed = true;
+                        await _sinkService.SinkUserMessageAsync(threadContext, messageToAddToChatHistory.Text);
                     }
-                    catch (RpcException ex)
+                    else if (messageToAddToChatHistory.Role == ChatRole.Assistant)
                     {
-                        _logger.LogError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
-                        await Task.Delay(1000, cancellationToken);
+                        await _sinkService.SinkAgentMessageAsync(threadContext, messageToAddToChatHistory.Text);
+                    }
+                    else
+                    {
+                        await _sinkService.SinkSystemMessageAsync(threadContext, messageToAddToChatHistory.Text);
                     }
                 }
-
             }
         }
     }

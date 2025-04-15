@@ -177,7 +177,6 @@ builder.Host.UseSerilog();
         .AddSingleton<WebAppDownAgentFactory>()
         .AddSingleton<CPUAnalysisAgentFactory>()
         .AddSingleton<SourceCodeScanner>()
-        .AddSingleton<CVEAgentFactory>()
         .AddSingleton<CVEScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<DailyReportScanner>()

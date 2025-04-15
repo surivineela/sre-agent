@@ -13,10 +13,12 @@ namespace Agent.Plugins.Mocks
     {
         private List<string> _containerAppsWithNodesWithoutSourceCodeNodes;
         private Dictionary<string, string> _containerAppsToSourceCodeNodeMapping;
+        private List<string> _reposScanned;
 
         public MockGraphDBPlugin()
         {
             _containerAppsToSourceCodeNodeMapping = new Dictionary<string, string>();
+            _reposScanned = new List<string>();
         }
 
         public MockGraphDBPlugin(List<string> containerAppsWithNodesWithoutSourceCodeNodes)
@@ -116,6 +118,17 @@ namespace Agent.Plugins.Mocks
         public Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
             throw new NotImplementedException();
+        }
+
+        public Task UpdateRepoNodeWithLastScanTime(string repoUrl)
+        {
+            _reposScanned.Add(repoUrl);
+            return Task.CompletedTask;
+        }
+
+        public List<string> GetReposScanned()
+        {
+            return _reposScanned;
         }
     }
 }

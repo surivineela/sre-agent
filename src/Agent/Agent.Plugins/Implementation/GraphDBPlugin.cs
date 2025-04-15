@@ -510,6 +510,34 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             return resources;
         }
 
+        public async Task UpdateRepoNodeWithLastScanTime(string repoUrl)
+        {
+            var queryResults = await GraphDbClient.Query($@"
+                g.V().has('resourceId', '{repoUrl}')
+                .values('id', 'label', 'resourceId', 'subscriptionId', 'resourceGroupName', 'resourceName', 'updateTs', 'resourceType')");
+            var propertiesArray = queryResults.ToList();
+            var id = (string)propertiesArray[0];
+            var label = (string)propertiesArray[1];
+            var resourceId = (string)propertiesArray[2];
+            var subscriptionId = (string)propertiesArray[3];
+            var resourceGroupName = (string)propertiesArray[4];
+            var resourceName = (string)propertiesArray[5];
+            var updateTs = (long)propertiesArray[6];
+            var resourceType = (string)propertiesArray[7];
+
+            var properties = new Dictionary<string, object>
+            {
+                { "resourceId", repoUrl },
+                { "subscriptionId", subscriptionId},
+                { "resourceGroupName", resourceGroupName },
+                { "resourceName", resourceName },
+                { "updateTs", updateTs },
+                { "lastScanTime", DateTime.UtcNow }
+            };
+
+            await GraphDbClient.AddOrUpdateNodeAsync(label, id, resourceType, properties);
+        }
+
         public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
         {
             var query = $@"
