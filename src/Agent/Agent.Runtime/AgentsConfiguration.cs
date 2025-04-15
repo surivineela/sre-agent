@@ -14,6 +14,7 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.AzureOpenAI;
 using Agent.Plugins.Definitions;
+using Agent.Core.Interfaces;
 
 namespace Agent.Runtime
 {
@@ -26,11 +27,25 @@ namespace Agent.Runtime
                 {
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
 
-                    return (IChatCompletionService)new AzureOpenAIChatCompletionService(
-                        deploymentName: openAISettings.LLMDeploymentName,
-                        endpoint: openAISettings.Endpoint,
-                        apiKey: openAISettings.ApiKey
-                    );
+                    // TODO: remove api key after CP is deployed
+                    if (!string.IsNullOrEmpty(openAISettings.ApiKey))
+                    {
+                        return (IChatCompletionService)new AzureOpenAIChatCompletionService(
+                            deploymentName: openAISettings.LLMDeploymentName,
+                            endpoint: openAISettings.Endpoint,
+                            apiKey: openAISettings.ApiKey
+                        );
+                    }
+                    else
+                    {
+                        var authService = sp.GetRequiredService<IAuthenticationService>();
+                        var cred = authService.GetAzureOpenAICredential();
+                        return (IChatCompletionService)new AzureOpenAIChatCompletionService(
+                            deploymentName: openAISettings.LLMDeploymentName,
+                            endpoint: openAISettings.Endpoint,
+                            cred
+                        );
+                    }
                 }));
         }
 
@@ -41,10 +56,23 @@ namespace Agent.Runtime
                 {
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
 
-                    return new AzureOpenAIClient(
-                        endpoint: new Uri(openAISettings.Endpoint),
-                        credential: new System.ClientModel.ApiKeyCredential(openAISettings.ApiKey)
-                    );
+                    // TODO: remove api key after CP is deployed
+                    if (!string.IsNullOrEmpty(openAISettings.ApiKey))
+                    {
+                        return new AzureOpenAIClient(
+                            endpoint: new Uri(openAISettings.Endpoint),
+                            credential: new System.ClientModel.ApiKeyCredential(openAISettings.ApiKey)
+                        );
+                    }
+                    else
+                    {
+                        var authService = sp.GetRequiredService<IAuthenticationService>();
+                        var cred = authService.GetAzureOpenAICredential();
+                        return new AzureOpenAIClient(
+                            endpoint: new Uri(openAISettings.Endpoint),
+                            credential: cred
+                        );
+                    }
                 }));
         }
 

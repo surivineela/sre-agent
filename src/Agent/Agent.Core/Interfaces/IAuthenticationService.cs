@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -38,4 +38,10 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetAzureMonitorWorkspaceCredential();
+
+    /// <summary>
+    /// Get the credential to access the azure open ai service
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetAzureOpenAICredential();
 }

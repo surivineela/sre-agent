@@ -111,4 +111,14 @@ public class AuthenticationService : IAuthenticationService
 
         return GetManagedIdentityCredential(_dashboardSettings.Identity);
     }
+
+    public TokenCredential GetAzureOpenAICredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
 }

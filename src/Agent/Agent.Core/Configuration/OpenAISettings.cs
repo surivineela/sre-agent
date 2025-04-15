@@ -14,7 +14,6 @@ namespace Agent.Core.Configuration
         [Required]
         public string Endpoint { get; set; } = String.Empty;
 
-        [Required]
         public string ApiKey { get; set; } = String.Empty;
 
         [Required]
