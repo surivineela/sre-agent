@@ -33,7 +33,7 @@ public class AgentReasoningActivity : TaskActivity<GetNextActionInput, AgentReas
 
         var chatOptions = new ChatOptions
         {
-            Tools = _toolsRepository.GetAllTools(input.ToolSignatures).Select<string, AITool>(sig => _toolsRepository.FindAiFunction(sig).ToolFunction).ToList(),
+            Tools = _toolsRepository.ResolveTools(input.ToolSignatures),
             ToolMode = ChatToolMode.RequireAny,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {

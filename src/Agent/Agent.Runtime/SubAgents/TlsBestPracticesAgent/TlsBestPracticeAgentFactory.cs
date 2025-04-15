@@ -11,49 +11,30 @@ using System.Text.Json;
 using Agent.Core;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents.TlsBestPractices;
+
 
 // [Export]
 public sealed class TlsBestPracticeAgentFactory
 {
-    private readonly IReadOnlyList<string> _toolSignatures;
+    private readonly AgentToolsRegistry _toolsRegistry = new AgentToolsRegistry();
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(TlsBestPracticesAgent);
 
     public TlsBestPracticeAgentFactory(
-        IMetricsPlugin metricsPlugin,
-        IArmPlugin armPlugin,
-        IApprovalPlugin approvalPlugin,
-        IRecordActionsPlugin recordActionsPlugin,
-        ToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
-        var toolSignatures = new List<string>();
-        var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        _toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
+        _toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
+        _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
+        _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
+        _toolsRegistry.RegisterPlugin<ApprovalPluginDefinition>();
 
-        var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.SetMinimumTlsVersion));
-        // toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetTlsSettings));
-
-        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
-
-        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
-
-        _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
         _mappingManager = mappingManager;
     }
@@ -70,7 +51,7 @@ public sealed class TlsBestPracticeAgentFactory
         await _durableTaskClient.ScheduleNewTlsBestPracticesAgentInstanceAsync(
             new TlsBestPracticesAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures,
+                ToolSignatures: _toolsRegistry.ToolSignatures,
                 Context: context),
             new StartOrchestrationOptions(InstanceId: instanceId));
 

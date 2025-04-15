@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -10,6 +10,7 @@ using Agent.Plugins.Definitions;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Runtime.SubAgents;
 
@@ -18,203 +19,126 @@ public sealed class ToolsRepository : IMcpConnectable
 {
     private readonly Dictionary<string, IToolFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
+    private IServiceProvider _serviceProvider;
 
     /// <summary>
     /// Returns a chat message for each connected server with instructions on how to use the tools being exposed.
     /// </summary>
     public IEnumerable<ChatMessage> MCPServerInstructions => _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
 
-    public ToolsRepository(
-        IMetricsPlugin metricsPlugin,
-        IArmPlugin armPlugin,
-        IApprovalPlugin approvalPlugin,
-        ITimePlugin timePlugin,
-        IChartPlugin chartPlugin,
-        IMIConfigurationCheckPlugin miMigrationPlugin,
-        IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
-        IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
-        IRemediationPlugin remediationPlugin,
-        IRecordActionsPlugin recordActionsPlugin,
-        IGraphDBPlugin graphDBPlugin,
-        IReliabilityPlugin reliabilityPlugin,
-        IGrafanaPlugin grafanaPlugin,
-        IContainerAppPlugin containerAppPlugin,
-        IKubePlugin kubernetesAgentPlugin,
-        IGithubIssuePlugin githubIssuePlugin,
-        IAzureSupportCenterPlugin azureSupportCenterPlugin,
-        IContainerImagePullFailurePlugin containerImagePullFailurePlugin)
+    public ToolsRepository(IServiceProvider sp)
     {
-        var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        Register200(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync);
-        Register200(() => metricsPluginDefinition.GetWebAppCpuMetrics);
-        Register202(
-            submitFunctionSelector: () => metricsPluginDefinition.StartGetWebAppCpuMetrics,
-            executeFunctionSelector: () => metricsPluginDefinition.GetWebAppCpuMetrics);
-        Register200(() => metricsPluginDefinition.GetMemoryMetrics);
-        Register202(
-            submitFunctionSelector: () => metricsPluginDefinition.StartGetMemoryMetrics,
-            executeFunctionSelector: () => metricsPluginDefinition.GetMemoryMetrics);
-        Register200(() => metricsPluginDefinition.GetFunctionAppRequestAvailability);
+        _serviceProvider = sp;
 
-        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        Register200(() => chartPluginDefinition.PlotTimeSeriesDataAsync);
-        Register200(() => chartPluginDefinition.PlotPieChartAsync);
-        Register200(() => chartPluginDefinition.PlotBarChartAsync);
+        RegisterPlugin<MetricsPluginDefinition>();
+        RegisterPlugin<ChartPluginDefinition>();
+        RegisterPlugin<RecordActionsPluginDefinition>();
 
-        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        Register200(() => recordActionsPluginDefinition.RecordAction);
-        Register200(() => recordActionsPluginDefinition.GetActionDetails);
+        // Not all tools were registered, so registering individually
+        Register200<GrafanaPluginDefinition>(x => x.ModifyGrafanaDashboard);
 
-        var grafanaPluginDefinition = new GrafanaPluginDefinition(grafanaPlugin);
-        Register200(() => grafanaPluginDefinition.ModifyGrafanaDashboard);
+        // Not all tools were registered, so registering individually
+        Register200<GraphDBPluginDefinition>(x => x.FindAllNetworkConnectedResources);
+        Register200<GraphDBPluginDefinition>(x => x.GetApplicationComponentsSummary);
+        Register200<GraphDBPluginDefinition>(x => x.VisualizeApplicationComponents);
+        Register200<GraphDBPluginDefinition>(x => x.VisualizeAKSMicroserviceTopology);
+        Register200<GraphDBPluginDefinition>(x => x.DiscoverApplications);
+        Register200<GraphDBPluginDefinition>(x => x.AddSourceCodeNodeToContainerAppNode);
+        Register200<GraphDBPluginDefinition>(x => x.GetContainerAppsWithNodesWithoutSourceCodeNodes);
 
-        var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
-        Register200(() => graphDBPluginDefinition.FindAllNetworkConnectedResources);
-        Register200(() => graphDBPluginDefinition.GetApplicationComponentsSummary);
-        Register200(() => graphDBPluginDefinition.VisualizeApplicationComponents);
-        Register200(() => graphDBPluginDefinition.VisualizeAKSMicroserviceTopology);
-        Register200(() => graphDBPluginDefinition.DiscoverApplications);
-        Register200(() => graphDBPluginDefinition.AddSourceCodeNodeToContainerAppNode);
-        Register200(() => graphDBPluginDefinition.GetContainerAppsWithNodesWithoutSourceCodeNodes);
+        // Not all tools were registered, so registering individually
+        Register200<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
+        Register200<ArmPluginDefinition>(x => x.GetTlsSettings);
+        Register200<ArmPluginDefinition>(x => x.GetArmResourceAsJson);
+        Register200<ArmPluginDefinition>(x => x.PowerOnVirtualMachine);
+        Register200<ArmPluginDefinition>(x => x.GetVirtualMachineBootDiagnostics);
+        Register200<ArmPluginDefinition>(x => x.CheckTcpConnectivity);
 
-        var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        Register200(() => armPluginDefinition.SetMinimumTlsVersion);
-        //Register200(() => armPluginDefinition.RestartWebApp);
-        Register200(() => armPluginDefinition.GetTlsSettings);
-        Register200(() => armPluginDefinition.GetArmResourceAsJson);
-        Register200(() => armPluginDefinition.PowerOnVirtualMachine);
-        Register200(() => armPluginDefinition.GetVirtualMachineBootDiagnostics);
-        Register200(() => armPluginDefinition.CheckTcpConnectivity);
+        RegisterPlugin<TimePluginDefinition>();
+        RegisterPlugin<MIConfigurationCheckPluginDefinition>();
+        RegisterPlugin<GithubWorkflowTriggerPluginDefinition>();
+        RegisterPlugin<RemediationPluginDefinition>();
+        RegisterPlugin<AppIdentityUpdatePluginDefinition>();
+        RegisterPlugin<ControlFlowPluginDefinition>();
+        RegisterPlugin<ApprovalPluginDefinition>();
+        RegisterPlugin<ContainerAppPluginDefinition>();
+        RegisterPlugin<ReliabilityPluginDefinition>();
+        RegisterPlugin<KubePluginDefinition>();
 
-        var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        Register200(() => timePluginDefinition.GetCurrentUtcTime);
-        Register200(() => timePluginDefinition.GetAppTimeZone);
+        // Not all tools were registered, so registering individually
+        Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);
 
-        var miMigrationPluginDefinition = new MIConfigurationCheckPluginDefinition(miMigrationPlugin);
-        Register200(() => miMigrationPluginDefinition.CheckSqlConnectionTypeAsync);
-        Register200(() => miMigrationPluginDefinition.CheckSqlResourceIdForAppAsync);
-
-        var githubWorkflowTriggerPluginDefinition = new GithubWorkflowTriggerPluginDefinition(githubWorkflowTriggerPlugin);
-        Register200(() => githubWorkflowTriggerPluginDefinition.CheckPullRequestMergeStatus);
-        Register200(() => githubWorkflowTriggerPluginDefinition.TriggerWorkflow);
-        Register200(() => githubWorkflowTriggerPluginDefinition.TrackWorkflow);
-
-        var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-        Register200(() => remediationPluginDefinition.ScaleAppServicePlanVertically);
-        Register200(() => remediationPluginDefinition.SuggestNextSku);
-        Register200(() => remediationPluginDefinition.CalculateScalingCost);
-        Register200(() => remediationPluginDefinition.RestartWebApp);
-        Register200(() => remediationPluginDefinition.CollectMemoryDump);
-        Register200(() => remediationPluginDefinition.StorageAccountDisableSharedKeySupport);
-        Register200(() => remediationPluginDefinition.StorageAccountDisablePublicContainers);
-        Register200(() => remediationPluginDefinition.CosmosDbSetLocalAuthSupport);
-
-        var appIdentityUpdatePluginDefinition = new AppIdentityUpdatePluginDefinition(appIdentityUpdatePlugin);
-        Register200(() => appIdentityUpdatePluginDefinition.GetAppManagedIdentityAsync);
-        Register200(() => appIdentityUpdatePluginDefinition.MigrateWebAppConnStr2ManagedIdentityAsync);
-        Register200(() => appIdentityUpdatePluginDefinition.EnableSqlAdEntraAdminAsync);
-
-        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        Register200(() => controlFlowPluginDefinition.Wait);
-        Register200(() => controlFlowPluginDefinition.MarkPlanComplete);
-        Register200(() => controlFlowPluginDefinition.NotifyUser);
-
-        // TODO - should this be a 202 instead of having its own special handling in the orchestration loop?
-        Register200(() => controlFlowPluginDefinition.AskUserForInput);
-
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        Register200(() => approvalPluginDefinition.StartApprovalFlow);
-
-        var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
-        Register200(() => containerAppPluginDefinition.GetContainerAppCpuMetrics);
-        Register200(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics);
-        Register200(() => containerAppPluginDefinition.GetContainerAppRequestMetrics);
-        Register200(() => containerAppPluginDefinition.GetLatestRevisionAsync);
-        Register200(() => containerAppPluginDefinition.GetContainerAppInfoAsync);
-        Register200(() => containerAppPluginDefinition.ListContainerAppsAsync);
-        Register200(() => containerAppPluginDefinition.RestartContainerApp);
-        Register200(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync);
-        Register200(() => containerAppPluginDefinition.RemoveNSGRuleAsync);
-        Register200(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync);
-        Register200(() => containerAppPluginDefinition.ScaleContainerApp);
-
-        var reliabilityPluginDefinition = new ReliabilityPluginDefinition(reliabilityPlugin);
-        Register200(() => reliabilityPluginDefinition.UpdateAutoHeal);
-        Register200(() => reliabilityPluginDefinition.UpdateAlwaysOn);
-        Register200(() => reliabilityPluginDefinition.UpdateHealthCheck);
-        Register200(() => reliabilityPluginDefinition.UpdateHostWorkers);
-        Register200(() => reliabilityPluginDefinition.GetReliabilityStatusForSubscriptions);
-        Register200(() => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus);
-        Register202(
-           submitFunctionSelector: () => reliabilityPluginDefinition.GetAppsToMonitor,
-           executeFunctionSelector: () => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus);
-
-        var kubernetesAgentPluginDefinition = new KubePluginDefinition(kubernetesAgentPlugin);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeNamespacesAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetAKSClusterResourceIdAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubePodsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentSpecStatusAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentEventsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.RolloutRestartDeploymentAsync);
-        Register200(() => kubernetesAgentPluginDefinition.ScaleDeploymentAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubePodEventsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubePodLogsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.ExecCommandInPodAsync);
-        Register200(() => kubernetesAgentPluginDefinition.ListCRDsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.ListCustomResourcesAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetCustomResourceYamlAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetPodYamlAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetPodCpuMetricsForDeploymentAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetPodMemoryMetricsForDeploymentAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetSuccessRateMetricsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetRecentlyUpdatedWorkloadsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeStatefulsetsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeStatefulsetSpecStatusAsync);
-        Register200(() => kubernetesAgentPluginDefinition.GetKubeStatefulSetEventsAsync);
-        Register200(() => kubernetesAgentPluginDefinition.ScaleStatefulSetAsync);
-
-        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
-        Register200(() => githubIssuePluginDefinition.FetchGithubSecurityDependabotAlerts);
-
-        var azureSupportCenterPluginDefinition = new AzureSupportCenterPluginDefinition(azureSupportCenterPlugin);
-        Register200(() => azureSupportCenterPluginDefinition.GetSupportProductsFromArm);
-        Register200(() => azureSupportCenterPluginDefinition.GetSupportProblemClassificationsForProduct);
-        Register200(() => azureSupportCenterPluginDefinition.GetAzureSupportCenterDiagnosticResultsForQuestion);
-
-        var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
-        Register200(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication);
-        Register200(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry);
-        Register200(() => containerImagePullFailurePluginDefinition.CheckImagePulling);
-        Register200(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId);
-        Register200(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource);
-        Register200(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync);
-        Register200(() => containerImagePullFailurePluginDefinition.RollbackToLastWorkingImage);
-        Register200(() => containerImagePullFailurePluginDefinition.UpdateContainerImage);
-        Register200(() => containerImagePullFailurePluginDefinition.RetryImagePull);
+        RegisterPlugin<AzureSupportCenterPluginDefinition>();
+        RegisterPlugin<ContainerImagePullFailurePluginDefinition>();
     }
 
-    public string Register202(
-        Expression<Func<Delegate>> submitFunctionSelector,
-        Expression<Func<Delegate>> executeFunctionSelector)
+    public void RegisterPlugin<T>()
     {
-        var sig = GetSignature(submitFunctionSelector);
-        // This will throw if `sig` already exists, update GetSignature to avoid conflicts
-        _aiFunctions.Add(
-            sig,
-            new ToolFunction202(
-                submitFunction: submitFunctionSelector.Compile().Invoke(),
-                executeFunction: executeFunctionSelector.Compile().Invoke()));
+        var pluginType = typeof(T);
+        var flags = BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly;
+
+        // Get all public methods with Description attribute
+        var methodsToRegister = pluginType.GetMethods(flags)
+            .Where(m => m.GetCustomAttribute<System.ComponentModel.DescriptionAttribute>() != null)
+            .ToList();
+
+        var methods200 = methodsToRegister
+            .Where(m => m.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>() == null)
+            .ToList();
+
+        var methods202 = methodsToRegister
+            .Where(m => m.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>() != null)
+            .ToList();
+
+        foreach(var methodInfo in methods200)
+        {
+            Register200<T>(methodInfo);
+        }
+
+        foreach(var submitMethodInfo in methods202)
+        {
+            var executeMethodName = submitMethodInfo.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>().ExecuteMethodName;
+            var executeMethodInfo = pluginType.GetMethod(executeMethodName, flags);
+            Register202<T>(submitMethodInfo, executeMethodInfo);
+        }
+
+    }
+
+    public string Register202<T>(
+        Expression<Func<T, Delegate>> submitFunctionSelector,
+        Expression<Func<T, Delegate>> executeFunctionSelector)
+    {
+        var submitMethodInfo = AgentToolsRegistry.GetMethodFromExpression(submitFunctionSelector);
+        var executeMethodInfo = AgentToolsRegistry.GetMethodFromExpression(executeFunctionSelector);
+
+        return Register202<T>(submitMethodInfo, executeMethodInfo);
+    }
+
+    public string Register202<T>(MethodInfo submitMethodInfo, MethodInfo executeMethodInfo)
+    {
+        var sig = GetSignature(submitMethodInfo);
+
+        _aiFunctions.Add(sig, new DeferredToolFunction202<T>(_serviceProvider, submitMethodInfo, executeMethodInfo));
         return sig;
     }
 
-    public string Register200(
-        Expression<Func<Delegate>> executeFunctionSelector)
+    public string Register200<T>(Expression<Func<T, Delegate>> executeFunctionSelector)
     {
-        var sig = GetSignature(executeFunctionSelector);
-        // This will throw if `sig` already exists, update GetSignature to avoid conflicts
-        _aiFunctions.Add(sig, new ToolFunction200(executeFunctionSelector.Compile().Invoke()));
+        var methodInfo = AgentToolsRegistry.GetMethodFromExpression(executeFunctionSelector);
+        return Register200<T>(methodInfo);
+    }
+
+    public string Register200<T>(MethodInfo methodInfo)
+    {
+        var sig = GetSignature(methodInfo);
+
+        _aiFunctions.Add(sig, new DeferredToolFunction200<T>(_serviceProvider, methodInfo));
         return sig;
+    }
+
+    public List<AITool> ResolveTools(IReadOnlyList<string> toolSignatures)
+    {
+        return this.GetAllTools(toolSignatures).Select<string, AITool>(sig => this.FindAiFunction(sig).ToolFunction).ToList();
     }
 
     public string GetSignature(
@@ -234,7 +158,7 @@ public sealed class ToolsRepository : IMcpConnectable
 
     public Dictionary<string, IToolFunction> GetAllFunctions() => _aiFunctions;
 
-    private static string GetSignature(MethodInfo method)
+    public static string GetSignature(MethodInfo method)
     {
         if (method.DeclaringType is null
             || method.DeclaringType.FullName is null)

@@ -32,7 +32,7 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
         ExecuteActionInput input)
     {
         var aiFunctions = _toolsRepository.GetAllTools(input.ToolSignatures).Select(_toolsRepository.FindAiFunction);
-        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name) as ToolFunction202;
+        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == input.FunctionCallContent.Name) as IToolFunction202;
 
         if (matchingTool is null)
         {
@@ -41,7 +41,7 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
 
         try
         {
-            var invokeResult = await matchingTool.ExecueFunction.InvokeAsync(input.FunctionCallContent.Arguments);
+            var invokeResult = await matchingTool.ExecuteFunction.InvokeAsync(input.FunctionCallContent.Arguments);
 
             // Success case - return formatted result
             return new ChatMessage(

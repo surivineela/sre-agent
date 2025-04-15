@@ -40,7 +40,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
             // Return successful result
             return new ExecuteActionOutput(
                 ChatMessage: new ChatMessage(ChatRole.Tool, [result]),
-                Is202Submit: matchingTool is ToolFunction202);
+                Is202Submit: matchingTool is IToolFunction202);
         }
         catch (Exception ex)
         {

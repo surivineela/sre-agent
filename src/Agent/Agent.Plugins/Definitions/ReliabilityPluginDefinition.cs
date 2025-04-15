@@ -1,4 +1,5 @@
 using Agent.Core.Helpers;
+using Agent.Plugins.Attributes;
 using Azure.ResourceManager.AppService.Models;
 using Microsoft.DurableTask.Client;
 using Microsoft.SemanticKernel;
@@ -81,6 +82,7 @@ namespace Agent.Plugins.Definitions
             return await _reliabilityPlugin.GetReliabilityStatusForSubscriptions( cancellationToken);
         }
 
+        [Submit202(ExecuteMethodName =nameof(GetReliabilityOrchestrationStatus))]
         [KernelFunction("get_apps_to_monitor")]
         [Description("To find the apps and their metrics relevant to resilience, reliability, and optimization")]
         public async Task<string> GetAppsToMonitor(CancellationToken cancellationToken = default)

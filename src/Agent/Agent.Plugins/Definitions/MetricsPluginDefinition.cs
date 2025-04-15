@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Plugins.Attributes;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
 
@@ -17,6 +18,7 @@ public class MetricsPluginDefinition
         _metricsPlugin = metricsPlugin;
     }
 
+    [Submit202(ExecuteMethodName = nameof(GetWebAppCpuMetrics))]
     [KernelFunction("start_get_webapp_cpu_metrics")]
     [Description("Start a background task to get the average CPU utilization metrics of a specific WebApp instance at per minute granularity" +
         " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% CPU utilization, zero metric value doesn't indicate the app is unhealthy")]
@@ -61,6 +63,7 @@ public class MetricsPluginDefinition
         return await _metricsPlugin.GetMemoryMetrics(resourceId);
     }
 
+    [Submit202(ExecuteMethodName = nameof(GetMemoryMetrics))]
     [KernelFunction("start_get_webapp_and_functionapp_memory_metrics")]
     [Description("Start a background operation to get the average memory utilization metrics of a specific WebApp or FunctionApp instance at per minute granularity" +
         " for the past 30 minutes, WebApp is healthy if over half of the data points is less than 80% memory utilization.")]

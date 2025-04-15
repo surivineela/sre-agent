@@ -2,12 +2,15 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
+using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;
@@ -61,15 +64,19 @@ namespace Agent.Tests.Integration
             new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app5", ResourceId : $"{BaseResourceId}/app5", Location:"eastus" ),
         };
 
-        public TlsBestPracticesAgentTests(CombinedFixture fixture, ITestOutputHelper testOutputHelper)
+        public TlsBestPracticesAgentTests(ITestOutputHelper testOutputHelper)
         {
-            var config = fixture.ConfigFixture;
+            var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings {  EnvironmentName = Environments.Development });
+            var services = builder.Services;
+
+            builder.LoadAppSettings();
+            builder.ValidateAndRegisterAppSettings<AppSettings>();
+            builder.Services.ConfigureAzureOpenAIClient();
+
             _logger = testOutputHelper.ToLogger<ILogger>();
             _timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
 
             var cacheDir = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..\\..\\..", "ChatCompletionCache", nameof(TlsBestPracticesAgentTests)));
-
-            var services = fixture.ConfigFixture.Builder.Services;
 
             services.AddLogging(builder =>
             {
@@ -79,87 +86,69 @@ namespace Agent.Tests.Integration
                     .AddFilter("ModelContextProtocol", LogLevel.Error);
             });
 
-            var openAISettings = config.AzureSettings.OpenAI;
-            var openAIClient = new AzureOpenAIClient(new Uri(openAISettings.Endpoint), new System.ClientModel.ApiKeyCredential(config.AzureSettings.OpenAI.ApiKey));
+            string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+            // var openAISettings = config.AzureSettings.OpenAI;
+
 
             var diskCache = new TestCachingChatClientBuilderExtensions.DiskCache(cacheDir);
 
-            var durableConnectionString = config.AzureSettings.DTS.ConnectionString;
-            if (string.IsNullOrEmpty(durableConnectionString))
-            {
-                durableConnectionString = "Endpoint=http://localhost:14280;TaskHub=default;Authentication=None";
-            }
+            string durableConnectionString = builder.ResolveDtsConnectionString();
 
-            services.AddSingleton(openAIClient);
-
-            services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+            services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
                 .UseAgenticLogging()
                 .UseDistributedCache(diskCache);
 
             // if we want, we can have different chat clients, some with function invocation enabled
-            services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(openAISettings.LLMDeploymentName), ServiceLifetime.Singleton)
+            services.AddKeyedChatClient("function-invocation-enabled", serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
                 .UseAgenticLogging()
                 .UseDistributedCache(diskCache)
                 .UseFunctionInvocation();
 
-            // -- test specific
             _mockApprovalPlugin = new MockApprovalPlugin();
             _mockArmPlugin = new MockArmPlugin(_timeProvider, _mockApprovalPlugin);
             _mockArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
             _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
-            _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);
             _mockTimePlugin = new MockTimePlugin(_timeProvider);
-            _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
-            _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
             _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
-            services.AddSingleton<IContainerImagePullFailurePlugin>(new MockContainerImagePullFailurePlugin());
-            services.AddSingleton<IAzureSupportCenterPlugin>(new MockAzureSupportCenterPlugin());
-            services.AddSingleton<IReliabilityPlugin>(new MockReliabilityPlugin());
-            services.AddSingleton<IGithubIssuePlugin>(new MockGithubIssuePlugin());
-            services.AddSingleton<IKubePlugin>(new MockKubePlugin());
-            services.AddSingleton<IGrafanaPlugin>(new MockGrafanaPlugin());
-            services.AddSingleton<IGraphDBPlugin>(new MockGraphDBPlugin());
-            services.AddSingleton<IContainerAppPlugin>(new MockContainerAppPlugin());
-            services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
             services.AddSingleton<TimeProvider>(_timeProvider);
-            services.AddSingleton<IRemediationPlugin, MockRemediationPlugin>();
             services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
             services.AddSingleton<IRecordActionsPlugin>(_mockRecordActionsPlugin);
             services.AddSingleton<IArmPlugin>(_mockArmPlugin);
             services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
-            services.AddSingleton<IGithubWorkflowTriggerPlugin>(_mockGithubPlugin);
             services.AddSingleton<ITimePlugin>(_mockTimePlugin);
-            services.AddSingleton<IChartPlugin, ChartPlugin>();
-            services.AddSingleton<IMIConfigurationCheckPlugin>(_mockMIConfigurationCheckPlugin);
-            services.AddSingleton<IAppIdentityUpdatePlugin>(_mockAppIdentityUpdatePlugin);
-            services.AddSingleton<ToolsRepository>();
-            services.AddSingleton<McpToolsRepository>();
-            services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
-            services.AddSingleton<MCPMetaAgent>();
-            services.AddSingleton<TlsBestPracticeAgentFactory>();
             services.AddSingleton<IAgentOutboundCommunicationService>(_mockCommunicationService);
 
-            services.AddHostedService<MCPMetaAgentManagementService>();
+            services.AddSingleton<MetricsPluginDefinition>();
+            services.AddSingleton<ArmPluginDefinition>();
+            services.AddSingleton<RecordActionsPluginDefinition>();
+            services.AddSingleton<ControlFlowPluginDefinition>();
+            services.AddSingleton<ApprovalPluginDefinition>();
 
-            services.AddDurableTaskWorker(builder =>
+            services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
+            services.AddSingleton<ToolsRepository>();
+
+            services.AddSingleton<TlsBestPracticeAgentFactory>();
+
+            services.AddDurableTaskWorker(durableBuilder =>
             {
-                builder.AddTasks(r =>
+                durableBuilder.AddTasks(r =>
                 {
                     DurableHelper.AddAllGeneratedTasks(r);
                 });
-                builder.UseDurableTaskScheduler(durableConnectionString);
+
+                durableBuilder.UseDurableTaskScheduler(durableConnectionString);
             });
 
-            services.AddDurableTaskClient(builder =>
+            services.AddDurableTaskClient(durableBuilder =>
             {
-                builder.UseDurableTaskScheduler(durableConnectionString);
+                durableBuilder.UseDurableTaskScheduler(durableConnectionString);
             });
 
             var sp = services.BuildServiceProvider();
 
-            _host = fixture.ConfigFixture.Builder.Build();
+            _host = builder.Build();
 
             _durableTaskClient = sp.GetRequiredService<DurableTaskClient>();
             _agentFactory = sp.GetRequiredService<TlsBestPracticeAgentFactory>();
