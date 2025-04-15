@@ -40,8 +40,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly CancellationTokenSource _pollingCancellationSource = new();
     private bool _isPollingStarted = false;
     private readonly string _appId;
-    // TODO(jianbosun): we should use activity to send out messages immediately instead of polling, set the interval to 1 for now
-    private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(1);
+    // TODO(jianbosun): we should use activity to send out messages immediately instead of polling, set the interval to 5 for now
+    private readonly TimeSpan _pollInterval = TimeSpan.FromSeconds(5);
     // Rate limiting for messages posted per poll cycle
     private const int MAX_MESSAGES_PER_POLL = 50;
 
@@ -434,6 +434,11 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         if (_isPollingStarted)
             return;
 
+        if (string.IsNullOrEmpty(_appId))
+        {
+            _logger.LogWarning("AppId is not configured. Skip start message polling.");
+            return;
+        }
         _isPollingStarted = true;
         _logger.LogInformation("Starting Teams message polling");
 
