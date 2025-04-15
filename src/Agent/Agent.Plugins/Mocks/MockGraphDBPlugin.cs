@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -106,6 +106,11 @@ namespace Agent.Plugins.Mocks
         }
 
         public string GetKnowledgeGraphResourceUsageDashboard()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> VisualizeAKSMicroserviceTopology(string AKSClusterResourceId, string _namespace, string deploymentName, Guid? threadId = null)
         {
             throw new NotImplementedException();
         }

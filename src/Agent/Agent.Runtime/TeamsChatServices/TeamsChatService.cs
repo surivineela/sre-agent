@@ -289,6 +289,11 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             ModifiedTimestamp: DateTime.UtcNow
             ));
 
+        var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.MetaAgent);
+        threadContext.AddMessage(thread.StartMessage);
+        threadContext.OutboundConfiguration = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
+        await _threadRepository.AddThreadContextAsync(threadContext);
+
         // Start the background title generation task (fire and forget)
         _ = TitleHelper.GenerateTitleAndUpdateAsync(_chatClient, _threadRepository, thread.Id, thread.StartMessage.Text);
 
@@ -353,7 +358,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         }
         catch (Exception ex)
         {
-            var errorResponse = ex as ErrorResponseException;
+            var errorResponse = ex as Microsoft.Bot.Schema.ErrorResponseException;
             string errorMessage = "Error while sending streaming activity: " + (errorResponse?.Body?.Error?.Message ?? ex.Message);
             _logger.LogError(ex, errorMessage);
 
@@ -466,8 +471,26 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     {
         // Make a copy of the current mapping to avoid locking issues during enumeration
         var currentMappings = await _conversationThreadMapping.ListActiveConversationsAsync();
+        var threadContexts = await _threadRepository.GetThreadContextsAsync();
 
-        foreach (var mapping in currentMappings)
+        // Create a dictionary of thread IDs to thread contexts for quick lookup
+        var threadContextDict = threadContexts.ToDictionary(tc => tc.ThreadId.ToString(), tc => tc);
+
+        // Filter mappings to only those with Teams outbound enabled
+        var filteredMappings = currentMappings.Where(mapping =>
+        {
+            return threadContextDict.TryGetValue(mapping.ThreadId, out var context) &&
+                   context.OutboundConfiguration?.Teams?.Enabled == true;
+        }).ToList();
+        if (filteredMappings.Count == 0)
+        {
+            _logger.LogDebug("No active Teams outbound mappings found");
+            return;
+        }
+
+        _logger.LogDebug($"Found {filteredMappings.Count} mappings with Teams outbound enabled out of {currentMappings.Count()} total mappings");
+
+        foreach (var mapping in filteredMappings)
         {
             try
             {

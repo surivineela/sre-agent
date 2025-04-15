@@ -5,33 +5,37 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
-public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentStep
+public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : OrchestrationAgentStep
 {
     public FunctionCallContent FunctionCall { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
-        var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAppComponentsStep>();
+        var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAKSMicroserviceTopologyStep>();
         Guid threadId = agent.ThreadContext.ThreadId;
 
         log.LogInformation("[{ThreadId}] Generating Visualization", threadId);
 
         // Extract arguments from the function call
         string resourceId = string.Empty;
+        string _namespace = string.Empty;
+        string deployment = string.Empty;
         int hops = 3; // Default value
 
-        if (FunctionCall.Arguments.TryGetValue("resourceId", out var resourceIdObj) && resourceIdObj != null)
+        if (FunctionCall.Arguments.TryGetValue("AKSClusterResourceId", out var resourceIdObj) && resourceIdObj != null)
         {
             resourceId = resourceIdObj.ToString() ?? string.Empty;
         }
-
-        if (FunctionCall.Arguments.TryGetValue("hops", out var hopsObj) && hopsObj != null)
+        if (FunctionCall.Arguments.TryGetValue("_namespace", out var namespaceObj) && namespaceObj != null)
         {
-            if (int.TryParse(hopsObj.ToString(), out var parsedHops))
-            {
-                hops = parsedHops;
-            }
+            _namespace = namespaceObj.ToString() ?? string.Empty;
         }
+        if (FunctionCall.Arguments.TryGetValue("deploymentName", out var deploymentObj) && deploymentObj != null)
+        {
+            deployment = deploymentObj.ToString() ?? string.Empty;
+        }
+        log.LogInformation("[{ThreadId}] Generating Visualization with AKS {resourceIdObj}, namespace {_namespace}, name: {deployment}", threadId, resourceId, _namespace, deployment);
+
 
         // Create a new args dictionary with the threadId as a Guid
         var argsWithThreadId = new Dictionary<string, object>(FunctionCall.Arguments)

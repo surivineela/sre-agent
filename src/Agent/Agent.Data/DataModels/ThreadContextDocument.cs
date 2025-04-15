@@ -12,7 +12,8 @@ public record ThreadContextDocument(
     string Id,
     string ThreadId,
     int AgentType,
-    List<Message> Messages
+    List<Message> Messages,
+    OutboundConfiguration? OutboundConfiguration = null
 ) : ICosmosDocument
 {
     public string DocumentType => "ThreadContext";
@@ -24,14 +25,16 @@ public record ThreadContextDocument(
             GetId(threadContext.ThreadId.ToString()),
             threadContext.ThreadId.ToString(),
             AgentType: (int)threadContext.AgentTypeEnum,
-            Messages: threadContext.RecentMessages.ToList()
+            Messages: threadContext.RecentMessages.ToList(),
+            OutboundConfiguration: threadContext.OutboundConfiguration
         );
 
     public ThreadContext ToDomainModel() =>
         new ThreadContext(
             Guid.Parse(ThreadId),
             (AgentTypeEnum)AgentType,
-            new Queue<Message>(Messages)
+            new Queue<Message>(Messages),
+            OutboundConfiguration
         );
 
     public static string GetId(string threadId)

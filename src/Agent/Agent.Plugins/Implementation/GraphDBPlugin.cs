@@ -130,6 +130,162 @@ namespace Agent.Plugins
             return ConvertResultToNodes(result);
         }
 
+        public async Task<string> VisualizeAKSMicroserviceTopology(
+            string AKSClusterResourceId,
+            string _namespace,
+            string deploymentName,
+            Guid? threadId = null)
+        {
+            _logger.LogInformation($"[VisualizeAKSMicroserviceTopology] Invoked with resourceId: {AKSClusterResourceId}");
+
+            // Validation that resourceId is not null or empty
+            if (string.IsNullOrWhiteSpace(AKSClusterResourceId))
+            {
+                throw new ArgumentException("Resource ID cannot be null or empty.", nameof(AKSClusterResourceId));
+            }
+            if (string.IsNullOrWhiteSpace(_namespace))
+            {
+                throw new ArgumentException("Namespace cannot be null or empty.", nameof(_namespace));
+            }
+            if (string.IsNullOrWhiteSpace(deploymentName))
+            {
+                throw new ArgumentException("Deployment name cannot be null or empty.", nameof(deploymentName));
+            }
+
+            try
+            {
+                // ResourceIdentifier will parse and validate the resource ID format
+                var resourceIdentifier = new ResourceIdentifier(AKSClusterResourceId);
+            }
+            catch (Exception ex)
+            {
+                throw new ArgumentException(
+                    $"Invalid Azure resource ID format: {ex.Message}",
+                    nameof(AKSClusterResourceId));
+            }
+
+            // Ensure threadId is not null
+            if (threadId == null)
+            {
+                if (Context != null)
+                {
+                    threadId = Context.ThreadId;
+                }
+                else
+                {
+                    _logger.LogWarning("[VisualizeAKSMicroserviceTopology] ThreadId is null. Cannot append image to message.");
+                    return "Error: ThreadId is null. Cannot generate visualization without a valid thread ID.";
+                }
+            }
+
+            int maxRetries = 3;
+            int retryDelayMilliseconds = 1000; // 1 second
+
+            for (int attempt = 1; attempt <= maxRetries; attempt++)
+            {
+                try
+                {
+                    var result = await GetAKSMicroserviceTopologyRaw(AKSClusterResourceId, _namespace, deploymentName);
+                    if (result.Count == 0)
+                    {
+                        _logger.LogWarning($"No components found to visualize, cluster {AKSClusterResourceId}, namespace {_namespace}, deployment {deploymentName}");
+                        return "Error: No components found to visualize";
+                    }
+
+                    // First, deserialize the result to a more strongly-typed structure we can work with
+                    string tempJson = JsonSerializer.Serialize(result);
+                    var typedResult = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(tempJson);
+
+                    // Filter out pods and services from each item
+                    foreach (var item in typedResult)
+                    {
+                        if (item.ContainsKey("objects"))
+                        {
+                            // Get the objects array
+                            var objectsJson = JsonSerializer.Serialize(item["objects"]);
+                            var objects = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(objectsJson);
+
+                            // Filter the objects
+                            var filteredObjects = objects.Where(obj =>
+                            {
+                                if (obj.ContainsKey("resourceType"))
+                                {
+                                    var resourceTypeJson = JsonSerializer.Serialize(obj["resourceType"]);
+                                    var resourceTypes = JsonSerializer.Deserialize<List<string>>(resourceTypeJson);
+
+                                    // Check if the first resource type ends with /services or /pods
+                                    if (resourceTypes.Count > 0)
+                                    {
+                                        string resourceType = resourceTypes[0];
+                                        return !resourceType.EndsWith("/services") && !resourceType.EndsWith("/pods");
+                                    }
+                                }
+                                return true; // Keep objects without resourceType
+                            }).ToList();
+
+                            // Replace the objects array with the filtered one
+                            item["objects"] = filteredObjects;
+                        }
+                    }
+
+                    // TODO: read threadcontext from cosmos db if Context is null
+                    var ctx = Context ?? new ThreadContext(threadId ?? Guid.Empty, Core.Helpers.AgentTypeEnum.MetaAgent);
+
+                    var jsonResult = JsonSerializer.Serialize(typedResult, new JsonSerializerOptions { WriteIndented = true });
+                    var prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, convert it to brief text to show the relationships between microservices (the dependency true).
+                    Each JSON object in the data represents services that work together. 
+                    Start the introduction by saying: Here's the relationship of the microservices topology starting from component {deploymentName}:
+                    Then show the relationship in the following format, add Type in () behind the component name, ignore when type is Deployment, e.g:
+                    * a -> [b, c]
+                    * b -> d (type)
+                    * c -> [d (type), e]
+                    End the brief summary by saying: Following is the diagram showing a virtualized relationship.
+                    Strict Requirements:
+                    * Please ensure all components are listed in the description instead of omit by saying details in diagram.
+                    Input JSON:
+                    {jsonResult}";
+                    // This response will be returned as function output and being added to chat history via generic agent reasoning loop.
+                    var responseText = await ChatClient.GetResponseAsync(prompt);
+                    _logger.LogInformation($"Relationships generated successfully: {responseText.Text}");
+
+                    prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, create a Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram. 
+Strict Requirements:
+* Please ensure that each unique dependency is listed only once.
+* Use deployment/statefulset name as the node identifier.
+* Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.
+
+Input JSON:
+{jsonResult}";
+                    var response = await ChatClient.GetResponseAsync(prompt);
+                    var mermaidSpec = response.Text;
+                    _logger.LogInformation("Generated Mermaid specification successfully");
+
+                    var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
+                    _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ctx, $"![Microservice Topology](data:image/png;base64,{base64EncodedGraph})\r\n");
+
+
+                    return responseText.Text;
+                }
+                catch (Exception ex)
+                {
+                    if (attempt < maxRetries)
+                    {
+                        _logger.LogWarning($"[VisualizeAKSMicroserviceTopology] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
+                        await Task.Delay(retryDelayMilliseconds);
+                    }
+                    else
+                    {
+                        _logger.LogError($"[VisualizeAKSMicroserviceTopology] All {maxRetries} attempts to render the image failed. Last error: {ex.Message}");
+                        throw;
+                    }
+                }
+            }
+
+            return "Error: Unexpected execution path in visualization process";
+
+        }
+
         public async Task<string> VisualizeApplicationComponents(
             string resourceId,
             int hops = 3,
@@ -280,6 +436,32 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
             {
                 _logger.LogError(ex, "Exception occurred while calling Mermaid rendering service");
                 return $"Error generating visualization: {ex.Message}";
+            }
+        }
+
+        // TODO: Consider refactoring this method to use a more generic approach for querying the graph database, for now it's only support Deployment, we need to support StatefulSet as well.
+        private async Task<ResultSet<dynamic>> GetAKSMicroserviceTopologyRaw(string resourceId, string namespaceName, string deploymentName)
+        {
+            try
+            {
+                string formattedResourceId = resourceId.ToLower().Replace("/", "_");
+
+                // Query with specific deployment as starting point
+                string deploymentResourceId = $"{formattedResourceId}_apps_v1_namespaces_{namespaceName}_deployments_{deploymentName}";
+
+                string query = $@"
+g.V().has('id', '{deploymentResourceId}')
+.repeat(out('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
+.emit()
+.path().by(valueMap('name', 'resourceType'))";
+
+                _logger.LogInformation($"Executing AKS microservice topology query for resource: {resourceId}, namespace: {namespaceName}, deployment: {deploymentName ?? "all"}");
+                return await GraphDbClient.Query(query);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing AKS microservice topology Gremlin query");
+                throw;
             }
         }
 
@@ -1315,10 +1497,10 @@ Please provide a highly concise summary with sections for each of the above poin
                 var prompt = $"Please analyze the dashboard screenshot for the dashboard at {dashboardUrl}. " +
                              $"Based on the visual data, provide a concise summary of the resource's health and any notable observations.";
 
-               _logger.LogInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
-               messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, prompt));
-               var screenshot = Convert.FromBase64String(base64Screenshot);
-               var content = new List<AIContent>
+                _logger.LogInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
+                messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, prompt));
+                var screenshot = Convert.FromBase64String(base64Screenshot);
+                var content = new List<AIContent>
                     {
                         new Microsoft.Extensions.AI.TextContent($"This is a screenshot of the dashboard: {dashboardUrl}"),
                         new DataContent(screenshot, "image/png")

@@ -63,9 +63,28 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
         Guid threadId = agent.ThreadContext.ThreadId;
 
         log.LogInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, FunctionCall.ToString());
+
+        // For any other function call, check if there're arguments match with key in threadContext.Properties
+        // if so, use the value from threadContext.Properties to set the arguments to avoid LLM hallucinations
+        var args = new Dictionary<string, object>(FunctionCall.Arguments);
+        foreach (var kvp in agent.ThreadContext.Properties)
+        {
+            if (args.ContainsKey(kvp.Key))
+            {
+                args[kvp.Key] = kvp.Value;
+            }
+        }
+        // Create a new function call with the updated arguments
+        var updatedFunctionCall = new FunctionCallContent(
+            FunctionCall.CallId,
+            FunctionCall.Name,
+            args
+        );
+
+
         // For any other function call, defer to the derived implementation
         var execInput = new ExecuteActionInput(
-            FunctionCallContent: FunctionCall,
+            FunctionCallContent: updatedFunctionCall,
             ToolSignatures: agent.ToolSignatures);
         var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);
         agent.ChatHistory.Add(executionResult.ChatMessage);

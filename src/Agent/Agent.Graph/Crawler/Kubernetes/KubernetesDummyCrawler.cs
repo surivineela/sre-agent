@@ -4,9 +4,6 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
-using Azure.Core;
-using k8s;
-using k8s.Models;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 

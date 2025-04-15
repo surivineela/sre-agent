@@ -43,21 +43,30 @@ public sealed class KubernetesAgentFactory
         var kubePluginDefinition = new KubePluginDefinition(kubePlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeDeploymentsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeNamespacesAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetAKSClusterResourceIdAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubePodsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeDeploymentSpecStatusAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeDeploymentEventsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.RolloutRestartDeploymentAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ScaleDeploymentAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubePodEventsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubePodLogsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ExecCommandInPodAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ListKubePodResourceUsageByNamespaceAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ListCRDsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ListCustomResourcesAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetCustomResourceYamlAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodYamlAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodCpuMetricsForDeploymentAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodMemoryMetricsForDeploymentAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetSuccessRateMetricsAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetRecentlyUpdatedWorkloadsAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulsetsAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulsetSpecStatusAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulSetEventsAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ScaleStatefulSetAsync));
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
+        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.VisualizeAKSMicroserviceTopology));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
@@ -86,7 +95,7 @@ public sealed class KubernetesAgentFactory
         string input,
         ThreadContext context)
     {
-        var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+        var instanceId = $"{OrchestrationInstanceIdPrefix}-{context.ThreadId}-{DateTime.Now:yyyyMMdd-HHmmss}";
 
         var threadId = context.ThreadId.ToString();
 

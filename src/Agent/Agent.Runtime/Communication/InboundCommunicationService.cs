@@ -59,8 +59,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     }
 
     public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
-        string title, 
-        string message, 
+        string title,
+        string message,
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Agent)
     {
@@ -68,12 +68,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
-        string title, 
-        string message, 
+        string title,
+        string message,
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Alert)
     {
-        (var thread, var threadContext) = await CreateThread(title, message, source, agentTypeEnum);
+        var outboundConfig = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
+        (var thread, var threadContext) = await CreateThread(title, message, source, agentTypeEnum, outboundConfig);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -156,9 +157,9 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     // Process the message with MetaAgent
                     agentResponse = await _metaAgent.ProcessUserMessage(threadContext);
                 }
-                
+
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(threadContext, agentResponse);
-                
+
                 if (isComplete)
                 {
                     await _repository.DeleteThreadContextAsync(threadContext.ThreadId);
@@ -215,10 +216,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
     }
 
     private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(
-        string title, 
-        string message, 
-        ThreadSource source, 
-        AgentTypeEnum agentTypeEnum)
+        string title,
+        string message,
+        ThreadSource source,
+        AgentTypeEnum agentTypeEnum,
+        OutboundConfiguration? outboundConfiguration = null)
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -229,7 +231,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             false,
             new Posted(false)
         );
-        
+
         var thread = new Core.Models.Api.v1.Thread(
             Id: Guid.NewGuid(),
             Title: title,
@@ -244,7 +246,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateThreadAsync(thread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
 
-        var threadContext = new ThreadContext(thread.Id, agentTypeEnum: agentTypeEnum);
+        var threadContext = new ThreadContext(thread.Id, agentTypeEnum: agentTypeEnum, outboundConfiguration: outboundConfiguration);
         threadContext.AddMessage(thread.StartMessage);
         await _repository.AddThreadContextAsync(threadContext);
 

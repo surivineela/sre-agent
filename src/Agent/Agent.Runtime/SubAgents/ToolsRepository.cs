@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -72,6 +72,7 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200(() => graphDBPluginDefinition.FindAllNetworkConnectedResources);
         Register200(() => graphDBPluginDefinition.GetApplicationComponentsSummary);
         Register200(() => graphDBPluginDefinition.VisualizeApplicationComponents);
+        Register200(() => graphDBPluginDefinition.VisualizeAKSMicroserviceTopology);
         Register200(() => graphDBPluginDefinition.DiscoverApplications);
         Register200(() => graphDBPluginDefinition.AddSourceCodeNodeToContainerAppNode);
         Register200(() => graphDBPluginDefinition.GetContainerAppsWithNodesWithoutSourceCodeNodes);
@@ -151,18 +152,27 @@ public sealed class ToolsRepository : IMcpConnectable
         var kubernetesAgentPluginDefinition = new KubePluginDefinition(kubernetesAgentPlugin);
         Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentsAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubeNamespacesAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetAKSClusterResourceIdAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubePodsAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentSpecStatusAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubeDeploymentEventsAsync);
         Register200(() => kubernetesAgentPluginDefinition.RolloutRestartDeploymentAsync);
+        Register200(() => kubernetesAgentPluginDefinition.ScaleDeploymentAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubePodEventsAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetKubePodLogsAsync);
         Register200(() => kubernetesAgentPluginDefinition.ExecCommandInPodAsync);
-        Register200(() => kubernetesAgentPluginDefinition.ListKubePodResourceUsageByNamespaceAsync);
         Register200(() => kubernetesAgentPluginDefinition.ListCRDsAsync);
         Register200(() => kubernetesAgentPluginDefinition.ListCustomResourcesAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetCustomResourceYamlAsync);
         Register200(() => kubernetesAgentPluginDefinition.GetPodYamlAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetPodCpuMetricsForDeploymentAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetPodMemoryMetricsForDeploymentAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetSuccessRateMetricsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetRecentlyUpdatedWorkloadsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeStatefulsetsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeStatefulsetSpecStatusAsync);
+        Register200(() => kubernetesAgentPluginDefinition.GetKubeStatefulSetEventsAsync);
+        Register200(() => kubernetesAgentPluginDefinition.ScaleStatefulSetAsync);
 
         var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
         Register200(() => githubIssuePluginDefinition.FetchGithubSecurityDependabotAlerts);

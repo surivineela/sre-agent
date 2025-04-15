@@ -7,6 +7,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
+using System.Text;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -21,22 +22,97 @@ namespace Agent.Web.Controllers.v1
     {
 
         /// <summary>
-        /// Handles Grafana alert webhook notifications via POST
+        /// Handles Grafana alert webhook notifications via POST or PUT
         /// </summary>
-        /// <param name="request">Grafana alert webhook payload</param>
+        /// <param name="request">Grafana alert webhook payload (can be null)</param>
         /// <returns>Action result</returns>
         [HttpPost]
-        public async Task<IActionResult> GrafanaAlert([FromBody] GrafanaAlertWebhookRequest request)
+        [HttpPut]
+        public async Task<IActionResult> GrafanaAlert([FromBody] GrafanaAlertWebhookRequest? request)
         {
+            // Create a default request if none provided
+            request ??= new GrafanaAlertWebhookRequest
+            {
+                Title = "Unknown Alert",
+                Message = "Empty alert payload received",
+                Alerts = new List<Alert>()
+            };
+            if (request.Alerts == null || request.Alerts.Count == 0)
+            {
+                logger.LogWarning("Received Grafana alert webhook with no alerts");
+                return BadRequest("No alerts found in the request");
+            }
+
             // Process the webhook notification
             try
             {
                 var (threadId, existing) = await MergeSimilarAlerts(request);
-                var alerts = JsonSerializer.Serialize(request.Alerts);
+                var alertInfoBuilder = new StringBuilder();
+                alertInfoBuilder.AppendLine($"# Title: {request.Title}\n\n");
+                if (!string.IsNullOrWhiteSpace(request.Message))
+                {
+                    alertInfoBuilder.AppendLine($"* Message: {request.Message}\n\n");
+                }
+                alertInfoBuilder.AppendLine($"* Status: {request.Status} - State: {request.State}\n\n");
+
+                for (int i = 0; i < request.Alerts.Count; i++)
+                {
+                    var alert = request.Alerts[i];
+                    string alertName;
+                    alert.Labels.TryGetValue("alertname", out alertName);
+                    if (string.IsNullOrEmpty(alertName))
+                    {
+                        alertName = $"Alert {i + 1}";
+                    }
+
+                    alertInfoBuilder.AppendLine($"### {alertName}: `{alert.Status}`\n");
+
+
+                    // Add key annotations
+                    if (alert.Annotations.Count > 0)
+                    {
+                        var priorityAnnotations = new[] { "summary", "description" };
+                        foreach (var key in priorityAnnotations)
+                        {
+                            if (alert.Annotations.TryGetValue(key, out var value))
+                            {
+                                if (key == "summary")
+                                {
+                                    value.Split('|').ToList().ForEach(x =>
+                                    {
+                                        var parts = x.Split(new[] { '=' }, 2);
+                                        if (parts.Length == 2)
+                                        {
+                                            alertInfoBuilder.AppendLine($"- **{parts[0]}:** {parts[1]}\n");
+                                        }
+                                        else
+                                        {
+                                            alertInfoBuilder.AppendLine($"- **{key}:** {x}\n");
+                                        }
+                                    });
+                                }
+                            }
+                        }
+                    }
+
+                    alertInfoBuilder.AppendLine($"**Started at:** {alert.StartsAt}");
+
+                    // Add separator between alerts
+                    if (i < request.Alerts.Count - 1)
+                    {
+                        alertInfoBuilder.AppendLine("\n---\n");
+                    }
+                }
+
+                var alertInfo = alertInfoBuilder.ToString();
                 if (existing)
                 {
                     // Process the message in the background for existing thread
-                    string message = $"I have received a similar alert with title {request.Title}, message {request.Message}, alerts: {alerts}, please analyze them together.";
+                    string message = $"Received a similar alert: {alertInfo}, please delegate to Kubernetes Agent to analyze them together.";
+                    if (string.Equals(request.Status, "resolved", StringComparison.OrdinalIgnoreCase))
+                    {
+                        message = $"Got alert resolved message: {alertInfo}, please keep monitoring the system to make sure all components are healthy.";
+                    }
                     ProcessAlertInBackground(threadId, message);
 
                     // If we have an existing thread, just return the thread ID
@@ -44,10 +120,10 @@ namespace Agent.Web.Controllers.v1
                 }
 
                 // Create the thread and post to Teams - wait for this to complete
-                var thread = await inboundCommunicationService.CreateAlertThreadWithTeams(request.Title, $"Alert general message: {request.Message}, alerts in json: {alerts}", Core.Helpers.AgentTypeEnum.MetaAgent);
+                var thread = await inboundCommunicationService.CreateAlertThreadWithTeams(request.Title, alertInfo, Core.Helpers.AgentTypeEnum.MetaAgent);
 
                 // Process the message in the background for new thread
-                string newAlertMessage = "I have received an alert, please analyze it and give me the suggestion for actions to quickly mitigate the alerts.";
+                string newAlertMessage = "I have received an alert, please delegate to Kubernetes Agent to diagnose and give me the suggestion for actions to quickly mitigate the alerts.";
                 ProcessAlertInBackground(thread.Id, newAlertMessage);
 
                 // Return immediately after thread creation and Teams notification
@@ -138,6 +214,7 @@ namespace Agent.Web.Controllers.v1
         public string SilenceURL { get; set; } = string.Empty;
         public string DashboardURL { get; set; } = string.Empty;
         public string PanelURL { get; set; } = string.Empty;
-        public Dictionary<string, double> Values { get; set; } = new Dictionary<string, double>();
+        public Dictionary<string, double>? Values { get; set; } = null;
+        public String? ValueString { get; set; } = string.Empty;
     }
 }

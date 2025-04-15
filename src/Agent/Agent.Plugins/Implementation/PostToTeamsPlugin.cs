@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -76,11 +76,11 @@ namespace Agent.Plugins.Implementation
                 IsGroup = true,
                 ChannelData = new TeamsChannelData
                 {
-                    Channel = new ChannelInfo { Id = channelId }
+                    Channel = new ChannelInfo { Id = channelId },
                 },
+                TopicName = "Azure SRE Agent - Proactive Thread", // This is not working as expected to set title, see: https://github.com/microsoft/botbuilder-dotnet/issues/5041
                 // This initial activity will appear as the first message in the new thread.
                 Activity = MessageFactory.Text(message),
-                TopicName = "Azure SRE Agent - Proactive Thread",
             };
             ThreadTeamsMapping mapping = null;
             try

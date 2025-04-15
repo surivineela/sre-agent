@@ -60,7 +60,7 @@ public class KubernetesAgentPlugin
             throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
         }
         var instanceId = await _kubernetesAgentFactory.StartOrchestration(input, Context);
-        return $"A workflow has been started to remediate Kubernetes workloads, the workflow instance id is: {instanceId}";
+        return $"A workflow has been started to remediate Kubernetes workloads, the workflow instance id is: {instanceId}, thread id is: {Context.ThreadId}.";
     }
 }
 

@@ -15,14 +15,14 @@ using Octokit;
 namespace Agent.Graph.Crawler.Kubernetes;
 public class KubernetesStatefulSetCrawler : IResourceCrawler
 {
-    private readonly ILogger<KubernetesDeploymentCrawler> _logger;
+    private readonly ILogger<KubernetesStatefulSetCrawler> _logger;
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly IKubernetesService _k8sService;
     private readonly ArmClient _armClient;
     private readonly SqlConnectionStringHelper _sqlHelper;
 
     public KubernetesStatefulSetCrawler(
-        ILogger<KubernetesDeploymentCrawler> logger,
+        ILogger<KubernetesStatefulSetCrawler> logger,
         IGraphDatabaseClient graphDbClient,
         IKubernetesService k8sService)
     {

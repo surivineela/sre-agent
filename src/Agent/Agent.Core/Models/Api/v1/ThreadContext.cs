@@ -32,17 +32,23 @@ public class ThreadContext
     /// </summary>
     public readonly Queue<Message> RecentMessages;
 
+    public OutboundConfiguration OutboundConfiguration { get; set; } = new OutboundConfiguration();
+
+    // TODO(jianbo): use ThreadService only to add/read properties, in case we forget to sync in cosmosdb.
+    public Dictionary<string, string> Properties { get; set; } = new Dictionary<string, string>();
+
     // TODO: add other read-only properties like OutboundClientConfiguration, ThreadType, etc. if needed.
 
     /// <summary>
     /// Initializes a new instance of the ThreadContext class with the specified thread ID and messages.
     /// </summary>
     /// <param name="threadId">The unique identifier for the thread.</param>
-    public ThreadContext(Guid threadId, AgentTypeEnum agentTypeEnum, Queue<Message>? recentMessages = null)
+    public ThreadContext(Guid threadId, AgentTypeEnum agentTypeEnum, Queue<Message>? recentMessages = null, OutboundConfiguration? outboundConfiguration = null)
     {
         ThreadId = threadId;
         AgentTypeEnum = agentTypeEnum;
         RecentMessages = recentMessages ?? new Queue<Message>();
+        OutboundConfiguration = outboundConfiguration ?? new OutboundConfiguration();
     }
 
 
@@ -57,3 +63,12 @@ public class ThreadContext
     }
 }
 
+public class OutboundConfiguration
+{
+    public Teams? Teams;
+}
+
+public class Teams
+{
+    public bool? Enabled = true;
+}

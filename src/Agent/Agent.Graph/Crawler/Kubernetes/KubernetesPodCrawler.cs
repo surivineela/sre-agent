@@ -5,8 +5,6 @@
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
-using Azure.Core;
-using k8s;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 

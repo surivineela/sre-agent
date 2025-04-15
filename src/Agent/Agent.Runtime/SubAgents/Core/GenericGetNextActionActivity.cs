@@ -2,9 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Helpers;
 using Agent.Core.Extensions;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -13,17 +15,22 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
 {
     protected readonly IChatClient ChatClient;
     private readonly ToolsRepository _toolsRepository;
+    private readonly ILogger<GenericGetNextAction2Activity> _logger;
 
-    public GenericGetNextAction2Activity(IChatClient chatClient, ToolsRepository toolsRepository)
+    public GenericGetNextAction2Activity(
+        IChatClient chatClient,
+        ToolsRepository toolsRepository,
+        ILogger<GenericGetNextAction2Activity> logger)
     {
         ChatClient = chatClient;
         _toolsRepository = toolsRepository;
+        _logger = logger;
     }
 
     public override async Task<ChatMessage> RunAsync(TaskActivityContext context, GetNextActionInput input)
     {
         var chatOptions = new ChatOptions
-        {
+    {
             Tools = _toolsRepository.GetAllTools(input.ToolSignatures).Select<string, AITool>(sig => _toolsRepository.FindAiFunction(sig).ToolFunction).ToList(),
             ToolMode = ChatToolMode.RequireAny,
             AdditionalProperties = new AdditionalPropertiesDictionary
@@ -34,15 +41,11 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
 
         var allMessages = _toolsRepository.MCPServerInstructions.Concat(input.ChatMessages).ToList();
 
-        try
-        {
-            var response = await ChatClient.GetResponseAsync(allMessages, chatOptions);
-            return response.GetMessage();
-        }
-        catch (Exception ex)
-        {
-            throw;
-        }
+        var response = await ChatClientHelper.ExecuteWithRetryAsync(
+            async () => await ChatClient.GetResponseAsync(allMessages, chatOptions),
+            _logger, 10);
+
+        return response.GetMessage();
     }
 }
 

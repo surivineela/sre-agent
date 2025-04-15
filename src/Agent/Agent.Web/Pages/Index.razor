@@ -912,11 +912,16 @@
         {
             messages.Clear();
             StateHasChanged();
+            var initialMessage = currentMessage;
+            if (string.IsNullOrWhiteSpace(initialMessage))
+            {
+                initialMessage = "Hi";
+            }
 
             // Create thread using ThreadsApiController
             var createThreadRequest = new CreateThreadRequest(
                 startMessage: new CreateMessageRequest(
-                    text: "Hi",
+                    text: initialMessage,
                     userId: "web-client-user",
                     displayName: "Web Client User"
                 )
@@ -1022,11 +1027,11 @@
     {
         try
         {
-            // Poll for up to 60 seconds (15 attempts, 4 seconds apart)
-            for (int i = 0; i < 15; i++)
+            // Poll for up to 300 seconds (60 attempts, 5 seconds apart)
+            for (int i = 0; i < 60; i++)
             {
                 // Wait 4 seconds between polls
-                await Task.Delay(4000);
+                await Task.Delay(5000);
 
                 if (Guid.TryParse(threadId, out Guid parsedThreadId))
                 {

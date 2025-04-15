@@ -190,7 +190,7 @@ namespace Agent.Plugins
             "3) Gather metadata for resources across your Azure environment, or " +
             "The output is a list of resource objects with all their properties. " +
             "Each resource includes details like name, location, resource group, and type-specific configuration.")]
-        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")]string resourceType)
+        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType)
         {
             return await _plugin.ListResourcesByTypeAsync(resourceType);
         }
@@ -202,6 +202,22 @@ namespace Agent.Plugins
         public string GetKnowledgeGraphResourceUsageDashboard()
         {
             return _plugin.GetKnowledgeGraphResourceUsageDashboard();
+        }
+
+        [KernelFunction("VisualizeAKSMicroserviceTopology")]
+        [Description("PREFERRED FUNCTION FOR AKS/KUBERNETES VISUALIZATIONS. Generates a detailed visual representation of microservice architectures deployed in Azure Kubernetes Service (AKS). " +
+            "ALWAYS USE THIS FUNCTION INSTEAD OF VisualizeApplicationComponents when working with: AKS clusters, Kubernetes, K8s, microservices in Kubernetes, pods, deployments, or Kubernetes namespaces. " +
+            "This specialized function provides Kubernetes-aware visualization showing relationships between deployments, pods, services and other Kubernetes resources. " +
+            "This is the correct choice for any request to visualize, show, map or diagram: " +
+            "1) Kubernetes application architecture, 2) Help users understand the architecture of microservice connections within AKS visually, 3) Debug and troubleshoot microservice issues, or " +
+            "Returns a base64-encoded diagram specifically optimized for Kubernetes resource relationships.")]
+        public async Task<string> VisualizeAKSMicroserviceTopology(
+            [Description("Azure Resource Id of the AKS cluster, should begin with /subscriptions/..., Example: /subscriptions/a058f7c6-592d-4490-887a-803e748787c0/resourcegroups/aca-sre-agent-demo/providers/microsoft.containerservice/managedclusters/iot-dashboard")] string AKSClusterResourceId,
+            [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
+            [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName,
+            Guid? threadId = null)
+        {
+            return await _plugin.VisualizeAKSMicroserviceTopology(AKSClusterResourceId, _namespace, deploymentName, threadId);
         }
 
         [Description("Returns basic metadata of an Azure resource. The input should be in Azure ResourceId format. Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp" +

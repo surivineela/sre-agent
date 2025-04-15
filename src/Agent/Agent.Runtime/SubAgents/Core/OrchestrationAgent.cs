@@ -233,6 +233,7 @@ public class OrchestrationAgent
 [JsonDerivedType(typeof(OrchestrationAgentUserCommunicationStep), "UserCommunicationStep")]
 [JsonDerivedType(typeof(OrchestrationAgentStartApprovalStep), "StartApprovalStep")]
 [JsonDerivedType(typeof(OrchestrationAgentVisualizeAppComponentsStep), "VisualizeAppComponentsStep")]
+[JsonDerivedType(typeof(OrchestrationAgentVisualizeAKSMicroserviceTopologyStep), "VisualizeAKSMicroserviceTopologyStep")]
 [JsonDerivedType(typeof(OrchestrationAgentGenericExecuteStep), "GenericExecuteStep")]
 public abstract class OrchestrationAgentStep
 {
@@ -267,6 +268,10 @@ public abstract class OrchestrationAgentStep
         else if (functionCall.Name == nameof(GraphDBPluginDefinition.VisualizeApplicationComponents))
         {
             return new OrchestrationAgentVisualizeAppComponentsStep { FunctionCall = functionCall };
+        }
+        else if (functionCall.Name == nameof(GraphDBPluginDefinition.VisualizeAKSMicroserviceTopology))
+        {
+            return new OrchestrationAgentVisualizeAKSMicroserviceTopologyStep { FunctionCall = functionCall };
         }
         else
         {

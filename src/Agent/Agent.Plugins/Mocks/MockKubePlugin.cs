@@ -12,6 +12,11 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
+    public Task<string> GetPodCpuMetricsForDeploymentAsync(string resourceId, string _namespace, string deployment, string timeRange = "5m")
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<string> GetCustomResourceYamlAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
     {
         throw new NotImplementedException();
@@ -28,6 +33,11 @@ public class MockKubePlugin : IKubePlugin
     }
 
     public Task<string> GetKubeDeploymentSpecStatusAsync(string resourceId, string _namespace, string deployment)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetAKSClusterResourceIdAsync(string subscription, string resourceGroupName, string aksClusterName)
     {
         throw new NotImplementedException();
     }
@@ -52,7 +62,17 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
+    public Task<string> GetPodMemoryMetricsForDeploymentAsync(string resourceId, string _namespace, string deployment)
+    {
+        throw new NotImplementedException();
+    }
+
     public Task<string> GetPodYamlAsync(string resourceId, string _namespace, string pod)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetSuccessRateMetricsAsync(string resourceId, string _namespace, string deployment, string timeRange = "5m")
     {
         throw new NotImplementedException();
     }
@@ -67,12 +87,37 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> ListKubePodResourceUsageByNamespaceAsync(string resourceId, string _namespace)
+    public Task<string> RolloutRestartDeploymentAsync(string resourceId, string _namespace, string deployment)
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> RolloutRestartDeploymentAsync(string resourceId, string _namespace, string deployment)
+    public Task<string> ScaleDeploymentAsync(string resourceId, string _namespace, string deployment, int replicas)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetRecentlyUpdatedWorkloadsAsync(string AKSClusterResourceId, string _namespace, int minutesAgo)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetKubeStatefulsetsAsync(string AKSClusterResourceId, string _namespace)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetKubeStatefulsetSpecStatusAsync(string AKSClusterResourceId, string _namespace, string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetKubeStatefulSetEventsAsync(string AKSClusterResourceId, string _namespace, string name)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> ScaleStatefulSetAsync(string AKSClusterResourceId, string _namespace, string name, int replicas)
     {
         throw new NotImplementedException();
     }

@@ -180,7 +180,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 _logger.LogDebug("No threads found with unposted messages in the last 30 minutes");
                 return Enumerable.Empty<ThreadTeamsMapping>();
             }
-            _logger.LogInformation("Found {0} threads with unposted messages", threadsWithUnpostedMessages.Count);
+            _logger.LogDebug("Found {0} threads with unposted messages, need to confirm with threadcontext to check outbound configuration", threadsWithUnpostedMessages.Count);
 
             // Step 2: Get thread mappings for only those threads that have unposted messages
             List<ThreadTeamsMapping> mappings = new List<ThreadTeamsMapping>();
@@ -235,7 +235,9 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 }
             }
 
-            _logger.LogInformation("Found {0} active thread mappings for threads with unposted messages", mappings.Count);
+            if (mappings.Count > 0)
+                _logger.LogInformation("Found {0} active thread mappings for threads with unposted messages", mappings.Count);
+
             return mappings;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)

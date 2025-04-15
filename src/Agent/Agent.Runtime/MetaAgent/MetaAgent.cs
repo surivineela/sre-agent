@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -64,11 +64,11 @@ Before initiating any Azure resource operations:
 ## Primary Capabilities
 - **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **App Service Remediation**: If there is any issue with Azure WebApps or Azure Function apps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
+- **Kubernetes Agent**: If there is any issue with Azure Kubernetes Service, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
 - **Managed Identity Migration**: Help users migrate from certificate-based authentication to managed identities
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 - **Storage Account Remediation**: Help users with making changes storage account settings
-- **Kubernetes Agent**: Help users with any queries related to Azure Kubernetes Service (AKS)
 - **App Reliability**: Delegate to this plugin to help users improve the reliability of their Azure applications
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
 - **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
@@ -83,6 +83,7 @@ Before initiating any Azure resource operations:
    - `startAppServiceRemediationAgent` for Azure WebApp, Function, or App Service issues.
    - `startContainerAppsRemediationAgent` for Azure Container Apps concerns.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
+   - `startKubernetesAgent` for any AKS (Kubernetes) related requests including issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
    - `startContainerImageFailureAgent` for container image pull failures in Linux Web Apps and Container Apps.
    - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summairze your plan or ask for list of tools when delegating to this agent.
    - Other registered agents as applicable.
@@ -246,7 +247,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
-            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeApplicationComponents),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResource),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResourceByName),
@@ -256,6 +256,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceCount),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourcesByType),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard),
+            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeAKSMicroserviceTopology),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceDetailedProperties),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
@@ -276,7 +277,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
             // Set the context
             var prop = type.GetProperty("Context", BindingFlags.Public | BindingFlags.Instance);
-            if (prop == null) {
+            if (prop == null)
+            {
                 throw new InvalidOperationException($"Property 'Context' not found on plugin '{type.Name}'");
             }
             prop.SetValue(instance, ctx);
@@ -287,23 +289,25 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             _aiTools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
             _aiTools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
         }
-        
+
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
         var chatHistory = await _threadService.ToLLMChatHistory(ctx, SystemPrompt);
-        var response = await _chatClient.GetResponseAsync(
-            chatHistory,
-            new ChatOptions
-            {
-                Tools = _aiTools,
-                ToolMode = ChatToolMode.Auto,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    //["AllowParallelToolCalls"] = false,
-                }
-            });
 
-        //// TODO - consider preserving tool call messages...
+        var response = await ChatClientHelper.ExecuteWithRetryAsync(
+            async () => await _chatClient.GetResponseAsync(
+                chatHistory,
+                new ChatOptions
+                {
+                    Tools = _aiTools,
+                    ToolMode = ChatToolMode.Auto,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        //["AllowParallelToolCalls"] = false,
+                    }
+                }),
+            _log, 10);
+
         return response.Messages.Last().Text;
     }
 }

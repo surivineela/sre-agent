@@ -266,6 +266,11 @@ namespace Agent.Plugins
             string description,
             string errorContext)
         {
+            if (Context == null || Context.OutboundConfiguration == null || Context.OutboundConfiguration.Teams == null || !(Context.OutboundConfiguration.Teams.Enabled ?? false))
+            {
+                _logger?.LogWarning("No outbound configuration for teams available while posting the chart only support teams.");
+                return "ERROR: No outbound configuration available for posting the chart to teams.";
+            }
             try
             {
                 var base64Image = generateChart();
@@ -282,19 +287,10 @@ namespace Agent.Plugins
 
                 if (!string.IsNullOrWhiteSpace(description))
                 {
-                    var msg = MessageFactory.Text(description);
-                    msg.Attachments.Add(new TeamsAttachment
-                    {
-                        // we're using PNG format for the image, please modify if needed
-                        ContentType = "image/png",
-                        ContentUrl = base64Image,
-                        Name = $"{threadId}-{DateTime.Now:yyMMdd_HHmmss}.png"
-                    });
-
-                    await _outboundService.PostActivity(threadId, msg);
+                    await _outboundService.AppendAgentImageMessage(Context, $"![Chart Graph](data:image/png;base64,{base64Image})\r\n");
                 }
 
-                return "Successfully generated the chart.";
+                return $"Successfully generated the chart, image description: {description}";
             }
             catch (Exception ex)
             {

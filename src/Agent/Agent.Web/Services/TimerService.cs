@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -171,9 +171,9 @@ public class TimerService : IHostedService, IDisposable
         StartCrawlerTimer(cancellationToken);
 
         _logger.LogInformation($"Starting best practice timer...");
-        //StartBestPracticeTimer(cancellationToken);
+        StartBestPracticeTimer(cancellationToken);
 
-        //_logger.LogInformation($"Starting TLS timer...");
+        _logger.LogInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
 
         _logger.LogInformation("Starting Daily Report timer...");
@@ -601,7 +601,8 @@ public class TimerService : IHostedService, IDisposable
                 var breakdownItems = resourceTypeCountBreakDown.Split(',')
                     .Select(item => item.Trim())
                     .Where(item => !string.IsNullOrEmpty(item))
-                    .Select(item => {
+                    .Select(item =>
+                    {
                         var parts = item.Split(':');
                         return new { Type = parts[0].Trim(), Count = parts[1].Trim() };
                     })
@@ -645,7 +646,8 @@ public class TimerService : IHostedService, IDisposable
                 var appGroupBreakdownItems = appGroupsCountByType.Split(',')
                     .Select(item => item.Trim())
                     .Where(item => !string.IsNullOrEmpty(item))
-                    .Select(item => {
+                    .Select(item =>
+                    {
                         var parts = item.Split(':');
                         return new { Type = parts[0].Trim(), Count = parts[1].Trim() };
                     })

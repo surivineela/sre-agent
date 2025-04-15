@@ -122,6 +122,11 @@ public class ArmResourceCrawlerFactory
                 return new KubernetesServiceCrawler(_loggerFactory.CreateLogger<KubernetesServiceCrawler>(), _k8sService, _graphDbClient);
             }
 
+            if (Constants.KubernetesStatefulSetType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
+            {
+                return new KubernetesStatefulSetCrawler(_loggerFactory.CreateLogger<KubernetesStatefulSetCrawler>(), _graphDbClient, _k8sService);
+            }
+
             return new KubernetesDummyCrawler();
         }
 

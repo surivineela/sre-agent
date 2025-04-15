@@ -118,7 +118,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                 "v1",
                 "pods");
             await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-            var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
+            var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Connected);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             yield return podNode;

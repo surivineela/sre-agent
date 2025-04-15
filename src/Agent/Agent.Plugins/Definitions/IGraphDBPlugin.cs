@@ -63,6 +63,17 @@ namespace Agent.Plugins
         Task<List<ApplicationGraph>> DiscoverApplications(string subscriptionId);
 
         /// <summary>
+        /// Generates a visual representation of the topology of a microservice architecture deployed in Azure Kubernetes Service (AKS).
+        /// Renders a graph visualization as a base64 encoded PNG image for display in the chat.
+        /// </summary>
+        /// <param name="AKSClusterResourceId">Azure Resource Id of the AKS cluster.</param>
+        /// <param name="_namespace">The Kubernetes namespace to analyze.</param>
+        /// <param name="deploymentName">The name of Kubernetes deployment to analyze.</param>
+        /// <param name="threadId">Optional threadId for the current conversation. If null, will use Context.ThreadId.</param>
+        /// <returns>A confirmation message indicating the visualization was rendered.</returns>
+        Task<string> VisualizeAKSMicroserviceTopology(string AKSClusterResourceId, string _namespace, string deploymentName, Guid? threadId = null);
+
+        /// <summary>
         /// Adds a relationship between a Container App node and its source code repository.
         /// Creates a new source code node if it doesn't exist and establishes a SERVES_CODE relationship.
         /// </summary>
