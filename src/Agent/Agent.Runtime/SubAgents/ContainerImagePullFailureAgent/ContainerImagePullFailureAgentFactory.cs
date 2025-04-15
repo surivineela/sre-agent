@@ -25,7 +25,7 @@ public sealed class ContainerImagePullFailureAgentFactory
         IRecordActionsPlugin recordActionsPlugin,
         IChartPlugin chartPlugin,
         IContainerAppPlugin containerAppPlugin,
-        IContainerImagePullFailurePlugin containerRegistryVerificationPlugin,
+        IContainerImagePullFailurePlugin containerImagePullFailurePlugin,
         ToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
@@ -36,7 +36,7 @@ public sealed class ContainerImagePullFailureAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         // Registry verification tools
-        var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerRegistryVerificationPlugin);
+        var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
         toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));

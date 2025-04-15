@@ -55,96 +55,103 @@ namespace Agent.Plugins.Implementation
         public async Task<string> GetImageReferenceFromResourceId(string resourceId)
         {
             _logger.LogInformation($"Getting image reference for resource: {resourceId}");
+            var armClient = _armClientFactory.GetArmClient();
+            var resourceIdentifier = new ResourceIdentifier(resourceId);
 
             try
             {
-                // Get the ARM client
-                var armClient = _armClientFactory.GetArmClient();
-                // Check if this is a Container App
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
-                    // Get Container App resource
-                    var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
-                    var containerApp = await containerAppResource.GetAsync();
-
-                    // Get the active revision directly through ARM API instead of using _containerAppPlugin
-                    string latestRevisionName = containerApp.Value.Data.LatestRevisionName;
-
-                    // If we have a latest revision name, get that revision specifically
-                    if (!string.IsNullOrEmpty(latestRevisionName))
-                    {
-                        string revisionResourceId = $"{resourceId}/revisions/{latestRevisionName}";
-                        try
-                        {
-                            var revisionResource = armClient.GetContainerAppRevisionResource(new ResourceIdentifier(revisionResourceId));
-                            var revision = await revisionResource.GetAsync();
-
-                            // Get the container image from the revision
-                            if (revision.Value.Data.Template?.Containers != null &&
-                                revision.Value.Data.Template.Containers.Count > 0)
-                            {
-                                return revision.Value.Data.Template.Containers[0].Image;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogWarning(ex, $"Could not retrieve latest revision {latestRevisionName} for app {resourceId}, falling back to template");
-                        }
-                    }
-
-                    // Fall back to the template if available
-                    if (containerApp.Value.Data.Template?.Containers != null &&
-                        containerApp.Value.Data.Template.Containers.Count > 0)
-                    {
-                        return containerApp.Value.Data.Template.Containers[0].Image;
-                    }
+                    return await GetContainerAppImageReference(armClient, resourceIdentifier);
                 }
-                // Support for Linux Web Apps
-                else if (await CheckIsLinuxApp(resourceId))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
-                    // Get the Web App resource
-                    var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
-                    var webApp = await webAppResource.GetAsync();
-
-                    // Get the site configuration which contains the container information
-                    var siteConfig = webApp.Value.Data.SiteConfig;
-                    if (siteConfig?.LinuxFxVersion != null)
-                    {
-                        _logger.LogInformation($"Found LinuxFxVersion: {siteConfig.LinuxFxVersion}");
-
-                        // For Docker container apps, the image reference will be in LinuxFxVersion
-                        if (siteConfig.LinuxFxVersion.StartsWith("DOCKER|", StringComparison.OrdinalIgnoreCase))
-                        {
-                            return siteConfig.LinuxFxVersion.Substring("DOCKER|".Length).Trim();
-                        }
-                    }
-
-                    // Fallback: Try siteContainers
-                    var containers = await webApp.Value.GetSiteContainers().ToListAsync();
-                    if (containers.Count > 0)
-                    {
-                        var containerImage = containers[0].Data.Image;
-                        if (!string.IsNullOrEmpty(containerImage))
-                        {
-                            return containerImage;
-                        }
-                    }
-
-                    _logger.LogWarning($"Could not determine container image from configuration for {resourceId}");
+                    return await GetLinuxWebAppImageReference(armClient, resourceIdentifier);
                 }
                 else
                 {
-                    _logger.LogWarning($"Resource {resourceId} is not Container app or Linux App");
+                    _logger.LogWarning($"Resource type {resourceIdentifier.ResourceType} is not supported for getting image reference.");
+                    return null;
                 }
-                _logger.LogWarning($"Could not find image reference for resource: {resourceId}");
-                return null;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting image reference for resource: {resourceId}");
+                _logger.LogError(ex, $"Error getting image reference for resource {resourceId}");
                 return null;
             }
         }
+
+        // Extracted helper for Container App image reference
+        private async Task<string> GetContainerAppImageReference(ArmClient armClient, ResourceIdentifier resourceId)
+        {
+            var containerAppResource = armClient.GetContainerAppResource(resourceId);
+            var containerApp = await containerAppResource.GetAsync();
+            string latestRevisionName = containerApp.Value.Data.LatestRevisionName;
+
+            // If we have a latest revision name, get that revision specifically
+            if (!string.IsNullOrEmpty(latestRevisionName))
+            {
+                string revisionResourceId = $"{resourceId}/revisions/{latestRevisionName}";
+                try
+                {
+                    var revisionResource = armClient.GetContainerAppRevisionResource(new ResourceIdentifier(revisionResourceId));
+                    var revision = await revisionResource.GetAsync();
+
+                    // Get the container image from the revision
+                    if (revision.Value.Data.Template?.Containers != null &&
+                        revision.Value.Data.Template.Containers.Count > 0)
+                    {
+                        return revision.Value.Data.Template.Containers[0].Image;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Could not retrieve latest revision {latestRevisionName} for app {resourceId}, falling back to template");
+                }
+            }
+            // Fall back to the template if available
+            if (containerApp.Value.Data.Template?.Containers != null &&
+                        containerApp.Value.Data.Template.Containers.Count > 0)
+            {
+                return containerApp.Value.Data.Template.Containers[0].Image;
+            }
+
+            return null;
+        }
+
+        // Extracted helper for Linux Web App image reference
+        private async Task<string> GetLinuxWebAppImageReference(ArmClient armClient, ResourceIdentifier resourceId)
+        {
+            var webAppResource = armClient.GetWebSiteResource(resourceId);
+            var webApp = await webAppResource.GetAsync();
+            var siteConfig = webApp.Value.Data.SiteConfig;
+
+            if (siteConfig?.LinuxFxVersion != null)
+            {
+                _logger.LogInformation($"Found LinuxFxVersion: {siteConfig.LinuxFxVersion}");
+
+                if (siteConfig.LinuxFxVersion.StartsWith("DOCKER|", StringComparison.OrdinalIgnoreCase))
+                {
+                    return siteConfig.LinuxFxVersion.Substring("DOCKER|".Length);
+                }
+                // Add handling for other LinuxFxVersion formats if necessary (e.g., COMPOSE)
+            }
+
+            // Fallback: Ty siteContainers
+            var containers = await webApp.Value.GetSiteContainers().ToListAsync();
+            if (containers.Count > 0)
+            {
+                var containerImage = containers[0].Data.Image;
+                if (!string.IsNullOrEmpty(containerImage))
+                {
+                    return containerImage;
+                }
+            }
+
+            _logger.LogWarning($"Could not determine image reference from LinuxFxVersion for Web App {resourceId}");
+            return null;
+        }
+
 
         /// <summary>
         /// Gets network security group rules for a resource using direct ARM calls
@@ -155,190 +162,223 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInformation($"Getting network security rules for resource: {resourceId}");
             var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+            var armClient = _armClientFactory.GetArmClient();
+            var resourceIdentifier = new ResourceIdentifier(resourceId);
 
             try
             {
-                // Get the ARM client
-                var armClient = _armClientFactory.GetArmClient();
+                ResourceIdentifier subnetId = null;
 
-                // Check if this is a Container App
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
-                    // Get Container App resource
-                    var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
-                    var containerApp = await containerAppResource.GetAsync();
-
-                    // Get the environment resource ID from the Container App
-                    var environmentId = containerApp.Value.Data.EnvironmentId;
-                    if (environmentId == null)
-                    {
-                        _logger.LogWarning($"Container App {resourceId} does not have an environment ID");
-                        return result;
-                    }
-
-                    // Get the Container App Environment
-                    var environmentResource = armClient.GetContainerAppManagedEnvironmentResource(new ResourceIdentifier(environmentId));
-                    var environment = await environmentResource.GetAsync();
-
-                    // Check if the environment has a VNet configuration
-                    var vnetConfiguration = environment.Value.Data.VnetConfiguration;
-                    if (vnetConfiguration == null)
-                    {
-                        _logger.LogInformation($"Container App Environment {environmentId} does not have VNet integration");
-                        return result;
-                    }
-
-                    // Get the infrastructure subnet ID
-                    var infrastructureSubnetId = vnetConfiguration.InfrastructureSubnetId?.ToString();
-                    if (string.IsNullOrEmpty(infrastructureSubnetId))
-                    {
-                        _logger.LogWarning($"Container App Environment {environmentId} has VNet configuration but no infrastructure subnet ID");
-                        return result;
-                    }
-
-                    // Get the infrastructure subnet
-                    var subnetResource = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
-                    var subnet = await subnetResource.GetAsync();
-
-                    // Get NSGs associated with this subnet
-                    var nsgId = subnet.Value.Data.NetworkSecurityGroup?.Id;
-                    if (nsgId != null)
-                    {
-                        var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
-                        var nsg = await nsgResource.GetAsync();
-
-                        var securityRules = nsg.Value.Data.SecurityRules.ToList();
-                        result.Add(nsg.Value.Data.Name, securityRules);
-                        _logger.LogInformation($"Found NSG {nsg.Value.Data.Name} with {securityRules.Count} rules for subnet {subnet.Value.Data.Name}");
-                    }
+                    subnetId = await GetContainerAppSubnetId(armClient, resourceIdentifier);
                 }
-                // Support for Linux Web Apps
-                else if (await CheckIsLinuxApp(resourceId))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
-                    // Get the Web App resource
-                    var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
-                    var webApp = await webAppResource.GetAsync();
+                    subnetId = await GetWebAppSubnetId(armClient, resourceIdentifier);
+                }
+                else
+                {
+                    _logger.LogWarning($"Resource type {resourceIdentifier.ResourceType} is not supported for getting NSG rules.");
+                    return result;
+                }
 
-                    // Check if this Web App has VNet integration
-                    var vnetConnections = webAppResource.GetSiteVirtualNetworkConnections();
-                    if (vnetConnections != null)
+                if (subnetId != null)
+                {
+                    var subnetResource = armClient.GetSubnetResource(subnetId);
+                    var subnetData = (await subnetResource.GetAsync()).Value.Data;
+
+                    if (subnetData.NetworkSecurityGroup?.Id != null)
                     {
-                        var vnetInfo = await vnetConnections.GetAllAsync().FirstOrDefaultAsync();
-                        if (vnetInfo?.Data?.VnetResourceId != null)
+                        var nsgId = subnetData.NetworkSecurityGroup.Id;
+                        var nsgResource = armClient.GetNetworkSecurityGroupResource(nsgId);
+                        var nsgData = (await nsgResource.GetAsync()).Value.Data;
+                        if (nsgData?.SecurityRules != null)
                         {
-                            // Get the subnet ID from the VNet integration
-                            var subnetId = vnetInfo.Data.VnetResourceId;
-                            if (subnetId != null)
-                            {
-                                // Get the subnet resource
-                                var subnetResource = armClient.GetSubnetResource(new ResourceIdentifier(subnetId));
-                                var subnet = await subnetResource.GetAsync();
-
-                                // Get NSGs associated with this subnet
-                                var nsgId = subnet.Value.Data.NetworkSecurityGroup?.Id;
-                                if (nsgId != null)
-                                {
-                                    var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
-                                    var nsg = await nsgResource.GetAsync();
-
-                                    var securityRules = nsg.Value.Data.SecurityRules.ToList();
-                                    result.Add(nsg.Value.Data.Name, securityRules);
-                                    _logger.LogInformation($"Found NSG {nsg.Value.Data.Name} with {securityRules.Count} rules for subnet {subnet.Value.Data.Name}");
-                                }
-                            }
-                        }
-                        else
-                        {
-                            _logger.LogInformation($"Web App {resourceId} does not have VNet integration");
+                            _logger.LogInformation($"Found NSG {nsgData.Name} with {nsgData.SecurityRules.Count} rules for subnet {subnetData.Name}");
+                            result.Add(nsgData.Name, nsgData.SecurityRules.ToList());
                         }
                     }
                     else
                     {
-                        _logger.LogInformation($"Web App {resourceId} does not have VNet integration");
+                        _logger.LogInformation($"Subnet {subnetId.Name} is not associated with an NSG.");
                     }
                 }
-
-                return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting network security rules for resource: {resourceId}");
-                return result;
+                _logger.LogError(ex, $"Error getting network security rules for resource {resourceId}");
             }
+            return result;
         }
+
+        // Extracted helper for Container App subnet ID
+        private async Task<ResourceIdentifier> GetContainerAppSubnetId(ArmClient armClient, ResourceIdentifier resourceId)
+        {
+            var containerAppResource = armClient.GetContainerAppResource(resourceId);
+            var containerApp = await containerAppResource.GetAsync();
+            var environmentId = containerApp.Value.Data.EnvironmentId;
+
+            if (environmentId == null)
+            {
+                _logger.LogWarning($"Container App {resourceId} does not have a managed environment ID.");
+                return null;
+            }
+
+            var environmentResource = armClient.GetContainerAppManagedEnvironmentResource(environmentId);
+            var environment = await environmentResource.GetAsync();
+            var vnetConfiguration = environment.Value.Data.VnetConfiguration;
+
+            if (vnetConfiguration == null)
+            {
+                _logger.LogInformation($"Container App Environment {environmentId.Name} is not VNet integrated.");
+                return null;
+            }
+
+            var infrastructureSubnetId = vnetConfiguration.InfrastructureSubnetId;
+            if (string.IsNullOrEmpty(infrastructureSubnetId))
+            {
+                _logger.LogWarning($"Container App Environment {environmentId.Name} VNet configuration does not have an infrastructure subnet ID.");
+                return null;
+            }
+
+            return new ResourceIdentifier(infrastructureSubnetId);
+        }
+
+        // Extracted helper for Web App subnet ID
+        private async Task<ResourceIdentifier> GetWebAppSubnetId(ArmClient armClient, ResourceIdentifier resourceId)
+        {
+            var webAppResource = armClient.GetWebSiteResource(resourceId);
+            // First, try to get the subnet ID from the SiteConfig
+            var webApp = await webAppResource.GetAsync();
+            string subnetId = webApp.Value.Data.VirtualNetworkSubnetId?.ToString();
+
+            if (!string.IsNullOrEmpty(subnetId))
+            {
+                return new ResourceIdentifier(subnetId);
+            }
+
+            // If not found, check the virtual network connections (use the property 'SubnetId' if available)
+            var vnetConnections = webAppResource.GetSiteVirtualNetworkConnections();
+            await foreach (var vnetInfo in vnetConnections)
+            {
+                if (vnetInfo?.Data is AppServiceVirtualNetworkData vnetData)
+                {
+                    if (!string.IsNullOrEmpty(vnetData.VnetResourceId))
+                    {
+                        return new ResourceIdentifier(vnetData.VnetResourceId);
+                    }
+                }
+            }
+
+            _logger.LogInformation($"Web App {resourceId} does not appear to be VNet integrated or subnet information is missing.");
+            return null;
+        }
+
 
         /// <summary>
         /// Checks if a Container App is properly authenticated to an Azure Container Registry
         /// </summary>
         public async Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId)
         {
-            _logger.LogInformation($"Checking ACR authentication for app {resourceId}");
+           _logger.LogInformation($"Checking ACR authentication for app {resourceId}");
 
-            // Get the image reference from the resource ID
-            string imageReference = await GetImageReferenceFromResourceId(resourceId);
+           string imageReference = await GetImageReferenceFromResourceId(resourceId);
+           var result = new AcrAuthenticationStatus
+           {
+               ResourceId = resourceId,
+               ImageReference = imageReference,
+               IsAuthenticated = false // Default to false
+           };
 
-            var result = new AcrAuthenticationStatus
-            {
-                ResourceId = resourceId,
-                ImageReference = imageReference,
-                IsAuthenticated = false
-            };
-
-            // If we couldn't get the image reference, return with an error
-            if (string.IsNullOrEmpty(imageReference))
-            {
-                result.ErrorMessage = "Could not determine image reference from the resource";
-                return result;
-            }
-
+           if (string.IsNullOrEmpty(imageReference))
+           {
+               result.ErrorMessage = "Could not determine image reference from the resource";
+               _logger.LogWarning(result.ErrorMessage);
+               return result;
+           }
             try
             {
-                // Extract registry name from the image reference
-                string registryName = ExtractRegistryName(imageReference);
-                if (string.IsNullOrEmpty(registryName))
-                {
-                    result.ErrorMessage = "Could not extract registry name from image reference";
-                    return result;
-                }
+               string registryName = ExtractRegistryName(imageReference);
+               if (string.IsNullOrEmpty(registryName))
+               {
+                   result.ErrorMessage = "Could not extract registry name from image reference";
+                   _logger.LogWarning(result.ErrorMessage);
+                   return result;
+               }
 
-                // Verify this is actually an Azure Container Registry
+                // Only proceed if it's an ACR image
                 if (!imageReference.Contains(".azurecr.io/", StringComparison.OrdinalIgnoreCase) &&
                     !imageReference.Contains(".acr.io/", StringComparison.OrdinalIgnoreCase))
                 {
+                    _logger.LogInformation(result.ErrorMessage);
                     result.ErrorMessage = "Image is not from Azure Container Registry. Use verify_external_registry tool for non-ACR images.";
                     result.PotentialSolution = "For non-ACR images, configure registry credentials in the Container App settings.";
                     return result;
                 }
+               var armClient = _armClientFactory.GetArmClient();
+               var resourceIdentifier = new ResourceIdentifier(resourceId);
 
-                // Get the ARM client
-                var armClient = _armClientFactory.GetArmClient();
+                // Check if the image exists in the registry
+                var imageExists = await CheckImageExistsInAcr(imageReference);
+                if (!imageExists)
+                {
+                    result.IsAuthenticated = false;
+                    result.ErrorMessage = $"The image {imageReference} was not found in the registry";
+                    result.PotentialSolution = "Verify the image reference is correct and the image has been pushed to the registry";
+                    _logger.LogWarning(result.ErrorMessage);
+                }
 
-                // Check if this is a Container App or a Web App
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+               if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
+               {
+                   result = await CheckContainerAppAcrAuth(armClient, resourceId, registryName, imageReference);
+               }
+               else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
+               {
+                   result = await CheckWebAppAcrAuth(armClient, resourceId, registryName, imageReference);
+               }
+               else
+               {
+                   result.ErrorMessage = $"Resource type {resourceIdentifier.ResourceType} is not supported for ACR authentication check.";
+                   _logger.LogWarning(result.ErrorMessage);
+               }
+                // Perform common checks only if authentication hasn't already failed definitively
+                if (result.IsAuthenticated) // Check connectivity if auth seems okay so far
                 {
-                    // Container App ACR Authentication Check
-                    return await CheckContainerAppAcrAuth(armClient, resourceId, registryName, imageReference);
-                }
-                else if (await CheckIsLinuxApp(resourceId))
-                {
-                    // Web App ACR Authentication Check
-                    return await CheckWebAppAcrAuth(armClient, resourceId, registryName, imageReference);
-                }
-                else
-                {
-                    result.ErrorMessage = "Resource type not supported for ACR authentication check";
-                    return result;
+                    // Check for network connectivity issues via NSG rules
+                    var nsgRules = await GetNetworkSecurityRulesForResource(resourceId);
+                    bool hasBlockingRules = CheckForBlockingNsgRules(nsgRules, registryName);
+                    if (hasBlockingRules)
+                    {
+                        result.IsAuthenticated = false; // Downgrade status due to potential network block
+                        result.ErrorMessage = $"NSG rules may be blocking access to ACR {registryName}";
+                        result.PotentialSolution = "Add outbound allow rule for ACR in the NSG";
+                        _logger.LogWarning(result.ErrorMessage);
+                        return result;
+                    }
+
+                    // Check if we can connect to the registry endpoint
+                    var connectivityResult = await TestConnectivityToRegistryAsync(registryName);
+                    if (!connectivityResult.IsConnected)
+                    {
+                        result.IsAuthenticated = false; // Downgrade status due to connectivity failure
+                        result.ErrorMessage = connectivityResult.ErrorMessage;
+                        result.PotentialSolution = connectivityResult.PotentialSolution;
+                        _logger.LogWarning($"Connectivity test failed: {result.ErrorMessage}");
+                        return result;
+                    }
                 }
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error checking ACR authentication: {resourceId}");
-                result.ErrorMessage = $"Exception during authentication check: {ex.Message}";
-                return result;
-            }
+           catch (Exception ex)
+           {
+               _logger.LogError(ex, $"Error checking ACR authentication for resource {resourceId}");
+               result.IsAuthenticated = false;
+               result.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+           }
+           return result;
         }
 
-        // New method to handle Container App ACR authentication check
+        // Method to handle Container App ACR authentication check
         private async Task<AcrAuthenticationStatus> CheckContainerAppAcrAuth(
             ArmClient armClient,
             string resourceId,
@@ -349,236 +389,187 @@ namespace Agent.Plugins.Implementation
             {
                 ResourceId = resourceId,
                 ImageReference = imageReference,
-                IsAuthenticated = false
+                IsAuthenticated = false // Default to false
             };
 
-            // Get the Container App resource to check registry authentication settings
             var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
-            var containerApp = await containerAppResource.GetAsync();
-
-            // Check how the Container App is configured to authenticate to ACR
-            var registryConfiguration = containerApp.Value.Data.Configuration?.Registries;
-
-            // If explicit registry credentials are configured for this ACR
-            if (registryConfiguration != null && registryConfiguration.Any(r =>
-                r.Server != null && r.Server.Contains(registryName, StringComparison.OrdinalIgnoreCase)))
+            Response<ContainerAppResource> containerAppResponse = await containerAppResource.GetAsync();
+            if (!containerAppResponse.HasValue)
             {
-                var registryConfig = registryConfiguration.First(r =>
-                    r.Server != null && r.Server.Contains(registryName, StringComparison.OrdinalIgnoreCase));
+                result.ErrorMessage = "Could not retrieve Container App resource details.";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+            var containerApp = containerAppResponse.Value;
 
-                // Check if using managed identity for this registry
-                if (registryConfig.Identity != null)
-                {
-                    _logger.LogInformation($"Container App is configured to use managed identity for ACR {registryName}");
+            var registryConfiguration = containerApp.Data.Configuration?.Registries;
+            var identity = containerApp.Data.Identity;
 
-                    // Now we need to check if the specified identity has proper ACR Pull permissions
+            // Find specific registry config
+            var registryConfig = registryConfiguration?.FirstOrDefault(r =>
+                r.Server != null && r.Server.Contains(registryName, StringComparison.OrdinalIgnoreCase));
 
-                    // Get registry resource for ACR-Pull role check
-                    var registry = await FindAcrResourceByName(armClient, resourceId, registryName);
-                    if (registry == null)
-                    {
-                        result.IsAuthenticated = false;
-                        result.ErrorMessage = $"Could not find ACR with name {registryName}";
-                        result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
-                        return result;
-                    }
-
-                    // Get the identity that's being used for registry auth
-                    var identityName = registryConfig.Identity;
-
-                    // Check if this is referring to system-assigned identity
-                    if (identityName == "system")
-                    {
-                        // Verify system-assigned identity is enabled
-                        if (containerApp.Value.Data.Identity == null ||
-                            containerApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned ||
-                            !containerApp.Value.Data.Identity.PrincipalId.HasValue)
-                        {
-                            result.IsAuthenticated = false;
-                            result.ErrorMessage = "Container App is configured to use system-assigned identity for ACR, but system-assigned identity is not enabled";
-                            result.PotentialSolution = "Enable system-assigned managed identity for the Container App";
-                            return result;
-                        }
-
-                        // Check if the system-assigned identity has proper role assignments
-                        bool hasProperRoleAssignment = await CheckManagedIdentityRoleAssignmentAsync(
-                            armClient,
-                            containerApp.Value.Data.Identity,
-                            registry.Id,
-                            true);  // Check only system-assigned identity
-
-                        if (!hasProperRoleAssignment)
-                        {
-                            result.IsAuthenticated = false;
-                            result.ErrorMessage = "The system-assigned managed identity does not have AcrPull role on the registry";
-                            result.PotentialSolution = "Assign the AcrPull role to the system-assigned managed identity on the ACR resource";
-                            return result;
-                        }
-                    }
-                    else
-                    {
-                        // This is a user-assigned identity - check if it's configured and has permissions
-                        if (containerApp.Value.Data.Identity == null ||
-                            !containerApp.Value.Data.Identity.UserAssignedIdentities.Any())
-                        {
-                            result.IsAuthenticated = false;
-                            result.ErrorMessage = $"Container App is configured to use user-assigned identity '{identityName}' for ACR, but no user-assigned identities are configured";
-                            result.PotentialSolution = "Configure the user-assigned managed identity for the Container App";
-                            return result;
-                        }
-
-                        // Check if the specified identity exists in the Container App's user-assigned identities
-                        var userAssignedIdentities = containerApp.Value.Data.Identity.UserAssignedIdentities;
-
-                        // The identity reference in registry config might be the full resource ID or just the name
-                        bool identityFound = false;
-                        foreach (var identity in userAssignedIdentities)
-                        {
-                            // Check if identity name matches (either full ID or just name part)
-                            var identityKey = identity.Key.ToString();
-                            if (identityKey.EndsWith($"/{identityName}", StringComparison.OrdinalIgnoreCase) ||
-                                identityKey.Equals(identityName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                identityFound = true;
-
-                                // Check if this identity has proper ACR Pull role
-                                if (identity.Value.PrincipalId.HasValue)
-                                {
-                                    var principalId = identity.Value.PrincipalId.Value;
-                                    bool hasProperRoleAssignment = await CheckSpecificUserAssignedIdentityRoleAsync(
-                                        armClient,
-                                        principalId,
-                                        registry.Id);
-
-                                    if (!hasProperRoleAssignment)
-                                    {
-                                        result.IsAuthenticated = false;
-                                        result.ErrorMessage = $"The user-assigned managed identity {identityName} does not have AcrPull role on the registry";
-                                        result.PotentialSolution = "Assign the AcrPull role to the user-assigned managed identity on the ACR resource";
-                                        return result;
-                                    }
-                                }
-                                else
-                                {
-                                    _logger.LogWarning($"User-assigned identity {identityName} does not have a valid PrincipalId.");
-                                    result.IsAuthenticated = false;
-                                    result.ErrorMessage = $"The user-assigned managed identity {identityName} does not have a valid PrincipalId.";
-                                    result.PotentialSolution = "Ensure the user-assigned managed identity is properly configured.";
-                                    return result;
-                                }
-
-                                break;
-                            }
-                        }
-
-                        if (!identityFound)
-                        {
-                            result.IsAuthenticated = false;
-                            result.ErrorMessage = $"Container App is configured to use user-assigned identity '{identityName}' for ACR, but this identity is not attached to the Container App";
-                            result.PotentialSolution = "Configure the specified user-assigned managed identity for the Container App";
-                            return result;
-                        }
-                    }
-                }
-                else if (registryConfig.Username != null && registryConfig.PasswordSecretRef != null)
-                {
-                    // App is using username/password auth for this registry
-                    _logger.LogInformation($"Container App is configured to use username/password authentication for ACR {registryName}");
-
-                    // We can't verify the actual credentials as we don't have access to the password secret
-                    // but we can note that username/password auth is being used
-                    result.IsAuthenticated = true;  // Assume authentication is properly configured
-                    result.ErrorMessage = "Container App is using username/password authentication for ACR. Cannot verify if credentials are correct.";
-                    result.PotentialSolution = "For improved security, consider using managed identity authentication instead of username/password.";
-                    return result;
-                }
-                else
-                {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = "Container App has registry configuration for ACR, but no authentication method is specified";
-                    result.PotentialSolution = "Configure either managed identity or username/password authentication for the registry";
-                    return result;
-                }
+            if (registryConfig != null)
+            {
+                // Case 1: Explicit configuration for this registry exists
+                return await CheckContainerAppExplicitRegistryAuth(armClient, registryConfig, identity, registryName, result);
             }
             else
             {
-                // No explicit registry configuration for this ACR
-                _logger.LogInformation($"No explicit registry configuration found for ACR {registryName}. Checking for default managed identity configuration.");
+                // Case 2: No explicit configuration, check default managed identity
+                return await CheckContainerAppDefaultManagedIdentityAuth(armClient, identity, registryName, result);
+            }
+        }
 
-                // Check if the Container App has managed identity configured for default use
-                if (containerApp.Value.Data.Identity == null ||
-                    (!containerApp.Value.Data.Identity.UserAssignedIdentities.Any() &&
-                     containerApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned))
+        // Helper for Container App Explicit Registry Auth Check
+        private async Task<AcrAuthenticationStatus> CheckContainerAppExplicitRegistryAuth(
+            ArmClient armClient,
+            ContainerAppRegistryCredentials registryConfig,
+            ManagedServiceIdentity identity,
+            string registryName,
+            AcrAuthenticationStatus result)
+        {
+            // Check if using managed identity for this registry
+            if (!string.IsNullOrEmpty(registryConfig.Identity))
+            {
+                _logger.LogInformation($"Container App is configured to use managed identity '{registryConfig.Identity}' for ACR {registryName}");
+                return await CheckContainerAppManagedIdentityRole(armClient, identity, registryConfig.Identity, registryName, result);
+            }
+            // Check if using username/password auth
+            else if (!string.IsNullOrEmpty(registryConfig.Username) && !string.IsNullOrEmpty(registryConfig.PasswordSecretRef))
+            {
+                _logger.LogInformation($"Container App is configured to use username/password authentication for ACR {registryName}");
+                result.IsAuthenticated = true; // Assume configured correctly, cannot verify password
+                result.ErrorMessage = "Container App is using username/password authentication for ACR. Cannot verify if credentials are correct.";
+                result.PotentialSolution = "For improved security, consider using managed identity authentication instead of username/password.";
+                return result;
+            }
+            else
+            {
+                result.IsAuthenticated = false;
+                result.ErrorMessage = "Container App has registry configuration for ACR, but no valid authentication method (Managed Identity or Username/Password) is specified.";
+                result.PotentialSolution = "Configure either managed identity or username/password authentication for the registry in the Container App settings.";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+        }
+
+        // Helper for Container App Managed Identity Role Check (used by explicit and default checks)
+        private async Task<AcrAuthenticationStatus> CheckContainerAppManagedIdentityRole(
+            ArmClient armClient,
+            ManagedServiceIdentity identity,
+            string identityName, // Can be "system", a user identity name/ID, or null for default check
+            string registryName,
+            AcrAuthenticationStatus result)
+        {
+            var registry = await FindAcrResourceByName(armClient, result.ResourceId, registryName);
+            if (registry == null)
+            {
+                result.IsAuthenticated = false;
+                result.ErrorMessage = $"Could not find ACR with name {registryName}";
+                result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+
+            bool isSystemIdentityCheck = identityName?.Equals("system", StringComparison.OrdinalIgnoreCase) ?? false;
+            bool isUserIdentityCheck = !isSystemIdentityCheck && !string.IsNullOrEmpty(identityName);
+
+            if (identity == null ||
+                (isSystemIdentityCheck && identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned && identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned) ||
+                (isUserIdentityCheck && identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned && identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned) ||
+                (identity.ManagedServiceIdentityType == ManagedServiceIdentityType.None))
+            {
+                result.IsAuthenticated = false;
+                result.ErrorMessage = $"Managed Identity ('{(isSystemIdentityCheck ? "system" : identityName ?? "default")}') is specified for ACR auth, but the required identity type is not enabled on the Container App.";
+                result.PotentialSolution = $"Enable the required Managed Identity type (System or User-Assigned '{identityName}') on the Container App.";
+                 _logger.LogWarning(result.ErrorMessage);
+               return result;
+            }
+
+            bool hasProperRoleAssignment = false;
+            if (isSystemIdentityCheck)
+            {
+                 if (!identity.PrincipalId.HasValue)
+                 {
+                    result.IsAuthenticated = false;
+                    result.ErrorMessage = "Container App is configured to use system-assigned identity for ACR, but system-assigned identity is not enabled";
+                    result.PotentialSolution = "Enable system-assigned managed identity for the Container App";
+                    _logger.LogWarning(result.ErrorMessage);
+                     return result;
+                 }
+                 hasProperRoleAssignment = await CheckSpecificUserAssignedIdentityRoleAsync(armClient, identity.PrincipalId.Value, registry.Id);
+            }
+            else if (isUserIdentityCheck)
+            {
+                var userAssignedIdentity = identity.UserAssignedIdentities?.FirstOrDefault(kvp =>
+                    kvp.Key.ToString().EndsWith($"/{identityName}", StringComparison.OrdinalIgnoreCase) ||
+                    kvp.Key.ToString().Equals(identityName, StringComparison.OrdinalIgnoreCase)); // Handle full ID or just name
+
+                if (userAssignedIdentity.Equals(default(KeyValuePair<ResourceIdentifier, UserAssignedIdentity>)) ||
+                    !userAssignedIdentity.Value.Value.PrincipalId.HasValue)
                 {
                     result.IsAuthenticated = false;
-                    result.ErrorMessage = "No explicit registry configuration for ACR and no Managed Identity is configured for the Container App";
-                    result.PotentialSolution = "Configure registry authentication in the Container App settings or enable Managed Identity";
+                    result.ErrorMessage = $"User-assigned identity '{identityName}' is configured but not found or lacks a Principal ID on the Container App.";
+                    result.PotentialSolution = $"Ensure the user-assigned identity '{identityName}' is correctly assigned to the Container App.";
+                    _logger.LogWarning(result.ErrorMessage);
                     return result;
                 }
 
-                // Get registry resource for ACR-Pull role check
-                var registry = await FindAcrResourceByName(armClient, resourceId, registryName);
-                if (registry == null)
-                {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = $"Could not find ACR with name {registryName}";
-                    result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
-                    return result;
-                }
-
-                // Check if any managed identity has proper role assignments on the ACR
-                bool hasProperRoleAssignment = await CheckManagedIdentityRoleAssignmentAsync(
+                hasProperRoleAssignment = await CheckSpecificUserAssignedIdentityRoleAsync(
                     armClient,
-                    containerApp.Value.Data.Identity,
-                    registry.Id,
-                    false);  // Check all identities
+                    userAssignedIdentity.Value.Value.PrincipalId.Value,
+                    registry.Id);
 
-                if (!hasProperRoleAssignment)
-                {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = "No Managed Identity has AcrPull role on the registry";
-                    result.PotentialSolution = "Assign the AcrPull role to a Managed Identity on the ACR resource";
-                    return result;
-                }
+            }
+            else // Default check (no specific identity named)
+            {
+                 hasProperRoleAssignment = await CheckManagedIdentityRoleAssignmentAsync(armClient, identity, registry.Id, false); // Check all identities
             }
 
-            // Check for network connectivity issues via NSG rules
-            var nsgRules = await GetNetworkSecurityRulesForResource(resourceId);
-            bool hasBlockingRules = CheckForBlockingNsgRules(nsgRules, registryName);
-            if (hasBlockingRules)
+
+            if (!hasProperRoleAssignment)
             {
                 result.IsAuthenticated = false;
-                result.ErrorMessage = $"NSG rules may be blocking access to ACR {registryName}";
-                result.PotentialSolution = "Add outbound allow rule for ACR in the NSG";
+                result.ErrorMessage = $"The configured Managed Identity ('{(isSystemIdentityCheck ? "system" : identityName ?? "any")}') does not have the required 'AcrPull' (or equivalent) role on the registry '{registryName}'.";
+                result.PotentialSolution = $"Assign the 'AcrPull' role to the Managed Identity ('{(isSystemIdentityCheck ? "system" : identityName ?? "the appropriate one")}') on the ACR resource '{registryName}'.";
+                _logger.LogWarning(result.ErrorMessage);
                 return result;
             }
 
-            // Check if we can connect to the registry endpoint
-            var connectivityResult = await TestConnectivityToRegistryAsync(registryName);
-            if (!connectivityResult.IsConnected)
-            {
-                result.IsAuthenticated = false;
-                result.ErrorMessage = connectivityResult.ErrorMessage;
-                result.PotentialSolution = connectivityResult.PotentialSolution;
-                return result;
-            }
-
-            // Check if the image exists in the registry
-            var imageExists = await CheckImageExistsInAcr(imageReference);
-            if (!imageExists)
-            {
-                result.IsAuthenticated = true; // We can authenticate, but the image doesn't exist
-                result.ErrorMessage = $"The image {imageReference} was not found in the registry";
-                result.PotentialSolution = "Verify the image reference is correct and the image has been pushed to the registry";
-                return result;
-            }
-
-            // If we passed all checks, the container app should be able to authenticate
+            // If role assignment is correct
             result.IsAuthenticated = true;
+            _logger.LogInformation($"Managed Identity ('{(isSystemIdentityCheck ? "system" : identityName ?? "default")}') has appropriate role assignment on ACR {registryName}.");
             return result;
         }
 
-        // New method to handle Web App ACR authentication check
+         // Helper for Container App Default Managed Identity Auth Check
+        private async Task<AcrAuthenticationStatus> CheckContainerAppDefaultManagedIdentityAuth(
+            ArmClient armClient,
+            ManagedServiceIdentity identity,
+            string registryName,
+            AcrAuthenticationStatus result)
+        {
+            _logger.LogInformation($"No explicit registry configuration found for ACR {registryName}. Checking for default managed identity configuration.");
+
+            if (identity == null ||
+                (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned &&
+                 identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned &&
+                 identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned))
+            {
+                result.IsAuthenticated = false;
+                result.ErrorMessage = "No explicit registry configuration for ACR and no Managed Identity (System or User-Assigned) is configured for the Container App.";
+                result.PotentialSolution = "Configure registry authentication (Managed Identity or Username/Password) in the Container App settings or enable a Managed Identity.";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+
+            // Check if *any* configured MI has the required role
+            return await CheckContainerAppManagedIdentityRole(armClient, identity, null, registryName, result); // Pass null identityName for default check
+        }
+
+
+        // Method to handle Web App ACR authentication check
         private async Task<AcrAuthenticationStatus> CheckWebAppAcrAuth(
             ArmClient armClient,
             string resourceId,
@@ -589,157 +580,83 @@ namespace Agent.Plugins.Implementation
             {
                 ResourceId = resourceId,
                 ImageReference = imageReference,
-                IsAuthenticated = false
+                IsAuthenticated = false // Default to false
             };
 
-            // Get the Web App resource
             var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
-            var webApp = await webAppResource.GetAsync();
+            Response<WebSiteResource> webAppResponse = await webAppResource.GetAsync();
+             if (!webAppResponse.HasValue)
+            {
+                result.ErrorMessage = "Could not retrieve Web App resource details.";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+            var webApp = webAppResponse.Value;
 
-            // Check how the Web App is configured to authenticate to ACR
+            Response<AppServiceConfigurationDictionary> appSettingsResponse = await webAppResource.GetApplicationSettingsAsync();
+             if (!appSettingsResponse.HasValue)
+            {
+                result.ErrorMessage = "Could not retrieve Web App application settings.";
+                 _logger.LogWarning(result.ErrorMessage);
+               return result;
+            }
+            var appSettings = appSettingsResponse.Value.Properties;
 
-            // Get the app settings to check for registry credentials
-            var appSettingsResult = await webAppResource.GetApplicationSettingsAsync();
-            var appSettings = appSettingsResult.Value.Properties;
-
-            // First, check if there are explicit registry credentials in app settings
-            bool hasExplicitCredentials = false;
+            // Case 1: Check for explicit username/password credentials in App Settings
             if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) &&
-                !string.IsNullOrEmpty(registryUrl) &&
-                registryUrl.Contains(registryName, StringComparison.OrdinalIgnoreCase))
+                registryUrl?.Contains(registryName, StringComparison.OrdinalIgnoreCase) == true &&
+                appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_USERNAME", out string username) && !string.IsNullOrEmpty(username) &&
+                appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_PASSWORD")) // Check if password key exists (value is hidden)
             {
-                hasExplicitCredentials = true;
-
-                // Check if username/password auth is configured
-                bool hasUsernamePassword = appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_USERNAME", out string username) &&
-                                        !string.IsNullOrEmpty(username) &&
-                                        appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_PASSWORD");
-
-                if (hasUsernamePassword)
-                {
-                    _logger.LogInformation($"Web App is configured to use username/password authentication for ACR {registryName}");
-
-                    // We can't verify the actual password, but we can note that username/password auth is being used
-                    result.IsAuthenticated = true;  // Assume authentication is properly configured
-                    result.ErrorMessage = "Web App is using username/password authentication for ACR. Cannot verify if credentials are correct.";
-                    result.PotentialSolution = "For improved security, consider using managed identity authentication instead of username/password.";
-                    return result;
-                }
+                _logger.LogInformation($"Web App is configured to use username/password authentication via App Settings for ACR {registryName}");
+                result.IsAuthenticated = true; // Assume configured correctly, cannot verify password
+                result.ErrorMessage = "Web App is using username/password authentication via App Settings for ACR. Cannot verify if credentials are correct.";
+                result.PotentialSolution = "For improved security and manageability, consider using managed identity authentication instead of storing credentials in App Settings.";
+                return result;
             }
 
-            // If no explicit credentials, or credentials are incomplete, check for managed identity
-            if (!hasExplicitCredentials ||
-                !appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_USERNAME") ||
-                !appSettings.ContainsKey("DOCKER_REGISTRY_SERVER_PASSWORD"))
-            {
-                _logger.LogInformation($"Checking managed identity configuration for Web App {resourceId}");
+            // Case 2: Check for Managed Identity configuration if explicit credentials aren't fully set
+            _logger.LogInformation($"No complete username/password configuration found in App Settings for {registryName}. Checking managed identity configuration.");
 
-                // Check if managed identity is enabled
-                if (webApp.Value.Data.Identity == null ||
-                    (webApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned &&
-                     webApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned &&
-                     webApp.Value.Data.Identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned))
-                {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = "No valid registry credentials found and no managed identity is enabled for the Web App";
-                    result.PotentialSolution = "Configure registry credentials in app settings or enable Managed Identity";
-                    return result;
-                }
-
-                // Get registry resource for ACR-Pull role check
-                var registry = await FindAcrResourceByName(armClient, resourceId, registryName);
-                if (registry == null)
-                {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = $"Could not find ACR with name {registryName}";
-                    result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
-                    return result;
-                }
-
-                // Check for system-assigned identity role assignment
-                bool hasProperRoleAssignment = false;
-
-                // Check system-assigned if enabled
-                if (webApp.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssigned ||
-                    webApp.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned)
-                {
-                    if (webApp.Value.Data.Identity.PrincipalId.HasValue)
-                    {
-                        hasProperRoleAssignment = await CheckSpecificUserAssignedIdentityRoleAsync(
-                            armClient,
-                            webApp.Value.Data.Identity.PrincipalId.Value,
-                            registry.Id);
-                    }
-                }
-
-                // If system-assigned doesn't have permission, check user-assigned identities
-                if (!hasProperRoleAssignment &&
-                    (webApp.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.UserAssigned ||
-                     webApp.Value.Data.Identity.ManagedServiceIdentityType == ManagedServiceIdentityType.SystemAssignedUserAssigned))
-                {
-                    if (webApp.Value.Data.Identity.UserAssignedIdentities != null)
-                    {
-                        foreach (var identity in webApp.Value.Data.Identity.UserAssignedIdentities)
-                        {
-                            if (identity.Value.PrincipalId.HasValue)
-                            {
-                                bool identityHasRole = await CheckSpecificUserAssignedIdentityRoleAsync(
-                                    armClient,
-                                    identity.Value.PrincipalId.Value,
-                                    registry.Id);
-
-                                if (identityHasRole)
-                                {
-                                    hasProperRoleAssignment = true;
-                                    break;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                if (!hasProperRoleAssignment)
-                {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = "No managed identity has AcrPull role on the registry";
-                    result.PotentialSolution = "Assign the AcrPull role to a managed identity on the ACR resource";
-                    return result;
-                }
-            }
-
-            // Check for network connectivity issues via NSG rules
-            var nsgRules = await GetNetworkSecurityRulesForResource(resourceId);
-            bool hasBlockingRules = CheckForBlockingNsgRules(nsgRules, registryName);
-            if (hasBlockingRules)
+            var identity = webApp.Data.Identity;
+            if (identity == null ||
+                (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned &&
+                 identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned &&
+                 identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned))
             {
                 result.IsAuthenticated = false;
-                result.ErrorMessage = $"NSG rules may be blocking access to ACR {registryName}";
-                result.PotentialSolution = "Add outbound allow rule for ACR in the NSG";
+                result.ErrorMessage = "No valid registry credentials found in App Settings and no Managed Identity (System or User-Assigned) is enabled for the Web App.";
+                result.PotentialSolution = "Configure registry credentials in App Settings (DOCKER_REGISTRY_SERVER_...) or enable Managed Identity and grant it the 'AcrPull' role on the registry.";
+                _logger.LogWarning(result.ErrorMessage);
                 return result;
             }
 
-            // Check if we can connect to the registry endpoint
-            var connectivityResult = await TestConnectivityToRegistryAsync(registryName);
-            if (!connectivityResult.IsConnected)
+            // Find the ACR resource
+            var registry = await FindAcrResourceByName(armClient, resourceId, registryName);
+            if (registry == null)
             {
                 result.IsAuthenticated = false;
-                result.ErrorMessage = connectivityResult.ErrorMessage;
-                result.PotentialSolution = connectivityResult.PotentialSolution;
-                return result;
+                result.ErrorMessage = $"Could not find ACR with name {registryName}";
+                result.PotentialSolution = "Verify the registry exists and is accessible from your subscription";
+                 _logger.LogWarning(result.ErrorMessage);
+               return result;
             }
 
-            // Check if the image exists in the registry
-            var imageExists = await CheckImageExistsInAcr(imageReference);
-            if (!imageExists)
+            // Check if any enabled managed identity has the AcrPull role
+            bool hasProperRoleAssignment = await CheckManagedIdentityRoleAssignmentAsync(armClient, identity, registry.Id, false); // Check all identities
+
+            if (!hasProperRoleAssignment)
             {
-                result.IsAuthenticated = true; // We can authenticate, but the image doesn't exist
-                result.ErrorMessage = $"The image {imageReference} was not found in the registry";
-                result.PotentialSolution = "Verify the image reference is correct and the image has been pushed to the registry";
+                result.IsAuthenticated = false;
+                result.ErrorMessage = "No configured Managed Identity (System or User-Assigned) has the required 'AcrPull' (or equivalent) role on the registry.";
+                result.PotentialSolution = "Assign the 'AcrPull' role to either the System-Assigned or a User-Assigned Managed Identity on the ACR resource and ensure the identity is enabled on the Web App.";
+                _logger.LogWarning(result.ErrorMessage);
                 return result;
             }
 
-            // If we passed all checks, the web app should be able to authenticate
+            // If role assignment is correct
             result.IsAuthenticated = true;
+             _logger.LogInformation($"A Managed Identity configured on the Web App has appropriate role assignment on ACR {registryName}.");
             return result;
         }
 
@@ -1007,7 +924,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Handle Container Apps
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
                     var resourceGroup = armClient.GetResourceGroupResource(
                         new ResourceIdentifier($"/subscriptions/{resourceIdentifier.SubscriptionId}/resourceGroups/{resourceIdentifier.ResourceGroupName}"));
@@ -1053,7 +970,7 @@ namespace Agent.Plugins.Implementation
                     };
                 }
                 // Handle Linux Web Apps
-                else if (await CheckIsLinuxApp(resourceId))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var webApp = await webAppResource.GetAsync();
@@ -1340,8 +1257,9 @@ namespace Agent.Plugins.Implementation
             try
             {
                 var armClient = _armClientFactory.GetArmClient();
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
 
-                if (resourceId.Contains("Microsoft.App/containerApps"))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
                     var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                     var containerApp = await containerAppResource.GetAsync();
@@ -1371,7 +1289,7 @@ namespace Agent.Plugins.Implementation
                         return AnalyzeContainerLogs(logs);
                     }
                 }
-                else if (await CheckIsLinuxApp(resourceId))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var logs = await webAppResource.GetWebSiteContainerLogsAsync();
@@ -1408,14 +1326,8 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private async Task<bool> CheckIsLinuxApp(string resourceId)
+        private async Task<bool> CheckIsLinuxApp(ResourceIdentifier resourceIdentifier, ArmClient armClient)
         {
-            var resourceIdentifier = new ResourceIdentifier(resourceId);
-            if (resourceIdentifier.ResourceType != new ResourceType("Microsoft.Web/sites"))
-            {
-                return false;
-            }
-            var armClient = _armClientFactory.GetArmClient();
             var app = (await armClient.GetWebSiteResource(resourceIdentifier).GetAsync()).Value;
             string kind = app.Data.Kind.ToLower();
             return kind.IndexOf("linux") >= 0;
@@ -1425,30 +1337,33 @@ namespace Agent.Plugins.Implementation
 
         private async Task<ContainerRegistryResource> FindAcrResourceByName(ArmClient armClient, string appResourceId, string registryName)
         {
+             _logger.LogInformation($"Attempting to find ACR '{registryName}' accessible from resource {appResourceId}");
+            // Assuming appResourceId gives context for the subscription
+            var appIdentifier = new ResourceIdentifier(appResourceId);
+            var subscription = armClient.GetSubscriptionResource(appIdentifier);
+
             try
             {
-                var containerAppId = new ResourceIdentifier(appResourceId);
-                var subscriptionId = containerAppId.SubscriptionId;
-
-                var subscription = armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
-                var registries = subscription.GetContainerRegistries();
-
-                // Query for ACRs with the given name
-                await foreach (var registry in registries.ToAsyncEnumerable())
+                // Search within the same subscription first
+                await foreach (var acr in subscription.GetContainerRegistriesAsync())
                 {
-                    if (registry.Data.Name.Equals(registryName, StringComparison.OrdinalIgnoreCase))
+                    // Simple name check - might need FQDN check depending on registryName format
+                    if (acr.Data.Name.Equals(registryName, StringComparison.OrdinalIgnoreCase) ||
+                        acr.Data.LoginServer?.StartsWith(registryName + ".", StringComparison.OrdinalIgnoreCase) == true)
                     {
-                        return registry;
+                         _logger.LogInformation($"Found ACR '{acr.Data.Name}' in subscription {appIdentifier.SubscriptionId}");
+                        return acr;
                     }
                 }
 
-                return null;
+                 _logger.LogWarning($"ACR '{registryName}' not found in subscription {appIdentifier.SubscriptionId}. Broader search might be needed if cross-subscription access is expected.");
+                // Potentially extend to search across subscriptions if necessary and feasible
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error finding ACR by name: {registryName}");
-                return null;
+                _logger.LogError(ex, $"Error finding ACR with name {registryName} in subscription {appIdentifier.SubscriptionId}");
             }
+            return null;
         }
 
         private async Task<ConnectivityTestResult> TestConnectivityToRegistryAsync(string registryName)
@@ -2458,12 +2373,12 @@ namespace Agent.Plugins.Implementation
                 var resourceIdentifier = new ResourceIdentifier(resourceId);
 
                 // Check if this is a Container App
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
                     return await RollbackContainerApp(armClient, resourceId);
                 }
                 // Check if this is a Web App
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
                     return await RollbackWebApp(armClient, resourceId);
                 }
@@ -2733,6 +2648,9 @@ namespace Agent.Plugins.Implementation
                     _logger.LogInformation($"Rolling back Web App {resourceId} to previous image: {targetImageReference}");
                     await webAppResource.UpdateAsync(new SitePatchInfo { SiteConfig = siteConfigUpdate });
 
+                    // Restart the app to apply changes
+                    await webAppResource.RestartAsync();
+
                     // Add information to result
                     result.IsSuccessful = true;
                     result.RolledBackToImage = targetImageReference;
@@ -2774,14 +2692,15 @@ namespace Agent.Plugins.Implementation
             {
                 // Get the ARM client
                 var armClient = _armClientFactory.GetArmClient();
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
 
                 // Check if this is a Container App
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
                     return await UpdateContainerAppImage(armClient, resourceId, newImageReference, containerName);
                 }
                 // Check if this is a Linux Web App
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
                     return await UpdateWebAppImage(armClient, resourceId, newImageReference);
                 }
@@ -3006,9 +2925,10 @@ namespace Agent.Plugins.Implementation
             try
             {
                 var armClient = _armClientFactory.GetArmClient();
-                
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
+
                 // Check if this is a Container App or Web App
-                if (resourceId.Contains("Microsoft.App/containerApps", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
                     // Get the Container App resource
                     var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
@@ -3106,7 +3026,7 @@ namespace Agent.Plugins.Implementation
                         }
                     }
                 }
-                else if (resourceId.Contains("Microsoft.Web/sites", StringComparison.OrdinalIgnoreCase))
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
                     // Get the Web App resource
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
