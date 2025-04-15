@@ -76,8 +76,6 @@ var host = new HostBuilder()
     {
         var configuration = context.Configuration;
 
-        services.AddSingleton<ISessionMessageService, SessionMessageService>();
-
         services.RegisterServiceDependencies();
         services.ConfigureSemanticKernel();
         services.AddSingleton<IChatService, ChatProcessingService>();

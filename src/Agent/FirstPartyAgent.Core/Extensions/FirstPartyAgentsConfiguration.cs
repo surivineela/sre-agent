@@ -25,6 +25,7 @@ namespace FirstPartyAgent.Core.Extensions
         public static void RegisterServiceDependencies(this IServiceCollection services)
         {
             services.RegisterFirstPartyAppSettings();
+            services.AddSingleton<ISessionMessageService, SessionMessageService>();
             services.AddSingleton<FirstPartyAgent.Core.Plugins.TimePlugin>();
             services.AddSingleton<IICMAPIClient, ICMAPIClient>();
             services.AddSingleton<ObserverClientService>();
