@@ -140,7 +140,6 @@ builder.Host.UseSerilog();
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<ContainerImagePullFailureAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
-        .AddSingleton<IGraphDbService, GraphDbService>()
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<AzureSupportCenterHelper>()
         .AddSingleton<IAzureSupportCenterPlugin, AzureSupportCenterPlugin>()
@@ -352,7 +351,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 // Add GraphService registration
-builder.Services.AddScoped<IGraphService, GraphService>();
+builder.Services.AddSingleton<IGraphService, GraphService>();
 
 var app = builder.Build();
 

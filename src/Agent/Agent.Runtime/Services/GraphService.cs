@@ -7,9 +7,9 @@ using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
-using Microsoft.Graph.Models.ExternalConnectors;
+using Microsoft.Extensions.Logging;
 
-namespace Agent.Core.Services;
+namespace Agent.Runtime.Services;
 
 public class GraphService : IGraphService
 {
@@ -17,7 +17,7 @@ public class GraphService : IGraphService
     private readonly ILogger<GraphService> _logger;
     private readonly string _grafanaUrl;
     private readonly string _grafanaToken;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
     private readonly DashboardSettings _dashboardSettings;
 
     private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
@@ -30,7 +30,7 @@ public class GraphService : IGraphService
             // Pending: webapp, sql
         };
 
-    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger)
+    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory)
     {
         _graphDatabaseClient = graphDatabaseClient;
         _logger = logger;
@@ -38,7 +38,15 @@ public class GraphService : IGraphService
 
         _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
         _grafanaToken = dashboardSettings.GrafanaApiKey;
-        _httpClient = new HttpClient();
+        _httpClientFactory = httpClientFactory;
+    }
+
+    private HttpClient GetHttpClient()
+    {
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Clear();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_grafanaToken}");
+        return client;
     }
 
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
@@ -184,6 +192,29 @@ public class GraphService : IGraphService
         return appGroupItems;
     }
 
+    public async Task<List<ArmResourceNode>> GetAllResourceNodes()
+    {
+        _logger.LogInformation("Fetching all resource nodes from the graph database.");
+        var allResourceNodes = await _graphDatabaseClient.Query("g.V().project('resourceType', 'resourceName','resourceGroupName','subscriptionId', 'resourceId').by(coalesce(values('resourceType'), constant('MISSING'))).by(coalesce(values('resourceName'), constant('MISSING'))).by(coalesce(values('resourceGroupName'), constant('MISSING'))).by(coalesce(values('subscriptionId'), constant('MISSING'))).by(coalesce(values('resourceId'), constant('MISSING')))");
+
+        if (allResourceNodes is null || allResourceNodes.Count == 0)
+        {
+            _logger.LogWarning("No resource nodes found in the graph database.");
+            return [];
+        }
+
+        _logger.LogInformation($"Fetched {allResourceNodes.Count} resource nodes from the graph database.");
+
+        return [.. allResourceNodes.Select(node => new ArmResourceNode
+            {
+                ResourceType = node["resourceType"],
+                ResourceName = node["resourceName"],
+                ResourceGroupName = node["resourceGroupName"],
+                SubscriptionId = node["subscriptionId"],
+                ResourceId = node["resourceId"]
+            })];
+    }
+
     /*
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
     {
@@ -257,9 +288,8 @@ public class GraphService : IGraphService
                     string dashboardUrl = baseUrl;
                     try
                     {
-                        _httpClient.DefaultRequestHeaders.Clear();
-                        _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_dashboardSettings.GrafanaApiKey}");
-                        var dashboardResponse = await _httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
+                        using var httpClient = GetHttpClient();
+                        var dashboardResponse = await httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
                         dashboardResponse.EnsureSuccessStatusCode();
                         var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
                         var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
@@ -347,13 +377,5 @@ public class GraphService : IGraphService
         // Append the query string to the URL
         return $"{url}{separator}{queryString}";
     }
-
-    public class AppGroupItem
-    {
-        public string Name { get; set; }
-        public string Type { get; set; }
-        public string ResourceId { get; set; }
-        public AppHealthInfo? AppHealthInfo { get; set; } // this is a JSON string of the properties
-        public List<AppGroupItem>? SubItems { get; set; } // this is children of the resource
-    }
+    
 }

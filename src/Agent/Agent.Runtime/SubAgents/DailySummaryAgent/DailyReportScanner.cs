@@ -45,7 +45,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly List<string> _dashboardsToActivate;
         private readonly string _puppeteerScreenshotApiUrl;
         private readonly DashboardSettings _dashboardSettings;
-        private readonly IGraphDbService _graphDbService;
+        private readonly IGraphService _graphDbService;
         private readonly bool _persistScreenshotsInFolder;
         private List<ArmResourceNode> _armResourceNodes;
 
@@ -74,7 +74,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             HttpClient httpClient,
             IChatClient chatClient,
             DashboardSettings dashboardSettings,
-            IGraphDbService graphDbService,
+            IGraphService graphDbService,
             string mainDashboardFile = "Main-Dashboard.json",
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
@@ -973,7 +973,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             foreach (var dashboard in dashboards)
             {
                 var dashboardJson = File.ReadAllText(dashboard);
+                dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
                 await PublishDashboardToManagedGrafana(dashboardJson, accessToken, []);
+                _logger.LogInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));
             }
         }
     }

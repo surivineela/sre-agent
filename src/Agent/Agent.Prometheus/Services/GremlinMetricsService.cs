@@ -1,4 +1,6 @@
 using System.Collections.Concurrent;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Prometheus.Extensions;
 using Gremlin.Net.Driver;
@@ -28,6 +30,14 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     private readonly IGraphDatabaseClient _graphDatabaseClient;
     private readonly IRemoteWriteService _remoteWriteService;
     private readonly string _agentName;
+
+    private readonly Gauge _appHealthGauge;
+    private readonly Gauge _appAvailabilityGauge;
+    private readonly Gauge _appTransactionsGauge;
+    private readonly Gauge _appCostsGauge;
+    private readonly Gauge _appAvgLatencyInMsGauge;
+    private readonly Gauge _appAvgMemoryUsageGauge;
+    private readonly Gauge _appAvgCpuUsageGauge;
 
     public GremlinMetricsService(
         IMetricsRegistry metricsRegistry,
@@ -91,13 +101,48 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         {
             LabelNames = new[] { "property" }
         });
+
+        _appHealthGauge = Metrics.CreateGauge("app_group_health", "App health status", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
+
+        _appAvailabilityGauge = Metrics.CreateGauge("app_group_availability", "App availability status", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
+
+        _appAvgCpuUsageGauge = Metrics.CreateGauge("app_group_avg_cpu_usage", "App average CPU usage", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
+
+        _appAvgLatencyInMsGauge = Metrics.CreateGauge("app_group_avg_latency_in_ms", "App average latency in milliseconds", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
+
+        _appAvgMemoryUsageGauge = Metrics.CreateGauge("app_group_avg_memory_usage", "App average memory usage", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
+
+        _appCostsGauge = Metrics.CreateGauge("app_group_costs", "App costs", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
+
+        _appTransactionsGauge = Metrics.CreateGauge("app_group_transactions", "App transactions", new GaugeConfiguration
+        {
+            LabelNames = new[] { "resource_type", "resource_id", "subscription_id", "location" }
+        });
     }
 
     private bool ShouldBeExported(string metricName)
     {
         // Check if the metric name is in the list of core metrics.
         // Please update this if new core metrics are added that are not prefixed with "gremlin_"
-        if (metricName.StartsWith("gremlin_"))
+        if (metricName.StartsWith("gremlin_") || metricName.StartsWith("app_group_"))
         {
             return true;
         }
@@ -129,6 +174,9 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
         // Remote write metrics to Azure Managed Prometheus
         Task.Run(async () => await RemoteWriteMetricsAsync(_cancellationTokenSource.Token));
+
+        // App group metrics collection
+        Task.Run(async () => await CollectAppGroupMetrics(_cancellationTokenSource.Token));
     }
 
     // Export metrics in Text format and remote write to Azure Managed Prometheus(Azure Monitor Workspace)
@@ -176,6 +224,100 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             }
 
             await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
+        }
+    }
+
+    record AppGroupMetricsItem(
+        [property: JsonPropertyName("resourceType")] string ResourceType,
+        [property: JsonPropertyName("resourceId")] string ResourceId,
+        [property: JsonPropertyName("subscriptionId")] string SubscriptionId,
+        [property: JsonPropertyName("location")] string Location,
+        [property: JsonPropertyName("appHealthInfo")] string AppHealthInfo
+    );
+    
+
+    private async Task CollectAppGroupMetrics(CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Starting App group metrics collection");
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                var appGroups = await _graphDatabaseClient.Query<Dictionary<string, object>>("g.V().has('appHealthInfo').project('resourceType','resourceId', 'subscriptionId', 'location', 'appHealthInfo').by(values('resourceType')).by(values('resourceId')).by(values('subscriptionId')).by(values('location')).by(values('appHealthInfo'))");
+                foreach (var app in appGroups)
+                {
+                    if (app is not null)
+                    {
+                        var resourceType = app.TryGetValue("resourceType", out var type) ? type.ToString() : null;
+                        var resourceId = app.TryGetValue("resourceId", out var id) ? id.ToString() : null;
+                        var subscriptionId = app.TryGetValue("subscriptionId", out var subId) ? subId.ToString() : null;
+                        var location = app.TryGetValue("location", out var loc) ? loc.ToString() : null;
+                        var appHealthInfoJson = app.TryGetValue("appHealthInfo", out var healthInfo) ? healthInfo.ToString() : null;
+
+                        if (resourceType == null || resourceId == null || subscriptionId == null || location == null || appHealthInfoJson == null)
+                        {
+                            _logger.LogWarning("App group metrics is missing required fields: {ResourceType}, {ResourceId}, {SubscriptionId}, {Location}, {AppHealthInfo}", resourceType, resourceId, subscriptionId, location, appHealthInfoJson);
+                            continue;
+                        }
+
+                        var appHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+                        if (appHealthInfo is not null && appHealthInfo.IsActive)
+                        {
+                            if (appHealthInfo.Costs.HasValue)
+                            {
+                                double cost = appHealthInfo.Costs.Value;
+                                _appCostsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(cost);
+                            }
+
+                            if (appHealthInfo.AvgCpuUsage.HasValue)
+                            {
+                                double cpuUsage = appHealthInfo.AvgCpuUsage.Value;
+                                _appAvgCpuUsageGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(cpuUsage);
+                            }
+
+                            if (appHealthInfo.AvgLatencyInMs.HasValue)
+                            {
+                                double latency = appHealthInfo.AvgLatencyInMs.Value;
+                                _appAvgLatencyInMsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(latency);
+                            }
+                            
+                            if (appHealthInfo.AvgMemoryUsage.HasValue)
+                            {
+                                double memoryUsage = appHealthInfo.AvgMemoryUsage.Value;
+                                _appAvgMemoryUsageGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(memoryUsage);
+                            }
+
+                            if (appHealthInfo.Availability.HasValue)
+                            {
+                                double availability = appHealthInfo.Availability.Value;
+                                _appAvailabilityGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(availability);
+                            }
+
+                            if (appHealthInfo.Transactions.HasValue)
+                            {
+                                double transactions = appHealthInfo.Transactions.Value;
+                                _appTransactionsGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(transactions);
+                            }
+
+                            int health = (int)appHealthInfo.Health;
+                            _appHealthGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(health);
+                        }
+
+                        _logger.LogInformation("Got App group metrics: {ResourceType}, {ResourceId}, {SubscriptionId}, {Location}, {AppHealthInfo}", resourceType, resourceId, subscriptionId, location, appHealthInfoJson);
+                    }
+                    else
+                    {
+                        _logger.LogWarning("App group metrics is null");
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _errorsCounter.WithLabels("app_group").Inc();
+                _logger.LogWarning(ex, "App group metrics collection failed");
+            }
+
+            await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
         }
     }
 

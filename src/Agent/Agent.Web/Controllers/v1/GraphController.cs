@@ -1,10 +1,9 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
-using Agent.Core.Services;
+using Agent.Runtime.Services;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
-using static Agent.Core.Services.GraphService;
 
 namespace Agent.Web.Controllers.v1
 {

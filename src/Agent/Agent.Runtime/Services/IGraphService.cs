@@ -2,9 +2,18 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
-using static Agent.Core.Services.GraphService;
-namespace Agent.Core.Services;
+namespace Agent.Runtime.Services;
+
+public class AppGroupItem
+{
+    public required string Name { get; set; }
+    public required string Type { get; set; }
+    public required string ResourceId { get; set; }
+    public AppHealthInfo? AppHealthInfo { get; set; } // this is a JSON string of the properties
+    public List<AppGroupItem>? SubItems { get; set; } // this is children of the resource
+}
 
 public interface IGraphService
 {
@@ -39,4 +48,6 @@ public interface IGraphService
     /// <param name="resourceId">The resource ID</param>
     /// <returns>The graph resource</returns>
     Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId);
+
+    Task<List<ArmResourceNode>> GetAllResourceNodes();
 }

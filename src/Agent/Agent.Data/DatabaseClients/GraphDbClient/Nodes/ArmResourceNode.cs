@@ -82,22 +82,23 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public IDictionary<string, object> AdditionalMetrics { get; set; } = new Dictionary<string, object>();
 
         // time since lastActivity
-        public DateTime? timeSinceLastActivity { get; set; }
+        public DateTime? TimeSinceLastActivity { get; set; }
 
         // if resource IsActive 
+        [JsonIgnore]
         public bool IsActive
         {
             get
             {
                 if (Transactions != null && Transactions > 0 || AvgCpuUsage != null && AvgCpuUsage > 0 || AvgMemoryUsage != null && AvgMemoryUsage > 0)
                 {
-                    timeSinceLastActivity = DateTime.UtcNow;
+                    TimeSinceLastActivity = DateTime.UtcNow;
                 }
 
                 // If we have scanned in the last 30 mins and never set a timeSinceLastActivity then it has never been active
                 // If there's been no activity for 24 hours, it's inactive
-                if ((DateTime.UtcNow - LastDataCaptureTimeStampInUTC) > TimeSpan.FromMinutes(30) && timeSinceLastActivity == null ||
-                        (timeSinceLastActivity.HasValue && DateTime.UtcNow - timeSinceLastActivity.Value >= TimeSpan.FromHours(24)))
+                if ((DateTime.UtcNow - LastDataCaptureTimeStampInUTC) > TimeSpan.FromMinutes(30) && TimeSinceLastActivity == null ||
+                        (TimeSinceLastActivity.HasValue && DateTime.UtcNow - TimeSinceLastActivity.Value >= TimeSpan.FromHours(24)))
                 {
                     return false;
                 }
