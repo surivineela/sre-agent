@@ -25,7 +25,7 @@ namespace Agent.Runtime.Services
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
         }
 
-        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, ThreadContext? threadContext, string orchestrationId)
+        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, ThreadContext? threadContext, string orchestrationId, string? oboToken = null)
         {
             _logger.LogInformation($"Processing approval decision for {approvalId} with status {status}");
 
@@ -37,7 +37,8 @@ namespace Agent.Runtime.Services
                     StartTime: DateTime.UtcNow,
                     ApprovedTime: DateTime.UtcNow,
                     DecisionMaker: user,
-                    ProcessedTime: null
+                    ProcessedTime: null,
+                    OboToken: oboToken
                     );
 
                 await _durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);

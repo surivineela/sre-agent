@@ -1,5 +1,7 @@
 using System.Reflection;
 using System.Text.Json.Serialization;
+using Agent.Core.Attributes;
+using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Attributes;
@@ -22,6 +24,7 @@ public class OrchestrationAgent
     public bool Done { get; set; } = false;
     public bool ResponseFromUserIsPending { get; set; } = false;
     public List<Task<ChatMessage>> Pending202Activities { get; set; } = new();
+    public ApprovalStatus? ApprovalStatus { get; set; } = null;
 
     public Task<ChatMessage> _newMessageTask;
     private ILogger log;
@@ -74,13 +77,65 @@ public class OrchestrationAgent
             StepCounter = this.StepCount,
             ToolSignatures = this.ToolSignatures,
         });
+
         log.LogInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
-        this.ChatHistory.AddRange(reasoningResult.ChatMessages);
 
         var functionCalls = reasoningResult.ChatMessages.Last().Contents.OfType<FunctionCallContent>();
         log.LogInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
         // Extract the function call (assumes a single function call in the message)
         var functionCall = functionCalls.Single();
+
+        bool requiresApproval = await _taskOrchestrationContext.CallCheckRequiresApprovalActivityAsync((ToolSignatures, functionCall.Name));
+        if (requiresApproval)
+        {
+            if (WaitTask != null && WaitTask is Task<ApprovalStatus> approvalTask)
+            {
+                if (approvalTask.IsCompleted)
+                {
+                    ApprovalStatus = await approvalTask;
+                    WaitTask = null;
+                    log.LogInformation("[{ThreadId}] Approval status retrieved: {ApprovalStatus}", threadId, ApprovalStatus.ToString());
+                }
+                else
+                {
+                    // Move to the next iteration if the approval task is not completed
+                    return;
+                }
+            }
+
+            // Check if the approval status is approved. If yes, the function call will continue; otherwise, it will be redirected to the approval service tool
+            if (ApprovalStatus == null || !ApprovalStatus.IsApproved)
+            {
+                log.LogInformation("[{ThreadId}] function call to {FunctionCall} requires approval. Intercepted this call and redirected to the approval service.", threadId, functionCall.Name);
+
+                // replace the function call to the approval service call
+                string callId = functionCall.CallId;    // use the original callId for convenience
+                var approvalFunctionCall = new FunctionCallContent(callId, nameof(ApprovalPluginDefinition.StartApprovalFlow), new Dictionary<string, object?>
+                {
+                    { "operationName", functionCall.Name },
+                    { "description", "Generated approval request of " + functionCall.Name }
+                });
+                this.ChatHistory.Add(new ChatMessage(ChatRole.Assistant, [approvalFunctionCall]));
+                functionCall = approvalFunctionCall;
+            }
+            else
+            {
+                log.LogInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
+                this.ChatHistory.AddRange(reasoningResult.ChatMessages);
+            }
+        }
+        else
+        {
+            this.ChatHistory.AddRange(reasoningResult.ChatMessages);
+        }
+
+        if (!string.IsNullOrEmpty(ApprovalStatus?.OboToken))
+        {
+            if (functionCall.Arguments != null)
+            {
+                functionCall.Arguments["oboToken"] = ApprovalStatus.OboToken;
+            }
+        }
 
         // For thread specific functions, set the accurate threadId in case of LLM hallucination
         bool isThreadSpecific = IsThreadSpecificFunction(functionCall.Name, this.ToolSignatures);
@@ -92,6 +147,7 @@ public class OrchestrationAgent
         var step = OrchestrationAgentStep.CreateStep(functionCall);
         await step.ExecuteAsync(_taskOrchestrationContext, this);
     }
+
     public void UpdateOrchestrationStatus()
     {
         string jsonChatHistory = System.Text.Json.JsonSerializer.Serialize(this.ChatHistory, new System.Text.Json.JsonSerializerOptions
@@ -124,13 +180,20 @@ public class OrchestrationAgent
                 tasksToWaitFor.Add(agent.WaitTask);
             }
 
-            await Task.WhenAny(tasksToWaitFor);
+            var task = await Task.WhenAny(tasksToWaitFor);
             log.LogInformation("[{ThreadId}] Some task completed", threadId);
 
             if (agent.WaitTask != null && agent.WaitTask.IsCompleted)
             {
                 // TODO: error handling
-                await agent.WaitTask;
+                if (agent.WaitTask is Task<ApprovalStatus>)
+                {
+                    ApprovalStatus = await (Task<ApprovalStatus>)agent.WaitTask;
+                }
+                else
+                {
+                    await agent.WaitTask;
+                }
                 agent.WaitTask = null;
                 log.LogInformation("[{ThreadId}] waitTask completed", threadId);
             }

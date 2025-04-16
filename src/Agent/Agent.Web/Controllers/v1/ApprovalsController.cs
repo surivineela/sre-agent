@@ -139,7 +139,9 @@ namespace Agent.Web.Controllers.v1
                 return BadRequest(new { error = $"Invalid status value: {request.Status}" });
             }
 
-            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, threadContext, orchestrationId);
+            string oboToken = "placeholder"; // TODO: Get OBO token from request or context
+
+            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, threadContext, orchestrationId, oboToken);
             return Ok();
         }
 

@@ -1,7 +1,7 @@
+using Agent.Core.Models;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Microsoft.SemanticKernel.ChatCompletion;
 
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
@@ -40,7 +40,7 @@ public class OrchestrationAgentStartApprovalStep : OrchestrationAgentStep
         log.LogInformation("[{ThreadId}] User notified about approval with link: {ApprovalLink}. Trying to start ApprovalOrchestration", threadId, approvalLink);
 
         // Start the approval suborchestration
-        agent.WaitTask = context.CallSubOrchestratorAsync(
+        agent.WaitTask = context.CallSubOrchestratorAsync<ApprovalStatus>(
             new TaskName(nameof(ApprovalOrchestration)),
             approvalInput,
             new SubOrchestrationOptions { InstanceId = approvalInstanceId }

@@ -10,7 +10,8 @@ public sealed record ApprovalStatus(
     DateTime? ApprovedTime,
     string? DecisionMaker,
     DateTime? ProcessedTime,
-    string description = "")
+    string description = "",
+    string? OboToken = null)
 {
     public bool IsApproved => ApprovedTime.HasValue;
 
