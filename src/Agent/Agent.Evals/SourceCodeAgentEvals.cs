@@ -1,9 +1,11 @@
 using Agent.Core.Interfaces;
+using Agent.Core.Configuration;
 using Agent.Core.Models;
 using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
+using Agent.Runtime;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Azure.AI.OpenAI;
 using Azure.ResourceManager.AppContainers;
@@ -14,6 +16,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Newtonsoft.Json;
@@ -25,6 +28,7 @@ public sealed class SourceCodeAgentEvals
 {
     public TestContext TestContext { get; set; }
 
+    private IHost _host;
     private ChatConfiguration _chatConfiguration;
 
     private static int _iterationCount = 10; // Default value
@@ -48,30 +52,8 @@ public sealed class SourceCodeAgentEvals
     [TestInitialize]
     public void TestInitialize()
     {
-        // This method is called before each test method in the class.
-        // You can use it to set up any necessary state or resources.
-        string apiKey = Environment.GetEnvironmentVariable("OpenAIKey");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API key is missing. Pass it as a TestRunParameter.");
-        }
-
-        string aiModel = Environment.GetEnvironmentVariable("OpenAIModel");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API model is missing. Pass it as a TestRunParameter.");
-        }
-
-        string aiEndpoint = Environment.GetEnvironmentVariable("OpenAIEndpoint");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API endpoint is missing. Pass it as a TestRunParameter.");
-        }
-
-        IChatClient client =
-            new AzureOpenAIClient(new Uri(aiEndpoint), new System.ClientModel.ApiKeyCredential(apiKey))
-                .AsChatClient(modelId: aiModel);
-
+        _host = TestHelpers.BuildTestHost();
+        IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         IEvaluationTokenCounter? tokenCounter = null;
         _chatConfiguration = new ChatConfiguration(client, tokenCounter);
     }

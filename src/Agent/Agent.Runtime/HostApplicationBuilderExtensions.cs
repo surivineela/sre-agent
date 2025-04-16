@@ -78,6 +78,20 @@ namespace Agent.Runtime
             });
         }
 
+        public static void RegisterAppSettingsNoValidation<TAppSettings>(this IHostApplicationBuilder builder)
+            where TAppSettings : AppSettings
+        {
+            builder.Services.AddOptionsWithValidateOnStart<TAppSettings>()
+                .BindConfiguration("AppSettings");
+
+            builder.Services.AddSingleton(sp =>
+            {
+                return sp.GetRequiredService<IOptions<TAppSettings>>().Value;
+                
+            });
+            builder.Services.RegisterInnerAppSettings<TAppSettings>(builder.Configuration);
+        }
+
         public static void ValidateAndRegisterAppSettings<TAppSettings>(this IHostApplicationBuilder builder)
             where TAppSettings : AppSettings
         {

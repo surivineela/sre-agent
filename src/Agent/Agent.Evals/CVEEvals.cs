@@ -18,6 +18,7 @@ using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Hosting;
 using Moq;
 using Newtonsoft.Json;
 using OpenAI.Chat;
@@ -30,6 +31,7 @@ public sealed class CVEEvals
 {
     public TestContext TestContext { get; set; }
 
+    private IHost _host;
     private ChatConfiguration _chatConfiguration;
 
     private static int _iterationCount = 10; // Default value
@@ -53,30 +55,8 @@ public sealed class CVEEvals
     [TestInitialize]
     public void TestInitialize()
     {
-        // This method is called before each test method in the class.
-        // You can use it to set up any necessary state or resources.
-        string apiKey = Environment.GetEnvironmentVariable("OpenAIKey");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API key is missing. Pass it as a TestRunParameter.");
-        }
-
-        string aiModel = Environment.GetEnvironmentVariable("OpenAIModel");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API model is missing. Pass it as a TestRunParameter.");
-        }
-
-        string aiEndpoint = Environment.GetEnvironmentVariable("OpenAIEndpoint");
-        if (string.IsNullOrEmpty(apiKey))
-        {
-            throw new InvalidOperationException("OpenAI API endpoint is missing. Pass it as a TestRunParameter.");
-        }
-
-        IChatClient client =
-            new AzureOpenAIClient(new Uri(aiEndpoint), new System.ClientModel.ApiKeyCredential(apiKey))
-                .AsChatClient(modelId: aiModel);
-
+        _host = TestHelpers.BuildTestHost();
+        IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         IEvaluationTokenCounter? tokenCounter = null;
         _chatConfiguration = new ChatConfiguration(client, tokenCounter);
     }
