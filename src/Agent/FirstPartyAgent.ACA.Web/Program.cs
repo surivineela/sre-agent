@@ -27,6 +27,7 @@ public class Program
         builder.Services.AddSingleton<IIcmPlugin, IcmPlugin>();
         builder.Services.AddSingleton<IContainerAppsPlugin, ContainerAppsPlugin>();
         builder.Services.AddSingleton<KustoClientService>();
+        builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
         builder.Services.AddSingleton<ICMWorkflowClient>();
         builder.Services.AddSingleton<ITaskStorageService, FileBasedStorageService>();        

@@ -227,15 +227,11 @@ module agentWeb 'br/public:avm/res/app/container-app:0.12.2' = {
               value: agentWebIdentity.outputs.clientId
             }
             {
-              name: 'AppSettings__Core__External__ICMWorkflow__WorkflowsEndpoint'
-              value: 'https://resource-provider.genevaautomation.ms/icm/services/f7c85136-4f1f-417c-bb3d-d540a26746c8/workflows'
-            }
-            {
-              name: 'AppSettings__Core__External__ICMWorkflow__CertificateFilePath'
+              name: 'AppSettings__Core__External__ICMWorkflows__CertificateFilePath'
               value: 'base64:/mnt/icm-automation/client-cert.pfx'
             }
             {              
-              name: 'AppSettings__Core__External__ICMWorkflow__PostIncidentDiscussionUrl'
+              name: 'AppSettings__Core__External__ICMWorkflows__PostIncidentDiscussionUrl'
               secretRef: 'logicapp-post-incident-discussion-url'
             }
           ],

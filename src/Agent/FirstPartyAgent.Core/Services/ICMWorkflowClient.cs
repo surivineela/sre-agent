@@ -10,6 +10,7 @@ using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using FirstPartyAgent.Core.Configuration;
+using Agent.Core.Helpers;
 
 namespace FirstPartyAgent.Core.Services
 {
@@ -45,9 +46,9 @@ namespace FirstPartyAgent.Core.Services
                 {
                     throw new Exception("The environment variable 'ICMWorkflows:WorkflowsEndpoint' is not set.");
                 }
-                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName))
+                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
                 {
-                    throw new Exception("The environment variable 'ICMWorkflows:CertificateSubjectName' is not set.");
+                    throw new Exception("You need to set at least one of the two environment variables - 'ICMWorkflows:CertificateSubjectName' or 'ICMWorkflows:CertificateFilePath'.");
                 }
                 if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName))
                 {
@@ -77,6 +78,17 @@ namespace FirstPartyAgent.Core.Services
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                }
+                else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
+                {
+                    var handler = new HttpClientHandler();
+                    var certificate = CertLoader.LoadCertFromFile(_icmWorkflowSettings.CertificateFilePath);
+                    handler.ClientCertificates.Add(certificate);
+                    _logger.LogInformation("Successfully loaded Cert file for ICMWorkflowClient.");
+                    _httpClient = new HttpClient(handler)
+                    {
+                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                    };
                 }
                 else
                 {
@@ -115,7 +127,7 @@ namespace FirstPartyAgent.Core.Services
                 throw new ArgumentException("Body must be provided.", nameof(body));
             if (string.IsNullOrWhiteSpace(tenantId))
             {
-                tenantId = _icmWorkflowSettings.AppServiceTenantId;
+                tenantId = _icmWorkflowSettings.TenantId;
             }
 
             if (_icmWorkflowSettings.UseFunctionApp)
@@ -146,6 +158,7 @@ namespace FirstPartyAgent.Core.Services
                 using (var content = new StringContent(body, Encoding.UTF8, "application/json"))
                 {
                     // Send the HTTP POST request.
+                    _logger.LogInformation("Sending request to ICM Workflow API: {requestUri}", requestUri);
                     var response = await _httpClient.PostAsync(requestUri, content);
                     return response;
                 }
@@ -196,7 +209,7 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId)
         {
-            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionDetailWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }), _icmWorkflowSettings.ContainerAppsTenantId);
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionDetailWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
             if (response.IsSuccessStatusCode) {
                 var content = await response.Content.ReadAsStringAsync();
                 return JsonConvert.DeserializeObject<SubscriptionDetail>(content);
@@ -208,7 +221,7 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId)
         {
-            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionUsageWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }), _icmWorkflowSettings.ContainerAppsTenantId);
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionUsageWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
             if (response.IsSuccessStatusCode)
             {
                 var content = await response.Content.ReadAsStringAsync();
@@ -230,12 +243,12 @@ namespace FirstPartyAgent.Core.Services
                 { "QuotaLimit", quotaLimit },
             };
 
-            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body), _icmWorkflowSettings.ContainerAppsTenantId);
+            var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
             if (response.IsSuccessStatusCode) { return await response.Content.ReadAsStringAsync(); }
             return null;
         }
 
-        public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)
+        public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)
         {
             if (_icmWorkflowSettings.UseFunctionApp)
             {
@@ -254,7 +267,14 @@ namespace FirstPartyAgent.Core.Services
             }
             else
             {
-                var payload = JsonConvert.SerializeObject(new { incidentId });
+                var payload = queryFrom.HasValue
+                    ? JsonConvert.SerializeObject(new
+                    {
+                        incidentId,
+                        QueryFrom = queryFrom.Value.ToString("s", System.Globalization.CultureInfo.InvariantCulture)
+                    })
+                    : JsonConvert.SerializeObject(new { incidentId });
+                                
                 var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentDiscussionEntriesWorkflowName, payload);
                 if (response.IsSuccessStatusCode)
                 {

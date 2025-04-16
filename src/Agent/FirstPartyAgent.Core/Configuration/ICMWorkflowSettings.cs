@@ -31,8 +31,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string FunctionAppEndpoint { get; set; } = string.Empty;
         public string FunctionAppKey { get; set; } = string.Empty;
         public string GetIncidentWorkflowName { get; set; } = string.Empty;
-        public string AppServiceTenantId { get; set; }
-        public string ContainerAppsTenantId { get; set; }
+        public string TenantId { get; set; }
         public string AddIncidentAttachmentWorkflowName { get; set; } = string.Empty;
         public string GetIncidentDiscussionEntriesWorkflowName { get; set; } = string.Empty;
         public string TransferIncidentWorkflowName { get; set; } = string.Empty;
