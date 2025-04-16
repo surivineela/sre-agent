@@ -290,7 +290,7 @@ const ThreadItem = memo(
         )}
 
         <Text as="div" variant="small" nowrap block>
-          {thread.lastMessage.text}
+          {thread.lastMessage?.text}
         </Text>
       </div>
     );
