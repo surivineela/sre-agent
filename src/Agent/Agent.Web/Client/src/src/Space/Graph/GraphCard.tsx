@@ -10,16 +10,27 @@ import {
 } from "@fluentui/react-components";
 import { Card, CardHeader } from "@fluentui/react-components";
 import { NodeProps, Node, Handle, Position } from "@xyflow/react";
-import { useContext, useState } from "react";
+import { memo, useContext, useState } from "react";
 import { GraphContext, GraphNode } from "../Contracts/Graph";
 import HealthStatus from "./HealthStatus";
-import { getAppHealthStatus } from "./Utility";
+import { getAppHealthStatus, getHandleId } from "./Utility";
 import { useGraphNodeStyles } from "../Styles/Graph.styles";
+import { HandlePosition } from "./Constants";
 
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
 
-    const { showSubresources, hideSubresources, areSubresourcesVisible, isLoadingSubresources, openPanel, hoverNode, unHoverNode, nodesToHightlight } = useContext(GraphContext)
+    const {
+        showSubresources,
+        hideSubresources,
+        areSubresourcesVisible,
+        isLoadingSubresources,
+        isComputingPosition,
+        openPanel,
+        hoverNode,
+        unHoverNode,
+        nodesToHightlight
+    } = useContext(GraphContext)
 
     const [subresouceVisible, setSubresourceVisible] = useState(areSubresourcesVisible(data));
 
@@ -44,10 +55,10 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
-            <Handle type="target" position={Position.Left} isConnectable={false} />
-            {isLoadingSubresources ?
-                <Shimmer />
-                : <Card className={mergeClasses(card, nodesToHightlight.includes(id) ? cardHightlight : undefined)}>
+            <Handles />
+            {(isLoadingSubresources || isComputingPosition) ?
+                <Shimmer /> :
+                <Card className={mergeClasses(card, nodesToHightlight.includes(id) ? cardHightlight : undefined)}>
                     <CardHeader
                         className={header}
                         image={
@@ -61,7 +72,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                         description={<Description />}
                     />
                     <HealthStatus health={getAppHealthStatus(data.properties)} />
-                    <CardFooter style={{ position: 'absolute', bottom: 5 }}>
+                    <CardFooter className={footer}>
                         <Button
                             onClick={(e) => {
                                 e.stopPropagation();
@@ -78,8 +89,36 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                         </Button>
                     </CardFooter>
                 </Card >}
-            <Handle type="source" position={Position.Right} className={footer} isConnectable={false} />
         </div>
 
     );
 };
+
+const Handles = memo(() => {
+    const { handle } = useGraphNodeStyles();
+
+    const HandlePort = ({ position, isTarget }: { position: HandlePosition, isTarget: boolean }) => {
+        const pos = position === 'T' ? Position.Top : position === 'B' ? Position.Bottom : position === 'L' ? Position.Left : Position.Right;
+        return <Handle type={isTarget ? 'target' : 'source'} position={pos} id={getHandleId(position, isTarget)} isConnectable={false} className={handle} />;
+    }
+
+    const handlePortInput: { position: HandlePosition, isTarget: boolean }[] =
+        [
+            { position: 'T', isTarget: false },
+            { position: 'T', isTarget: true },
+            { position: 'B', isTarget: false },
+            { position: 'B', isTarget: true },
+            { position: 'L', isTarget: false },
+            { position: 'L', isTarget: true },
+            { position: 'R', isTarget: false },
+            { position: 'R', isTarget: true }
+        ];
+
+    return (handlePortInput.map((port, index) => (
+        <HandlePort key={index} position={port.position} isTarget={port.isTarget} />
+    )));
+});
+
+Handles.displayName = 'Handles';
+
+

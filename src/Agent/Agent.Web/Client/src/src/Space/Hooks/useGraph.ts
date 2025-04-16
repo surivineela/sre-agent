@@ -3,7 +3,7 @@ import { useCallback, useEffect, useReducer, useState } from 'react';
 import { Node, Edge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import { GraphEdge, GraphNode, Resource, ResourceExtended, Subscription } from '../Contracts/Graph';
 import ELK, { LayoutOptions } from 'elkjs';
-import { getLinkId } from '../Graph/Utility';
+import { getLinkId, getSourceAndTargetHandleId } from '../Graph/Utility';
 import { CUSTOM_EDGE_TYPE, GRAF_CARD_TYPE } from '../Graph/Constants';
 
 const elk = new ELK();
@@ -181,6 +181,7 @@ export const useGraph = () => {
     const [selectedAppGroupId, setSelectedAppGroupId] = useState<string>();
     const [isLoading, setIsLoading] = useState(false);
     const [isLoadingSubresources, setIsLoadingSubresources] = useState(false);
+    const [isComputingPosition, setIsComputingPosition] = useState(false);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [selectedNode, setSelectedNode] = useState<GraphNode>();
     const [nodes, setNodes, onNodesChange] = useNodesState<Node<GraphNode>>([]);
@@ -304,12 +305,14 @@ export const useGraph = () => {
     }, [graphs, _queryNodes, closePanel]);
 
     useEffect(() => {
+        let isSubscribed = true;
 
         const computeNodesAndEdges = async () => {
             const graph = selectedAppGroupId && graphs.get(selectedAppGroupId);
 
             if (graph) {
                 const { nodeMap, linkMap } = graph;
+                setIsComputingPosition(true);
 
                 const nodesArray = Array.from(nodeMap.values()).filter(node => node.data.isVisible);
                 const linksArray = Array.from(linkMap.values()).filter(link => {
@@ -355,19 +358,38 @@ export const useGraph = () => {
                     }
                 );
 
-                const nodes = (layout.children ?? []).map(node => ({ ...node, position: { x: node.x ?? 0, y: node.y ?? 0 } }));
-                const links = (layout.edges ?? []).map(link => ({ ...link, id: link.id, source: link.sources[0], target: link.targets[0] }));
+                const nodes: Node<GraphNode>[] = (layout.children ?? []).map(node => ({ ...node, position: { x: node.x ?? 0, y: node.y ?? 0 } }));
+                const links: Edge<GraphEdge>[] = (layout.edges ?? []).map(link => {
+                    const sourcePos = nodes.find(node => node.id === link.sources[0])?.position;
+                    const targetPos = nodes.find(node => node.id === link.targets[0])?.position;
+                    const linkResult: Edge<GraphEdge> = { ...link, id: link.id, source: link.sources[0], target: link.targets[0] };
 
-                setNodes(nodes);
-                setEdges(links);
+                    if (sourcePos && targetPos) {
+                        const { sourceHandle, targetHandle } = getSourceAndTargetHandleId(sourcePos, targetPos);
+                        linkResult.sourceHandle = sourceHandle;
+                        linkResult.targetHandle = targetHandle;
+                    }
+                    return linkResult;
+                });
+
+                if (isSubscribed) {
+                    setNodes(nodes);
+                    setEdges(links);
+                    setIsComputingPosition(false);
+                }
             } else {
                 setNodes([]);
                 setEdges([]);
+                setIsComputingPosition(false);
             }
 
         };
 
         computeNodesAndEdges();
+
+        return () => {
+            isSubscribed = false;
+        }
 
     }, [graphs, selectedAppGroupId, setNodes, setEdges]);
 
@@ -395,5 +417,6 @@ export const useGraph = () => {
         unHoverNode,
         nodesToHightlight,
         edgesToHightlight,
+        isComputingPosition,
     };
 };

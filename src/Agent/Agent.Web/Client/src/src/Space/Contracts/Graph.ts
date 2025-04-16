@@ -70,6 +70,7 @@ interface GraphContextProps {
     hideSubresources: (parentGraphNode: GraphNode) => void;
     areSubresourcesVisible: (parentGraphNode: GraphNode) => boolean;
     isLoadingSubresources: boolean;
+    isComputingPosition: boolean;
     openPanel: (node: GraphNode) => void;
     closePanel: () => void;
     isPanelOpen: boolean;
@@ -85,6 +86,7 @@ export const GraphContext = createContext<GraphContextProps>({
     hideSubresources: () => { },
     areSubresourcesVisible: () => false,
     isLoadingSubresources: false,
+    isComputingPosition: false,
     openPanel: () => { },
     closePanel: () => { },
     isPanelOpen: false,

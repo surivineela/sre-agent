@@ -23,6 +23,10 @@ export const useGraphStyles = makeStyles({
 });
 
 export const useGraphNodeStyles = makeStyles({
+    handle: {
+        opacity: 0,
+        pointerEvents: 'none'
+    },
     card: {
         width: '200px',
         height: '170px',
