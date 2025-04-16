@@ -2,13 +2,13 @@ import { SelectTabData, SelectTabEvent, Tab, TabList } from "@fluentui/react-com
 import { FC, useEffect, useState, useCallback } from "react";
 import { SreAgentTabs } from "../Strings/SREResources.resjson";
 import Activities from "./Activities/Activities.ReactView";
-import KnowledgeGraph from "./KnowledgeGraph/KnowledgeGraph";
+import Graph from "./Graph/Graph";
 import Settings from "./Settings/Settings.ReactView";
 
 enum TabValues {
     Activities = "activities",
     Settings = 'settings',
-    KnowledgeGraph = 'knowledge-graph',
+    Graph = 'graph',
 }
 
 const placeholderResourceId = 'subscriptions/00000000-0000-0000-0000-000000000000/resourceGroups/PlaceholderResourceGroup/providers/Microsoft.SRE/agents/PlaceholderAgentName';
@@ -45,7 +45,7 @@ const SREAgentSpace: FC = () => {
                 <Tab id="Activities" value={TabValues.Activities}>
                     {SreAgentTabs.activities}
                 </Tab>
-                <Tab id="Knowledge" value={TabValues.KnowledgeGraph}>
+                <Tab id="Knowledge" value={TabValues.Graph}>
                     {SreAgentTabs.managedResources}
                 </Tab>
                 <Tab id="Settings" value={TabValues.Settings}>
@@ -54,8 +54,8 @@ const SREAgentSpace: FC = () => {
             </TabList>
             <div>
                 {selectedValue === TabValues.Activities && <Activities initialThreadId={initialThreadId} />}
-                {selectedValue === TabValues.KnowledgeGraph && <KnowledgeGraph transferDataToActivities={transferDataToActivities} />}
-                {selectedValue === TabValues.Settings && <Settings parameters={{ resourceId, region }}/>}
+                {selectedValue === TabValues.Graph && <Graph transferDataToActivities={transferDataToActivities} />}
+                {selectedValue === TabValues.Settings && <Settings parameters={{ resourceId, region }} />}
             </div>
         </div>
     );

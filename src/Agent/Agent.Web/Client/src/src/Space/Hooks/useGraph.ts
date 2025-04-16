@@ -1,94 +1,12 @@
 import axios from 'axios';
 import { useCallback, useEffect, useReducer, useState } from 'react';
+import { Node, Edge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
+import { GraphEdge, GraphNode, Resource, ResourceExtended, Subscription } from '../Contracts/Graph';
+import ELK, { LayoutOptions } from 'elkjs';
+import { getLinkId } from '../Graph/Utility';
+import { CUSTOM_EDGE_TYPE, GRAF_CARD_TYPE } from '../Graph/Constants';
 
-export type Subscription = {
-    id: string;
-    name: string;
-}
-
-export type ResourceExtended = {
-    id: string; // the string has underscore
-    name: string;
-    type: string;
-    dashboardUrl: string;
-    appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
-    properties: {
-        dashboardUrl: string[];
-        resourceType: string[];
-        resourceName: string[];
-        resourceId: string[];
-        subscriptionId: string[];
-        resourceGroupName: string[];
-        location: string[];
-        runningStatus: string;
-        appHealthInfo?: string[] // Convert the json string to ScoreCardObject
-    }
-}
-
-export type Resource = {
-    name: string;
-    type: string;
-    dashboardUrl: string;
-    resourceId: string; // the string has underscore
-    appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
-    subItems?: Resource[];
-}
-
-export type ScoreCardObject = {
-    Costs: number; // 7 day window
-    Availability?: number | null; // percentage
-    Health: 'healthy' | 'unhealthy' | 'unknown';
-    Transactions: number;
-    AvgLatencyInMs?: number | null;
-    AvgMemoryUsage?: number | null; // bytes
-    AvgCpuUsage?: number | null; // percentage
-    LastDataCaptureTimeStampInUTC?: string | Date;
-    IsActive: boolean;
-}
-
-export type GraphNodeProperties = ResourceExtended | Resource;
-
-export type GraphNodeObject = {
-    id: string;
-    name: string;
-    type: 'subscription' | 'appGroup' | 'resource';
-    subscriptionId: string;
-    properties?: GraphNodeProperties;
-}
-
-export type GraphNode = GraphNodeObject & {
-    isVisible: boolean;
-    links?: string[];
-}
-
-export type GraphLink = {
-    id: string;
-    source: string;
-    target: string;
-    isVisible: boolean;
-    // use different types to track the source and target to
-    // prevent react graph convert the source and target to objects
-    from: string;
-    to: string;
-}
-
-export const getSubscriptions = async (): Promise<Subscription[]> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/subscriptions`);
-        return data ?? [];
-    } catch {
-        return [];
-    }
-}
-
-export const getAppGroups = async (subscriptionId: string): Promise<ResourceExtended[]> => {
-    try {
-        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups`);
-        return data ?? [];
-    } catch {
-        return [];
-    }
-}
+const elk = new ELK();
 
 export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
     try {
@@ -149,184 +67,333 @@ export const createResourceNode = (resource: Resource): GraphNode => {
     return node;
 }
 
+export const getNodeSize = (type: 'subscription' | 'appGroup' | 'resource'): number => {
+
+    switch (type) {
+        case 'subscription':
+            return 300;
+        case 'appGroup':
+            return 250;
+        default:
+            return 200;
+    }
+}
+
 const GraphReducer = (
-    state: { nodeMap: Map<string, GraphNode>, linkMap: Map<string, GraphLink> },
-    action: { type: 'HIDE_NODE' | 'SHOW_NODE' | 'ADD_NODES', payload: { nodeToClick?: GraphNode, parentNode?: GraphNode, nodes?: GraphNode[] } }
+    state: Map<string, { nodeMap: Map<string, Node<GraphNode>>, linkMap: Map<string, Edge<GraphEdge>> }>,
+    action: {
+        type: 'HIDE_NODES' | 'SHOW_NODES' | 'ADD_NODES',
+        payload: {
+            appGroupId: string;
+            appGroupNode?: GraphNode,
+            parentGraphNode?: GraphNode,
+            nodeIdsToHide?: string[],
+            nodeIdsToShow?: string[],
+            nodesToAdd?: GraphNode[]
+        }
+    }
 ) => {
-    const { type, payload: { nodeToClick, parentNode, nodes } } = action;
+    const { type, payload: { appGroupId, appGroupNode, parentGraphNode, nodeIdsToHide, nodeIdsToShow, nodesToAdd } } = action;
 
-    const { nodeMap, linkMap } = state;
+    const appGroupMap = state.get(appGroupId);
+    const originalNodeMap = appGroupMap?.nodeMap ?? new Map<string, Node<GraphNode>>();
+    const originalLinkMap = appGroupMap?.linkMap ?? new Map<string, Edge<GraphEdge>>();
+    const shouldAddAppGroupNode = !appGroupMap;
+    const nodeMap = new Map<string, Node<GraphNode>>(originalNodeMap);
+    const linkMap = new Map<string, Edge<GraphEdge>>(originalLinkMap);
 
-    if (type === 'HIDE_NODE' && nodeToClick) {
-        const links = nodeToClick.links ?? [];
+    // if appGroup does not exist in the map, add it to the map. Set the app group node to visible.
+    if (shouldAddAppGroupNode) {
+        if (appGroupNode) {
+            nodeMap.set(appGroupId, { id: appGroupNode.id, type: GRAF_CARD_TYPE, position: { x: 0, y: 0 }, data: { ...appGroupNode } });
+        } else {
+            return state;
+        }
+    } else {
+        nodeMap.set(appGroupId, { ...nodeMap.get(appGroupId)!, data: { ...nodeMap.get(appGroupId)!.data, isVisible: true } });
+    }
+
+    if (type === 'HIDE_NODES' && nodeIdsToHide && parentGraphNode) {
+        const nodes = [...nodeIdsToHide];
         const nodeIdSet = new Set<string>();
-        const nodeIdArray = links.map(linkId => linkMap.get(linkId)).filter(link => link !== undefined).map(link => link.to);
 
-        while (nodeIdArray.length > 0) {
-            const nodeId = nodeIdArray.shift();
+        while (nodes.length > 0) {
+            const nodeId = nodes.shift();
             if (nodeId && !nodeIdSet.has(nodeId)) {
                 nodeIdSet.add(nodeId);
 
-                const newNodeIds = (nodeMap.get(nodeId)?.links ?? []).map(linkId => linkMap.get(linkId)).filter(link => link !== undefined).map(link => link.to);
-                if (newNodeIds) {
-                    nodeIdArray.push(...newNodeIds);
-                }
+                nodes.push(...(nodeMap.get(nodeId)?.data.childrenIds ?? []));
             }
         }
-
         const nodesToHide = Array.from(nodeIdSet);
 
         for (const nodeId of nodesToHide) {
             const node = nodeMap.get(nodeId);
-            if (node) {
-                nodeMap.set(nodeId, { ...node, isVisible: false });
+            if (node && node.id !== parentGraphNode.id) {
+                nodeMap.set(nodeId, { ...node, data: { ...node.data, isVisible: false } });
             }
         }
+    } else if (type === 'SHOW_NODES' && nodeIdsToShow) {
 
-        for (const linkId of linkMap.keys()) {
-            const link = linkMap.get(linkId);
-            if (link && nodesToHide.includes(link.to)) {
-                linkMap.set(linkId, { ...link, isVisible: false });
-            }
-        }
-
-        return {
-            nodeMap,
-            linkMap,
-        }
-    } else if (type === 'SHOW_NODE' && nodeToClick) {
-        const links = nodeToClick.links;
-        const nodesToShow = (links ?? []).map(linkId => linkMap.get(linkId)).filter(link => link !== undefined).map(link => link.to);
-
-        for (const nodeId of nodesToShow) {
+        for (const nodeId of nodeIdsToShow) {
             const node = nodeMap.get(nodeId);
             if (node) {
-                nodeMap.set(nodeId, { ...node, isVisible: true });
+                nodeMap.set(nodeId, { ...node, data: { ...node.data, isVisible: true } });
             }
         }
+    } else if (type === 'ADD_NODES' && nodesToAdd) {
 
-        for (const linkId of linkMap.keys()) {
-            const link = linkMap.get(linkId);
-            if (link && nodesToShow.includes(link.to) && nodeMap.get(link.from)?.isVisible) {
-                linkMap.set(linkId, { ...link, isVisible: true });
-            }
-        }
-
-        return {
-            nodeMap,
-            linkMap,
-        }
-    } else if (type === 'ADD_NODES' && nodes) {
-        const links: string[] = [];
-
-        nodes.forEach((node) => {
+        for (const node of nodesToAdd) {
             if (!nodeMap.get(node.id)) {
-                nodeMap.set(node.id, { ...node });
+                nodeMap.set(node.id, { id: node.id, data: node, type: GRAF_CARD_TYPE, position: { x: 0, y: 0 } });
             }
 
-            if (parentNode) {
-                const linkId = `${parentNode.id} ${node.id}`;
-
-                const link: GraphLink = {
+            if (parentGraphNode) {
+                const linkId = getLinkId(parentGraphNode.id, node.id);
+                const link: Edge<GraphEdge> = {
                     id: linkId,
-                    source: parentNode.id,
+                    type: CUSTOM_EDGE_TYPE,
+                    source: parentGraphNode.id,
                     target: node.id,
-                    from: parentNode.id,
-                    to: node.id,
-                    isVisible: true,
+                    data: { label: 'link', isVisible: true },
                 };
                 linkMap.set(linkId, link);
-
-                links.push(linkId);
             }
-        });
+        };
 
-        if (parentNode) {
-            const newParentNode = { ...parentNode, areChildrenVisible: true, isVisible: true, links: [...links] };
-
-            nodeMap.set(parentNode.id, newParentNode);
+        if (parentGraphNode) {
+            const parentNode = nodeMap.get(parentGraphNode.id);
+            if (parentNode) {
+                nodeMap.set(parentNode.id, { ...parentNode, data: { ...parentNode.data, childrenIds: nodesToAdd.map(node => node.id) } });
+            }
         }
-
-        return {
-            nodeMap,
-            linkMap,
-        }
+    } else {
+        return state;
     }
 
-    return state;
+    state.set(appGroupId, { nodeMap, linkMap });
+
+    return new Map<string, { nodeMap: Map<string, Node<GraphNode>>, linkMap: Map<string, Edge<GraphEdge>> }>(state)
 }
 
 export const useGraph = () => {
-    const [graph, dispatch] = useReducer(GraphReducer, { nodeMap: new Map<string, GraphNode>(), linkMap: new Map<string, GraphLink>() });
+    const [graphs, dispatch] = useReducer(GraphReducer, new Map<string, { nodeMap: Map<string, Node<GraphNode>>, linkMap: Map<string, Edge<GraphEdge>> }>());
+    const [selectedAppGroupId, setSelectedAppGroupId] = useState<string>();
     const [isLoading, setIsLoading] = useState(false);
+    const [isLoadingSubresources, setIsLoadingSubresources] = useState(false);
+    const [isPanelOpen, setIsPanelOpen] = useState(false);
+    const [selectedNode, setSelectedNode] = useState<GraphNode>();
+    const [nodes, setNodes, onNodesChange] = useNodesState<Node<GraphNode>>([]);
+    const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<GraphEdge>>([]);
+    const [nodesToHightlight, setNodesToHightlight] = useState<string[]>([]);
+    const [edgesToHightlight, setEdgesToHightlight] = useState<string[]>([]);
 
-    const [nodes, setNodes] = useState<GraphNode[]>([]);
-    const [links, setLinks] = useState<GraphLink[]>([]);
+    const { fitView } = useReactFlow();
 
-    const addNodes = useCallback((parentNode: GraphNode, nodes: GraphNode[]) => {
+    const _queryNodes = useCallback(async (parentNode: GraphNode) => {
+        const { id, subscriptionId } = parentNode;
+
+        const resources = await getResources(subscriptionId, id);
+        return resources.map(resource => createResourceNode(resource));
+
+    }, []);
+
+    const showSubresources = useCallback(async (parentGraphNode: GraphNode) => {
+        let childrenIds = parentGraphNode.childrenIds;
+
+        if (!childrenIds) {
+            setIsLoadingSubresources(true);
+            const newNodes = await _queryNodes(parentGraphNode);
+            dispatch({
+                type: 'ADD_NODES',
+                payload: {
+                    appGroupId: selectedAppGroupId ?? '',
+                    parentGraphNode,
+                    nodesToAdd: newNodes
+                }
+            });
+            childrenIds = newNodes.map(node => node.id);
+            setIsLoadingSubresources(false);
+        }
+
         dispatch({
-            type: 'ADD_NODES',
+            type: 'SHOW_NODES',
             payload: {
-                parentNode: parentNode,
-                nodes: nodes
+                appGroupId: selectedAppGroupId ?? '',
+                parentGraphNode,
+                nodeIdsToShow: childrenIds
             }
         });
-    }, []);
+    }, [_queryNodes, selectedAppGroupId]);
 
-    const queryNodes = useCallback(async (parentNode: GraphNode) => {
-        const { id, subscriptionId, type } = parentNode;
+    const hideSubresources = useCallback((parentGraphNode: GraphNode) => {
+        dispatch({
+            type: 'HIDE_NODES',
+            payload: {
+                appGroupId: selectedAppGroupId ?? '',
+                parentGraphNode,
+                nodeIdsToHide: parentGraphNode.childrenIds
+            }
+        })
+    }, [selectedAppGroupId]);
 
-        if (type === 'subscription') {
-            const appGroups = await getAppGroups(id);
-            return appGroups.map(appGroup => createAppGroupNode(appGroup));
-        } else {
-            const resources = await getResources(subscriptionId, id);
-            return resources.map(resource => createResourceNode(resource));
+    const areSubresourcesVisible = useCallback((node: GraphNode) => {
+        const graph = selectedAppGroupId && graphs.get(selectedAppGroupId);
+
+        if (graph) {
+            const { nodeMap } = graph;
+            const parentNode = nodeMap.get(node.id);
+            const childrenIds = parentNode?.data.childrenIds;
+            return !!childrenIds && childrenIds.length > 0 && childrenIds.some(childId => nodeMap.get(childId)?.data.isVisible)
         }
+        return false;
+    }, [selectedAppGroupId, graphs]);
+
+    const openPanel = useCallback((node: GraphNode) => {
+        setSelectedNode(node);
+        setIsPanelOpen(true);
     }, []);
 
-    useEffect(() => {
-        setNodes(Array.from(graph.nodeMap.values()));
-        setLinks(Array.from(graph.linkMap.values()).map(link => {
-            if (typeof link.source === 'object') {
-                link.source = link.from;
+    const closePanel = useCallback(() => {
+        setIsPanelOpen(false);
+        setSelectedNode(undefined);
+    }, []);
+
+    const hoverNode = useCallback((nodeId: string) => {
+        const graph = selectedAppGroupId && graphs.get(selectedAppGroupId);
+        if (graph) {
+            const { nodeMap } = graph;
+            const node = nodeMap.get(nodeId);
+            const childrenNodeIds = node?.data.childrenIds ?? [];
+            const linkIds = childrenNodeIds.map(childId => getLinkId(nodeId, childId));
+            if (node) {
+                setNodesToHightlight([node.id, ...childrenNodeIds]);
+                setEdgesToHightlight(linkIds);
             }
-            if (typeof link.target === 'object') {
-                link.target = link.to;
-            }
-            return link;
-        }));
-    }, [graph])
+        }
+    }, [graphs, selectedAppGroupId]);
 
-    useEffect(() => {
-        let isSubscribed = true;
+    const unHoverNode = useCallback(() => {
+        setNodesToHightlight([]);
+        setEdgesToHightlight([]);
+    }, []);
 
-        const init = async () => {
-            setIsLoading(true);
-            const subscriptions = await getSubscriptions();
+    const onAppGroupUpdate = useCallback(async (appGroup?: ResourceExtended) => {
+        closePanel();
 
-            const nodes = subscriptions.map((subscription) => {
-                return createSubscriptionNode(subscription)
-            });
-
-            if (isSubscribed) {
-                dispatch({ type: 'ADD_NODES', payload: { nodes } });
+        if (appGroup) {
+            if (!graphs.has(appGroup.id)) {
+                setIsLoading(true);
+                const appGroupNode = createAppGroupNode(appGroup);
+                const newNodes = await _queryNodes(appGroupNode)
+                dispatch({
+                    type: 'ADD_NODES',
+                    payload: {
+                        appGroupId: appGroup.id,
+                        appGroupNode,
+                        parentGraphNode: appGroupNode,
+                        nodesToAdd: newNodes
+                    }
+                });
                 setIsLoading(false);
             }
+            setSelectedAppGroupId(appGroup.id);
+        } else {
+            setSelectedAppGroupId(undefined);
         }
+    }, [graphs, _queryNodes, closePanel]);
 
-        init();
+    useEffect(() => {
 
-        return () => {
-            isSubscribed = false;
-        }
-    }, []);
+        const computeNodesAndEdges = async () => {
+            const graph = selectedAppGroupId && graphs.get(selectedAppGroupId);
+
+            if (graph) {
+                const { nodeMap, linkMap } = graph;
+
+                const nodesArray = Array.from(nodeMap.values()).filter(node => node.data.isVisible);
+                const linksArray = Array.from(linkMap.values()).filter(link => {
+                    const sourceNode = nodeMap.get(link.source);
+                    const targetNode = nodeMap.get(link.target);
+                    return sourceNode?.data.isVisible && targetNode?.data.isVisible;
+                });
+
+                let layoutOptions: LayoutOptions = nodesArray.length <= 10 ? {
+                    'elk.algorithm': 'org.eclipse.elk.layered',                         // the actual algorithm
+                    'elk.direction': 'RIGHT',                            // TOP, RIGHT, LEFT, DOWN
+                    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+                } : {
+                    'elk.algorithm': 'org.eclipse.elk.force',
+                    'elk.force.repulsivePower': '0',
+                }
+
+                layoutOptions = {
+                    ...layoutOptions,
+                    'elk.spacing.nodeNode': nodesArray.length < 10 ? '25' : '5', // Reduce space between nodes
+                    'elk.spacing.edgeNode': '10',
+                    'elk.spacing.edgeEdge': '10',
+                }
+                const layout = await elk.layout({
+                    id: 'root',
+                    children: nodesArray.map(node => ({
+                        ...node,
+                        x: node.position.x,
+                        y: node.position.y,
+                        width: 200,
+                        height: 170,
+                    })),
+                    edges: linksArray.map(link => ({
+                        ...link,
+                        id: link.id,
+                        sources: [link.source],
+                        targets: [link.target],
+                        labels: [{ text: link.data?.label ?? "" }]
+                    })),
+                },
+                    {
+                        layoutOptions
+                    }
+                );
+
+                const nodes = (layout.children ?? []).map(node => ({ ...node, position: { x: node.x ?? 0, y: node.y ?? 0 } }));
+                const links = (layout.edges ?? []).map(link => ({ ...link, id: link.id, source: link.sources[0], target: link.targets[0] }));
+
+                setNodes(nodes);
+                setEdges(links);
+            } else {
+                setNodes([]);
+                setEdges([]);
+            }
+
+        };
+
+        computeNodesAndEdges();
+
+    }, [graphs, selectedAppGroupId, setNodes, setEdges]);
+
+    useEffect(() => {
+        fitView();
+    }, [nodes.length])
 
     return {
         nodes,
-        links,
-        isLoading: isLoading,
-        addNodes,
-        queryNodes,
+        edges,
+        onNodesChange,
+        onEdgesChange,
+        isLoading,
+        isLoadingSubresources,
+        showSubresources,
+        hideSubresources,
+        areSubresourcesVisible,
+        openPanel,
+        closePanel,
+        isPanelOpen,
+        selectedNode,
+        onAppGroupUpdate,
+        selectedAppGroupId,
+        hoverNode,
+        unHoverNode,
+        nodesToHightlight,
+        edgesToHightlight,
     };
 };
