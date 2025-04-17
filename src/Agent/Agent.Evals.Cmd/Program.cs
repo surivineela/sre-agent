@@ -132,46 +132,58 @@ public class Program
 
             (var testName, var className) = testIdToTestInfoMap[testId];
 
-            var result = new TestResult
-            {
-                TestId = testId,
-                TestMethod = testName,
-                ClassName = className,
-                BuildId = buildId,
-                BuildNumber = buildNumber,
-                StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
-                EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
-            };
+            
 
             foreach (XmlNode childNode in testResult.ChildNodes)
             {
                 if (childNode.Name == "Output")
                 {
                     var stdOut = childNode.ChildNodes[0].InnerText;
-                    var jsonStartIndex = stdOut.IndexOf("{");
-                    var jsonString = stdOut.Substring(jsonStartIndex);
-                    var evaluationResults = JsonSerializer.Deserialize<EvaluationResults>(jsonString);
 
-                    if (evaluationResults == null)
+                    foreach (var line in stdOut.Split('\n'))
                     {
-                        Console.WriteLine($"Fail to parse test result {stdOut}");
-                        continue;
-                    }
+                        if (!line.Contains("{\"WordCount"))
+                        {
+                            continue;
+                        }
 
-                    result.WordCountRating = evaluationResults.WordCount?.Value;
-                    result.WordCountReasoning = evaluationResults.WordCount?.Reason;
-                    result.CoherenceRating = evaluationResults.Coherence?.Value;
-                    result.CoherenceReasoning = evaluationResults.Coherence?.Reason;
-                    result.FluencyRating = evaluationResults.Fluency?.Value;
-                    result.FluencyReasoning = evaluationResults.Fluency?.Reason;
-                    result.EquivalenceRating = evaluationResults.Equivalence?.Value;
-                    result.EquivalenceReasoning = evaluationResults.Equivalence?.Reason;
-                    result.GroundednessRating = evaluationResults.Groundedness?.Value;
-                    result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
+                        var evalsGuid = Guid.NewGuid().ToString();
+                        var jsonStartIndex = line.IndexOf("{");
+                        var jsonString = line.Substring(jsonStartIndex);
+                        var evaluationResults = JsonSerializer.Deserialize<EvaluationResults>(jsonString);
+
+                        if (evaluationResults == null)
+                        {
+                            Console.WriteLine($"Fail to parse test result {stdOut}");
+                            continue;
+                        }
+
+                        var result = new TestResult
+                        {
+                            TestId = $"{testId}-{evalsGuid}",
+                            TestMethod = testName,
+                            ClassName = className,
+                            BuildId = buildId,
+                            BuildNumber = buildNumber,
+                            StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
+                            EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
+                        };
+
+                        result.WordCountRating = evaluationResults.WordCount?.Value;
+                        result.WordCountReasoning = evaluationResults.WordCount?.Reason;
+                        result.CoherenceRating = evaluationResults.Coherence?.Value;
+                        result.CoherenceReasoning = evaluationResults.Coherence?.Reason;
+                        result.FluencyRating = evaluationResults.Fluency?.Value;
+                        result.FluencyReasoning = evaluationResults.Fluency?.Reason;
+                        result.EquivalenceRating = evaluationResults.Equivalence?.Value;
+                        result.EquivalenceReasoning = evaluationResults.Equivalence?.Reason;
+                        result.GroundednessRating = evaluationResults.Groundedness?.Value;
+                        result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
+
+                        testResults[result.TestId] = result;
+                    }                    
                 }
             }
-
-            testResults[testId] = result;
         }
 
         // Send to EventHub
