@@ -266,10 +266,10 @@ namespace Agent.Plugins
             string description,
             string errorContext)
         {
-            if (Context == null || Context.OutboundConfiguration == null || Context.OutboundConfiguration.Teams == null || !(Context.OutboundConfiguration.Teams.Enabled ?? false))
+            if (Context == null)
             {
-                _logger?.LogWarning("No outbound configuration for teams available while posting the chart only support teams.");
-                return "ERROR: No outbound configuration available for posting the chart to teams.";
+                _logger?.LogWarning("Context is null while posting the chart.");
+                return "ERROR: Context is null.";
             }
             try
             {
@@ -285,10 +285,13 @@ namespace Agent.Plugins
                     return "ERROR: No thread ID available for posting the chart.";
                 }
 
-                if (!string.IsNullOrWhiteSpace(description))
+                _logger?.LogInformation("Posting chart to thread {ThreadId}, base64 image: {base64Image}", threadId, base64Image);
+                // if the base64Image doesn't contains the prefix, add it
+                if (!base64Image.StartsWith("data:image/png;base64,"))
                 {
-                    await _outboundService.AppendAgentImageMessage(Context, $"![Chart Graph](data:image/png;base64,{base64Image})\r\n");
+                    base64Image = $"data:image/png;base64,{base64Image}";
                 }
+                await _outboundService.AppendAgentImageMessage(Context, $"![Chart Graph]({base64Image})\r\n");
 
                 return $"Successfully generated the chart, image description: {description}";
             }

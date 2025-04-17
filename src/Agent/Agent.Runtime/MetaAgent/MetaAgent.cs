@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -14,6 +14,7 @@ using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -245,6 +246,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotScatterAsync),
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),

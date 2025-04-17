@@ -32,7 +32,7 @@ dataPoints: semicolon-separated list of data points, each in the format:
 '2024-01-25T10:30:00|75.4|CPU Usage'
 For multiple points, separate each with a semicolon:
 '2024-01-25T10:30:00|75.4|CPU Usage;2024-01-25T10:35:00|82.1|Memory Usage'
-description: text to accompany the chart when posting to Teams")]
+description: text to accompany the chart when posting the image")]
         public async Task<string> PlotTimeSeriesDataAsync(
             [Description("Title for the chart, e.g. 'Application Metrics Dashboard'")] string title,
             [Description("Y-Axis label, e.g. 'Usage (%)'")] string yAxisLabel,
@@ -51,7 +51,7 @@ Parameters:
 chartTitle: The title displayed at the top of the pie chart.
 dataPoints: Semicolon-separated items in format 'sliceLabel|value',
 e.g.: 'Endpoint A|120;Endpoint B|80;Endpoint C|60'
-description: A short message to include if you want to post to Teams.")]
+description: A short message to summarize the image.")]
         public async Task<string> PlotPieChartAsync(
             [Description("Chart title, e.g. 'Endpoint Distribution'")] string chartTitle,
             [Description("Semicolon-separated 'Label|Value' pairs for each slice.")] string dataPoints,
@@ -69,7 +69,7 @@ xAxisLabel: Label for the X-axis.
 yAxisLabel: Label for the Y-axis.
 dataPoints: Semicolon-separated items in format 'category|value',
 e.g.: 'Q1|120;Q2|80;Q3|60;Q4|90'
-description: A short message to include if you want to post to Teams.")]
+description: A short message to summarize the image.")]
         public async Task<string> PlotBarChartAsync(
             [Description("Chart title")] string chartTitle,
             [Description("X-axis label")] string xAxisLabel,
@@ -89,7 +89,7 @@ xAxisLabel: Label for the X-axis.
 yAxisLabel: Label for the Y-axis.
 dataPoints: Semicolon-separated items in format 'x|y|label',
 e.g.: '1.2|3.4|Point A;2.3|4.5|Point B;3.4|5.6|Point C'
-description: A short message to include if you want to post to Teams.")]
+description: A short message to summarize the image.")]
         public async Task<string> PlotScatterAsync(
             [Description("Chart title")] string chartTitle,
             [Description("X-axis label")] string xAxisLabel,

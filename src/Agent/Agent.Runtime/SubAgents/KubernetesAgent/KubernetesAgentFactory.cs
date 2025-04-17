@@ -72,6 +72,7 @@ public sealed class KubernetesAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -49,6 +49,7 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
+        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
 
         var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => remediationPluginDefinition.ScaleAppServicePlanVertically));

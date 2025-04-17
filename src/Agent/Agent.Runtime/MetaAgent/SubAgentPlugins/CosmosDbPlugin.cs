@@ -8,6 +8,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
+
 namespace Agent.Runtime.MetaAgent;
 
 public class CosmosDbPlugin : SimpleResourceSubAgentPluginBase<CosmosDbAgentFactory, CosmosDbAgent, CosmosDbAgentInput, CosmosDbAgentActivity, CosmosDbAgentActivityInput>,
