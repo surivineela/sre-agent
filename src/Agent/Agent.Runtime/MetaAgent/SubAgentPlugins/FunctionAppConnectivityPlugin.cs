@@ -22,9 +22,9 @@ public class FunctionAppConnectivityPlugin : IMetaAgentFunctionAppConnectivityPl
     }
 
     [KernelFunction("check_function_app_connectivity_to_storage_account")]
-    [Description("Start the workflow to check the TCP connectivity between Azure Function app and Azure Storage Account")]
+    [Description("Start the workflow to check the connectivity between Azure Function app and web or Azure Storage Account")]
     public async Task<string> StartFunctionAppConnectivityAgent(
-        [Description("Inputs to the agent that includes arm resource id for the Function app to investigate, a list of tools and thead context.")] FunctionAppConnectivityAgentInput input)
+        [Description("Inputs to the agent that includes arm resource id for the Function app to investigate, a list of tools and thread context.")] FunctionAppConnectivityAgentInput input)
     {
         if (Context == null)
         {
@@ -32,6 +32,6 @@ public class FunctionAppConnectivityPlugin : IMetaAgentFunctionAppConnectivityPl
         }
 
         var instanceId = await _functionAppConnectivityAgentFactory.StartOrchestration(input, Context);
-        return $"A workflow has been started to check connectivity from Function app to Storage: {instanceId}";
+        return $"A workflow has been started to check connectivity from Function app to the target destination: {instanceId}";
     }
 }

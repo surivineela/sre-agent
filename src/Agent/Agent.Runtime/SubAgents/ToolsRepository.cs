@@ -52,6 +52,7 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200<ArmPluginDefinition>(x => x.GetArmResourceAsJson);
         Register200<ArmPluginDefinition>(x => x.PowerOnVirtualMachine);
         Register200<ArmPluginDefinition>(x => x.GetVirtualMachineBootDiagnostics);
+        Register200<ArmPluginDefinition>(x => x.CheckConnectivity);
         Register200<ArmPluginDefinition>(x => x.CheckTcpConnectivity);
 
         RegisterPlugin<TimePluginDefinition>();

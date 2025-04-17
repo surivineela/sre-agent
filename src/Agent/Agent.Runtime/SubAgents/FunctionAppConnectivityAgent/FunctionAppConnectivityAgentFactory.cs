@@ -31,6 +31,7 @@ public sealed class FunctionAppConnectivityAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
+        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
 
         _toolSignatures = toolSignatures;

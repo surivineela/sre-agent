@@ -93,7 +93,7 @@ namespace Agent.Plugins.Implementation
             {
                 vmPowerOnResult = false;
                 message = $"Error powering on the virtual machine: {ex.Message}";
-            }
+        }
 
             return new RemediationResult(
                     Success: vmPowerOnResult,
@@ -109,9 +109,9 @@ namespace Agent.Plugins.Implementation
             return bootDiagnosticLogs;
         }
 
-        public async Task<string> CheckConnectivity(string resourceId, string source, string destination, string destinationPort)
+        public async Task<string> CheckConnectivity(string resourceId)
         {
-            return await _armHelper.CheckConnectivity(resourceId, source, destination, destinationPort);
+            return await _armHelper.CheckConnectivity(resourceId);
         }
 
         public async Task<string> CheckTcpConnectivity(string resourceId, string host, int port)

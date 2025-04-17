@@ -111,7 +111,7 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult((IReadOnlyDictionary<string, string>)new Dictionary<string, string>());
         }
 
-        public Task<string> CheckConnectivity(string resourceId, string source, string destination, string destinationPort)
+        public Task<string> CheckConnectivity(string resourceId)
         {
             return Task.FromResult<string>("true");
         }

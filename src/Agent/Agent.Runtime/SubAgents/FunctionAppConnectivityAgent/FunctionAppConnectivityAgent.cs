@@ -16,14 +16,10 @@ namespace Agent.Runtime.SubAgents.FunctionAppConnectivityAgent
         {
             var log = context.CreateReplaySafeLogger<FunctionAppConnectivityAgent>();
 
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(FunctionAppConnectivityAgent), "FunctionAppConnectivityAgentPlan.txt");
-            var systemPrompt = File.ReadAllText(path);
-            var monitoringMessage = $"Thank you for the confirmation, I will now attempt to investigate issues causing RDP failure with {agentInput.FunctionAppResourceId}";
+            // Initial planning phase: generate plan (e.g. list of apps to update)
+            List<ChatMessage> chatHistory = await context.CallFunctionAppConnectivityPlanActivityAsync(agentInput);
 
-            List<ChatMessage> chatHistory = [
-                new ChatMessage(ChatRole.System, systemPrompt),
-            new ChatMessage(ChatRole.System, monitoringMessage)
-            ];
+            var monitoringMessage = $"Thank you for the confirmation, I will now attempt to investigate issues causing connectivity failure with {agentInput.FunctionAppResourceId}";
 
             // Send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
             chatHistory = await context.CallSendSummaryAndStartActivityAsync(

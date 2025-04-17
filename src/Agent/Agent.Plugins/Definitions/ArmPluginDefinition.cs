@@ -75,14 +75,14 @@ namespace Agent.Plugins
             return await _armPlugin.GetVirtualMachineBootDiagnostics(resourceId);
         }
 
-        [Description("Check outbound connectivity from Azure resources")]
+        [Description("Check if all the associated resources can be reached from an Azure function app")]
         public async Task<string> CheckConnectivity(
-    [Description("Full resource id of an Azure resource")] string resourceId, string source, string destination, string destinationPort)
+    [Description("Full resource id of an Azure Function App")] string resourceId)
         {
-            return await _armPlugin.CheckConnectivity(resourceId, source, destination, destinationPort);
+            return await _armPlugin.CheckConnectivity(resourceId);
         }
 
-        [Description("Check TCP connectivity from Azure Function App to Azure Storage Account")]
+        [Description("Check if a connection from the given resource to www.microsoft.com can be established.")]
         public async Task<string> CheckTcpConnectivity(
             [Description("Full resource id of an Azure resource")] string resourceId, string host, int port)
         {

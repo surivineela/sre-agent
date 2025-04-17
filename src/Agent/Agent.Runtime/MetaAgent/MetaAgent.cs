@@ -74,7 +74,7 @@ Before initiating any Azure resource operations:
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
 - **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
 - **Web App Down**: Help users mitigate and resolve any issues with Web App Services being slow or having downtime.
-- **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
+- **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to the associated resources and web
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.

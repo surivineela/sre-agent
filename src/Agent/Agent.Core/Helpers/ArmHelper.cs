@@ -1093,56 +1093,65 @@ public class ArmHelper
 
 
 
-    public async Task<string> CheckConnectivity(string resourceId, string source, string destination, string destinationPort)
+    public async Task<string> CheckConnectivity(string resourceId)
     {
-        // var armClient = _armClientFactory.GetArmClient();
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
-        var httpClient = _httpClientFactory.CreateClient(nameof(CheckConnectivity));
+        httpClient.BaseAddress = new Uri("https://management.azure.com");
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/connectivityCheck");
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/connectivityCheck?api-version=2022-03-01");
 
-        var payload = new Dictionary<string, string>() {
-            {"source", source},
-            {"destination", Newtonsoft.Json.JsonConvert.SerializeObject(new Dictionary<string, string>()
-                {
-                    {"address", destination },
-                    {"port", destinationPort }
-                })
-            }
-        };
-        request.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload));
+        string payload = @"{  
+            ""properties"": {  
+                ""ProviderType"": ""BlobStorage"",  
+                ""Credentials"": {  
+                    ""CredentialType"": ""CredentialReference"",  
+                    ""CredentialReference"": {  
+                        ""ReferenceType"": ""AppSetting"",  
+                        ""ReferenceName"": ""AzureWebJobsStorage""  
+                    }  
+                },  
+                ""ResourceMetadata"": {}  
+            }  
+        }";
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-        var connectivityCheckResult = await httpClient.SendAsync(request);
-        if (connectivityCheckResult.IsSuccessStatusCode)
+        var res = await httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
         {
-            return connectivityCheckResult.ToString();
+            var connectivityCheckResult = await res.Content.ReadAsStringAsync();
+            return connectivityCheckResult;
         }
 
-        return string.Empty;
+        return "Connectivity check failed.";
     }
 
     public async Task<string> CheckTcpConnectivityAsync(string resourceId, string host, int port)
     {
-        // var armClient = _armClientFactory.GetArmClient();
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
-        var httpClient = _httpClientFactory.CreateClient(nameof(CheckTcpConnectivityAsync));
+        httpClient.BaseAddress = new Uri("https://management.azure.com");
+
+        httpClient.BaseAddress = new Uri("https://management.azure.com");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/tcpPingCheck?api-version=2022-03-01");
 
-        var payload = new
-        {
-            host = host,
-            port = port
-        };
-        request.Content = new StringContent(Newtonsoft.Json.JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+        string payload = $@"{{  
+            ""properties"": {{  
+                ""Host"": ""{host}"",
+                ""Port"": ""{port}""
+            }}  
+        }}";
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
-        var tcpConnectivityCheckResult = await httpClient.SendAsync(request);
-        if (tcpConnectivityCheckResult.IsSuccessStatusCode) 
+        var res = await httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
         {
-            return tcpConnectivityCheckResult.ToString();
+            var tcpConnectivityCheckResult = await res.Content.ReadAsStringAsync();
+            return tcpConnectivityCheckResult;
         }
 
-        return "TCP connectivity check failed";
+        return "TCP ping check failed.";
     }
 
     #region Private Methods
