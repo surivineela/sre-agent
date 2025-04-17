@@ -840,7 +840,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
             var response = await _httpClient.PostAsync($"{_grafanaUrl}/api/dashboards/db", content);
-            response.EnsureSuccessStatusCode();
+            if (!response.IsSuccessStatusCode)
+            {
+                var errorContent = await response.Content.ReadAsStringAsync();
+                _logger.LogError("Failed to publish dashboard: {StatusCode}, {ErrorContent}", response.StatusCode, errorContent);
+                throw new Exception($"Failed to publish dashboard: {response.StatusCode}");
+            }
 
             var responseContent = await response.Content.ReadAsStringAsync();
             var responseObject = JsonSerializer.Deserialize<JsonElement>(responseContent);

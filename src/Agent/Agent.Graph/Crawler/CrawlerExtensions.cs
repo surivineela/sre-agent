@@ -84,7 +84,7 @@ public static class CrawlerExtensions
 
     public static Task RemoveStaleNodesWithFilter(IGraphDatabaseClient client, IDictionary<string, string> props, long ts)
     {
-        var filter = string.Join("','", props.Select(kvp => $"has('{kvp.Key}','{kvp.Value}')"));
+        var filter = string.Join(",", props.Select(kvp => $"has('{kvp.Key}','{kvp.Value}')"));
         return client.Query($"g.V().and({filter}).or(__.not(has('updateTs')),__.has('updateTs', P.lt({ts}))).drop()");
     }
 
