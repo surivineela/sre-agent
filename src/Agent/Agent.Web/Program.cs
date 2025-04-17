@@ -66,31 +66,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.LoadAppSettings(builder.Environment.IsDevelopment());
 builder.ValidateAndRegisterAppSettings<AppSettings>();
 
-// Enable Serilog self-logging to output internal errors to the console
-Serilog.Debugging.SelfLog.Enable(Console.Out);
-
-// Configure logging
-var loggerConfiguration = new LoggerConfiguration()
-        .ReadFrom.Configuration(builder.Configuration);
-
-if (!builder.Environment.IsDevelopment())
-{
-    // Additional changes for production
-    loggerConfiguration
-        .Enrich.WithProperty("AgentName", Environment.GetEnvironmentVariable("AGENT_NAME"))
-        .WriteTo.AzureDataExplorerSink(
-            new AzureDataExplorerSinkOptions
-            {
-                // Temporary - hardcoded values for testing
-                IngestionEndpointUri = "https://sub-agent-test.canadacentral.kusto.windows.net",
-                DatabaseName = "subagent",
-                TableName = "SreAgentLogs"
-            }
-            .WithAadSystemAssignedManagedIdentity()
-        );
-}
-
-Log.Logger = loggerConfiguration.CreateLogger();
+ConfigureLogger();
 
 builder.Host.UseSerilog();
 
@@ -458,6 +434,61 @@ ILoggerFactory GetLoggerFactory(ResourceBuilder resourceBuilder, AzureSettings a
             options.IncludeScopes = true;
         });
     });
+}
+
+void ConfigureLogger()
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        // Enable Serilog self-logging to output internal errors to the console
+        Serilog.Debugging.SelfLog.Enable(Console.Out);
+    }
+
+    var loggerConfiguration = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .Enrich.WithProperty("AgentName", Environment.GetEnvironmentVariable("AGENT_NAME"));
+
+    var kustoConfig = new Dictionary<string, string>
+    {
+        { "ClusterUri", GetKustoClusterConfiguration("ClusterUri") },
+        { "DatabaseName", GetKustoClusterConfiguration("DatabaseName") },
+        { "TableName", GetKustoClusterConfiguration("TableName") }
+    };
+
+    if (kustoConfig.Values.All(value => !string.IsNullOrEmpty(value)))
+    {
+        Log.Logger.Information("Configuring Kusto cluster sink with the following configuration: {KustoConfig}", kustoConfig);
+        var kustoSinkOptions = new AzureDataExplorerSinkOptions
+        {
+            IngestionEndpointUri = kustoConfig["ClusterUri"],
+            DatabaseName = kustoConfig["DatabaseName"],
+            TableName = kustoConfig["TableName"]
+        };
+
+        if (!builder.Environment.IsDevelopment())
+        {
+            // When running in Azure, use managed identity for authentication else local user auth is used
+            var identity = GetKustoClusterConfiguration("Identity");
+            kustoSinkOptions = !string.IsNullOrEmpty(identity) && !string.Equals(identity, "System", StringComparison.OrdinalIgnoreCase)
+                ? kustoSinkOptions.WithAadUserAssignedManagedIdentity(identity)
+                : kustoSinkOptions.WithAadSystemAssignedManagedIdentity();
+        }
+
+        loggerConfiguration.WriteTo.AzureDataExplorerSink(kustoSinkOptions);
+        Log.Logger = loggerConfiguration.CreateLogger();
+        Log.Logger.Information("Configured Kusto cluster sink with the following configuration: {KustoConfig}", kustoConfig);
+    }
+    else
+    {
+        Log.Logger = loggerConfiguration.CreateLogger();
+        Log.Logger.Warning("Kusto cluster sink is not enabled. Missing configuration: {KustoConfig}", kustoConfig);
+    }
+}
+
+string GetKustoClusterConfiguration(string key)
+{
+    const string prefix = "AppSettings__Core__Azure__FirstParty__KustoClusterConfiguration_";
+    return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
 }
 
 // Helper method to get Azure Portal domains
