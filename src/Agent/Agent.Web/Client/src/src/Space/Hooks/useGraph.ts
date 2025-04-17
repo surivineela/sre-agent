@@ -104,7 +104,6 @@ export const useGraph = () => {
                 const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
                 const { nodeMap, edgeMap } = getNewNodesAndEdges(appGroup, resources);
                 dispatch({ type: 'ADD_APP_GROUP', payload: { newNodeMap: nodeMap, newEdgeMap: edgeMap } });
-                setIsLoading(false);
             }
             setSelectedAppGroupId(appGroup.id);
         } else {
