@@ -1,13 +1,12 @@
 import { memo } from "react";
 import { useGraph } from "../Hooks/useGraph";
-import { GraphContext } from "../Contracts/Graph";
+import { CUSTOM_EDGE_TYPE, GRAPH_CARD_TYPE, GraphContext } from "../Contracts/Graph";
 import { Controls, MiniMap, ReactFlow, ReactFlowProvider } from "@xyflow/react";
 import { GraphCard } from "./GraphCard";
 import Panel from "./Panel";
 import ResourceSelector from "./ResourceSelector";
 import { Spinner } from "@fluentui/react-components";
 import { CustomEdge } from "./CustomEdge";
-import { CUSTOM_EDGE_TYPE, GRAF_CARD_TYPE } from "./Constants";
 
 import '@xyflow/react/dist/style.css';
 import { useGraphStyles } from "../Styles/Graph.styles";
@@ -29,13 +28,8 @@ const GraphContent = (props: IGraphProps) => {
         nodes,
         edges,
         isLoading,
-        isLoadingSubresources,
-        isComputingPosition,
         onNodesChange,
         onEdgesChange,
-        showSubresources,
-        hideSubresources,
-        areSubresourcesVisible,
         openPanel,
         closePanel,
         isPanelOpen,
@@ -51,11 +45,6 @@ const GraphContent = (props: IGraphProps) => {
 
     return <GraphContext.Provider
         value={{
-            showSubresources,
-            hideSubresources,
-            areSubresourcesVisible,
-            isLoadingSubresources,
-            isComputingPosition,
             openPanel,
             closePanel,
             isPanelOpen,
@@ -72,7 +61,7 @@ const GraphContent = (props: IGraphProps) => {
                     <Spinner size={'large'} className={spinner} /> :
                     <ReactFlow
                         fitView
-                        nodeTypes={{ [GRAF_CARD_TYPE]: GraphCard }}
+                        nodeTypes={{ [GRAPH_CARD_TYPE]: GraphCard }}
                         edgeTypes={{ [CUSTOM_EDGE_TYPE]: CustomEdge }}
                         nodes={nodes}
                         edges={edges}

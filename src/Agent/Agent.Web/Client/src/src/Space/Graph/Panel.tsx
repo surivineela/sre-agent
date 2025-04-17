@@ -84,24 +84,17 @@ const Panel = ({ transferDataToActivities }: IPanelProps) => {
 
         if (selectedNode) {
             setIsLoading(true);
-            if (selectedNode.type === 'subscription') {
-                setSummary([
-                    { label: 'Name', value: selectedNode.name },
-                    { label: 'Type', value: 'Subscription' },
-                ]);
-                setIsLoading(false);
-            } else {
-                getResource(selectedNode.id)
-                    .then((resource) => {
-                        if (isSubscribed) {
-                            setResource(resource);
-                        }
-                    }).finally(() => {
-                        if (isSubscribed) {
-                            setIsLoading(false);
-                        }
-                    })
-            }
+
+            getResource(selectedNode.id)
+                .then((resource) => {
+                    if (isSubscribed) {
+                        setResource(resource);
+                    }
+                }).finally(() => {
+                    if (isSubscribed) {
+                        setIsLoading(false);
+                    }
+                })
         }
 
         return () => {
@@ -110,7 +103,7 @@ const Panel = ({ transferDataToActivities }: IPanelProps) => {
     }, [selectedNode])
 
     useEffect(() => {
-        if (resource && selectedNode?.type !== 'subscription') {
+        if (resource) {
             const { dashboardUrl, properties: { resourceType, resourceName, resourceGroupName, subscriptionId, resourceId, appHealthInfo: appHealthInfoResponse } } = resource;
             const summary: FieldSummary[] = [];
 
@@ -226,7 +219,7 @@ const Panel = ({ transferDataToActivities }: IPanelProps) => {
         }
 
         // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [sendingReport, resource, selectedNode?.type, transferDataToActivities]);
+    }, [sendingReport, resource, transferDataToActivities]);
 
     return <OverlayDrawer
         modalType="non-modal"

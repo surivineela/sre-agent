@@ -43,7 +43,6 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
         const selectedSubscription = subscriptions.find(subscription => subscription.id === id);
         if (selectedSubscription) {
             setSelectedSubscription(selectedSubscription);
-            setSelectedAppGroup(undefined);
             setIsAppGroupLoading(true);
 
             const appGroups = await getAppGroups(selectedSubscription.id);
@@ -105,7 +104,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
 
     useEffect(() => {
         onAppGroupUpdate(selectedAppGroup);
-    }, [selectedAppGroup, onAppGroupUpdate])
+    }, [selectedAppGroup])
 
     const Shimmer = () => <Skeleton><SkeletonItem /></Skeleton>
 

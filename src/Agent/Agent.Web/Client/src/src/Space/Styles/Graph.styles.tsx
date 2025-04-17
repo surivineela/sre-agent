@@ -1,4 +1,5 @@
 import { makeStyles, tokens } from "@fluentui/react-components";
+import { NodeSize } from "../Contracts/Graph";
 
 export const useGraphStyles = makeStyles({
     root: {
@@ -28,8 +29,8 @@ export const useGraphNodeStyles = makeStyles({
         pointerEvents: 'none'
     },
     card: {
-        width: '200px',
-        height: '170px',
+        width: `${NodeSize.width}px`,
+        height: `${NodeSize.height}px`,
         position: 'relative',
         backgroundColor: tokens.colorNeutralBackground2,
     },
@@ -37,19 +38,15 @@ export const useGraphNodeStyles = makeStyles({
         backgroundColor: tokens.colorBrandBackground2Hover
     },
     header: {
-        width: 'calc(200px - 24px)'
+        width: `calc(${NodeSize.width}px - 24px)`
     },
     headerText: {
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        width: 'calc(200px - 24px - 52px)'
+        width: `calc(${NodeSize.width}px - 76px)`
     },
     description: {
         color: tokens.colorNeutralForeground3
-    },
-    footer: {
-        position: 'absolute',
-        bottom: '5px'
     }
 });
 

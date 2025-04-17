@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { DEFAULT_MARKER_COLOR } from "./Constants";
+import { DEFAULT_MARKER_COLOR } from "../Contracts/Graph";
 
 const CustomArrowMarker = ({ id, color }: { id: string, color?: string }) => (
     <defs>

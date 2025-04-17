@@ -45,32 +45,19 @@ export type ScoreCardObject = {
     IsActive: boolean;
 }
 
-export type GraphNodeProperties = ResourceExtended | Resource;
-
-export type GraphNodeObject = {
+export type GraphNode = {
     id: string;
     name: string;
-    type: 'subscription' | 'appGroup' | 'resource';
     subscriptionId: string;
-    properties?: GraphNodeProperties;
-}
-
-export type GraphNode = GraphNodeObject & {
-    isVisible: boolean;
-    childrenIds?: string[];
+    childrenIds: string[];
+    properties?: Resource;
 }
 
 export type GraphEdge = {
     label?: string;
-    isVisible: boolean;
 }
 
 interface GraphContextProps {
-    showSubresources: (parentGraphNode: GraphNode) => void;
-    hideSubresources: (parentGraphNode: GraphNode) => void;
-    areSubresourcesVisible: (parentGraphNode: GraphNode) => boolean;
-    isLoadingSubresources: boolean;
-    isComputingPosition: boolean;
     openPanel: (node: GraphNode) => void;
     closePanel: () => void;
     isPanelOpen: boolean;
@@ -82,11 +69,6 @@ interface GraphContextProps {
 }
 
 export const GraphContext = createContext<GraphContextProps>({
-    showSubresources: () => { },
-    hideSubresources: () => { },
-    areSubresourcesVisible: () => false,
-    isLoadingSubresources: false,
-    isComputingPosition: false,
     openPanel: () => { },
     closePanel: () => { },
     isPanelOpen: false,
@@ -95,3 +77,17 @@ export const GraphContext = createContext<GraphContextProps>({
     nodesToHightlight: [],
     edgesToHightlight: [],
 });
+
+export class NodeSize {
+    static readonly width = 200;
+    static readonly height = 170;
+}
+
+export type HandlePosition = 'T' | 'B' | 'L' | 'R';
+
+export const GRAPH_CARD_TYPE = 'GraphCard';
+export const CUSTOM_EDGE_TYPE = 'CustomEdge';
+export const DEFAULT_MARKER_COLOR = '#b1b1b7';
+
+
+

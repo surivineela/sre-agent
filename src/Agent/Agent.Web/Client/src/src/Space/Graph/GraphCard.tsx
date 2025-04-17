@@ -2,41 +2,27 @@ import {
     Caption1,
     Text,
     Link,
-    Button,
-    CardFooter,
-    SkeletonItem,
-    Skeleton,
     mergeClasses,
 } from "@fluentui/react-components";
 import { Card, CardHeader } from "@fluentui/react-components";
 import { NodeProps, Node, Handle, Position } from "@xyflow/react";
-import { memo, useContext, useState } from "react";
-import { GraphContext, GraphNode } from "../Contracts/Graph";
+import { memo, useContext } from "react";
+import { GraphContext, GraphNode, HandlePosition } from "../Contracts/Graph";
 import HealthStatus from "./HealthStatus";
 import { getAppHealthStatus, getHandleId } from "./Utility";
 import { useGraphNodeStyles } from "../Styles/Graph.styles";
-import { HandlePosition } from "./Constants";
 
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
 
     const {
-        showSubresources,
-        hideSubresources,
-        areSubresourcesVisible,
-        isLoadingSubresources,
-        isComputingPosition,
         openPanel,
         hoverNode,
         unHoverNode,
         nodesToHightlight
     } = useContext(GraphContext)
 
-    const [subresouceVisible, setSubresourceVisible] = useState(areSubresourcesVisible(data));
-
-    const { card, cardHightlight, header, headerText, description, footer } = useGraphNodeStyles();
-
-    const Shimmer = () => <Skeleton><SkeletonItem style={{ width: 200, height: 170 }} /></Skeleton>;
+    const { card, cardHightlight, header, headerText, description } = useGraphNodeStyles();
 
     const Header = () => {
         return data.name &&
@@ -56,39 +42,21 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
-            {(isLoadingSubresources || isComputingPosition) ?
-                <Shimmer /> :
-                <Card className={mergeClasses(card, nodesToHightlight.includes(id) ? cardHightlight : undefined)}>
-                    <CardHeader
-                        className={header}
-                        image={
-                            <img
-                                width={26}
-                                height={26}
-                                src={'azureResource.svg'}
-                            />
-                        }
-                        header={<Header />}
-                        description={<Description />}
-                    />
-                    <HealthStatus health={getAppHealthStatus(data.properties)} />
-                    <CardFooter className={footer}>
-                        <Button
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                if (subresouceVisible) {
-                                    setSubresourceVisible(false);
-                                    hideSubresources(data);
-                                } else {
-                                    setSubresourceVisible(true);
-                                    showSubresources(data);
-                                }
-                            }}
-                        >
-                            {subresouceVisible ? 'Hide subresources' : 'Show subresources'}
-                        </Button>
-                    </CardFooter>
-                </Card >}
+            <Card className={mergeClasses(card, nodesToHightlight.includes(id) ? cardHightlight : undefined)}>
+                <CardHeader
+                    className={header}
+                    image={
+                        <img
+                            width={26}
+                            height={26}
+                            src={'azureResource.svg'}
+                        />
+                    }
+                    header={<Header />}
+                    description={<Description />}
+                />
+                <HealthStatus health={getAppHealthStatus(data.properties)} />
+            </Card >
         </div>
 
     );
