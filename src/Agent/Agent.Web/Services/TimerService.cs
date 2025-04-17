@@ -579,7 +579,7 @@ public class TimerService : IHostedService, IDisposable
                 var thread = await _agentInboundCommunicationService.CreateAgentThread(
                                title: title,
                                message: messageBuilder.ToString(),
-                               agentTypeEnum: AgentTypeEnum.MetaAgent,
+                               agentTypeEnum: AgentTypeEnum.Meta,
                                source: ThreadSource.WelcomeMessage
                            );
 

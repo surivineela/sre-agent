@@ -5,6 +5,7 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
@@ -35,7 +36,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         public async Task Scan(CancellationToken cancellationToken)
         {
             var feedbackRCAAgentThreadContexts = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.FeedbackRCAAgent && x.IsThreadActive)
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.FeedbackRCA && x.IsThreadActive)
                 ?.ToList();
 
             if (feedbackRCAAgentThreadContexts != null && feedbackRCAAgentThreadContexts.Count > 0)

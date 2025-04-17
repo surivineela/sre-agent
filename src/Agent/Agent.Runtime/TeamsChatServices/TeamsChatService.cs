@@ -289,7 +289,13 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             ModifiedTimestamp: DateTime.UtcNow
             ));
 
-        var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.MetaAgent);
+        var subAgentThread = _threadRepository.CreateSubAgentThreadAsync(new SubAgentThread(
+            Id: Guid.NewGuid(),
+            ThreadId: thread.Id,
+            AgentType: AgentTypeEnum.Meta
+        ));
+
+        var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
         threadContext.AddMessage(thread.StartMessage);
         threadContext.OutboundConfiguration = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
         await _threadRepository.AddThreadContextAsync(threadContext);

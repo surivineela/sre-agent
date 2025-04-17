@@ -823,4 +823,140 @@ public class CosmosDbThreadRepository : IThreadRepository
     }
 
     #endregion
+
+    #region SubAgentThread Operations
+    public async Task<SubAgentThread> GetSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId)
+    {
+        try
+        {
+            string threadIdStr = threadId.ToString();
+            string subAgentThreadIdStr = subAgentThreadId.ToString();
+
+            SubAgentThreadDocument subAgentThreadDocument = await GetDocumentAsync<SubAgentThreadDocument>(subAgentThreadIdStr, threadIdStr);
+
+            return subAgentThreadDocument?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<SubAgentThread>> GetSubAgentThreadsForThreadAsync(Guid threadId)
+    {
+        var subAgentThreads = new List<SubAgentThread>();
+        string threadIdStr = threadId.ToString();
+        var query = _container.GetItemLinqQueryable<SubAgentThreadDocument>()
+            .Where(m => m.DocumentType == "SubAgentThread" && m.ThreadId == threadIdStr);
+
+        using var iterator = query.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var subAgentThreadDoc in await iterator.ReadNextAsync())
+            {
+                subAgentThreads.Add(subAgentThreadDoc.ToDomainModel());
+            }
+        }
+        return subAgentThreads;
+    }
+
+    public async Task<SubAgentThread> CreateSubAgentThreadAsync(SubAgentThread subAgentThread)
+    {
+        // Ensure IDs are set
+        if (subAgentThread.Id == Guid.Empty)
+        {
+            subAgentThread = subAgentThread with { Id = Guid.NewGuid() };
+        }
+
+        if (subAgentThread.ThreadId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        SubAgentThreadDocument subAgentThreadDoc = SubAgentThreadDocument.FromDomainModel(subAgentThread);
+        await _container.CreateItemAsync(subAgentThreadDoc, new PartitionKey(subAgentThreadDoc.PartitionKey));
+        return subAgentThread;
+    }
+
+    public async Task<bool> DeleteSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId)
+    {
+        string threadIdStr = threadId.ToString();
+        string subAgentThreadIdStr = subAgentThreadId.ToString();
+
+        try
+        {
+            // Delete the message
+            await _container.DeleteItemAsync<SubAgentThreadDocument>(
+                subAgentThreadIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+    #endregion
+
+    #region ReasoningMessage Operations
+    public async Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId)
+    {
+        try
+        {
+            string subAgentThreadIdStr = subAgentThreadId.ToString();
+            string reasoningMessageIdStr = reasoningMessageId.ToString();
+
+            ReasoningMessageDocument reasoningMessageDocument = await GetDocumentAsync<ReasoningMessageDocument>(reasoningMessageIdStr, subAgentThreadIdStr);
+
+            return reasoningMessageDocument?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<ReasoningMessage> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage)
+    {
+        // Ensure IDs are set
+        if (reasoningMessage.Id == Guid.Empty)
+        {
+            reasoningMessage = reasoningMessage with { Id = Guid.NewGuid() };
+        }
+
+        if (reasoningMessage.SubAgentThreadId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        ReasoningMessageDocument reasoningMessageDoc = ReasoningMessageDocument.FromDomainModel(reasoningMessage);
+        await _container.CreateItemAsync(reasoningMessageDoc, new PartitionKey(reasoningMessageDoc.PartitionKey));
+        return reasoningMessage;
+    }
+
+    public async Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId)
+    {
+        string subAgentThreadIdStr = subAgentThreadId.ToString();
+        string reasoningMessageIdStr = reasoningMessageId.ToString();
+
+        try
+        {
+            // Delete the message
+            await _container.DeleteItemAsync<ReasoningMessageDocument>(
+                reasoningMessageIdStr,
+                new PartitionKey(subAgentThreadIdStr)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+    #endregion
 }

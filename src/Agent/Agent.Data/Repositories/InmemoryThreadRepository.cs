@@ -12,6 +12,8 @@ using System.Threading;
 using Microsoft.AspNetCore.OData.Query;
 using Agent.Data.DataModels;
 using Gremlin.Net.Process.Traversal;
+using Microsoft.Azure.Cosmos;
+using System.Net;
 
 namespace Agent.Data.Repositories
 {
@@ -26,6 +28,8 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<(Guid ThreadId, Guid MessageId), Message> _messages = new();
         private readonly Dictionary<(Guid ThreadId, Guid MessageFeebackId), MessageFeedback> _messageFeedbacks = new();
         private readonly Dictionary<(Guid ThreadId, Guid ActionId), Action> _actions = new();
+        private readonly Dictionary<(Guid ThreadId, Guid SubAgentThreadId), SubAgentThread> _subAgentThreads = new();
+        private readonly Dictionary<(Guid SubAgentThreadId, Guid ReasoningMessageId), ReasoningMessage> _reasoningMessages = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly ILogger<InmemoryThreadRepository> _logger;
 
@@ -359,6 +363,62 @@ namespace Agent.Data.Repositories
                 _logger.LogError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
                 throw;
             }
+        }
+        #endregion
+
+        #region SubAgentThread Operations
+        public Task<SubAgentThread> GetSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId)
+        {
+            _subAgentThreads.TryGetValue((threadId, subAgentThreadId), out var subAgentThread);
+            return Task.FromResult(subAgentThread);
+        }
+
+        public Task<IEnumerable<SubAgentThread>> GetSubAgentThreadsForThreadAsync(Guid threadId)
+        {
+            return Task.FromResult(_subAgentThreads
+                .Where(kvp => kvp.Key.ThreadId == threadId)
+                .Select(kvp => kvp.Value)
+                .AsEnumerable());
+        }
+
+        public Task<SubAgentThread> CreateSubAgentThreadAsync(SubAgentThread subAgentThread)
+        {
+            _subAgentThreads[(subAgentThread.ThreadId, subAgentThread.Id)] = subAgentThread;
+            return Task.FromResult(subAgentThread);
+        }
+
+        public Task<bool> DeleteSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId)
+        {
+            if (!_subAgentThreads.TryGetValue((threadId, subAgentThreadId), out var subAgentThread))
+            {
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(_subAgentThreads.Remove((threadId, subAgentThreadId)));
+        }
+        #endregion
+
+        #region ReasoningMessage Operations
+        public Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId)
+        {
+            _reasoningMessages.TryGetValue((subAgentThreadId, reasoningMessageId), out var reasoningMessage);
+            return Task.FromResult(reasoningMessage);
+        }
+
+        public Task<ReasoningMessage> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage)
+        {
+            _reasoningMessages[(reasoningMessage.SubAgentThreadId, reasoningMessage.Id)] = reasoningMessage;
+            return Task.FromResult(reasoningMessage);
+        }
+
+        public Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId)
+        {
+            if (!_reasoningMessages.TryGetValue((subAgentThreadId, reasoningMessageId), out var reasoningMessage))
+            {
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(_reasoningMessages.Remove((subAgentThreadId, reasoningMessageId)));
         }
         #endregion
     }

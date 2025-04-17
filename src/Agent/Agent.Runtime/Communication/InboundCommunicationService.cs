@@ -150,10 +150,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     ScannerSubAgent scannerSubAgent = null;
                     switch (threadContext.AgentTypeEnum)
                     {
-                        case AgentTypeEnum.CVEAgent:
+                        case AgentTypeEnum.CVE:
                             scannerSubAgent = new CVEAgent(_chatClient, _graphDbPlugin, _githubIssuePlugin, _sinkService, _repository);
                             break;
-                        case AgentTypeEnum.SourceCodeAgent:
+                        case AgentTypeEnum.SourceCode:
                             scannerSubAgent = new SourceCodeAgent(_chatClient, _graphDbPlugin, _sinkService, _repository);
                             break;
                         default:
@@ -251,9 +251,24 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Source: source
         );
 
+        var subAgentThread = new SubAgentThread(
+            Id: Guid.NewGuid(),
+            ThreadId: thread.Id,
+            AgentType: agentTypeEnum
+        );
+
+        var startReasoningMessage = new ReasoningMessage(
+            Id: Guid.NewGuid(),
+            SubAgentThreadId: subAgentThread.Id,
+            Role: ReasoningMessageRoleEnum.Assistant,
+            Text: startMessage.Text,
+            FunctionInvocation: null);
+
         // TODO - how should we share implementation with process user message and make sure fan out occurs?
         await _repository.CreateThreadAsync(thread);
+        await _repository.CreateSubAgentThreadAsync(subAgentThread);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
+        await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
         var threadContext = new ThreadContext(thread.Id, agentTypeEnum: agentTypeEnum, outboundConfiguration: outboundConfiguration);
         threadContext.AddMessage(thread.StartMessage);

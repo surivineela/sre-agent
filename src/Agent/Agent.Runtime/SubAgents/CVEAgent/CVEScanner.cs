@@ -5,6 +5,7 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
@@ -47,7 +48,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
         public async Task Scan(CancellationToken cancellationToken)
         {
             var cveAgentThreadContexts = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVEAgent && x.IsThreadActive)
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVE && x.IsThreadActive)
                 ?.ToList();
 
             if (cveAgentThreadContexts != null && cveAgentThreadContexts.Count > 0)
@@ -80,7 +81,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
 
                     """,
-                    agentTypeEnum: AgentTypeEnum.CVEAgent);
+                    agentTypeEnum: AgentTypeEnum.CVE);
 
                 var cveAgent = new CVEAgent(
                     _chatClient,

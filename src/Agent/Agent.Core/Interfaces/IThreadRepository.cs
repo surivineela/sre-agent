@@ -39,5 +39,14 @@ public interface IThreadRepository
     Task<MessageFeedback> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback);
     Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
     Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync();
+
+    Task<SubAgentThread> GetSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId);
+    Task<IEnumerable<SubAgentThread>> GetSubAgentThreadsForThreadAsync(Guid threadId);
+    Task<SubAgentThread> CreateSubAgentThreadAsync(SubAgentThread subAgentThread);
+    Task<bool> DeleteSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId);
+
+    Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId);
+    Task<ReasoningMessage> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage);
+    Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId);
 }
 

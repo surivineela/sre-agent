@@ -89,9 +89,16 @@ namespace Agent.Web.Controllers.v1
                 Source: request.Source ?? ThreadSource.Conversation
             );
 
-            thread = await repository.CreateThreadAsync(thread);
+            var subAgentThread = new SubAgentThread(
+                Id: Guid.NewGuid(),
+                ThreadId: thread.Id,
+                AgentType: AgentTypeEnum.Meta
+            );
 
-            var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.MetaAgent);
+            thread = await repository.CreateThreadAsync(thread);
+            subAgentThread = await repository.CreateSubAgentThreadAsync(subAgentThread);
+
+            var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
             threadContext.AddMessage(thread.StartMessage);
             await repository.AddThreadContextAsync(threadContext);
 
@@ -232,6 +239,12 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
+            var subAgentThreads = await repository.GetSubAgentThreadsForThreadAsync(threadId);
+            foreach (var subAgentThread in subAgentThreads)
+            {
+                await repository.DeleteSubAgentThreadAsync(subAgentThreadId: subAgentThread.Id, threadId: threadId);
+            }
+
             await repository.DeleteThreadAsync(threadId);
 
             return NoContent();
@@ -286,7 +299,7 @@ namespace Agent.Web.Controllers.v1
             var thread = await agentInboundCommunicationService.CreateAgentThread(
                 title: $"Incident Report - {request.Title}",
                 message: incidentMessage,
-                agentTypeEnum: AgentTypeEnum.MetaAgent,
+                agentTypeEnum: AgentTypeEnum.Meta,
                 source: ThreadSource.Incident
             );
 

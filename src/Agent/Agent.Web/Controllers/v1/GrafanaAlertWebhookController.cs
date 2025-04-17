@@ -120,7 +120,7 @@ namespace Agent.Web.Controllers.v1
                 }
 
                 // Create the thread and post to Teams - wait for this to complete
-                var thread = await inboundCommunicationService.CreateAlertThreadWithTeams(request.Title, alertInfo, Core.Helpers.AgentTypeEnum.MetaAgent);
+                var thread = await inboundCommunicationService.CreateAlertThreadWithTeams(request.Title, alertInfo, AgentTypeEnum.Meta);
 
                 // Process the message in the background for new thread
                 string newAlertMessage = "I have received an alert, please delegate to Kubernetes Agent to diagnose and give me the suggestion for actions to quickly mitigate the alerts.";

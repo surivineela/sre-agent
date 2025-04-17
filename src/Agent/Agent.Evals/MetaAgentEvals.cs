@@ -169,7 +169,7 @@ public class MetaAgentEvals
         {
             new ChatMessage(ChatRole.User, userMsg)
         };
-        var context = new ThreadContext(Guid.Parse(testRunGuid), AgentTypeEnum.MetaAgent);
+        var context = new ThreadContext(Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
         var result = agent.ProcessUserMessage(context);
         var agentMsg = new ChatMessage(ChatRole.Assistant, result.Result);
         var response = new ChatResponse(agentMsg);

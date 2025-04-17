@@ -5,6 +5,7 @@
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
@@ -44,7 +45,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
         public async Task Scan(CancellationToken cancellationToken)
         {
             var sourceCodeAgentV2ThreadContext = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCodeAgent && x.IsThreadActive)
+                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCode && x.IsThreadActive)
                 ?.ToList();
 
             if (sourceCodeAgentV2ThreadContext != null && sourceCodeAgentV2ThreadContext.Count > 0)
@@ -72,7 +73,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     Hi there! I found at least one Container App that does not have the source code repo url provided.
                     Preparing details...  
                     """,
-                    agentTypeEnum: AgentTypeEnum.SourceCodeAgent);
+                    agentTypeEnum: AgentTypeEnum.SourceCode);
 
                 var sourceCodeAgent = new SourceCodeAgent(
                     _chatClient,

@@ -232,7 +232,7 @@ namespace Agent.Plugins
                     }
 
                     // TODO: read threadcontext from cosmos db if Context is null
-                    var ctx = Context ?? new ThreadContext(threadId ?? Guid.Empty, Core.Helpers.AgentTypeEnum.MetaAgent);
+                    var ctx = Context ?? new ThreadContext(threadId ?? Guid.Empty, AgentTypeEnum.Meta);
 
                     var jsonResult = JsonSerializer.Serialize(typedResult, new JsonSerializerOptions { WriteIndented = true });
                     var prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, convert it to brief text to show the relationships between microservices (the dependency true).
@@ -366,7 +366,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(threadId ?? Guid.Empty, Core.Helpers.AgentTypeEnum.MetaAgent), $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(threadId ?? Guid.Empty, AgentTypeEnum.Meta), $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r\n");
 
                     return "Visualization Rendered!";
                 }
@@ -850,7 +850,7 @@ g.V().has('id', '{deploymentResourceId}')
                 if (Context != null)
                 {
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(Context.ThreadId, Core.Helpers.AgentTypeEnum.MetaAgent), $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(Context.ThreadId, AgentTypeEnum.Meta), $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);

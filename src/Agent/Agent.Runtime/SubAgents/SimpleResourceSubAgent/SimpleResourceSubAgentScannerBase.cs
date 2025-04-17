@@ -97,7 +97,7 @@ namespace Agent.Runtime.SubAgents
                 (var thread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     $"{agentName} found issues",
                     this.MessageWhenFoundResourcesInViolation,
-                    AgentTypeEnum.DurableAgent
+                    AgentTypeEnum.DTS
                 );
 
                 // TODO: At first I thought: We don't want to kick off a remediation activity here; that's too aggressive.

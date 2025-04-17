@@ -20,7 +20,7 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
             : this(
                   new StorageAccountAgentActivityInput(FeatureState.Disabled, FeatureState.Disabled, new List<SimpleResourceSubAgentResourceInformation>()),
                   new List<string>(),
-                  new ThreadContext(Guid.Empty, AgentTypeEnum.DurableAgent)
+                  new ThreadContext(Guid.Empty, AgentTypeEnum.DTS)
                   )
         {
         }

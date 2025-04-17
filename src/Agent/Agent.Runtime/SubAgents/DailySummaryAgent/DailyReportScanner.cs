@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -182,7 +182,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             (var thread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
                 initialMessage,
-                agentTypeEnum: AgentTypeEnum.DurableAgent);
+                agentTypeEnum: AgentTypeEnum.DTS);
 
             // Append the screenshot as separate message, this message will be excluded from the chat history to LLM due to token limitation.
             await _agentInboundCommunicationService.AppendAgentImageMessage(threadContext, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");

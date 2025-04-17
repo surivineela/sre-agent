@@ -114,8 +114,9 @@ resolved
     [KernelFunction("fetch_github_security_dependabot_alert")]
     [Description("Fetches all dependabot issues for a github repo. If the returned object is empty and is not an exception, let the user know there were none found.")]
     public async Task<IEnumerable<GithubIssuePluginDependabotVulnerability>> FetchGithubSecurityDependabotAlerts(
-            [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name.git")] string repoUrl
+            [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name")] string repoUrl
         )
+
     {
         return await _gitHubIssuePlugin.FetchGithubSecurityDependabotAlerts(repoUrl);
     }

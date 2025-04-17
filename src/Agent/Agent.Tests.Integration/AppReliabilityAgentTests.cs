@@ -179,7 +179,7 @@ namespace Agent.Tests.Integration
             var input = new AppReliabilityInput { AppsInViolation = _testApps };
             string? instanceID = "";
             var guid = Guid.NewGuid();
-            var context = new ThreadContext(guid, Core.Helpers.AgentTypeEnum.DurableAgent);
+            var context = new ThreadContext(guid, AgentTypeEnum.DTS);
 
             try
             {
@@ -230,7 +230,7 @@ namespace Agent.Tests.Integration
             var input = new AppReliabilityInput { AppsInViolation = _testApps };
             string? instanceID = "";
             var guid = Guid.NewGuid();
-            var context = new ThreadContext(guid, Core.Helpers.AgentTypeEnum.DurableAgent);
+            var context = new ThreadContext(guid, AgentTypeEnum.DTS);
 
             try
             {
@@ -283,7 +283,7 @@ namespace Agent.Tests.Integration
             var input = new AppReliabilityInput { AppsInViolation = _testApps };
             string? instanceID = "";
             var guid = Guid.NewGuid();
-            var context = new ThreadContext(guid, Core.Helpers.AgentTypeEnum.DurableAgent);
+            var context = new ThreadContext(guid, AgentTypeEnum.DTS);
 
             try
             {

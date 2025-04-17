@@ -100,7 +100,7 @@ public class TestThreadService
         ));
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var chatHistory = await _threadService.ToChatHistory(threadContext);
 
         // Assert
@@ -136,7 +136,7 @@ public class TestThreadService
         string systemPrompt = "You are a helpful assistant.";
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var chatHistory = await _threadService.ToLLMChatHistory(threadContext, systemPrompt);
 
         // Assert
@@ -181,7 +181,7 @@ public class TestThreadService
         ));
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var lastUserMessage = await _threadService.GetLastUserMessage(threadContext);
 
         // Assert
@@ -205,7 +205,7 @@ public class TestThreadService
         ));
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var lastUserMessage = await _threadService.GetLastUserMessage(threadContext);
 
         // Assert
@@ -224,7 +224,7 @@ public class TestThreadService
         await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var result = await _threadService.GetOrchestrationInstanceId(threadContext);
 
         // Assert
@@ -239,7 +239,7 @@ public class TestThreadService
         await CreateTestThreadAsync(threadId);
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var result = await _threadService.GetOrchestrationInstanceId(threadContext);
 
         // Assert
@@ -252,7 +252,7 @@ public class TestThreadService
         // Arrange
         var threadId = Guid.NewGuid();
         var orchestrationInstanceId = "failed-orchestration-id";
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         await CreateTestThreadAsync(threadId);
 
         // Add a mapping for the thread
@@ -291,7 +291,7 @@ public class TestThreadService
         // Arrange
         var threadId = Guid.NewGuid();
         var orchestrationInstanceId = "completed-orchestration-id";
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         await CreateTestThreadAsync(threadId);
 
         // Initial message count
@@ -324,7 +324,7 @@ public class TestThreadService
         // Arrange
         var threadId = Guid.NewGuid();
         var orchestrationInstanceId = "terminated-orchestration-id";
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         await CreateTestThreadAsync(threadId);
 
         // Add a mapping for the thread
@@ -365,7 +365,7 @@ public class TestThreadService
         await CreateTestThreadAsync(threadId);
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.MetaAgent);
+        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
         var chatHistory = await _threadService.ToChatHistory(threadContext);
 
         // Assert

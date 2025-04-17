@@ -14,7 +14,7 @@ namespace Agent.Runtime.SubAgents
     public abstract record SimpleResourceSubAgentInput<TActivityInput>(TActivityInput ActivityInput, IReadOnlyList<string> ToolSignatures, ThreadContext Context)
         where TActivityInput : SimpleResourceSubAgentActivityInput, new()
     {
-        public SimpleResourceSubAgentInput() : this(new TActivityInput(), new List<string>(), new ThreadContext(Guid.Empty, AgentTypeEnum.DurableAgent))
+        public SimpleResourceSubAgentInput() : this(new TActivityInput(), new List<string>(), new ThreadContext(Guid.Empty, AgentTypeEnum.DTS))
         {
         }
     }
