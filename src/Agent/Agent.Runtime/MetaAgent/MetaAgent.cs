@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -300,20 +300,29 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
         var chatHistory = await _threadService.ToLLMChatHistory(ctx, SystemPrompt);
 
-        var response = await ChatClientHelper.ExecuteWithRetryAsync(
+        try
+        {
+            var response = await ChatClientHelper.ExecuteWithRetryAsync(
             async () => await _chatClient.GetResponseAsync(
-                chatHistory,
-                new ChatOptions
+            chatHistory,
+            new ChatOptions
+            {
+                Tools = _aiTools,
+                ToolMode = ChatToolMode.Auto,
+                AdditionalProperties = new AdditionalPropertiesDictionary
                 {
-                    Tools = _aiTools,
-                    ToolMode = ChatToolMode.Auto,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        //["AllowParallelToolCalls"] = false,
-                    }
-                }),
+                    //["AllowParallelToolCalls"] = false,
+                }
+            }),
             _log, 10);
 
-        return response.Messages.Last().Text;
+            return response.Messages.Last().Text;
+        }
+        catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
+        {
+            _log.LogError(ex, "An error occurred while processing the user message.");
+            return ex.Message;
+
+        }
     }
 }
