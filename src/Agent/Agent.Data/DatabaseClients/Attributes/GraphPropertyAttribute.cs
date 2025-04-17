@@ -4,7 +4,7 @@ namespace Agent.Data.DatabaseClients.Attributes
     /// Attribute to mark a property as a graph property.
     /// </summary>
     [AttributeUsage(AttributeTargets.Property, Inherited = false, AllowMultiple = false)]
-    public sealed class GraphPropertyAttribute : Attribute
+    public class GraphPropertyAttribute : Attribute
     {
         /// <summary>
         /// Gets or sets the name of the property in the graph database.

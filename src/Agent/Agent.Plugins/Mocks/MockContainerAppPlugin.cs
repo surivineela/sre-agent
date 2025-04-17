@@ -50,6 +50,11 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
+        public Task<IReadOnlyList<RevisionInfo>> ListContainerAppRevisionsAsync(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<bool> RemoveNSGRuleAsync(string nsgResourceId, string ruleName)
         {
             throw new NotImplementedException();

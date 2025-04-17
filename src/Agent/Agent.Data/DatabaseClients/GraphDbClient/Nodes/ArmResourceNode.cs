@@ -4,8 +4,10 @@
 
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using Agent.Data.DatabaseClients.Attributes;
+using Gremlin.Net.Structure;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
@@ -21,8 +23,18 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     {
         [GraphProperty("updateTs")]
         public long UpdateTs { get; set; }
+
         public abstract string GetNodeId();
+
         public abstract string GetNodeLabel();
+
+        protected GraphNode() { }
+
+        protected GraphNode(IDictionary<string, object> properties)
+        {
+            SetNodeProperties(properties);
+        }
+
         public virtual IDictionary<string, object> GetNodeProperties()
         {
             var properties = new Dictionary<string, object>();
@@ -38,10 +50,12 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
                 if (attr != null)
                 {
-                    // Use the attribute's name as the key, property value as the value
-                    var value = prop.GetValue(this);
+                    var value = attr is GraphJsonPropertyAttribute jsonAttr
+                        ? JsonSerializer.Serialize(prop.GetValue(this))
+                        : prop.GetValue(this);
                     if (value != null)
                     {
+                        // Use the attribute's name as the key, property value as the value
                         properties[attr.PropertyName] = value;
                     }
                 }
@@ -50,9 +64,121 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             return properties;
         }
 
+        /// <summary>
+        /// This method is used to set the properties of the current instance based on the provided dictionary.
+        /// It'd be called in the constructor of the derived class that wants to support reading a
+        /// Dictionary&lt;string, object&gt; as a parameter for initializing its properties.
+        /// </summary>
+        private void SetNodeProperties(IDictionary<string, object> properties)
+        {
+            // List all the current type properties with [GraphProperty] attribute
+            // Get the PropertyName, PropertyType and GraphPropertyName
+            var graphProperties = GetType().GetProperties()
+                .Select(prop =>
+                {
+                    var attribute = prop.GetCustomAttributes(typeof(GraphPropertyAttribute), true)
+                        .Cast<GraphPropertyAttribute>()
+                        .FirstOrDefault();
+                    return attribute != null
+                        ? new {
+                            PropertyName = prop.Name,
+                            PropertyType = prop.PropertyType,
+                            GraphPropertyName = attribute.PropertyName
+                        }
+                        : null;
+                })
+                .Where(x => x != null)
+                .ToList();
+
+            // Set the properties on the current instance.
+            foreach (var prop in graphProperties)
+            {
+                if (properties.TryGetValue(prop.GraphPropertyName, out var value))
+                {
+                    var property = GetType().GetProperty(prop.PropertyName);
+                    if (property != null && property.CanWrite)
+                    {
+                        if (value is IEnumerable<object> enumerable)
+                        {
+                            if (property.PropertyType.IsAssignableFrom(typeof(IEnumerable<object>)))
+                            {
+                                TryAssignValue(property, enumerable);
+                            }
+                            else if (enumerable.Any())
+                            {
+                                var firstValue = enumerable.FirstOrDefault();
+                                TryAssignValue(property, firstValue);
+                            }
+                        }
+                        else
+                        {
+                            TryAssignValue(property, value);
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This method is used to assign a value to a property of the current instance.
+        /// the graph client/service changes booleans to strings. Enums unknown.
+        /// /// </summary>
+        private bool TryAssignValue(PropertyInfo property, object? value)
+        {
+            // Check if the property can be written to
+            if (!property.CanWrite)
+            {
+                // throw new InvalidOperationException($"Property '{property.Name}' is read-only.");
+                return false;
+            }
+
+            var targetType =  Nullable.GetUnderlyingType((property.PropertyType)) ?? property.PropertyType;
+            object? convertedValue = null;
+
+            if (value != null)
+            {
+                var valueType = value.GetType();
+                if (targetType.IsAssignableFrom(valueType))
+                {
+                    convertedValue = value;
+                }
+                else
+                {
+                    try
+                    {
+                        convertedValue = Convert.ChangeType(value, targetType);
+                    }
+                    catch (InvalidCastException)
+                    {
+                        // throw new ArgumentException($"Cannot convert value of type '{valueType}' to property type '{targetType}'.");
+                        return false;
+                    }
+                }
+            }
+            else if (property.PropertyType.IsValueType && Nullable.GetUnderlyingType(property.PropertyType) == null)
+            {
+                // assigning null to a non-nullable value type property
+                // throw new InvalidOperationException($"Cannot assign null to non-nullable property '{propertyName}'.");
+                return false;
+            }
+
+            try
+            {
+                property.SetValue(this, convertedValue);
+                return true;
+            }
+            catch (Exception)
+            {
+                // Handle the exception as needed
+                // throw new InvalidOperationException($"Failed to set property '{property.Name}': {ex.Message}", ex);
+                return false;
+            }
+        }
+
         public abstract string GetResourceType();
 
         public abstract string GetHashString();
+
         public abstract string GetSubscriptionId();
     }
 
@@ -70,7 +196,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         // costs ($ USD)
         public double? Costs { get; set; }
-        
+
         // average latency (ms)
         public double? AvgLatencyInMs { get; set; }
 
@@ -78,13 +204,13 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
         public double? AvgCpuUsage { get; set; }
 
-        // maybe not needed? 
+        // maybe not needed?
         public IDictionary<string, object> AdditionalMetrics { get; set; } = new Dictionary<string, object>();
 
         // time since lastActivity
         public DateTime? TimeSinceLastActivity { get; set; }
 
-        // if resource IsActive 
+        // if resource IsActive
         [JsonIgnore]
         public bool IsActive
         {
@@ -122,30 +248,30 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
     public class ArmResourceNode : GraphNode
     {
         public string ResourceType { get; set; }
+
         [GraphProperty("resourceId")]
         public string ResourceId { get; set; }
+
         [GraphProperty("subscriptionId")]
         public string SubscriptionId { get; set; }
+
         [GraphProperty("resourceGroupName")]
         public string ResourceGroupName { get; set; }
+
         [GraphProperty("resourceName")]
         public string ResourceName { get; set; }
+
         [GraphProperty("location")]
         public string Location { get; set; }
+
+        [GraphJsonProperty("appHealthInfo")]
         public AppHealthInfo AppHealthInfo { get; set; }
 
-        [GraphProperty("isProd")]
-        public bool IsProd
-        {
-            // to do: add logic to check tags
-            get
-            {
-                return string.IsNullOrEmpty(ResourceName) || 
-                       !ResourceName.Contains("dev", StringComparison.OrdinalIgnoreCase);
-            }
-        }
-
         public ArmResourceNode() { }
+
+        public ArmResourceNode(IDictionary<string, object> properties)
+            : base(properties) { }
+
         public ArmResourceNode(string resourceType, string subscriptionId)
             : this(resourceType, null, subscriptionId, null, null) { }
 
@@ -176,7 +302,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             //return parts[parts.Length - 1];
 
             // use full arm type to avoid potential conflict
-            return ResourceType;
+            return ResourceType?.ToLower();
         }
 
         public override string GetNodeId()
@@ -187,31 +313,6 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public override string GetResourceType()
         {
             return ResourceType;
-        }
-
-        public override IDictionary<string, object> GetNodeProperties()
-        {
-            var properties = new Dictionary<string, object>
-            {
-                { "updateTs", UpdateTs },
-                { "resourceId", ResourceId },
-                { "subscriptionId", SubscriptionId },
-                { "resourceGroupName", ResourceGroupName },
-                { "resourceName", ResourceName }
-            };
-
-            if (!string.IsNullOrEmpty(Location))
-            {
-                properties.Add("location", Location);
-            }
-            
-            if (AppHealthInfo != null)
-            {
-                string jsonAppHealthInfo = JsonSerializer.Serialize(AppHealthInfo);
-                properties["appHealthInfo"] = jsonAppHealthInfo;
-            }
-
-            return properties;
         }
 
         // Mainly for system MI

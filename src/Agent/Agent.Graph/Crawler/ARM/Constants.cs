@@ -11,6 +11,7 @@ public class Constants
     public const string SubscriptionType = SubscriptionNode.Type;
     public const string ResourceGroupType = ResourceGroupNode.Type;
     public const string ContainerAppType = "Microsoft.App/containerApps";
+    public const string ContainerAppRevisionType = "Microsoft.App/containerApps/revisions";
     public const string ContainerAppEnvironmentType = "Microsoft.App/managedEnvironments";
     public const string VirtualNetworkType = "Microsoft.Network/virtualNetworks";
     public const string LoadBalancerType = "Microsoft.Network/loadBalancers";
@@ -56,6 +57,7 @@ public class Constants
         public const string ServesCode = "SERVES_CODE";
         public const string References = "REFERENCES";
         public const string BackedBy = "BACKED_BY";
+        public const string RevisionOf = "REVISION_OF";
     }
 
     // indicates this node is a part of specific topology

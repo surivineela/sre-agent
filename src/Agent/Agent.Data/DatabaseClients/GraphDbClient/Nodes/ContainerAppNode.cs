@@ -1,30 +1,64 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Data.DatabaseClients.Attributes;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient;
+
 public class ContainerAppNode : ArmResourceNode
 {
     [GraphProperty("provisioningState")]
     public string? ProvisioningState { get; set; }
+
     [GraphProperty("runningStatus")]
     public string? RunningStatus { get; set; }
+
     [GraphProperty("workloadProfileName")]
     public string? WorkloadProfileName { get; set; }
+
     [GraphProperty("external")]
     public bool? External { get; set; }
+
     [GraphProperty("transport")]
     public string? Transport { get; set; }
-    public List<string> HostNames { get; set; }
-    public List<Container> Containers { get; set; }
-    public List<Container> InitContainers { get; set; }
+
+    public List<string> HostNames { get; set; } = [];
+
+    public List<Container> Containers { get; set; } = [];
+
+    public List<Container> InitContainers { get; set; } = [];
+
     [GraphProperty("minReplicas")]
     public int? MinReplicas { get; set; }
+
     [GraphProperty("maxReplicas")]
     public int? MaxReplicas { get; set; }
+
+    [GraphProperty("environmentId")]
+    public string? EnvironmentId { get; set; }
+
+    [GraphProperty("activeRevisionMode")]
+    public string? ActiveRevisionMode { get; set; }
+
+    [GraphProperty("targetPort")]
+    public int? TargetPort { get; set; }
+
+    public List<TrafficConfiguration> Traffic { get; set; } = [];
+
+    public List<Registry> Registries { get; set; } = [];
+
+    public class Registry
+    {
+        public string? Server { get; set; }
+        public string? Username { get; set; }
+        public string? PasswordSecretRef { get; set; }
+        public string? Identity { get; set; }
+    }
+
+    public class TrafficConfiguration
+    {
+        public string? RevisionName { get; set; }
+        public int Weight { get; set; }
+        public string? Label { get; set; }
+        public bool LatestRevision { get; set; }
+    }
 
     public class Container
     {
@@ -32,6 +66,12 @@ public class ContainerAppNode : ArmResourceNode
         public string Image { get; set; }
         public string? Cpu { get; set; }
         public string? Memory { get; set; }
+    }
+
+    public ContainerAppNode(IDictionary<string, object> properties)
+        : base(properties)
+    {
+        SetNodeProperties(properties);
     }
 
     public ContainerAppNode(string resourceType,
@@ -42,9 +82,9 @@ public class ContainerAppNode : ArmResourceNode
         string location = null)
         : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location)
     {
-        HostNames = new List<string>();
-        Containers = new List<Container>();
-        InitContainers = new List<Container>();
+        HostNames = [];
+        Containers = [];
+        InitContainers = [];
     }
 
     public override IDictionary<string, object> GetNodeProperties()
@@ -97,6 +137,86 @@ public class ContainerAppNode : ArmResourceNode
             }
         }
 
+        if (Traffic != null && Traffic.Count > 0)
+        {
+            for (int i = 0; i < Traffic.Count; i++)
+            {
+                var trafficConfig = Traffic[i];
+                props.Add($"traffic_{i}_revisionName", trafficConfig.RevisionName);
+                props.Add($"traffic_{i}_weight", trafficConfig.Weight);
+                props.Add($"traffic_{i}_label", trafficConfig.Label);
+                props.Add($"traffic_{i}_latestRevision", trafficConfig.LatestRevision);
+            }
+        }
+
+        if (Registries != null && Registries.Count > 0)
+        {
+            for (int i = 0; i < Registries.Count; i++)
+            {
+                var registry = Registries[i];
+                props.Add($"registry_{i}_server", registry.Server);
+                props.Add($"registry_{i}_username", registry.Username);
+                props.Add($"registry_{i}_passwordSecretRef", registry.PasswordSecretRef);
+                props.Add($"registry_{i}_identity", registry.Identity);
+            }
+        }
+
         return props;
+    }
+
+    private void SetNodeProperties(IDictionary<string, object> properties)
+    {
+        if (properties.TryGetValue("hostNames", out var hostnames) && hostnames is string)
+        {
+            HostNames = [.. hostnames.ToString().Split(',')];
+        }
+
+        Containers = properties.Keys
+            .Where(k => k.StartsWith("container_"))
+            .GroupBy(k => k.Substring(0, k.LastIndexOf('_')))
+            .Select(g => new Container
+            {
+                Name = properties.TryGetValue(g.Key + "_name", out var value) ? value.ToString() : null,
+                Image = properties.TryGetValue(g.Key + "_image", out var image) ? image.ToString() : null,
+                Cpu = properties.TryGetValue(g.Key + "_cpu", out var cpu) ? cpu.ToString() : null,
+                Memory = properties.TryGetValue(g.Key + "_memory", out var memory) ? memory.ToString() : null
+            })
+            .ToList();
+
+        InitContainers = properties.Keys
+            .Where(k => k.StartsWith("initContainer_"))
+            .GroupBy(k => k.Substring(0, k.LastIndexOf('_')))
+            .Select(g => new Container
+            {
+                Name = properties.TryGetValue(g.Key + "_name", out var value) ? value.ToString() : null,
+                Image = properties.TryGetValue(g.Key + "_image", out var image) ? image.ToString() : null,
+                Cpu = properties.TryGetValue(g.Key + "_cpu", out var cpu) ? cpu.ToString() : null,
+                Memory = properties.TryGetValue(g.Key + "_memory", out var memory) ? memory.ToString() : null
+            })
+            .ToList();
+
+        Traffic = properties.Keys
+            .Where(k => k.StartsWith("traffic_"))
+            .GroupBy(k => k.Substring(0, k.LastIndexOf('_')))
+            .Select(g => new TrafficConfiguration
+            {
+                RevisionName = properties.TryGetValue(g.Key + "_revisionName", out var value) ? value.ToString() : null,
+                Weight = properties.TryGetValue(g.Key + "_weight", out var weight) ? int.Parse(weight.ToString()) : 0,
+                Label = properties.TryGetValue(g.Key + "_label", out var label) ? label.ToString() : null,
+                LatestRevision = properties.TryGetValue(g.Key + "_latestRevision", out var latestRevision) && bool.TryParse(latestRevision.ToString(), out var result) && result
+            })
+            .ToList();
+
+        Registries = properties.Keys
+            .Where(k => k.StartsWith("registry_"))
+            .GroupBy(k => k.Substring(0, k.LastIndexOf('_')))
+            .Select(g => new Registry
+            {
+                Server = properties.TryGetValue(g.Key + "_server", out var server) ? server.ToString() : null,
+                Username = properties.TryGetValue(g.Key + "_username", out var username) ? username.ToString() : null,
+                PasswordSecretRef = properties.TryGetValue(g.Key + "_passwordSecretRef", out var password) ? password.ToString() : null,
+                Identity = properties.TryGetValue(g.Key + "_identity", out var identity) ? identity.ToString() : null
+            })
+            .ToList();
     }
 }

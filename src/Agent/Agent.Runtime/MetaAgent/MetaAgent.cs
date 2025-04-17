@@ -54,7 +54,7 @@ Before initiating any Azure resource operations:
    - Have the user confirm the specific resource name
 
 3. Never assume any subscription ID, resource group name, or resource name values.
-   
+
 4. Always show the user the available options and have them explicitly confirm their selection before proceeding with any operations.
 
 5. If multiple options exist at any step, present them in a clear, numbered list for easy selection.
@@ -240,6 +240,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.ListRevisionsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
             AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.ListContainerImagePullWorkflows),
             AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.StartContainerImagePullAgent),

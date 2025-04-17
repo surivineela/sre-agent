@@ -236,7 +236,7 @@ namespace Agent.Plugins
 
                     var jsonResult = JsonSerializer.Serialize(typedResult, new JsonSerializerOptions { WriteIndented = true });
                     var prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, convert it to brief text to show the relationships between microservices (the dependency true).
-                    Each JSON object in the data represents services that work together. 
+                    Each JSON object in the data represents services that work together.
                     Start the introduction by saying: Here's the relationship of the microservices topology starting from component {deploymentName}:
                     Then show the relationship in the following format, add Type in () behind the component name, ignore when type is Deployment, e.g:
                     * a -> [b, c]
@@ -251,7 +251,7 @@ namespace Agent.Plugins
                     var responseText = await ChatClient.GetResponseAsync(prompt);
                     _logger.LogInformation($"Relationships generated successfully: {responseText.Text}");
 
-                    prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, create a valid Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram. 
+                    prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, create a valid Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram.
 Strict Requirements:
 * Please ensure that each unique dependency is listed only once.
 * Use deployment/statefulset name as the node identifier.
@@ -578,7 +578,7 @@ g.V().has('id', '{deploymentResourceId}')
                 var properties = new Dictionary<string, object>();
                 foreach (var prop in item["properties"])
                 {
-                    properties.Add(prop.Key, prop.Value);
+                    properties[prop.Key] = prop.Value;
                 }
 
                 var node = new Node(
@@ -733,7 +733,7 @@ g.V().has('id', '{deploymentResourceId}')
                 .by(coalesce(values('resourceGroupName'), constant('unknown')))
                 .by(coalesce(values('resourceType'), constant('unknown')))
                 .by(coalesce(values('resourceName'), constant('unknown')))
-                .by(coalesce(values('location'), constant('unknown'))) 
+                .by(coalesce(values('location'), constant('unknown')))
                 ";
 
             var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
@@ -1057,8 +1057,8 @@ g.V().has('id', '{deploymentResourceId}')
     .by(id())
     .by(
         coalesce(
-            choose(has('{groupBy}'), 
-                properties('{groupBy}').value(), 
+            choose(has('{groupBy}'),
+                properties('{groupBy}').value(),
                 constant('Unknown')
             ),
             constant('Unknown')

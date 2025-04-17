@@ -25,8 +25,15 @@ namespace Agent.Plugins.Definitions
             "For the AppHealthInfo information (such requests, cpu, and memory metrics, cost etc. format the output in markdown tabular format.")]
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(
             [Description("The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")] string resourceId)
-        {   
+        {
             return await _containerAppPlugin.GetContainerAppInfoAsync(resourceId);
+        }
+
+        [Description("List all revisions for a container app by its resource ID.")]
+        public async Task<IReadOnlyList<RevisionInfo>> ListRevisionsAsync(
+            [Description("The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")] string resourceId)
+        {
+            return await _containerAppPlugin.ListContainerAppRevisionsAsync(resourceId);
         }
 
         [KernelFunction("get_latest_containerapp_revision")]
@@ -87,7 +94,7 @@ namespace Agent.Plugins.Definitions
 
         #endregion
 
-        #region NSG Plugins 
+        #region NSG Plugins
 
         [KernelFunction("get_containerapp_nsg_rules")]
         [Description("Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +

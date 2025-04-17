@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -53,13 +53,11 @@ namespace Agent.Plugins.Implementation
                 string query = $@"
                     g.V().has('id', '{cappResourceId}')
                     .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
-                    .project('id', 'name', 'type', 'properties')
-                    .by(id())
-                    .by(coalesce(values('resourceName'), constant('')))
-                    .by(label())
-                    .by(valueMap())";
+                    .project('properties')
+                    .by(properties().group().by(key()).by(value()))
+                    .select('properties')";
 
-                var result = await _databaseClient.Query(query);
+                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
 
                 if (result == null || !result.Any())
                 {
@@ -67,73 +65,7 @@ namespace Agent.Plugins.Implementation
                     return null;
                 }
 
-                var containerApp = result.First();
-                var properties = containerApp["properties"];
-
-                string name = containerApp["name"]?.ToString() ?? "";
-                string location = GetFirstPropertyValue(properties, "location");
-                string workloadProfile = GetFirstPropertyValue(properties, "workloadProfileName");
-                string state = GetFirstPropertyValue(properties, "provisioningState");
-                string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
-                string fqdn = GetFirstPropertyValue(properties, "fqdn");
-                string environmentName = GetFirstPropertyValue(properties, "managedEnvironmentId");
-                
-                bool isIngressEnabled = false;
-                string ingressExternalValue = GetFirstPropertyValue(properties, "ingressExternal");
-                if (!string.IsNullOrEmpty(ingressExternalValue))
-                {
-                    if (!bool.TryParse(ingressExternalValue, out isIngressEnabled))
-                    {
-                        _logger.LogWarning($"Could not parse ingressExternal value: {ingressExternalValue} to boolean");
-                    }
-                }
-
-                AppHealthInfo appHealthInfo = null;
-                if (properties.ContainsKey("appHealthInfo") && properties["appHealthInfo"] != null)
-                {
-                    try
-                    {
-                        var scorecardValue = properties["appHealthInfo"];
-                        
-                        if (scorecardValue is IEnumerable enumerable)
-                        {
-                            foreach (var item in enumerable)
-                            {
-                                if (item != null)
-                                {
-                                    string json = item.ToString();
-                                    if (!string.IsNullOrEmpty(json))
-                                    {
-                                        appHealthInfo = System.Text.Json.JsonSerializer.Deserialize<AppHealthInfo>(json);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                        else if (scorecardValue is string json)
-                        {
-                            appHealthInfo = System.Text.Json.JsonSerializer.Deserialize<AppHealthInfo>(json);
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        _logger.LogError(ex, $"Error deserializing appHealthInfo: {ex.Message}");
-                        appHealthInfo = new AppHealthInfo();
-                    }
-                }
-
-                return new ContainerAppDescriptor(
-                    ResourceId: resourceId,
-                    Name: name,
-                    Location: location,
-                    WorkloadProfile: workloadProfile,
-                    State: state,
-                    ResourceGroup: resourceGroup,
-                    Fqdn: fqdn,
-                    EnvironmentName: environmentName,
-                    IsIngressEnabled: isIngressEnabled,
-                    Revisions: null,
-                    AppHealthInfo: appHealthInfo);
+                return TranslateNodeToDescriptor(new ContainerAppNode(result.First()));
             }
             catch (Exception ex)
             {
@@ -142,36 +74,33 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        // Helper method to extract property values from AppHealthInfo object
-        private object GetPropertyValue(object obj, string propertyName)
+        public async Task<IReadOnlyList<RevisionInfo>> ListContainerAppRevisionsAsync(string resourceId)
         {
-            if (obj == null)
+            _logger.LogInformation($"[${nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}')]");
+            try
+            {
+                var cappResourceId = resourceId.ToLower().Replace("/", "_");
+
+                var query = $@"
+                    g.V().has('id', '{cappResourceId}')
+                    .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
+                    .outE('{Graph.Crawler.ARM.Constants.Relationships.RevisionOf}')
+                    .inV()
+                    .project('properties')
+                    .by(properties().group().by(key()).by(value()))
+                    .select('properties')";
+                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
+
+                return result
+                    .Select(r => new ContainerAppRevisionNode(r))
+                    .Select(r => TranslateNodeToDescriptor(r))
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in {nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}'");
                 return null;
-
-            // If obj is a dictionary
-            if (obj is IDictionary<string, object> dict)
-            {
-                if (dict.TryGetValue(propertyName, out var value))
-                    return value;
             }
-
-            return null;
-        }
-
-        private string GetFirstPropertyValue(dynamic properties, string propertyName)
-        {
-            if (properties == null || !((IDictionary<string, object>)properties).ContainsKey(propertyName))
-            {
-                return string.Empty;
-            }
-
-            var values = properties[propertyName];
-            if (values is IEnumerable<object> enumerable && enumerable.Any())
-            {
-                return enumerable.First().ToString();
-            }
-
-            return string.Empty;
         }
 
         public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
@@ -243,75 +172,35 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInformation($"[list_container_app_instances] Invoked with subscription {subscriptionId}");
 
-            var containerApps = new List<ContainerAppDescriptor>();
-
             try
             {
                 string query = $@"
                     g.V()
                     .has('subscriptionId', '{subscriptionId}')
                     .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
-                    .project('id', 'name', 'type', 'properties')
-                    .by(id())
-                    .by(coalesce(values('resourceName'), constant('')))
-                    .by(label())
-                    .by(valueMap())";
+                    .project('properties')
+                    .by(properties().group().by(key()).by(value()))
+                    .select('properties')";
 
-                var result = await _databaseClient.Query(query);
+                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
 
-                if (result == null || !result.Any())
+                if (result == null! || !result.Any())
                 {
-                    _logger.LogInformation($"No container apps found for subscription {subscriptionId} in graph database.");
-                    return containerApps;
+                    _logger.LogInformation(
+                        "No container apps found for subscription {subscriptionId} in graph database.", subscriptionId);
+                    return [];
                 }
 
-                foreach (var containerApp in result)
-                {
-                    var properties = containerApp["properties"];
-                    
-                    string id = containerApp["id"].ToString();
-                    string resourceId = id.Replace("_", "/");
-                    
-                    string name = containerApp["name"]?.ToString() ?? "";
-                    string location = GetFirstPropertyValue(properties, "location");
-                    string workloadProfile = GetFirstPropertyValue(properties, "workloadProfileName");
-                    string state = GetFirstPropertyValue(properties, "provisioningState");
-                    string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
-                    string fqdn = GetFirstPropertyValue(properties, "fqdn");
-                    string environmentName = GetFirstPropertyValue(properties, "managedEnvironmentId");
-                    
-                    bool isIngressEnabled = false;
-                    string ingressExternalValue = GetFirstPropertyValue(properties, "ingressExternal");
-                    if (!string.IsNullOrEmpty(ingressExternalValue))
-                    {
-                        if (!bool.TryParse(ingressExternalValue, out isIngressEnabled))
-                        {
-                            _logger.LogWarning($"Could not parse ingressExternal value: {ingressExternalValue} to boolean");
-                        }
-                    }
-
-                    var containerAppDescriptor = new ContainerAppDescriptor(
-                        ResourceId: resourceId,
-                        Name: name,
-                        Location: location,
-                        WorkloadProfile: workloadProfile,
-                        State: state,
-                        ResourceGroup: resourceGroup,
-                        Fqdn: fqdn, 
-                        EnvironmentName: environmentName,
-                        IsIngressEnabled: isIngressEnabled,
-                        Revisions: null); // skipping revisions for now
-
-                    containerApps.Add(containerAppDescriptor);
-                }
+                return result
+                    .Select(containerAppData => new ContainerAppNode(containerAppData))
+                    .Select(a => TranslateNodeToDescriptor(a, limited: true))
+                    .ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in ListContainerAppsAsync with subscription {subscriptionId}");
-                return new List<ContainerAppDescriptor>();
+                _logger.LogError(ex, "Error in ListContainerAppsAsync with subscription {subscriptionId}", subscriptionId);
+                return [];
             }
-
-            return containerApps;
         }
         public async Task<string> RestartContainerApp(
           [Description("The resource ID of the Container App.")]
@@ -619,6 +508,105 @@ namespace Agent.Plugins.Implementation
                 _logger.LogError(ex, $"Error scaling container app {resourceId}");
                 return false;
             }
+        }
+
+        private static RevisionInfo TranslateNodeToDescriptor(ContainerAppRevisionNode revisionNode, bool limited = false)
+        {
+            var revisionInfo = new RevisionInfo(
+                IsActive: revisionNode.IsActive ?? false,
+                RevisionName: revisionNode.Name ?? string.Empty,
+                TrafficWeight: revisionNode.TrafficWeight ?? 0);
+
+            if (!limited)
+            {
+                revisionInfo = revisionInfo with
+                {
+                    CreatedOn = revisionNode.CreatedOn ?? string.Empty,
+                    LastActiveOn = revisionNode.LastActiveOn ?? string.Empty,
+                    Fqdn = revisionNode.Fqdn ?? string.Empty,
+                    Labels = string.Join(",", revisionNode.Labels),
+                    ProvisioningError = revisionNode.ProvisioningError ?? string.Empty,
+                    HealthState = revisionNode.HealthState ?? string.Empty,
+                    ProvisioningState = revisionNode.ProvisioningState ?? string.Empty,
+                    RunningState = revisionNode.RunningState ?? string.Empty,
+                };
+            }
+
+            return revisionInfo;
+        }
+
+        private static ContainerAppDescriptor TranslateNodeToDescriptor(ContainerAppNode containerApp, bool limited = false)
+        {
+            var result = new ContainerAppDescriptor(
+                ResourceId: containerApp.ResourceId,
+                Name: containerApp.ResourceName,
+                Location: containerApp.Location,
+                WorkloadProfile: containerApp.WorkloadProfileName ?? string.Empty,
+                State: containerApp.ProvisioningState ?? string.Empty,
+                ResourceGroup: containerApp.ResourceGroupName,
+                EnvironmentId: containerApp.EnvironmentId ?? string.Empty,
+                Configurations: null,
+                Containers: [],
+                InitContainers: [],
+                Revisions: null); // Not including revisions for now
+
+            if (!limited)
+            {
+                result = result with
+                {
+                    Configurations = new ContainerAppConfigurations(
+                        RevisionMode: containerApp.ActiveRevisionMode ?? string.Empty,
+                        Ingress: new IngressConfiguration(
+                            IsExternal: containerApp.External ?? false,
+                            TargetPort: containerApp.TargetPort ?? 80,
+                            Transport: containerApp.Transport ?? string.Empty,
+                            Hostnames: containerApp.HostNames.ToArray(),
+                            Traffic: containerApp.Traffic?
+                                .Select(t => new TrafficConfiguration(
+                                    RevisionName: t.RevisionName ?? string.Empty,
+                                    Weight: t.Weight,
+                                    Label: t.Label ?? string.Empty,
+                                    LatestRevision: t.LatestRevision))
+                                .ToArray() ?? []),
+                        Registries: containerApp.Registries
+                            .Select(r => new Registry(
+                                Server: r.Server ?? string.Empty,
+                                Username: r.Username ?? string.Empty,
+                                PasswordSecretRef: r.PasswordSecretRef ?? string.Empty,
+                                Identity: r.Identity ?? string.Empty))
+                            .ToArray()),
+                    Containers = containerApp.Containers
+                        .Select(c => new Models.Container(
+                            Name: c.Name,
+                            Image: c.Image ?? string.Empty,
+                            Cpu: c.Cpu ?? string.Empty,
+                            Memory: c.Memory ?? string.Empty))
+                        .ToArray(),
+                    InitContainers = containerApp.InitContainers
+                        .Select(c => new Models.Container(
+                            Name: c.Name,
+                            Image: c.Image ?? string.Empty,
+                            Cpu: c.Cpu ?? string.Empty,
+                            Memory: c.Memory ?? string.Empty))
+                        .ToArray(),
+                    AppHealthInfo = containerApp.AppHealthInfo,
+                };
+            }
+            else
+            {
+                result = result with
+                {
+                    Containers = containerApp.Containers
+                        .Select(c => new Models.Container(
+                            Name: c.Name,
+                            Image: c.Image ?? string.Empty,
+                            Cpu: c.Cpu ?? string.Empty,
+                            Memory: c.Memory ?? string.Empty))
+                        .ToArray(),
+                };
+            }
+
+            return result;
         }
     }
 }
