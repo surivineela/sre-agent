@@ -16,7 +16,6 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.MetaAgent;
 using Microsoft.Extensions.Hosting;
 using Moq;
-using BenchmarkDotNet.Loggers;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Configuration;
 using Agent.Plugins.Definitions;

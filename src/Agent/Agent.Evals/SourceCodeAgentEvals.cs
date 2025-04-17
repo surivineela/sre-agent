@@ -7,19 +7,11 @@ using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Azure.AI.OpenAI;
-using Azure.ResourceManager.AppContainers;
-using Evaluation.Evaluators;
-using FluentAssertions;
-using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftAntimalwareAMFilter;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
-using Microsoft.Extensions.AI.Evaluation.Quality;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
-using Newtonsoft.Json;
 
 namespace Agent.Evals;
 
@@ -250,8 +242,8 @@ public sealed class SourceCodeAgentEvals
         await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
 
         var mapping = mockGraphDBPlugin.GetContainerAppsToSourceCodeNodeMapping();
-        mapping.Should().ContainKey(containerAppResourceId);
-        mapping[containerAppResourceId].Should().Be(gitHubRepo);
+        Assert.IsTrue(mapping.ContainsKey(containerAppResourceId));
+        Assert.AreEqual(gitHubRepo, mapping[containerAppResourceId]);
     }
 
     [TestMethod]

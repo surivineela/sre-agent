@@ -7,12 +7,6 @@ using Agent.Plugins;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents.CVEAgent;
-using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Azure.AI.OpenAI;
-using Azure.ResourceManager.AppContainers;
-using Evaluation.Evaluators;
-using FluentAssertions;
-using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftAntimalwareAMFilter;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.AI.Evaluation.Quality;
@@ -173,11 +167,11 @@ public sealed class CVEEvals
         var response = await chatClient.GetResponseAsync(messages, chatOptions);
         await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
 
-        mockGithubIssuePlugin.GetReposScanned().Count.Should().Be(1);
-        mockGithubIssuePlugin.GetReposScanned().Should().Contain(gitHubRepo);
+        Assert.AreEqual(1, mockGithubIssuePlugin.GetReposScanned().Count);
+        Assert.AreEqual(gitHubRepo, mockGithubIssuePlugin.GetReposScanned().First());
 
-        mockGraphDBPlugin.GetReposScanned().Count.Should().Be(1);
-        mockGraphDBPlugin.GetReposScanned().Should().Contain(gitHubRepo);
+        Assert.AreEqual(1, mockGraphDBPlugin.GetReposScanned().Count);
+        Assert.AreEqual(gitHubRepo, mockGraphDBPlugin.GetReposScanned().First());
     }
 
     [TestMethod]
@@ -276,11 +270,11 @@ public sealed class CVEEvals
         var response = await chatClient.GetResponseAsync(messages, chatOptions);
         await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
 
-        mockGithubIssuePlugin.GetReposScanned().Count.Should().Be(1);
-        mockGithubIssuePlugin.GetReposScanned().Should().Contain(gitHubRepo);
+        Assert.AreEqual(1, mockGithubIssuePlugin.GetReposScanned().Count);
+        Assert.AreEqual(gitHubRepo, mockGithubIssuePlugin.GetReposScanned().First());
 
-        mockGraphDBPlugin.GetReposScanned().Count.Should().Be(1);
-        mockGraphDBPlugin.GetReposScanned().Should().Contain(gitHubRepo);
+        Assert.AreEqual(1, mockGraphDBPlugin.GetReposScanned().Count);
+        Assert.AreEqual(gitHubRepo, mockGraphDBPlugin.GetReposScanned().First());
     }
 }
 
