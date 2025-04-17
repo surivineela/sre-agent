@@ -191,6 +191,7 @@ builder.Host.UseSerilog();
         .AddSingleton<CPUAnalysisAgentFactory>()
         .AddSingleton<SourceCodeScanner>()
         .AddSingleton<CVEScanner>()
+        .AddSingleton<FeedbackRCAScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<DailyReportScanner>()
         .AddSingleton<DailyReportSummaryAgentFactory>()

@@ -210,9 +210,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 TimeStamp: DateTime.UtcNow,
                 Messages: threadContext.RecentMessages.ToList(),
                 IsPositiveFeedback: threadMessageFeedback.IsPositive,
-                FeedbackText: threadMessageFeedback.FeedbackText);
+                FeedbackText: threadMessageFeedback.FeedbackText,
+                RootCause: null);
 
-            await _repository.AddMessageFeedbackAsync(threadMessageFeedback.ThreadId, messageFeedback);
+            await _repository.AddOrUpdateMessageFeedbackAsync(threadMessageFeedback.ThreadId, messageFeedback);
 
             return messageFeedback;
         }

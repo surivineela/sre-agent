@@ -36,7 +36,7 @@ public record ThreadContextDocument(
             Guid.Parse(ThreadId),
             (AgentTypeEnum)AgentType,
             IsThreadActive,
-            new Queue<Message>(Messages),
+            Messages == null ? new Queue<Message>() : new Queue<Message>(Messages),
             OutboundConfiguration
         );
 

@@ -36,7 +36,8 @@ public interface IThreadRepository
 
     Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
     Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
-    Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback);
+    Task<MessageFeedback> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback);
     Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
+    Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync();
 }
 

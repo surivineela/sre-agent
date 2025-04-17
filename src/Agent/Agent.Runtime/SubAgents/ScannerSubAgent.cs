@@ -16,6 +16,7 @@ namespace Agent.Runtime.SubAgents
     {
         private readonly SinkService _sinkService;
         private readonly IThreadRepository _repository;
+        private readonly bool _isConcludingThreadAfterOpeningMessages;
 
         public ScannerSubAgent(
             string name,
@@ -28,6 +29,7 @@ namespace Agent.Runtime.SubAgents
         {
             _sinkService = sinkService;
             _repository = repository;
+            _isConcludingThreadAfterOpeningMessages = isConcludingThreadAfterOpeningMessages;
         }
 
         public void InitChatHistoryFromMessageQueue(Queue<Message> messages)
@@ -71,8 +73,11 @@ namespace Agent.Runtime.SubAgents
                 }
             }
 
-            threadContext.ConcludeThreadContext();
-            await _repository.UpdateThreadContextAsync(threadContext);
+            if (_isConcludingThreadAfterOpeningMessages)
+            {
+                threadContext.ConcludeThreadContext();
+                await _repository.UpdateThreadContextAsync(threadContext);
+            }
         }
 
         public virtual async Task<string> DoWork(ThreadContext threadContext, string question)

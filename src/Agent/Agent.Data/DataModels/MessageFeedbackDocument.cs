@@ -13,7 +13,8 @@ public record MessageFeedbackDocument(
     DateTime TimeStamp,
     List<Message> Messages,
     bool IsPositiveFeedback,
-    string FeedbackText
+    string FeedbackText,
+    string? RootCause
 ) : ICosmosDocument
 {
     public string DocumentType => "MessageFeedback";
@@ -27,7 +28,8 @@ public record MessageFeedbackDocument(
             messageFeedback.TimeStamp,
             messageFeedback.Messages,
             messageFeedback.IsPositiveFeedback,
-            messageFeedback.FeedbackText
+            messageFeedback.FeedbackText,
+            messageFeedback.RootCause
         );
 
     public MessageFeedback ToDomainModel() =>
@@ -37,7 +39,8 @@ public record MessageFeedbackDocument(
             TimeStamp,
             Messages,
             IsPositiveFeedback,
-            FeedbackText
+            FeedbackText,
+            RootCause
         );
 }
 

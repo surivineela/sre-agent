@@ -10,5 +10,12 @@ public record MessageFeedback(
     DateTime TimeStamp,
     List<Message> Messages,
     bool IsPositiveFeedback,
-    string FeedbackText
-);
+    string FeedbackText,
+    string? RootCause
+)
+{
+    public MessageFeedback UpdateRootCause(string rootCause)
+    {
+        return this with { RootCause = rootCause };
+    }
+}

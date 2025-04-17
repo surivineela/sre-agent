@@ -6,4 +6,5 @@ public enum AgentTypeEnum
     SourceCodeAgent = 1,
     DurableAgent = 2,
     CVEAgent = 3,
+    FeedbackRCAAgent = 4,
 }

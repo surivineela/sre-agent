@@ -240,7 +240,17 @@ namespace Agent.Data.Repositories
             return Task.FromResult(messageFeedbacks.AsEnumerable());
         }
 
-        public Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
+        public Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync()
+        {
+            var messageFeedback = _messageFeedbacks
+               .Where(kvp => kvp.Value.RootCause == null)
+               .Select(kvp => kvp.Value)
+               .FirstOrDefault();
+
+            return Task.FromResult(messageFeedback);
+        }
+
+        public Task<MessageFeedback> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
         {
             // Ensure ID is set
             if (messageFeedback.Id == Guid.Empty)

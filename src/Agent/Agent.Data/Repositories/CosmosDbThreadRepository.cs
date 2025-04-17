@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -760,7 +760,33 @@ public class CosmosDbThreadRepository : IThreadRepository
         return messageFeedbacks;
     }
 
-    public async Task<MessageFeedback> AddMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
+    public async Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync()
+    {
+        var messageFeedbacks = new List<MessageFeedback>();
+
+        var query = _container.GetItemLinqQueryable<MessageFeedbackDocument>()
+            .Where(m => m.DocumentType == "MessageFeedback")
+            .OrderBy(m => m.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var messageFeedbackDoc in await iterator.ReadNextAsync())
+            {
+                if (!string.IsNullOrEmpty(messageFeedbackDoc.RootCause))
+                {
+                    continue;
+                }
+
+                return messageFeedbackDoc.ToDomainModel();
+            }
+        }
+
+        return null;
+    }
+
+    public async Task<MessageFeedback> AddOrUpdateMessageFeedbackAsync(Guid threadId, MessageFeedback messageFeedback)
     {
         // Ensure ID is set
         if (messageFeedback.Id == Guid.Empty)
@@ -770,7 +796,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the message document
         MessageFeedbackDocument messageFeedbackDoc = MessageFeedbackDocument.FromDomainModel(messageFeedback, threadIdStr);
-        await _container.CreateItemAsync(messageFeedbackDoc, new PartitionKey(messageFeedbackDoc.PartitionKey));
+        await _container.UpsertItemAsync(messageFeedbackDoc, new PartitionKey(messageFeedbackDoc.PartitionKey));
 
         return messageFeedback;
     }
