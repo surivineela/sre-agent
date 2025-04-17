@@ -148,6 +148,7 @@ builder.Host.UseSerilog();
         .AddSingleton<AppInsightsSettings>()
         .AddSingleton<FunctionAppConnectivityAgentFactory>()
         .AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
+        .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
 
         .AddTransient<MetricsPluginDefinition>()
         .AddTransient<ChartPluginDefinition>()
@@ -215,7 +216,7 @@ builder.Host.UseSerilog();
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<IMetricsRegistry, MetricsRegistry>()
         .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()
-         .AddSingleton<AppInsightsPlugin>()
+        .AddSingleton<AppInsightsPlugin>()
 
 
         // Register the communication activities

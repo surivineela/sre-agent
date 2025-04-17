@@ -58,7 +58,7 @@ public class RemoteWriteService(ILogger<RemoteWriteService> logger,
     {
         using var memoryOwner = SerializeAndCompress(writeRequest);
         // TODO: use Memory<byte>/ReadOnlySpan<byte> instead of byte[] to avoid copying the data
-        var content = new ByteArrayContent(memoryOwner.Memory.ToArray());
+        using var content = new ByteArrayContent(memoryOwner.Memory.ToArray());
         SetRequiredHeaders(content);
 
         using var client = await CreateHttpClientAsync();
