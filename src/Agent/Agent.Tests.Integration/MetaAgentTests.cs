@@ -98,11 +98,11 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<TlsBestPracticeAgentFactory>();
                 services.AddSingleton<AppReliabilityAgentFactory>();
                 services.AddSingleton<Runtime.MetaAgent.IAgent, MetaAgent>();
-                services.AddSingleton<ManagedIdentityMigrationPlugin>();
-                services.AddSingleton<TlsBestPracticesPlugin>();
-                services.AddSingleton<AppReliabilityPlugin>();
-                services.AddSingleton<VmRdpInvestigatorPlugin>();
-                services.AddSingleton<FunctionAppConnectivityPlugin>();
+                services.AddSingleton<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>();
+                services.AddSingleton<IMetaAgentTlsBestPracticesPlugin, TlsBestPracticesPlugin>();
+                services.AddSingleton<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>();
+                services.AddSingleton<IMetaAgentVmRdpInvestigatorPlugin, VmRdpInvestigatorPlugin>();
+                services.AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
 
                 services.AddDurableTaskWorker(builder =>

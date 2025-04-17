@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -119,23 +119,23 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IChatClient _chatClient;
     private readonly ILogger<MetaAgent> _log;
 
-    private readonly ManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
-    private readonly TlsBestPracticesPlugin _tlsBestPracticesPlugin;
-    private readonly AppServiceRemediationPlugin _appServiceRemediationPlugin;
+    private readonly IMetaAgentManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
+    private readonly IMetaAgentTlsBestPracticesPlugin _tlsBestPracticesPlugin;
+    private readonly IMetaAgentAppServiceRemediationPlugin _appServiceRemediationPlugin;
     private readonly IAppServicePlugin _appServicePlugin;
-    private readonly ContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
-    private readonly KubernetesAgentPlugin _kubernetesAgentPlugin;
+    private readonly IMetaAgentContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
+    private readonly IMetaAgentKubernetesAgentPlugin _kubernetesAgentPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
-    private readonly ChartPlugin _chartplugin;
+    private readonly IChartPlugin _chartplugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly IServiceProvider _serviceProvider;
-    private readonly StorageAccountPlugin _storageAccountPlugin;
-    private readonly AppReliabilityPlugin _appReliabilityPlugin;
-    private readonly VmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
-    private readonly ContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
-    private readonly WebAppDownPlugin _webAppDownPlugin;
-    private readonly FunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
+    private readonly IMetaAgentStorageAccountPlugin _storageAccountPlugin;
+    private readonly IMetaAgentAppReliabilityPlugin _appReliabilityPlugin;
+    private readonly IMetaAgentVmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
+    private readonly IMetaAgentContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
+    private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
+    private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly DashboardSettings _dashboardSettings;
 
     public MetaAgent(
@@ -143,24 +143,24 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         ILogger<MetaAgent> logger,
         ThreadService threadService,
         McpToolsRepository mcpToolsRepository,
-        Plugins.ChartPlugin chartplugin,
+        IChartPlugin chartplugin,
         DashboardSettings dashboardSettings,
-        ManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
-        TlsBestPracticesPlugin tlsBestPracticesPlugin,
-        AppServiceRemediationPlugin appServiceRemediationPlugin,
-        ContainerAppsRemediationPlugin containerAppsRemediationPlugin,
-        StorageAccountPlugin storageAccountPlugin,
-        KubernetesAgentPlugin kubernetesAgentPlugin,
+        IMetaAgentManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
+        IMetaAgentTlsBestPracticesPlugin tlsBestPracticesPlugin,
+        IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
+        IMetaAgentContainerAppsRemediationPlugin containerAppsRemediationPlugin,
+        IMetaAgentStorageAccountPlugin storageAccountPlugin,
+        IMetaAgentKubernetesAgentPlugin kubernetesAgentPlugin,
         IAppServicePlugin appServicePlugin,
         IContainerAppPlugin containerAppPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
-        AppReliabilityPlugin appReliabilityPlugin,
-        WebAppDownPlugin webAppDownPlugin,
+        IMetaAgentAppReliabilityPlugin appReliabilityPlugin,
+        IMetaAgentWebAppDownPlugin webAppDownPlugin,
         IServiceProvider serviceProvider,
-        VmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
-        ContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
-        FunctionAppConnectivityPlugin functionAppConnectivityPlugin
+        IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
+        IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
+        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin
         )
     {
         _chatClient = chatClient;
@@ -273,7 +273,11 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         foreach (var type in subClasses)
         {
             // Instantiate the type using DI
-            var instance = _serviceProvider.GetRequiredService(type);
+            var instance = _serviceProvider.GetService(type);
+            if (instance is null)
+            {
+                continue;
+            }
 
             // Set the context
             var prop = type.GetProperty("Context", BindingFlags.Public | BindingFlags.Instance);

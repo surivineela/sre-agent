@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class WebAppDownPlugin
+public class WebAppDownPlugin : IMetaAgentWebAppDownPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly WebAppDownAgentFactory _webAppDownAgentFactory;

@@ -2,10 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Models.Api.v1;
+
 namespace Agent.Plugins
 {
     public interface IChartPlugin
     {
+        public ThreadContext? Context { get; set; }
+
         Task<string> PlotTimeSeriesDataAsync(
             string title,
             string yAxisLabel,

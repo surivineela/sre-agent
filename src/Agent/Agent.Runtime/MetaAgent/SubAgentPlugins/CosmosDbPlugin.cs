@@ -10,8 +10,8 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class CosmosDbPlugin
-: SimpleResourceSubAgentPluginBase<CosmosDbAgentFactory, CosmosDbAgent, CosmosDbAgentInput, CosmosDbAgentActivity, CosmosDbAgentActivityInput>
+public class CosmosDbPlugin : SimpleResourceSubAgentPluginBase<CosmosDbAgentFactory, CosmosDbAgent, CosmosDbAgentInput, CosmosDbAgentActivity, CosmosDbAgentActivityInput>,
+     IMetaAgentCosmosDbPlugin
 {
     public CosmosDbPlugin(
         DurableTaskClient durableTaskClient,

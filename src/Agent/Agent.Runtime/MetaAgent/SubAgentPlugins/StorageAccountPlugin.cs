@@ -11,8 +11,8 @@ using System.ComponentModel;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class StorageAccountPlugin
-: SimpleResourceSubAgentPluginBase<StorageAccountAgentFactory, StorageAccountAgent, StorageAccountAgentInput, StorageAccountAgentActivity, StorageAccountAgentActivityInput>
+public class StorageAccountPlugin : SimpleResourceSubAgentPluginBase<StorageAccountAgentFactory, StorageAccountAgent, StorageAccountAgentInput, StorageAccountAgentActivity, StorageAccountAgentActivityInput>,
+    IMetaAgentStorageAccountPlugin
 {
     public StorageAccountPlugin(
         DurableTaskClient durableTaskClient,

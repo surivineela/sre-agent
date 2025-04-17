@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class CPUAnalysisPlugin
+public class CPUAnalysisPlugin : IMetaAgentCPUAnalysisPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly CPUAnalysisAgentFactory _cpuAnalysisAgentFactory;

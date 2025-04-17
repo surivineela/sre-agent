@@ -13,7 +13,7 @@ using Microsoft.SemanticKernel;
 using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
 
 namespace Agent.Runtime.MetaAgent;
-public class VmRdpInvestigatorPlugin
+public class VmRdpInvestigatorPlugin : IMetaAgentVmRdpInvestigatorPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly VmRdpInvestigatorAgentFactory _vmRdpInvestigatorAgentFactory;
@@ -71,7 +71,7 @@ public class VmRdpInvestigatorPlugin
         {
             throw new InvalidOperationException("Thread context is not set. Please set the context before starting the workflow.");
         }
-        
+
         var instanceId = await _vmRdpInvestigatorAgentFactory.StartOrchestration(input, Context);
         return $"A workflow has been started to investigate RDP failures to VM: {instanceId}";
     }

@@ -13,7 +13,7 @@ using Microsoft.SemanticKernel;
 namespace Agent.Runtime.MetaAgent;
 
 // [Export]
-public class TlsBestPracticesPlugin
+public class TlsBestPracticesPlugin : IMetaAgentTlsBestPracticesPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly TlsBestPracticeAgentFactory _tlsBestPracticeAgentFactory;

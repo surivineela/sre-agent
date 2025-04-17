@@ -19,7 +19,7 @@ namespace Agent.Plugins
     public class ChartPlugin : IChartPlugin
     {
         private readonly ILogger? _logger;
-        private readonly IAgentOutboundCommunicationService _outboundService;
+        private readonly IAgentOutboundCommunicationService? _outboundService;
 
         public ThreadContext? Context { get; set; }
 

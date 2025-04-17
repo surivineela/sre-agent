@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class AppCodeAnalysisPlugin
+public class AppCodeAnalysisPlugin : IMetaAgentAppCodeAnalysisPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly AppCodeAnalysisAgentFactory _appCodeAnalysisAgentFactory;

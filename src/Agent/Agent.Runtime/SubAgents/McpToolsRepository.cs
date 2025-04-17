@@ -10,7 +10,7 @@ using Microsoft.Extensions.AI;
 namespace Agent.Runtime.SubAgents;
 
 // [Export]
-public sealed class McpToolsRepository : IMcpConnectable
+public class McpToolsRepository : IMcpConnectable
 {
     private readonly Dictionary<string, AIFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();

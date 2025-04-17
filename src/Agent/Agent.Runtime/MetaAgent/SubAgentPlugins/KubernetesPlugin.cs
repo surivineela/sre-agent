@@ -11,7 +11,7 @@ using Agent.Runtime.SubAgents.KubernetesAgent;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class KubernetesAgentPlugin
+public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly KubernetesAgentFactory _kubernetesAgentFactory;

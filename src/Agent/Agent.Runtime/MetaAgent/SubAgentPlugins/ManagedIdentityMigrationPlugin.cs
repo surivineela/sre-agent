@@ -13,7 +13,7 @@ using Agent.Core.Models.Api.v1;
 namespace Agent.Runtime.MetaAgent;
 
 // [Export]
-public class ManagedIdentityMigrationPlugin
+public class ManagedIdentityMigrationPlugin : IMetaAgentManagedIdentityMigrationPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly ManagedIdentityMigrationAgentFactory _managedIdentityMigrationAgentFactory;

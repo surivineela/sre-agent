@@ -10,7 +10,7 @@ using Microsoft.DurableTask.Client;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Runtime.MetaAgent;
-public class FunctionAppConnectivityPlugin
+public class FunctionAppConnectivityPlugin : IMetaAgentFunctionAppConnectivityPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly FunctionAppConnectivityAgentFactory _functionAppConnectivityAgentFactory;

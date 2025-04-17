@@ -11,7 +11,7 @@ using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class ContainerAppsRemediationPlugin
+public class ContainerAppsRemediationPlugin : IMetaAgentContainerAppsRemediationPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;

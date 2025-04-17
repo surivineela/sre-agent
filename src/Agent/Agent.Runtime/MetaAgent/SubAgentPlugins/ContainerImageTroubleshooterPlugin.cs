@@ -8,7 +8,7 @@ using Agent.Core;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class ContainerImageTroubleshooterPlugin
+public class ContainerImageTroubleshooterPlugin : IMetaAgentContainerImageTroubleshooterPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly ILogger<ContainerImageTroubleshooterPlugin> _logger;

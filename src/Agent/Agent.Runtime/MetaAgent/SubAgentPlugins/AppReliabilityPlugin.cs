@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class AppReliabilityPlugin
+public class AppReliabilityPlugin : IMetaAgentAppReliabilityPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly AppReliabilityAgentFactory _appReliabilityAgentFactory;
