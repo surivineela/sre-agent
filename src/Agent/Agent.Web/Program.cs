@@ -186,6 +186,7 @@ builder.Host.UseSerilog();
         .AddSingleton<TlsBestPracticesScanner>()
         .AddSingleton<IMetaAgentWebAppDownPlugin, WebAppDownPlugin>()
         .AddSingleton<IMetaAgentCPUAnalysisPlugin, CPUAnalysisPlugin>()
+        .AddSingleton<IMetaAgentStorageAccountPlugin, StorageAccountPlugin>()
         .AddSingleton<WebAppDownAgentFactory>()
         .AddSingleton<CPUAnalysisAgentFactory>()
         .AddSingleton<SourceCodeScanner>()

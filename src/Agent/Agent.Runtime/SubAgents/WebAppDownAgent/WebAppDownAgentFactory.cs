@@ -25,8 +25,8 @@ public sealed class WebAppDownAgentFactory
         IApprovalPlugin approvalPlugin,
         IChartPlugin chartPlugin,
         IPostToTeamsPlugin postToTeamsPlugin,
-        CPUAnalysisPlugin cpuPlugin,
-        AppCodeAnalysisPlugin appCodePlugin,
+        IMetaAgentCPUAnalysisPlugin cpuPlugin,
+        IMetaAgentAppCodeAnalysisPlugin appCodePlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {

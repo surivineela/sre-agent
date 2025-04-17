@@ -15,14 +15,14 @@ public class ContainerAppsRemediationPlugin : IMetaAgentContainerAppsRemediation
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
-    private readonly ILogger<AppServiceRemediationPlugin> _logger;
+    private readonly ILogger<ContainerAppsRemediationPlugin> _logger;
 
     public ThreadContext? Context { get; set; }
 
     public ContainerAppsRemediationPlugin(
         DurableTaskClient durableTaskClient,
         ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
-        ILogger<AppServiceRemediationPlugin> logger)
+        ILogger<ContainerAppsRemediationPlugin> logger)
     {
         _durableTaskClient = durableTaskClient;
         _containerAppsRemediationAgentFactory = containerAppsRemediationAgentFactory;
