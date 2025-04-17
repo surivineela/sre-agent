@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -33,7 +33,7 @@ namespace FirstPartyAgent.Constants
 
         public static class AzureSearch
         {
-            public const string PerformSemanticSearch = "perform_semantic_search";
+            public const string LookupRelatedGitHubIssues = "lookup_related_github_issues";
         }
     }
 }

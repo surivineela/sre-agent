@@ -9,6 +9,8 @@ using Agent.Plugins.Helpers;
 using Octokit;
 using Agent.Core.Configuration;
 using Newtonsoft.Json;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins;
 
@@ -183,7 +185,8 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     }
 
     public async Task<GithubIssuePluginIssue> FetchGithubIssue(
-        string issueUrl
+        string issueUrl,
+        Kernel kernel
     )
     {
         return await KernelFunctionHelpers.TryAction(
@@ -196,7 +199,20 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 
                 _logger.LogInformation($"GitHub issue with id {issueNumber} fetched from repo {owner}/{repo}");
 
-                return res?.ToGithubIssuePluginIssue() ?? default;
+                if (res == null)
+                {
+                    return default;
+                }
+
+                var issue = res.ToGithubIssuePluginIssue();
+                if (!string.IsNullOrWhiteSpace(issue.Body))
+                {
+                    var enrichedContent = await EnrichContentText(issue.Body, kernel, kernel.GetRequiredService<IChatCompletionService>());
+                    issue.Body = enrichedContent;
+                    _logger.LogInformation($"GitHub issue with id {issueNumber} enriched by extracting text from image");
+                }
+
+                return issue;
             },
             _logger
         );
@@ -229,17 +245,52 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         );
     }
 
-    public async Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(
+    public async Task<IReadOnlyList<GithubIssuePluginIssueComment>> FetchGithubIssueComments(
         string repoUrl,
-        int issueNumber
-    )
+        int issueNumber,
+        Kernel kernel
+        )
     {
         return await KernelFunctionHelpers.TryAction(
             nameof(GitHubIssuePlugin),
             async () =>
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
-                return await _gitHubClient.Issue.Comment.GetAllForIssue(owner, repo, issueNumber); ;
+                var pluginIssueComments = new List<GithubIssuePluginIssueComment>();
+                try
+                {
+                    var comments = await _gitHubClient.Issue.Comment.GetAllForIssue(owner, repo, issueNumber);
+
+                    pluginIssueComments = comments.Where(c => !string.IsNullOrWhiteSpace(c?.Body)).Select(c => c.ToGithubIssuePluginIssueComment()).ToList();
+
+                    var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+                    var enrichedContentTasks = new List<Task<string>>(); // List to hold tasks for each comment
+                    for (int c = 0; c < pluginIssueComments.Count(); c++)
+                    {
+                        var enrichedContentTask = EnrichContentText(pluginIssueComments[c].Body, kernel, chatCompletionService);
+                        enrichedContentTasks.Add(enrichedContentTask);
+                    }
+
+                    // Wait for all tasks to complete
+                    if (enrichedContentTasks.Count > 0)
+                    {
+                        var enrichedContents = await Task.WhenAll(enrichedContentTasks);
+                        // Replace the image URL in content with imageURL+\n\n+imageDescription
+                        for (int i = 0; i < pluginIssueComments.Count; i++)
+                        {
+                            var clonedComment = pluginIssueComments[i].DeepClone();
+                            clonedComment.Body = enrichedContents[i];
+                            pluginIssueComments[i] = clonedComment;
+                        }
+                    }
+
+                    return pluginIssueComments;
+                }
+                catch (NotFoundException)
+                {
+                    return new List<GithubIssuePluginIssueComment>();
+                }
             },
             _logger
         );
@@ -275,6 +326,93 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             },
             _logger
         );
+    }
+
+    public async Task<string> ExtractTextFromImageInGitHubIssue(string imageUrl, Kernel kernel)
+    {
+        return await KernelFunctionHelpers.TryAction(
+            nameof(GitHubIssuePlugin),
+            async () =>
+            {
+                if (string.IsNullOrWhiteSpace(imageUrl) || !imageUrl.StartsWith("https://github.com/user-attachments/assets/"))
+                {
+                    throw new ArgumentException("Invalid image url. Url must be of the form https://github.com/user-attachments/assets/GUID");
+                }
+
+                var imageUri = new Uri(imageUrl);
+                var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+                var imageDescription = await ExtractImageDescription(imageUri, kernel, chatCompletionService);
+                _logger.LogInformation($"Image URL: {imageUrl}\nExtracted image description: {imageDescription}");
+                return imageDescription;
+            },
+            _logger);
+    }
+
+    private async Task<string> EnrichContentText(string content, Kernel kernel, IChatCompletionService chatCompletionService)
+    {
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return content;
+        }
+        string enrichedContent = content;
+        var embededImageUrls = GitHubHelper.GetEmbededImageUrls(content);
+
+        var imageDescriptionTasks = new List<Task<string>>();
+        foreach (var imageUrl in embededImageUrls)
+        {
+            var imageDescriptionTask = ExtractImageDescription(new Uri(imageUrl), kernel, chatCompletionService);
+            imageDescriptionTasks.Add(imageDescriptionTask);
+        }
+
+        if (imageDescriptionTasks.Count > 0)
+        {
+            var imageDescriptions = await Task.WhenAll(imageDescriptionTasks);
+
+            // Replace the image URL in content with imageURL and it's description
+            for (int i = 0; i < embededImageUrls.Count; i++)
+            {
+                enrichedContent = enrichedContent.Replace($"{embededImageUrls[i]})", $"{embededImageUrls[i]})\n=========Image description\n{imageDescriptions[i]}\n=========\n");
+            }
+        }
+
+        return enrichedContent;
+    }
+
+    private async Task<string> ExtractImageDescription(Uri imageUri, Kernel kernel, IChatCompletionService chatCompletionService)
+    {
+        if (imageUri == null || !imageUri.ToString().StartsWith("https://github.com/user-attachments/assets/"))
+        {
+            throw new ArgumentException("Invalid image URI. URI must be of the form https://github.com/user-attachments/assets/GUID");
+        }
+
+        var imageExtractionHistory = new ChatHistory();
+        imageExtractionHistory.AddSystemMessage("You are an AI assistant that describes images accurately and concisely. Focus on technical details if the image contains code, error messages, or technical content.");
+
+        var message = new ChatMessageContentItemCollection
+                        {
+                            new TextContent("Please extract the text from the image"),
+                            new ImageContent(imageUri)
+                        };
+
+        imageExtractionHistory.AddUserMessage(message);
+
+        try
+        {
+            ChatMessageContent result = await chatCompletionService.GetChatMessageContentAsync(
+            imageExtractionHistory,
+            executionSettings: new()
+            {
+                FunctionChoiceBehavior = FunctionChoiceBehavior.None()
+            },
+            kernel: kernel);
+
+                return result?.Content ?? string.Empty;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error extracting image description");
+            return string.Empty;
+        }
     }
 }
 
@@ -396,6 +534,19 @@ public record struct GithubIssuePluginIssueRequest(
     string[]? Labels
 );
 
+public record struct GithubIssuePluginIssueComment(
+    long Id,
+    string NodeId,
+    string Url,
+    string HtmlUrl,
+    string Body,
+    DateTimeOffset CreatedAt,
+    DateTimeOffset? UpdatedAt,
+    Octokit.User User,
+    ReactionSummary Reactions,
+    StringEnum<AuthorAssociation> AuthorAssociation
+    );
+
 public enum GithubIssuePluginIssueFilter
 {
     [Description("Issues assigned to the authenticated user")]
@@ -463,6 +614,40 @@ public static class GithubIssuePluginExtensions
             pullRequest.State.StringValue,
             pullRequest.Title,
             pullRequest.Body
+        );
+    }
+
+    public static GithubIssuePluginIssueComment ToGithubIssuePluginIssueComment(this IssueComment comment)
+    {
+        // Map properties from IssueComment to GithubIssuePluginIssueComment
+        return new GithubIssuePluginIssueComment(
+            comment.Id,
+            comment.NodeId,
+            comment.Url,
+            comment.HtmlUrl,
+            comment.Body,
+            comment.CreatedAt,
+            comment.UpdatedAt,
+            comment.User,
+            comment.Reactions,
+            comment.AuthorAssociation
+        );
+    }
+
+    public static GithubIssuePluginIssueComment DeepClone(this GithubIssuePluginIssueComment comment)
+    {
+        // Map properties from IssueComment to GithubIssuePluginIssueComment
+        return new GithubIssuePluginIssueComment(
+            comment.Id,
+            comment.NodeId,
+            comment.Url,
+            comment.HtmlUrl,
+            comment.Body,
+            comment.CreatedAt,
+            comment.UpdatedAt,
+            comment.User,
+            comment.Reactions,
+            comment.AuthorAssociation
         );
     }
 }

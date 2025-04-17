@@ -1,3 +1,4 @@
+using Microsoft.SemanticKernel;
 using Octokit;
 
 namespace Agent.Plugins.Mocks;
@@ -32,12 +33,12 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
         throw new NotImplementedException();
     }
 
-    public Task<GithubIssuePluginIssue> FetchGithubIssue(string issueUrl)
+    public Task<GithubIssuePluginIssue> FetchGithubIssue(string issueUrl, Kernel kernel)
     {
         throw new NotImplementedException();
     }
 
-    public Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(string repoUrl, int issueNumber)
+    public Task<IReadOnlyList<GithubIssuePluginIssueComment>> FetchGithubIssueComments(string repoUrl, int issueNumber, Kernel kernel)
     {
         throw new NotImplementedException();
     }
@@ -77,5 +78,10 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     public List<string> GetReposScanned()
     {
         return _reposScanned;
+    }
+
+    public Task<string> ExtractTextFromImageInGitHubIssue(string imageUrl, Kernel kernel)
+    {
+        throw new NotImplementedException();
     }
 }

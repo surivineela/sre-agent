@@ -37,11 +37,11 @@
   },
   {
     "PluginName": "GitHubIssuePlugin",
-    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.GitHubIssuePluginDefinition"
+    "ServiceIdentifier": "Agent.Plugins.GitHubIssuePluginDefinition, Agent.Plugins"
   },
   {
     "PluginName": "AzureSearchPlugin",
-    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureSearchPluginDefinition"
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.Definitions.AzureSearchPluginDefinition"
   },
   {
     "PluginName": "AzureAlertingPlugin",

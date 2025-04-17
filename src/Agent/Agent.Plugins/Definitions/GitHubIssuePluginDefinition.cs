@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -104,10 +104,11 @@ resolved
     [KernelFunction("fetch_github_issue")]
     [Description("Fetch a specific github issue. If the returned object is empty and is not an exception, let the user know there were none found.")]
     public async Task<GithubIssuePluginIssue> FetchGithubIssue(
-            [Description("Github issue URL, e.g. https://github.com/owner/repo-name/issues/issueNumber")] string issueUrl
+            [Description("Github issue URL, e.g. https://github.com/owner/repo-name/issues/issueNumber")] string issueUrl,
+            Kernel kernel
         )
     {
-        return await _gitHubIssuePlugin.FetchGithubIssue(issueUrl);
+        return await _gitHubIssuePlugin.FetchGithubIssue(issueUrl, kernel);
     }
 
     [KernelFunction("fetch_github_security_dependabot_alert")]
@@ -121,12 +122,13 @@ resolved
 
     [KernelFunction("fetch_github_issue_comments")]
     [Description(@"Fetch comments for a specific github issue.")]
-    public async Task<IReadOnlyList<IssueComment>> FetchGithubIssueComments(
+    public async Task<IReadOnlyList<GithubIssuePluginIssueComment>> FetchGithubIssueComments(
         [Description($"GitHub repository URL, e.g. {GitHubHelper.ExampleUrl}")] string repoUrl,
-        int issueNumber
+        int issueNumber,
+        Kernel kernel
     )
     {
-        return await _gitHubIssuePlugin.FetchGithubIssueComments(repoUrl, issueNumber);
+        return await _gitHubIssuePlugin.FetchGithubIssueComments(repoUrl, issueNumber, kernel);
     }
 
     [KernelFunction("delete_github_issue_comment")]
@@ -147,6 +149,15 @@ resolved
         )
     {
         return await _gitHubIssuePlugin.GetUserOrganizations(username);
+    }
+
+    [KernelFunction("extract_text_from_image_in_github_issue")]
+    [Description("Extract text from an image in a GitHub issue body or comment. The image URL is of the form https://github.com/user-attachments/assets/GUID.")]
+    public async Task<string> ExtractTextFromImageInGitHubIssue(
+        [Description("URL of the image in body of issue or comment. Must be of the form https://github.com/user-attachments/assets/GUID.")] string imageUrl,
+        Kernel kernel)
+    {
+        return await _gitHubIssuePlugin.ExtractTextFromImageInGitHubIssue(imageUrl, kernel);
     }
 }
 
