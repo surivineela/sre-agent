@@ -45,6 +45,7 @@ namespace Agent.Plugins
         private readonly string _puppeteerScreenshotApiUrl;
         private readonly HttpClient _httpClient;
         private readonly DashboardSettings _dashboardSettings;
+        private readonly IAuthenticationService _authService;
 
         private const string MermaidServiceAPI = "https://mermaid-renderer.salmonhill-ad96bd78.eastus2.azurecontainerapps.io/render";
 
@@ -63,7 +64,8 @@ namespace Agent.Plugins
             IChatClient chatClient,
             DashboardSettings dashboardSettings,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
-            ILogger<GraphDBPlugin> logger)
+            ILogger<GraphDBPlugin> logger,
+            IAuthenticationService authService)
         {
             GraphDbClient = graphDbClient;
             ChatClient = chatClient;
@@ -75,6 +77,7 @@ namespace Agent.Plugins
             _grafanaToken = dashboardSettings.GrafanaApiKey;
             _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
             _httpClient = new HttpClient();
+            _authService = authService;
         }
 
         /// <summary>
@@ -1282,12 +1285,10 @@ g.V().has('id', '{deploymentResourceId}')
                 var subscriptionId = resourceIdentifier.SubscriptionId;
                 var resourceGroupName = resourceIdentifier.ResourceGroupName;
 
-                var credential = new DefaultAzureCredential();
-                var defaultCredential = new DefaultAzureCredential();
-                var defaultToken = defaultCredential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" })).Token;
+                var credential = _authService.GetArmOperationCredential();
+                var defaultToken = credential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None).Token;
                 var defaultTokenCredentials = new Microsoft.Rest.TokenCredentials(defaultToken);
                 var azureCredentials = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(defaultTokenCredentials, defaultTokenCredentials, null, AzureEnvironment.AzureGlobalCloud);
-                var credentials = new DefaultAzureCredential();
 
                 var restClient = RestClient.Configure()
                     .WithBaseUri("https://management.azure.com")

@@ -41,7 +41,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly string _grafanaUrl;
         private readonly string _prometheusUrl;
         private readonly string _dataSourceName;
-        private readonly DefaultAzureCredential _azureCredential;
         private readonly List<string> _dashboardsToActivate;
         private readonly string _puppeteerScreenshotApiUrl;
         private readonly DashboardSettings _dashboardSettings;
@@ -95,7 +94,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _dataSourceName = dashboardSettings.GrafanaDataSourceName ?? "KnowledgeGraph";
             _puppeteerScreenshotApiUrl = puppeteerScreenshotApiUrl;
             //_puppeteerScreenshotApiUrl = "http://20.57.166.55:3000";//puppeteerScreenshotApiUrl;
-            _azureCredential = new DefaultAzureCredential();
 
             // List of predefined Azure Monitor dashboards to activate
             _dashboardsToActivate = new List<string>

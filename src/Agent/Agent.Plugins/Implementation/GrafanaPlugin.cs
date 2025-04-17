@@ -7,27 +7,26 @@ using System.Text;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using Azure.Identity;
 using Microsoft.Extensions.AI;
 using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 
 namespace Agent.Plugins.Implementation
 {
     public class GrafanaPlugin : IGrafanaPlugin
     {
         private readonly ILogger<GrafanaPlugin> _logger;
-        private readonly DefaultAzureCredential _azureCredential;
         private readonly DashboardSettings _dashboardSettings;
         private readonly IChatClient _chatClient;
-        public GrafanaPlugin(ILogger<GrafanaPlugin> logger, DashboardSettings dashboardSettings, IChatClient chatClient)
+        private readonly IAuthenticationService _authService;
+        public GrafanaPlugin(ILogger<GrafanaPlugin> logger, DashboardSettings dashboardSettings, IChatClient chatClient, IAuthenticationService authService)
         {
             _logger = logger;
-
-            _azureCredential = new DefaultAzureCredential();
             _dashboardSettings = dashboardSettings;
             _chatClient = chatClient;
+            _authService = authService;
         }
 
         private async Task<HttpClient> CreateAuthenticatedClientAsync()

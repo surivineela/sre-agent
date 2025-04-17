@@ -27,16 +27,19 @@ namespace Agent.Plugins.Implementation
         private readonly IGraphDatabaseClient _databaseClient;
         private readonly ILogger<ContainerAppPlugin> _logger;
         private readonly IArmClientFactory _armClientFactory;
+        private readonly IAuthenticationService _authService;
 
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
             ILogger<ContainerAppPlugin> logger,
-            IArmClientFactory armClientFactory)
+            IArmClientFactory armClientFactory,
+            IAuthenticationService authService)
         {
             _armClientFactory = armClientFactory;
             _databaseClient = graphDbClient;
             _armHelper = armHelper;
             _logger = logger;
+            _authService = authService;
         }
 
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
@@ -46,7 +49,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 string cappResourceId = resourceId.ToLower().Replace("/", "_");
-                
+
                 string query = $@"
                     g.V().has('id', '{cappResourceId}')
                     .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
@@ -177,7 +180,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var credential = new DefaultAzureCredential();
+                var credential = _authService.GetArmOperationCredential();
 
                 var armClient = new ArmClient(credential);
 
@@ -386,7 +389,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var credential = new DefaultAzureCredential();
+                var credential = _authService.GetArmOperationCredential();
                 var armClient = new ArmClient(credential);
 
                 // Get the Container App to find its environment
@@ -449,7 +452,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var credential = new DefaultAzureCredential();
+                var credential = _authService.GetArmOperationCredential();
                 var armClient = new ArmClient(credential);
 
                 // Get the NSG resource
@@ -493,7 +496,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var credential = new DefaultAzureCredential();
+                var credential = _authService.GetArmOperationCredential();
                 var armClient = new ArmClient(credential);
 
                 // Get the NSG resource
@@ -550,7 +553,7 @@ namespace Agent.Plugins.Implementation
                     return false;
                 }
 
-                var credential = new DefaultAzureCredential();
+                var credential = _authService.GetArmOperationCredential();
                 var armClient = new ArmClient(credential);
 
                 // Get the Container App
