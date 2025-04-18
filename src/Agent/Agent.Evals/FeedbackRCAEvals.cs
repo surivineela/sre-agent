@@ -28,6 +28,7 @@ public sealed class FeedbackRCAEvals
 
     private IHost _host;
     private ChatConfiguration _chatConfiguration;
+    private string? _llmDeploymentName;
 
     private static int _iterationCount = 10; // Default value
 
@@ -50,7 +51,7 @@ public sealed class FeedbackRCAEvals
     [TestInitialize]
     public async Task TestInitialize()
     {
-        var builder = TestHelpers.BuildTestApp();
+        var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         IEvaluationTokenCounter? tokenCounter = null;
@@ -131,7 +132,7 @@ public sealed class FeedbackRCAEvals
         response = await chatClient.GetResponseAsync(messages);
 
         var groundedContext = feedbackRCAAgent.SystemPrompt;
-        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse, _llmDeploymentName);
     }
 
     [TestMethod]
@@ -192,7 +193,7 @@ public sealed class FeedbackRCAEvals
         response = await chatClient.GetResponseAsync(messages);
 
         var groundedContext = feedbackRCAAgent.SystemPrompt;
-        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse, _llmDeploymentName);
     }
 }
 

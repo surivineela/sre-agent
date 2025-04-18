@@ -26,7 +26,8 @@ public static class EvaluatorExtensions
         ChatConfiguration? chatConfiguration,
         List<ChatMessage> messages,
         string groundedContext,
-        string exampleResponse)
+        string exampleResponse,
+        string? llmDeploymentName)
     {
         IEvaluator sreAgentCoherenceEvaluator = new SreAgentCoherenceEvaluator();
         IEvaluator sreAgentFluencyEvaluator = new SreAgentFluencyEvaluator();
@@ -48,6 +49,7 @@ public static class EvaluatorExtensions
             Fluency = fluency.GetEvaluationResult(),
             Equivalence = equivalence.GetEvaluationResult(),
             Groundedness = groundedness.GetEvaluationResult(),
+            LLMDeploymentName = llmDeploymentName,
         };
 
         testContext.WriteLine(JsonConvert.SerializeObject(evaluationResults));

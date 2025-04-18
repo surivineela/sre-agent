@@ -41,4 +41,10 @@ public class TestResult
     public string Duration { get; set; }
 
     public List<string> ErrorInfo { get; set; } = new List<string>();
+
+    public bool? HasPassed { get; set; }
+
+    public string? LLMDeploymentName { get; set; }
+
+    public string? AdditionalInfo { get; set; }
 }

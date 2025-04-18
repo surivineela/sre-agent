@@ -43,6 +43,7 @@ public class TlsBestPracticesEvals
     private MockMetricsPlugin _mockMetricsPlugin;
     private MockTimePlugin _mockTimePlugin;
     private MockCommunicationService _mockCommunicationService;
+    private string? _llmDeploymentName;
 
     private List<TlsStatus> _testApps = new List<TlsStatus>
     {
@@ -73,7 +74,8 @@ public class TlsBestPracticesEvals
     [TestInitialize]
     public async Task TestInitialize()
     {
-        var builder = TestHelpers.BuildTestApp();
+        var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
+        _host = builder.Build();
         var services = builder.Services;
 
         _timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
@@ -248,7 +250,7 @@ public class TlsBestPracticesEvals
 
                 if (response != null)
                 {
-                    await response.EvaluateAsync(this.TestContext, this._chatConfiguration, messagesSoFar, groundedContext, exampleResponse);
+                    await response.EvaluateAsync(this.TestContext, this._chatConfiguration, messagesSoFar, groundedContext, exampleResponse, _llmDeploymentName);
                 }
             }
 

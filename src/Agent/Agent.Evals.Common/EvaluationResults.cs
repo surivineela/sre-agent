@@ -11,4 +11,6 @@ public class EvaluationResults
     public EvaluationResult? Equivalence { get; set; }
 
     public EvaluationResult? Groundedness { get; set; }
+
+    public string? LLMDeploymentName { get; set; }
 }

@@ -124,6 +124,9 @@ public class Program
         foreach (XmlNode testResult in resultsNode.ChildNodes)
         {
             var testId = testResult.Attributes?.GetNamedItem("testId")?.Value;
+            var outcome = testResult.Attributes?.GetNamedItem("outcome")?.Value;
+
+            bool hasPassed = string.Equals(outcome, "Passed", StringComparison.OrdinalIgnoreCase);
 
             if (string.IsNullOrEmpty(testId))
             {
@@ -131,8 +134,6 @@ public class Program
             }
 
             (var testName, var className) = testIdToTestInfoMap[testId];
-
-            
 
             foreach (XmlNode childNode in testResult.ChildNodes)
             {
@@ -179,6 +180,8 @@ public class Program
                         result.EquivalenceReasoning = evaluationResults.Equivalence?.Reason;
                         result.GroundednessRating = evaluationResults.Groundedness?.Value;
                         result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
+                        result.HasPassed = hasPassed;
+                        result.LLMDeploymentName = evaluationResults.LLMDeploymentName;
 
                         testResults[result.TestId] = result;
                     }                    

@@ -22,6 +22,7 @@ public sealed class SourceCodeAgentEvals
 
     private IHost _host;
     private ChatConfiguration _chatConfiguration;
+    private string _llmDeploymentName;
 
     private static int _iterationCount = 10; // Default value
 
@@ -44,7 +45,7 @@ public sealed class SourceCodeAgentEvals
     [TestInitialize]
     public async Task TestInitialize()
     {
-        var builder = TestHelpers.BuildTestApp();
+        var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         IEvaluationTokenCounter? tokenCounter = null;
@@ -157,7 +158,7 @@ public sealed class SourceCodeAgentEvals
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse, _llmDeploymentName);
     }
 
     [TestMethod]
@@ -249,7 +250,7 @@ public sealed class SourceCodeAgentEvals
 
         var response = await chatClient.GetResponseAsync(messages, chatOptions);
 
-        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse, _llmDeploymentName);
 
         var mapping = mockGraphDBPlugin.GetContainerAppsToSourceCodeNodeMapping();
         Assert.IsTrue(mapping.ContainsKey(containerAppResourceId));
@@ -318,7 +319,7 @@ public sealed class SourceCodeAgentEvals
         };
 
         var response = await _chatConfiguration.ChatClient.GetResponseAsync(messages, chatOptions);
-        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse);
+        await response.EvaluateAsync(TestContext, _chatConfiguration, messages, groundedContext, exampleResponse, _llmDeploymentName);
     }
 }
 

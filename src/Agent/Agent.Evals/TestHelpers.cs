@@ -15,13 +15,13 @@ namespace Agent.Evals;
 
 public static class TestHelpers
 {
-    public static HostApplicationBuilder BuildTestApp()
+    public static HostApplicationBuilder BuildTestApp(out string? outLLMDeploymentName)
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
         builder.LoadLocalAppSettings();
         builder.RegisterAppSettingsNoValidation<AppSettings>();
 
-        string? llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
+        var llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
 
         if (string.IsNullOrEmpty(llmDeploymentName))
         {
@@ -53,7 +53,7 @@ public static class TestHelpers
         }
         
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName));
-
+        outLLMDeploymentName = llmDeploymentName;
         return builder;
     }
 }

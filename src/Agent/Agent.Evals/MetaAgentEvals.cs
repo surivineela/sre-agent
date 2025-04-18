@@ -37,6 +37,8 @@ public class MetaAgentEvals
 
     private static int _iterationCount = 10; // Default value
 
+    private string? _llmDeploymentName;
+
     // Static constructor to initialize _iterationCount
     static MetaAgentEvals()
     {
@@ -56,7 +58,7 @@ public class MetaAgentEvals
     [TestInitialize]
     public async Task TestInitialize()
     {
-        var builder = TestHelpers.BuildTestApp();
+        var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         IEvaluationTokenCounter? tokenCounter = null;
@@ -187,6 +189,6 @@ public class MetaAgentEvals
         var agentMsg = new ChatMessage(ChatRole.Assistant, result.Result);
         var response = new ChatResponse(agentMsg);
 
-        await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse);
+        await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
     }
 }
