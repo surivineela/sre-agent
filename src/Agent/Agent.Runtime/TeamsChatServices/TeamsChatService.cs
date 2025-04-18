@@ -296,7 +296,10 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         var agentContext = await _threadRepository.CreateAgentContextAsync(new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: thread.Id,
-            AgentType: AgentTypeEnum.Meta
+            AgentType: AgentTypeEnum.Meta,
+            ContextState: ContextStateEnum.Idle,
+            WaitInformation: null,
+            ApprovalInformation: null
         ));
 
         var systemPromptReasoningMessage = await _threadRepository.CreateReasoningMessageAsync(new ReasoningMessage(

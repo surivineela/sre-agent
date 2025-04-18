@@ -184,7 +184,7 @@ public class MetaAgentEvals
 
         var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
 
-        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
         var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
         var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 
@@ -351,7 +351,7 @@ public class MetaAgentEvals
 
         var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
 
-        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
         var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
         var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 
@@ -424,7 +424,7 @@ public class MetaAgentEvals
 
         var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
 
-        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
         var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
         var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 

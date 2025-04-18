@@ -11,4 +11,3 @@ namespace Agent.Data.DataModels
         string PartitionKey { get; } // Defines the partition key value
     }
 }
-

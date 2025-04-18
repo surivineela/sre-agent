@@ -7,6 +7,8 @@ namespace Agent.Core.Models.Api.v1;
 public record AgentContext(
     Guid Id,
     Guid ThreadId,
-    AgentTypeEnum AgentType
+    AgentTypeEnum AgentType,
+    ContextStateEnum ContextState,
+    WaitInformation? WaitInformation,
+    ApprovalInformation? ApprovalInformation
 );
-

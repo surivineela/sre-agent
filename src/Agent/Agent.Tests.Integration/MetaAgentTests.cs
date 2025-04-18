@@ -148,7 +148,7 @@ public class MetaAgentTests : IAsyncLifetime
         var threadGuid = Guid.NewGuid();
 
         var chatMessage = new ChatMessage(ChatRole.User, message.Text);
-        var agentContext = new AgentContext(Guid.NewGuid(), threadGuid, AgentTypeEnum.Meta);
+        var agentContext = new AgentContext(Guid.NewGuid(), threadGuid, AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
         var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(chatMessage));
         var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 
@@ -188,7 +188,7 @@ public class MetaAgentTests : IAsyncLifetime
         // generate threadId for this background task
         var threadId = Guid.NewGuid(); ;
         var chatMessage = new ChatMessage(ChatRole.User, message.Text);
-        var agentContext = new AgentContext(Guid.NewGuid(), threadId, AgentTypeEnum.Meta);
+        var agentContext = new AgentContext(Guid.NewGuid(), threadId, AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
         var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(chatMessage));
         var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 

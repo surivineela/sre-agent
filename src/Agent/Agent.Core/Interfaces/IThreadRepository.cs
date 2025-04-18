@@ -43,6 +43,7 @@ public interface IThreadRepository
     Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId);
     Task<IEnumerable<AgentContext>> GetAgentContextsForThreadAsync(Guid threadId);
     Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext);
+    Task<AgentContext> UpdateAgentContextAsync(AgentContext agentContext);
     Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId);
 
     Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId);
@@ -54,4 +55,3 @@ public interface IThreadRepository
     Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
     Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId);
 }
-

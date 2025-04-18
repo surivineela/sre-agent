@@ -42,4 +42,3 @@ public record MessageDocument(
             Posted
         );
 }
-

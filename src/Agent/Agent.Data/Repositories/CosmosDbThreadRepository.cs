@@ -879,6 +879,25 @@ public class CosmosDbThreadRepository : IThreadRepository
         return agentContext;
     }
 
+    public async Task<AgentContext> UpdateAgentContextAsync(AgentContext agentContext)
+    {
+        // Ensure IDs are set
+        if (agentContext.Id == Guid.Empty)
+        {
+            agentContext = agentContext with { Id = Guid.NewGuid() };
+        }
+
+        if (agentContext.ThreadId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        AgentContextDocument agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
+        await _container.UpsertItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
+        return agentContext;
+    }
+
     public async Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId)
     {
         string threadIdStr = threadId.ToString();

@@ -94,7 +94,10 @@ namespace Agent.Web.Controllers.v1
             var agentContext = new AgentContext(
                 Id: Guid.NewGuid(),
                 ThreadId: thread.Id,
-                AgentType: AgentTypeEnum.Meta
+                AgentType: AgentTypeEnum.Meta,
+                ContextState: ContextStateEnum.Idle,
+                WaitInformation: null,
+                ApprovalInformation: null
             );
 
             var systemPromptReasoningMessage = new ReasoningMessage(

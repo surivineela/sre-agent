@@ -21,10 +21,12 @@ namespace Agent.Core.Models.Api.v1
         Guid Id,
         string Title,
         Message StartMessage,
-        Message LastMessage,
+        Message? LastMessage,
         DateTime CreatedTimestamp,
         DateTime ModifiedTimestamp,
-        ThreadSource Source = ThreadSource.Conversation
+        ThreadSource Source = ThreadSource.Conversation,
+        string? WaitReason = null,
+        DateTime? WaitUntil = null
     );
 
     public record CreateThreadRequest(

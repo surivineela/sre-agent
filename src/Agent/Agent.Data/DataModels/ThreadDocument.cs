@@ -18,7 +18,6 @@ public record ThreadDocument(
     ThreadSource Source = ThreadSource.Conversation
 ) : ICosmosDocument
 {
-
     public string DocumentType => "Thread";
     public string PartitionKey => Id; // Use Thread Id as partition key
 
@@ -34,7 +33,7 @@ public record ThreadDocument(
             thread.Source
         );
 
-    public Thread ToDomainModel(Message startMessage, Message lastMessage) =>
+    public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
         new Thread(
             Guid.Parse(Id),
             Title,
@@ -45,4 +44,3 @@ public record ThreadDocument(
             Source
         );
 }
-

@@ -262,7 +262,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         var agentContext = new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: thread.Id,
-            AgentType: agentTypeEnum
+            AgentType: agentTypeEnum,
+            ContextState: ContextStateEnum.Idle,
+            WaitInformation: null,
+            ApprovalInformation: null
         );
 
         var startReasoningMessage = new ReasoningMessage(

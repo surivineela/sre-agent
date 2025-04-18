@@ -388,6 +388,12 @@ namespace Agent.Data.Repositories
             return Task.FromResult(agentContext);
         }
 
+        public Task<AgentContext> UpdateAgentContextAsync(AgentContext agentContext)
+        {
+            _agentContexts[(agentContext.ThreadId, agentContext.Id)] = agentContext;
+            return Task.FromResult(agentContext);
+        }
+
         public Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId)
         {
             if (!_agentContexts.TryGetValue((threadId, agentContextId), out var agentContext))

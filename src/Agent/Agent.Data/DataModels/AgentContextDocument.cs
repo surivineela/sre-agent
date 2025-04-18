@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
-using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Data.DataModels;
 
@@ -11,7 +10,10 @@ namespace Agent.Data.DataModels;
 public record AgentContextDocument(
     string Id,
     string ThreadId,
-    int AgentType
+    int AgentType,
+    int ContextState,
+    WaitInformation? WaitInformation,
+    ApprovalInformation? ApprovalInformation
 ) : ICosmosDocument
 {
     public string DocumentType => "AgentContext";
@@ -22,14 +24,20 @@ public record AgentContextDocument(
         new AgentContextDocument(
             Id: agentContext.Id.ToString(),
             ThreadId: agentContext.ThreadId.ToString(),
-            AgentType: (int) agentContext.AgentType
+            AgentType: (int) agentContext.AgentType,
+            ContextState: (int)agentContext.ContextState,
+            WaitInformation: agentContext.WaitInformation,
+            ApprovalInformation: agentContext.ApprovalInformation
         );
 
     public AgentContext ToDomainModel() =>
         new AgentContext(
             Id: Guid.Parse(Id),
             ThreadId: Guid.Parse(ThreadId),
-            AgentType: (AgentTypeEnum)AgentType
+            AgentType: (AgentTypeEnum)AgentType,
+            ContextState: (ContextStateEnum)ContextState,
+            WaitInformation: WaitInformation,
+            ApprovalInformation: ApprovalInformation
         );
 }
 
