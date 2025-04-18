@@ -20,7 +20,7 @@ public static class EvaluatorExtensions
         };
     }
 
-    public static async Task EvaluateAsync(
+    public static async Task<EvaluationResults> EvaluateAsync(
         this ChatResponse chatResponse,
         TestContext testContext,
         ChatConfiguration? chatConfiguration,
@@ -53,5 +53,6 @@ public static class EvaluatorExtensions
         };
 
         testContext.WriteLine(JsonConvert.SerializeObject(evaluationResults));
+        return evaluationResults;
     }
 }

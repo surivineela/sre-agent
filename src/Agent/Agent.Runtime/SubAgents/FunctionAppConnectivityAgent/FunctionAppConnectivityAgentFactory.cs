@@ -24,15 +24,15 @@ public sealed class FunctionAppConnectivityAgentFactory
         var toolSignatures = new List<string>();
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

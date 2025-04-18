@@ -34,28 +34,28 @@ public sealed class DailyReportSummaryAgentFactory
 
         // Metrics plugin for basic telemetry
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         // Grafana plugin for dashboard and visualization
         var grafanaPluginDefinition = new GrafanaPluginDefinition(grafanaPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => grafanaPluginDefinition.ModifyGrafanaDashboard));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => grafanaPluginDefinition.ModifyGrafanaDashboard));
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.VisualizeApplicationComponents));
-        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.DiscoverApplications));
-        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.GetApplicationComponentsSummary));
-        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.VisualizeApplicationComponents));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.DiscoverApplications));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.GetApplicationComponentsSummary));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
 
         // Control flow plugin for basic orchestration functions
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         // Approval plugin for user interactions
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

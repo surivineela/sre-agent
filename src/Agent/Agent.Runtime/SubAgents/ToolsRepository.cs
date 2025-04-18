@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -45,6 +45,7 @@ public sealed class ToolsRepository : IMcpConnectable
         Register200<GraphDBPluginDefinition>(x => x.DiscoverApplications);
         Register200<GraphDBPluginDefinition>(x => x.AddSourceCodeNodeToContainerAppNode);
         Register200<GraphDBPluginDefinition>(x => x.GetContainerAppsWithNodesWithoutSourceCodeNodes);
+        Register200<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
 
         // Not all tools were registered, so registering individually
         Register200<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
@@ -91,12 +92,12 @@ public sealed class ToolsRepository : IMcpConnectable
             .Where(m => m.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>() != null)
             .ToList();
 
-        foreach(var methodInfo in methods200)
+        foreach (var methodInfo in methods200)
         {
             Register200<T>(methodInfo);
         }
 
-        foreach(var submitMethodInfo in methods202)
+        foreach (var submitMethodInfo in methods202)
         {
             var executeMethodName = submitMethodInfo.GetCustomAttribute<Plugins.Attributes.Submit202Attribute>().ExecuteMethodName;
             var executeMethodInfo = pluginType.GetMethod(executeMethodName, flags);
@@ -142,7 +143,7 @@ public sealed class ToolsRepository : IMcpConnectable
         return this.GetAllTools(toolSignatures).Select<string, AITool>(sig => this.FindAiFunction(sig).ToolFunction).ToList();
     }
 
-    public string GetSignature(
+    public static string GetSignature(
         Expression<Func<Delegate>> actionSelector)
     {
         var actionMethod = GetMethod(actionSelector);

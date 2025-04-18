@@ -27,33 +27,32 @@ public sealed class WebAppDownAgentFactory
         IPostToTeamsPlugin postToTeamsPlugin,
         IMetaAgentCPUAnalysisPlugin cpuPlugin,
         IMetaAgentAppCodeAnalysisPlugin appCodePlugin,
-        ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
         var toolSignatures = new List<string>();
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
-        toolSignatures.Add(toolsRepository.GetSignature(() => cpuPlugin.StartCPUAnalysisAgent));
-        toolSignatures.Add(toolsRepository.GetSignature(() => appCodePlugin.StartAppCodeAnalysisAgent));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuPlugin.StartCPUAnalysisAgent));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodePlugin.StartAppCodeAnalysisAgent));
 
         var postToTeamsPluginDefinition = new PostToTeamsPluginDefinition(postToTeamsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => postToTeamsPluginDefinition.PostMessage));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => postToTeamsPluginDefinition.PostMessage));
 
         var chatPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => chatPluginDefinition.PlotTimeSeriesDataAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => chatPluginDefinition.PlotTimeSeriesDataAsync));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

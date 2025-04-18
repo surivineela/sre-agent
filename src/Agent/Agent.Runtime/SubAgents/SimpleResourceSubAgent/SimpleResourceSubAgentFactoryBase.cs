@@ -54,7 +54,7 @@ namespace Agent.Runtime.SubAgents
 
             // Generate the tool signatures from the supplied lambdas
             var toolSignatures = GetToolList()
-                .Select(x => toolsRepository.GetSignature(x))
+                .Select(x => ToolsRepository.GetSignature(x))
                 .ToList();
 
             var agentInput = new TAgentInput

@@ -37,24 +37,24 @@ public sealed class AppReliabilityAgentFactory
     {
         var toolSignatures = new List<string>();
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         var reliabilityPluginDefinition = new ReliabilityPluginDefinition(reliabilityPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAutoHeal));
-        toolSignatures.Add(toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAlwaysOn));
-        toolSignatures.Add(toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHealthCheck));
-        toolSignatures.Add(toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHostWorkers));
-        toolSignatures.Add(toolsRepository.GetSignature(() => reliabilityPluginDefinition.GetAppsToMonitor));
-        toolSignatures.Add(toolsRepository.GetSignature(() => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAutoHeal));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAlwaysOn));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHealthCheck));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHostWorkers));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.GetAppsToMonitor));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        //toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        //toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

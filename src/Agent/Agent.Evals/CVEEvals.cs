@@ -43,7 +43,7 @@ public sealed class CVEEvals
         }
         else
         {
-            Console.WriteLine("Static Constructor: IterationCount not found or invalid. Using default value.");
+            Console.WriteLine("CVEEvals Static Constructor: IterationCount not found or invalid. Using default value.");
         }
     }
 
@@ -68,7 +68,7 @@ public sealed class CVEEvals
 
     private static IEnumerable<object[]> TestData_Iterations()
     {
-        for (int i=0; i< _iterationCount; i++)
+        for (int i = 0; i < _iterationCount; i++)
         {
             yield return new object[] { Guid.NewGuid().ToString() };
         }

@@ -16,77 +16,26 @@ namespace Agent.Runtime.SubAgents.KubernetesAgent;
 // [Export]
 public sealed class KubernetesAgentFactory
 {
-    private readonly IReadOnlyList<string> _toolSignatures;
+    private readonly AgentToolsRegistry _toolsRegistry = new AgentToolsRegistry();
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(KubernetesAgent);
 
     public KubernetesAgentFactory(
-        IKubePlugin kubePlugin,
-        IArmPlugin armPlugin,
-        IApprovalPlugin approvalPlugin,
-        ITimePlugin timePlugin,
-        IRemediationPlugin remediationPlugin,
-        IRecordActionsPlugin recordActionsPlugin,
-        IGraphDBPlugin graphDbPlugin,
-        IChartPlugin chartPlugin,
-        ToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
-        var toolSignatures = new List<string>();
-        var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        _toolsRegistry.RegisterPlugin<TimePluginDefinition>();
+        _toolsRegistry.RegisterPlugin<KubePluginDefinition>();
+        _toolsRegistry.RegisterPlugin<ChartPluginDefinition>();
+        _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
+        _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
+        _toolsRegistry.RegisterPlugin<ApprovalPluginDefinition>();
 
-        var kubePluginDefinition = new KubePluginDefinition(kubePlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeDeploymentsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeNamespacesAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetAKSClusterResourceIdAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubePodsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeDeploymentSpecStatusAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeDeploymentEventsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.RolloutRestartDeploymentAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ScaleDeploymentAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubePodEventsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubePodLogsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ExecCommandInPodAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ListCRDsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ListCustomResourcesAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetCustomResourceYamlAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodYamlAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodCpuMetricsForDeploymentAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodMemoryMetricsForDeploymentAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetRecentlyUpdatedWorkloadsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulsetsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulsetSpecStatusAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulSetEventsAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.ScaleStatefulSetAsync));
+        _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.VisualizeAKSMicroserviceTopology);
+        _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
 
-        var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => graphDBPluginDefinition.VisualizeAKSMicroserviceTopology));
-
-        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
-
-        var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
-
-        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
-
-        _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
         _mappingManager = mappingManager;
     }
@@ -103,7 +52,7 @@ public sealed class KubernetesAgentFactory
         return await _durableTaskClient.ScheduleNewKubernetesAgentInstanceAsync(
             new KubernetesAgentInput(
                 Input: input,
-                ToolSignatures: _toolSignatures,
+                ToolSignatures: _toolsRegistry.ToolSignatures,
                 context),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }

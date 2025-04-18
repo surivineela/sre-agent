@@ -30,40 +30,39 @@ public sealed class ManagedIdentityMigrationAgentFactory
         IMIConfigurationCheckPlugin miMigrationPlugin,
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
         IGithubWorkflowTriggerPlugin githubWorkflowTriggerPlugin,
-        ToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
         var toolSignatures = new List<string>();
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         var miMigrationPluginDefinition = new MIConfigurationCheckPluginDefinition(miMigrationPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => miMigrationPluginDefinition.CheckSqlConnectionTypeAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => miMigrationPluginDefinition.CheckSqlResourceIdForAppAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => miMigrationPluginDefinition.CheckSqlConnectionTypeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => miMigrationPluginDefinition.CheckSqlResourceIdForAppAsync));
 
         var appIdentityUpdatePluginDefinition = new AppIdentityUpdatePluginDefinition(appIdentityUpdatePlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => appIdentityUpdatePluginDefinition.GetAppManagedIdentityAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => appIdentityUpdatePluginDefinition.MigrateWebAppConnStr2ManagedIdentityAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => appIdentityUpdatePluginDefinition.EnableSqlAdEntraAdminAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => appIdentityUpdatePluginDefinition.GetAppManagedIdentityAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => appIdentityUpdatePluginDefinition.MigrateWebAppConnStr2ManagedIdentityAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => appIdentityUpdatePluginDefinition.EnableSqlAdEntraAdminAsync));
 
         var githubWorkflowTriggerPluginDefinition = new GithubWorkflowTriggerPluginDefinition(githubWorkflowTriggerPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => githubWorkflowTriggerPluginDefinition.CheckPullRequestMergeStatus));
-        toolSignatures.Add(toolsRepository.GetSignature(() => githubWorkflowTriggerPluginDefinition.TriggerWorkflow));
-        toolSignatures.Add(toolsRepository.GetSignature(() => githubWorkflowTriggerPluginDefinition.TrackWorkflow));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => githubWorkflowTriggerPluginDefinition.CheckPullRequestMergeStatus));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => githubWorkflowTriggerPluginDefinition.TriggerWorkflow));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => githubWorkflowTriggerPluginDefinition.TrackWorkflow));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

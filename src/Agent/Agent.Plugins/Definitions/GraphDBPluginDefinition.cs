@@ -234,6 +234,7 @@ namespace Agent.Plugins
             return await _plugin.GetResourceBasicProperties(resourceId);
         }
 
+        // TODO(jianbosun): Add prompt to get resource details for AKS resources (combine resourceID with AKS GVK) and register this func to AKS plugin
         [Description("Returns resource-specific properties along with basic metadata for an Azure resource identified by its ResourceId. " +
             "Input must be in Azure ResourceId format (e.g., /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp). " +
             "\nResource-specific properties include:" +

@@ -32,26 +32,26 @@ public sealed class ContainerImagePullFailureAgentFactory
     {
         var toolSignatures = new List<string>();
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         // Registry verification tools
         var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RollbackToLastWorkingImage));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.UpdateContainerImage));
-        toolSignatures.Add(toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RetryImagePull));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RollbackToLastWorkingImage));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.UpdateContainerImage));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RetryImagePull));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

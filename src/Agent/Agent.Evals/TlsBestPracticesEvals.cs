@@ -67,7 +67,7 @@ public class TlsBestPracticesEvals
         }
         else
         {
-            Console.WriteLine("Static Constructor: IterationCount not found or invalid. Using default value.");
+            Console.WriteLine("TlsBestPracticesEvals Static Constructor: IterationCount not found or invalid. Using default value.");
         }
     }
 
@@ -75,7 +75,6 @@ public class TlsBestPracticesEvals
     public async Task TestInitialize()
     {
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
-        _host = builder.Build();
         var services = builder.Services;
 
         _timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
@@ -225,7 +224,7 @@ public class TlsBestPracticesEvals
             var fullHistoryRaw = orchestrationMetadata.ReadCustomStatusAs<string>();
             var fullHistory = System.Text.Json.JsonSerializer.Deserialize<ChatMessage[]>(fullHistoryRaw, new System.Text.Json.JsonSerializerOptions
             {
-                
+
                 PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
             });
 
@@ -263,7 +262,7 @@ public class TlsBestPracticesEvals
 
             foreach (var app in _testApps)
             {
-                Assert.AreEqual("1.2", _mockArmPlugin.GetTlsStatus(app.ResourceId), ignoreCase:true, $"App {app.Name} does not have expected TLS setting.");
+                Assert.AreEqual("1.2", _mockArmPlugin.GetTlsStatus(app.ResourceId), ignoreCase: true, $"App {app.Name} does not have expected TLS setting.");
             }
         }
         catch (Grpc.Core.RpcException ex)

@@ -38,7 +38,7 @@ public sealed class SourceCodeAgentEvals
         }
         else
         {
-            Console.WriteLine("Static Constructor: IterationCount not found or invalid. Using default value.");
+            Console.WriteLine("SourceCodeAgentEvals Static Constructor: IterationCount not found or invalid. Using default value.");
         }
     }
 
@@ -63,7 +63,7 @@ public sealed class SourceCodeAgentEvals
 
     private static IEnumerable<object[]> TestData_Iterations()
     {
-        for (int i=0; i< _iterationCount; i++)
+        for (int i = 0; i < _iterationCount; i++)
         {
             yield return new object[] { Guid.NewGuid().ToString() };
         }
@@ -212,7 +212,7 @@ public sealed class SourceCodeAgentEvals
         var services = new ServiceCollection();
 
         // Step 2: Register the mock implementation
-        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string> ());
+        var mockGraphDBPlugin = new MockGraphDBPlugin(new List<string>());
         services.AddSingleton<IGraphDBPlugin>(mockGraphDBPlugin);
         var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
         var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());

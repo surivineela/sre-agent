@@ -51,7 +51,7 @@ public class MetaAgentEvals
         }
         else
         {
-            Console.WriteLine("Static Constructor: IterationCount not found or invalid. Using default value.");
+            Console.WriteLine("FeedbackRCAEvals Static Constructor: IterationCount not found or invalid. Using default value.");
         }
     }
 
@@ -83,7 +83,7 @@ public class MetaAgentEvals
         }
     }
 
-    private MetaAgent GetMockedMetaAgent(
+    public static MetaAgent GetMockedMetaAgent(
         IChatClient chatClient,
         ILogger<MetaAgent>? logger = null,
         ThreadService? threadService = null,
@@ -110,7 +110,7 @@ public class MetaAgentEvals
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null)
     {
         return new MetaAgent(
-            _chatClient!,
+            chatClient,
             logger ?? Mock.Of<ILogger<MetaAgent>>(),
             threadService ?? Mock.Of<ThreadService>(),
             mcpToolsRepository ?? Mock.Of<McpToolsRepository>(),
@@ -121,7 +121,12 @@ public class MetaAgentEvals
             appServiceRemediationPlugin ?? Mock.Of<IMetaAgentAppServiceRemediationPlugin>(),
             containerAppsRemediationPlugin ?? Mock.Of<IMetaAgentContainerAppsRemediationPlugin>(),
             storageAccountPlugin ?? Mock.Of<IMetaAgentStorageAccountPlugin>(),
-            kubernetesAgentPlugin ?? Mock.Of<IMetaAgentKubernetesAgentPlugin>(),
+            kubernetesAgentPlugin ?? Mock.Of<IMetaAgentKubernetesAgentPlugin>(k =>
+                k.ListKubernetesAgentWorkflow() == Task.FromResult<IReadOnlyList<WorkflowMetadata<string>>>(
+                    new List<WorkflowMetadata<string>> { new WorkflowMetadata<string>("mock-id", "mock-input") { } }.AsReadOnly()
+                ) &&
+                k.StartKubernetesAgentWorkflow(It.IsAny<string>()) == Task.FromResult("This is a mock plugin, no real workflow started.")
+            ),
             appServicePlugin ?? Mock.Of<IAppServicePlugin>(),
             containerAppPlugin ?? Mock.Of<IContainerAppPlugin>(),
             githubIssuePlugin ?? Mock.Of<IGithubIssuePlugin>(),

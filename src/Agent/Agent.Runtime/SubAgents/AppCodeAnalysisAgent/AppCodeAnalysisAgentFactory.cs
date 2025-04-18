@@ -31,7 +31,6 @@ public sealed class AppCodeAnalysisAgentFactory
         IApprovalPlugin approvalPlugin,
         IMetricsPlugin metricsPlugin,
         IGithubIssuePlugin githubPlugin,
-        ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         ArmHelper armHelper)
     {
@@ -39,23 +38,23 @@ public sealed class AppCodeAnalysisAgentFactory
         var toolSignatures = new List<string>();
 
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
 
-        toolSignatures.Add(toolsRepository.GetSignature(() => GetCallStackForApp));
-        toolSignatures.Add(toolsRepository.GetSignature(() => PerformDeploymentSwapForApp));
-        toolSignatures.Add(toolsRepository.GetSignature(() => GetDeploymentActivity));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => GetCallStackForApp));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => PerformDeploymentSwapForApp));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => GetDeploymentActivity));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

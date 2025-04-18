@@ -16,7 +16,6 @@ public sealed class SqlDbQueryPerfAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(SqlDbQueryPerfAgentFactory);
 
     public SqlDbQueryPerfAgentFactory(
-        ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
         IAzureSupportCenterPlugin supportCenterPlugin,
@@ -25,25 +24,25 @@ public sealed class SqlDbQueryPerfAgentFactory
         var toolSignatures = new List<string>();
 
         var supportCenterPluginDefinition = new AzureSupportCenterPluginDefinition(supportCenterPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => supportCenterPluginDefinition.GetSupportProductsFromArm));
-        toolSignatures.Add(toolsRepository.GetSignature(() => supportCenterPluginDefinition.GetSupportProblemClassificationsForProduct));
-        toolSignatures.Add(toolsRepository.GetSignature(() => supportCenterPluginDefinition.GetAzureSupportCenterDiagnosticResultsForQuestion));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => supportCenterPluginDefinition.GetSupportProductsFromArm));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => supportCenterPluginDefinition.GetSupportProblemClassificationsForProduct));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => supportCenterPluginDefinition.GetAzureSupportCenterDiagnosticResultsForQuestion));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        //toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        //toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-        toolSignatures.Add(toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
