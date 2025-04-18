@@ -367,7 +367,7 @@ app.MapControllers();
 app.MapBlazorHub();
 
 // Finally, map the fallback page
-app.MapFallbackToFile("/react/index.html");
+app.MapFallbackToFile("/index.html");
 
 var azureSettings = builder.Configuration.GetSection("Azure").Get<AzureSettings>();
 var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
