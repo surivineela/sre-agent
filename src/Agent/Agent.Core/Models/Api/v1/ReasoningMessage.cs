@@ -4,5 +4,4 @@ public record ReasoningMessage(
     Guid Id,
     Guid SubAgentThreadId,
     ReasoningMessageRoleEnum Role,
-    string? Text,
-    FunctionInvocation? FunctionInvocation);
+    string SerializedChatMessage);

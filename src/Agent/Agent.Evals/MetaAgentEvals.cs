@@ -94,7 +94,8 @@ public class MetaAgentEvals
         IServiceProvider? serviceProvider = null,
         IMetaAgentVmRdpInvestigatorPlugin? vmRdpInvestigatorPlugin = null,
         IMetaAgentContainerImageTroubleshooterPlugin? containerImageTroubleshooterPlugin = null,
-        IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null)
+        IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
+        IThreadRepository threadRepository = null)
     {
         return new MetaAgent(
             _chatClient!,
@@ -118,7 +119,8 @@ public class MetaAgentEvals
             serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
             vmRdpInvestigatorPlugin ?? Mock.Of<IMetaAgentVmRdpInvestigatorPlugin>(),
             containerImageTroubleshooterPlugin ?? Mock.Of<IMetaAgentContainerImageTroubleshooterPlugin>(),
-            functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>());
+            functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>(),
+            threadRepository ?? Mock.Of<IThreadRepository>());
     }
 
     [TestMethod]
@@ -170,7 +172,7 @@ public class MetaAgentEvals
             new ChatMessage(ChatRole.User, userMsg)
         };
         var context = new ThreadContext(Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
-        var result = agent.ProcessUserMessage(context);
+        var result = agent.ProcessUserMessage(subAgentThreadId: Guid.Parse(testRunGuid), context);
         var agentMsg = new ChatMessage(ChatRole.Assistant, result.Result);
         var response = new ChatResponse(agentMsg);
 

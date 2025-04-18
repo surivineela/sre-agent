@@ -71,7 +71,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
             if (appsInViolation.Count > 0)
             {
-                (var thread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var subAgentThread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     "TLS Best Practices",
                     """
                     Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version. 

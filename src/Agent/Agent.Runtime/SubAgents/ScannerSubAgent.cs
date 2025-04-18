@@ -2,12 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
 using Kusto.Data.Common.Impl;
 using Microsoft.Extensions.AI;
+using Newtonsoft.Json;
 using Octokit;
 
 namespace Agent.Runtime.SubAgents
@@ -51,7 +53,7 @@ namespace Agent.Runtime.SubAgents
             }
         }
 
-        public virtual async Task PrepareAgentForUserInput(ThreadContext threadContext)
+        public virtual async Task PrepareAgentForUserInput(Guid subAgentThreadId, ThreadContext threadContext)
         {
             this.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
@@ -59,6 +61,12 @@ namespace Agent.Runtime.SubAgents
             var messagesToAddToChatHistory = this.GetUserVisibleChatHistory();
             foreach (var messageToAddToChatHistory in this.ChatHistory)
             {
+                await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                    Id: Guid.NewGuid(),
+                    SubAgentThreadId: subAgentThreadId,
+                    Role: messageToAddToChatHistory.Role.GetReasoningMessageRole(),
+                    SerializedChatMessage: JsonConvert.SerializeObject(messageToAddToChatHistory)));
+
                 if (messageToAddToChatHistory.Role == ChatRole.User)
                 {
                     await _sinkService.SinkUserMessageAsync(threadContext, messageToAddToChatHistory.Text);
@@ -80,11 +88,16 @@ namespace Agent.Runtime.SubAgents
             }
         }
 
-        public virtual async Task<string> DoWork(ThreadContext threadContext, string question)
+        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid subAgentThreadId, ThreadContext threadContext, string question)
         {
             InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
-            var agentResponse = await base.DoWork(question);
+            (var agentResponse, var responseReasoningMessages) = await base.DoWork(subAgentThreadId, question);
+
+            foreach (var reasoningMessage in responseReasoningMessages)
+            {
+                await _repository.CreateReasoningMessageAsync(reasoningMessage);
+            }
 
             ChatHistory.Add(new ChatMessage(ChatRole.User, "Answering only with \"yes\" or \"no\", is this thread complete?"));
             var response = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
@@ -97,7 +110,7 @@ namespace Agent.Runtime.SubAgents
                 await _repository.UpdateThreadContextAsync(threadContext);
             }
 
-            return agentResponse;
+            return (agentResponse, responseReasoningMessages);
         }
     }
 }

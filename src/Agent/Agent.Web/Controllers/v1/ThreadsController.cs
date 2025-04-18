@@ -108,6 +108,7 @@ namespace Agent.Web.Controllers.v1
             var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: thread.Id,
+                SubAgentThreadId: subAgentThread.Id,
                 MessageId: thread.StartMessage.Id,
                 Message: request.StartMessage.Text,
                 UserId: request.StartMessage.UserId,
@@ -155,10 +156,15 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
+            var subAgentThreads = await repository.GetSubAgentThreadsForThreadAsync(threadId);
+            var subAgentThread = subAgentThreads.FirstOrDefault();
+            if (subAgentThread == null)
+                return NotFound();
 
             var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: threadId,
+                SubAgentThreadId: subAgentThread.Id,
                 MessageId: Guid.NewGuid(),
                 Message: request.Text,
                 UserId: request.UserId,
@@ -296,7 +302,7 @@ namespace Agent.Web.Controllers.v1
             //    source: ThreadSource.Incident
             //);
 
-            var thread = await agentInboundCommunicationService.CreateAgentThread(
+            (var thread, var subAgentThread, var threadContext) = await agentInboundCommunicationService.CreateAgentThread(
                 title: $"Incident Report - {request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,
@@ -304,18 +310,19 @@ namespace Agent.Web.Controllers.v1
             );
 
             var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";
-            await repository.AddMessageAsync(thread.Item1.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
+            await repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
             await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-                ThreadId: thread.Item1.Id,
-                MessageId: thread.Item1.StartMessage.Id,
+                ThreadId: thread.Id,
+                SubAgentThreadId: subAgentThread.Id,
+                MessageId: thread.StartMessage.Id,
                 Message: messageBuilder.ToString(),
                 UserId: "incident-system", // TODO: distinguish between pager duty and icm or any other tool
                 DisplayName: request.Source ?? "Incident System",
                 Timestamp: DateTime.UtcNow
             ));
 
-            return CreatedAtAction(nameof(GetThread), new { id = thread.Item1.Id }, thread);
+            return CreatedAtAction(nameof(GetThread), new { id = thread.Id }, thread);
         }
     }
 }

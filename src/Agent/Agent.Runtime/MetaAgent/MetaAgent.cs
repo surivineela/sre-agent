@@ -5,7 +5,9 @@
 using System.Reflection;
 using Agent.Core;
 using Agent.Core.Configuration;
+using Agent.Core.Extensions;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
@@ -138,6 +140,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly DashboardSettings _dashboardSettings;
+    private readonly IThreadRepository _threadRepository;
 
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -161,7 +164,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IServiceProvider serviceProvider,
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
-        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin
+        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
+        IThreadRepository threadRepository
         )
     {
         _chatClient = chatClient;
@@ -190,9 +194,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _webAppDownPlugin = webAppDownPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
+        _threadRepository = threadRepository;
     }
 
-    public async Task<string> ProcessUserMessage(ThreadContext ctx)
+    public async Task<string> ProcessUserMessage(Guid subAgentThreadId, ThreadContext ctx)
     {
         var lastUserMessage = await _threadService.GetLastUserMessage(ctx);
         _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", ctx.ThreadId, lastUserMessage);
@@ -317,6 +322,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             }),
             _log, 10);
 
+            await response.AddReasoningMessagesToThreadRepositoryAsync(_threadRepository, subAgentThreadId);
             return response.Messages.Last().Text;
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))

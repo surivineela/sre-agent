@@ -25,7 +25,8 @@ namespace Agent.Runtime.SubAgents
             "Don't use random characters in resource names; at least make sure it's a reproducible hash"
         ];
 
-        public BestPracticeScannerAgent(GraphDBQueryAgent graphDBQueryAgent, IChatClient chatClient, ILogger<BestPracticeScannerAgent> logger) : base("BestPracticeScannerAgent", chatClient)
+        public BestPracticeScannerAgent(GraphDBQueryAgent graphDBQueryAgent, IChatClient chatClient, ILogger<BestPracticeScannerAgent> logger)
+            : base("BestPracticeScannerAgent", chatClient)
         {
             _graphDBQueryAgent = graphDBQueryAgent;
             _logger = logger;

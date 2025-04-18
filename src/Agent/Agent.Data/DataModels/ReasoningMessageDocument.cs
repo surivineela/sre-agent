@@ -11,8 +11,7 @@ public record ReasoningMessageDocument(
     string Id,
     string SubAgentThreadId,
     int Role,
-    string? Text,
-    FunctionInvocation? FunctionInvocation
+    string? SerializedChatMessage
 ) : ICosmosDocument
 {
     public string DocumentType => "ReasoningMessage";
@@ -24,8 +23,7 @@ public record ReasoningMessageDocument(
             Id: reasoningMessage.Id.ToString(),
             SubAgentThreadId: reasoningMessage.SubAgentThreadId.ToString(),
             Role: (int)reasoningMessage.Role,
-            Text: reasoningMessage.Text,
-            FunctionInvocation: reasoningMessage.FunctionInvocation
+            SerializedChatMessage: reasoningMessage.SerializedChatMessage
         );
 
     public ReasoningMessage ToDomainModel() =>
@@ -33,8 +31,7 @@ public record ReasoningMessageDocument(
             Id: Guid.Parse(Id),
             SubAgentThreadId: Guid.Parse(SubAgentThreadId),
             Role: (ReasoningMessageRoleEnum)Role,
-            Text: Text,
-            FunctionInvocation: FunctionInvocation
+            SerializedChatMessage: SerializedChatMessage
         );
 }
 

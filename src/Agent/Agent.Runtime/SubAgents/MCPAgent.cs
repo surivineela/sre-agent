@@ -19,7 +19,8 @@ namespace Agent.Runtime.SubAgents
         private McpConnection _mcpConnection;
         private IList<AITool> _tools;
 
-        public MCPAgent(McpConnection mcpConnection, IChatClient chatClient) : base("MCPAgent", chatClient)
+        public MCPAgent(McpConnection mcpConnection, IChatClient chatClient)
+            : base("MCPAgent", chatClient)
         {
             _mcpConnection = mcpConnection;
             _tools = _mcpConnection.Tools;

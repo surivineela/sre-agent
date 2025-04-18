@@ -7,14 +7,13 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
 {
-    public class FeedbackRCAAgent : ScannerSubAgent
+    public class FeedbackRCAAgent : SubAgent
     {
         private readonly MessageFeedback? _messageFeedback;
 
@@ -23,7 +22,7 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
             SinkService sinkService,
             IThreadRepository repository,
             MessageFeedback? messageFeedback = null) 
-            : base("Feedback RCA Agent", chatClient, sinkService, repository, isConcludingThreadAfterOpeningMessages: true)
+            : base("Feedback RCA Agent", chatClient)
         {
             _messageFeedback = messageFeedback;
         }

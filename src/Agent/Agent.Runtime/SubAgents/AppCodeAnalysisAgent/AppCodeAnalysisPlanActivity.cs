@@ -16,10 +16,12 @@ namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent
     public class AppCodeAnalysisPlanActivity: TaskActivity<AppCodeAnalysisInput, List<Microsoft.Extensions.AI.ChatMessage>>
     {
         private readonly IChatClient chatClient;
+
         public AppCodeAnalysisPlanActivity(IChatClient chatClient)
         {
             this.chatClient = chatClient;
         }
+
         public async override Task<List<ChatMessage>> RunAsync(TaskActivityContext context, AppCodeAnalysisInput input)
         {
             var existingAppsDetails = string.Join(Environment.NewLine,
@@ -31,6 +33,7 @@ namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent
                 new ChatMessage(ChatRole.System, systemPrompt),
                 new ChatMessage(ChatRole.User, userMessage)
             ];
+
             var response = await chatClient.GetResponseAsync(messages);
             messages.Add(response.GetMessage());
             return messages;

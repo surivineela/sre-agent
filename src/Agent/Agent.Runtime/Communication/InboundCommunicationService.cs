@@ -15,6 +15,7 @@ using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Plugins;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents;
+using Newtonsoft.Json;
 
 namespace Agent.Runtime.Communication;
 
@@ -59,7 +60,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _githubIssuePlugin = githubIssuePlugin;
     }
 
-    public async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
+    public async Task<(Core.Models.Api.v1.Thread, SubAgentThread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
         string title,
         string message,
         AgentTypeEnum agentTypeEnum,
@@ -75,7 +76,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadSource source = ThreadSource.Alert)
     {
         var outboundConfig = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
-        (var thread, var threadContext) = await CreateThread(title, message, source, agentTypeEnum, outboundConfig);
+        (var thread, var subAgentThread, var threadContext) = await CreateThread(title, message, source, agentTypeEnum, outboundConfig);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -98,7 +99,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadContext, message, isImageContent: true);
     }
 
-    public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage message)
+    public async Task<InboundServiceResponse> ProcessUserMessageAsync(ThreadMessage threadMessage)
     {
         try
         {
@@ -106,14 +107,19 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Guid responseMessageId = Guid.Empty;
 
             // Check if an orchestration already exists for this thread
-            ThreadContext threadContext = await _repository.GetThreadContextAsync(message.ThreadId);
+            ThreadContext threadContext = await _repository.GetThreadContextAsync(threadMessage.ThreadId);
             orchestrationInstanceId = threadContext != null ? await _threadService.GetOrchestrationInstanceId(threadContext) : orchestrationInstanceId;
 
             // we don't need to sink user message if the message is the start message
-            var thread = await _repository.GetThreadAsync(message.ThreadId);
-            if (message?.MessageId != thread?.StartMessage?.Id)
+            var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+            if (threadMessage?.MessageId != thread?.StartMessage?.Id)
             {
-                await _sinkService.SinkUserMessageAsync(threadContext, message);
+                await _sinkService.SinkUserMessageAsync(threadContext, threadMessage);
+                await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                    Id: Guid.NewGuid(),
+                    SubAgentThreadId: threadMessage.SubAgentThreadId,
+                    Role: ReasoningMessageRoleEnum.User,
+                    SerializedChatMessage: JsonConvert.SerializeObject(new ChatMessage(ChatRole.User, threadMessage.Message))));
             }
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
@@ -137,7 +143,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             if (string.IsNullOrEmpty(orchestrationInstanceId))
             {
                 // No existing orchestration, create a new one
-                _logger.LogInformation("No existing orchestration for thread: {ThreadId}", message.ThreadId);
+                _logger.LogInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
 
                 string agentResponse = string.Empty;
                 bool isComplete = false;
@@ -162,13 +168,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                     if (scannerSubAgent != null)
                     {
-                        agentResponse = await scannerSubAgent.DoWork(threadContext, message.Message);
+                        (agentResponse, var _) = await scannerSubAgent.DoWork(subAgentThreadId: threadMessage.SubAgentThreadId, threadContext, threadMessage.Message);
                     }
                 }
                 else
                 {
                     // Process the message with MetaAgent
-                    agentResponse = await _metaAgent.ProcessUserMessage(threadContext);
+                    agentResponse = await _metaAgent.ProcessUserMessage(subAgentThreadId: threadMessage.SubAgentThreadId, threadContext);
                 }
 
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(threadContext, agentResponse);
@@ -181,18 +187,18 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 // This will enable us for scenarios that need to share chat history with multiple orchestrations for different purposes.
 
                 // Existing orchestration, raise an event to it
-                _logger.LogInformation("Sending message to existing orchestration for thread: {ThreadId}", message.ThreadId);
+                _logger.LogInformation("Sending message to existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
                 await _durableTaskClient.RaiseEventAsync(
                     orchestrationInstanceId,
                     "NewChatMessage",
-                    new ChatMessage(ChatRole.User, message.Message));
+                    new ChatMessage(ChatRole.User, threadMessage.Message));
             }
 
-            return new InboundServiceResponse(message.ThreadId, responseMessageId, orchestrationInstanceId);
+            return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing user message for thread: {ThreadId}", message.ThreadId);
+            _logger.LogError(ex, "Error processing user message for thread: {ThreadId}", threadMessage.ThreadId);
             throw;
         }
     }
@@ -224,7 +230,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    private async Task<(Core.Models.Api.v1.Thread, ThreadContext)> CreateThread(
+    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.SubAgentThread, ThreadContext)> CreateThread(
         string title,
         string message,
         ThreadSource source,
@@ -261,8 +267,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Id: Guid.NewGuid(),
             SubAgentThreadId: subAgentThread.Id,
             Role: ReasoningMessageRoleEnum.Assistant,
-            Text: startMessage.Text,
-            FunctionInvocation: null);
+            SerializedChatMessage: JsonConvert.SerializeObject(new ChatMessage(ChatRole.Assistant, message)));
 
         // TODO - how should we share implementation with process user message and make sure fan out occurs?
         await _repository.CreateThreadAsync(thread);
@@ -274,6 +279,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         threadContext.AddMessage(thread.StartMessage);
         await _repository.AddThreadContextAsync(threadContext);
 
-        return (thread, threadContext);
+        return (thread, subAgentThread, threadContext);
     }
 }

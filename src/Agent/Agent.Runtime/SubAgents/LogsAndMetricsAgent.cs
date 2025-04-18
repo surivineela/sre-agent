@@ -17,7 +17,8 @@ namespace Agent.Runtime.SubAgents
 
         public override string SystemPrompt { get; protected set; } = $@"You have a bunch of tools at your disposal. Do your best to use them to satisfy the user's ask.";
 
-        public LogsAndMetricsAgent(IMetricsPlugin metricsPlugin, IChatClient chatClient, ILogger<LogsAndMetricsAgent> logger) : base("LogsAndMetricsAgent",chatClient)
+        public LogsAndMetricsAgent(IMetricsPlugin metricsPlugin, IChatClient chatClient, ILogger<LogsAndMetricsAgent> logger)
+            : base("LogsAndMetricsAgent", chatClient)
         {
             _logger = logger;
             _metricsPlugin = metricsPlugin;

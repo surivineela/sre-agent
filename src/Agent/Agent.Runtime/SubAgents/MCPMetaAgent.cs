@@ -24,7 +24,8 @@ MCP stands for Model Context Protocol and represents a server which exposes prom
         private ConcurrentDictionary<McpConnection, MCPAgent> _agents = new ConcurrentDictionary<McpConnection, MCPAgent>();
         private ConcurrentDictionary<McpConnection, AITool> _tools = new ConcurrentDictionary<McpConnection, AITool>();
 
-        public MCPMetaAgent(IChatClient chatClient, ILoggerFactory loggerFactory) : base("MCPMetaAgent", chatClient)
+        public MCPMetaAgent(IChatClient chatClient, ILoggerFactory loggerFactory)
+            : base("MCPMetaAgent", chatClient)
         {
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger(typeof(MCPMetaAgent).FullName!);

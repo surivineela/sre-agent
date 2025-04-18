@@ -148,7 +148,7 @@ public class MetaAgentTests : IAsyncLifetime
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
-        var resp = await metaAgent.ProcessUserMessage(context);
+        var resp = await metaAgent.ProcessUserMessage(threadGuid, context);
 
         var tlsOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
         {
@@ -183,7 +183,7 @@ public class MetaAgentTests : IAsyncLifetime
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
 
-        var resp = await metaAgent.ProcessUserMessage(context);
+        var resp = await metaAgent.ProcessUserMessage(threadId, context);
 
         var relOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
         {

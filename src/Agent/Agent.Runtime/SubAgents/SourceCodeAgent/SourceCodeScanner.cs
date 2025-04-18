@@ -67,7 +67,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
 
             if (resources.Count > 0)
             {
-                (var thread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var subAgentThread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     "SourceCode",
                     """
                     Hi there! I found at least one Container App that does not have the source code repo url provided.
@@ -82,7 +82,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
                     repository: _threadRepository,
                     appsWithoutSourceCodeNodes: resources.Select(r => new SourceCodeStatus(r)).ToList());
 
-                await sourceCodeAgent.PrepareAgentForUserInput(threadContext);
+                await sourceCodeAgent.PrepareAgentForUserInput(subAgentThreadId: subAgentThread.Id, threadContext);
 
                 sourceCodeAgent.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
             }

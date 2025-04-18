@@ -4,6 +4,7 @@
 
 using Agent.Core.Extensions;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
@@ -50,7 +51,8 @@ TIPS:
 IMPORTANT: If you find apps not following best practices, call the 'postToTeams' tool to notify the end user with a descriptive message.
 ";
 
-        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger, IPostToTeamsPlugin teamsPlugin) : base("GraphDBQueryAgent", chatClient)
+        public GraphDBQueryAgent(GraphDBPluginDefinition def, IChatClient chatClient, ILogger<GraphDBQueryAgent> logger, IPostToTeamsPlugin teamsPlugin)
+            : base("GraphDBQueryAgent", chatClient)
         {
             _logger = logger;
             _def = def;
@@ -65,7 +67,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ];
         }
 
-        public override async Task<string> DoWork(string question)
+        public override async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid subAgentThreadId, string question)
         {
             if (!_fetchedPrelimData)
             {
@@ -77,7 +79,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             var agentMessage = completion.GetMessage().Text;
             ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
-            return agentMessage;
+            return (agentMessage, completion.GetReasoningMessages(subAgentThreadId: Guid.Empty));
         }
 
         public async Task PrelimData()

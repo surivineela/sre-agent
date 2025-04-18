@@ -94,11 +94,7 @@ You are **CVE Agent**. Always address yourself as ""CVE Agent"". For greeting me
             messages.Add(new AIChatMessage(ChatRole.User, "Scan"));
 
             response = await _chatClient.GetResponseAsync(messages, ChatOptionsWithTools);
-            foreach (var message in response.Messages.Where(m => !string.IsNullOrEmpty(m.Text)))
-            {
-                messages.Add(new AIChatMessage(ChatRole.Assistant, message.Text));
-            }
-
+            messages.AddRange(response.Messages);
             return messages;
         }
     }
