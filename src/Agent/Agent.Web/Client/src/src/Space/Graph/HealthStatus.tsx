@@ -23,23 +23,27 @@ const HealthStatus = ({ health, showReportButton, onClickReportButton, isSending
     const { container } = useStyles();
 
     let healthIconSrc = "";
+    let healthText = health;
     let isNodeUnhealthy = false;
     switch (health?.toLowerCase()) {
         case "unhealthy":
             healthIconSrc = "./failed.svg";
             isNodeUnhealthy = true;
+            healthText = 'Unhealthy';
             break;
         case "healthy":
             healthIconSrc = "./success.svg";
+            healthText = 'Healthy';
             break;
         case "degraded":
             healthIconSrc = "./warning.svg";
+            healthText = 'Degraded';
             break;
     }
 
     return health ? <div className={container}>
         {healthIconSrc && <Image src={healthIconSrc} width={16} height={16} />}
-        <span>{health}</span>
+        <span>{healthText}</span>
         {
             showReportButton && isNodeUnhealthy && (
                 isSendingReport ?

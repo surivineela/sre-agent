@@ -1,12 +1,21 @@
 import { Edge, Node } from "@xyflow/react";
 import { CUSTOM_EDGE_TYPE, GRAPH_CARD_TYPE, GraphEdge, GraphNode, HandlePosition, NodeSize, Resource, ResourceExtended, ScoreCardObject } from "../Contracts/Graph";
 
-export const getAppHealthStatus = (nodeProperties?: Resource) => {
-    const appHealthInfo = nodeProperties?.appHealthInfo?.[0]
-    if (appHealthInfo) {
+export const getAppHealthInfo = (nodeProperties?: ResourceExtended | Resource): ScoreCardObject | undefined => {
+    let appHealthInfoString: string | undefined = undefined;
+    if (nodeProperties) {
+        if ('properties' in nodeProperties) {
+            const resourceExtended: ResourceExtended = nodeProperties as ResourceExtended;
+            appHealthInfoString = resourceExtended.properties?.appHealthInfo?.[0]
+        } else {
+            appHealthInfoString = nodeProperties.appHealthInfo?.[0]
+        }
+    }
+
+    if (appHealthInfoString) {
         try {
-            const healthInfo: ScoreCardObject = JSON.parse(appHealthInfo);
-            return healthInfo.Health;
+            const healthInfo: ScoreCardObject = JSON.parse(appHealthInfoString);
+            return healthInfo;
         } catch {
             return undefined;
         }

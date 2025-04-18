@@ -20,6 +20,7 @@ export type ResourceExtended = {
         resourceGroupName: string[];
         location: string[];
         runningStatus: string;
+        remarks: string[];
         appHealthInfo?: string[] // Convert the json string to ScoreCardObject
     }
 }
@@ -36,7 +37,7 @@ export type Resource = {
 export type ScoreCardObject = {
     Costs: number; // 7 day window
     Availability?: number | null; // percentage
-    Health: 'healthy' | 'unhealthy' | 'unknown';
+    Health: 'healthy' | 'unhealthy' | 'unknown' | 'degraded';
     Transactions: number;
     AvgLatencyInMs?: number | null;
     AvgMemoryUsage?: number | null; // bytes

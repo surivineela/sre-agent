@@ -9,7 +9,7 @@ import { NodeProps, Node, Handle, Position } from "@xyflow/react";
 import { memo, useContext } from "react";
 import { GraphContext, GraphNode, HandlePosition } from "../Contracts/Graph";
 import HealthStatus from "./HealthStatus";
-import { getAppHealthStatus, getHandleId } from "./Utility";
+import { getAppHealthInfo, getHandleId } from "./Utility";
 import { useGraphNodeStyles } from "../Styles/Graph.styles";
 
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
@@ -55,7 +55,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                     header={<Header />}
                     description={<Description />}
                 />
-                <HealthStatus health={getAppHealthStatus(data.properties)} />
+                <HealthStatus health={getAppHealthInfo(data.properties)?.Health} />
             </Card >
         </div>
 
