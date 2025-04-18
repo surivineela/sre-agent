@@ -184,15 +184,17 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("ListResourcesByType")]
-        [Description("Returns a list of Azure resources of a specified type with their property details as recorded in the knowledge graph. " +
-            "This function is useful when you need to: 1) Get an inventory of resources of a specific type, " +
+        [Description("Returns a list of Azure resources of a specified type with their property details as recorded in the knowledge graph. You can optionally specify one addtional filter condition " +
+            "This function is useful when you need to: 1) Get an inventory of resources of a specific type and any additional filter on property, " +
             "2) Examine tracked configuration properties of resources, " +
             "3) Gather metadata for resources across your Azure environment, or " +
             "The output is a list of resource objects with all their properties. " +
             "Each resource includes details like name, location, resource group, and type-specific configuration.")]
-        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType)
+        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType,
+            [Description("The property name to filter on. This is optional, if no additional filter is needed, pass an empty string")] string propertyName,
+            [Description("The property value to match. This is optional, if no additional filter is needed, pass an empty string")] string propertyValue)
         {
-            return await _plugin.ListResourcesByTypeAsync(resourceType);
+            return await _plugin.ListResourcesByTypeAsync(resourceType, propertyName, propertyValue);
         }
 
         [Description("Returns a general dashboard provided as daily reports for Resource Counts recorded in the knowledge graph. " +

@@ -50,11 +50,19 @@ public class AppServiceNode : ArmResourceNode
     [GraphProperty("workerRuntime")]
     public string? WorkerRuntime { get; set; } // Function worker runtime
 
+    public List<Function> Functions { get; set; } = new List<Function>();
+
     public class SlotSwapStatus
     {
         public DateTime TimestampUtc { get; set; }
         public string SourceSlotName { get; set; }
         public string DestinationSlotName { get; set; }
+    }
+
+    public class Function
+    {
+        public string Name { get; set; }
+        public string TriggerType { get; set; }
     }
 
     public AppServiceNode(string resourceType,
@@ -86,6 +94,17 @@ public class AppServiceNode : ArmResourceNode
             if (hasCustomDomains)
             {
                 props.Add("hasCustomDomains", true);
+            }
+        }
+
+        // Add functions
+        if (Functions != null && Functions.Count > 0)
+        {
+            for (int i= 0; i < Functions.Count; i++)
+            {
+                var function = Functions[i];
+                props.Add($"function_{i}_name", function.Name);
+                props.Add($"function_{i}_triggerType", function.TriggerType);
             }
         }
 

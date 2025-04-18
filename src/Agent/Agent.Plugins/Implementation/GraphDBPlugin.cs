@@ -743,7 +743,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
-            var query = $@"g.V({CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}).properties().as('p').group().by(select('p').key()).by(select('p').value())";
+            var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}').properties().as('p').group().by(select('p').key()).by(select('p').value())";
 
             var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
             return results.FirstOrDefault(new Dictionary<string, object>());
@@ -869,16 +869,23 @@ g.V().has('id', '{deploymentResourceId}')
             return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m";
         }
 
-        public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType)
+        public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue)
         {
             try
             {
-                // Using valueMap() and project to get all properties
+                // only return basic properties
                 string query = $@"
-        g.V().hasLabel('{resourceType.ToLower()}')
-        .project('properties', 'label')
-        .by(valueMap())
-        .by(label())
+        g.V().hasLabel('{resourceType.ToLower()}')";
+
+                if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
+                {
+                    query += $".has('{propertyName}', '{propertyValue}')";
+                }
+                query += @".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType')
+        .by(coalesce(values('subscriptionId'), constant('')))
+        .by(coalesce(values('resourceGroupName'), constant('')))
+        .by(coalesce(values('resourceName'), constant('')))
+        .by(coalesce(values('resourceType'), constant('')))
         ";
 
                 var result = await GraphDbClient.Query(query);
@@ -890,29 +897,10 @@ g.V().has('id', '{deploymentResourceId}')
                     var propertyBag = new Dictionary<string, object>();
 
                     // Add label
-                    propertyBag["label"] = item["label"]?.ToString();
-
-                    // Process the property map
-                    if (item["properties"] is IDictionary<string, object> properties)
-                    {
-                        foreach (var kvp in properties)
-                        {
-                            // Skip 'updateTs' property
-                            if (kvp.Key == "updateTs")
-                                continue;
-
-                            // Handle array values (Gremlin usually returns properties as arrays)
-                            if (kvp.Value is object[] valueArray && valueArray.Length > 0)
-                            {
-                                // If it's a single-valued array, just take the first value
-                                propertyBag[kvp.Key] = valueArray[0];
-                            }
-                            else
-                            {
-                                propertyBag[kvp.Key] = kvp.Value;
-                            }
-                        }
-                    }
+                    propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString();
+                    propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString();
+                    propertyBag["resourceName"] = item["resourceName"]?.ToString();
+                    propertyBag["resourceType"] = item["resourceType"]?.ToString();
 
                     resources.Add(propertyBag);
                 }

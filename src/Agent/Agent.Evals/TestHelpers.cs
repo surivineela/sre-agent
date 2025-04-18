@@ -2,6 +2,8 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.Repositories;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.Services;
@@ -9,8 +11,8 @@ using Azure.AI.OpenAI;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Agent.Plugins;
-using Agent.Plugins.Definitions;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Agent.Evals;
@@ -54,6 +56,11 @@ public static class TestHelpers
             Console.WriteLine("Eval pipeline is using appsettings. Please make sure you have proper values in appsettings.json.");
             builder.Services.ConfigureAzureOpenAIClient();
         }
+
+        builder.Services.AddLogging(builder =>
+        {
+            builder.AddConsole();
+        });
 
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName));
         outLLMDeploymentName = llmDeploymentName;

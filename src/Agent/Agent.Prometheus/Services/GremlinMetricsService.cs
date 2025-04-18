@@ -353,11 +353,19 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         {
             try
             {
-                var resourceTypes = await ExecuteGroupCountQuery("g.V().groupCount().by('resourceType')");
+                var resourceTypes = await ExecuteGroupCountQuery("g.V().not(has('resourceType', 'microsoft.web/sites')).groupCount().by('resourceType')");
                 foreach (var type in resourceTypes)
                 {
                     _resourceTypeCountGauge.WithLabels(type.Key).Set(type.Value);
                 }
+
+                // special handle for webapp / function app
+                var webAppCount = await ExecuteCountQuery("g.V().has('resourceType', 'microsoft.web/sites').groupCount().by('kind')");
+                foreach (var type in resourceTypes)
+                {
+                    _resourceTypeCountGauge.WithLabels($"microsoft.web/sites/{type.Key}").Set(type.Value);
+                }
+
                 _logger.LogInformation("Updated resource type metrics");
             }
             catch (Exception ex)

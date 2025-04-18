@@ -90,7 +90,7 @@ public static class CrawlerExtensions
 
     public static string GetSanitizedCosmosDBId(string id)
     {
-        return id.Replace("/", "_").Replace(":", "_").Replace(" ", "_");
+        return id.ToLowerInvariant().Replace("/", "_").Replace(":", "_").Replace(" ", "_");
     }
 }
 

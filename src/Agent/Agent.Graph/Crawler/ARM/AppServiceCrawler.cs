@@ -2,16 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Agent.Graph.Crawler.ARM;
 
@@ -103,6 +100,14 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     }
 
                     appServiceNode.WorkerRuntime = workerRuntime;
+                }
+            }
+
+            await foreach (var func in webApp.GetSiteFunctions().GetAllAsync())
+            {
+                if (func.HasData)
+                {
+                    appServiceNode.Functions.Add(ParseFunctionConfig(func.Data));
                 }
             }
         }
@@ -357,5 +362,39 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                value.Contains("ssl=true", StringComparison.OrdinalIgnoreCase) &&
                (value.Contains(",abortConnect=false", StringComparison.OrdinalIgnoreCase) ||
                 value.Contains("password=", StringComparison.OrdinalIgnoreCase));
+    }
+
+    private AppServiceNode.Function ParseFunctionConfig(FunctionEnvelopeData data)
+    {
+        var configJson = JsonDocument.Parse(data.Config);
+
+        // Extract the trigger type from the bindings array
+        var triggerType = "Unknown";
+        if (configJson.RootElement.TryGetProperty("bindings", out var bindings) &&
+            bindings.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var binding in bindings.EnumerateArray())
+            {
+                if (binding.TryGetProperty("type", out var type) &&
+                    binding.TryGetProperty("direction", out var direction) &&
+                    direction.GetString()?.ToLowerInvariant() == "in")
+                {
+                    // Found the input binding (trigger)
+                    var t = type.GetString() ?? "Unknown";
+
+                    // Usually trigger bindings end with "Trigger"
+                    if (t.EndsWith("Trigger", StringComparison.OrdinalIgnoreCase))
+                    {
+                        triggerType = t.Substring(0, t.Length - "Trigger".Length);
+                    }
+                }
+            }
+        }
+
+        return new AppServiceNode.Function
+        {
+            Name = data.Name,
+            TriggerType = triggerType,
+        };
     }
 }
