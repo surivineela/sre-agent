@@ -36,6 +36,7 @@ using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
+using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
@@ -125,6 +126,8 @@ builder.Host.UseSerilog();
         .AddSingleton<FunctionAppConnectivityAgentFactory>()
         .AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
         .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
+        .AddSingleton<SqlDbQueryPerfAgentFactory>()
+        .AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>()
 
         .AddTransient<MetricsPluginDefinition>()
         .AddTransient<ChartPluginDefinition>()

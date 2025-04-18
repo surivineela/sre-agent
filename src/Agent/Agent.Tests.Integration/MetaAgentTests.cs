@@ -103,6 +103,7 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>();
                 services.AddSingleton<IMetaAgentVmRdpInvestigatorPlugin, VmRdpInvestigatorPlugin>();
                 services.AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>();
+                services.AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
 
                 services.AddDurableTaskWorker(builder =>

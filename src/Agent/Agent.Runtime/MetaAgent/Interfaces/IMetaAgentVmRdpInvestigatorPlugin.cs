@@ -24,6 +24,6 @@ namespace Agent.Runtime.MetaAgent
         /// </summary>
         /// <param name="input">The input data for the agent</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartVMRdpInvestigatorAgent(VmRdpInvestigatorAgentInput input);
+        Task<string> StartVMRdpInvestigatorAgent(string virtualMachineResourceId);
     }
 }

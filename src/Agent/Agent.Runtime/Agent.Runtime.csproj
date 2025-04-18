@@ -37,6 +37,9 @@
     </None>
     <None Update="SubAgents\CosmosDbAgent\CosmosDbAgentPlan.txt">
     <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\SqlDbQueryPerfAgent\SqlDbQueryPerfAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>	  
     <None Update="SubAgents\StorageAccountAgent\StorageAccountAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

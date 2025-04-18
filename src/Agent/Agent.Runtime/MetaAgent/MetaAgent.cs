@@ -139,6 +139,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IMetaAgentContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
+    private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly DashboardSettings _dashboardSettings;
     private readonly IThreadRepository _threadRepository;
 
@@ -165,7 +166,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
         IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
-        IThreadRepository threadRepository
+        IThreadRepository threadRepository,
+        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin
         )
     {
         _chatClient = chatClient;
@@ -195,6 +197,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
         _threadRepository = threadRepository;
+        _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
     }
 
     public async Task<string> ProcessUserMessage(Guid agentContextId, ThreadContext ctx)
@@ -217,6 +220,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _vmRdpInvestigatorPlugin.Context = ctx;
         _containerImageTroubleshooterPlugin.Context = ctx;
         _functionAppConnectivityPlugin.Context = ctx;
+        _sqlDbQueryPerfPlugin.Context = ctx;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
         _chartplugin.Context = ctx;
@@ -270,7 +274,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
             AIFunctionFactory.Create(_webAppDownPlugin.ListWebAppDownWorkflows),
             AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent),
-            AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent)
+            AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent),
+            AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.ListAzureSqlDbQueryPerfInvestigatorAgentWorkflows),
+            AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent)
         ];
 
         // Get all instances of background-scanning subagents and register their methods

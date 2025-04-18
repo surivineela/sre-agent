@@ -60,14 +60,14 @@ public class VmRdpInvestigatorPlugin : IMetaAgentVmRdpInvestigatorPlugin
     [KernelFunction("start_vm_rdp_failure_investigate_workflow")]
     [Description("Start the workflow to investigate RDP failures to an Azure Virtual Machine.")]
     public async Task<string> StartVMRdpInvestigatorAgent(
-        [Description("Inputs to the agent that includes arm resource id for the VM to investigate, a list of tools and thead context.")] VmRdpInvestigatorAgentInput input)
+        [Description("Arm resource id for the VM to investigate RDP failure for")] string virtualMachineResourceId)
     {
         if (Context == null)
         {
             throw new InvalidOperationException("Thread context is not set. Please set the context before starting the workflow.");
         }
 
-        var instanceId = await _vmRdpInvestigatorAgentFactory.StartOrchestration(input, Context);
+        var instanceId = await _vmRdpInvestigatorAgentFactory.StartOrchestration(virtualMachineResourceId, Context);
         return $"A workflow has been started to investigate RDP failures to VM: {instanceId}";
     }
 }

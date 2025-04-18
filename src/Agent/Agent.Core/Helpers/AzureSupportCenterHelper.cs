@@ -150,9 +150,14 @@ public class AzureSupportCenterHelper
             apolloDiagnosticResult = JsonSerializer.Deserialize<AzureSupportCenterApolloResponsePayload>(pollContent);
 
             // If any of the insight status is Running, then the diagnostic is still not complete.
-            isDiagnosticRunning = apolloDiagnosticResult?.Properties?.Sections
+            bool isSectionsDiagnosticRunning = apolloDiagnosticResult?.Properties?.Sections
                 .SelectMany(section => section.ReplacementMaps.Diagnostics)?
                 .Any(diagnostic => diagnostic.Status.Equals("Running", StringComparison.OrdinalIgnoreCase)) == true;
+
+            bool isDirectMappedDiasgnosticRunning = apolloDiagnosticResult?.Properties?.ReplacementMaps?.Diagnostics?
+                .Any(diagnostic => diagnostic.Status.Equals("Running", StringComparison.OrdinalIgnoreCase)) == true;
+
+            isDiagnosticRunning = isSectionsDiagnosticRunning || isDirectMappedDiasgnosticRunning;
 
         } while (isDiagnosticRunning && pollingAttempts < MAX_POLLING_ATTEMPTS);
 

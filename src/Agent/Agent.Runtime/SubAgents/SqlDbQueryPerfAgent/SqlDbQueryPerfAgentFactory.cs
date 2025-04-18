@@ -1,22 +1,21 @@
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Microsoft.DurableTask.Client;
-using Agent.Core.Models.Api.v1;
 using Microsoft.DurableTask;
-using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
-using Agent.Plugins.Definitions;
-using OperationalAgentCore;
 
-namespace Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
-public sealed class VmRdpInvestigatorAgentFactory
+
+namespace Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
+public sealed class SqlDbQueryPerfAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
 
-    public const string OrchestrationInstanceIdPrefix = nameof(VmRdpInvestigatorAgentFactory);
+    public const string OrchestrationInstanceIdPrefix = nameof(SqlDbQueryPerfAgentFactory);
 
-    public VmRdpInvestigatorAgentFactory(
+    public SqlDbQueryPerfAgentFactory(
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
@@ -38,8 +37,6 @@ public sealed class VmRdpInvestigatorAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.PowerOnVirtualMachine));
-        toolSignatures.Add(toolsRepository.GetSignature(() => armPluginDefinition.GetVirtualMachineBootDiagnostics));
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         //toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
@@ -53,20 +50,19 @@ public sealed class VmRdpInvestigatorAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-       string virtualMachineResourceId,
+       string azSqlDbResourceId,
        ThreadContext context)
     {
-        return await _durableTaskClient.ScheduleNewVmRdpInvestigatorAgentInstanceAsync(
-            new VmRdpInvestigatorAgentInput(
-                VirtualMachineResourceId: virtualMachineResourceId,
+        return await _durableTaskClient.ScheduleNewSqlDbQueryPerfAgentInstanceAsync(
+            new SqlDbQueryPerfAgentInput(
+                AzSqlDbResourceId: azSqlDbResourceId,
                 ToolSignatures: _toolSignatures,
                 Context: context),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 
-    public VmRdpInvestigatorAgentInput DeserializeInput(string serializedOrchestrationInput)
+    public SqlDbQueryPerfAgentInput DeserializeInput(string serializedOrchestrationInput)
     {
-        return JsonSerializer.Deserialize<VmRdpInvestigatorAgentInput>(serializedOrchestrationInput).ThrowIfNull();
+        return JsonSerializer.Deserialize<SqlDbQueryPerfAgentInput>(serializedOrchestrationInput).ThrowIfNull();
     }
-
 }

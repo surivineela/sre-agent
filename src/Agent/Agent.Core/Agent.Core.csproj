@@ -53,6 +53,9 @@
 	  <None Update="Helpers\SupportProductMetadata\6f16735c-b0ae-b275-ad3a-03479cfa1396\SupportProblemClassification.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
+	  <None Update="Helpers\SupportProductMetadata\95412dd5-f222-a91f-98a6-144a84418c66\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Helpers\SupportProductMetadata\SupportProductsFromArm.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>

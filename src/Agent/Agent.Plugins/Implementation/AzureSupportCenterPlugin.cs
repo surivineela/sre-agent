@@ -71,10 +71,15 @@ public class AzureSupportCenterPlugin : IAzureSupportCenterPlugin
         try
         {
             var apolloDiagnosticResult = await _azureSupportCenterHelper.GetDiagnosticResultsFromApollo(resourceId, targetSupportProduct, targetSupportProblemClassification, question);
-            var diagnostics = apolloDiagnosticResult.Properties.Sections
-            .SelectMany(section => section.ReplacementMaps.Diagnostics)
-            .Select(diagnostic => diagnostic)
+
+            var sectionsDiagnostics = apolloDiagnosticResult?.Properties?.Sections?
+            .SelectMany(section => section.ReplacementMaps.Diagnostics)?
+            .Select(diagnostic => diagnostic)?
             .ToList() ?? new List<ApolloDiagnostic>();
+
+            var directMappedDiagnostics = apolloDiagnosticResult?.Properties?.ReplacementMaps?.Diagnostics?.ToList() ?? new List<ApolloDiagnostic>();
+
+            var diagnostics = directMappedDiagnostics?.Concat(sectionsDiagnostics).ToList() ?? new List<ApolloDiagnostic>();
 
             return JsonSerializer.Serialize(diagnostics, new JsonSerializerOptions { WriteIndented = true });
         }

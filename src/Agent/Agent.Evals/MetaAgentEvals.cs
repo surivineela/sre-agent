@@ -104,7 +104,8 @@ public class MetaAgentEvals
         IMetaAgentVmRdpInvestigatorPlugin? vmRdpInvestigatorPlugin = null,
         IMetaAgentContainerImageTroubleshooterPlugin? containerImageTroubleshooterPlugin = null,
         IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
-        IThreadRepository threadRepository = null)
+        IThreadRepository threadRepository = null,
+        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null)
     {
         return new MetaAgent(
             _chatClient!,
@@ -129,7 +130,8 @@ public class MetaAgentEvals
             vmRdpInvestigatorPlugin ?? Mock.Of<IMetaAgentVmRdpInvestigatorPlugin>(),
             containerImageTroubleshooterPlugin ?? Mock.Of<IMetaAgentContainerImageTroubleshooterPlugin>(),
             functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>(),
-            threadRepository ?? Mock.Of<IThreadRepository>());
+            threadRepository ?? Mock.Of<IThreadRepository>(),
+            sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>());
     }
 
     [TestMethod]
