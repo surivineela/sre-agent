@@ -16,23 +16,23 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
 
   useEffect(() => {
     messagesEndRef.current?.scrollTo({ top: messagesEndRef.current.scrollHeight, behavior: 'smooth' });
-  });
+  }, [messages, temporaryUserMessage, agentTypingMessage]);
 
   return (
     <div className={ChatBoxStyles.chatBox}>
-    <CopilotProvider mode="canvas" className={ChatBoxStyles.root}>
-      <div className={ChatBoxStyles.chatContainer} ref={messagesEndRef}>
-        <CopilotChat className={ChatBoxStyles.chat}>
-          {shouldLoadHistory && <ChatLoading />}
-          {messages.map((message, index) => (
-            <ChatMessage key={index} message={message} threadId={threadId || ''} />
-          ))}
-          {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={threadId || ''} />}
-          {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={threadId || ''} />}
-        </CopilotChat>
-      </div>
-      <Input sendMessage={sendMessage} disableInput={disableInput} />
-    </CopilotProvider>
+      <CopilotProvider mode="canvas" className={ChatBoxStyles.root}>
+        <div className={ChatBoxStyles.chatContainer} ref={messagesEndRef}>
+          <CopilotChat className={ChatBoxStyles.chat}>
+            {shouldLoadHistory && <ChatLoading />}
+            {messages.map((message, index) => (
+              <ChatMessage key={index} message={message} threadId={threadId || ''} />
+            ))}
+            {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={threadId || ''} />}
+            {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={threadId || ''} />}
+          </CopilotChat>
+        </div>
+        <Input sendMessage={sendMessage} disableInput={disableInput} />
+      </CopilotProvider>
     </div>
   );
 };
