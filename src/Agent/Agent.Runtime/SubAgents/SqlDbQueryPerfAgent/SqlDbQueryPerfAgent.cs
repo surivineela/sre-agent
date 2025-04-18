@@ -14,7 +14,11 @@ public class SqlDbQueryPerfAgent: GenericAgentOrchestrator<SqlDbQueryPerfAgentIn
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(SqlDbQueryPerfAgent), "SqlDbQueryPerfAgentPlan.txt");
         var systemPrompt = File.ReadAllText(path);
-        var monitoringMessage = $"Thank you for the confirmation, I will now attempt to investigate query perf issues with {agentInput.AzSqlDbResourceId}";
+        var monitoringMessage = $"I will now attempt to investigate query perf issues with {agentInput.AzSqlDbResourceId}. Once ll the investigation is complete, I will present my final findings in the following format"
+            + "    **Summary**: Provide a brief overview of the investigation results."
+            + "    **Identified Issues**: List any issues discovered during the investigation."
+            + "    **Probable Root Cause**: Discuss the likely cause of the performance issues."
+            + "    **Next Steps**: Outline the steps, in detail, to be taken for remediation, including immediate fixes and long-term strategies.";
 
         List<ChatMessage> chatHistory = [
             new ChatMessage(ChatRole.System, systemPrompt),
