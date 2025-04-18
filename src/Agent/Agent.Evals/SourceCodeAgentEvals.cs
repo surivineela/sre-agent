@@ -42,12 +42,22 @@ public sealed class SourceCodeAgentEvals
     }
 
     [TestInitialize]
-    public void TestInitialize()
+    public async Task TestInitialize()
     {
-        _host = TestHelpers.BuildTestHost();
+        var builder = TestHelpers.BuildTestApp();
+        _host = builder.Build();
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
         IEvaluationTokenCounter? tokenCounter = null;
         _chatConfiguration = new ChatConfiguration(client, tokenCounter);
+
+        await _host.StartAsync();
+    }
+
+    [TestCleanup]
+    public async Task TestCleanup()
+    {
+        await _host.StopAsync();
+        _host.Dispose();
     }
 
     private static IEnumerable<object[]> TestData_Iterations()

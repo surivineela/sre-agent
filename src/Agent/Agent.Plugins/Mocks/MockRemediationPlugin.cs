@@ -23,16 +23,6 @@ namespace Agent.Plugins.Mocks
 
         public async Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId)
         {
-            if (!_approvalPlugin.ApprovedOperations.Contains("ScaleAppServicePlan"))
-            {
-                return new RemediationResult(
-                    Success: false,
-                    Action: "ScaleAppServicePlan", 
-                    Details: $"No approval found for scaling App Service Plan for resource {resourceId}.",
-                    OperationId: null,
-                    FinishedTime: _timeProvider.GetUtcNow().DateTime);
-            }
-
             return new RemediationResult(
                 Success: true,
                 Action: "ScaleAppServicePlan",
@@ -43,16 +33,6 @@ namespace Agent.Plugins.Mocks
 
         public async Task<RemediationResult> CollectMemoryDump(string resourceId)
         {
-            if (!_approvalPlugin.ApprovedOperations.Contains("CollectMemoryDump"))
-            {
-                return new RemediationResult(
-                    Success: false,
-                    Action: "CollectMemoryDump",
-                    Details: $"No approval found for collecting memory dump from {resourceId}.",
-                    OperationId: null,
-                    FinishedTime: _timeProvider.GetUtcNow().DateTime);
-            }
-
             return new RemediationResult(
                 Success: true,
                 Action: "CollectMemoryDump",
@@ -63,16 +43,6 @@ namespace Agent.Plugins.Mocks
 
         public async Task<RemediationResult> RestartWebApp(string resourceId)
         {
-            if (!_approvalPlugin.ApprovedOperations.Contains("RestartWebApp"))
-            {
-                return new RemediationResult(
-                    Success: false,
-                    Action: "RestartWebApp",
-                    Details: $"No approval found for restarting Web App {resourceId}.",
-                    OperationId: null,
-                    FinishedTime: _timeProvider.GetUtcNow().DateTime);
-            }
-
             bool success = await _armPlugin.RestartWebApp(resourceId);
             
             return new RemediationResult(

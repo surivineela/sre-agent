@@ -1,3 +1,4 @@
+using System;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -21,7 +22,8 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
         // but we are still in demo mode and we dont want to actually wait 30 seconds if the model decides to do that
         // also, if we are in unit tests we dont want to wait at all
         double waitSeconds = 7;
-        if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)))
+        if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)
+            || a.GetName().Name.StartsWith("Microsoft.TestPlatform", StringComparison.OrdinalIgnoreCase)))
         {
             waitSeconds = 0.1;
         }

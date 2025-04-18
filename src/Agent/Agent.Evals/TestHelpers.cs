@@ -15,7 +15,7 @@ namespace Agent.Evals;
 
 public static class TestHelpers
 {
-    public static IHost BuildTestHost()
+    public static HostApplicationBuilder BuildTestApp()
     {
         var builder = Host.CreateApplicationBuilder(new HostApplicationBuilderSettings { EnvironmentName = Environments.Development });
         builder.LoadLocalAppSettings();
@@ -54,6 +54,6 @@ public static class TestHelpers
         
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName));
 
-        return builder.Build();
+        return builder;
     }
 }

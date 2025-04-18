@@ -4,8 +4,10 @@
 
 using Agent.Core.Models;
 using Agent.Runtime;
+using Agent.Tests.Common;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Xunit.Abstractions;
 
 namespace Agent.Tests.Integration.Helpers
@@ -29,37 +31,14 @@ namespace Agent.Tests.Integration.Helpers
             DurableTaskClient durableTaskClient,
             TimeProvider timeProvider,
             string instanceID,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            ILogger? logger = null)
         {
-            using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-            using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+            var (approved, msg) = await ApprovalTestHelper.DoApproval(durableTaskClient, timeProvider, instanceID, logger, cancellationToken);
 
-            while (true)
+            if (!approved)
             {
-                await Task.Delay(TimeSpan.FromMilliseconds(500), linkedCts.Token);
-
-                await foreach (var orchestrationMetadata in durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
-                {
-                    Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                    InstanceIdPrefix = "approval"
-                }))
-                {
-                    OrchestrationMetadata? approvalOrchestration = await durableTaskClient.GetInstanceAsync(orchestrationMetadata.InstanceId, true, linkedCts.Token);
-                    if (approvalOrchestration.ReadInputAs<ApprovalInput>()?.ParentInstanceId == instanceID)
-                    {
-                        var approvalId = approvalOrchestration.InstanceId;
-                        var approvalStatus = new ApprovalStatus(approvalId, timeProvider.GetUtcNow().DateTime, timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null, "description");
-                        await durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
-                        return;
-                    }
-                }
-
-                var parent = await durableTaskClient.GetInstanceAsync(instanceID, true, linkedCts.Token);
-                if(parent.IsCompleted)
-                {
-                    Assert.Fail($"Orchestration {instanceID} completed unexpectedly with status {parent.RuntimeStatus}. Details: {parent.FailureDetails } ");
-                }
-
+                Assert.Fail(msg);
             }
         }
 

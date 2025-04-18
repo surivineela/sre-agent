@@ -45,11 +45,6 @@ namespace Agent.Plugins.Mocks
                 throw new ArgumentException($"Resource {appResourceId} not found");
             }
 
-            if (!_approvalPlugin.ApprovedOperations.Contains("UpdateTls"))
-            {
-                throw new Exception("No approval found for TLS update for resource {appResourceId}.");
-            }
-
             _tlsStatuses[appResourceId] = _tlsStatuses[appResourceId] with
             {
                 MinimumTlsVersion = minimumTlsVersion

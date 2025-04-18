@@ -78,12 +78,6 @@ namespace Agent.Runtime
                 var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** received at {approvalEvent.ApprovedTime}";
                 _logger.LogInformation(approvalString);
 
-                // HACK HACK HACK
-                if (_approvalPlugin is MockApprovalPlugin)
-                {
-                    ((MockApprovalPlugin)_approvalPlugin).ApprovedOperations.Add(approvalInput.OperationName);
-                }
-
                 outputMessage = new ChatMessage(ChatRole.System, approvalString);
             }
             else

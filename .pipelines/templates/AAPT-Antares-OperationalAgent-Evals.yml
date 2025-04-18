@@ -35,6 +35,11 @@ steps:
     SecretsFilter: '*'
     RunAsPreJob: false
 
+# Start DTS emulator container
+- script: docker run -d --rm --name dts-emulator -p 14280:8080 -p 14282:8082 -e ClientAuth__DisableAuthentication=true mcr.microsoft.com/dts/dts-emulator:v0.0.6
+  displayName: 'Start DTS emulator container'
+  timeoutInMinutes: 5
+
 # Execute the test
 - script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx --results-directory $(Build.SourcesDirectory)/TestResults/
   env:
@@ -59,5 +64,10 @@ steps:
     SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: '$(Build.SourcesDirectory)/TestResults/'
     SRE_AGENT_EVENT_HUB_CONNECTION_STRING: $(TestResultEventHubConnectionStr)
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
-
   displayName: 'Uploading evals tests results to event hub'
+
+# Stop the DTS emulator container
+- script: docker stop dts-emulator
+  condition: always()
+  displayName: 'Stop DTS emulator container'
+  continueOnError: true

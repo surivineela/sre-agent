@@ -15,14 +15,14 @@ namespace Agent.Plugins.Mocks
     public class MockRecordActionsPlugin : IRecordActionsPlugin
     {
         private readonly TimeProvider _timeProvider;
-        private readonly ILogger<MockRecordActionsPlugin> _logger;
+        private readonly ILogger<MockRecordActionsPlugin>? _logger;
         private readonly Dictionary<Guid, Dictionary<Guid, Action>> _actionsByThread = new();
         private readonly Random _random = new Random(42);
 
-        public MockRecordActionsPlugin(TimeProvider timeProvider, ILogger<MockRecordActionsPlugin> logger)
+        public MockRecordActionsPlugin(TimeProvider timeProvider, ILogger<MockRecordActionsPlugin>? logger)
         {
             _timeProvider = timeProvider;
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+            _logger = logger;
         }
 
         /// <summary>
@@ -30,7 +30,7 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<Action> RecordAction(Guid threadId, string title, ActionStatus status = ActionStatus.Pending)
         {
-            _logger.LogInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
+            _logger?.LogInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
                 threadId, title, status);
 
             var guidBytes = new byte[16];
@@ -60,18 +60,18 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<Action> UpdateActionStatus(Guid threadId, Guid actionId, ActionStatus status)
         {
-            _logger.LogInformation("[MOCK] Updating action {ActionId} status to {Status} for thread {ThreadId}",
+            _logger?.LogInformation("[MOCK] Updating action {ActionId} status to {Status} for thread {ThreadId}",
                 actionId, status, threadId);
 
             if (!_actionsByThread.TryGetValue(threadId, out var threadActions))
             {
-                _logger.LogWarning("[MOCK] Thread {ThreadId} not found", threadId);
+                _logger?.LogWarning("[MOCK] Thread {ThreadId} not found", threadId);
                 throw new KeyNotFoundException($"Thread {threadId} not found");
             }
 
             if (!threadActions.TryGetValue(actionId, out var existingAction))
             {
-                _logger.LogWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
+                _logger?.LogWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
                 throw new KeyNotFoundException($"Action {actionId} not found in thread {threadId}");
             }
 
@@ -89,17 +89,17 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<Action> GetAction(Guid threadId, Guid actionId)
         {
-            _logger.LogInformation("[MOCK] Getting action {ActionId} for thread {ThreadId}", actionId, threadId);
+            _logger?.LogInformation("[MOCK] Getting action {ActionId} for thread {ThreadId}", actionId, threadId);
 
             if (!_actionsByThread.TryGetValue(threadId, out var threadActions))
             {
-                _logger.LogWarning("[MOCK] Thread {ThreadId} not found", threadId);
+                _logger?.LogWarning("[MOCK] Thread {ThreadId} not found", threadId);
                 throw new KeyNotFoundException($"Thread {threadId} not found");
             }
 
             if (!threadActions.TryGetValue(actionId, out var action))
             {
-                _logger.LogWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
+                _logger?.LogWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
                 throw new KeyNotFoundException($"Action {actionId} not found in thread {threadId}");
             }
 
@@ -111,7 +111,7 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<IEnumerable<Action>> GetAllActions(Guid threadId)
         {
-            _logger.LogInformation("[MOCK] Getting all actions for thread {ThreadId}", threadId);
+            _logger?.LogInformation("[MOCK] Getting all actions for thread {ThreadId}", threadId);
 
             if (!_actionsByThread.TryGetValue(threadId, out var threadActions))
             {
@@ -126,7 +126,7 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public void ClearAll()
         {
-            _logger.LogInformation("[MOCK] Clearing all actions");
+            _logger?.LogInformation("[MOCK] Clearing all actions");
             _actionsByThread.Clear();
         }
     }
