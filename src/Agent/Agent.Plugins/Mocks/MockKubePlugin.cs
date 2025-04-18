@@ -12,7 +12,7 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> GetPodCpuMetricsForDeploymentAsync(string resourceId, string _namespace, string deployment, string timeRange = "5m")
+    public Task<string> GetPodCpuMetricsForWorkloadAsync(string resourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
     {
         throw new NotImplementedException();
     }
@@ -62,7 +62,7 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> GetPodMemoryMetricsForDeploymentAsync(string resourceId, string _namespace, string deployment, string timeRange = "5m")
+    public Task<string> GetPodMemoryMetricsForWorkloadAsync(string resourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
     {
         throw new NotImplementedException();
     }

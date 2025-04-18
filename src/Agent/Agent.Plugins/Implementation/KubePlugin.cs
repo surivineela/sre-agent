@@ -612,78 +612,81 @@ namespace Agent.Plugins
             }
         }
 
-        public async Task<string> GetPodCpuMetricsForDeploymentAsync(string AKSClusterResourceId, string _namespace, string deployment, string timeRange = "5m")
+        public async Task<string> GetPodCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
         {
-            return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, deployment, "cpu", timeRange);
+            return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, "cpu", timeRange);
         }
 
-        public async Task<string> GetPodMemoryMetricsForDeploymentAsync(string AKSClusterResourceId, string _namespace, string deployment, string timeRange = "5m")
+        public async Task<string> GetPodMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
         {
-            // Defaulting timeRange to 5m as it's often used implicitly in memory queries,
-            // even if not directly in the query string like rate(). Adjust if needed.
-            return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, deployment, "memory", timeRange);
+            return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, "memory", timeRange);
         }
 
         /// <summary>
-        /// Fetches metrics from Azure Monitor Prometheus endpoint.
+        /// Fetches metrics from Azure Monitor Prometheus endpoint specified by the user.
         /// </summary>
-        private async Task<string> GetAzureMonitorPrometheusMetricsAsync(string resourceId, string _namespace, string deployment, string metricType, string timeRange)
+        private async Task<string> GetAzureMonitorPrometheusMetricsAsync(
+            string resourceId,
+            string _namespace,
+            string workloadType,
+            string workloadName,
+            string metricType,
+            string timeRange)
         {
             if (string.IsNullOrEmpty(_prometheusQueryEndpoint))
             {
-                return "Azure Monitor Prometheus Query Endpoint is not configured in agent settings.";
-            }
-            // Ensure client is created for the target cluster if needed for context, though not directly used for query
-            try { await GetOrCreateClientAsync(resourceId); }
-            catch (Exception ex)
-            {
-                _logger?.LogWarning(ex, "Failed to ensure Kubernetes client exists for resourceId {ResourceId} while querying metrics. Proceeding with metric query.", resourceId);
-                // Continue, as the k8s client isn't strictly needed for the Prometheus query itself here.
+                return "Azure Monitor Prometheus query endpoint is not configured in the agent settings.";
             }
 
             try
             {
-                // Parse time range to Prometheus duration format (mainly for rate functions)
+                // Convert the provided time range into Prometheus-compatible duration format
                 string duration = ParseTimeRangeToDuration(timeRange);
 
-                // Build the appropriate PromQL query based on metric type
-                string query = BuildPromQuery(metricType, _namespace, deployment, duration);
+                // Build the PromQL query based on the specified metric type
+                string query = BuildPromQuery(metricType, _namespace, workloadType, workloadName, duration);
 
-                if (string.IsNullOrEmpty(query) || query.StartsWith("Specific", StringComparison.OrdinalIgnoreCase))
+                if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
                 {
-                    _logger?.LogWarning("Could not build a valid PromQL query for metric type '{MetricType}', deployment '{Deployment}', namespace '{Namespace}'", metricType, deployment, _namespace);
-                    return query; // Return the error message from BuildPromQuery
+                    _logger?.LogWarning(
+                        "Failed to build a valid PromQL query for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
+                        metricType, _namespace, workloadType, workloadName);
+                    return query;
                 }
 
-                _logger?.LogInformation("Querying Azure Monitor Prometheus ({Endpoint}) with PromQL: {Query}", _prometheusQueryEndpoint, query);
+                _logger?.LogInformation(
+                    "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
+                    _prometheusQueryEndpoint, query);
 
-                // Query Azure Monitor Prometheus API using the injected service
-                // Using QueryInstantAsync as it maps closer to the previous behavior.
-                // If a time series graph is needed, QueryRangeAsync would be used.
+                // Query the Prometheus endpoint using the injected service
                 var response = await _prometheusQueryService.QueryInstantAsync(_prometheusQueryEndpoint, query);
 
-                return FormatPrometheusResponse(response, metricType, deployment);
+                return FormatPrometheusResponse(response, metricType, workloadType, workloadName);
             }
             catch (HttpRequestException httpEx)
             {
-                // Catch specific HTTP errors from the service
-                _logger?.LogError(httpEx, "HTTP Error querying Azure Monitor Prometheus for {MetricType} on deployment {Deployment} in namespace {Namespace}",
-                    metricType, deployment, _namespace);
-                return $"Error querying Azure Monitor Prometheus: {httpEx.Message} (StatusCode: {httpEx.StatusCode})";
+                _logger?.LogError(
+                    httpEx,
+                    "HTTP error while querying Azure Monitor Prometheus for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
+                    metricType, _namespace, workloadType, workloadName);
+                return $"HTTP error while querying Azure Monitor Prometheus: {httpEx.Message} (StatusCode: {httpEx.StatusCode})";
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error fetching Azure Monitor Prometheus metrics for {MetricType} on deployment {Deployment} in namespace {Namespace}",
-                    metricType, deployment, _namespace);
-                return $"Error retrieving Azure Monitor Prometheus metrics: {ex.Message}";
+                _logger?.LogError(
+                    ex,
+                    "Unexpected error while fetching Prometheus metrics for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
+                    metricType, _namespace, workloadType, workloadName);
+                return $"Unexpected error retrieving Prometheus metrics: {ex.Message}";
             }
         }
 
-        private static string FormatPrometheusResponse(Response? response, string metricType, string deployment)
+
+        private static string FormatPrometheusResponse(Response? response, string metricType, string workloadType, string workloadName)
         {
             if (response == null)
             {
-                return $"No response received from Prometheus for {metricType} metrics for deployment {deployment}.";
+                return $"No response received from Prometheus for {metricType} metrics for workloadType {workloadType} and workloadName {workloadName}.";
             }
 
             var sb = new StringBuilder();
@@ -692,7 +695,7 @@ namespace Agent.Plugins
             switch (response)
             {
                 case ErrorResponse errorResponse:
-                    sb.AppendLine($"## Error Fetching {capitalizedMetricType} Metrics for {deployment}");
+                    sb.AppendLine($"## Error Fetching {capitalizedMetricType} Metrics for workloadType {workloadType} and workloadName {workloadName}.");
                     sb.AppendLine();
                     sb.AppendLine($"**Error Type**: {errorResponse.ErrorType}");
                     sb.AppendLine($"**Error Message**: {errorResponse.Error}");
@@ -710,10 +713,10 @@ namespace Agent.Plugins
                     var vectorData = successVector.Data;
                     if (vectorData?.Result == null || !vectorData.Result.Any())
                     {
-                        return $"No {metricType} metrics found for deployment '{deployment}'. Check if the deployment name and namespace are correct and if metrics are being collected.";
+                        return $"No {metricType} metrics found for workloadType {workloadType} and workloadName {workloadName}.'. Check if the values specified are correct and if metrics are being collected.";
                     }
 
-                    sb.AppendLine($"## {capitalizedMetricType} Usage for Deployment '{deployment}'");
+                    sb.AppendLine($"## {capitalizedMetricType} Usage for workloadType {workloadType} and workloadName {workloadName}.");
                     sb.AppendLine();
 
                     foreach (var resultItem in vectorData.Result)
@@ -777,7 +780,7 @@ namespace Agent.Plugins
 
                 default:
                     // Handle unknown response types if necessary, although your models cover the main Prometheus ones.
-                    sb.AppendLine($"## Unknown Prometheus Response Type for {metricType} Metrics for {deployment}");
+                    sb.AppendLine($"## Unknown Prometheus Response Type for {metricType} Metrics for workloadType {workloadType} and workloadName {workloadName}.");
                     sb.AppendLine($"Received type: {response.GetType().Name}");
                     break;
             }
@@ -951,40 +954,41 @@ namespace Agent.Plugins
             return sb.ToString().TrimEnd(); // Return the formatted string
         }
 
-        // Uses standard container metrics likely available in Azure Monitor for Prometheus
-        // Requires AMA-Metrics addon to be enabled on AKS.
-        private string BuildPromQuery(string metricType, string _namespace, string deployment, string duration)
+        // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
+        private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName, string duration)
         {
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
-                    // Using updated memory query with max_over_time and namespace filter
                     return $@"100 * (
                         max_over_time(
-                            container_memory_working_set_bytes{{pod=~""{deployment}-.*"",namespace=""{_namespace}"",container!=""""}}[{duration}]
+                            container_memory_working_set_bytes{{pod=~""{workloadName}-.*"",namespace=""{_namespace}"",container!=""""}}[{duration}]
                         )
                         / on (container, pod)
-                        kube_pod_container_resource_limits{{pod=~""{deployment}-.*"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
+                        kube_pod_container_resource_limits{{pod=~""{workloadName}-.*"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
                         )";
 
                 case "cpu":
-                    // Standard CPU utilization query that works across all AKS clusters
                     return $$"""
                         100 * (
                             sum by (pod) (
-                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{deployment}}-.*", container!=""}[{{duration}}])
+                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{workloadName}}-.*", container!=""}[{{duration}}])
                             )
                             /
                             sum by (pod) (
-                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{deployment}}-.*", resource="cpu", container!=""}
+                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{workloadName}}-.*", resource="cpu", container!=""}
                             ) > 0
                         )
                         """;
 
                 // Default case for custom queries or other unhandled metric types
                 default:
-                    _logger?.LogWarning("No specific query configured for metric type '{MetricType}' in namespace '{Namespace}' and deployment '{Deployment}'.", metricType, _namespace, deployment);
-                    return $"Specific query not configured for metric type '{metricType}' namespace '{_namespace}' and deployment '{deployment}'.";
+                    _logger?.LogWarning(
+                        "No query configured for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
+                        metricType, _namespace, workloadType, workloadName);
+
+                    return $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'.";
+
             }
         }
 

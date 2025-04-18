@@ -225,25 +225,27 @@ eg: show me the YAML of pod 'nginx-pod-xyz' in the 'default' namespace.")]
         }
 
         [KernelFunction("get_cpu_metrics")]
-        [Description("Get CPU utilization metrics for a Kubernetes deployment (as percentage of limit)")]
-        public async Task<string> GetPodCpuMetricsForDeploymentAsync(
-            [Description("The resource ID of the Azure Kubernetes Service")] string AKSClusterResourceId,
-            [Description("Kubernetes namespace where the deployment is located")] string _namespace,
-            [Description("Name of the Kubernetes deployment to get CPU metrics for")] string deploymentName,
-            [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
+        [Description("Get CPU utilization metrics for a Kubernetes workload (deployment or statefulset) as percentage of limit")]
+        public async Task<string> GetPodCpuMetricsForWorkloadAsync(
+        [Description("The resource ID of the Azure Kubernetes Service cluster")] string AKSClusterResourceId,
+        [Description("Kubernetes namespace where the workload is located")] string _namespace,
+        [Description("The type of Kubernetes workload ('deployment' or 'statefulset')")] string workloadType,
+        [Description("Name of the Kubernetes workload (deployment or statefulset) to get CPU metrics for")] string workloadName,
+        [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
         {
-            return await _kubePlugin.GetPodCpuMetricsForDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, timeRange);
+            return await _kubePlugin.GetPodCpuMetricsForWorkloadAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, timeRange);
         }
 
         [KernelFunction("get_memory_metrics")]
-        [Description("Get memory utilization metrics for a Kubernetes deployment (as percentage of limit)")]
-        public async Task<string> GetPodMemoryMetricsForDeploymentAsync(
-            [Description("The resource ID of the Azure Kubernetes Service")] string AKSClusterResourceId,
-            [Description("Kubernetes namespace where the deployment is located")] string _namespace,
-            [Description("Name of the Kubernetes deployment to get memory metrics for")] string deploymentName,
-            [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
+        [Description("Get memory utilization metrics for a Kubernetes workload (deployment or statefulset) as percentage of limit")]
+        public async Task<string> GetPodMemoryMetricsForWorkloadAsync(
+        [Description("The resource ID of the Azure Kubernetes Service cluster")] string AKSClusterResourceId,
+        [Description("Kubernetes namespace where the workload is located")] string _namespace,
+        [Description("The type of Kubernetes workload ('deployment' or 'statefulset')")] string workloadType,
+        [Description("Name of the Kubernetes workload (deployment or statefulset) to get memory metrics for")] string workloadName,
+        [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
         {
-            return await _kubePlugin.GetPodMemoryMetricsForDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, timeRange);
+            return await _kubePlugin.GetPodMemoryMetricsForWorkloadAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, timeRange);
         }
 
         [KernelFunction("get_recently_updated_workloads")]

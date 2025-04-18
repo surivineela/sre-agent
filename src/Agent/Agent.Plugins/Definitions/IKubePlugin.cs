@@ -22,8 +22,8 @@ namespace Agent.Plugins
         Task<string> ListCustomResourcesAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind);
         Task<string> GetCustomResourceYamlAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind, string name);
         Task<string> GetPodYamlAsync(string AKSClusterResourceId, string _namespace, string pod);
-        Task<string> GetPodCpuMetricsForDeploymentAsync(string AKSClusterResourceId, string _namespace, string name, string timeRange = "5m");
-        Task<string> GetPodMemoryMetricsForDeploymentAsync(string AKSClusterResourceId, string _namespace, string name, string timeRange = "5m");
+        Task<string> GetPodCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
+        Task<string> GetPodMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
         Task<string> GetRecentlyUpdatedWorkloadsAsync(string AKSClusterResourceId, string _namespace, int minutesAgo);
         Task<string> GetKubeStatefulsetsAsync(string AKSClusterResourceId, string _namespace);
         Task<string> GetKubeStatefulsetSpecStatusAsync(string AKSClusterResourceId, string _namespace, string name);
