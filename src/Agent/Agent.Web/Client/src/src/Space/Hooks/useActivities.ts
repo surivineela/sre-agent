@@ -1,5 +1,5 @@
 import { Thread } from '../../Common/Contracts/SreAgent';
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import axios from 'axios';
 
@@ -18,6 +18,8 @@ export const useActivities = (initialThreadId?: string | null) => {
   const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
   const [threadContentKey, setThreadContentKey] = useState<string>(Guid.newGuid());
   const [activeThreadId, setActiveThreadId] = useState<string>('');
+
+  const canPollThread = useRef<boolean>(true);
 
   const addThread = useCallback((thread: Thread) => {
     setThreads(prevThreads => [thread, ...prevThreads]);
@@ -66,6 +68,42 @@ export const useActivities = (initialThreadId?: string | null) => {
       isSubscribed = false;
     };
   }, [initialThreadId, selectThread, threads]);
+
+
+  // Poll latest threads every ten seconds
+  useEffect(() => {
+
+    const pollLatestTenThreads = async () => {
+      if (!canPollThread.current || !threadsInitialized) return;
+
+      canPollThread.current = false;
+
+      const lastestTenThreads = await getThreads(0, 10);
+
+      if (lastestTenThreads.length > 0) {
+        setThreads(prevThreads => {
+          const newThreads: Thread[] = [];
+
+          for (let i = lastestTenThreads.length - 1; i >= 0; i--) {
+            if (!prevThreads.some((thread: Thread) => thread.id === lastestTenThreads[i].id)) {
+              newThreads.push(lastestTenThreads[i]);
+            }
+          }
+
+          return [...newThreads, ...prevThreads];
+        });
+      }
+
+      canPollThread.current = true;
+    }
+
+    const timer = setInterval(pollLatestTenThreads, 10000);
+
+    return () => {
+      clearInterval(timer);
+      canPollThread.current = true;
+    }
+  }, [threadsInitialized]);
 
   return {
     threads: threads,
