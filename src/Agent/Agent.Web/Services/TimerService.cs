@@ -597,7 +597,6 @@ public class TimerService : IHostedService, IDisposable
                 var resourceTypeCountBreakDownQuery = $@"g.V().dedup().by('id').groupCount().by(
                                       coalesce(
                                         hasLabel('{ArmConstants.AppServiceType.ToLower()}').constant('App Service Web Apps'),
-                                        hasLabel('{ArmConstants.FunctionAppType.ToLower()}').constant('Function Apps'),
                                         hasLabel('{ArmConstants.ContainerAppType.ToLower()}').constant('Container Apps'),
                                         hasLabel('{ArmConstants.AzureSQLType.ToLower()}').constant('SQL'),
                                         hasLabel('{ArmConstants.CosmosDbType.ToLower()}').constant('Cosmos'),

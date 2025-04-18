@@ -26,7 +26,7 @@ public class Constants
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
     public const string AppServicePlanType = "Microsoft.Web/serverFarms";
-    public const string FunctionAppType = "Microsoft.Web/sites/functions";
+    public const string FunctionAppKind = "functionapp";
 
     // k8s
     // groups

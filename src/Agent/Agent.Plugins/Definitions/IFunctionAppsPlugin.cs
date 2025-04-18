@@ -5,9 +5,9 @@
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Definitions;
-public interface IAppServicePlugin
+public interface IFunctionAppsPlugin
 {
-    Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId);
+    Task<IReadOnlyList<FunctionAppDescriptor>> ListFunctionAppsAsync(Guid subscriptionId);
 
-    Task<AppServiceDescriptor> GetAppServiceInfoAsync(string resourceId);
+    Task<FunctionAppDescriptor> GetFunctionAppInfoAsync(string resourceId);
 }

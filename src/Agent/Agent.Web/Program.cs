@@ -94,6 +94,8 @@ builder.Host.UseSerilog();
         .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
         .AddSingleton<IAppServicePlugin, AppServicePlugin>()
         .AddSingleton<AppServicePluginDefinition>()
+        .AddSingleton<IFunctionAppsPlugin, FunctionAppsPlugin>()
+        .AddSingleton<FunctionAppsPluginDefinition>()
         .AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>()
 
         .AddSingleton<ITimePlugin, TimePlugin>()

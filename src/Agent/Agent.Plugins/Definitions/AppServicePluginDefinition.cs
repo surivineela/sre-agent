@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Plugins.Models;
 
 namespace Agent.Plugins.Definitions
 {

@@ -5,6 +5,7 @@
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins.Implementation;
@@ -55,7 +56,7 @@ public class AppServicePlugin : IAppServicePlugin
             string sku = GetFirstPropertyValue(properties, "sku") ?? "Unknown";
             string state = GetFirstPropertyValue(properties, "state") ?? "Unknown";
             string resourceGroup = GetFirstPropertyValue(properties, "resourceGroupName");
-            int numberOfWOrkers = int.TryParse(GetFirstPropertyValue(properties, "numberOfWorkers"), out int numWorkers) ? numWorkers : 1;
+            int numberOfWorkers = int.TryParse(GetFirstPropertyValue(properties, "numberOfWorkers"), out int numWorkers) ? numWorkers : 1;
             bool autoHealEnabled = bool.TryParse(GetFirstPropertyValue(properties, "autoHealEnabled"), out bool autoHeal) ? autoHeal : false;
             bool alwaysOnEnabled = bool.TryParse(GetFirstPropertyValue(properties, "alwaysOnEnabled"), out bool alwaysOn) ? alwaysOn : false;
             bool healthCheckEnabled = bool.TryParse(GetFirstPropertyValue(properties, "healthCheckEnalbled"), out bool healthCheck) ? healthCheck : false;
@@ -68,7 +69,7 @@ public class AppServicePlugin : IAppServicePlugin
                 Sku: sku,
                 State: state,
                 ResourceGroup: resourceGroup,
-                NumberOfWorkers: numberOfWOrkers,
+                NumberOfWorkers: numberOfWorkers,
                 AutoHealEnabled: autoHealEnabled,
                 AlwaysOn: alwaysOnEnabled,
                 HealthCheckEnabled: healthCheckEnabled);

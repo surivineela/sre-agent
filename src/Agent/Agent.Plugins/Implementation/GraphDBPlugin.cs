@@ -14,7 +14,6 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Schema;
 using Azure.Core;
-using Azure.Identity;
 using Gremlin.Net.Driver;
 using Microsoft.Azure.Management.Monitor.Fluent;
 using Microsoft.Azure.Management.Monitor.Fluent.Models;
