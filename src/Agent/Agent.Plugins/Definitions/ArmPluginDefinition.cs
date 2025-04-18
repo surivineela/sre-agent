@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -37,9 +37,8 @@ namespace Agent.Plugins
         public async Task<string> SetMinimumTlsVersion(
             [Description("The resource ID of the app.")]
             string appResourceId,
-            [Description("The minimum TLS version to set, e.g. 1.2")]
-            string minimumTlsVersion
-            )
+            [Description("The minimum TLS version to set. Valid values: 1.2, 1.3")]
+            string minimumTlsVersion)
         {
             return await _armPlugin.SetMinimumTlsVersion(appResourceId, minimumTlsVersion);
         }

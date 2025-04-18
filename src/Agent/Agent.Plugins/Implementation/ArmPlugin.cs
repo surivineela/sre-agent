@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -30,6 +30,14 @@ namespace Agent.Plugins.Implementation
 
             if (status != null)
             {
+                // Assume both versions are in the same format (e.g. "1.2" or "1.3").
+                if (status.MinimumTlsVersion is not null && status.MinimumTlsVersion.CompareTo(minimumTlsVersion) >= 0)
+                {
+                    var msg = $"Resource {appResourceId} already has minimum TLS version set to {status.MinimumTlsVersion}. No action needed.";
+                    _logger?.LogInformation(msg);
+                    return msg;
+                }
+
                 var response = await _armHelper.UpdateMinimumTlsVersion(status, minimumTlsVersion);
                 success = response.Item1;
                 reason = response.Item2;

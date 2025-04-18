@@ -742,7 +742,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
-            var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}').properties().as('p').group().by(select('p').key()).by(select('p').value())";
+            var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').properties().as('p').group().by(select('p').key()).by(select('p').value())";
 
             var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
             return results.FirstOrDefault(new Dictionary<string, object>());

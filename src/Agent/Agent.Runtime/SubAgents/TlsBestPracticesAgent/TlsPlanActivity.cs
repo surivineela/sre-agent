@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -23,7 +23,7 @@ public class TlsPlanActivity : TaskActivity<TlsBestPracticesInput, List<Microsof
     public async override Task<List<ChatMessage>> RunAsync(TaskActivityContext context, TlsBestPracticesInput input)
     {
         var existingAppsDetails = string.Join(Environment.NewLine,
-            input.AppsInViolation.Select(x => $"{x.ResourceId} has a current minimum TLS version of {x.MinimumTlsVersion}"));
+            input.AppsInViolation.Select(x => x.MinimumTlsVersion is not null ? $"{x.ResourceId} has a current minimum TLS version of {x.MinimumTlsVersion}" : $"Current minimum TLS version of {x.ResourceId} is unknown. Proceed and update it."));
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "TlsBestPracticesAgent", "TlsBestPracticesPlan.txt");
         var systemPrompt = File.ReadAllText(path).Replace("{{desiredVersion}}", input.DesiredVersion);
