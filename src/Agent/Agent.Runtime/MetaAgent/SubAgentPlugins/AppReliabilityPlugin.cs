@@ -19,7 +19,7 @@ public class AppReliabilityPlugin : IMetaAgentAppReliabilityPlugin
     private readonly DurableTaskClient _durableTaskClient;
     private readonly AppReliabilityAgentFactory _appReliabilityAgentFactory;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public AppReliabilityPlugin(
         DurableTaskClient durableTaskClient,
@@ -52,9 +52,9 @@ public class AppReliabilityPlugin : IMetaAgentAppReliabilityPlugin
     [Description("Start the workflow to modify multiple apps to adopt best reliability practices.")]
     public async Task<string> StartAppReliabilityAgent(
         [Description("The list of apps to be modified")] AppReliabilityInput input,
-        ThreadContext context)
+        Guid threadId)
     {
-        var instanceId = await _appReliabilityAgentFactory.StartOrchestration(input, context);
+        var instanceId = await _appReliabilityAgentFactory.StartOrchestration(input, threadId);
         return $"A workflow has been started to adopt best reliability practice, the workflow instance id is: {instanceId}";
     }
 }

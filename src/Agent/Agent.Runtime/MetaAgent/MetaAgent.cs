@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -22,7 +22,7 @@ namespace Agent.Runtime.MetaAgent;
 
 public sealed class MetaAgent : IAgent
 {
-    private const string SystemPrompt = @"# Azure SRE Agent
+    public const string SystemPrompt = @"# Azure SRE Agent
 
 You are a specialized Azure SRE Agent supporting users with Microsoft Azure products, services, and the GitHub repositories behind the apps—including direct security reviews of those repositories.
 
@@ -199,30 +199,30 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
     }
 
-    public async Task<string> ProcessUserMessage(Guid agentContextId, ThreadContext ctx)
+    public async Task<string> ProcessUserMessageAsync(AgentContext agentContext, AgentChatHistory agentChatHistory)
     {
-        var lastUserMessage = await _threadService.GetLastUserMessage(ctx);
-        _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", ctx.ThreadId, lastUserMessage);
+        var lastUserMessage = await _threadService.GetLastUserMessage(agentContext.ThreadId);
+        _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", agentContext.ThreadId, lastUserMessage);
         using var _ = await _lock.AcquireWriterAsync();
 
-        Guid threadGuid = ctx.ThreadId;
+        Guid threadGuid = agentContext.ThreadId;
 
-        _storageAccountPlugin.Context = ctx;
-        _tlsBestPracticesPlugin.Context = ctx;
-        _managedIdentityMigrationPlugin.Context = ctx;
-        _appServiceRemediationPlugin.Context = ctx;
-        _containerAppsRemediationPlugin.Context = ctx;
-        _kubernetesAgentPlugin.Context = ctx;
-        _graphDbPlugin.Context = ctx;
-        _appReliabilityPlugin.Context = ctx;
-        _webAppDownPlugin.Context = ctx;
-        _vmRdpInvestigatorPlugin.Context = ctx;
-        _containerImageTroubleshooterPlugin.Context = ctx;
-        _functionAppConnectivityPlugin.Context = ctx;
-        _sqlDbQueryPerfPlugin.Context = ctx;
+        _storageAccountPlugin.ThreadId = threadGuid;
+        _tlsBestPracticesPlugin.ThreadId = threadGuid;
+        _managedIdentityMigrationPlugin.ThreadId = threadGuid;
+        _appServiceRemediationPlugin.ThreadId = threadGuid;
+        _containerAppsRemediationPlugin.ThreadId = threadGuid;
+        _kubernetesAgentPlugin.ThreadId = threadGuid;
+        _graphDbPlugin.ThreadId = threadGuid;
+        _appReliabilityPlugin.ThreadId = threadGuid;
+        _webAppDownPlugin.ThreadId = threadGuid;
+        _vmRdpInvestigatorPlugin.ThreadId = threadGuid;
+        _containerImageTroubleshooterPlugin.ThreadId = threadGuid;
+        _functionAppConnectivityPlugin.ThreadId = threadGuid;
+        _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
-        _chartplugin.Context = ctx;
+        _chartplugin.ThreadId = threadGuid;
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
@@ -293,12 +293,12 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             }
 
             // Set the context
-            var prop = type.GetProperty("Context", BindingFlags.Public | BindingFlags.Instance);
+            var prop = type.GetProperty("ThreadId", BindingFlags.Public | BindingFlags.Instance);
             if (prop == null)
             {
-                throw new InvalidOperationException($"Property 'Context' not found on plugin '{type.Name}'");
+                throw new InvalidOperationException($"Property 'ThreadId' not found on plugin '{type.Name}'");
             }
-            prop.SetValue(instance, ctx);
+            prop.SetValue(instance, threadGuid);
 
             // Get a handle to its methods, and register them in the tools
             var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance);
@@ -309,7 +309,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
 
 
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
-        var chatHistory = await _threadService.ToLLMChatHistory(ctx, SystemPrompt);
+
+        var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
+        var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
 
         try
         {
@@ -327,7 +329,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             }),
             _log, 10);
 
-            await response.AddReasoningMessagesToThreadRepositoryAsync(_threadRepository, agentContextId);
+            await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
             return response.Messages.Last().Text;
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))

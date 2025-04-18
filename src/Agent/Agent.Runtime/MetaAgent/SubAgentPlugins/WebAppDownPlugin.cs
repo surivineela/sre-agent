@@ -16,7 +16,7 @@ public class WebAppDownPlugin : IMetaAgentWebAppDownPlugin
     private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
     private readonly ArmHelper _armHelper;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public WebAppDownPlugin(
         DurableTaskClient durableTaskClient,
@@ -51,9 +51,9 @@ public class WebAppDownPlugin : IMetaAgentWebAppDownPlugin
     [Description("Start the workflow to mitigate and resolve the web apps that are down or slow")]
     public async Task<string> StartWebAppDownAgent(
         [Description("The list of apps to be modified")] WebAppDownInput input,
-        ThreadContext context)
+        Guid threadId)
     {
-        var instanceId = await _webAppDownAgentFactory.StartOrchestration(input, context);
+        var instanceId = await _webAppDownAgentFactory.StartOrchestration(input, threadId);
         return $"A workflow has been started to fix the apps facing slowness or downtime, the workflow instance id is: {instanceId}";
     }
 

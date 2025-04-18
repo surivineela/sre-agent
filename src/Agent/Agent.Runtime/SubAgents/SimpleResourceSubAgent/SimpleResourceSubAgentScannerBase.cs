@@ -94,7 +94,7 @@ namespace Agent.Runtime.SubAgents
             // If found any, then send a message to the messaging thread.
             if (appsInViolation.Count > 0)
             {
-                (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     $"{agentName} found issues",
                     this.MessageWhenFoundResourcesInViolation,
                     AgentTypeEnum.DTS
@@ -111,7 +111,7 @@ namespace Agent.Runtime.SubAgents
                     appsInViolation.Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
                 );
 
-                var instanceId = await _agentFactory.StartOrchestration(input, threadContext);
+                var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId);
 
                 // work around "bad grpc response 504" error
                 bool completed = false;

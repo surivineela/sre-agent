@@ -18,7 +18,7 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
     private readonly KubernetesAgentFactory _kubernetesAgentFactory;
     private readonly ILogger<KubernetesAgentPlugin> _logger;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public KubernetesAgentPlugin(
         DurableTaskClient durableTaskClient,
@@ -56,12 +56,12 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
     public async Task<string> StartKubernetesAgentWorkflow(
         [Description("The list of complete Kubernetes workloads having the issue and a description of the problem")] string input)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
-            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
-        var instanceId = await _kubernetesAgentFactory.StartOrchestration(input, Context);
-        return $"A workflow has been started to remediate Kubernetes workloads, the workflow instance id is: {instanceId}, thread id is: {Context.ThreadId}.";
+        var instanceId = await _kubernetesAgentFactory.StartOrchestration(input, ThreadId.Value);
+        return $"A workflow has been started to remediate Kubernetes workloads, the workflow instance id is: {instanceId}, thread id is: {ThreadId}.";
     }
 }
 

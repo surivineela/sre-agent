@@ -8,13 +8,7 @@ using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.SemanticKernel;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 
 namespace Agent.Runtime.MetaAgent;
 
@@ -23,7 +17,7 @@ public class AppCodeAnalysisPlugin : IMetaAgentAppCodeAnalysisPlugin
     private readonly DurableTaskClient _durableTaskClient;
     private readonly AppCodeAnalysisAgentFactory _appCodeAnalysisAgentFactory;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public AppCodeAnalysisPlugin(
         DurableTaskClient durableTaskClient,
@@ -31,9 +25,7 @@ public class AppCodeAnalysisPlugin : IMetaAgentAppCodeAnalysisPlugin
     {
         _durableTaskClient = durableTaskClient;
         _appCodeAnalysisAgentFactory = appCodeAnalysisFactory;
-
     }
-
 
     [KernelFunction("list_app_code_analysis_practice_workflow")]
     [Description("List the information of started app code analysis workflow")]
@@ -58,9 +50,9 @@ public class AppCodeAnalysisPlugin : IMetaAgentAppCodeAnalysisPlugin
     [Description("Start the workflow to resolve multiple apps with app code issues")]
     public async Task<string> StartAppCodeAnalysisAgent(
         [Description("The list of apps to be modified")] AppCodeAnalysisInput input,
-        ThreadContext context)
+        Guid threadId)
     {
-        var instanceId = await _appCodeAnalysisAgentFactory.StartOrchestration(input, context);
+        var instanceId = await _appCodeAnalysisAgentFactory.StartOrchestration(input, threadId);
         return $"A workflow has been started to fix the apps' code issues, the workflow instance id is: {instanceId}";
     }
 

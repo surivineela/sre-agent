@@ -30,6 +30,7 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<(Guid ThreadId, Guid ActionId), Action> _actions = new();
         private readonly Dictionary<(Guid ThreadId, Guid AgentContextId), AgentContext> _agentContexts = new();
         private readonly Dictionary<(Guid AgentContextId, Guid ReasoningMessageId), ReasoningMessage> _reasoningMessages = new();
+        private readonly Dictionary<Guid, AgentChatHistory> _agentChatHistories = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly ILogger<InmemoryThreadRepository> _logger;
 
@@ -419,6 +420,36 @@ namespace Agent.Data.Repositories
             }
 
             return Task.FromResult(_reasoningMessages.Remove((agentContextId, reasoningMessageId)));
+        }
+        #endregion
+
+        #region AgentContext Operations
+        public Task<AgentChatHistory> GetAgentChatHistoryAsync(Guid agentContextId)
+        {
+            _agentChatHistories.TryGetValue(agentContextId, out var agentChatHistory);
+            return Task.FromResult(agentChatHistory);
+        }
+
+        public Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+        {
+            _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
+            return Task.FromResult(agentChatHistory);
+        }
+
+        public Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+        {
+            _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
+            return Task.FromResult(agentChatHistory);
+        }
+
+        public Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId)
+        {
+            if (!_agentChatHistories.TryGetValue(agentContextId, out var agentContext))
+            {
+                return Task.FromResult(false);
+            }
+
+            return Task.FromResult(_agentChatHistories.Remove(agentContextId));
         }
         #endregion
     }

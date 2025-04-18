@@ -30,28 +30,27 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         _sinkService = sinkService;
     }
 
-    public async Task UpdateThreadWithAgentMessageAsync(ThreadContext? threadContext, string orchestrationInstanceId, ChatMessage message)
+    public async Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message)
     {
-        var threadId = threadContext?.ThreadId.ToString() ?? string.Empty;
         if (!string.IsNullOrEmpty(orchestrationInstanceId))
         {
-            await _mappingManager.AddMappingAsync(threadId, orchestrationInstanceId);
+            await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
         }
         _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
 
-        await _sinkService.SinkAgentMessageAsync(threadContext, message.Text ?? string.Empty);
+        await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty);
     }
 
-    public async Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message)
+    public async Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
     {
-        if (threadContext == null || threadContext.ThreadId == Guid.Empty)
+        if (threadId == Guid.Empty)
         {
-            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadContext));
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
         }
 
         // Use SinkService to add the image message
-        return await _sinkService.SinkAgentMessageAsync(threadContext, message, true);
+        return await _sinkService.SinkAgentMessageAsync(threadId, message, true);
     }
 
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)

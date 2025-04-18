@@ -50,13 +50,13 @@ public sealed class SqlDbQueryPerfAgentFactory
 
     public async Task<string> StartOrchestration(
        string azSqlDbResourceId,
-       ThreadContext context)
+       Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewSqlDbQueryPerfAgentInstanceAsync(
             new SqlDbQueryPerfAgentInput(
                 AzSqlDbResourceId: azSqlDbResourceId,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

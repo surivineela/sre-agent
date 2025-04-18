@@ -16,7 +16,7 @@ public class OrchestrationAgentCompleteStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentCompleteStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
 
         agent.Done = true;
 
@@ -30,7 +30,7 @@ public class OrchestrationAgentCompleteStep : OrchestrationAgentStep
 
         // Call the communication activity
         await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
-            ThreadContext: agent.ThreadContext,
+            ThreadId: agent.ThreadId,
             InstanceId: context.InstanceId,
             Message: message
         ));

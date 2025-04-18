@@ -11,10 +11,10 @@ namespace Agent.Runtime.SubAgents
     /// <param name="ActivityInput">The input required by the agent's plan/act phase</param>
     /// <param name="ToolSignatures">The tools it needs to do its thing</param>
     /// <param name="ThreadId">The conversation thread to which this applies</param>
-    public abstract record SimpleResourceSubAgentInput<TActivityInput>(TActivityInput ActivityInput, IReadOnlyList<string> ToolSignatures, ThreadContext Context)
+    public abstract record SimpleResourceSubAgentInput<TActivityInput>(TActivityInput ActivityInput, IReadOnlyList<string> ToolSignatures, Guid ThreadId)
         where TActivityInput : SimpleResourceSubAgentActivityInput, new()
     {
-        public SimpleResourceSubAgentInput() : this(new TActivityInput(), new List<string>(), new ThreadContext(Guid.Empty, AgentTypeEnum.DTS))
+        public SimpleResourceSubAgentInput() : this(new TActivityInput(), new List<string>(), Guid.Empty)
         {
         }
     }
@@ -56,8 +56,8 @@ namespace Agent.Runtime.SubAgents
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.Context,
-                log);
+                log,
+                agentInput.ThreadId);
 
             return "success";
         }

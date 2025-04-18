@@ -179,13 +179,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             PersistScreenshot("SreDashboard", screenshot);
 
             var initialMessage = $"{conciseSummary}\n\n" + $"**I created this dashboard for you to give an overview : [SRE Agent Resource Dashboard]({dashboardUrl})**\n\n";
-            (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+            (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
                 initialMessage,
                 agentTypeEnum: AgentTypeEnum.DTS);
 
             // Append the screenshot as separate message, this message will be excluded from the chat history to LLM due to token limitation.
-            await _agentInboundCommunicationService.AppendAgentImageMessage(threadContext, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
+            await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Id, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
 
             // Prepare the input for the agent
             var input = new DailyReportSummaryInput
@@ -196,7 +196,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             };
 
             // Start the agent orchestration
-            var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, threadContext);
+            var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, agentContext.ThreadId);
 
             _logger.LogInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
 

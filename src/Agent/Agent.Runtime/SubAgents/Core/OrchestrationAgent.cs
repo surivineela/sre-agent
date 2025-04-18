@@ -16,7 +16,6 @@ namespace Agent.Runtime.SubAgents.Core;
 public class OrchestrationAgent
 {
     private readonly TaskOrchestrationContext _taskOrchestrationContext;
-    public ThreadContext ThreadContext { get; private set; }
     public List<ChatMessage> ChatHistory { get; private set; }
     public IReadOnlyList<string> ToolSignatures { get; private set; }
     public CancellationTokenSource WaitTokenSource { get; set; } = new CancellationTokenSource();
@@ -25,6 +24,7 @@ public class OrchestrationAgent
     public bool ResponseFromUserIsPending { get; set; } = false;
     public List<Task<ChatMessage>> Pending202Activities { get; set; } = new();
     public ApprovalStatus? ApprovalStatus { get; set; } = null;
+    public Guid ThreadId { get; set; }
 
     public Task<ChatMessage> _newMessageTask;
     private ILogger log;
@@ -33,14 +33,14 @@ public class OrchestrationAgent
 
     public OrchestrationAgent(
         TaskOrchestrationContext taskOrchestrationContext,
-        ThreadContext threadContext,
         List<ChatMessage> initialContext,
-        IReadOnlyList<string> toolSignatures)
+        IReadOnlyList<string> toolSignatures,
+        Guid threadId)
     {
         _taskOrchestrationContext = taskOrchestrationContext;
-        this.ThreadContext = threadContext;
         this.ChatHistory = initialContext;
         this.ToolSignatures = toolSignatures;
+        this.ThreadId = threadId;
 
         log = taskOrchestrationContext.CreateReplaySafeLogger<OrchestrationAgent>();
         _newMessageTask = _taskOrchestrationContext.WaitForExternalEvent<ChatMessage>("NewChatMessage");
@@ -49,12 +49,12 @@ public class OrchestrationAgent
     // we can remove the generic args once we have derived classes inherit from this rather than generic agent orchestrator
     public async Task RunReasoningLoop<TInput, TResult>(GenericAgentOrchestrator<TInput, TResult> genericAgentOrchestrator)
     {
-        log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", this.ThreadContext.ThreadId);
+        log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", this.ThreadId);
 
         while (!Done)
         {
             StepCount += 1;
-            log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", this.ThreadContext.ThreadId, StepCount);
+            log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", this.ThreadId, StepCount);
 
             UpdateOrchestrationStatus();
             await WaitIfNecessary();
@@ -68,7 +68,7 @@ public class OrchestrationAgent
 
     public async Task DoReasoningStep()
     {
-        string threadId = this.ThreadContext.ThreadId.ToString();
+        string threadId = this.ThreadId.ToString();
 
         // Get the next action from the derived implementation
         var reasoningResult = await _taskOrchestrationContext.CallActivityAsync<AgentReasoningResult>(new TaskName(nameof(AgentReasoningActivity)), new GetNextActionInput
@@ -161,7 +161,7 @@ public class OrchestrationAgent
     public async Task WaitIfNecessary()
     {
         OrchestrationAgent agent = this;
-        string threadId = this.ThreadContext.ThreadId.ToString();
+        string threadId = this.ThreadId.ToString();
 
 
         // If there's an active wait task, the agent is not driving the task forward.
@@ -209,7 +209,7 @@ public class OrchestrationAgent
 
     public async Task Process202Activities()
     {
-        string threadId = this.ThreadContext.ThreadId.ToString();
+        string threadId = this.ThreadId.ToString();
 
         // Process finished 202 activities
         var notCompleted202 = new List<Task<ChatMessage>>();
@@ -239,10 +239,10 @@ public class OrchestrationAgent
         {
             // TODO: error handling
             var newMessage = await _newMessageTask;
-            log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", this.ThreadContext.ThreadId, newMessage.ToString());
+            log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", this.ThreadId, newMessage.ToString());
 
             // this is hacky - need to decide whether to move customized behavior into derived types of OrchestrationAgent or keep them on the orchestrator
-            await genericAgentOrchestrator.OnUserMessage(_taskOrchestrationContext, this.ThreadContext, this.ChatHistory, newMessage);
+            await genericAgentOrchestrator.OnUserMessage(_taskOrchestrationContext, this.ChatHistory, newMessage);
 
             _newMessageTask = _taskOrchestrationContext.WaitForExternalEvent<ChatMessage>("NewChatMessage");
 
@@ -253,7 +253,7 @@ public class OrchestrationAgent
 
     public async Task ProcessCompletion()
     {
-        string threadId = this.ThreadContext.ThreadId.ToString();
+        string threadId = this.ThreadId.ToString();
 
         log.LogInformation("[{ThreadId}] Reasoning loop completed. Notifying user", threadId);
         // Notify completion when done - use explicit call to activity

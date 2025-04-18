@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -20,7 +20,7 @@ public class ManagedIdentityMigrationPlugin : IMetaAgentManagedIdentityMigration
     private readonly ManagedIdentityMigrationAgentFactory _managedIdentityMigrationAgentFactory;
     private readonly ILogger<ManagedIdentityMigrationPlugin> _logger;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
 
     public ManagedIdentityMigrationPlugin(
@@ -58,11 +58,11 @@ public class ManagedIdentityMigrationPlugin : IMetaAgentManagedIdentityMigration
     public async Task<string> StartManagedIdentityMigrationAgent(
         [Description("The list of apps to be migrated")] ManagedIdentityMigrationInput input)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
-            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
-        var instanceId = await _managedIdentityMigrationAgentFactory.StartOrchestration(input, Context);
+        var instanceId = await _managedIdentityMigrationAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to migrate managed identity, the workflow instance id is: {instanceId}";
     }
 }

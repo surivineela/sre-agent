@@ -29,6 +29,10 @@ using Agent.Core;
 using Agent.Core.Models.Api.v1;
 using Agent.Tests.Integration.Helpers;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;
+using Newtonsoft.Json;
+using OpenAI.Chat;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Tests.Integration;
 
@@ -142,14 +146,19 @@ public class MetaAgentTests : IAsyncLifetime
 
         var message = new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, "hello", "User"), $"Help me to apply tls best practice. Here are my apps: {JsonSerializer.Serialize(_testApps)}, I want to upgrade TLS version to 1.2");
         var threadGuid = Guid.NewGuid();
-        var context = new ThreadContext(threadGuid, AgentTypeEnum.Meta);
+
+        var chatMessage = new ChatMessage(ChatRole.User, message.Text);
+        var agentContext = new AgentContext(Guid.NewGuid(), threadGuid, AgentTypeEnum.Meta);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(chatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
+
         // generate threadId for this background task   
         var threadId = threadGuid.ToString();
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
-        var resp = await metaAgent.ProcessUserMessage(threadGuid, context);
+        var resp = await metaAgent.ProcessUserMessageAsync(agentContext, agentChatHistory);
 
         var tlsOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
         {
@@ -178,13 +187,16 @@ public class MetaAgentTests : IAsyncLifetime
         var message = new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.User, "hello", "User"), $"Help me to apply best practices for app reliability. Here are my apps: {JsonSerializer.Serialize(_testApps2)}, I want to upgrade the AlwaysOn to true, HealthCheck to true, AutoHeal to true, and NumberOfWorkers to 3");
         // generate threadId for this background task
         var threadId = Guid.NewGuid(); ;
-        var context = new ThreadContext(threadId, AgentTypeEnum.Meta);
+        var chatMessage = new ChatMessage(ChatRole.User, message.Text);
+        var agentContext = new AgentContext(Guid.NewGuid(), threadId, AgentTypeEnum.Meta);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(chatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
         var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
 
-        var resp = await metaAgent.ProcessUserMessage(threadId, context);
+        var resp = await metaAgent.ProcessUserMessageAsync(agentContext, agentChatHistory);
 
         var relOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
         {

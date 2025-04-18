@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using System.Threading.Tasks;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -9,8 +11,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
 using Kusto.Data.Common.Impl;
 using Microsoft.Extensions.AI;
-using Newtonsoft.Json;
-using Octokit;
 
 namespace Agent.Runtime.SubAgents
 {
@@ -34,83 +34,62 @@ namespace Agent.Runtime.SubAgents
             _isConcludingThreadAfterOpeningMessages = isConcludingThreadAfterOpeningMessages;
         }
 
-        public void InitChatHistoryFromMessageQueue(Queue<Message> messages)
+        public async Task InitChatHistoryFromMessageQueueAsync(AgentChatHistory agentChatHistory)
         {
-            foreach (var message in messages)
+            var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_repository);
+            var chatMessages = reasoningMessages.GetChatMessages();
+            
+            foreach (var message in chatMessages)
             {
-                if (message.Author.Role == Role.User)
-                {
-                    ChatHistory.Add(new(ChatRole.User, message.Text));
-                }
-                else if (message.Author.Role == Role.SREAgent)
-                {
-                    ChatHistory.Add(new(ChatRole.Assistant, message.Text));
-                }
-                else if (message.Author.Role == Role.System)
-                {
-                    ChatHistory.Add(new(ChatRole.System, message.Text));
-                }
+                ChatHistory.Add(message);
             }
         }
 
-        public virtual async Task PrepareAgentForUserInput(Guid agentContextId, ThreadContext threadContext)
+        public virtual async Task PrepareAgentForUserInput(AgentContext agentContext)
         {
-            this.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
+            var agentChatHistory = await _repository.GetAgentChatHistoryAsync(agentContext.Id);
+            await this.InitChatHistoryFromMessageQueueAsync(agentChatHistory);
 
-            await this.PrepareAgentForUserInput();
-            var messagesToAddToChatHistory = this.GetUserVisibleChatHistory();
-            foreach (var messageToAddToChatHistory in this.ChatHistory)
-            {
-                await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            var startingMessages = await this.PrepareAgentForUserInput();
+            foreach (var messageToAddToChatHistory in startingMessages)
+            { 
+                var reasoningMessage = new ReasoningMessage(
                     Id: Guid.NewGuid(),
-                    AgentContextId: agentContextId,
+                    AgentContextId: agentContext.Id,
                     Role: messageToAddToChatHistory.Role.GetReasoningMessageRole(),
-                    SerializedChatMessage: JsonConvert.SerializeObject(messageToAddToChatHistory)));
+                    SerializedChatMessage: JsonSerializer.Serialize(messageToAddToChatHistory));
+                await _repository.CreateReasoningMessageAsync(reasoningMessage);
+
+                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
 
                 if (messageToAddToChatHistory.Role == ChatRole.User)
                 {
-                    await _sinkService.SinkUserMessageAsync(threadContext, messageToAddToChatHistory.Text);
+                    await _sinkService.SinkUserMessageAsync(messageToAddToChatHistory.Text, agentContext.ThreadId);
                 }
-                else if (messageToAddToChatHistory.Role == ChatRole.Assistant)
+                else if (messageToAddToChatHistory.Role == ChatRole.Assistant && !string.IsNullOrEmpty(messageToAddToChatHistory.Text))
                 {
-                    await _sinkService.SinkAgentMessageAsync(threadContext, messageToAddToChatHistory.Text);
-                }
-                else
-                {
-                    await _sinkService.SinkSystemMessageAsync(threadContext, messageToAddToChatHistory.Text);
+                    await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, messageToAddToChatHistory.Text);
                 }
             }
 
-            if (_isConcludingThreadAfterOpeningMessages)
-            {
-                threadContext.ConcludeThreadContext();
-                await _repository.UpdateThreadContextAsync(threadContext);
-            }
+            await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
         }
 
-        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId, ThreadContext threadContext, string question)
+        public virtual async Task<string> DoWork(AgentContext agentContext, AgentChatHistory agentChatHistory, string question)
         {
-            InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
+            InitChatHistoryFromMessageQueueAsync(agentChatHistory);
 
-            (var agentResponse, var responseReasoningMessages) = await base.DoWork(agentContextId, question);
+            (var agentResponse, var responseReasoningMessages) = await base.DoWork(agentContext.Id, question);
 
             foreach (var reasoningMessage in responseReasoningMessages)
             {
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
+                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
             }
 
-            ChatHistory.Add(new ChatMessage(ChatRole.User, "Answering only with \"yes\" or \"no\", is this thread complete?"));
-            var response = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
+            await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
 
-            bool isComplete = response.Text.Contains("yes", StringComparison.OrdinalIgnoreCase);
-
-            if (isComplete)
-            {
-                threadContext.ConcludeThreadContext();
-                await _repository.UpdateThreadContextAsync(threadContext);
-            }
-
-            return (agentResponse, responseReasoningMessages);
+            return agentResponse;
         }
     }
 }

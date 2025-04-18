@@ -21,7 +21,7 @@ namespace Agent.Plugins
         private readonly ILogger? _logger;
         private readonly IAgentOutboundCommunicationService? _outboundService;
 
-        public ThreadContext? Context { get; set; }
+        public Guid? ThreadId { get; set; }
 
         public ChartPlugin(ILogger<ChartPlugin>? logger, IAgentOutboundCommunicationService outboundService)
         {
@@ -266,9 +266,9 @@ namespace Agent.Plugins
             string description,
             string errorContext)
         {
-            if (Context == null)
+            if (ThreadId == null)
             {
-                _logger?.LogWarning("Context is null while posting the chart.");
+                _logger?.LogWarning("ThreadId is null while posting the chart.");
                 return "ERROR: Context is null.";
             }
             try
@@ -279,7 +279,7 @@ namespace Agent.Plugins
                     return "ERROR: Chart generation returned an empty image.";
                 }
 
-                var threadId = Context?.ThreadId.ToString();
+                var threadId = ThreadId.ToString();
                 if (string.IsNullOrEmpty(threadId))
                 {
                     return "ERROR: No thread ID available for posting the chart.";
@@ -291,7 +291,7 @@ namespace Agent.Plugins
                 {
                     base64Image = $"data:image/png;base64,{base64Image}";
                 }
-                await _outboundService.AppendAgentImageMessage(Context, $"![Chart Graph]({base64Image})\r\n");
+                await _outboundService.AppendAgentImageMessage(ThreadId.Value, $"![Chart Graph]({base64Image})\r\n");
 
                 return $"Successfully generated the chart, image description: {description}";
             }

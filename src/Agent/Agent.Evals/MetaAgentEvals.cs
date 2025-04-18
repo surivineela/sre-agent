@@ -13,7 +13,9 @@ using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Text.Json;
 using Moq;
+using Microsoft.Extensions.Azure;
 
 namespace Agent.Evals;
 
@@ -180,6 +182,15 @@ public class MetaAgentEvals
         mockThreadRepository.Setup(x => x.GetMessagesAsync(It.IsAny<Guid>(), It.IsAny<ODataQueryOptions>()))
             .ReturnsAsync(threadMsgs);
 
+        var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
+
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
+
+        mockThreadRepository.Setup(x => x.GetReasoningMessageAsync(reasoningMessage.Id, reasoningMessage.AgentContextId))
+            .ReturnsAsync(reasoningMessage);
+
         var sinkService = new SinkService(
             Mock.Of<IThreadRepository>(),
             Mock.Of<ILogger<SinkService>>());
@@ -286,14 +297,15 @@ public class MetaAgentEvals
         mockGraphDbPlugin.Setup(x => x.GetResourceDetailedProperties(It.IsAny<string>())).
             ReturnsAsync(new Dictionary<string, object>());
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.User, userMsg)
+            userChatMessage
         };
+
         var context = new ThreadContext(Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
-        var result = await agent.ProcessUserMessage(agentContextId: Guid.Parse(testRunGuid), context);
+        var result = await agent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
 
         Console.WriteLine($"Agent responds: {result}");
 
@@ -337,6 +349,15 @@ public class MetaAgentEvals
         mockThreadRepository.Setup(x => x.GetMessagesAsync(It.IsAny<Guid>(), It.IsAny<ODataQueryOptions>()))
             .ReturnsAsync(threadMsgs);
 
+        var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
+
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
+
+        mockThreadRepository.Setup(x => x.GetReasoningMessageAsync(reasoningMessage.Id, reasoningMessage.AgentContextId))
+            .ReturnsAsync(reasoningMessage);
+
         var sinkService = new SinkService(
             Mock.Of<IThreadRepository>(),
             Mock.Of<ILogger<SinkService>>());
@@ -351,14 +372,13 @@ public class MetaAgentEvals
         mockGraphDbPlugin.Setup(x => x.GetKnowledgeGraphResourceUsageDashboard())
             .Returns("https://agent-report-ate4c2fvbcf5epds.eus2.grafana.azure.com/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m");
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.User, userMsg)
+            userChatMessage
         };
-        var context = new ThreadContext(Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
-        var result = await agent.ProcessUserMessage(agentContextId: Guid.Parse(testRunGuid), context);
+        var result = await agent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
 
         Console.WriteLine($"Agent responds: {result}");
 
@@ -402,6 +422,15 @@ public class MetaAgentEvals
         mockThreadRepository.Setup(x => x.GetMessagesAsync(It.IsAny<Guid>(), It.IsAny<ODataQueryOptions>()))
             .ReturnsAsync(threadMsgs);
 
+        var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
+
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
+
+        mockThreadRepository.Setup(x => x.GetReasoningMessageAsync(reasoningMessage.Id, reasoningMessage.AgentContextId))
+            .ReturnsAsync(reasoningMessage);
+
         var sinkService = new SinkService(
             Mock.Of<IThreadRepository>(),
             Mock.Of<ILogger<SinkService>>());
@@ -439,14 +468,13 @@ public class MetaAgentEvals
             ]);
 
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
-            new ChatMessage(ChatRole.User, userMsg)
+            userChatMessage
         };
-        var context = new ThreadContext(Guid.Parse(testRunGuid), AgentTypeEnum.Meta);
-        var result = await agent.ProcessUserMessage(agentContextId: Guid.Parse(testRunGuid), context);
+        var result = await agent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
 
         Console.WriteLine($"Agent responds: {result}");
 

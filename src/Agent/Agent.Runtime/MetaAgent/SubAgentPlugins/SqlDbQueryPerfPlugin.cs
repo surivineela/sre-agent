@@ -11,7 +11,7 @@ public class SqlDbQueryPerfPlugin: IMetaAgentSqlDbQueryPerfPlugin
     private readonly DurableTaskClient _durableTaskClient;
     private readonly SqlDbQueryPerfAgentFactory _sqlDbQueryPerfAgentFactory;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public SqlDbQueryPerfPlugin(DurableTaskClient durableTaskClient, SqlDbQueryPerfAgentFactory sqlDbQueryPerfAgentFactory)
     {
@@ -61,14 +61,14 @@ public class SqlDbQueryPerfPlugin: IMetaAgentSqlDbQueryPerfPlugin
     public async Task<string> StartAzureSqlDbQueryPerfInvestigatorAgent(
         [Description("Arm resource id for the Azure sql db resource to investigate query performance for")] string sqlDbResourceId)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
             throw new InvalidOperationException("Thread context is not set. Please set the context before starting the workflow.");
         }
 
         if (!string.IsNullOrWhiteSpace(sqlDbResourceId) && sqlDbResourceId.IndexOf("/providers/Microsoft.Sql/servers/", StringComparison.OrdinalIgnoreCase) > -1 && sqlDbResourceId.IndexOf("/databases/", StringComparison.OrdinalIgnoreCase) > -1)
         {
-            var instanceId = await _sqlDbQueryPerfAgentFactory.StartOrchestration(sqlDbResourceId, Context);
+            var instanceId = await _sqlDbQueryPerfAgentFactory.StartOrchestration(sqlDbResourceId, ThreadId.Value);
             return $"A workflow has been started to investigate query performance issues against azure sql database: {instanceId}";
         }
         else

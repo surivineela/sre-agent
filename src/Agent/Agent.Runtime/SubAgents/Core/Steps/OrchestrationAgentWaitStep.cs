@@ -16,7 +16,7 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentWaitStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
 
         // so, the correct implementation is to grab the wait seconds argument and use that.
         // but we are still in demo mode and we dont want to actually wait 30 seconds if the model decides to do that

@@ -1,4 +1,4 @@
-﻿using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.Api.v1;
 using Agent.Runtime.SubAgents;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
@@ -20,7 +20,7 @@ public abstract class SimpleResourceSubAgentPluginBase<TAgentFactory, TAgentType
     private readonly DurableTaskClient _durableTaskClient;
     private readonly TAgentFactory _agentFactory;
     private readonly ILogger<TAgentType> _logger;
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public SimpleResourceSubAgentPluginBase(
         DurableTaskClient durableTaskClient,
@@ -73,12 +73,12 @@ public abstract class SimpleResourceSubAgentPluginBase<TAgentFactory, TAgentType
     protected async Task<string> StartAgentImplAsync(TActivityInput input)
     {
         var agentName = typeof(TAgentType).Name;
-        if (Context == null)
+        if (ThreadId == null)
         {
             throw new InvalidOperationException("ThreadContext must be set before starting orchestration.");
         }
 
-        var instanceId = await _agentFactory.StartOrchestration(input, Context);
+        var instanceId = await _agentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to for the {agentName} agent, the workflow instance id is: {instanceId}";
     }
 }

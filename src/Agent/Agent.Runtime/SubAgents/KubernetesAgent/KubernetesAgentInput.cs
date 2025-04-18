@@ -9,5 +9,5 @@ namespace Agent.Runtime.SubAgents.KubernetesAgent;
 public sealed record KubernetesAgentInput(
     string Input,
     IReadOnlyList<string> ToolSignatures,
-    ThreadContext Context);
+    Guid ThreadId);
 

@@ -39,8 +39,8 @@ public class SqlDbQueryPerfAgent: GenericAgentOrchestrator<SqlDbQueryPerfAgentIn
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.Context,
-            log);
+            log,
+            agentInput.ThreadId);
 
         return "success";
     }

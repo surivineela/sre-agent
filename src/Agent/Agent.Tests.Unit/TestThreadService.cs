@@ -47,106 +47,6 @@ public class TestThreadService
     }
 
     [Fact]
-    public async Task ToChatHistory_WithVariousMessageTypes_FiltersCorrectly()
-    {
-        // Arrange
-        var threadId = Guid.NewGuid();
-        await CreateTestThreadAsync(threadId);
-
-        // Add various message types
-        await _threadRepository.AddMessageAsync(threadId, new Message(
-            Id: Guid.NewGuid(),
-            Text: "Hello, I need help!",
-            TimeStamp: DateTime.UtcNow.AddMinutes(-5),
-            Author: new Author(Role.User, "user1", "User One"),
-            IsImageContent: false,
-            Posted: new Posted(true)
-        ));
-
-        await _threadRepository.AddMessageAsync(threadId, new Message(
-            Id: Guid.NewGuid(),
-            Text: "I'll help you with that.",
-            TimeStamp: DateTime.UtcNow.AddMinutes(-4),
-            Author: new Author(Role.SREAgent, "agent1", "SRE Agent"),
-            IsImageContent: false,
-            Posted: new Posted(true)
-        ));
-
-        await _threadRepository.AddMessageAsync(threadId, new Message(
-            Id: Guid.NewGuid(),
-            Text: "Plugin log information",
-            TimeStamp: DateTime.UtcNow.AddMinutes(-3),
-            Author: new Author(Role.PluginLog, "plugin1", "Plugin"),
-            IsImageContent: false,
-            Posted: new Posted(true)
-        ));
-
-        await _threadRepository.AddMessageAsync(threadId, new Message(
-            Id: Guid.NewGuid(),
-            Text: "Image content should be skipped",
-            TimeStamp: DateTime.UtcNow.AddMinutes(-2),
-            Author: new Author(Role.User, "user1", "User One"),
-            IsImageContent: true,
-            Posted: new Posted(true)
-        ));
-
-        await _threadRepository.AddMessageAsync(threadId, new Message(
-            Id: Guid.NewGuid(),
-            Text: "Thank you for your help!",
-            TimeStamp: DateTime.UtcNow.AddMinutes(-1),
-            Author: new Author(Role.User, "user1", "User One"),
-            IsImageContent: false,
-            Posted: new Posted(true)
-        ));
-
-        // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var chatHistory = await _threadService.ToChatHistory(threadContext);
-
-        // Assert
-        Assert.Equal(3, chatHistory.Count); // Should only include 3 messages (2 user + 1 assistant)
-
-        // Check that only User and Assistant messages are included, and images are excluded
-        Assert.Equal(ChatRole.User, chatHistory[0].Role);
-        Assert.Equal("Hello, I need help!", chatHistory[0].Text);
-
-        Assert.Equal(ChatRole.Assistant, chatHistory[1].Role);
-        Assert.Equal("I'll help you with that.", chatHistory[1].Text);
-
-        Assert.Equal(ChatRole.User, chatHistory[2].Role);
-        Assert.Equal("Thank you for your help!", chatHistory[2].Text);
-    }
-
-    [Fact]
-    public async Task ToLLMChatHistory_AddSystemPrompt_PrependedToHistory()
-    {
-        // Arrange
-        var threadId = Guid.NewGuid();
-        await CreateTestThreadAsync(threadId);
-
-        await _threadRepository.AddMessageAsync(threadId, new Message(
-            Id: Guid.NewGuid(),
-            Text: "Hello, I need help!",
-            TimeStamp: DateTime.UtcNow,
-            Author: new Author(Role.User, "user1", "User One"),
-            IsImageContent: false,
-            Posted: new Posted(true)
-        ));
-
-        string systemPrompt = "You are a helpful assistant.";
-
-        // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var chatHistory = await _threadService.ToLLMChatHistory(threadContext, systemPrompt);
-
-        // Assert
-        Assert.Equal(2, chatHistory.Count); // System prompt + user message
-        Assert.Equal(ChatRole.System, chatHistory[0].Role);
-        Assert.Equal(systemPrompt, chatHistory[0].Text);
-        Assert.Equal(ChatRole.User, chatHistory[1].Role);
-    }
-
-    [Fact]
     public async Task GetLastUserMessage_WithMultipleMessages_ReturnsLatestUserMessage()
     {
         // Arrange
@@ -181,8 +81,7 @@ public class TestThreadService
         ));
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var lastUserMessage = await _threadService.GetLastUserMessage(threadContext);
+        var lastUserMessage = await _threadService.GetLastUserMessage(threadId);
 
         // Assert
         Assert.Equal("Last user message", lastUserMessage);
@@ -205,8 +104,8 @@ public class TestThreadService
         ));
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var lastUserMessage = await _threadService.GetLastUserMessage(threadContext);
+
+        var lastUserMessage = await _threadService.GetLastUserMessage(threadId);
 
         // Assert
         Assert.Equal(string.Empty, lastUserMessage);
@@ -224,8 +123,8 @@ public class TestThreadService
         await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var result = await _threadService.GetOrchestrationInstanceId(threadContext);
+
+        var result = await _threadService.GetOrchestrationInstanceId(threadId);
 
         // Assert
         Assert.Equal(orchestrationInstanceId, result);
@@ -239,8 +138,8 @@ public class TestThreadService
         await CreateTestThreadAsync(threadId);
 
         // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var result = await _threadService.GetOrchestrationInstanceId(threadContext);
+
+        var result = await _threadService.GetOrchestrationInstanceId(threadId);
 
         // Assert
         Assert.Equal(string.Empty, result);
@@ -252,7 +151,7 @@ public class TestThreadService
         // Arrange
         var threadId = Guid.NewGuid();
         var orchestrationInstanceId = "failed-orchestration-id";
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
+
         await CreateTestThreadAsync(threadId);
 
         // Add a mapping for the thread
@@ -269,7 +168,7 @@ public class TestThreadService
         };
 
         // Act
-        var result = await _threadService.CleanOrchestration(threadContext, orchestrationInstanceId, failedOrchestration);
+        var result = await _threadService.CleanOrchestration(threadId, orchestrationInstanceId, failedOrchestration);
 
         // Assert
         Assert.True(result);
@@ -291,7 +190,7 @@ public class TestThreadService
         // Arrange
         var threadId = Guid.NewGuid();
         var orchestrationInstanceId = "completed-orchestration-id";
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
+
         await CreateTestThreadAsync(threadId);
 
         // Initial message count
@@ -308,7 +207,7 @@ public class TestThreadService
         };
 
         // Act
-        var result = await _threadService.CleanOrchestration(threadContext, orchestrationInstanceId, completedOrchestration);
+        var result = await _threadService.CleanOrchestration(threadId, orchestrationInstanceId, completedOrchestration);
 
         // Assert
         Assert.False(result);
@@ -324,7 +223,7 @@ public class TestThreadService
         // Arrange
         var threadId = Guid.NewGuid();
         var orchestrationInstanceId = "terminated-orchestration-id";
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
+
         await CreateTestThreadAsync(threadId);
 
         // Add a mapping for the thread
@@ -341,7 +240,7 @@ public class TestThreadService
         };
 
         // Act
-        var result = await _threadService.CleanOrchestration(threadContext, orchestrationInstanceId, terminatedOrchestration);
+        var result = await _threadService.CleanOrchestration(threadId, orchestrationInstanceId, terminatedOrchestration);
 
         // Assert
         Assert.True(result);
@@ -355,21 +254,6 @@ public class TestThreadService
         // Verify mapping was removed
         var mappings = await _mappingManager.GetMappingsByThreadIdAsync(threadId.ToString());
         Assert.Empty(mappings);
-    }
-
-    [Fact]
-    public async Task ToChatHistory_EmptyThread_ReturnsEmptyList()
-    {
-        // Arrange
-        var threadId = Guid.NewGuid();
-        await CreateTestThreadAsync(threadId);
-
-        // Act
-        var threadContext = new ThreadContext(threadId, AgentTypeEnum.Meta);
-        var chatHistory = await _threadService.ToChatHistory(threadContext);
-
-        // Assert
-        Assert.Empty(chatHistory);
     }
 
     // Helper method to create a test thread

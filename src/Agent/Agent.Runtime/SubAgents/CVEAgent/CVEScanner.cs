@@ -75,7 +75,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
             if (repos.Count > 0)
             {
-                (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     "CVE Scanner",
                     """
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
@@ -90,7 +90,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     _sinkService,
                     _threadRepository,
                     reposToScan: repos.Select(r => new RepoUrlStatus(r)).ToList());
-                await cveAgent.PrepareAgentForUserInput(agentContextId: agentContext.Id, threadContext);
+                await cveAgent.PrepareAgentForUserInput(agentContext: agentContext);
             }
         }
     }

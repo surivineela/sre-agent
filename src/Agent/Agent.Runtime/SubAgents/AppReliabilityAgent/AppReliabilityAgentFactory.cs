@@ -62,13 +62,13 @@ public sealed class AppReliabilityAgentFactory
 
     public async Task<string> StartOrchestration(
         AppReliabilityInput input,
-        ThreadContext context)
+        Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewAppReliabilityAgentInstanceAsync(
             new AppReliabilityAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

@@ -10,7 +10,7 @@ namespace Agent.Runtime.MetaAgent
         /// <summary>
         /// Gets or sets the thread context
         /// </summary>
-        public ThreadContext? Context { get; set; }
+        public Guid? ThreadId { get; set; }
 
         /// <summary>
         /// Lists container apps remediation workflows

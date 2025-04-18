@@ -14,7 +14,6 @@ public record AgentContextDocument(
     int AgentType
 ) : ICosmosDocument
 {
-
     public string DocumentType => "AgentContext";
     public string PartitionKey => ThreadId; // Use Thread Id as partition key
 

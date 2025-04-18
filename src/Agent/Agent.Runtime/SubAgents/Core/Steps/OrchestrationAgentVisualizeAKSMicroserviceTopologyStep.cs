@@ -12,7 +12,7 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAKSMicroserviceTopologyStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
 
         log.LogInformation("[{ThreadId}] Generating Visualization", threadId);
 

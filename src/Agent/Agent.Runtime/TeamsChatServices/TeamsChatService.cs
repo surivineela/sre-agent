@@ -25,6 +25,7 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using Attachment = Microsoft.Bot.Schema.Attachment;
 using Agent.Core.Helpers;
 using Agent.Core.Extensions;
+using System.Text.Json;
 
 namespace Agent.Runtime.TeamsChatServices;
 
@@ -292,10 +293,29 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             ModifiedTimestamp: DateTime.UtcNow
             ));
 
-        var agentContext = _threadRepository.CreateAgentContextAsync(new AgentContext(
+        var agentContext = await _threadRepository.CreateAgentContextAsync(new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: thread.Id,
             AgentType: AgentTypeEnum.Meta
+        ));
+
+        var systemPromptReasoningMessage = await _threadRepository.CreateReasoningMessageAsync(new ReasoningMessage(
+            Id: Guid.NewGuid(),
+            AgentContextId: agentContext.Id,
+            Role: ReasoningMessageRoleEnum.System,
+            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, MetaAgent.MetaAgent.SystemPrompt))
+        ));
+
+        var startReasoningMessage = await _threadRepository.CreateReasoningMessageAsync(new ReasoningMessage(
+            Id: Guid.NewGuid(),
+            AgentContextId: agentContext.Id,
+            Role: ReasoningMessageRoleEnum.User,
+            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, message.Text))
+        ));
+
+        var agentChatHistory = await _threadRepository.CreateAgentChatHistoryAsync(new AgentChatHistory(
+            AgentContextId: agentContext.Id,
+            ReasoningMessageIds: new List<Guid>{ systemPromptReasoningMessage.Id, startReasoningMessage.Id }
         ));
 
         var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);

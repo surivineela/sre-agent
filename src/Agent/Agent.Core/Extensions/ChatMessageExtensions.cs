@@ -2,10 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
-using Newtonsoft.Json;
 
 namespace Agent.Core.Extensions
 {
@@ -44,20 +44,38 @@ namespace Agent.Core.Extensions
                     Id: Guid.NewGuid(),
                     AgentContextId: agentContextId,
                     Role: GetReasoningMessageRole(message.Role),
-                    SerializedChatMessage: JsonConvert.SerializeObject(message)));
+                    SerializedChatMessage: JsonSerializer.Serialize(message)));
             }
 
             return reasoningMessages;
         }
 
-        public static async Task AddReasoningMessagesToThreadRepositoryAsync(this ChatResponse? chatResponse, IThreadRepository threadRepository, Guid agentContextId)
+        public static List<ChatMessage> GetChatMessages(this List<ReasoningMessage> reasoningMessages)
+        {
+            var chatMessages = new List<ChatMessage>();
+            foreach (var reasoningMessage in reasoningMessages)
+            {
+                var chatMessage = JsonSerializer.Deserialize<ChatMessage>(reasoningMessage.SerializedChatMessage);
+                if (chatMessage != null)
+                {
+                    chatMessages.Add(chatMessage);
+                }
+            }
+
+            return chatMessages;
+        }
+
+        public static async Task UpdateAgentChatHistoryAsync(this ChatResponse? chatResponse, AgentChatHistory agentChatHistory, IThreadRepository threadRepository, Guid agentContextId)
         {
             var reasoningMessages = chatResponse.GetReasoningMessages(agentContextId);
 
             foreach (var reasoningMessage in reasoningMessages)
             {
                 await threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
             }
+
+            await threadRepository.UpdateAgentChatHistoryAsync(agentChatHistory);
         }
 
         public static ReasoningMessageRoleEnum GetReasoningMessageRole(this ChatRole chatRole)

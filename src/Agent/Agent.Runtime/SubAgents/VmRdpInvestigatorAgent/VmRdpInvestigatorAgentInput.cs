@@ -11,4 +11,4 @@ namespace Agent.Runtime.SubAgents.RdpInvestigatorAgent;
 public sealed record VmRdpInvestigatorAgentInput(
     [Description("Full azure resource id of the Azure virtual machine resource needs to be investigated. Should restart with /subscriptions/...")] string VirtualMachineResourceId,
     [Description("Signature of a list of tools available for the agent to use")] IReadOnlyList<string> ToolSignatures,
-    [Description("Thread context")] ThreadContext Context);
+    [Description("Thread Id")] Guid ThreadId);

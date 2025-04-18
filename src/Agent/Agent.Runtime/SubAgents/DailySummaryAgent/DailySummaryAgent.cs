@@ -38,8 +38,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.Context,
-                log);
+                log,
+                agentInput.ThreadId);
 
             // Once complete, ensure the final message is sent to the thread
             /*

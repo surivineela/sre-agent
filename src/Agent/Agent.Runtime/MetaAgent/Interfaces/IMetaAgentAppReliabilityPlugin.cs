@@ -12,7 +12,7 @@ namespace Agent.Runtime.MetaAgent
         /// <summary>
         /// Gets or sets the thread context
         /// </summary>
-        public ThreadContext? Context { get; set; }
+        public Guid? ThreadId { get; set; }
 
         /// <summary>
         /// Lists app reliability workflows
@@ -26,6 +26,6 @@ namespace Agent.Runtime.MetaAgent
         /// <param name="input">The input data for the agent</param>
         /// <param name="context">The thread context</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartAppReliabilityAgent(AppReliabilityInput input, ThreadContext context);
+        Task<string> StartAppReliabilityAgent(AppReliabilityInput input, Guid threadId);
     }
 }

@@ -959,4 +959,70 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
     #endregion
+
+    #region AgentChatHistory Operations
+    public async Task<AgentChatHistory> GetAgentChatHistoryAsync(Guid agentContextId)
+    {
+        try
+        {
+            string agentContextIdStr = agentContextId.ToString();
+
+            AgentChatHistoryDocument agentChatHistoryDocument = await GetDocumentAsync<AgentChatHistoryDocument>(AgentChatHistoryDocument.GetDocumentId(agentContextIdStr), agentContextIdStr);
+
+            return agentChatHistoryDocument?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+    {
+        // Ensure IDs are set
+        if (agentChatHistory.AgentContextId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
+        await _container.CreateItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
+        return agentChatHistory;
+    }
+
+    public async Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
+    {
+        // Ensure IDs are set
+        if (agentChatHistory.AgentContextId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
+        await _container.UpsertItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
+        return agentChatHistory;
+    }
+
+    public async Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId)
+    {
+        string agentContextIdStr = agentContextId.ToString();
+
+        try
+        {
+            // Delete the message
+            await _container.DeleteItemAsync<AgentChatHistoryDocument>(
+                AgentChatHistoryDocument.GetDocumentId(agentContextIdStr),
+                new PartitionKey(agentContextIdStr)
+            );
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+    #endregion
 }

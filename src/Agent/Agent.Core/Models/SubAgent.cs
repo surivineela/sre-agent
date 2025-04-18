@@ -49,13 +49,15 @@ namespace Agent.Core.Models
 
         public abstract Task<IList<Microsoft.Extensions.AI.ChatMessage>> GetStartingMessagesAsync();
 
-        public virtual async Task PrepareAgentForUserInput()
+        public virtual async Task<IList<ChatMessage>> PrepareAgentForUserInput()
         {
             var startingMessages = await GetStartingMessagesAsync();
             foreach (var message in startingMessages)
             {
                 ChatHistory.Add(message);
             }
+
+            return startingMessages;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -18,7 +18,7 @@ public class ContainerAppsRemediationPlugin : IMetaAgentContainerAppsRemediation
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
     private readonly ILogger<ContainerAppsRemediationPlugin> _logger;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public ContainerAppsRemediationPlugin(
         DurableTaskClient durableTaskClient,
@@ -56,11 +56,11 @@ public class ContainerAppsRemediationPlugin : IMetaAgentContainerAppsRemediation
     public async Task<string> StartContainerAppsRemediationAgent(
         [Description("The list of complete Azure Resource Id of the apps having the issue and a description of the problem")] string input)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
-            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
-        var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(input, Context);
+        var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to remediate container apps, the workflow instance id is: {instanceId}";
     }
 }

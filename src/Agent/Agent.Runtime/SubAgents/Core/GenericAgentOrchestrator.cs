@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -16,18 +16,17 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         TaskOrchestrationContext context,
         List<ChatMessage> chatHistory,
         IReadOnlyList<string> toolSignatures,
-        ThreadContext threadContext,
-        ILogger log)
+        ILogger log,
+        Guid threadId)
     {
-        var agent = new OrchestrationAgent(context, threadContext, chatHistory, toolSignatures);
+        var agent = new OrchestrationAgent(context, chatHistory, toolSignatures, threadId);
         await agent.RunReasoningLoop(this);
         return agent.ChatHistory;
     }
 
 
-    internal virtual Task OnUserMessage(TaskOrchestrationContext context, ThreadContext threadContext, List<ChatMessage> chatHistory, ChatMessage userMessage)
+    internal virtual Task OnUserMessage(TaskOrchestrationContext context, List<ChatMessage> chatHistory, ChatMessage userMessage)
     {
-        chatHistory.Add(userMessage);
         return Task.CompletedTask;
     }
 

@@ -5,4 +5,4 @@ namespace Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
 public sealed record ContainerImagePullFailureAgentInput(
     string ResourceId,
     IReadOnlyList<string> ToolSignatures,
-    ThreadContext Context);
+    Guid ThreadId);

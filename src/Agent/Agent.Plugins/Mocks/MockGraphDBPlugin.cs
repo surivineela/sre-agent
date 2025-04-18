@@ -27,7 +27,7 @@ namespace Agent.Plugins.Mocks
             _containerAppsWithNodesWithoutSourceCodeNodes = containerAppsWithNodesWithoutSourceCodeNodes;
         }
 
-        public ThreadContext Context { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+        public Guid? ThreadId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
 
         public Dictionary<string, string> GetContainerAppsToSourceCodeNodeMapping()
         {

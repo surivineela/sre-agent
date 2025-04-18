@@ -71,7 +71,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
             if (appsInViolation.Count > 0)
             {
-                (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     "TLS Best Practices",
                     """
                     Hi there! I found Web Apps / Function Apps that are allowing TLS connections below the recommended minimum version. 
@@ -89,7 +89,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                     DesiredVersion = "1.2"
                 };
 
-                var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, threadContext);
+                var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, agentContext.ThreadId);
 
                 // work around "bad grpc response 504" error
                 bool completed = false;

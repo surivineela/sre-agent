@@ -60,18 +60,17 @@ public sealed class ContainerImagePullFailureAgentFactory
 
     public async Task<string> StartOrchestration(
         string resourceId,
-        ThreadContext context)
+        Guid threadId)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
-        var threadId = context.ThreadId.ToString();
 
-        await _mappingManager.AddMappingAsync(threadId, instanceId);
+        await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
 
         return await _durableTaskClient.ScheduleNewContainerImagePullFailureAgentInstanceAsync(
             new ContainerImagePullFailureAgentInput(
                 ResourceId: resourceId,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 

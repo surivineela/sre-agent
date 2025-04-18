@@ -16,7 +16,7 @@ public interface IAgentOutboundCommunicationService
     /// <summary>
     /// Updates a thread with a message from an agent
     /// </summary>
-    Task UpdateThreadWithAgentMessageAsync(ThreadContext? threadContext, string orchestrationInstanceId, ChatMessage message);
+    Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message);
     /// <summary>
     /// Notifies about agent task completion
     /// </summary>
@@ -24,6 +24,6 @@ public interface IAgentOutboundCommunicationService
 
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
-    Task<Guid> AppendAgentImageMessage(ThreadContext threadContext, string message);
+    Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
 
 }

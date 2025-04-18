@@ -38,8 +38,8 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
                     context,
                     chatHistory,
                     agentInput.ToolSignatures,
-                    agentInput.Context,
-                    log);
+                    log,
+                    agentInput.ThreadId);
 
                 return "success";
             }

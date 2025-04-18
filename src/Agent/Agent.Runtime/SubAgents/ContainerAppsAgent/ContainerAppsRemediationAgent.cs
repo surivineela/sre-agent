@@ -29,8 +29,8 @@ public class ContainerAppsRemediationAgent : GenericAgentOrchestrator<ContainerA
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.Context,
-            log);
+            log,
+            agentInput.ThreadId);
 
         return "success";
     }

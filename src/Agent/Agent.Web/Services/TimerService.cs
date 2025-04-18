@@ -576,7 +576,7 @@ public class TimerService : IHostedService, IDisposable
 
                 var title = "Azure SRE Partner Active";
 
-                (var _, var _, var threadContext)= await _agentInboundCommunicationService.CreateAgentThread(
+                (var _, var agentContext)= await _agentInboundCommunicationService.CreateAgentThread(
                                title: title,
                                message: messageBuilder.ToString(),
                                agentTypeEnum: AgentTypeEnum.Meta,
@@ -584,7 +584,7 @@ public class TimerService : IHostedService, IDisposable
                            );
 
                 var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
-                _chartPlugin.Context = threadContext;
+                _chartPlugin.ThreadId = agentContext.ThreadId;
 
                 // count number of resources
                 var totalResourceCountQuery = "g.V().dedup().by('id').count()";
@@ -677,7 +677,7 @@ public class TimerService : IHostedService, IDisposable
                     combinedDescription.AppendLine($"- **{item.Type}**: {item.Count}");
                 }
 
-                await _sinkService.SinkAgentMessageAsync(threadContext, combinedDescription.ToString());
+                await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, combinedDescription.ToString());
 
                 //// generate resource pie chart
                 //var resourceTypeCountQueryResultDataPoint = JsonConvert.SerializeObject(resourceTypeCountBreakDownQueryResult).Replace("[", "").Replace("]", "").Replace("\\", "").Replace("/", "").Replace("{", "").Replace("}", "").Replace (":", "|").Replace(",",";");

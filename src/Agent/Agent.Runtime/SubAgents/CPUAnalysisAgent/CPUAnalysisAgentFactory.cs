@@ -67,13 +67,13 @@ public sealed class CPUAnalysisAgentFactory
 
     public async Task<string> StartOrchestration(
         CPUAnalysisInput input,
-        ThreadContext context)
+        Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewCPUAnalysisAgentInstanceAsync(
             new CPUAnalysisAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

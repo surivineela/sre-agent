@@ -12,4 +12,4 @@ namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 public sealed record AppCodeAnalysisAgentInput(
     AppCodeAnalysisInput Input,
     IReadOnlyList<string> ToolSignatures,
-    ThreadContext Context);
+    Guid ThreadId);

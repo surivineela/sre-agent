@@ -35,8 +35,8 @@ namespace Agent.Runtime.SubAgents.FunctionAppConnectivityAgent
                 context,
                 chatHistory,
                 agentInput.ToolSignatures,
-                agentInput.Context,
-                log);
+                log,
+                agentInput.ThreadId);
 
             return "success";
         }

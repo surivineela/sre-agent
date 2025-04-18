@@ -10,7 +10,7 @@ using Agent.Core.Models.Api.v1;
 namespace Agent.Runtime.SubAgents.Core;
 
 public record UpdateThreadWithAgentMessageInput(
-    ThreadContext ThreadContext,
+    Guid ThreadId,
     string InstanceId,
     string Message);
 
@@ -27,7 +27,7 @@ public class UpdateThreadWithAgentMessageActivity : TaskActivity<UpdateThreadWit
     public override async Task<string> RunAsync(TaskActivityContext context, UpdateThreadWithAgentMessageInput input)
     {
         await _subAgentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-            input.ThreadContext,
+            input.ThreadId,
             input.InstanceId,
             new ChatMessage(ChatRole.Assistant, input.Message));
 

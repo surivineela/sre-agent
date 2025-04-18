@@ -17,7 +17,7 @@ namespace Agent.Plugins
         /// <summary>
         /// The current thread context for the plugin, used to identify the conversation thread when sending messages or images.
         /// </summary>
-        ThreadContext? Context { get; set; }
+        Guid? ThreadId { get; set; }
 
         /// <summary>
         /// Runs a generic query against the graph database. Enables custom Gremlin queries for advanced exploration.

@@ -28,8 +28,8 @@ public class KubernetesAgent : GenericAgentOrchestrator<KubernetesAgentInput, st
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.Context,
-            log);
+            log,
+            agentInput.ThreadId);
 
         return "success";
     }

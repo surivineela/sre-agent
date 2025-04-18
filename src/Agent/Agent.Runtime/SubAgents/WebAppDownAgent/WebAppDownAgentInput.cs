@@ -12,4 +12,4 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent;
 public sealed record WebAppDownAgentInput(
     WebAppDownInput Input,
     IReadOnlyList<string> ToolSignatures,
-    ThreadContext Context);
+    Guid ThreadId);

@@ -1,4 +1,4 @@
-﻿using Agent.Core.Models.Api.v1;
+using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
@@ -45,12 +45,12 @@ namespace Agent.Runtime.SubAgents
 
         public string OrchestrationInstanceIdPrefix => typeof(TAgentType).Name;
 
-        public async Task<string> StartOrchestration(TActivityInput input, ThreadContext context)
+        public async Task<string> StartOrchestration(TActivityInput input, Guid threadId)
         {
             var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
-            var threadId = context.ThreadId.ToString();
+            var threadIdStr = threadId.ToString();
 
-            await mappingManager.AddMappingAsync(threadId, instanceId);
+            await mappingManager.AddMappingAsync(threadIdStr, instanceId);
 
             // Generate the tool signatures from the supplied lambdas
             var toolSignatures = GetToolList()
@@ -61,7 +61,6 @@ namespace Agent.Runtime.SubAgents
             {
                 ActivityInput = input,
                 ToolSignatures = toolSignatures,
-                Context = context
             };
 
             return await durableTaskClient.ScheduleNewOrchestrationInstanceAsync(

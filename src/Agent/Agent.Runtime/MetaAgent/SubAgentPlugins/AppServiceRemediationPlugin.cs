@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -18,7 +18,7 @@ public class AppServiceRemediationPlugin : IMetaAgentAppServiceRemediationPlugin
     private readonly AppServiceRemediationAgentFactory _appServiceRemediationAgentFactory;
     private readonly ILogger<AppServiceRemediationPlugin> _logger;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public AppServiceRemediationPlugin(
         DurableTaskClient durableTaskClient,
@@ -35,6 +35,7 @@ public class AppServiceRemediationPlugin : IMetaAgentAppServiceRemediationPlugin
     public async Task<IReadOnlyList<WorkflowMetadata<AppServiceRemediationInput>>> ListAppServiceRemediationWorkflows()
     {
         var list = new List<WorkflowMetadata<AppServiceRemediationInput>>();
+
         await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
             new OrchestrationQuery(
                 InstanceIdPrefix: AppServiceRemediationAgentFactory.OrchestrationInstanceIdPrefix,
@@ -56,11 +57,11 @@ public class AppServiceRemediationPlugin : IMetaAgentAppServiceRemediationPlugin
     public async Task<string> StartAppServiceRemediationAgent(
         [Description("The list of complete Azure Resource Id of the app service apps or function apps")] AppServiceRemediationInput input)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
-            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
-        var instanceId = await _appServiceRemediationAgentFactory.StartOrchestration(input, Context);
+        var instanceId = await _appServiceRemediationAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to remediate app service, the workflow instance id is: {instanceId}";
     }
 }

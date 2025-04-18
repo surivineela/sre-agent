@@ -8,7 +8,7 @@ namespace Agent.Runtime.MetaAgent
     /// </summary>
     public interface IMetaAgentAppCodeAnalysisPlugin
     {
-        public ThreadContext? Context { get; set; }
+        public Guid? ThreadId { get; set; }
 
         /// <summary>
         /// Lists app code analysis workflows
@@ -22,6 +22,6 @@ namespace Agent.Runtime.MetaAgent
         /// <param name="input">The input data for the agent</param>
         /// <param name="context">The thread context</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartAppCodeAnalysisAgent(AppCodeAnalysisInput input, ThreadContext context);
+        Task<string> StartAppCodeAnalysisAgent(AppCodeAnalysisInput input, Guid threadId);
     }
 }

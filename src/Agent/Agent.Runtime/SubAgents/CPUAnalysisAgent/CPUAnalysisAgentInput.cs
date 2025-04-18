@@ -12,7 +12,7 @@ namespace Agent.Runtime.SubAgents.CPUAnalysisAgent;
 public sealed record CPUAnalysisAgentInput(
     CPUAnalysisInput Input,
     IReadOnlyList<string> ToolSignatures,
-    ThreadContext Context);
+    Guid ThreadId);
 
 
 public class CPUAnalysisInput

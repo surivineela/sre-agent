@@ -54,13 +54,13 @@ public sealed class VmRdpInvestigatorAgentFactory
 
     public async Task<string> StartOrchestration(
        string virtualMachineResourceId,
-       ThreadContext context)
+       Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewVmRdpInvestigatorAgentInstanceAsync(
             new VmRdpInvestigatorAgentInput(
                 VirtualMachineResourceId: virtualMachineResourceId,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

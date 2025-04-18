@@ -212,7 +212,7 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid(), AgentTypeEnum.DTS));
+                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
                 await DoApproval(instanceID, tokenSource);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);

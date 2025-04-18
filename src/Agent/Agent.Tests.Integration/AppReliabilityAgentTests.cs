@@ -179,11 +179,10 @@ namespace Agent.Tests.Integration
             var input = new AppReliabilityInput { AppsInViolation = _testApps };
             string? instanceID = "";
             var guid = Guid.NewGuid();
-            var context = new ThreadContext(guid, AgentTypeEnum.DTS);
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, context);
+                instanceID = await _agentFactory.StartOrchestration(input, guid);
 
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 await Helper.DoApproval(
@@ -230,11 +229,10 @@ namespace Agent.Tests.Integration
             var input = new AppReliabilityInput { AppsInViolation = _testApps };
             string? instanceID = "";
             var guid = Guid.NewGuid();
-            var context = new ThreadContext(guid, AgentTypeEnum.DTS);
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, context);
+                instanceID = await _agentFactory.StartOrchestration(input, guid);
                 await Helper.DoApproval(
                     _durableTaskClient,
                     _timeProvider,
@@ -283,11 +281,10 @@ namespace Agent.Tests.Integration
             var input = new AppReliabilityInput { AppsInViolation = _testApps };
             string? instanceID = "";
             var guid = Guid.NewGuid();
-            var context = new ThreadContext(guid, AgentTypeEnum.DTS);
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, context);
+                instanceID = await _agentFactory.StartOrchestration(input, guid);
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new Microsoft.Extensions.AI.ChatMessage
                 (

@@ -12,7 +12,7 @@ public interface IMetaAgentSqlDbQueryPerfPlugin
     /// <summary>
     /// Gets or sets the thread context
     /// </summary>
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     /// <summary>
     /// Lists Azure SQL DB Query Perf investigator workflows

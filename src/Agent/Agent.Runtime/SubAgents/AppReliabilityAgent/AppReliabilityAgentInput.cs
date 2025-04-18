@@ -12,4 +12,4 @@ namespace Agent.Runtime.SubAgents.AppReliabilityAgent;
 public sealed record AppReliabilityAgentInput(
     AppReliabilityInput Input,
     IReadOnlyList<string> ToolSignatures,
-    ThreadContext Context);
+    Guid ThreadId);

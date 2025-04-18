@@ -11,7 +11,7 @@ public class FunctionAppConnectivityPlugin : IMetaAgentFunctionAppConnectivityPl
     private readonly DurableTaskClient _durableTaskClient;
     private readonly FunctionAppConnectivityAgentFactory _functionAppConnectivityAgentFactory;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public FunctionAppConnectivityPlugin(
         DurableTaskClient durableTaskClient,
@@ -26,12 +26,12 @@ public class FunctionAppConnectivityPlugin : IMetaAgentFunctionAppConnectivityPl
     public async Task<string> StartFunctionAppConnectivityAgent(
         [Description("Inputs to the agent that includes arm resource id for the Function app to investigate, a list of tools and thread context.")] FunctionAppConnectivityAgentInput input)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
             throw new InvalidOperationException("Thread context is not set. Please set the context before starting the workflow.");
         }
 
-        var instanceId = await _functionAppConnectivityAgentFactory.StartOrchestration(input, Context);
+        var instanceId = await _functionAppConnectivityAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to check connectivity from Function app to the target destination: {instanceId}";
     }
 }

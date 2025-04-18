@@ -13,7 +13,7 @@ public class VmRdpInvestigatorPlugin : IMetaAgentVmRdpInvestigatorPlugin
     private readonly DurableTaskClient _durableTaskClient;
     private readonly VmRdpInvestigatorAgentFactory _vmRdpInvestigatorAgentFactory;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public VmRdpInvestigatorPlugin(
         DurableTaskClient durableTaskClient,
@@ -62,12 +62,12 @@ public class VmRdpInvestigatorPlugin : IMetaAgentVmRdpInvestigatorPlugin
     public async Task<string> StartVMRdpInvestigatorAgent(
         [Description("Arm resource id for the VM to investigate RDP failure for")] string virtualMachineResourceId)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
             throw new InvalidOperationException("Thread context is not set. Please set the context before starting the workflow.");
         }
 
-        var instanceId = await _vmRdpInvestigatorAgentFactory.StartOrchestration(virtualMachineResourceId, Context);
+        var instanceId = await _vmRdpInvestigatorAgentFactory.StartOrchestration(virtualMachineResourceId, ThreadId.Value);
         return $"A workflow has been started to investigate RDP failures to VM: {instanceId}";
     }
 }

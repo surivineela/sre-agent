@@ -15,7 +15,7 @@ public class CPUAnalysisPlugin : IMetaAgentCPUAnalysisPlugin
     private readonly CPUAnalysisAgentFactory _cpuAnalysisAgentFactory;
     private readonly ArmHelper _armHelper;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public CPUAnalysisPlugin(
         DurableTaskClient durableTaskClient,
@@ -50,9 +50,9 @@ public class CPUAnalysisPlugin : IMetaAgentCPUAnalysisPlugin
     [Description("Start the workflow to resolve multiple apps with high CPU.")]
     public async Task<string> StartCPUAnalysisAgent(
         [Description("The list of apps to be modified")] CPUAnalysisInput input,
-        ThreadContext context)
+        Guid threadId)
     {
-        var instanceId = await _cpuAnalysisAgentFactory.StartOrchestration(input, context);
+        var instanceId = await _cpuAnalysisAgentFactory.StartOrchestration(input, threadId);
         return $"A workflow has been started to adopt best reliability practice, the workflow instance id is: {instanceId}";
     }
 }

@@ -27,8 +27,8 @@ public class ContainerImagePullFailureAgent : GenericAgentOrchestrator<Container
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.Context,
-            log);
+            log,
+            agentInput.ThreadId);
 
         log.LogInformation("Completed Container App Image Pull Failure investigation for resource: {ResourceId}",
             agentInput.ResourceId);

@@ -102,7 +102,7 @@ namespace Agent.Web.Controllers.v1
                 InstanceIdPrefix = "approval"
             }).ToListAsync();
 
-            ThreadContext? threadContext = null;
+            AgentContext? agentContext = null;
             var orchestrationId = "";
             foreach (var orchestration in runningApprovalOrchestrations)
             {
@@ -117,7 +117,8 @@ namespace Agent.Web.Controllers.v1
 
                             if (approvalInput != null && approvalInput.ApprovalId.Equals(id, StringComparison.OrdinalIgnoreCase))
                             {
-                                threadContext = await _threadRepository.GetThreadContextAsync(Guid.Parse(approvalInput.ThreadId));
+                                var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(Guid.Parse(approvalInput.ThreadId));
+                                agentContext = agentContexts.FirstOrDefault();
                                 orchestrationId = approvalInput.ParentInstanceId;
                                 break;
                             }
@@ -141,7 +142,7 @@ namespace Agent.Web.Controllers.v1
 
             string oboToken = "placeholder"; // TODO: Get OBO token from request or context
 
-            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, threadContext, orchestrationId, oboToken);
+            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, agentContext.ThreadId, orchestrationId, oboToken);
             return Ok();
         }
 

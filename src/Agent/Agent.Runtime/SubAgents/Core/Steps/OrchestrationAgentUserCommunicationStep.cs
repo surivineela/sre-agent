@@ -18,7 +18,7 @@ public class OrchestrationAgentUserCommunicationStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentUserCommunicationStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
 
         if (FunctionCall.Name == nameof(ControlFlowPluginDefinition.AskUserForInput))
         {
@@ -44,7 +44,7 @@ public class OrchestrationAgentUserCommunicationStep : OrchestrationAgentStep
 
         // Call the communication activity
         await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
-            ThreadContext: agent.ThreadContext,
+            ThreadId: agent.ThreadId,
             InstanceId: context.InstanceId,
             Message: message
         ));

@@ -60,13 +60,13 @@ public sealed class WebAppDownAgentFactory
 
     public async Task<string> StartOrchestration(
         WebAppDownInput input,
-        ThreadContext context)
+        Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewWebAppDownAgentInstanceAsync(
             new WebAppDownAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

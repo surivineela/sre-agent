@@ -15,7 +15,7 @@ public class ContainerImageTroubleshooterPlugin : IMetaAgentContainerImageTroubl
     private readonly ILogger<ContainerImageTroubleshooterPlugin> _logger;
     private readonly ContainerImagePullFailureAgentFactory _containerImagePullFailureAgentFactory;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public ContainerImageTroubleshooterPlugin(
         DurableTaskClient durableTaskClient,
@@ -53,13 +53,13 @@ public class ContainerImageTroubleshooterPlugin : IMetaAgentContainerImageTroubl
         [Description("Resource ID of the affected Linux/Container App.")]
         string resourceId)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
-            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
         var instanceId = await _containerImagePullFailureAgentFactory.StartOrchestration(
             resourceId,
-            Context);
+            ThreadId.Value);
 
         return $"A specialized Linux App/Container Apps image pull investigation workflow has been started to diagnose and fix your image pull failures. The workflow instance ID is: {instanceId}";
     }

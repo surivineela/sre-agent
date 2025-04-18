@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -82,18 +82,16 @@ public sealed class ContainerAppsRemediationAgentFactory
 
     public async Task<string> StartOrchestration(
         string input,
-        ThreadContext context)
+        Guid threadId)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-        var threadId = context.ThreadId.ToString();
-
-        await _mappingManager.AddMappingAsync(threadId, instanceId);
+        await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
         return await _durableTaskClient.ScheduleNewContainerAppsRemediationAgentInstanceAsync(
             new ContainerAppsRemediationAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 

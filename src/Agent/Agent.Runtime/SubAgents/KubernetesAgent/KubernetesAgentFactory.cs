@@ -42,18 +42,16 @@ public sealed class KubernetesAgentFactory
 
     public async Task<string> StartOrchestration(
         string input,
-        ThreadContext context)
+        Guid threadId)
     {
-        var instanceId = $"{OrchestrationInstanceIdPrefix}-{context.ThreadId}-{DateTime.Now:yyyyMMdd-HHmmss}";
+        var instanceId = $"{OrchestrationInstanceIdPrefix}-{threadId}-{DateTime.Now:yyyyMMdd-HHmmss}";
 
-        var threadId = context.ThreadId.ToString();
-
-        await _mappingManager.AddMappingAsync(threadId, instanceId);
+        await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
         return await _durableTaskClient.ScheduleNewKubernetesAgentInstanceAsync(
             new KubernetesAgentInput(
                 Input: input,
                 ToolSignatures: _toolsRegistry.ToolSignatures,
-                context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: instanceId));
     }
 

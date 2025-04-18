@@ -48,5 +48,10 @@ public interface IThreadRepository
     Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId);
     Task<ReasoningMessage> CreateReasoningMessageAsync(ReasoningMessage reasoningMessage);
     Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId);
+
+    Task<AgentChatHistory> GetAgentChatHistoryAsync(Guid agentContextId);
+    Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
+    Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
+    Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId);
 }
 

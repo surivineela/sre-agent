@@ -8,5 +8,5 @@ namespace Agent.Runtime.MetaAgent;
 
 public interface IAgent
 {
-    Task<string> ProcessUserMessage(Guid agentContextId, ThreadContext context);
+    Task<string> ProcessUserMessageAsync(AgentContext agentContext, AgentChatHistory agentChatHistory);
 }

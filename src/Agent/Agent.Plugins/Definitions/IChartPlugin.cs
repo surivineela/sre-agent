@@ -8,7 +8,7 @@ namespace Agent.Plugins
 {
     public interface IChartPlugin
     {
-        public ThreadContext? Context { get; set; }
+        public Guid? ThreadId { get; set; }
 
         Task<string> PlotTimeSeriesDataAsync(
             string title,

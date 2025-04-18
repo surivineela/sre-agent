@@ -7,5 +7,5 @@ public sealed record SqlDbQueryPerfAgentInput(
         string AzSqlDbResourceId,
     [Description("Signature of a list of tools available for the agent to use")]
         IReadOnlyList<string> ToolSignatures,
-    [Description("Thread context")]
-        ThreadContext Context);
+    [Description("Thread Id")]
+        Guid ThreadId);

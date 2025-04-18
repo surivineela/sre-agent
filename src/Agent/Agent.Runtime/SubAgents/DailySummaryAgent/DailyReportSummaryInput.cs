@@ -20,6 +20,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
     public sealed record DailyReportSummaryAgentInput(
         DailyReportSummaryInput Input,
         IReadOnlyList<string> ToolSignatures,
-        ThreadContext Context);
+        Guid ThreadId);
 }
 

@@ -230,7 +230,7 @@ public sealed class AKSAgentEvals
 
         try
         {
-            instanceID = await _kubernetesAgentFactory.StartOrchestration(input, new ThreadContext(testRunGuid, AgentTypeEnum.DTS));
+            instanceID = await _kubernetesAgentFactory.StartOrchestration(input, testRunGuid);
 
             // Create a background thread to poll messages via threadRepository
             var threadRepository = _host.Services.GetRequiredService<IThreadRepository>();

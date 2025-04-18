@@ -199,7 +199,7 @@ public class TlsBestPracticesEvals
 
         try
         {
-            instanceID = await _agentFactory.StartOrchestration(input, new ThreadContext(Guid.NewGuid(), AgentTypeEnum.DTS));
+            instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
 
             var (approved, approvalError) = await ApprovalTestHelper.DoApproval(
                 _durableTaskClient,

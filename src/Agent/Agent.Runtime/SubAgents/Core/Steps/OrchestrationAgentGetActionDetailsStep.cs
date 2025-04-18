@@ -11,7 +11,7 @@ public class OrchestrationAgentGetActionDetailsStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentGetActionDetailsStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
         Guid actionId = Guid.Empty;
 
         if (FunctionCall.Arguments.TryGetValue("actionId", out var actionIdObj) && actionIdObj != null)

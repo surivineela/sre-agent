@@ -32,8 +32,8 @@ namespace Agent.Runtime.SubAgents.CPUAnalysisAgent
                     context,
                     chatHistory,
                     agentInput.ToolSignatures,
-                    agentInput.Context,
-                    log);
+                    log,
+                    agentInput.ThreadId);
 
                 return "success";
             }

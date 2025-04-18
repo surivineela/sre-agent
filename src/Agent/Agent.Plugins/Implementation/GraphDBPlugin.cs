@@ -33,7 +33,7 @@ namespace Agent.Plugins
         public IChatClient ChatClient { get; }
 
         // Using ThreadContext from your original code. When a thread ID is needed, we pull it from here.
-        public ThreadContext? Context { get; set; }
+        public Guid? ThreadId { get; set; }
 
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         public ILogger<GraphDBPlugin> _logger { get; }
@@ -169,9 +169,9 @@ namespace Agent.Plugins
             // Ensure threadId is not null
             if (threadId == null)
             {
-                if (Context != null)
+                if (ThreadId != null)
                 {
-                    threadId = Context.ThreadId;
+                    threadId = ThreadId;
                 }
                 else
                 {
@@ -231,7 +231,6 @@ namespace Agent.Plugins
                     }
 
                     // TODO: read threadcontext from cosmos db if Context is null
-                    var ctx = Context ?? new ThreadContext(threadId ?? Guid.Empty, AgentTypeEnum.Meta);
 
                     var jsonResult = JsonSerializer.Serialize(typedResult, new JsonSerializerOptions { WriteIndented = true });
                     var prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, convert it to brief text to show the relationships between microservices (the dependency true).
@@ -265,7 +264,7 @@ Input JSON:
 
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ctx, $"![Microservice Topology](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Microservice Topology](data:image/png;base64,{base64EncodedGraph})\r\n");
 
 
                     return responseText.Text;
@@ -317,9 +316,9 @@ Input JSON:
             // Ensure threadId is not null
             if (threadId == null)
             {
-                if (Context != null)
+                if (ThreadId != null)
                 {
-                    threadId = Context.ThreadId;
+                    threadId = ThreadId;
                 }
                 else
                 {
@@ -365,7 +364,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(threadId ?? Guid.Empty, AgentTypeEnum.Meta), $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r\n");
 
                     return "Visualization Rendered!";
                 }
@@ -846,10 +845,10 @@ g.V().has('id', '{deploymentResourceId}')
                     return $"Failed to capture dashboard screenshot for resource '{resourceName}'. Dashboard URL: {dashboardUrl}";
                 }
 
-                if (Context != null)
+                if (ThreadId != null)
                 {
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(new ThreadContext(Context.ThreadId, AgentTypeEnum.Meta), $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);
@@ -1156,9 +1155,9 @@ g.V().has('id', '{deploymentResourceId}')
 
             if (threadId == null)
             {
-                if (Context != null)
+                if (ThreadId != null)
                 {
-                    threadId = Context.ThreadId;
+                    threadId = ThreadId;
                 }
             }
 

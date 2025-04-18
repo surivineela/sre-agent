@@ -18,7 +18,7 @@ public class OrchestrationAgentRecordActionStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentRecordActionStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
         string title = string.Empty;
         ActionStatus status = ActionStatus.Pending;
 

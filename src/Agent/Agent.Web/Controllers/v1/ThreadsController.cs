@@ -13,6 +13,8 @@ using Agent.Core.Helpers;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Agent.Data.DataModels;
+using Agent.Runtime.MetaAgent;
+using System.Text.Json;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -95,8 +97,30 @@ namespace Agent.Web.Controllers.v1
                 AgentType: AgentTypeEnum.Meta
             );
 
+            var systemPromptReasoningMessage = new ReasoningMessage(
+                Id: Guid.NewGuid(),
+                AgentContextId: agentContext.Id,
+                Role: ReasoningMessageRoleEnum.System,
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, MetaAgent.SystemPrompt))
+            );
+
+            var startReasoningMessage = new ReasoningMessage(
+                Id: Guid.NewGuid(),
+                AgentContextId: agentContext.Id,
+                Role: ReasoningMessageRoleEnum.User,
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
+            );
+
+            var agentChatHistory = new AgentChatHistory(
+                AgentContextId: agentContext.Id,
+                ReasoningMessageIds: new List<Guid> { systemPromptReasoningMessage.Id, startReasoningMessage.Id });
+
             thread = await repository.CreateThreadAsync(thread);
+            message = await repository.AddMessageAsync(thread.Id, message);
             agentContext = await repository.CreateAgentContextAsync(agentContext);
+            systemPromptReasoningMessage = await repository.CreateReasoningMessageAsync(systemPromptReasoningMessage);
+            startReasoningMessage = await repository.CreateReasoningMessageAsync(startReasoningMessage);
+            agentChatHistory = await repository.CreateAgentChatHistoryAsync(agentChatHistory);
 
             var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
             threadContext.AddMessage(thread.StartMessage);
@@ -249,6 +273,17 @@ namespace Agent.Web.Controllers.v1
             foreach (var agentContext in agentContexts)
             {
                 await repository.DeleteAgentContextAsync(agentContextId: agentContext.Id, threadId: threadId);
+
+                var agentChatHistory = await repository.GetAgentChatHistoryAsync(agentContextId: agentContext.Id);
+                if (agentChatHistory != null)
+                {
+                    foreach (var reasoningMessageId in agentChatHistory.ReasoningMessageIds)
+                    {
+                        await repository.DeleteReasoningMessageAsync(reasoningMessageId: reasoningMessageId, agentContextId: agentContext.Id);
+                    }
+
+                    await repository.DeleteAgentChatHistoryAsync(agentContextId: agentContext.Id);
+                }
             }
 
             await repository.DeleteThreadAsync(threadId);
@@ -302,7 +337,7 @@ namespace Agent.Web.Controllers.v1
             //    source: ThreadSource.Incident
             //);
 
-            (var thread, var agentContext, var threadContext) = await agentInboundCommunicationService.CreateAgentThread(
+            (var thread, var agentContext) = await agentInboundCommunicationService.CreateAgentThread(
                 title: $"Incident Report - {request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,

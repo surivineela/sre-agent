@@ -35,8 +35,8 @@ public class VmRdpInvestigatorAgent: GenericAgentOrchestrator<VmRdpInvestigatorA
             context,
             chatHistory,
             agentInput.ToolSignatures,
-            agentInput.Context,
-            log);
+            log,
+            agentInput.ThreadId);
 
         return "success";
     }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -20,7 +20,7 @@ public class TlsBestPracticesPlugin : IMetaAgentTlsBestPracticesPlugin
     private readonly TlsBestPracticeAgentFactory _tlsBestPracticeAgentFactory;
     private readonly ILogger<TlsBestPracticesPlugin> _logger;
 
-    public ThreadContext? Context { get; set; }
+    public Guid? ThreadId { get; set; }
 
     public TlsBestPracticesPlugin(
         DurableTaskClient durableTaskClient,
@@ -57,11 +57,11 @@ public class TlsBestPracticesPlugin : IMetaAgentTlsBestPracticesPlugin
     public async Task<string> StartTlsBestPracticeAgent(
         [Description("The list of apps to be migrated")] TlsBestPracticesInput input)
     {
-        if (Context == null)
+        if (ThreadId == null)
         {
-            throw new InvalidOperationException("ThreadContext must be set before start orchestration.");
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
-        var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, Context);
+        var instanceId = await _tlsBestPracticeAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to adopt tls best practice, the workflow instance id is: {instanceId}";
     }
 }

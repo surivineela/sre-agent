@@ -13,7 +13,7 @@ public class OrchestrationAgentStartApprovalStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentStartApprovalStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
 
         log.LogInformation("[{ThreadId}] Starting approval flow", threadId);
 
@@ -33,7 +33,7 @@ public class OrchestrationAgentStartApprovalStep : OrchestrationAgentStep
 
         // Notify user about approval with the generated link
         await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
-            ThreadContext: agent.ThreadContext,
+            ThreadId: agent.ThreadId,
             InstanceId: context.InstanceId,
             Message: $"Approval required for: {operationName}. [Click here to approve]({approvalLink})"
         ));
@@ -60,20 +60,14 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
         var log = context.CreateReplaySafeLogger<OrchestrationAgentGenericExecuteStep>();
-        Guid threadId = agent.ThreadContext.ThreadId;
+        Guid threadId = agent.ThreadId;
 
         log.LogInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, FunctionCall.ToString());
 
         // For any other function call, check if there're arguments match with key in threadContext.Properties
         // if so, use the value from threadContext.Properties to set the arguments to avoid LLM hallucinations
         var args = new Dictionary<string, object>(FunctionCall.Arguments);
-        foreach (var kvp in agent.ThreadContext.Properties)
-        {
-            if (args.ContainsKey(kvp.Key))
-            {
-                args[kvp.Key] = kvp.Value;
-            }
-        }
+
         // Create a new function call with the updated arguments
         var updatedFunctionCall = new FunctionCallContent(
             FunctionCall.CallId,

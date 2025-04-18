@@ -65,13 +65,13 @@ public sealed class AppCodeAnalysisAgentFactory
 
     public async Task<string> StartOrchestration(
         AppCodeAnalysisInput input,
-        ThreadContext context)
+        Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewAppCodeAnalysisAgentInstanceAsync(
             new AppCodeAnalysisAgentInput(
                 Input: input,
                 ToolSignatures: _toolSignatures,
-                Context: context),
+                ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
     }
 

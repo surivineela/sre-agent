@@ -12,15 +12,15 @@ namespace Agent.Runtime.SubAgents.CosmosDbAgent
     public record CosmosDbAgentInput(
         CosmosDbAgentActivityInput Input, 
         IReadOnlyList<string> ToolSignatures, 
-        ThreadContext Context
+        Guid ThreadId
         )
-        : SimpleResourceSubAgentInput<CosmosDbAgentActivityInput>(Input, ToolSignatures, Context)
+        : SimpleResourceSubAgentInput<CosmosDbAgentActivityInput>(Input, ToolSignatures, ThreadId)
     {
         public CosmosDbAgentInput()
             : this(
                   new CosmosDbAgentActivityInput(FeatureState.Disabled, new List<SimpleResourceSubAgentResourceInformation>()),
                   new List<string>(),
-                  new ThreadContext(Guid.Empty, AgentTypeEnum.DTS)
+                  Guid.Empty
                   )
         {
         }
