@@ -80,7 +80,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                         .Cast<GraphPropertyAttribute>()
                         .FirstOrDefault();
                     return attribute != null
-                        ? new {
+                        ? new
+                        {
                             PropertyName = prop.Name,
                             PropertyType = prop.PropertyType,
                             GraphPropertyName = attribute.PropertyName
@@ -132,7 +133,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
                 return false;
             }
 
-            var targetType =  Nullable.GetUnderlyingType((property.PropertyType)) ?? property.PropertyType;
+            var targetType = Nullable.GetUnderlyingType((property.PropertyType)) ?? property.PropertyType;
             object? convertedValue = null;
 
             if (value != null)
@@ -267,6 +268,9 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         [GraphJsonProperty("appHealthInfo")]
         public AppHealthInfo AppHealthInfo { get; set; }
 
+        [GraphJsonProperty("remarks")]
+        public string Remarks { get; set; } = string.Empty;
+
         public ArmResourceNode() { }
 
         public ArmResourceNode(IDictionary<string, object> properties)
@@ -283,6 +287,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string subscriptionId,
             string resourceGroupName,
             string resourceName,
+            string remarks = "",
             string location = null,
             AppHealthInfo appHealthInfo = null)
         {
@@ -294,6 +299,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             ResourceName = resourceName?.ToLowerInvariant();
             Location = location?.NormalizeLocation();
             AppHealthInfo = appHealthInfo;
+            Remarks = remarks;
         }
 
         public override string GetNodeLabel()

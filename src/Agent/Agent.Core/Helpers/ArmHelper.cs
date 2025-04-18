@@ -17,16 +17,7 @@ using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
-using Google.Protobuf.WellKnownTypes;
-using IdentityModel.Client;
-using Microsoft.Extensions.Hosting;
 using Newtonsoft.Json.Linq;
-using Octokit;
-using OpenTelemetry.Resources;
-using System.ComponentModel;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 
 namespace Agent.Core.Helpers;
 

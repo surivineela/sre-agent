@@ -4,6 +4,7 @@
 using Agent.Runtime.Services;
 using Gremlin.Net.Driver;
 using Microsoft.AspNetCore.Mvc;
+using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -77,10 +78,54 @@ namespace Agent.Web.Controllers.v1
             return Ok(result);
         }
 
+        #region Resource remarks CRUD APIs
+
+        /// <summary>
+        /// Update remarks for a resource in the knowledge graph.
+        /// </summary>
+        /// <param name="resourceId">Azure resource id.</param>
+        /// <param name="request">The request containing the remark to update.</param>
+        /// <returns></returns>
+        [HttpPatch("resource/{resourceId}/remarks")]
+        public async Task<ActionResult<AppGroupItem>> AddOrUpdateResourceRemark(string resourceId, [FromBody] ResourceRemarkRequest request)
+        {
+            if (request == null)
+            {
+                return BadRequest("Request body cannot be null");
+            }
+
+            var properties = new Dictionary<string, string> { { "remarks", request.Remarks } };
+
+            var result = await _graphService.UpdateGraphResourceProperties(resourceId, properties);
+            return Ok(result);
+        }
+
+        /// <summary>
+        /// Delete remarks for a resource in the knowledge graph.
+        /// </summary>
+        /// <param name="resourceId">Azure resource id.</param>
+        /// <returns></returns>
+        [HttpDelete("resource/{resourceId}/remarks")]
+        public async Task<ActionResult> DeleteResourceRemark(string resourceId)
+        {
+            var properties = new Dictionary<string, string> { { "remarks", "" } }; // Just mark the remark as empty for deletion. 
+
+            var result = await _graphService.UpdateGraphResourceProperties(resourceId, properties);
+            return Ok(result);
+        }
+
+        #endregion
+
         public class GraphQueryRequest
         {
-        public string Query { get; set; } = string.Empty;
-        public int MaxMessageSize { get; set; } = 200000;
+            public string Query { get; set; } = string.Empty;
+            public int MaxMessageSize { get; set; } = 200000;
+        }
+
+        public class ResourceRemarkRequest
+        {
+            [Required]
+            public string Remarks { get; set; } = string.Empty;
         }
     }
 }

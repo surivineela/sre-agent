@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Configuration;
 using System.Text.Json;
+using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
@@ -139,7 +139,6 @@ public class GraphService : IGraphService
     {
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();
-
         var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, 4);
 
         return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
@@ -214,22 +213,6 @@ public class GraphService : IGraphService
                 ResourceId = node["resourceId"]
             })];
     }
-
-    /*
-    public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
-    {
-        _logger.LogInformation("Querying graph resource {resourceId}", resourceId);
-        string query = $@"g.V().has('id', '{resourceId}')
-                        .project('id', 'name', 'type', 'properties')
-                        .by(id())
-                        .by(coalesce(values('resourceName'), constant('')))
-                        .by(label())
-                        .by(valueMap())";
-
-        var result = await _graphDatabaseClient.Query(query);
-        return result;
-    }
-    */
 
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
     {
@@ -377,5 +360,71 @@ public class GraphService : IGraphService
         // Append the query string to the URL
         return $"{url}{separator}{queryString}";
     }
-    
+
+    public async Task<ResultSet<dynamic>> UpdateGraphResourceProperties(string resourceId, IDictionary<string, string> properties)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+        {
+            throw new ArgumentException("Resource ID cannot be null or empty", nameof(resourceId));
+        }
+
+        if (properties == null || !properties.Any())
+        {
+            throw new ArgumentException("Properties cannot be null or empty", nameof(properties));
+        }
+
+        _logger.LogInformation("Updating properties for resource {resourceId}", resourceId);
+        
+        // check if the vertex exists
+        string checkQuery = $"g.V().has('id', '{resourceId}').count()";
+
+        var checkResult = await _graphDatabaseClient.Query(checkQuery);
+        
+        if (checkResult == null || !checkResult.Any() || Convert.ToInt64(checkResult.First()) == 0)
+        {
+            _logger.LogWarning($"Resource {resourceId} not found in the graph database");
+            throw new KeyNotFoundException($"Resource with ID {resourceId} not found");
+        }
+
+        var bindings = new Dictionary<string, object>();  
+
+        string updateQuery = $"g.V().has('id', '{resourceId}')"; // TODO: currently we are using the resource id as is (_resource_capps_sample_). Refactor this to use /resource/resourceId format.
+
+        foreach (var property in properties)
+        {
+            updateQuery += $".property('{property.Key}', {getValue(property.Value)})";
+        }
+
+        var now = DateTime.UtcNow.Ticks;
+        // update timestamp
+        string tsParamName = "updateTs";
+
+        updateQuery += $".property('{tsParamName}', {now})";
+        
+        _logger.LogDebug("Executing property update query for {resourceId}", resourceId);
+        try
+        {
+            var result = await _graphDatabaseClient.Query(updateQuery);
+            _logger.LogInformation("Successfully updated properties for resource {resourceId}", resourceId);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update properties for resource {resourceId}", resourceId);
+            throw;
+        }
+    }
+
+    private string getValue(object val)
+    {
+        switch (val)
+        {
+            case int i:
+                return i.ToString();
+            case long l:
+                return l.ToString();
+            default:
+                return $"'{val}'";
+        }
+    }
 }
