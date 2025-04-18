@@ -27,5 +27,7 @@ public interface IKubernetesService
     public Task<V1StatefulSet?> GetStatefulSetAsync(string resourceId, string ns, string name);
     public Task<V1DaemonSetList> GetDaemonSetsAsync(string resourceId, string ns, string? labelSelector = null);
     public Task<V1DaemonSet?> GetDaemonSetAsync(string resourceId, string ns, string name);
+    public Task<V1NodeList> GetNodesAsync(string resourceId, string? labelSelector = null);
+    public Task<V1Node?> GetNodeAsync(string resourceId, string name);
 }
 

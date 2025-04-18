@@ -119,9 +119,9 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                 statefulSetNode.ClusterResourceId,
                 statefulSetNode.Namespace,
                 pod.Name(),
-                "core",
-                "v1",
-                "pods");
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesPodType);
             await _graphDbClient.AddOrUpdateNodeAsync(podNode);
             var edge = new ArmResourceEdge(statefulSetNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);

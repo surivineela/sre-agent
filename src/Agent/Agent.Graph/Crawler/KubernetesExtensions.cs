@@ -114,7 +114,7 @@ public static partial class KubernetesExtensions
                 serviceNamespace,
                 serviceName,
                 "core",
-                "v1",
+                Constants.KubernetesV1Version,
                 "services");
 
             await graphDbClient.AddOrUpdateNodeAsync(serviceNode);
@@ -143,9 +143,9 @@ public static partial class KubernetesExtensions
                 node.ClusterResourceId,
                 node.Namespace,
                 env.ValueFrom.SecretKeyRef.Name,
-                "core",
-                "v1",
-                "secrets");
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesSecretType);
             await graphDbClient.AddOrUpdateNodeAsync(secretNode);
             var edge = new ArmResourceEdge(node.GetNodeId(), secretNode.GetNodeId(), Constants.Relationships.References);
             edge.AddReferenceEnvProperties();
@@ -161,9 +161,9 @@ public static partial class KubernetesExtensions
                 node.ClusterResourceId,
                 node.Namespace,
                 env.ValueFrom.ConfigMapKeyRef.Name,
-                "core",
-                "v1",
-                "configmaps");
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesConfigMapType);
             await graphDbClient.AddOrUpdateNodeAsync(configMapNode);
             var edge = new ArmResourceEdge(node.GetNodeId(), configMapNode.GetNodeId(), Constants.Relationships.References);
             edge.AddReferenceEnvProperties();
@@ -185,9 +185,9 @@ public static partial class KubernetesExtensions
                 node.ClusterResourceId,
                 node.Namespace,
                 volume.Secret.SecretName,
-                "core",
-                "v1",
-                "secrets");
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesSecretType);
             await graphDbClient.AddOrUpdateNodeAsync(secretNode);
             var edge = new ArmResourceEdge(node.GetNodeId(), secretNode.GetNodeId(), Constants.Relationships.References);
             edge.AddReferenceVolumeMountProperties();
@@ -203,9 +203,9 @@ public static partial class KubernetesExtensions
                 node.ClusterResourceId,
                 node.Namespace,
                 volume.ConfigMap.Name,
-                "core",
-                "v1",
-                "configmaps");
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesConfigMapType);
             await graphDbClient.AddOrUpdateNodeAsync(configMapNode);
             var edge = new ArmResourceEdge(node.GetNodeId(), configMapNode.GetNodeId(), Constants.Relationships.References);
             edge.AddReferenceVolumeMountProperties();

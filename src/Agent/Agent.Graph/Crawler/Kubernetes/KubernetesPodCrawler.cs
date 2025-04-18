@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
@@ -31,9 +32,27 @@ public class KubernetesPodCrawler : IResourceCrawler
             pod = await _k8sService.GetPodAsync(podNode.ClusterResourceId, podNode.Namespace, podNode.Name);
         }
 
-        // TODO: handle pods not managed by deploymemt / daemonset / statefulset
+        if (pod == null)
+        {
+            yield break;
+        }
 
-        yield break;
+        // Connects pod to nodes
+        var nodeName = pod.Spec.NodeName;
+        if (!string.IsNullOrEmpty(nodeName))
+        {
+            _logger.LogDebug($"Connect pod {pod.Name()} to node {nodeName}");
+            var nodeNode = new KubernetesResourceNode(null, podNode.ClusterResourceId, nodeName, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNodeType);
+            var edge = new ArmResourceEdge(podNode.GetNodeId(), nodeNode.GetNodeId(), Constants.Relationships.HostedOn);
+            var edge2 = new ArmResourceEdge(nodeNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Hosts);
+
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
+
+            yield return nodeNode;
+        }
+
+        // TODO: handle pods not managed by deploymemt / daemonset / statefulset
     }
 }
 

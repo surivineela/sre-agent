@@ -29,6 +29,13 @@ public class Constants
     public const string FunctionAppType = "Microsoft.Web/sites/functions";
 
     // k8s
+    // groups
+    public const string KubernetesCoreGroup = "core";
+
+    // versions
+    public const string KubernetesV1Version = "v1";
+
+    // kinds
     public const string KubernetesNamespaceType = "namespaces";
     public const string KubernetesPodType = "pods";
     public const string KubernetesDeploymentType = "deployments";
@@ -37,6 +44,9 @@ public class Constants
     public const string KubernetesServiceType = "services";
     public const string KubernetesConfigMapType = "configmaps";
     public const string KubernetesSecretType = "secrets";
+    public const string KubernetesNodeType = "nodes";
+    public const string KubernetesPersistVolumeType = "persistentvolumes";
+    public const string KubernetesPersistVolumeClaimType = "persistentvolumeclaims";
 
     // Node properties
 

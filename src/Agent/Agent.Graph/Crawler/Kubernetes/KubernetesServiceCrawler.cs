@@ -9,6 +9,7 @@ using Microsoft.Extensions.Logging;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
+using Gremlin.Net.Process.Traversal;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 public class KubernetesServiceCrawler : IResourceCrawler
@@ -33,6 +34,11 @@ public class KubernetesServiceCrawler : IResourceCrawler
             service = await _k8sService.GetServiceAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.Name);
         }
 
+        if (service == null)
+        {
+            yield break;
+        }
+
         // Connects pods
         var selector = service.Spec.Selector.ToSelectorString();
         var podList = new V1PodList();
@@ -45,7 +51,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
         foreach (var pod in podList.Items ?? new List<V1Pod>())
         {
             _logger.LogDebug($"Pod: {pod.Name()} for service: {serviceNode.GetNodeId()}");
-            var podNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, pod.Name(), "core", "v1", "pods");
+            var podNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, pod.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPodType);
             await _graphDbClient.AddOrUpdateNodeAsync(podNode);
             var edge = new ArmResourceEdge(serviceNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.BackedBy);
             edge.AddNetworkIngressEdgeProperties();

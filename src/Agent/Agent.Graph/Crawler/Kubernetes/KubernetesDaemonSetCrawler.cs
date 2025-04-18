@@ -117,9 +117,9 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                 daemonSetNode.ClusterResourceId,
                 daemonSetNode.Namespace,
                 pod.Name(),
-                "core",
-                "v1",
-                "pods");
+                Constants.KubernetesCoreGroup,
+                Constants.KubernetesV1Version,
+                Constants.KubernetesPodType);
             await _graphDbClient.AddOrUpdateNodeAsync(podNode);
             var edge = new ArmResourceEdge(daemonSetNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);

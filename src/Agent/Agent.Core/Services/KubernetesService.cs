@@ -238,5 +238,26 @@ public abstract class KubernetesService : IKubernetesService
             return null;
         }
     }
+
+    public async Task<V1NodeList> GetNodesAsync(string resourceId, string? labelSelector = null)
+    {
+        var client = await GetKubernetesClient(resourceId);
+        var nodes = await client.CoreV1.ListNodeAsync(labelSelector: labelSelector);
+        return nodes;
+    }
+
+    public async Task<V1Node?> GetNodeAsync(string resourceId, string name)
+    {
+        var client = await GetKubernetesClient(resourceId);
+        try
+        {
+            var node = await client.CoreV1.ReadNodeAsync(name);
+            return node;
+        }
+        catch (HttpOperationException ex) when (ex.Response?.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
 }
 
