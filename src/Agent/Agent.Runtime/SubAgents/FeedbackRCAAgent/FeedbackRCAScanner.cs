@@ -35,11 +35,11 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
         public async Task Scan(CancellationToken cancellationToken)
         {
-            var feedbackRCAAgentThreadContexts = (await _threadRepository.GetThreadContextsAsync())
+            var feedbackRCAAgentContexts = (await _threadRepository.GetThreadContextsAsync())
                 ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.FeedbackRCA && x.IsThreadActive)
                 ?.ToList();
 
-            if (feedbackRCAAgentThreadContexts != null && feedbackRCAAgentThreadContexts.Count > 0)
+            if (feedbackRCAAgentContexts != null && feedbackRCAAgentContexts.Count > 0)
             {
                 _logger.LogInformation("Feedback RCA thread context already exists. Skipping scan.");
                 return;

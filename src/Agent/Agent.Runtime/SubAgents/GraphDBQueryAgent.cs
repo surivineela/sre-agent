@@ -67,7 +67,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ];
         }
 
-        public override async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid subAgentThreadId, string question)
+        public override async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId, string question)
         {
             if (!_fetchedPrelimData)
             {
@@ -79,7 +79,7 @@ IMPORTANT: If you find apps not following best practices, call the 'postToTeams'
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             var agentMessage = completion.GetMessage().Text;
             ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
-            return (agentMessage, completion.GetReasoningMessages(subAgentThreadId: Guid.Empty));
+            return (agentMessage, completion.GetReasoningMessages(agentContextId: Guid.Empty));
         }
 
         public async Task PrelimData()

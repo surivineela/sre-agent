@@ -108,15 +108,15 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         // Get or create thread ID for this conversation, store conversation reference for later proactive messaging
         string threadId = await GetOrCreateThread(startMessageId, turnContext.Activity.Conversation.Id, serviceUrl, teamsChannelId, messageText, conversationReference, turnContext.Activity.From);
         Guid chatIdGuid = Guid.Parse(threadId);
-        var subAgentThreads = await _threadRepository.GetSubAgentThreadsForThreadAsync(chatIdGuid);
-        var subAgentThread = subAgentThreads.FirstOrDefault();
+        var agentContexts = await _threadRepository.GetAgentContextsForThreadAsync(chatIdGuid);
+        var agentContext = agentContexts.FirstOrDefault();
 
         string conversationId = turnContext.Activity.Conversation.Id;
         string senderName = turnContext.Activity.From?.Name ?? "Unknown User";
         string userId = turnContext.Activity.From?.Id ?? "teams-user";
         var firstMessage = new ThreadMessage(
                         ThreadId: chatIdGuid,
-                        SubAgentThreadId: subAgentThread.Id,
+                        AgentContextId: agentContext.Id,
                         MessageId: startMessageId,
                         Message: messageText,
                         UserId: userId,
@@ -292,7 +292,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             ModifiedTimestamp: DateTime.UtcNow
             ));
 
-        var subAgentThread = _threadRepository.CreateSubAgentThreadAsync(new SubAgentThread(
+        var agentContext = _threadRepository.CreateAgentContextAsync(new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: thread.Id,
             AgentType: AgentTypeEnum.Meta

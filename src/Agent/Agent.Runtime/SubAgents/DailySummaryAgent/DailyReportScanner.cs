@@ -179,7 +179,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             PersistScreenshot("SreDashboard", screenshot);
 
             var initialMessage = $"{conciseSummary}\n\n" + $"**I created this dashboard for you to give an overview : [SRE Agent Resource Dashboard]({dashboardUrl})**\n\n";
-            (var thread, var subAgentThread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+            (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
                 initialMessage,
                 agentTypeEnum: AgentTypeEnum.DTS);

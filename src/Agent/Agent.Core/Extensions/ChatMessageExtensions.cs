@@ -29,7 +29,7 @@ namespace Agent.Core.Extensions
             return chatResponse.Messages[0];
         }
 
-        public static List<ReasoningMessage> GetReasoningMessages(this ChatResponse? chatResponse, Guid subAgentThreadId)
+        public static List<ReasoningMessage> GetReasoningMessages(this ChatResponse? chatResponse, Guid agentContextId)
         {
             var reasoningMessages = new List<ReasoningMessage>();
 
@@ -42,7 +42,7 @@ namespace Agent.Core.Extensions
             {
                 reasoningMessages.Add(new ReasoningMessage(
                     Id: Guid.NewGuid(),
-                    SubAgentThreadId: subAgentThreadId,
+                    AgentContextId: agentContextId,
                     Role: GetReasoningMessageRole(message.Role),
                     SerializedChatMessage: JsonConvert.SerializeObject(message)));
             }
@@ -50,9 +50,9 @@ namespace Agent.Core.Extensions
             return reasoningMessages;
         }
 
-        public static async Task AddReasoningMessagesToThreadRepositoryAsync(this ChatResponse? chatResponse, IThreadRepository threadRepository, Guid subAgentThreadId)
+        public static async Task AddReasoningMessagesToThreadRepositoryAsync(this ChatResponse? chatResponse, IThreadRepository threadRepository, Guid agentContextId)
         {
-            var reasoningMessages = chatResponse.GetReasoningMessages(subAgentThreadId);
+            var reasoningMessages = chatResponse.GetReasoningMessages(agentContextId);
 
             foreach (var reasoningMessage in reasoningMessages)
             {

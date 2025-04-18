@@ -53,7 +53,7 @@ namespace Agent.Runtime.SubAgents
             }
         }
 
-        public virtual async Task PrepareAgentForUserInput(Guid subAgentThreadId, ThreadContext threadContext)
+        public virtual async Task PrepareAgentForUserInput(Guid agentContextId, ThreadContext threadContext)
         {
             this.InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
@@ -63,7 +63,7 @@ namespace Agent.Runtime.SubAgents
             {
                 await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
                     Id: Guid.NewGuid(),
-                    SubAgentThreadId: subAgentThreadId,
+                    AgentContextId: agentContextId,
                     Role: messageToAddToChatHistory.Role.GetReasoningMessageRole(),
                     SerializedChatMessage: JsonConvert.SerializeObject(messageToAddToChatHistory)));
 
@@ -88,11 +88,11 @@ namespace Agent.Runtime.SubAgents
             }
         }
 
-        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid subAgentThreadId, ThreadContext threadContext, string question)
+        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId, ThreadContext threadContext, string question)
         {
             InitChatHistoryFromMessageQueue(threadContext.RecentMessages);
 
-            (var agentResponse, var responseReasoningMessages) = await base.DoWork(subAgentThreadId, question);
+            (var agentResponse, var responseReasoningMessages) = await base.DoWork(agentContextId, question);
 
             foreach (var reasoningMessage in responseReasoningMessages)
             {

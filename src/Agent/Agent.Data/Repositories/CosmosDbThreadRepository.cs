@@ -824,17 +824,17 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     #endregion
 
-    #region SubAgentThread Operations
-    public async Task<SubAgentThread> GetSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId)
+    #region AgentContext Operations
+    public async Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId)
     {
         try
         {
             string threadIdStr = threadId.ToString();
-            string subAgentThreadIdStr = subAgentThreadId.ToString();
+            string agentContextIdStr = agentContextId.ToString();
 
-            SubAgentThreadDocument subAgentThreadDocument = await GetDocumentAsync<SubAgentThreadDocument>(subAgentThreadIdStr, threadIdStr);
+            AgentContextDocument agentContextDocument = await GetDocumentAsync<AgentContextDocument>(agentContextIdStr, threadIdStr);
 
-            return subAgentThreadDocument?.ToDomainModel();
+            return agentContextDocument?.ToDomainModel();
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -842,53 +842,53 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<IEnumerable<SubAgentThread>> GetSubAgentThreadsForThreadAsync(Guid threadId)
+    public async Task<IEnumerable<AgentContext>> GetAgentContextsForThreadAsync(Guid threadId)
     {
-        var subAgentThreads = new List<SubAgentThread>();
+        var agentContexts = new List<AgentContext>();
         string threadIdStr = threadId.ToString();
-        var query = _container.GetItemLinqQueryable<SubAgentThreadDocument>()
-            .Where(m => m.DocumentType == "SubAgentThread" && m.ThreadId == threadIdStr);
+        var query = _container.GetItemLinqQueryable<AgentContextDocument>()
+            .Where(m => m.DocumentType == "AgentContext" && m.ThreadId == threadIdStr);
 
         using var iterator = query.ToFeedIterator();
         while (iterator.HasMoreResults)
         {
-            foreach (var subAgentThreadDoc in await iterator.ReadNextAsync())
+            foreach (var agentContextDoc in await iterator.ReadNextAsync())
             {
-                subAgentThreads.Add(subAgentThreadDoc.ToDomainModel());
+                agentContexts.Add(agentContextDoc.ToDomainModel());
             }
         }
-        return subAgentThreads;
+        return agentContexts;
     }
 
-    public async Task<SubAgentThread> CreateSubAgentThreadAsync(SubAgentThread subAgentThread)
+    public async Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext)
     {
         // Ensure IDs are set
-        if (subAgentThread.Id == Guid.Empty)
+        if (agentContext.Id == Guid.Empty)
         {
-            subAgentThread = subAgentThread with { Id = Guid.NewGuid() };
+            agentContext = agentContext with { Id = Guid.NewGuid() };
         }
 
-        if (subAgentThread.ThreadId == Guid.Empty)
+        if (agentContext.ThreadId == Guid.Empty)
         {
             return null;
         }
 
         // Create the sub-agent thread document
-        SubAgentThreadDocument subAgentThreadDoc = SubAgentThreadDocument.FromDomainModel(subAgentThread);
-        await _container.CreateItemAsync(subAgentThreadDoc, new PartitionKey(subAgentThreadDoc.PartitionKey));
-        return subAgentThread;
+        AgentContextDocument agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
+        await _container.CreateItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
+        return agentContext;
     }
 
-    public async Task<bool> DeleteSubAgentThreadAsync(Guid subAgentThreadId, Guid threadId)
+    public async Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId)
     {
         string threadIdStr = threadId.ToString();
-        string subAgentThreadIdStr = subAgentThreadId.ToString();
+        string agentContextIdStr = agentContextId.ToString();
 
         try
         {
             // Delete the message
-            await _container.DeleteItemAsync<SubAgentThreadDocument>(
-                subAgentThreadIdStr,
+            await _container.DeleteItemAsync<AgentContextDocument>(
+                agentContextIdStr,
                 new PartitionKey(threadIdStr)
             );
 
@@ -902,14 +902,14 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region ReasoningMessage Operations
-    public async Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId)
+    public async Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
     {
         try
         {
-            string subAgentThreadIdStr = subAgentThreadId.ToString();
+            string agentContextIdStr = agentContextId.ToString();
             string reasoningMessageIdStr = reasoningMessageId.ToString();
 
-            ReasoningMessageDocument reasoningMessageDocument = await GetDocumentAsync<ReasoningMessageDocument>(reasoningMessageIdStr, subAgentThreadIdStr);
+            ReasoningMessageDocument reasoningMessageDocument = await GetDocumentAsync<ReasoningMessageDocument>(reasoningMessageIdStr, agentContextIdStr);
 
             return reasoningMessageDocument?.ToDomainModel();
         }
@@ -927,7 +927,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             reasoningMessage = reasoningMessage with { Id = Guid.NewGuid() };
         }
 
-        if (reasoningMessage.SubAgentThreadId == Guid.Empty)
+        if (reasoningMessage.AgentContextId == Guid.Empty)
         {
             return null;
         }
@@ -938,9 +938,9 @@ public class CosmosDbThreadRepository : IThreadRepository
         return reasoningMessage;
     }
 
-    public async Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid subAgentThreadId)
+    public async Task<bool> DeleteReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId)
     {
-        string subAgentThreadIdStr = subAgentThreadId.ToString();
+        string agentContextIdStr = agentContextId.ToString();
         string reasoningMessageIdStr = reasoningMessageId.ToString();
 
         try
@@ -948,7 +948,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             // Delete the message
             await _container.DeleteItemAsync<ReasoningMessageDocument>(
                 reasoningMessageIdStr,
-                new PartitionKey(subAgentThreadIdStr)
+                new PartitionKey(agentContextIdStr)
             );
 
             return true;

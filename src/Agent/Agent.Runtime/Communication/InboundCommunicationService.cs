@@ -60,7 +60,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         _githubIssuePlugin = githubIssuePlugin;
     }
 
-    public async Task<(Core.Models.Api.v1.Thread, SubAgentThread, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
+    public async Task<(Core.Models.Api.v1.Thread, AgentContext, Core.Models.Api.v1.ThreadContext)> CreateAgentThread(
         string title,
         string message,
         AgentTypeEnum agentTypeEnum,
@@ -76,7 +76,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadSource source = ThreadSource.Alert)
     {
         var outboundConfig = new OutboundConfiguration { Teams = new Teams { Enabled = true } };
-        (var thread, var subAgentThread, var threadContext) = await CreateThread(title, message, source, agentTypeEnum, outboundConfig);
+        (var thread, var agentContext, var threadContext) = await CreateThread(title, message, source, agentTypeEnum, outboundConfig);
         await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
 
         return thread;
@@ -117,7 +117,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 await _sinkService.SinkUserMessageAsync(threadContext, threadMessage);
                 await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
                     Id: Guid.NewGuid(),
-                    SubAgentThreadId: threadMessage.SubAgentThreadId,
+                    AgentContextId: threadMessage.AgentContextId,
                     Role: ReasoningMessageRoleEnum.User,
                     SerializedChatMessage: JsonConvert.SerializeObject(new ChatMessage(ChatRole.User, threadMessage.Message))));
             }
@@ -168,13 +168,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
                     if (scannerSubAgent != null)
                     {
-                        (agentResponse, var _) = await scannerSubAgent.DoWork(subAgentThreadId: threadMessage.SubAgentThreadId, threadContext, threadMessage.Message);
+                        (agentResponse, var _) = await scannerSubAgent.DoWork(agentContextId: threadMessage.AgentContextId, threadContext, threadMessage.Message);
                     }
                 }
                 else
                 {
                     // Process the message with MetaAgent
-                    agentResponse = await _metaAgent.ProcessUserMessage(subAgentThreadId: threadMessage.SubAgentThreadId, threadContext);
+                    agentResponse = await _metaAgent.ProcessUserMessage(agentContextId: threadMessage.AgentContextId, threadContext);
                 }
 
                 responseMessageId = await _sinkService.SinkAgentMessageAsync(threadContext, agentResponse);
@@ -230,7 +230,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
     }
 
-    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.SubAgentThread, ThreadContext)> CreateThread(
+    private async Task<(Core.Models.Api.v1.Thread, Core.Models.Api.v1.AgentContext, ThreadContext)> CreateThread(
         string title,
         string message,
         ThreadSource source,
@@ -257,7 +257,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             Source: source
         );
 
-        var subAgentThread = new SubAgentThread(
+        var agentContext = new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: thread.Id,
             AgentType: agentTypeEnum
@@ -265,13 +265,13 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
         var startReasoningMessage = new ReasoningMessage(
             Id: Guid.NewGuid(),
-            SubAgentThreadId: subAgentThread.Id,
+            AgentContextId: agentContext.Id,
             Role: ReasoningMessageRoleEnum.Assistant,
             SerializedChatMessage: JsonConvert.SerializeObject(new ChatMessage(ChatRole.Assistant, message)));
 
         // TODO - how should we share implementation with process user message and make sure fan out occurs?
         await _repository.CreateThreadAsync(thread);
-        await _repository.CreateSubAgentThreadAsync(subAgentThread);
+        await _repository.CreateAgentContextAsync(agentContext);
         await _repository.AddMessageAsync(thread.Id, thread.StartMessage);
         await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
@@ -279,6 +279,6 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         threadContext.AddMessage(thread.StartMessage);
         await _repository.AddThreadContextAsync(threadContext);
 
-        return (thread, subAgentThread, threadContext);
+        return (thread, agentContext, threadContext);
     }
 }

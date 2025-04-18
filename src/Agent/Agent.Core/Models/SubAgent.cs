@@ -65,13 +65,13 @@ namespace Agent.Core.Models
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid subAgentThreadId, string question)
+        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId, string question)
         {
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             var agentMessage = completion.Text;
             ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
-            return (ResponseText: agentMessage, ResponseReasoningMessages: completion.GetReasoningMessages(subAgentThreadId));
+            return (ResponseText: agentMessage, ResponseReasoningMessages: completion.GetReasoningMessages(agentContextId));
         }
 
         public virtual async Task DoWorkWithHistory(string question, ChatHistory externalHistory)
@@ -118,7 +118,7 @@ namespace Agent.Core.Models
             else
             {
                 // TODO: Move these agents to the new subagent flow
-                await DoWork(subAgentThreadId: Guid.Empty, question);
+                await DoWork(agentContextId: Guid.Empty, question);
             }
 
             // Try to synthesize answer from work

@@ -47,11 +47,11 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
         public async Task Scan(CancellationToken cancellationToken)
         {
-            var cveAgentThreadContexts = (await _threadRepository.GetThreadContextsAsync())
+            var cveAgentContexts = (await _threadRepository.GetThreadContextsAsync())
                 ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVE && x.IsThreadActive)
                 ?.ToList();
 
-            if (cveAgentThreadContexts != null && cveAgentThreadContexts.Count > 0)
+            if (cveAgentContexts != null && cveAgentContexts.Count > 0)
             {
                 _logger.LogInformation("CVEAgent thread context already exists. Skipping scan.");
                 return;
@@ -75,7 +75,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
             if (repos.Count > 0)
             {
-                (var thread, var subAgentThread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     "CVE Scanner",
                     """
                     Hi there! I found at least one repo that needs to be scanned for security vulnerabilties.
@@ -90,7 +90,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                     _sinkService,
                     _threadRepository,
                     reposToScan: repos.Select(r => new RepoUrlStatus(r)).ToList());
-                await cveAgent.PrepareAgentForUserInput(subAgentThreadId: subAgentThread.Id, threadContext);
+                await cveAgent.PrepareAgentForUserInput(agentContextId: agentContext.Id, threadContext);
             }
         }
     }

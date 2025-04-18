@@ -4,7 +4,7 @@
 
 namespace Agent.Core.Models.Api.v1;
 
-public record SubAgentThread(
+public record AgentContext(
     Guid Id,
     Guid ThreadId,
     AgentTypeEnum AgentType

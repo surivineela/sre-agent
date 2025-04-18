@@ -2,6 +2,6 @@ namespace Agent.Core.Models.Api.v1;
 
 public record ReasoningMessage(
     Guid Id,
-    Guid SubAgentThreadId,
+    Guid AgentContextId,
     ReasoningMessageRoleEnum Role,
     string SerializedChatMessage);

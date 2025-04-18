@@ -197,7 +197,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _threadRepository = threadRepository;
     }
 
-    public async Task<string> ProcessUserMessage(Guid subAgentThreadId, ThreadContext ctx)
+    public async Task<string> ProcessUserMessage(Guid agentContextId, ThreadContext ctx)
     {
         var lastUserMessage = await _threadService.GetLastUserMessage(ctx);
         _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", ctx.ThreadId, lastUserMessage);
@@ -322,7 +322,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             }),
             _log, 10);
 
-            await response.AddReasoningMessagesToThreadRepositoryAsync(_threadRepository, subAgentThreadId);
+            await response.AddReasoningMessagesToThreadRepositoryAsync(_threadRepository, agentContextId);
             return response.Messages.Last().Text;
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))

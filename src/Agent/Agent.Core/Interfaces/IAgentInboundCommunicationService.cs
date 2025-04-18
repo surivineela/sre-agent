@@ -17,7 +17,7 @@ public interface IAgentInboundCommunicationService
     /// </summary>
     /// <param name="title"></param>
     /// <returns></returns>
-    Task<(Models.Api.v1.Thread, SubAgentThread, Models.Api.v1.ThreadContext)> CreateAgentThread(
+    Task<(Models.Api.v1.Thread, AgentContext, Models.Api.v1.ThreadContext)> CreateAgentThread(
         string title, 
         string message, 
         AgentTypeEnum agentTypeEnum,

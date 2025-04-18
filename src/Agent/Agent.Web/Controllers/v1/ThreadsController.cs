@@ -89,14 +89,14 @@ namespace Agent.Web.Controllers.v1
                 Source: request.Source ?? ThreadSource.Conversation
             );
 
-            var subAgentThread = new SubAgentThread(
+            var agentContext = new AgentContext(
                 Id: Guid.NewGuid(),
                 ThreadId: thread.Id,
                 AgentType: AgentTypeEnum.Meta
             );
 
             thread = await repository.CreateThreadAsync(thread);
-            subAgentThread = await repository.CreateSubAgentThreadAsync(subAgentThread);
+            agentContext = await repository.CreateAgentContextAsync(agentContext);
 
             var threadContext = new ThreadContext(thread.Id, AgentTypeEnum.Meta);
             threadContext.AddMessage(thread.StartMessage);
@@ -108,7 +108,7 @@ namespace Agent.Web.Controllers.v1
             var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: thread.Id,
-                SubAgentThreadId: subAgentThread.Id,
+                AgentContextId: agentContext.Id,
                 MessageId: thread.StartMessage.Id,
                 Message: request.StartMessage.Text,
                 UserId: request.StartMessage.UserId,
@@ -156,15 +156,15 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
-            var subAgentThreads = await repository.GetSubAgentThreadsForThreadAsync(threadId);
-            var subAgentThread = subAgentThreads.FirstOrDefault();
-            if (subAgentThread == null)
+            var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
+            var agentContext = agentContexts.FirstOrDefault();
+            if (agentContext == null)
                 return NotFound();
 
             var response = await agentInboundCommunicationService.ProcessUserMessageAsync(new ThreadMessage
             (
                 ThreadId: threadId,
-                SubAgentThreadId: subAgentThread.Id,
+                AgentContextId: agentContext.Id,
                 MessageId: Guid.NewGuid(),
                 Message: request.Text,
                 UserId: request.UserId,
@@ -245,10 +245,10 @@ namespace Agent.Web.Controllers.v1
             if (thread == null)
                 return NotFound();
 
-            var subAgentThreads = await repository.GetSubAgentThreadsForThreadAsync(threadId);
-            foreach (var subAgentThread in subAgentThreads)
+            var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
+            foreach (var agentContext in agentContexts)
             {
-                await repository.DeleteSubAgentThreadAsync(subAgentThreadId: subAgentThread.Id, threadId: threadId);
+                await repository.DeleteAgentContextAsync(agentContextId: agentContext.Id, threadId: threadId);
             }
 
             await repository.DeleteThreadAsync(threadId);
@@ -302,7 +302,7 @@ namespace Agent.Web.Controllers.v1
             //    source: ThreadSource.Incident
             //);
 
-            (var thread, var subAgentThread, var threadContext) = await agentInboundCommunicationService.CreateAgentThread(
+            (var thread, var agentContext, var threadContext) = await agentInboundCommunicationService.CreateAgentThread(
                 title: $"Incident Report - {request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,
@@ -314,7 +314,7 @@ namespace Agent.Web.Controllers.v1
 
             await agentInboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                 ThreadId: thread.Id,
-                SubAgentThreadId: subAgentThread.Id,
+                AgentContextId: agentContext.Id,
                 MessageId: thread.StartMessage.Id,
                 Message: messageBuilder.ToString(),
                 UserId: "incident-system", // TODO: distinguish between pager duty and icm or any other tool

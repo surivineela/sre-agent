@@ -6,7 +6,7 @@ namespace Agent.Core.Models.Api.v1;
 
 public record ThreadMessage(
     Guid ThreadId,
-    Guid SubAgentThreadId,
+    Guid AgentContextId,
     Guid MessageId,
     string Message,
     string UserId,

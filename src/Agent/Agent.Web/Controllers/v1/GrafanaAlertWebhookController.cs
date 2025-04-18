@@ -143,12 +143,12 @@ namespace Agent.Web.Controllers.v1
             {
                 try
                 {
-                    var subAgentThreads = await repository.GetSubAgentThreadsForThreadAsync(threadId);
-                    var subAgentThread = subAgentThreads.FirstOrDefault();
+                    var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
+                    var agentContext = agentContexts.FirstOrDefault();
 
                     await inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                         threadId,
-                        subAgentThread?.Id ?? Guid.Empty,
+                        agentContext?.Id ?? Guid.Empty,
                         Guid.NewGuid(),
                         messageContent,
                         "alert",

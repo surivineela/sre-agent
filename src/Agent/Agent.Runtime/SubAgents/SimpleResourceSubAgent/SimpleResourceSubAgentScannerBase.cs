@@ -94,7 +94,7 @@ namespace Agent.Runtime.SubAgents
             // If found any, then send a message to the messaging thread.
             if (appsInViolation.Count > 0)
             {
-                (var thread, var subAgentThread, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                (var thread, var agentContext, var threadContext) = await _agentInboundCommunicationService.CreateAgentThread(
                     $"{agentName} found issues",
                     this.MessageWhenFoundResourcesInViolation,
                     AgentTypeEnum.DTS
