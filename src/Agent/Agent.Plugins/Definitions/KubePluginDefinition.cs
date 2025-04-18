@@ -225,7 +225,7 @@ eg: show me the YAML of pod 'nginx-pod-xyz' in the 'default' namespace.")]
         }
 
         [KernelFunction("get_cpu_metrics")]
-        [Description("Get CPU utilization metrics from Prometheus for a Kubernetes deployment (as percentage of limit)")]
+        [Description("Get CPU utilization metrics for a Kubernetes deployment (as percentage of limit)")]
         public async Task<string> GetPodCpuMetricsForDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service")] string AKSClusterResourceId,
             [Description("Kubernetes namespace where the deployment is located")] string _namespace,
@@ -236,24 +236,14 @@ eg: show me the YAML of pod 'nginx-pod-xyz' in the 'default' namespace.")]
         }
 
         [KernelFunction("get_memory_metrics")]
-        [Description("Get memory utilization metrics from Prometheus for a Kubernetes deployment (as percentage of limit)")]
+        [Description("Get memory utilization metrics for a Kubernetes deployment (as percentage of limit)")]
         public async Task<string> GetPodMemoryMetricsForDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service")] string AKSClusterResourceId,
             [Description("Kubernetes namespace where the deployment is located")] string _namespace,
-            [Description("Name of the Kubernetes deployment to get memory metrics for")] string deploymentName)
-        {
-            return await _kubePlugin.GetPodMemoryMetricsForDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName);
-        }
-
-        [KernelFunction("get_success_rate_metrics")]
-        [Description("Get API success rate metrics from Prometheus for a Kubernetes service (percentage of successful calls)")]
-        public async Task<string> GetSuccessRateMetricsAsync(
-            [Description("The resource ID of the Azure Kubernetes Service")] string AKSClusterResourceId,
-            [Description("Kubernetes namespace where the deployment is located")] string _namespace,
-            [Description("Name of the Kubernetes deployment to get success rate metrics for")] string deploymentName,
+            [Description("Name of the Kubernetes deployment to get memory metrics for")] string deploymentName,
             [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
         {
-            return await _kubePlugin.GetSuccessRateMetricsAsync(AKSClusterResourceId, _namespace, deploymentName, timeRange);
+            return await _kubePlugin.GetPodMemoryMetricsForDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, timeRange);
         }
 
         [KernelFunction("get_recently_updated_workloads")]

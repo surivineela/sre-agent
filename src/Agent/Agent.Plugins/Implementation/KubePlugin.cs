@@ -22,6 +22,9 @@ using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Microsoft.Extensions.AI;
+using Agent.Prometheus.Services;
+using Agent.Core.Configuration;
+using Agent.Prometheus;
 
 namespace Agent.Plugins
 {
@@ -32,17 +35,30 @@ namespace Agent.Plugins
         private IChatClient _chatClient;
 
         private readonly IAuthenticationService _authService;
+        private readonly IPrometheusQueryService _prometheusQueryService;
+        private readonly string? _prometheusQueryEndpoint;
+        private readonly DashboardSettings _dashboardSettings;
 
         private ThreadContext Context { get; set; }
         private readonly ConcurrentDictionary<string, IKubernetes> _clientCache = new();
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(60);
         private readonly ConcurrentDictionary<string, DateTimeOffset> _cacheTimestamps = new();
 
-        public KubePlugin(IConfiguration configuration, IAuthenticationService authenticationService, IChatClient chatClient, ILogger<KubePlugin>? logger)
+        public KubePlugin(
+            IConfiguration configuration,
+            IAuthenticationService authenticationService,
+            IChatClient chatClient,
+            IPrometheusQueryService prometheusQueryService,
+            DashboardSettings dashboardSettings,
+            ILogger<KubePlugin>? logger)
         {
             _logger = logger;
             _authService = authenticationService;
             _chatClient = chatClient;
+            _prometheusQueryService = prometheusQueryService;
+            _dashboardSettings = dashboardSettings;
+
+            _prometheusQueryEndpoint = _dashboardSettings.PrometheusUrl;
         }
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
@@ -596,79 +612,177 @@ namespace Agent.Plugins
             }
         }
 
-        public async Task<string> GetPodCpuMetricsForDeploymentAsync(string resourceId, string _namespace, string deployment, string timeRange = "5m")
+        public async Task<string> GetPodCpuMetricsForDeploymentAsync(string AKSClusterResourceId, string _namespace, string deployment, string timeRange = "5m")
         {
-            return await GetInClusterPrometheusMetricsAsync(resourceId, _namespace, deployment, "cpu", timeRange);
+            return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, deployment, "cpu", timeRange);
         }
 
-        public async Task<string> GetPodMemoryMetricsForDeploymentAsync(string resourceId, string _namespace, string deployment)
+        public async Task<string> GetPodMemoryMetricsForDeploymentAsync(string AKSClusterResourceId, string _namespace, string deployment, string timeRange = "5m")
         {
-            return await GetInClusterPrometheusMetricsAsync(resourceId, _namespace, deployment, "memory", "5m");
+            // Defaulting timeRange to 5m as it's often used implicitly in memory queries,
+            // even if not directly in the query string like rate(). Adjust if needed.
+            return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, deployment, "memory", timeRange);
         }
 
-        public async Task<string> GetSuccessRateMetricsAsync(string resourceId, string _namespace, string deployment, string timeRange = "5m")
+        /// <summary>
+        /// Fetches metrics from Azure Monitor Prometheus endpoint.
+        /// </summary>
+        private async Task<string> GetAzureMonitorPrometheusMetricsAsync(string resourceId, string _namespace, string deployment, string metricType, string timeRange)
         {
-            return await GetInClusterPrometheusMetricsAsync(resourceId, _namespace, deployment, "success_rate", timeRange);
-        }
+            if (string.IsNullOrEmpty(_prometheusQueryEndpoint))
+            {
+                return "Azure Monitor Prometheus Query Endpoint is not configured in agent settings.";
+            }
+            // Ensure client is created for the target cluster if needed for context, though not directly used for query
+            try { await GetOrCreateClientAsync(resourceId); }
+            catch (Exception ex)
+            {
+                _logger?.LogWarning(ex, "Failed to ensure Kubernetes client exists for resourceId {ResourceId} while querying metrics. Proceeding with metric query.", resourceId);
+                // Continue, as the k8s client isn't strictly needed for the Prometheus query itself here.
+            }
 
-        /// Fetches metrics from an in-cluster Prometheus instance.
-        /// This method sets up port forwarding to the Prometheus service and queries it for the specified metrics.
-        /// This is just for demo purpose, in production, we should fetch from Azure Monitor.
-        public async Task<string> GetInClusterPrometheusMetricsAsync(string resourceId, string _namespace, string deployment, string metricType, string timeRange)
-        {
             try
             {
-                _client = await GetOrCreateClientAsync(resourceId);
-
-                // TODO(jianbosun): make the prometheus service name, namespace configurable instead of hardcoded the discover way.
-                var services = await _client.CoreV1.ListNamespacedServiceAsync(_namespace);
-                var prometheusService = services.Items.FirstOrDefault(s => s.Metadata.Name.Contains("prometheus", StringComparison.OrdinalIgnoreCase));
-
-                if (prometheusService == null)
-                    return "Prometheus service not found in the cluster. Please ensure Prometheus is installed.";
-
-                // Parse time range to Prometheus duration format
+                // Parse time range to Prometheus duration format (mainly for rate functions)
                 string duration = ParseTimeRangeToDuration(timeRange);
 
                 // Build the appropriate PromQL query based on metric type
-                string query = BuildPromQuery(metricType, deployment, duration);
+                string query = BuildPromQuery(metricType, _namespace, deployment, duration);
 
-                _logger?.LogInformation("Using PromQL query: {Query}", query);
-
-                var prometheusEndpoint = $"{prometheusService.Metadata.Name}:{prometheusService.Spec.Ports.First().Port}";
-                var prometheusEndpointFromEnv = Environment.GetEnvironmentVariable("PrometheusEndpoint");
-                if (!string.IsNullOrEmpty(prometheusEndpointFromEnv))
+                if (string.IsNullOrEmpty(query) || query.StartsWith("Specific", StringComparison.OrdinalIgnoreCase))
                 {
-                    prometheusEndpoint = prometheusEndpointFromEnv;
+                    _logger?.LogWarning("Could not build a valid PromQL query for metric type '{MetricType}', deployment '{Deployment}', namespace '{Namespace}'", metricType, deployment, _namespace);
+                    return query; // Return the error message from BuildPromQuery
                 }
-                _logger?.LogInformation("Using Prometheus endpoint: {PrometheusEndpoint}", prometheusEndpoint);
 
-                // Wait for port forwarding to establish
-                await Task.Delay(1000);
+                _logger?.LogInformation("Querying Azure Monitor Prometheus ({Endpoint}) with PromQL: {Query}", _prometheusQueryEndpoint, query);
 
-                // Query Prometheus API
-                using var httpClient = new HttpClient();
-                httpClient.Timeout = TimeSpan.FromSeconds(30);
+                // Query Azure Monitor Prometheus API using the injected service
+                // Using QueryInstantAsync as it maps closer to the previous behavior.
+                // If a time series graph is needed, QueryRangeAsync would be used.
+                var response = await _prometheusQueryService.QueryInstantAsync(_prometheusQueryEndpoint, query);
 
-                // Encode the query for URL
-                string encodedQuery = Uri.EscapeDataString(query);
-                string uri = $"http://{prometheusEndpoint}/api/v1/query?query={encodedQuery}";
-
-                _logger?.LogInformation("Querying Prometheus API: {Uri}", uri);
-                var response = await httpClient.GetAsync(uri);
-
-                if (!response.IsSuccessStatusCode)
-                    return $"Error querying Prometheus: {response.StatusCode} - {await response.Content.ReadAsStringAsync()}";
-
-                var content = await response.Content.ReadAsStringAsync();
-                return FormatPrometheusResponse(content, metricType, deployment);
+                return FormatPrometheusResponse(response, metricType, deployment);
+            }
+            catch (HttpRequestException httpEx)
+            {
+                // Catch specific HTTP errors from the service
+                _logger?.LogError(httpEx, "HTTP Error querying Azure Monitor Prometheus for {MetricType} on deployment {Deployment} in namespace {Namespace}",
+                    metricType, deployment, _namespace);
+                return $"Error querying Azure Monitor Prometheus: {httpEx.Message} (StatusCode: {httpEx.StatusCode})";
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error fetching Prometheus metrics for {MetricType} on deployment {Deployment} in namespace {Namespace}",
+                _logger?.LogError(ex, "Error fetching Azure Monitor Prometheus metrics for {MetricType} on deployment {Deployment} in namespace {Namespace}",
                     metricType, deployment, _namespace);
-                return $"Error retrieving Prometheus metrics: {ex.Message}";
+                return $"Error retrieving Azure Monitor Prometheus metrics: {ex.Message}";
             }
+        }
+
+        private static string FormatPrometheusResponse(Response? response, string metricType, string deployment)
+        {
+            if (response == null)
+            {
+                return $"No response received from Prometheus for {metricType} metrics for deployment {deployment}.";
+            }
+
+            var sb = new StringBuilder();
+            string capitalizedMetricType = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(metricType.ToLowerInvariant()); // e.g., "Cpu", "Memory"
+
+            switch (response)
+            {
+                case ErrorResponse errorResponse:
+                    sb.AppendLine($"## Error Fetching {capitalizedMetricType} Metrics for {deployment}");
+                    sb.AppendLine();
+                    sb.AppendLine($"**Error Type**: {errorResponse.ErrorType}");
+                    sb.AppendLine($"**Error Message**: {errorResponse.Error}");
+                    if (errorResponse.Warnings?.Any() ?? false)
+                    {
+                        sb.AppendLine("**Warnings**:");
+                        foreach (var warning in errorResponse.Warnings)
+                        {
+                            sb.AppendLine($"- {warning}");
+                        }
+                    }
+                    break;
+
+                case SuccessVectorResponse successVector:
+                    var vectorData = successVector.Data;
+                    if (vectorData?.Result == null || !vectorData.Result.Any())
+                    {
+                        return $"No {metricType} metrics found for deployment '{deployment}'. Check if the deployment name and namespace are correct and if metrics are being collected.";
+                    }
+
+                    sb.AppendLine($"## {capitalizedMetricType} Usage for Deployment '{deployment}'");
+                    sb.AppendLine();
+
+                    foreach (var resultItem in vectorData.Result)
+                    {
+                        // --- Pod Name ---
+                        string podName = "(unknown pod)";
+                        if (resultItem.Metric.TryGetValue("pod", out var podLabel))
+                        {
+                            podName = podLabel;
+                        }
+                        else if (resultItem.Metric.TryGetValue("kubernetes_pod_name", out var k8sPodLabel)) // Alternative label
+                        {
+                            podName = k8sPodLabel;
+                        }
+                        else if (resultItem.Metric.TryGetValue("name", out var nameLabel)) // Another possible label
+                        {
+                            podName = nameLabel;
+                        }
+                        // You might need to add more fallbacks depending on your exact metric labels
+
+                        sb.Append($"**Pod**: `{podName}`");
+
+                        // --- Container Name (if available) ---
+                        if (resultItem.Metric.TryGetValue("container", out var containerLabel) && !string.IsNullOrEmpty(containerLabel))
+                        {
+                            sb.Append($" (Container: `{containerLabel}`)");
+                        }
+                        sb.AppendLine();
+
+                        // --- Metric Value ---
+                        double timestamp = resultItem.Value.Item1; // Unix timestamp (seconds)
+                        string rawValue = resultItem.Value.Item2;
+                        DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeSeconds((long)timestamp);
+
+                        if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double numericValue))
+                        {
+                            // Check for NaN or Infinity which Prometheus can return
+                            if (double.IsNaN(numericValue) || double.IsInfinity(numericValue))
+                            {
+                                sb.AppendLine($"**{capitalizedMetricType} Value**: {rawValue} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                            }
+                            // Specific formatting for CPU/Memory (assuming they represent % usage from your queries)
+                            else if (metricType.Equals("cpu", StringComparison.OrdinalIgnoreCase) || metricType.Equals("memory", StringComparison.OrdinalIgnoreCase))
+                            {
+                                // Your queries calculate percentage, so multiply by 100
+                                sb.AppendLine($"**{capitalizedMetricType} Usage**: {numericValue:F2}% of limit (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                            }
+                            else // Generic numeric value
+                            {
+                                sb.AppendLine($"**Value**: {numericValue:F4} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                            }
+                        }
+                        else // Value wasn't a parsable number
+                        {
+                            sb.AppendLine($"**{capitalizedMetricType} Value**: {rawValue} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                        }
+                        sb.AppendLine(); // Add a blank line between pod results
+                    }
+
+                    break;
+
+                default:
+                    // Handle unknown response types if necessary, although your models cover the main Prometheus ones.
+                    sb.AppendLine($"## Unknown Prometheus Response Type for {metricType} Metrics for {deployment}");
+                    sb.AppendLine($"Received type: {response.GetType().Name}");
+                    break;
+            }
+
+            return sb.ToString().TrimEnd(); // Trim trailing whitespace/newlines
         }
 
         // Get workloads that were updated within a specific time frame
@@ -837,44 +951,44 @@ namespace Agent.Plugins
             return sb.ToString().TrimEnd(); // Return the formatted string
         }
 
-        // TODO(jianbosun): this is a hack for demo purpose, need to find a better way to discover prometheus query in a flexible way
-        private string BuildPromQuery(string metricType, string deployment, string duration)
+        // Uses standard container metrics likely available in Azure Monitor for Prometheus
+        // Requires AMA-Metrics addon to be enabled on AKS.
+        private string BuildPromQuery(string metricType, string _namespace, string deployment, string duration)
         {
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
-                    // Using existing pod-based memory query assuming deployment name maps to pod prefix
-                    return $"sum(container_memory_usage_bytes{{pod=~\"{deployment}-.*\",container!=\"\"}}) by (pod) / sum(container_spec_memory_limit_bytes{{pod=~\"{deployment}-.*\",container!=\"\"}}) by (pod)";
+                    // Using updated memory query with max_over_time and namespace filter
+                    return $@"100 * (
+                        max_over_time(
+                            container_memory_working_set_bytes{{pod=~""{deployment}-.*"",namespace=""{_namespace}"",container!=""""}}[{duration}]
+                        )
+                        / on (container, pod)
+                        kube_pod_container_resource_limits{{pod=~""{deployment}-.*"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
+                        )";
 
                 case "cpu":
-                    // Using existing pod-based cpu query assuming deployment name maps to pod prefix
-                    return $"sum(rate(container_cpu_usage_seconds_total{{pod=~\"{deployment}-.*\",container!=\"\"}}[{duration}])) by (pod) / sum(container_spec_cpu_quota{{pod=~\"{deployment}-.*\",container!=\"\"}} / 100000) by (pod)";
+                    // Standard CPU utilization query that works across all AKS clusters
+                    return $$"""
+                        100 * (
+                            sum by (pod) (
+                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{deployment}}-.*", container!=""}[{{duration}}])
+                            )
+                            /
+                            sum by (pod) (
+                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{deployment}}-.*", resource="cpu", container!=""}
+                            ) > 0
+                        )
+                        """;
 
-                case "success_rate":
-                    // Check if the deployment is one of the specific ones requiring the rpc_server_requests metric
-                    if (deployment.Equals("checkout", StringComparison.OrdinalIgnoreCase)) // Match exact service name from screenshot
-                    {
-                        string qparam = "oteldemo.CheckoutService";
-                        _logger?.LogInformation("Building success rate query for supported service: {Deployment} using rpc_server_requests_per_rpc_count", deployment);
-                        return $"sum(rate(rpc_server_requests_per_rpc_count{{rpc_service=\"{qparam}\", rpc_grpc_status_code=\"0\"}}[{duration}])) by (rpc_service) / sum(rate(rpc_server_requests_per_rpc_count{{rpc_service=\"{qparam}\"}}[{duration}])) by (rpc_service)";
-                    }
-                    else if (deployment.Equals("product-catalog"))
-                    {
-                        string qparam = "oteldemo.ProductCatalogService";
-                        _logger?.LogInformation("Building success rate query for supported service: {Deployment} using rpc_server_requests_per_rpc_count", deployment);
-                        return $"sum(rate(rpc_server_requests_per_rpc_count{{rpc_service=\"{qparam}\", rpc_grpc_status_code=\"0\"}}[{duration}])) by (rpc_service) / sum(rate(rpc_server_requests_per_rpc_count{{rpc_service=\"{qparam}\"}}[{duration}])) by (rpc_service)";
-                    }
-                    else
-                    {
-                        return $"Specific success rate query not configured for deployment '{deployment}'.";
-                    }
                 // Default case for custom queries or other unhandled metric types
                 default:
-                    return $"Specific query not configured for deployment '{deployment}'.";
+                    _logger?.LogWarning("No specific query configured for metric type '{MetricType}' in namespace '{Namespace}' and deployment '{Deployment}'.", metricType, _namespace, deployment);
+                    return $"Specific query not configured for metric type '{metricType}' namespace '{_namespace}' and deployment '{deployment}'.";
             }
         }
 
-        private string ParseTimeRangeToDuration(string timeRange)
+        private static string ParseTimeRangeToDuration(string timeRange)
         {
             // If timeRange is already in Prometheus format (e.g., "5m", "1h")
             if (Regex.IsMatch(timeRange, @"^\d+[smhdwy]$"))
@@ -892,121 +1006,6 @@ namespace Agent.Plugins
 
             // Default to 5m if parsing fails
             return "5m";
-        }
-
-        private string FormatPrometheusResponse(string prometheusJson, string metricType, string deployment)
-        {
-            try
-            {
-                using var jsonDoc = JsonDocument.Parse(prometheusJson);
-                string status = jsonDoc.RootElement.GetProperty("status").GetString();
-
-                if (status != "success")
-                {
-                    var errorType = jsonDoc.RootElement.GetProperty("errorType").GetString();
-                    var error = jsonDoc.RootElement.GetProperty("error").GetString();
-                    return $"Prometheus query error: {errorType} - {error}";
-                }
-
-                // Process results
-                var data = jsonDoc.RootElement.GetProperty("data");
-                var resultType = data.GetProperty("resultType").GetString();
-                var results = data.GetProperty("result");
-
-                if (results.GetArrayLength() == 0)
-                    return $"No {metricType} metrics found for deployment {deployment}";
-
-                var sb = new StringBuilder();
-                sb.AppendLine($"## {metricType.ToUpperInvariant()} Metrics for {deployment}");
-                sb.AppendLine();
-
-                foreach (var result in results.EnumerateArray())
-                {
-                    // Get metric info (labels)
-                    var metric = result.GetProperty("metric");
-                    sb.Append("**Pod**: ");
-
-                    // Try to get pod name if it exists
-                    if (metric.TryGetProperty("pod", out var podElement))
-                        sb.Append(podElement.GetString());
-                    else if (metric.TryGetProperty("service_name", out var serviceElement))
-                        sb.Append(serviceElement.GetString());
-                    else
-                        sb.Append("(unknown)");
-
-                    sb.AppendLine();
-
-                    // Process the value (depends on result type)
-                    if (resultType == "vector")
-                    {
-                        var value = result.GetProperty("value");
-                        var timestamp = value[0].GetDouble(); // Unix timestamp
-                        var metricValue = value[1].GetString();
-
-                        if (double.TryParse(metricValue, out double numericValue))
-                        {
-                            if (metricType.Equals("success_rate", StringComparison.OrdinalIgnoreCase))
-                            {
-                                sb.AppendLine($"**Success Rate**: {numericValue * 100:F2}%");
-                            }
-                            else if (metricType.Equals("memory", StringComparison.OrdinalIgnoreCase))
-                            {
-                                sb.AppendLine($"**Memory Usage**: {numericValue * 100:F2}% of limit");
-                            }
-                            else if (metricType.Equals("cpu", StringComparison.OrdinalIgnoreCase))
-                            {
-                                sb.AppendLine($"**CPU Usage**: {numericValue * 100:F2}% of limit");
-                            }
-                            else
-                            {
-                                sb.AppendLine($"**Value**: {numericValue}");
-                            }
-                        }
-                        else
-                        {
-                            sb.AppendLine($"**Value**: {metricValue}");
-                        }
-                    }
-                    else if (resultType == "matrix")
-                    {
-                        sb.AppendLine("**Time Series Values**:");
-                        var values = result.GetProperty("values");
-
-                        foreach (var pair in values.EnumerateArray().Take(5)) // Limit to first 5 values
-                        {
-                            var timestamp = pair[0].GetDouble(); // Unix timestamp
-                            var dateTime = DateTimeOffset.FromUnixTimeSeconds((long)timestamp).ToString("yyyy-MM-dd HH:mm:ss");
-                            var metricValue = pair[1].GetString();
-                            sb.AppendLine($"- {dateTime}: {metricValue}");
-                        }
-
-                        if (values.GetArrayLength() > 5)
-                            sb.AppendLine("*(showing first 5 values only)*");
-                    }
-
-                    sb.AppendLine();
-                }
-
-                // Add Grafana dashboard link based on metric type
-                if (metricType.Equals("cpu", StringComparison.OrdinalIgnoreCase))
-                {
-                    string grafanaUrl = $"http://demo-agent.australiaeast.cloudapp.azure.com/grafana/d/W2gX2zHVk/demo-dashboard?orgId=1&from=now-30m&to=now&timezone=browser&var-service={deployment}&viewPanel=panel-6";
-                    sb.AppendLine($"**Grafana Dashboard**: [View CPU metrics]({grafanaUrl})");
-                    sb.AppendLine();
-                }
-                else if (metricType.Equals("memory", StringComparison.OrdinalIgnoreCase))
-                {
-                    string grafanaUrl = $"http://demo-agent.australiaeast.cloudapp.azure.com/grafana/d/W2gX2zHVk/demo-dashboard?orgId=1&from=now-30m&to=now&timezone=browser&var-service={deployment}&viewPanel=panel-8";
-                    sb.AppendLine($"**Grafana Dashboard**: [View Memory metrics]({grafanaUrl})");
-                    sb.AppendLine();
-                }
-
-                return sb.ToString();
-            }
-            catch (Exception ex)
-            {
-                return $"Error processing Prometheus response: {ex.Message}\nRaw response: {prometheusJson}";
-            }
         }
 
     }

@@ -58,7 +58,6 @@ public sealed class KubernetesAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodYamlAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodCpuMetricsForDeploymentAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetPodMemoryMetricsForDeploymentAsync));
-        toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetSuccessRateMetricsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetRecentlyUpdatedWorkloadsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulsetsAsync));
         toolSignatures.Add(toolsRepository.GetSignature(() => kubePluginDefinition.GetKubeStatefulsetSpecStatusAsync));
