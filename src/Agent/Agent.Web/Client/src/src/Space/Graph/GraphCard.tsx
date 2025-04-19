@@ -1,8 +1,7 @@
 import {
-    Caption1,
     Text,
     Link,
-    mergeClasses,
+    mergeClasses
 } from "@fluentui/react-components";
 import { Card, CardHeader } from "@fluentui/react-components";
 import { NodeProps, Node, Handle, Position } from "@xyflow/react";
@@ -63,23 +62,25 @@ const resolveIcon = (azureType?: string): string => {
 // ────────────────────────────────────────────────────────────────────────────────
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
-    const { openPanel, hoverNode, unHoverNode, nodesToHightlight } =
+    const { openPanel, hoverNode, unHoverNode, nodesToHightlight, selectedAppGroupId } =
         useContext(GraphContext);
 
-    const { card, cardHightlight, header, headerText, description } =
+    const { card, rootCard, cardHightlight, header, rootHeader, headerText, rootHeaderText, description } =
         useGraphNodeStyles();
+
+    const isRootNode = id === selectedAppGroupId;
 
     // Title link
     const Header = () =>
         data.name ? (
             <Link
-                className={headerText}
+                className={isRootNode ? rootHeaderText : headerText}
                 onClick={(e) => {
                     e.stopPropagation();
                     openPanel(data);
                 }}
             >
-                <Text wrap={false} block={false}>
+                <Text wrap={false} block={false} size={isRootNode ? 900 : 600}>
                     {data.name}
                 </Text>
             </Link>
@@ -87,30 +88,34 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
 
     // Resource‑type subtitle
     const Description = () => (
-        <Caption1
+        <Text
             wrap={false}
             block={false}
+            size={isRootNode ? 600 : 400}
             className={mergeClasses(headerText, description)}
         >
             {data?.properties?.type ?? "subscription"}
-        </Caption1>
+        </Text>
     );
 
     return (
         <div onMouseEnter={() => hoverNode(id)} onMouseLeave={() => unHoverNode()}>
             <Handles />
             <Card
+                onClick={() => {
+                    openPanel(data);
+                }}
                 className={mergeClasses(
-                    card,
+                    isRootNode ? rootCard : card,
                     nodesToHightlight.includes(id) ? cardHightlight : undefined
                 )}
             >
                 <CardHeader
-                    className={header}
+                    className={isRootNode ? rootHeader : header}
                     image={
                         <img
-                            width={26}
-                            height={26}
+                            width={32}
+                            height={32}
                             src={resolveIcon(data?.properties?.type)}
                             alt="resource icon"
                         />
@@ -119,7 +124,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                     description={<Description />}
                 />
                 {/* Updated to use getAppHealthInfo */}
-                <HealthStatus health={getAppHealthInfo(data.properties)?.Health} />
+                <HealthStatus health={getAppHealthInfo(data.properties)?.Health} fontSize={600} />
             </Card>
         </div>
     );

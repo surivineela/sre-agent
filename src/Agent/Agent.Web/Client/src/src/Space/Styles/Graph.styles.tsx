@@ -18,7 +18,7 @@ export const useGraphStyles = makeStyles({
     },
     spinner: {
         position: 'fixed',
-        left: '50%',
+        left: '60%',
         top: '50%'
     }
 });
@@ -33,6 +33,15 @@ export const useGraphNodeStyles = makeStyles({
         height: `${NodeSize.height}px`,
         position: 'relative',
         backgroundColor: tokens.colorNeutralBackground2,
+        borderRadius: '15px',
+        border: `1px solid`,
+    },
+    rootCard: {
+        width: `${NodeSize.appGroupWidth}px`,
+        height: `${NodeSize.appGroupHeight}px`,
+        position: 'relative',
+        backgroundColor: tokens.colorPaletteRoyalBlueBackground2,
+        borderRadius: '15px'
     },
     cardHightlight: {
         backgroundColor: tokens.colorBrandBackground2Hover
@@ -40,10 +49,18 @@ export const useGraphNodeStyles = makeStyles({
     header: {
         width: `calc(${NodeSize.width}px - 24px)`
     },
+    rootHeader: {
+        width: `calc(${NodeSize.appGroupWidth}px - 24px)`
+    },
     headerText: {
         textOverflow: 'ellipsis',
         overflow: 'hidden',
         width: `calc(${NodeSize.width}px - 76px)`
+    },
+    rootHeaderText: {
+        textOverflow: 'ellipsis',
+        overflow: 'hidden',
+        width: `calc(${NodeSize.appGroupWidth}px - 76px)`
     },
     description: {
         color: tokens.colorNeutralForeground3

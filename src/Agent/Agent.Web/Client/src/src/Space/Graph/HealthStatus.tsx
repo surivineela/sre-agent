@@ -1,11 +1,12 @@
 import { memo } from "react";
-import { Image, Link, makeStyles, Spinner } from "@fluentui/react-components";
+import { Image, Link, makeStyles, Spinner, Text } from "@fluentui/react-components";
 
 interface HealthStatusProps {
     health?: string;
     showReportButton?: boolean;
     onClickReportButton?: () => Promise<void>;
     isSendingReport?: boolean;
+    fontSize?: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 1000 | undefined;
 }
 
 const useStyles = makeStyles({
@@ -18,7 +19,7 @@ const useStyles = makeStyles({
     }
 });
 
-const HealthStatus = ({ health, showReportButton, onClickReportButton, isSendingReport }: HealthStatusProps) => {
+const HealthStatus = ({ health, showReportButton, onClickReportButton, isSendingReport, fontSize }: HealthStatusProps) => {
 
     const { container } = useStyles();
 
@@ -43,7 +44,7 @@ const HealthStatus = ({ health, showReportButton, onClickReportButton, isSending
 
     return health ? <div className={container}>
         {healthIconSrc && <Image src={healthIconSrc} width={16} height={16} />}
-        <span>{healthText}</span>
+        <Text size={fontSize}>{healthText}</Text>
         {
             showReportButton && isNodeUnhealthy && (
                 isSendingReport ?

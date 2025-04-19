@@ -5,7 +5,7 @@ import { Node, Edge } from "@xyflow/react";
 export const useElkLayout = () => {
     const workerRef = useRef<Worker>();
 
-    const layoutGraph = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[]): Promise<any> => {
+    const layoutGraph = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string): Promise<any> => {
         return new Promise((resolve, reject) => {
             const worker = workerRef.current;
             if (!worker) return reject('Worker not initialized')
@@ -23,7 +23,7 @@ export const useElkLayout = () => {
             worker.onmessage = (event) => {
                 handleMessage(event);
             };
-            worker.postMessage({ nodes, edges })
+            worker.postMessage({ nodes, edges, rootNodeId })
         });
     }
 

@@ -2,11 +2,8 @@ import axios from 'axios';
 import { useCallback, useEffect, useReducer, useState } from 'react';
 import { Node, Edge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import { GraphEdge, GraphNode, Resource, ResourceExtended } from '../Contracts/Graph';
-// import ELK from 'elkjs';
 import { getNewNodesAndEdges, getSourceAndTargetHandleId, getSubscriptionIdFromNodeId, traverseGraph } from '../Graph/Utility';
 import { useElkLayout } from './useElkLayout';
-
-// const elk = new ELK();
 
 export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
     try {
@@ -98,9 +95,10 @@ export const useGraph = () => {
     const onAppGroupUpdate = useCallback(async (appGroup?: ResourceExtended) => {
         closePanel();
 
+        setIsLoading(true);
+
         if (appGroup) {
             if (!graph.nodeMap.has(appGroup.id)) {
-                setIsLoading(true);
                 const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
                 const { nodeMap, edgeMap } = getNewNodesAndEdges(appGroup, resources);
                 dispatch({ type: 'ADD_APP_GROUP', payload: { newNodeMap: nodeMap, newEdgeMap: edgeMap } });
@@ -125,15 +123,19 @@ export const useGraph = () => {
 
                     const { nodes: nodesArray, edges: edgesArray } = traverseGraph(nodeMap, edgeMap, selectedAppGroupId);
 
-                    layoutGraph(nodesArray, edgesArray).then((layout: any) => {
+                    layoutGraph(nodesArray, edgesArray, selectedAppGroupId).then((layout: any) => {
                         const nodes: Node<GraphNode>[] = (layout.children ?? []).map((node: any) => ({ ...node, position: { x: node.x ?? 0, y: node.y ?? 0 } }));
                         const edges: Edge<GraphEdge>[] = (layout.edges ?? []).map((edge: any) => {
-                            const sourcePos = nodes.find(node => node.id === edge.sources[0])?.position;
-                            const targetPos = nodes.find(node => node.id === edge.targets[0])?.position;
+                            const source = nodes.find(node => node.id === edge.sources[0]);
+                            const target = nodes.find(node => node.id === edge.targets[0]);
                             const edgeResult: Edge<GraphEdge> = { ...edge, id: edge.id, source: edge.sources[0], target: edge.targets[0] };
 
-                            if (sourcePos && targetPos) {
-                                const { sourceHandle, targetHandle } = getSourceAndTargetHandleId(sourcePos, targetPos);
+                            if (source && target) {
+                                const sourcePos = source.position;
+                                const targetPos = target.position;
+
+                                const { sourceHandle, targetHandle } = getSourceAndTargetHandleId(sourcePos, targetPos, source.id === selectedAppGroupId, target.id === selectedAppGroupId);
+
                                 edgeResult.sourceHandle = sourceHandle;
                                 edgeResult.targetHandle = targetHandle;
                             }

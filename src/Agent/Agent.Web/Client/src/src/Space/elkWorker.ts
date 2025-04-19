@@ -7,8 +7,8 @@ const elk = new ELK({
     workerUrl: '../elk-worker.min.js'
 })
 
-self.onmessage = debounce(async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>) => {
-    const { nodes, edges } = event.data;
+self.onmessage = debounce(async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string }>) => {
+    const { nodes, edges, rootNodeId } = event.data;
 
     try {
         let layoutOptions: any = nodes.length <= 10 ? {
@@ -32,8 +32,8 @@ self.onmessage = debounce(async (event: MessageEvent<{ nodes: Node<GraphNode>[],
                 ...node,
                 x: node.position.x,
                 y: node.position.y,
-                width: NodeSize.width,
-                height: NodeSize.height,
+                width: node.id === rootNodeId ? NodeSize.appGroupWidth : NodeSize.width,
+                height: node.id === rootNodeId ? NodeSize.appGroupHeight : NodeSize.height,
             })),
             edges: edges.map(edge => ({
                 ...edge,
