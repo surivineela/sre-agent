@@ -1,12 +1,11 @@
-import { Button, DrawerBody, DrawerHeader, DrawerHeaderTitle, OverlayDrawer, Field, Label, Image, Spinner, Link, makeStyles, Text, Textarea, TextareaOnChangeData, Caption1, mergeClasses } from "@fluentui/react-components";
+import { Button, DrawerBody, DrawerHeader, DrawerHeaderTitle, OverlayDrawer, Field, Label, Image, Spinner, Link, makeStyles, Text, Textarea, TextareaOnChangeData, Caption1, mergeClasses, DrawerFooter, Toaster } from "@fluentui/react-components";
 import { memo, useContext, useEffect, useState } from "react";
 import { GraphContext, ResourceExtended } from "../Contracts/Graph";
 import { Dismiss24Regular } from "@fluentui/react-icons";
 import { Guid } from "../../Common/Helpers/Guid";
-import axios from "axios";
 import HealthStatus from "./HealthStatus";
 import { getSafeDateTime } from "../../Common/Helpers/Date";
-import { getPropertyValue, usePanel } from "../Hooks/usePanel";
+import { createThread, getPropertyValue, usePanel } from "../Hooks/usePanel";
 import { getAppHealthInfo } from "./Utility";
 
 export interface IPanelProps {
@@ -15,19 +14,6 @@ export interface IPanelProps {
 
 const isNullOrUndefined = (input?: unknown): boolean => {
     return input === undefined || input === null;
-}
-
-const createThread = async (resourceId: string) => {
-    const url = `../api/v1/threads`;
-
-    const response = await axios.post(url, {
-        startMessage: {
-            text: `Resource ${resourceId} is unhealthy could you help diagnose what is wrong?`,
-            userId: 'web-client-user',
-            displayName: 'Web Client User',
-        }
-    });
-    return response?.data;
 }
 
 const useStyles = makeStyles({
@@ -78,7 +64,7 @@ const useStyles = makeStyles({
 
 const Panel = ({ transferDataToActivities }: IPanelProps) => {
 
-    const { isLoading, initialRemarks, resource } = usePanel();
+    const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = usePanel();
 
     const properties = resource?.properties;
 
@@ -122,6 +108,7 @@ const Panel = ({ transferDataToActivities }: IPanelProps) => {
                             textarea={{
                                 className: textareaInner,
                             }}
+                            disabled={isUpdating}
                             className={textarea}
                             placeholder="Add annotations to your resource"
                             value={remarks}
@@ -148,6 +135,26 @@ const Panel = ({ transferDataToActivities }: IPanelProps) => {
                     </Section>
                 </div>}
         </DrawerBody>
+
+        <DrawerFooter>
+            <Button
+                appearance="primary"
+                disabled={remarks === initialRemarks || isUpdating}
+                onClick={async () => {
+                    onSubmit(remarks);
+                }}
+            >
+                {'Save'}
+            </Button>
+            <Button
+                appearance="secondary"
+                onClick={() => closePanel()}
+            >
+                {'Cancel'}
+            </Button>
+        </DrawerFooter>
+
+        <Toaster toasterId={toasterId} />
     </OverlayDrawer>
 }
 
