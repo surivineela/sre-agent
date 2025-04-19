@@ -106,7 +106,7 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _scoreCardTimer = null;
     private bool _scoreCardTimerIsRunning = false;
-    private TimeSpan _scoreCardTimerInterval = TimeSpan.FromMinutes(30);
+    private TimeSpan _scoreCardTimerInterval = TimeSpan.FromMinutes(10);
 
     private Timer? _feedbackRCATimer = null;
     private bool _feedbackRCATimerIsRunning = false;
@@ -479,6 +479,12 @@ public class TimerService : IHostedService, IDisposable
     {
         _scoreCardTimer = new Timer(async _ =>
         {
+            if (!_crawlerFinishedOnce)
+            {
+                _logger.LogInformation("StartScoreCardTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                return;
+            }
+
             if (_scoreCardTimerIsRunning)
             {
                 _logger.LogInformation("Score card update service is already running. Skip this round!");

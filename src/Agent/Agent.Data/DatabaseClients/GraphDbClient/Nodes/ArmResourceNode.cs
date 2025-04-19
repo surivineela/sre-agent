@@ -269,7 +269,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public AppHealthInfo AppHealthInfo { get; set; }
 
         [GraphJsonProperty("remarks")]
-        public string Remarks { get; set; } = string.Empty;
+        public string? Remarks { get; set; }
 
         public ArmResourceNode() { }
 
@@ -287,7 +287,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             string subscriptionId,
             string resourceGroupName,
             string resourceName,
-            string remarks = "",
+            string? remarks = null,
             string location = null,
             AppHealthInfo appHealthInfo = null)
         {

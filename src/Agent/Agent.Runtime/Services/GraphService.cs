@@ -139,7 +139,7 @@ public class GraphService : IGraphService
     {
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();
-        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, 4);
+        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, 2);
 
         return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
     }
