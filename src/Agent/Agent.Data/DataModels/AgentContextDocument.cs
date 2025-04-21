@@ -10,34 +10,43 @@ namespace Agent.Data.DataModels;
 public record AgentContextDocument(
     string Id,
     string ThreadId,
-    int AgentType,
-    int ContextState,
+    AgentTypeEnum AgentType,
+    ContextStateEnum ContextState,
     WaitInformation? WaitInformation,
-    ApprovalInformation? ApprovalInformation
+    ApprovalInformation? ApprovalInformation,
+    string? AssignedInstanceId = null,
+    DateTimeOffset? AssignmentExpires = null
 ) : ICosmosDocument
 {
     public string DocumentType => "AgentContext";
     public string PartitionKey => ThreadId; // Use Thread Id as partition key
+    public static string ContainerName => AgentDataConfiguration.AgentContextContainerName;
+
+    public static string AssignedInstancePatchPath => "/assignedInstanceId";
+    public static string AssignmentExpiresPatchPath => "/assignmentExpires";
 
     // Conversion to/from domain model
     public static AgentContextDocument FromDomainModel(AgentContext agentContext) =>
-        new AgentContextDocument(
+        new(
             Id: agentContext.Id.ToString(),
             ThreadId: agentContext.ThreadId.ToString(),
-            AgentType: (int) agentContext.AgentType,
-            ContextState: (int)agentContext.ContextState,
+            AgentType: agentContext.AgentType,
+            ContextState: agentContext.ContextState,
             WaitInformation: agentContext.WaitInformation,
-            ApprovalInformation: agentContext.ApprovalInformation
+            ApprovalInformation: agentContext.ApprovalInformation,
+            AssignedInstanceId: agentContext.AssignedInstanceId,
+            AssignmentExpires: agentContext.AssignmentExpires
         );
 
     public AgentContext ToDomainModel() =>
-        new AgentContext(
+        new(
             Id: Guid.Parse(Id),
             ThreadId: Guid.Parse(ThreadId),
-            AgentType: (AgentTypeEnum)AgentType,
-            ContextState: (ContextStateEnum)ContextState,
+            AgentType: AgentType,
+            ContextState: ContextState,
             WaitInformation: WaitInformation,
-            ApprovalInformation: ApprovalInformation
+            ApprovalInformation: ApprovalInformation,
+            AssignedInstanceId: AssignedInstanceId,
+            AssignmentExpires: AssignmentExpires
         );
 }
-

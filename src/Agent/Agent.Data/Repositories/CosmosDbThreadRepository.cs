@@ -3,16 +3,15 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Data.Helpers;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
 using Action = Agent.Core.Models.Api.v1.Action;
-using Container = Microsoft.Azure.Cosmos.Container;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Data.Repositories;
@@ -20,8 +19,11 @@ namespace Agent.Data.Repositories;
 // Rest of the file remains unchanged
 public class CosmosDbThreadRepository : IThreadRepository
 {
-    private readonly Container _container;
     private readonly ILogger<CosmosDbThreadRepository> _logger;
+
+    private readonly string _databaseName;
+
+    private readonly CosmosClient _client;
 
     // Set EnsureStableOrdering to false to avoid odata overwrites `order by` clause.
     // Because when odata sees `top` and `skip` but `orderby` is not defined, it will implicitly overwrite existing `order by` to `order by id asc`
@@ -31,12 +33,13 @@ public class CosmosDbThreadRepository : IThreadRepository
     // For example, to get oldest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10` to get the oldest 10 threads, because the default order is `order by timeStamp asc`.
     // For example, to get latest 10 threads, a client can call `/api/v1/threads/{threadid}/messages?top=10&orderby=timeStamp+desc` to get the latest 10 threads.
     // For pagination, we can use `top` and `skip` to get the next page of threads.
-    private static readonly ODataQuerySettings oDataQuerySettings = new(){ EnsureStableOrdering = false };
+    private static readonly ODataQuerySettings oDataQuerySettings = new() { EnsureStableOrdering = false };
 
-    public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, string containerName, ILogger<CosmosDbThreadRepository> logger)
+    public CosmosDbThreadRepository(CosmosClient cosmosClient, string databaseName, ILogger<CosmosDbThreadRepository> logger)
     {
-        _container = cosmosClient.GetContainer(databaseName, containerName);
         _logger = logger;
+        _databaseName = databaseName;
+        _client = cosmosClient;
     }
 
     #region Thread Operations
@@ -95,7 +98,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         var threads = new List<Thread>();
         // Query for thread documents
-        var query = _container.GetItemLinqQueryable<ThreadDocument>()
+        var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
             .Where(t => t.DocumentType == "Thread");
 
         // Add filter by ThreadSource if specified
@@ -152,7 +155,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threads = new List<Thread>();
 
         // Query for thread documents
-        var query = _container.GetItemLinqQueryable<ThreadDocument>()
+        var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
             .Where(t => t.DocumentType == "Thread")
             .OrderBy(t => t.CreatedTimestamp);
 
@@ -220,7 +223,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Then create the thread
         ThreadDocument threadDoc = ThreadDocument.FromDomainModel(thread);
-        await _container.CreateItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
+        await _client.GetContainer<ThreadDocument>(_databaseName).CreateItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
 
         return thread;
     }
@@ -229,10 +232,12 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         string threadIdStr = threadId.ToString();
 
+        var container = _client.GetContainer<ThreadDocument>(_databaseName);
+
         try
         {
             // Delete all messages in the thread first
-            var messagesQuery = _container.GetItemLinqQueryable<MessageDocument>()
+            var messagesQuery = container.GetItemLinqQueryable<MessageDocument>()
                 .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr);
 
             using var iterator = messagesQuery.ToFeedIterator();
@@ -241,7 +246,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             {
                 foreach (var message in await iterator.ReadNextAsync())
                 {
-                    await _container.DeleteItemAsync<MessageDocument>(
+                    await container.DeleteItemAsync<MessageDocument>(
                         message.Id,
                         new PartitionKey(message.PartitionKey)
                     );
@@ -249,7 +254,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Delete all actions in the thread
-            var actionsQuery = _container.GetItemLinqQueryable<ActionDocument>()
+            var actionsQuery = container.GetItemLinqQueryable<ActionDocument>()
                 .Where(a => a.DocumentType == "Action" && a.ThreadId == threadIdStr);
 
             using var actionIterator = actionsQuery.ToFeedIterator();
@@ -258,7 +263,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             {
                 foreach (var action in await actionIterator.ReadNextAsync())
                 {
-                    await _container.DeleteItemAsync<ActionDocument>(
+                    await container.DeleteItemAsync<ActionDocument>(
                         action.Id,
                         new PartitionKey(action.PartitionKey)
                     );
@@ -266,7 +271,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Delete all teams conversation mapping in the thread
-            var teamsQuery = _container.GetItemLinqQueryable<ThreadTeamsMappingDocument>()
+            var teamsQuery = container.GetItemLinqQueryable<ThreadTeamsMappingDocument>()
                 .Where(a => a.DocumentType == "ThreadTeamsMapping" && a.ThreadId == threadIdStr);
 
             using var teamsIterator = teamsQuery.ToFeedIterator();
@@ -275,7 +280,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             {
                 foreach (var teamsMapping in await teamsIterator.ReadNextAsync())
                 {
-                    await _container.DeleteItemAsync<ThreadTeamsMappingDocument>(
+                    await container.DeleteItemAsync<ThreadTeamsMappingDocument>(
                         teamsMapping.Id,
                         new PartitionKey(teamsMapping.PartitionKey)
                     );
@@ -283,7 +288,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Finally delete the thread
-            await _container.DeleteItemAsync<ThreadDocument>(
+            await container.DeleteItemAsync<ThreadDocument>(
                 threadIdStr,
                 new PartitionKey(threadIdStr)
             );
@@ -319,7 +324,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             };
 
             // Save the updated document
-            var response = await _container.ReplaceItemAsync(
+            var response = await _client.GetContainer<ThreadDocument>(_databaseName).ReplaceItemAsync(
                 updatedThreadDoc,
                 updatedThreadDoc.Id,
                 new PartitionKey(updatedThreadDoc.PartitionKey)
@@ -408,7 +413,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var messages = new List<Message>();
         string threadIdStr = threadId.ToString();
 
-        var query = _container.GetItemLinqQueryable<MessageDocument>()
+        var query = _client.GetContainer<MessageDocument>(_databaseName).GetItemLinqQueryable<MessageDocument>()
             .Where(m => m.DocumentType == "Message" && m.ThreadId == threadIdStr)
             .OrderBy(m => m.TimeStamp);
 
@@ -445,7 +450,10 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the message document
         MessageDocument messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);
-        await _container.CreateItemAsync(messageDoc, new PartitionKey(messageDoc.PartitionKey));
+
+        var container = _client.GetContainer<MessageDocument>(_databaseName);
+
+        await container.CreateItemAsync(messageDoc, new PartitionKey(messageDoc.PartitionKey));
 
         // Update the thread's modified timestamp
         try
@@ -454,7 +462,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             if (threadDoc != null)
             {
                 ThreadDocument updatedThreadDoc = threadDoc with { ModifiedTimestamp = DateTime.UtcNow };
-                await _container.ReplaceItemAsync(
+                await container.ReplaceItemAsync(
                     updatedThreadDoc,
                     updatedThreadDoc.Id,
                     new PartitionKey(updatedThreadDoc.PartitionKey)
@@ -474,7 +482,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             if (threadDoc != null)
             {
                 ThreadDocument updatedThreadDoc = threadDoc with { LastMessageId = message.Id.ToString() };
-                await _container.ReplaceItemAsync(
+                await container.ReplaceItemAsync(
                     updatedThreadDoc,
                     updatedThreadDoc.Id,
                     new PartitionKey(updatedThreadDoc.PartitionKey)
@@ -506,7 +514,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Delete the message
-            await _container.DeleteItemAsync<MessageDocument>(
+            await _client.GetContainer<MessageDocument>(_databaseName).DeleteItemAsync<MessageDocument>(
                 messageIdStr,
                 new PartitionKey(threadIdStr)
             );
@@ -544,7 +552,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var threads = new List<ThreadContext>();
 
         // Query for thread documents
-        var query = _container.GetItemLinqQueryable<ThreadContextDocument>()
+        var query = _client.GetContainer<ThreadContextDocument>(_databaseName).GetItemLinqQueryable<ThreadContextDocument>()
             .Where(t => t.DocumentType == "ThreadContext")
             .OrderBy(t => t.Id); // to support pagination the order must be stable. There's no timestamp in the thread context document
 
@@ -574,7 +582,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Then create the thread
         ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
-        await _container.CreateItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
+        await _client.GetContainer<ThreadContextDocument>(_databaseName).CreateItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
 
         return threadContext;
     }
@@ -587,7 +595,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Then create the thread
         ThreadContextDocument threadContextDoc = ThreadContextDocument.FromDomainModel(threadContext);
-        await _container.UpsertItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
+        await _client.GetContainer<ThreadContextDocument>(_databaseName).UpsertItemAsync(threadContextDoc, new PartitionKey(threadContextDoc.PartitionKey));
 
         return threadContext;
     }
@@ -601,7 +609,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Finally delete the thread
-            await _container.DeleteItemAsync<ThreadDocument>(
+            await _client.GetContainer<ThreadContextDocument>(_databaseName).DeleteItemAsync<ThreadDocument>(
                 threadContextDocId,
                 new PartitionKey(threadContextDocId)
             );
@@ -622,7 +630,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var actions = new List<Action>();
         string threadIdStr = threadId.ToString();
 
-        var query = _container.GetItemLinqQueryable<ActionDocument>()
+        var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
             .Where(a => a.DocumentType == "Action" && a.ThreadId == threadIdStr)
             .OrderByDescending(a => a.TimeStamp);
 
@@ -653,7 +661,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the action document
         ActionDocument actionDoc = ActionDocument.FromDomainModel(action, threadIdStr);
-        await _container.CreateItemAsync(actionDoc, new PartitionKey(actionDoc.PartitionKey));
+        await _client.GetContainer<ActionDocument>(_databaseName).CreateItemAsync(actionDoc, new PartitionKey(actionDoc.PartitionKey));
 
         return action;
     }
@@ -665,7 +673,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Query for the specific action by its ID and thread ID
-            var query = _container.GetItemLinqQueryable<ActionDocument>()
+            var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
                 .Where(a => a.DocumentType == "Action" &&
                       a.ThreadId == threadIdStr &&
                       a.Id == actionIdStr);
@@ -701,7 +709,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         try
         {
-            ItemResponse<T> response = await _container.ReadItemAsync<T>(
+            ItemResponse<T> response = await _client.GetContainer<T>(_databaseName).ReadItemAsync<T>(
                 id,
                 new PartitionKey(partitionKey)
             );
@@ -712,6 +720,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             return default;
         }
     }
+
     #endregion
 
     #region Message Operations
@@ -738,7 +747,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         var messageFeedbacks = new List<MessageFeedback>();
         string threadIdStr = threadId.ToString();
 
-        var query = _container.GetItemLinqQueryable<MessageFeedbackDocument>()
+        var query = _client.GetContainer<MessageFeedbackDocument>(_databaseName).GetItemLinqQueryable<MessageFeedbackDocument>()
             .Where(m => m.DocumentType == "MessageFeedback" && m.ThreadId == threadIdStr)
             .OrderBy(m => m.TimeStamp);
 
@@ -764,7 +773,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         var messageFeedbacks = new List<MessageFeedback>();
 
-        var query = _container.GetItemLinqQueryable<MessageFeedbackDocument>()
+        var query = _client.GetContainer<MessageFeedbackDocument>(_databaseName).GetItemLinqQueryable<MessageFeedbackDocument>()
             .Where(m => m.DocumentType == "MessageFeedback")
             .OrderBy(m => m.TimeStamp);
 
@@ -796,7 +805,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the message document
         MessageFeedbackDocument messageFeedbackDoc = MessageFeedbackDocument.FromDomainModel(messageFeedback, threadIdStr);
-        await _container.UpsertItemAsync(messageFeedbackDoc, new PartitionKey(messageFeedbackDoc.PartitionKey));
+        await _client.GetContainer<MessageFeedbackDocument>(_databaseName).UpsertItemAsync(messageFeedbackDoc, new PartitionKey(messageFeedbackDoc.PartitionKey));
 
         return messageFeedback;
     }
@@ -809,7 +818,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Delete the message
-            await _container.DeleteItemAsync<MessageFeedbackDocument>(
+            await _client.GetContainer<MessageFeedbackDocument>(_databaseName).DeleteItemAsync<MessageFeedbackDocument>(
                 messageFeedbackIdStr,
                 new PartitionKey(threadIdStr)
             );
@@ -846,7 +855,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         var agentContexts = new List<AgentContext>();
         string threadIdStr = threadId.ToString();
-        var query = _container.GetItemLinqQueryable<AgentContextDocument>()
+        var query = _client.GetContainer<AgentContextDocument>(_databaseName).GetItemLinqQueryable<AgentContextDocument>()
             .Where(m => m.DocumentType == "AgentContext" && m.ThreadId == threadIdStr);
 
         using var iterator = query.ToFeedIterator();
@@ -875,7 +884,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the sub-agent thread document
         AgentContextDocument agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
-        await _container.CreateItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
+        await _client.GetContainer<AgentContextDocument>(_databaseName).CreateItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
         return agentContext;
     }
 
@@ -894,8 +903,47 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the sub-agent thread document
         AgentContextDocument agentContextDoc = AgentContextDocument.FromDomainModel(agentContext);
-        await _container.UpsertItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
+        await _client.GetContainer<AgentContextDocument>(_databaseName).UpsertItemAsync(agentContextDoc, new PartitionKey(agentContextDoc.PartitionKey));
         return agentContext;
+    }
+
+    public async Task<bool> UpdateAgentContextAssignmentInfoAsync(
+        Guid agentContextId,
+        Guid threadId,
+        string assignedInstanceId,
+        DateTimeOffset expiration)
+    {
+        ArgumentNullException.ThrowIfNull(assignedInstanceId);
+
+        try
+        {
+            TransactionalBatch batch = _client.GetContainer<AgentContextDocument>(_databaseName)
+                .CreateTransactionalBatch(new PartitionKey(threadId.ToString()));
+
+            batch.PatchItem(agentContextId.ToString(), [
+                PatchOperation.Set(AgentContextDocument.AssignedInstancePatchPath, assignedInstanceId),
+                PatchOperation.Set(AgentContextDocument.AssignmentExpiresPatchPath, expiration)
+            ]);
+
+            TransactionalBatchResponse response = await batch.ExecuteAsync();
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogError("Failed to patch assignment info for agent context {agentContextId} with thread id {threadId}, status code: {statusCode}",
+                    agentContextId, threadId, response.StatusCode);
+
+                return false;
+            }
+
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error updating assignment info for agent context {agentContextId} with thread id {threadId}",
+                agentContextId, threadId);
+
+            return false;
+        }
     }
 
     public async Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId)
@@ -906,7 +954,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Delete the message
-            await _container.DeleteItemAsync<AgentContextDocument>(
+            await _client.GetContainer<AgentContextDocument>(_databaseName).DeleteItemAsync<AgentContextDocument>(
                 agentContextIdStr,
                 new PartitionKey(threadIdStr)
             );
@@ -953,7 +1001,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the sub-agent thread document
         ReasoningMessageDocument reasoningMessageDoc = ReasoningMessageDocument.FromDomainModel(reasoningMessage);
-        await _container.CreateItemAsync(reasoningMessageDoc, new PartitionKey(reasoningMessageDoc.PartitionKey));
+        await _client.GetContainer<ReasoningMessageDocument>(_databaseName).CreateItemAsync(reasoningMessageDoc, new PartitionKey(reasoningMessageDoc.PartitionKey));
         return reasoningMessage;
     }
 
@@ -965,7 +1013,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Delete the message
-            await _container.DeleteItemAsync<ReasoningMessageDocument>(
+            await _client.GetContainer<ReasoningMessageDocument>(_databaseName).DeleteItemAsync<ReasoningMessageDocument>(
                 reasoningMessageIdStr,
                 new PartitionKey(agentContextIdStr)
             );
@@ -1006,7 +1054,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the sub-agent thread document
         AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
-        await _container.CreateItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
+        await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).CreateItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
         return agentChatHistory;
     }
 
@@ -1020,7 +1068,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the sub-agent thread document
         AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
-        await _container.UpsertItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
+        await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).UpsertItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
         return agentChatHistory;
     }
 
@@ -1031,7 +1079,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         try
         {
             // Delete the message
-            await _container.DeleteItemAsync<AgentChatHistoryDocument>(
+            await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).DeleteItemAsync<AgentChatHistoryDocument>(
                 AgentChatHistoryDocument.GetDocumentId(agentContextIdStr),
                 new PartitionKey(agentContextIdStr)
             );

@@ -10,5 +10,7 @@ public record AgentContext(
     AgentTypeEnum AgentType,
     ContextStateEnum ContextState,
     WaitInformation? WaitInformation,
-    ApprovalInformation? ApprovalInformation
+    ApprovalInformation? ApprovalInformation,
+    string? AssignedInstanceId = null,
+    DateTimeOffset? AssignmentExpires = null
 );

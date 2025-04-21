@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 
 namespace Agent.Data.DataModels;
@@ -19,6 +18,7 @@ public record ThreadContextDocument(
 {
     public string DocumentType => "ThreadContext";
     public string PartitionKey => Id; // Use Thread Id as partition key
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     // Conversion to/from domain model
     public static ThreadContextDocument FromDomainModel(ThreadContext threadContext) =>

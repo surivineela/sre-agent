@@ -14,7 +14,11 @@ namespace Agent.Data;
 
 public static class AgentDataConfiguration
 {
-    public const string ContainerName = "documents";
+    public const string ThreadContainerName = "documents";
+    public const string AgentContextContainerName = "agentContexts";
+    public const string InstanceManagementContainerName = "instanceManagement";
+    public const string InstanceAssignmentsContainerName = "instanceAssignments";
+    public const string LeaseContainerName = "changeFeedLeases";
 
     public static IServiceCollection AddCosmosClient(this IServiceCollection serviceCollection)
     {
@@ -49,7 +53,7 @@ public static class AgentDataConfiguration
 
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbThreadRepository>>();
-            return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, ContainerName, logger);
+            return new CosmosDbThreadRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
         // Add Thread Orchestration Mapping repository registration
@@ -61,8 +65,7 @@ public static class AgentDataConfiguration
 
             return new CosmosDbThreadOrchestrationMappingRepository(
                 cosmosClient,
-                cosmosDatabaseName,
-                ContainerName);
+                cosmosDatabaseName);
         });
 
 
@@ -74,7 +77,24 @@ public static class AgentDataConfiguration
 
             var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
             var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbThreadTeamsMappingRepository>>();
-            return new CosmosDbThreadTeamsMappingRepository(cosmosClient, logger, cosmosDatabaseName, ContainerName);
+            return new CosmosDbThreadTeamsMappingRepository(cosmosClient, logger, cosmosDatabaseName);
+        });
+
+        // Add Thread Management repository registration
+        serviceCollection.AddSingleton<IInstanceManagementRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbInstanceManagementRepository>>();
+            var threadManagementSettings = serviceProvider.GetRequiredService<InstanceManagementSettings>();
+
+            return new CosmosDbInstanceManagementRepository(
+                cosmosClient,
+                cosmosDatabaseName,
+                logger,
+                threadManagementSettings
+            );
         });
 
         return serviceCollection;
@@ -93,9 +113,33 @@ public static class AgentDataConfiguration
 
         // Ensure container exists with appropriate partition key
         await database.Database.CreateContainerIfNotExistsAsync(
-            id: ContainerName,
+            id: ThreadContainerName,
             partitionKeyPath: "/partitionKey",
             throughput: 400 // Minimum throughput for now
+        );
+
+        await database.Database.CreateContainerIfNotExistsAsync(
+            id: LeaseContainerName,
+            partitionKeyPath: "/id", // change feed leases must be partitioned by ID
+            throughput: 400 // Minimum throughput for now'
+        );
+
+        await database.Database.CreateContainerIfNotExistsAsync(
+            id: InstanceManagementContainerName,
+            partitionKeyPath: "/partitionKey",
+            throughput: 400 // Minimum throughput for now'
+        );
+
+        await database.Database.CreateContainerIfNotExistsAsync(
+            id: InstanceAssignmentsContainerName,
+            partitionKeyPath: "/partitionKey",
+            throughput: 400 // Minimum throughput for now'
+        );
+
+        await database.Database.CreateContainerIfNotExistsAsync(
+            id: AgentContextContainerName,
+            partitionKeyPath: "/partitionKey",
+            throughput: 400 // Minimum throughput for now'
         );
     }
 }

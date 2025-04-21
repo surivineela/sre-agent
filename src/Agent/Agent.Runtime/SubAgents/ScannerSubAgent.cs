@@ -3,13 +3,11 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using System.Threading.Tasks;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
-using Kusto.Data.Common.Impl;
 using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents
@@ -38,7 +36,7 @@ namespace Agent.Runtime.SubAgents
         {
             var reasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_repository);
             var chatMessages = reasoningMessages.GetChatMessages();
-            
+
             foreach (var message in chatMessages)
             {
                 ChatHistory.Add(message);
@@ -52,7 +50,7 @@ namespace Agent.Runtime.SubAgents
 
             var startingMessages = await this.PrepareAgentForUserInput();
             foreach (var messageToAddToChatHistory in startingMessages)
-            { 
+            {
                 var reasoningMessage = new ReasoningMessage(
                     Id: Guid.NewGuid(),
                     AgentContextId: agentContext.Id,
@@ -77,9 +75,27 @@ namespace Agent.Runtime.SubAgents
 
         public virtual async Task<string> DoWork(AgentContext agentContext, AgentChatHistory agentChatHistory, string question)
         {
-            InitChatHistoryFromMessageQueueAsync(agentChatHistory);
+            await InitChatHistoryFromMessageQueueAsync(agentChatHistory);
 
             (var agentResponse, var responseReasoningMessages) = await base.DoWork(agentContext.Id, question);
+
+            foreach (var reasoningMessage in responseReasoningMessages)
+            {
+                await _repository.CreateReasoningMessageAsync(reasoningMessage);
+                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
+            }
+
+            await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
+
+            return agentResponse;
+        }
+
+        public virtual async Task<string> DoWork(AgentContext agentContext, AgentChatHistory agentChatHistory)
+        {
+            // get latest message from chat history
+            await InitChatHistoryFromMessageQueueAsync(agentChatHistory);
+
+            (var agentResponse, var responseReasoningMessages) = await base.DoWork(agentContext.Id);
 
             foreach (var reasoningMessage in responseReasoningMessages)
             {

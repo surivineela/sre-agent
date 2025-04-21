@@ -6,6 +6,7 @@ using System.Net;
 using System.Text;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Data.Helpers;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -13,12 +14,18 @@ namespace Agent.Data.Repositories;
 
 public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepository
 {
-    private readonly Container _container;
     private readonly ILogger<CosmosDbThreadTeamsMappingRepository> _logger;
-    public CosmosDbThreadTeamsMappingRepository(CosmosClient cosmosClient, ILogger<CosmosDbThreadTeamsMappingRepository> logger, string databaseName, string containerName)
+    private readonly string _databaseName;
+    private readonly CosmosClient _client;
+
+    public CosmosDbThreadTeamsMappingRepository(
+        CosmosClient cosmosClient,
+        ILogger<CosmosDbThreadTeamsMappingRepository> logger,
+        string databaseName)
     {
-        _container = cosmosClient.GetContainer(databaseName, containerName);
+        _client = cosmosClient;
         _logger = logger;
+        _databaseName = databaseName;
     }
 
     public async Task<ThreadTeamsMapping> GetMappingByThreadIdAsync(string threadId)
@@ -55,7 +62,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
         // Create or update the thread mapping
         ThreadTeamsMappingDocument threadDoc = ThreadTeamsMappingDocument.FromDomainModel(mapping);
-        await _container.UpsertItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
+        await _client.GetContainer<ThreadTeamsMappingDocument>(_databaseName).UpsertItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
 
         return mapping;
     }
@@ -65,7 +72,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
         try
         {
             // Delete the mapping document
-            await _container.DeleteItemAsync<ThreadTeamsMappingDocument>(
+            await _client.GetContainer<ThreadTeamsMappingDocument>(_databaseName).DeleteItemAsync<ThreadTeamsMappingDocument>(
                 $"teams_{threadId}",
                 new PartitionKey($"teams_{threadId}")
             );
@@ -92,7 +99,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 .WithParameter("@conversationId", conversationId);
 
             _logger.LogDebug("GetMappingByConversationIdAsync Query: {0}", query.QueryText);
-            using FeedIterator<ThreadTeamsMappingDocument> resultSet = _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(
+            using FeedIterator<ThreadTeamsMappingDocument> resultSet = _client.GetContainer<ThreadTeamsMappingDocument>(_databaseName).GetItemQueryIterator<ThreadTeamsMappingDocument>(
                 query,
                 requestOptions: new QueryRequestOptions { MaxItemCount = 1 }
             );
@@ -121,7 +128,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 .WithParameter("@documentType", "ThreadTeamsMapping");
 
             _logger.LogDebug("GetFirstOrDefaultChannel Query: {0}", query.QueryText);
-            using FeedIterator<ThreadTeamsMappingDocument> resultSet = _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(
+            using FeedIterator<ThreadTeamsMappingDocument> resultSet = _client.GetContainer<ThreadTeamsMappingDocument>(_databaseName).GetItemQueryIterator<ThreadTeamsMappingDocument>(
                 query,
                 requestOptions: new QueryRequestOptions { MaxItemCount = 1 }
             );
@@ -163,7 +170,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
             // Get distinct thread IDs with unposted messages
             HashSet<string> threadsWithUnpostedMessages = new HashSet<string>();
-            using FeedIterator<dynamic> messageIterator = _container.GetItemQueryIterator<dynamic>(messageQuery);
+            using FeedIterator<dynamic> messageIterator = _client.GetContainer<ThreadTeamsMappingDocument>(_databaseName).GetItemQueryIterator<dynamic>(messageQuery);
 
             while (messageIterator.HasMoreResults)
             {
@@ -226,7 +233,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
                 // Execute the query for this batch of thread IDs
                 using FeedIterator<ThreadTeamsMappingDocument> threadIterator =
-                    _container.GetItemQueryIterator<ThreadTeamsMappingDocument>(threadQuery);
+                    _client.GetContainer<ThreadTeamsMappingDocument>(_databaseName).GetItemQueryIterator<ThreadTeamsMappingDocument>(threadQuery);
 
                 while (threadIterator.HasMoreResults)
                 {
@@ -261,7 +268,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
         try
         {
-            TransactionalBatch batch = _container.CreateTransactionalBatch(new PartitionKey(threadId));
+            TransactionalBatch batch = _client.GetContainer<MessageDocument>(_databaseName).CreateTransactionalBatch(new PartitionKey(threadId));
 
             foreach (var messageId in messageIds)
             {
@@ -304,7 +311,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
 
             _logger.LogDebug("GetPostedMessagesAsync Query: {0}", query.QueryText);
             List<string> postedMessageIds = new List<string>();
-            using FeedIterator<dynamic> resultSet = _container.GetItemQueryIterator<dynamic>(query);
+            using FeedIterator<dynamic> resultSet = _client.GetContainer<MessageDocument>(_databaseName).GetItemQueryIterator<dynamic>(query);
 
             while (resultSet.HasMoreResults)
             {
@@ -329,7 +336,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
     {
         try
         {
-            ItemResponse<T> response = await _container.ReadItemAsync<T>(
+            ItemResponse<T> response = await _client.GetContainer<T>(_databaseName).ReadItemAsync<T>(
                 id,
                 new PartitionKey(partitionKey)
             );

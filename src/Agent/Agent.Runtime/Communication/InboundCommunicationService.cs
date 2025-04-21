@@ -2,20 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
+using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.CVEAgent;
+using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Agent.Runtime.Services;
-using Agent.Plugins.Definitions;
-using Agent.Core.Helpers;
-using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Agent.Plugins;
-using Agent.Runtime.SubAgents.CVEAgent;
-using Agent.Runtime.SubAgents;
-using System.Text.Json;
 
 namespace Agent.Runtime.Communication;
 
@@ -124,6 +124,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
                 agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
+                agentChatHistory.HasNewUserMessage = true;
                 await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
             }
 

@@ -2,14 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Runtime.CompilerServices;
+using System.Text;
 using Agent.Core.Extensions;
 using Agent.Core.Models.Api.v1;
-using DurableTask.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
-using System.Runtime.CompilerServices;
-using System.Text;
 
 namespace Agent.Core.Models
 {
@@ -67,9 +66,19 @@ namespace Agent.Core.Models
         /// </summary>
         /// <param name="question"></param>
         /// <returns></returns>
-        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId, string question)
+        public virtual Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId, string question)
         {
             ChatHistory.Add(new(ChatRole.User, question));
+            return DoWork(agentContextId);
+        }
+
+        /// <summary>
+        /// Try to answer the question, assuming ChatHistory is already up to date
+        /// </summary>
+        /// <param name="agentContextId"></param>
+        /// <returns></returns>
+        public virtual async Task<(string ResponseText, List<ReasoningMessage> ResponseReasoningMessages)> DoWork(Guid agentContextId)
+        {
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
             var agentMessage = completion.Text;
             ChatHistory.Add(new(ChatRole.Assistant, agentMessage));
@@ -80,7 +89,7 @@ namespace Agent.Core.Models
         {
             // First, synchronize our internal chat history with the provided external history
             SynchronizeHistory(externalHistory);
-            
+
             // Then add the question and process it
             ChatHistory.Add(new(ChatRole.User, question));
             ChatResponse completion = await _chatClient.GetResponseAsync(ChatHistory, ChatOptionsWithTools);
@@ -94,7 +103,7 @@ namespace Agent.Core.Models
             var systemMessage = ChatHistory[0]; // Preserve system message
             ChatHistory.Clear();
             ChatHistory.Add(systemMessage);
-            
+
             // Copy relevant messages from external history
             // Skip system messages as we keep our own
             foreach (var message in externalHistory)
@@ -102,10 +111,10 @@ namespace Agent.Core.Models
                 if (message.Role != AuthorRole.System)
                 {
                     // Convert from ChatCompletionMessage to Microsoft.Extensions.AI.ChatMessage
-                    var role = message.Role == AuthorRole.User 
-                        ? ChatRole.User 
+                    var role = message.Role == AuthorRole.User
+                        ? ChatRole.User
                         : ChatRole.Assistant;
-                    
+
                     ChatHistory.Add(new(role, message.Content));
                 }
             }
@@ -139,7 +148,7 @@ namespace Agent.Core.Models
             // Now properly use the history parameter
             // First synchronize our history with the external one
             SynchronizeHistory(history);
-            
+
             // Then delegate to the regular stream method
             return StreamResponseAsync(message, cancellationToken);
         }

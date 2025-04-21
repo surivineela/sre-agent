@@ -5,20 +5,17 @@
 using System.Net;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Data.Helpers;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 
 namespace Agent.Data.Repositories;
 
-public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestrationMappingRepository
+public class CosmosDbThreadOrchestrationMappingRepository(
+    CosmosClient client,
+    string databaseName
+) : IThreadOrchestrationMappingRepository
 {
-    private readonly Container _container;
-
-    public CosmosDbThreadOrchestrationMappingRepository(CosmosClient cosmosClient, string databaseName, string containerName)
-    {
-        _container = cosmosClient.GetContainer(databaseName, containerName);
-    }
-
     public async Task<IEnumerable<ThreadOrchestrationMapping>> GetMappingsByThreadIdAsync(string threadId)
     {
         var mappings = new List<ThreadOrchestrationMapping>();
@@ -26,7 +23,7 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
         // This needs to change if we decide to associate multiple orchestrations with a thread
         string compositeId = $"mapping_{threadId}";
 
-        var query = _container.GetItemLinqQueryable<ThreadOrchestrationMappingDocument>()
+        var query = client.GetContainer<ThreadOrchestrationMappingDocument>(databaseName).GetItemLinqQueryable<ThreadOrchestrationMappingDocument>()
             .Where(m => m.DocumentType == "ThreadOrchestrationMapping" && m.Id == compositeId);
 
         using var iterator = query.ToFeedIterator();
@@ -54,12 +51,14 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
             // Generate the document ID based on threadId
             string documentId = $"mapping_{mapping.ThreadId}";
 
+            var container = client.GetContainer<ThreadOrchestrationMappingDocument>(databaseName);
+
             // Check if document already exists
             try
             {
                 // Try to read the existing document directly
                 ItemResponse<ThreadOrchestrationMappingDocument> existingDoc =
-                    await _container.ReadItemAsync<ThreadOrchestrationMappingDocument>(
+                    await container.ReadItemAsync<ThreadOrchestrationMappingDocument>(
                         documentId,
                         new PartitionKey(mapping.ThreadId));
 
@@ -86,7 +85,7 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
 
             // Create or update the document
             ThreadOrchestrationMappingDocument mappingDoc = ThreadOrchestrationMappingDocument.FromDomainModel(mapping);
-            await _container.UpsertItemAsync(mappingDoc, new PartitionKey(mappingDoc.PartitionKey));
+            await container.UpsertItemAsync(mappingDoc, new PartitionKey(mappingDoc.PartitionKey));
 
             return mapping;
         }
@@ -103,8 +102,10 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
     {
         try
         {
+            var container = client.GetContainer<ThreadOrchestrationMappingDocument>(databaseName);
+
             // Query for all mappings with this thread ID
-            var query = _container.GetItemLinqQueryable<ThreadOrchestrationMappingDocument>()
+            var query = container.GetItemLinqQueryable<ThreadOrchestrationMappingDocument>()
                 .Where(m => m.DocumentType == "ThreadOrchestrationMapping" && m.ThreadId == threadId);
 
             using var iterator = query.ToFeedIterator();
@@ -116,7 +117,7 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
             {
                 foreach (var mappingDoc in await iterator.ReadNextAsync())
                 {
-                    await _container.DeleteItemAsync<ThreadOrchestrationMappingDocument>(
+                    await container.DeleteItemAsync<ThreadOrchestrationMappingDocument>(
                         compositeId,
                         new PartitionKey(mappingDoc.PartitionKey)
                     );
@@ -139,7 +140,7 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
             string compositeId = $"mapping_{threadId}";
 
             // Delete the mapping document
-            await _container.DeleteItemAsync<ThreadOrchestrationMappingDocument>(
+            await client.GetContainer<ThreadOrchestrationMappingDocument>(databaseName).DeleteItemAsync<ThreadOrchestrationMappingDocument>(
                 compositeId,
                 new PartitionKey(threadId)
             );
@@ -155,7 +156,7 @@ public class CosmosDbThreadOrchestrationMappingRepository : IThreadOrchestration
     {
         var mappings = new List<ThreadOrchestrationMapping>();
 
-        var query = _container.GetItemLinqQueryable<ThreadOrchestrationMappingDocument>()
+        var query = client.GetContainer<ThreadOrchestrationMappingDocument>(databaseName).GetItemLinqQueryable<ThreadOrchestrationMappingDocument>()
             .Where(m => m.DocumentType == "ThreadOrchestrationMapping");
 
         using var iterator = query.ToFeedIterator();

@@ -16,6 +16,7 @@ public record ReasoningMessageDocument(
 {
     public string DocumentType => "ReasoningMessage";
     public string PartitionKey => AgentContextId; // Use AgentContext Id as partition key to keep reasoning messages with their subagent thread
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     // Conversion to/from domain model
     public static ReasoningMessageDocument FromDomainModel(ReasoningMessage reasoningMessage) =>

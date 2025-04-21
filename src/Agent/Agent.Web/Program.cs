@@ -20,6 +20,7 @@ using Agent.Plugins.Implementation;
 using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
+using Agent.Runtime.ContextManagement;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
@@ -43,7 +44,7 @@ using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
-using Agent.Seb.Services;
+using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
@@ -89,7 +90,6 @@ builder.Host.UseSerilog();
     //Configure Azure App Insights settings
     builder.Services.Configure<AppInsightsSettings>(
         builder.Configuration.GetSection("AppInsightsSettings"));
-
 
     // Register a default ConversationReference that can be injected into PostToTeamsPlugin
     // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
@@ -284,6 +284,11 @@ builder.Host.UseSerilog();
         builder.Services.AddSingleton(agentType);
     }
 
+    // agent context management
+    builder.Services.AddSingleton<AgentContextDispatchService>();
+    builder.Services.AddSingleton<AgentContextProcessingService>();
+    builder.Services.AddHostedService<InstanceLifetimeService>();
+
     // Kick off background processes
     if (!isFirstAgent)
     {
@@ -394,7 +399,7 @@ app.MapBlazorHub();
 // Finally, map the fallback page
 app.MapFallbackToFile("/index.html");
 
-var azureSettings = builder.Configuration.GetSection("Azure").Get<AzureSettings>();
+var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
 var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
 
 await app.Services.CreateCosmosContainerIfNotExists(builder.Configuration);

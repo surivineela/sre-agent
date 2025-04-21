@@ -19,6 +19,8 @@ public record ActionDocument(
     public string DocumentType => "Action";
     public string PartitionKey => ThreadId; // Use Thread Id as partition key
 
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
+
     // Conversion to/from domain model
     public static ActionDocument FromDomainModel(Action action, string threadId) =>
         new ActionDocument(

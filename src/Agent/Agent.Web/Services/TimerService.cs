@@ -23,7 +23,7 @@ using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
 
-namespace Agent.Seb.Services;
+namespace Agent.Web.Services;
 
 
 public class TimerService : IHostedService, IDisposable
@@ -711,7 +711,7 @@ public class TimerService : IHostedService, IDisposable
                 //// generate resource pie chart
                 //var resourceTypeCountQueryResultDataPoint = JsonConvert.SerializeObject(resourceTypeCountBreakDownQueryResult).Replace("[", "").Replace("]", "").Replace("\\", "").Replace("/", "").Replace("{", "").Replace("}", "").Replace (":", "|").Replace(",",";");
 
-                //var chartTitle = "Resource by Type";               
+                //var chartTitle = "Resource by Type";
                 //var resourcePieChart = _chartPlugin.GetPieChartBase64Image(chartTitle, resourceTypeCountQueryResultDataPoint, "");
                 //var resourcePieMessageString = $"![resource pie chart]({resourcePieChart})";
                 //await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Item2, resourcePieMessageString);
@@ -720,7 +720,7 @@ public class TimerService : IHostedService, IDisposable
                 //var appGroupsCountByTypeResultDataPoint = JsonConvert.SerializeObject(appGroupsCountByTypeResult).Replace("[", "").Replace("]", "").Replace("\\", "").Replace("/", "").Replace("{", "").Replace("}", "").Replace (":", "|").Replace(",",";");
 
                 //// generate chart
-                //var appGroupChartTitle = "App Groups by Type";                
+                //var appGroupChartTitle = "App Groups by Type";
 
                 //var appGroupResourcePieChart = _chartPlugin.GetPieChartBase64Image(appGroupChartTitle, appGroupsCountByTypeResultDataPoint, "");
                 //var appGroupMessageString = $"![app group resource pie chart]({appGroupResourcePieChart})";

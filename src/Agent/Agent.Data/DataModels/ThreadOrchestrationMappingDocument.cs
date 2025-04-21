@@ -16,6 +16,7 @@ public record ThreadOrchestrationMappingDocument(
 {
     public string DocumentType => "ThreadOrchestrationMapping";
     public string PartitionKey => ThreadId; // Use thread ID as partition key
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     public static ThreadOrchestrationMappingDocument FromDomainModel(ThreadOrchestrationMapping mapping) =>
         new ThreadOrchestrationMappingDocument(

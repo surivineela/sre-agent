@@ -19,6 +19,7 @@ public record MessageFeedbackDocument(
 {
     public string DocumentType => "MessageFeedback";
     public string PartitionKey => ThreadId; // Use Thread Id as partition key to keep messages with their thread
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     // Conversion to/from domain model
     public static MessageFeedbackDocument FromDomainModel(MessageFeedback messageFeedback, string threadId) =>

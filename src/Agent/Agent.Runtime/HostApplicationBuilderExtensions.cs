@@ -87,7 +87,7 @@ namespace Agent.Runtime
             builder.Services.AddSingleton(sp =>
             {
                 return sp.GetRequiredService<IOptions<TAppSettings>>().Value;
-                
+
             });
             builder.Services.RegisterInnerAppSettings<TAppSettings>(builder.Configuration);
         }
@@ -143,6 +143,8 @@ Otherwise, there may be required settings which are not auto-populated by the pr
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.IncidentManagement);
 
             sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.Timer);
+
+            sc.AddSingleton(sp => sp.GetRequiredService<TAppSettings>().Core.InstanceManagement);
         }
 
         private static void ConvertSettingsForTeamsBot(this IServiceCollection sc, IConfiguration configuration)

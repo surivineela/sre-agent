@@ -20,6 +20,7 @@ public record ThreadDocument(
 {
     public string DocumentType => "Thread";
     public string PartitionKey => Id; // Use Thread Id as partition key
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     // Conversion to/from domain model
     public static ThreadDocument FromDomainModel(Thread thread) =>
@@ -27,7 +28,7 @@ public record ThreadDocument(
             thread.Id.ToString(),
             thread.Title,
             thread.StartMessage.Id.ToString(),
-            thread.LastMessage?.Id.ToString(), 
+            thread.LastMessage?.Id.ToString(),
             thread.CreatedTimestamp,
             thread.ModifiedTimestamp,
             thread.Source

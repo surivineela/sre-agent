@@ -20,6 +20,7 @@ public record ThreadTeamsMappingDocument(
 {
     public string DocumentType => "ThreadTeamsMapping";
     public string PartitionKey => Id; // Use thread ID as partition key
+    public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     public static ThreadTeamsMappingDocument FromDomainModel(ThreadTeamsMapping mapping) =>
         new ThreadTeamsMappingDocument(

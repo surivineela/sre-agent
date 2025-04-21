@@ -3,9 +3,9 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
-using Microsoft.AspNetCore.OData.Query;
 
 namespace Agent.Core.Interfaces;
 
@@ -44,6 +44,11 @@ public interface IThreadRepository
     Task<IEnumerable<AgentContext>> GetAgentContextsForThreadAsync(Guid threadId);
     Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext);
     Task<AgentContext> UpdateAgentContextAsync(AgentContext agentContext);
+    Task<bool> UpdateAgentContextAssignmentInfoAsync(
+        Guid agentContextId,
+        Guid threadId,
+        string assignedInstanceId,
+        DateTimeOffset expiration);
     Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId);
 
     Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId);

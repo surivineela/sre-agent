@@ -18,5 +18,8 @@ namespace Agent.Core.Configuration
         public TimerSettings Timer { get; set; } = new();
 
         public IncidentManagementSettings? IncidentManagement { get; set; }
+
+        [Required]
+        public InstanceManagementSettings InstanceManagement { get; set; } = new();
     }
 }

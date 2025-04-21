@@ -2,18 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
-using Microsoft.Extensions.Logging;
-using Thread = Agent.Core.Models.Api.v1.Thread;
-using Action = Agent.Core.Models.Api.v1.Action;
-using System;
-using System.Threading;
+using Agent.Core.Models.Api.v1;
 using Microsoft.AspNetCore.OData.Query;
-using Agent.Data.DataModels;
-using Gremlin.Net.Process.Traversal;
-using Microsoft.Azure.Cosmos;
-using System.Net;
+using Microsoft.Extensions.Logging;
+using Action = Agent.Core.Models.Api.v1.Action;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Data.Repositories
 {
@@ -392,6 +386,34 @@ namespace Agent.Data.Repositories
         {
             _agentContexts[(agentContext.ThreadId, agentContext.Id)] = agentContext;
             return Task.FromResult(agentContext);
+        }
+
+        public Task<bool> UpdateAgentContextAssignmentInfoAsync(
+            Guid agentContextId,
+            Guid threadId,
+            string assignedInstanceId,
+            DateTimeOffset expiration)
+        {
+            _agentContexts.TryGetValue((threadId, agentContextId), out var agentContext);
+
+            if (agentContext == null)
+            {
+                Task.FromResult(false);
+            }
+
+            AgentContext updated = new(
+                agentContext.Id,
+                agentContext.ThreadId,
+                agentContext.AgentType,
+                agentContext.ContextState,
+                agentContext.WaitInformation,
+                agentContext.ApprovalInformation,
+                assignedInstanceId,
+                expiration);
+
+            _agentContexts[(threadId, agentContextId)] = updated;
+
+            return Task.FromResult(true);
         }
 
         public Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId)
