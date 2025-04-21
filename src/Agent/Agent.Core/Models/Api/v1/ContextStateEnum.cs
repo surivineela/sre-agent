@@ -7,4 +7,5 @@ public enum ContextStateEnum
     PendingApproval = 2,
     Idle = 3,
     Completed = 4,
+    Failed = 5
 }

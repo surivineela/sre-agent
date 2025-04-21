@@ -33,5 +33,10 @@ namespace Agent.Plugins.Definitions
         /// Completes the current agent context as it has reached a concluding state.
         /// </summary>
         Task Complete();
+
+        /// <summary>
+        /// Starts the approval flow by providing the user with an approval link for them to approve or reject the operation with.
+        /// </summary>
+        Task<ApprovalInformation> StartApprovalFlow(string title);
     }
 }

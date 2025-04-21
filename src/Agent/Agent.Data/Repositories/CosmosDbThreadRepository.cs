@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net;
+using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -1090,6 +1091,80 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             return false;
         }
+    }
+    #endregion
+
+    #region ApprovalV2 Operations
+    public async Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
+    {
+        try
+        {
+            string approvalIdStr = approvalIdV2.ToString();
+            string agentContextIdStr = agentContextId.ToString();
+
+            ApprovalV2Document approvalV2Document = await GetDocumentAsync<ApprovalV2Document>(approvalIdStr, agentContextIdStr);
+
+            return approvalV2Document?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync()
+    {
+        var approvalV2s = new List<ApprovalV2>();
+        var query = _client.GetContainer<ApprovalV2Document>(_databaseName).GetItemLinqQueryable<ApprovalV2Document>()
+            .Where(m => m.DocumentType == "ApprovalV2");
+
+        using var iterator = query.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var approvalV2Docuemnt in await iterator.ReadNextAsync())
+            {
+                approvalV2s.Add(approvalV2Docuemnt.ToDomainModel());
+            }
+        }
+        return approvalV2s;
+    }
+
+    public async Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2)
+    {
+        // Ensure IDs are set
+        if (approvalV2.Id == Guid.Empty)
+        {
+            approvalV2 = approvalV2 with { Id = Guid.NewGuid() };
+        }
+
+        if (approvalV2.AgentContextId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        ApprovalV2Document approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
+        await _client.GetContainer<ApprovalV2Document>(_databaseName).CreateItemAsync(approvalV2Document, new PartitionKey(approvalV2Document.PartitionKey));
+        return approvalV2;
+    }
+
+    public async Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2)
+    {
+        // Ensure IDs are set
+        if (approvalV2.Id == Guid.Empty)
+        {
+            approvalV2 = approvalV2 with { Id = Guid.NewGuid() };
+        }
+
+        if (approvalV2.AgentContextId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // Create the sub-agent thread document
+        ApprovalV2Document approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
+        await _client.GetContainer<ApprovalV2Document>(_databaseName).UpsertItemAsync(approvalV2Document, new PartitionKey(approvalV2Document.PartitionKey));
+        return approvalV2;
     }
     #endregion
 }

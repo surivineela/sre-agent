@@ -59,4 +59,9 @@ public interface IThreadRepository
     Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
     Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
     Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId);
+
+    Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId);
+    Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync();
+    Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2);
+    Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2);
 }

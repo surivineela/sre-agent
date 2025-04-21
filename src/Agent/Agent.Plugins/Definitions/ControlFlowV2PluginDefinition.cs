@@ -41,6 +41,12 @@ namespace Agent.Plugins.Definitions
         {
             await _controlFlowV2Plugin.Complete();
         }
+
+        [Description("Starts the approval flow by providing the user with an approval link for them to approve or reject the operation with.")]
+        public async Task<ApprovalInformation> StartApprovalFlow([Description("Title of the approval flow")] string title)
+        {
+            return await _controlFlowV2Plugin.StartApprovalFlow(title);
+        }
     }
 }
 

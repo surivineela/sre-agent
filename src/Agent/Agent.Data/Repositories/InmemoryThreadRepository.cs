@@ -24,6 +24,7 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<(Guid ThreadId, Guid ActionId), Action> _actions = new();
         private readonly Dictionary<(Guid ThreadId, Guid AgentContextId), AgentContext> _agentContexts = new();
         private readonly Dictionary<(Guid AgentContextId, Guid ReasoningMessageId), ReasoningMessage> _reasoningMessages = new();
+        private readonly Dictionary<(Guid AgentContextId, Guid ApprovalV2Id), ApprovalV2> _approvals = new();
         private readonly Dictionary<Guid, AgentChatHistory> _agentChatHistories = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly ILogger<InmemoryThreadRepository> _logger;
@@ -478,6 +479,31 @@ namespace Agent.Data.Repositories
             }
 
             return Task.FromResult(_agentChatHistories.Remove(agentContextId));
+        }
+        #endregion
+
+        #region ApprovalV2 Operations
+        public Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
+        {
+            _approvals.TryGetValue((agentContextId, approvalIdV2), out var approvalV2);
+            return Task.FromResult(approvalV2);
+        }
+
+        public Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync()
+        {
+            return Task.FromResult(_approvals.Values.AsEnumerable());
+        }
+
+        public Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2)
+        {
+            _approvals[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
+            return Task.FromResult(approvalV2);
+        }
+
+        public Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2)
+        {
+            _approvals[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
+            return Task.FromResult(approvalV2);
         }
         #endregion
     }

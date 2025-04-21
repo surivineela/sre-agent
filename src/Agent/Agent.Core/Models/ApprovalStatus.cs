@@ -29,4 +29,4 @@ public sealed record ApprovalStatus(
             return $"https://approval-app-affhfqdfcfc8gkgq.westus-01.azurewebsites.net/?action_name={OperationId}&description={Uri.EscapeDataString(description)}";
         }
     }
-}
+}   
