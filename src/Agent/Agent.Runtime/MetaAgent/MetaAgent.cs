@@ -11,6 +11,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
@@ -93,8 +94,10 @@ Before initiating any Azure resource operations:
 
 ## Response Protocol
 - **Focus exclusively** on Microsoft Azure products and services. Politely decline non-Azure queries.
+- **External Services** you can only answer about the externally connected services by using the tool GetAllActiveConnectedIntegrations
 - Clearly communicate any handoffs to task-based agents without revealing backend transitions.
 - Keep responses concise, actionable, and formatted in accordance with Microsoft Teams markdown.
+- Resource Health: For health-related questions, first get detailed resource information. If unavailable or if verbose details needed, use the General Health tool.
 - **Dashboard Access**: Use `GetKnowledgeGraphResourceUsageDashboard` to retrieve your daily monitoring dashboard, which covers resources such as webapps, container apps, managed environments, Cosmos DB, Redis, SQL, etc.
 - Recognize that application components include both compute elements and associated services (e.g., databases, VNETs, gateways).
 
@@ -139,7 +142,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
-    private readonly DashboardSettings _dashboardSettings;
+    private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
     private readonly IThreadRepository _threadRepository;
 
     public MetaAgent(
@@ -148,7 +151,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         ThreadService threadService,
         McpToolsRepository mcpToolsRepository,
         IChartPlugin chartplugin,
-        DashboardSettings dashboardSettings,
         IMetaAgentManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         IMetaAgentTlsBestPracticesPlugin tlsBestPracticesPlugin,
         IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
@@ -166,14 +168,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
         IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
         IThreadRepository threadRepository,
-        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin
+        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin,
+        IConnectedIntegrationsPlugin connectedIntegrationsPlugin
         )
     {
         _chatClient = chatClient;
         _threadService = threadService;
         _mcpToolsRepository = mcpToolsRepository;
         _log = logger;
-        _dashboardSettings = dashboardSettings;
 
         _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
         _managedIdentityMigrationPlugin = managedIdentityMigrationPlugin;
@@ -187,6 +189,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _githubIssuePlugin = githubIssuePlugin;
         _serviceProvider = serviceProvider;
         _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
+        _connectedIntegrationsPlugin = connectedIntegrationsPlugin;
 
         _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
 
@@ -275,7 +278,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent),
             AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent),
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.ListAzureSqlDbQueryPerfInvestigatorAgentWorkflows),
-            AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent)
+            AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent),
+            AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations)
         ];
 
         // Get all instances of background-scanning subagents and register their methods

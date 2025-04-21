@@ -25,6 +25,21 @@ public class AppServiceNode : ArmResourceNode
     [GraphProperty("healthCheckEnabled")]
     public bool? HealthCheckEnabled { get; set; }
 
+    [GraphProperty("healthCheckPath")]
+    public string? HealthCheckPath { get; set; }
+
+    [GraphProperty("autoHealRules")]
+    public string? AutoHealRules { get; set; }
+
+    [GraphProperty("ipSecurityRestrictions")]
+    public string? IPSecurityRestrictions { get; set; }
+
+    [GraphProperty("ipSecurityRestrictionsDefaultAction")]
+    public string? IPSecurityRestrictionsDefaultAction { get; set; }
+
+    [GraphProperty("minTlsCipherSuite")]
+    public string? MinTlsCipherSuite { get; set; }
+
     [GraphProperty("webSocketsEnabled")]
     public bool? WebSocketsEnabled { get; set; }
 
@@ -49,6 +64,20 @@ public class AppServiceNode : ArmResourceNode
 
     [GraphProperty("workerRuntime")]
     public string? WorkerRuntime { get; set; } // Function worker runtime
+
+    // sku
+    [GraphProperty("skuName")]
+    public string SkuName { get; set; }
+
+    [GraphProperty("skuTier")]
+    public string SkuTier { get; set; }
+
+    [GraphProperty("skuSize")]
+    public string SkuSize { get; set; }
+
+    [GraphProperty("skuCapacity")]
+    public int? SkuCapacity { get; set; }
+
 
     public List<Function> Functions { get; set; } = new List<Function>();
 

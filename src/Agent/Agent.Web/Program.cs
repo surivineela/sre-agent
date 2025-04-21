@@ -180,6 +180,7 @@ builder.Host.UseSerilog();
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
         .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
         .AddSingleton<IArmPlugin, ArmPlugin>()
+        .AddSingleton<IConnectedIntegrationsPlugin, ConnectedIntegrationsPlugin>()
         .AddSingleton<IGrafanaPlugin, GrafanaPlugin>()
         .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>()
         .AddSingleton<IGithubWorkflowTriggerPlugin, GithubWorkflowTriggerPlugin>()

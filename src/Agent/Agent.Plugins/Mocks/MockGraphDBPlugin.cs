@@ -34,6 +34,51 @@ namespace Agent.Plugins.Mocks
             return _containerAppsToSourceCodeNodeMapping;
         }
 
+        public async Task<dynamic> GetManagedResourcesInfoAsync()
+        {
+            // This is a mock implementation that returns dummy data
+            try
+            {
+                // Create mock data for Azure resources
+                var managedResources = new Dictionary<string, long>
+                {
+                    { "containerapps", 3 },
+                    { "servers", 2 },
+                    { "databaseaccounts", 1 },
+                    { "redis", 1 },
+                    { "sites", 5 },
+                    { "managedclusters", 2 },
+                    { "virtualnetworks", 3 },
+                    { "storageaccounts", 4 },
+                    { "namespaces", 2 }
+                };
+
+                // Create mock data for other resources
+                var otherResources = new Dictionary<string, long>
+                {
+                    { "repository", 7 }
+                };
+
+                var totalAzureCount = managedResources.Values.Sum();
+                var totalOtherCount = otherResources.Values.Sum();
+
+                return new
+                {
+                    AzureResources = managedResources,
+                    OtherResources = otherResources,
+                    TotalAzureResourceCount = totalAzureCount,
+                    TotalOtherResourceCount = totalOtherCount,
+                    TotalResourceCount = totalAzureCount + totalOtherCount
+                };
+            }
+            catch (Exception ex)
+            {
+                // Log error and rethrow
+                Console.WriteLine($"Error getting managed resources information: {ex.Message}");
+                throw;
+            }
+        }
+
         public Task<List<ApplicationGraph>> DiscoverApplications(string subscriptionId)
         {
             throw new NotImplementedException();

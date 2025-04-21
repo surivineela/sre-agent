@@ -741,6 +741,10 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
+            if (ResourceIdentifier.TryParse(resourceId, out _))
+            {
+                throw new Exception("Invalid Azure resource Id, should be of form /subscriptions/<>/resourceGroups/<>/providers/<providerName>/<resourceType>/<resourceName>");
+            }
             var query = $@"g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId.ToLower())}').properties().as('p').group().by(select('p').key()).by(select('p').value())";
 
             var results = await GraphDbClient.Query<Dictionary<string, object>>(query);
@@ -756,6 +760,11 @@ g.V().has('id', '{deploymentResourceId}')
         {
             try
             {
+                if (string.IsNullOrEmpty(_dashboardSettings?.PrometheusUrl))
+                {
+                    return "Dashboard is not configured for this agent. Must use Knowledge graph queries. If user wants agent to deploy a dashboard they must configure Dashboard Settings.";
+                }
+
                 // Validate inputs
                 if (string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(resourceType))
                 {
@@ -864,6 +873,11 @@ g.V().has('id', '{deploymentResourceId}')
 
         public string GetKnowledgeGraphResourceUsageDashboard()
         {
+            if (string.IsNullOrEmpty(_dashboardSettings?.PrometheusUrl))
+            {
+                return "Dashboard is not configured for this agent. Must use Knowledge graph queries. If user wants agent to deploy a dashboard they must configure Dashboard Settings.";
+            }
+
             return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m";
         }
 
@@ -872,19 +886,17 @@ g.V().has('id', '{deploymentResourceId}')
             try
             {
                 // only return basic properties
-                string query = $@"
-        g.V().hasLabel('{resourceType.ToLower()}')";
+                string query = $@"g.V().hasLabel('{resourceType.ToLower()}')";
 
                 if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
                 {
                     query += $".has('{propertyName}', '{propertyValue}')";
                 }
                 query += @".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType')
-        .by(coalesce(values('subscriptionId'), constant('')))
-        .by(coalesce(values('resourceGroupName'), constant('')))
-        .by(coalesce(values('resourceName'), constant('')))
-        .by(coalesce(values('resourceType'), constant('')))
-        ";
+                    .by(coalesce(values('subscriptionId'), constant('')))
+                    .by(coalesce(values('resourceGroupName'), constant('')))
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(coalesce(values('resourceType'), constant('')))";
 
                 var result = await GraphDbClient.Query(query);
                 var resources = new List<Dictionary<string, object>>();
@@ -1095,6 +1107,85 @@ g.V().has('id', '{deploymentResourceId}')
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Error getting count for resource type '{Type}' grouped by '{GroupBy}'", resourceType, groupBy);
+                throw;
+            }
+        }
+
+        public async Task<dynamic> GetManagedResourcesInfoAsync()
+        {
+            try
+            {
+                var azureResourceTypes = new List<string>
+                {
+                    "microsoft.app/containerapps",
+                    "microsoft.sql/servers",
+                    "microsoft.documentdb/databaseaccounts", // Cosmos DB
+                    "microsoft.cache/redis",
+                    "microsoft.web/sites", // WebApps
+                    "microsoft.containerservice/managedclusters", // Kubernetes
+                    "microsoft.network/virtualnetworks",
+                    "microsoft.storage/storageaccounts",
+                    "microsoft.servicebus/namespaces",
+                };
+
+                var otherResourceTypes = new List<string>
+                {
+                    "microsoft.source/repository"
+                };
+
+                // Combine all resource types for processing
+                var allResourceTypes = azureResourceTypes.Concat(otherResourceTypes).ToList();
+
+                // Create and execute tasks for getting counts of each resource type
+                var resourceTypeTasks = new List<Task<dynamic>>();
+                foreach (var resourceType in allResourceTypes)
+                {
+                    resourceTypeTasks.Add(GetResourceCountAsync(resourceType));
+                }
+                var results = await Task.WhenAll(resourceTypeTasks);
+
+                // Process results
+                var managedResources = new Dictionary<string, long>();
+                var otherResources = new Dictionary<string, long>();
+
+                foreach (var result in results)
+                {
+                    string resourceType = result.ResourceType.ToString();
+                    long count = result.Count;
+
+                    if (count > 0)
+                    {
+                        // Extract a more readable name from the full resource type
+                        string simpleName = resourceType.Split('/').Last();
+
+                        // Add to the appropriate dictionary based on resource type
+                        if (azureResourceTypes.Contains(resourceType.ToLower()))
+                        {
+                            managedResources[simpleName] = count;
+                        }
+                        else
+                        {
+                            otherResources[simpleName] = count;
+                        }
+                    }
+                }
+
+                // Calculate totals
+                var totalAzureCount = managedResources.Values.Sum();
+                var totalOtherCount = otherResources.Values.Sum();
+
+                return new
+                {
+                    AzureResources = managedResources,
+                    OtherResources = otherResources,
+                    TotalAzureResourceCount = totalAzureCount,
+                    TotalOtherResourceCount = totalOtherCount,
+                    TotalResourceCount = totalAzureCount + totalOtherCount
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error getting managed resources information");
                 throw;
             }
         }

@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 using Agent.Core.Configuration;
@@ -10,7 +9,6 @@ using Agent.Core.Helpers;
 using Agent.Graph.Crawler;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Services;
 using Agent.Graph.Interfaces;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
@@ -19,13 +17,8 @@ using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
-using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
-using Microsoft.Graph.Models;
-using Microsoft.Graph.Models.Security;
-using Microsoft.OData.Edm;
 using Newtonsoft.Json;
-using Octokit;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
@@ -73,6 +66,8 @@ public class TimerService : IHostedService, IDisposable
 
     private CrawlerSettings _settings;
     private TimerSettings _timerSettings;
+    private IncidentManagementSettings _incidentManagementSettings;
+    private DashboardSettings _dashboardSettings;
     private BestPracticeScannerAgent _bestPracticeScannerAgent;
     private TlsBestPracticesScanner _tlsBestPracticesScanner;
     private DailyReportScanner _dailyReportScanner;
@@ -122,6 +117,8 @@ public class TimerService : IHostedService, IDisposable
         ICrawlerService crawlerService,
         CrawlerSettings settings,
         TimerSettings timerSettings,
+        DashboardSettings dashboardSettings,
+        IncidentManagementSettings incidentManagementSettings,
         BestPracticeScannerAgent bestPracticeScannerAgent,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
@@ -146,6 +143,7 @@ public class TimerService : IHostedService, IDisposable
         _agentInboundCommunicationService = agentInboundCommunicationService;
         _chartPlugin = chartPlugin;
         _timerSettings = timerSettings;
+        _incidentManagementSettings = incidentManagementSettings;
         _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
@@ -156,6 +154,7 @@ public class TimerService : IHostedService, IDisposable
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
         _sinkService = sinkService;
         _feedbackRCAScanner = feedbackRCAScanner;
+        _dashboardSettings = dashboardSettings;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -560,13 +559,30 @@ public class TimerService : IHostedService, IDisposable
                 messageBuilder.AppendLine();
                 messageBuilder.AppendLine("I'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.");
                 messageBuilder.AppendLine();
-                messageBuilder.AppendLine("### 🚨 **PagerDuty Integration Active**:");
-                messageBuilder.AppendLine();
-                messageBuilder.AppendLine("With PagerDuty integration active, I can:");
-                messageBuilder.AppendLine("- Alert you about critical incidents in real-time");
-                messageBuilder.AppendLine("- Provide incident details and suggested resolutions");
-                messageBuilder.AppendLine("- Track incident status and resolution progress");
-                messageBuilder.AppendLine();
+
+                if (_incidentManagementSettings != null && string.Equals(_incidentManagementSettings?.Kind, "pagerduty"))
+                {
+                    messageBuilder.AppendLine("### 🚨 **PagerDuty Integration Active**:");
+                    messageBuilder.AppendLine();
+                    messageBuilder.AppendLine("With PagerDuty integration active, I can:");
+                    messageBuilder.AppendLine("- Alert you about critical incidents in real-time");
+                    messageBuilder.AppendLine("- Provide incident details and suggested resolutions");
+                    messageBuilder.AppendLine("- Track incident status and resolution progress");
+                    messageBuilder.AppendLine();
+                }
+
+                if (_dashboardSettings != null && !string.IsNullOrEmpty(_dashboardSettings.GrafanaUrl))
+                {
+                    messageBuilder.AppendLine("### 📊 **Azure Managed Grafana Integration Active**:");
+                    messageBuilder.AppendLine();
+                    messageBuilder.AppendLine("With Azure Managed Grafana integration, I can:");
+                    messageBuilder.AppendLine("- Provide real-time visualization of your system metrics");
+                    messageBuilder.AppendLine("- Help you track performance trends over time");
+                    messageBuilder.AppendLine("- Create custom dashboards for your specific monitoring needs");
+                    messageBuilder.AppendLine("- Send you links to relevant dashboards when troubleshooting issues");
+                    messageBuilder.AppendLine();
+                }
+
                 messageBuilder.AppendLine("### **How to get started**:");
                 messageBuilder.AppendLine();
                 messageBuilder.AppendLine("If you have any specific questions or needs, simply mention what you'd like help with, and I'll jump right in. You can ask me to:");

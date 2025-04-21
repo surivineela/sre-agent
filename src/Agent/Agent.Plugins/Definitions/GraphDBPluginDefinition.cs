@@ -108,12 +108,25 @@ namespace Agent.Plugins
             "2) Understand performance trends and potential issues, " +
             "3) View summarized metrics without accessing the Azure portal, or " +
             "4) Get actionable insights about resource behavior. " +
+            "The resources themselves also have a health score cord, use this method for verbose analysis." +
             "The output is a text summary that describes the resource's health status, important metrics, and any anomalies or concerns.")]
         public async Task<string> GetGeneralHealth(
             [Description("Name of the Azure resource to analyze. This should be the exact resource name as shown in the Azure portal.")] string resourceName,
             [Description("Type of the Azure resource (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts', 'microsoft.documentdb/databaseaccounts', 'microsoft.cache/redis')")] string resourceType)
         {
             return await _plugin.GetGeneralHealthAsync(resourceName, resourceType);
+        }
+
+        [KernelFunction("GetManagedResourcesInfo")]
+        [Description("Retrieves information about all managed resources by yourself in your Knowledge Graph. " +
+            "This function is useful when you need to: 1) Get an inventory of all Azure resources, " +
+            "2) Count resources by type for reporting or monitoring, " +
+            "3) Understand the distribution of resources across different services, or " +
+            "4) Get aggregate metrics on resource usage. " +
+            "The output provides counts for different resource types and totals that can be used for dashboards or resource management.")]
+        public async Task<dynamic> GetManagedResourcesInfoAsync()
+        {
+           return await  _plugin.GetManagedResourcesInfoAsync();
         }
 
         [KernelFunction("SearchResource")]

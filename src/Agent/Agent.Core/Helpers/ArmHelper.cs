@@ -93,26 +93,26 @@ public class ArmHelper
     }
 
     public async Task<string> CreateAutoScaleSetting(
-    string subscriptionId,
-    string resourceGroupName,
-    string autoScaleSettingName,
-    string location,
-    string resourceId,
-    int minCount,
-    int maxCount,
-    int targetCount,
-    string profileName = "DefaultProfile",
-    string metricName = "CpuPercentage",
-    string operatorProperty = "GreaterThan",
-    double threshold = 70.0,
-    string timeAggregation = "Average",
-    string statistic = "Average",
-    string timeGrain = "PT1M",
-    string timeWindow = "PT5M",
-    string scaleDirection = "Increase",
-    string scaleType = "ChangeCount",
-    string scaleValue = "1",
-    string cooldown = "PT5M")
+        string subscriptionId,
+        string resourceGroupName,
+        string autoScaleSettingName,
+        string location,
+        string resourceId,
+        int minCount,
+        int maxCount,
+        int targetCount,
+        string profileName = "DefaultProfile",
+        string metricName = "CpuPercentage",
+        string operatorProperty = "GreaterThan",
+        double threshold = 70.0,
+        string timeAggregation = "Average",
+        string statistic = "Average",
+        string timeGrain = "PT1M",
+        string timeWindow = "PT5M",
+        string scaleDirection = "Increase",
+        string scaleType = "ChangeCount",
+        string scaleValue = "1",
+        string cooldown = "PT5M")
     {
         try
         {

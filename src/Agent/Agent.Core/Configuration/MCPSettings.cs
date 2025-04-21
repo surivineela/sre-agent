@@ -20,4 +20,3 @@ namespace Agent.Core.Configuration
         public int PingTimeoutInSeconds { get; set; } = 10;
     }
 }
-

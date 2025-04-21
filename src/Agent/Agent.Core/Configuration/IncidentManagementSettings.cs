@@ -6,11 +6,9 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Agent.Core.Configuration
 {
-    public class AppInsightsSettings
+    public class IncidentManagementSettings
     {
         [Required]
-        public string ConnectionString { get; set; } = string.Empty;
-
-        public string ApplicationId { get; set; } = string.Empty;
+        public string Kind { get; set; } = string.Empty;
     }
 }

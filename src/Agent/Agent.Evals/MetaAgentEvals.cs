@@ -116,7 +116,6 @@ public class MetaAgentEvals
             threadService ?? Mock.Of<ThreadService>(),
             mcpToolsRepository ?? Mock.Of<McpToolsRepository>(),
             chartplugin ?? Mock.Of<IChartPlugin>(),
-            dashboardSettings ?? new DashboardSettings(),
             managedIdentityMigrationPlugin ?? Mock.Of<IMetaAgentManagedIdentityMigrationPlugin>(),
             tlsBestPracticesPlugin ?? Mock.Of<IMetaAgentTlsBestPracticesPlugin>(),
             appServiceRemediationPlugin ?? Mock.Of<IMetaAgentAppServiceRemediationPlugin>(),
@@ -139,7 +138,8 @@ public class MetaAgentEvals
             containerImageTroubleshooterPlugin ?? Mock.Of<IMetaAgentContainerImageTroubleshooterPlugin>(),
             functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>(),
             threadRepository ?? Mock.Of<IThreadRepository>(),
-            sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>());
+            sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>(),
+            Mock.Of<IConnectedIntegrationsPlugin>());
     }
 
     [TestMethod]

@@ -152,6 +152,13 @@ namespace Agent.Plugins
         /// <returns>A list of dictionaries containing all properties for each resource of the specified type.</returns>
         Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName = "", string propertyValue = "");
 
+        /// <summary>
+        /// Retrieves comprehensive information about all managed Azure resources.
+        /// Returns count data for various resource types categorized into Azure and other resources,
+        /// along with total resource counts.
+        /// </summary>
+        Task<dynamic> GetManagedResourcesInfoAsync();
+
         string GetKnowledgeGraphResourceUsageDashboard();
 
         Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId);

@@ -63,14 +63,62 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     appServiceNode.MinTlsVersion = webConfig.Data.MinTlsVersion.ToString();
                 }
 
+                // Add these additional security properties
+                if (webConfig.Data.MinTlsCipherSuite != null)
+                {
+                    appServiceNode.MinTlsCipherSuite = webConfig.Data.MinTlsCipherSuite.ToString();
+                }
+
                 // Get stack version from site config
-                appServiceNode.StackVersion = GetStackVersion(webConfig.Data);
+                AppServicePlanData appServicePlanData = null;
+                if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
+                {
+                    var planResourceId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
+                    var planResource = _armClient.GetAppServicePlanResource(planResourceId);
+                    var plan = await planResource.GetAsync();
+                    if (plan.Value != null)
+                    {
+                        appServicePlanData = plan.Value.Data;
+                    }
+                }
+
+                var metadata = GetStackVersion(webConfig.Data);
+                appServiceNode.SkuName = appServicePlanData.Sku?.Name;
+                appServiceNode.SkuTier = appServicePlanData.Sku?.Tier;
+                appServiceNode.SkuSize = appServicePlanData.Sku?.Size;
+                appServiceNode.SkuCapacity = appServicePlanData.Sku?.Capacity;
+
 
                 // Set additional properties from site config
                 appServiceNode.AlwaysOn = webConfig.Data.IsAlwaysOn;
                 appServiceNode.AutoHealEnabled = webConfig.Data.IsAutoHealEnabled;
                 appServiceNode.NumberOfWorkers = webConfig.Data.NumberOfWorkers;
                 appServiceNode.HealthCheckEnabled = !string.IsNullOrEmpty(webConfig.Data.HealthCheckPath);
+
+                if (!string.IsNullOrEmpty(webConfig.Data.HealthCheckPath))
+                {
+                    appServiceNode.HealthCheckPath = webConfig.Data.HealthCheckPath;
+                }
+
+                if (webConfig.Data.IPSecurityRestrictions != null && webConfig.Data.IPSecurityRestrictions.Count > 0)
+                {
+                    appServiceNode.IPSecurityRestrictions = JsonSerializer.Serialize(webConfig.Data.IPSecurityRestrictions);
+                }
+
+                // Add default action for IP security restrictions as string
+                if (webConfig.Data.IPSecurityRestrictionsDefaultAction.HasValue)
+                {
+                    appServiceNode.IPSecurityRestrictionsDefaultAction = webConfig.Data.IPSecurityRestrictionsDefaultAction.Value.ToString();
+                }
+
+                if (webConfig.Data?.IsAutoHealEnabled is true)
+                {
+                    if (webConfig.Data.AutoHealRules != null)
+                    {
+                        appServiceNode.AutoHealRules = JsonSerializer.Serialize(webConfig.Data.AutoHealRules);
+                    }
+                }
+
                 appServiceNode.WebSocketsEnabled = webConfig.Data.IsWebSocketsEnabled;
             }
         }
