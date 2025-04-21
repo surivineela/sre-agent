@@ -1,9 +1,9 @@
 import axios from 'axios';
-import { useCallback, useEffect, useReducer, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Node, Edge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
 import { GraphEdge, GraphNode, Resource, ResourceExtended } from '../Contracts/Graph';
-import { getNewNodesAndEdges, getSourceAndTargetHandleId, getSubscriptionIdFromNodeId, traverseGraph } from '../Graph/Utility';
-import { useElkLayout } from './useElkLayout';
+import { getNewNodesAndEdges, getSubscriptionIdFromNodeId } from '../Graph/Utility';
+import { useGraphLayout } from './useGraphLayout';
 
 export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
     try {
@@ -14,40 +14,10 @@ export const getResources = async (subscriptionId: string, resourceId: string): 
     }
 }
 
-const GraphReducer = (
-    state: { nodeMap: Map<string, Node<GraphNode>>, edgeMap: Map<string, Edge<GraphEdge>> },
-    action: {
-        type: 'ADD_APP_GROUP',
-        payload: {
-            newNodeMap: Map<string, Node<GraphNode>>;
-            newEdgeMap: Map<string, Edge<GraphEdge>>;
-        }
-    }
-) => {
-    const { type, payload: { newNodeMap, newEdgeMap } } = action;
-
-    const { nodeMap, edgeMap } = state;
-
-    if (type === 'ADD_APP_GROUP') {
-        for (const [key, value] of newNodeMap.entries()) {
-            const currentChildrenId = nodeMap.get(key)?.data.childrenIds ?? [];
-            const newChildrenId = value.data.childrenIds ?? [];
-            const mergedChildrenId = Array.from(new Set([...currentChildrenId, ...newChildrenId]));
-            nodeMap.set(key, { ...value, data: { ...value.data, childrenIds: mergedChildrenId } });
-        }
-        for (const [key, value] of newEdgeMap.entries()) {
-            edgeMap.set(key, value);
-        }
-
-        return { nodeMap, edgeMap };
-    }
-
-    return state;
-}
-
 export const useGraph = () => {
-    const [graph, dispatch] = useReducer(GraphReducer, { nodeMap: new Map<string, Node<GraphNode>>(), edgeMap: new Map<string, Edge<GraphEdge>>() });
-    const [computedGraph, setComputedGraph] = useState<Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>>(new Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>());
+    const [graph, setGraph] = useState<Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>>(
+        new Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>()
+    );
     const [selectedAppGroupId, setSelectedAppGroupId] = useState<string>();
     const [isLoading, setIsLoading] = useState(false);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -57,7 +27,7 @@ export const useGraph = () => {
     const [nodesToHightlight, setNodesToHightlight] = useState<string[]>([]);
     const [edgesToHightlight, setEdgesToHightlight] = useState<string[]>([]);
 
-    const layoutGraph = useElkLayout();
+    const layoutGraph = useGraphLayout();
 
     const { fitView } = useReactFlow();
 
@@ -72,20 +42,19 @@ export const useGraph = () => {
     }, []);
 
     const hoverNode = useCallback((nodeId: string) => {
-        const { edgeMap } = graph;
         const nodeIds = [nodeId];
         const edgeIds = [];
-        for (const [edgeId, edge] of edgeMap.entries()) {
+        for (const edge of edges) {
             if (edge.source === nodeId) {
                 nodeIds.push(edge.target);
-                edgeIds.push(edgeId);
+                edgeIds.push(edge.id);
             }
         }
 
         setNodesToHightlight(nodeIds);
         setEdgesToHightlight(edgeIds);
 
-    }, [graph]);
+    }, [edges]);
 
     const unHoverNode = useCallback(() => {
         setNodesToHightlight([]);
@@ -98,87 +67,46 @@ export const useGraph = () => {
         setIsLoading(true);
 
         if (appGroup) {
-            if (!graph.nodeMap.has(appGroup.id)) {
+            if (!graph.has(appGroup.id)) {
                 const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
-                const { nodeMap, edgeMap } = getNewNodesAndEdges(appGroup, resources);
-                dispatch({ type: 'ADD_APP_GROUP', payload: { newNodeMap: nodeMap, newEdgeMap: edgeMap } });
-            }
-            setSelectedAppGroupId(appGroup.id);
-        } else {
-            setSelectedAppGroupId(undefined);
-        }
-    }, [graph, closePanel]);
-
-    useEffect(() => {
-        let isSubscribed = true;
-
-        const computeNodesAndEdges = () => {
-            if (selectedAppGroupId) {
-                if (computedGraph.has(selectedAppGroupId)) {
-                    const { nodes, edges } = computedGraph.get(selectedAppGroupId) ?? { nodes: [], edges: [] };
-                    setNodes(nodes);
-                    setEdges(edges);
-                } else {
-                    const { nodeMap, edgeMap } = graph;
-
-                    const { nodes: nodesArray, edges: edgesArray } = traverseGraph(nodeMap, edgeMap, selectedAppGroupId);
-
-                    layoutGraph(nodesArray, edgesArray, selectedAppGroupId).then((layout: any) => {
-                        const nodes: Node<GraphNode>[] = (layout.children ?? []).map((node: any) => ({ ...node, position: { x: node.x ?? 0, y: node.y ?? 0 } }));
-                        const edges: Edge<GraphEdge>[] = (layout.edges ?? []).map((edge: any) => {
-                            const source = nodes.find(node => node.id === edge.sources[0]);
-                            const target = nodes.find(node => node.id === edge.targets[0]);
-                            const edgeResult: Edge<GraphEdge> = { ...edge, id: edge.id, source: edge.sources[0], target: edge.targets[0] };
-
-                            if (source && target) {
-                                const sourcePos = source.position;
-                                const targetPos = target.position;
-
-                                const { sourceHandle, targetHandle } = getSourceAndTargetHandleId(sourcePos, targetPos, source.id === selectedAppGroupId, target.id === selectedAppGroupId);
-
-                                edgeResult.sourceHandle = sourceHandle;
-                                edgeResult.targetHandle = targetHandle;
-                            }
-                            return edgeResult;
-                        });
-
-                        if (isSubscribed) {
-                            setComputedGraph(prev => {
-                                const newComputedGraph = new Map(prev);
-                                newComputedGraph.set(selectedAppGroupId, { nodes, edges });
-                                return newComputedGraph;
-                            });
-                            setIsLoading(false);
+                const { nodes, edges } = getNewNodesAndEdges(appGroup, resources);
+                layoutGraph(nodes, edges, appGroup.id).then(result => {
+                    setGraph(prev => {
+                        const newGraph = new Map(prev);
+                        newGraph.set(appGroup.id, { ...result });
+                        return newGraph;
+                    });
+                    setNodes(result.nodes);
+                    setEdges(result.edges);
+                    setSelectedAppGroupId(appGroup?.id);
+                    setIsLoading(prev => {
+                        if (prev) {
+                            return false;
                         }
-                    }).catch(() => {
-
-                        if (isSubscribed) {
-                            setNodes(nodesArray);
-                            setEdges(edgesArray);
-                            setIsLoading(false);
-                        }
-                    })
-                }
+                        return prev;
+                    });
+                });
             } else {
-                setNodes([]);
-                setEdges([]);
+                const { nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
+                setNodes(nodes);
+                setEdges(edges);
+                setSelectedAppGroupId(appGroup?.id);
                 setIsLoading(false);
             }
-
-        };
-
-        computeNodesAndEdges();
-
-        return () => {
-            isSubscribed = false;
+        } else {
+            setNodes([]);
+            setEdges([]);
+            setSelectedAppGroupId(undefined);
+            setIsLoading(false);
         }
-
-    }, [graph, selectedAppGroupId, setNodes, setEdges, computedGraph]);
+    }, [graph, closePanel, setNodes, setEdges]);
 
     useEffect(() => {
-        fitView();
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [nodes.length])
+        if (nodes.length > 0 && !isLoading) {
+            fitView();
+        }
+
+    }, [nodes.length, isLoading])
 
     return {
         nodes,

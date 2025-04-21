@@ -50,7 +50,6 @@ export type GraphNode = {
     id: string;
     name: string;
     subscriptionId: string;
-    childrenIds: string[];
     properties?: Resource;
 }
 

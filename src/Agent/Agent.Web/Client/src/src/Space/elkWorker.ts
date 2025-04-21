@@ -1,31 +1,15 @@
 import ELK from 'elkjs/lib/elk-api';
 import { GraphEdge, GraphNode, NodeSize } from './Contracts/Graph';
 import { Edge, Node } from '@xyflow/react';
-import debounce from 'lodash/debounce';
 
 const elk = new ELK({
     workerUrl: '../elk-worker.min.js'
 })
 
-self.onmessage = debounce(async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string }>) => {
+self.onmessage = async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string }>) => {
     const { nodes, edges, rootNodeId } = event.data;
 
     try {
-        let layoutOptions: any = nodes.length <= 10 ? {
-            'elk.algorithm': 'org.eclipse.elk.layered',                         // the actual algorithm
-            'elk.direction': 'RIGHT',                            // TOP, RIGHT, LEFT, DOWN
-            'elk.layered.spacing.nodeNodeBetweenLayers': '100',
-        } : {
-            'elk.algorithm': 'org.eclipse.elk.force',
-            'elk.force.repulsivePower': '0',
-        }
-
-        layoutOptions = {
-            ...layoutOptions,
-            'elk.spacing.nodeNode': nodes.length < 10 ? '25' : '5', // Reduce space between nodes
-            'elk.spacing.edgeNode': '10',
-            'elk.spacing.edgeEdge': '10',
-        }
         const layout = await elk.layout({
             id: 'root',
             children: nodes.map(node => ({
@@ -44,7 +28,13 @@ self.onmessage = debounce(async (event: MessageEvent<{ nodes: Node<GraphNode>[],
             })),
         },
             {
-                layoutOptions
+                layoutOptions: {
+                    'elk.algorithm': 'org.eclipse.elk.force',
+                    'elk.force.repulsivePower': '0',
+                    'elk.spacing.nodeNode': '5', // Reduce space between nodes
+                    'elk.spacing.edgeNode': '10',
+                    'elk.spacing.edgeEdge': '10',
+                }
             }
         )
 
@@ -53,4 +43,4 @@ self.onmessage = debounce(async (event: MessageEvent<{ nodes: Node<GraphNode>[],
     } catch (error) {
         self.postMessage({ type: 'error', error: error || 'Layout failed' })
     }
-}, 500)
+}

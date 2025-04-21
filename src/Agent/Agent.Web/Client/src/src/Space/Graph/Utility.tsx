@@ -55,7 +55,6 @@ export const createNode = (resource: Resource): Node<GraphNode> => {
             id: resourceId,
             name,
             subscriptionId,
-            childrenIds: [],
             properties: {
                 ...resource
             },
@@ -79,75 +78,32 @@ export const createGraphEdge = (sourceId: string, targetId: string): Edge<GraphE
     return edge;
 }
 
-export const getNewNodesAndEdges = (appGroup: ResourceExtended, resources: Resource[]): { nodeMap: Map<string, Node<GraphNode>>, edgeMap: Map<string, Edge<GraphEdge>> } => {
-    const nodeMap = new Map<string, Node<GraphNode>>();
-    const edgeMap = new Map<string, Edge<GraphEdge>>();
+export const getNewNodesAndEdges = (appGroup: ResourceExtended, resources: Resource[]): { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] } => {
+    const nodes: Node<GraphNode>[] = [];
+    const edges: Edge<GraphEdge>[] = [];
 
     const appGroupNode = createAppGroupNode(appGroup);
-    nodeMap.set(appGroupNode.id, appGroupNode);
+    nodes.push(appGroupNode);
 
     const populateResourceNodesAndEdges = (parentNode: Node<GraphNode>, resources: Resource[]) => {
-        const childrenIds: string[] = [];
-
         for (const resource of resources) {
             const node = createNode(resource);
             const edge = createGraphEdge(parentNode.id, node.id);
 
-            nodeMap.set(node.id, node);
-            edgeMap.set(edge.id, edge);
+            nodes.push(node);
+            edges.push(edge);
 
             if (resource.subItems && resource.subItems.length > 0) {
                 populateResourceNodesAndEdges(node, resource.subItems);
             }
-
-            childrenIds.push(node.id);
         }
-
-        nodeMap.set(parentNode.id, { ...parentNode, data: { ...parentNode.data, childrenIds } });
     }
 
     populateResourceNodesAndEdges(appGroupNode, resources);
 
     return {
-        nodeMap,
-        edgeMap
-    }
-}
-
-export const traverseGraph = (nodeMap: Map<string, Node<GraphNode>>, edgeMap: Map<string, Edge<GraphEdge>>, rootNodeId: string): { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] } => {
-    const nodes: Node<GraphNode>[] = [];
-    const edges: Edge<GraphEdge>[] = [];
-
-    const nodeIdSet = new Set<string>();
-    const queue: Node<GraphNode>[] = nodeMap.get(rootNodeId) ? [nodeMap.get(rootNodeId)!] : [];
-
-    while (queue.length > 0) {
-        const node = queue.shift();
-        if (node && !nodeIdSet.has(node.id)) {
-            nodeIdSet.add(node.id);
-            nodes.push(node);
-            const childrenIds = node.data.childrenIds;
-            if (childrenIds && childrenIds.length > 0) {
-                for (const childId of childrenIds) {
-                    const childNode = nodeMap.get(childId);
-                    if (childNode) {
-                        queue.push(childNode);
-                    }
-                }
-            }
-
-        }
-    }
-
-    for (const edge of edgeMap.values()) {
-        if (nodeIdSet.has(edge.source) && nodeIdSet.has(edge.target)) {
-            edges.push(edge);
-        }
-    }
-
-    return {
         nodes,
-        edges
+        edges,
     }
 }
 
