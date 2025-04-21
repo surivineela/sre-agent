@@ -9,6 +9,6 @@ namespace Agent.Core.Configuration
     public class IncidentManagementSettings
     {
         [Required]
-        public string Kind { get; set; } = string.Empty;
+        public string Kind { get; set; } = "PagerDuty";
     }
 }

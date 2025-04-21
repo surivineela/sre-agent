@@ -741,7 +741,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         public async Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId)
         {
-            if (ResourceIdentifier.TryParse(resourceId, out _))
+            if (!ResourceIdentifier.TryParse(resourceId, out _))
             {
                 throw new Exception("Invalid Azure resource Id, should be of form /subscriptions/<>/resourceGroups/<>/providers/<providerName>/<resourceType>/<resourceName>");
             }

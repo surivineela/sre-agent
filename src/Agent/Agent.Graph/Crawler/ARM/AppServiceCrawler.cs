@@ -415,34 +415,148 @@ public class AppServiceCrawler : GenericArmResourceCrawler
     private AppServiceNode.Function ParseFunctionConfig(FunctionEnvelopeData data)
     {
         var configJson = JsonDocument.Parse(data.Config);
+        var function = new AppServiceNode.Function
+        {
+            Name = data.Name,
+            TriggerType = "Unknown",
+            BindingDetails = new Dictionary<string, object>(),
 
-        // Extract the trigger type from the bindings array
-        var triggerType = "Unknown";
-        if (configJson.RootElement.TryGetProperty("bindings", out var bindings) &&
-            bindings.ValueKind == JsonValueKind.Array)
+            RuntimeInfo = new Dictionary<string, string>(),
+
+            PerformanceCharacteristics = new Dictionary<string, object>(),
+
+            OperationalMetadata = new Dictionary<string, object>(),
+
+            MonitoringSettings = new Dictionary<string, object>()
+        };
+
+        if (configJson.RootElement.TryGetProperty("bindings", out var bindings) && bindings.ValueKind == JsonValueKind.Array)
         {
             foreach (var binding in bindings.EnumerateArray())
             {
-                if (binding.TryGetProperty("type", out var type) &&
-                    binding.TryGetProperty("direction", out var direction) &&
-                    direction.GetString()?.ToLowerInvariant() == "in")
+                if (binding.TryGetProperty("type", out var type) && binding.TryGetProperty("direction", out var direction))
                 {
-                    // Found the input binding (trigger)
-                    var t = type.GetString() ?? "Unknown";
+                    string bindingType = type.GetString() ?? "Unknown";
+                    string bindingDirection = direction.GetString()?.ToLowerInvariant() ?? "unknown";
 
-                    // Usually trigger bindings end with "Trigger"
-                    if (t.EndsWith("Trigger", StringComparison.OrdinalIgnoreCase))
+                    // Extract common properties for all bindings
+                    var bindingDetails = new Dictionary<string, object>();
+                    foreach (var prop in binding.EnumerateObject())
                     {
-                        triggerType = t.Substring(0, t.Length - "Trigger".Length);
+                        bindingDetails[prop.Name] = prop.Value.ValueKind switch
+                        {
+                            JsonValueKind.String => prop.Value.GetString(),
+                            JsonValueKind.Number => prop.Value.GetInt32(),
+                            JsonValueKind.True => true,
+                            JsonValueKind.False => false,
+                            _ => null
+                        };
+                    }
+
+                    // Add binding to the collection
+                    function.BindingDetails[bindingType] = bindingDetails;
+
+                    // Set primary trigger if this is an input binding
+                    if (bindingDirection == "in" && bindingType.EndsWith("Trigger", StringComparison.OrdinalIgnoreCase))
+                    {
+                        function.TriggerType = bindingType.Substring(0, bindingType.Length - "Trigger".Length);
+
+                        // Extract specific trigger metadata
+                        if (bindingType.Equals("queueTrigger", StringComparison.OrdinalIgnoreCase) && binding.TryGetProperty("queueName", out var queueName))
+                        {
+                            function.QueueName = queueName.GetString();
+                        }
+                        else if (bindingType.Equals("serviceBusTrigger", StringComparison.OrdinalIgnoreCase))
+                        {
+                            if (binding.TryGetProperty("queueName", out var sbQueueName))
+                                function.ServiceBusQueueName = sbQueueName.GetString();
+                            else if (binding.TryGetProperty("topicName", out var sbTopicName))
+                                function.ServiceBusTopicName = sbTopicName.GetString();
+                        }
+                        else if (bindingType.Equals("eventHubTrigger", StringComparison.OrdinalIgnoreCase) && binding.TryGetProperty("eventHubName", out var eventHubName))
+                        {
+                            function.EventHubName = eventHubName.GetString();
+                        }
                     }
                 }
             }
         }
 
-        return new AppServiceNode.Function
+        // Extract scaling information
+        if (configJson.RootElement.TryGetProperty("scaling", out var scaling))
         {
-            Name = data.Name,
-            TriggerType = triggerType,
-        };
+            var scalingDetails = new Dictionary<string, object>();
+            foreach (var prop in scaling.EnumerateObject())
+            {
+                scalingDetails[prop.Name] = prop.Value.ValueKind switch
+                {
+                    JsonValueKind.String => prop.Value.GetString(),
+                    JsonValueKind.Number => prop.Value.GetInt32(),
+                    JsonValueKind.True => true,
+                    JsonValueKind.False => false,
+                    _ => null
+                };
+            }
+            function.ScalingDetails = scalingDetails;
+        }
+
+        if (configJson.RootElement.TryGetProperty("runtime", out var runtime))
+        {
+            if (runtime.TryGetProperty("version", out var version))
+                function.RuntimeInfo["version"] = version.GetString();
+
+            if (runtime.TryGetProperty("language", out var language))
+                function.RuntimeInfo["language"] = language.GetString();
+
+            if (runtime.TryGetProperty("framework", out var framework))
+                function.RuntimeInfo["framework"] = framework.GetString();
+        }
+
+        // Extract Performance Characteristics
+        if (configJson.RootElement.TryGetProperty("performance", out var performance))
+        {
+            if (performance.TryGetProperty("memorySize", out var memorySize))
+                function.PerformanceCharacteristics["memorySize"] = memorySize.GetInt32();
+
+            if (performance.TryGetProperty("timeout", out var timeout))
+                function.PerformanceCharacteristics["timeout"] = timeout.GetInt32();
+
+            if (performance.TryGetProperty("concurrencyLimit", out var concurrency))
+                function.PerformanceCharacteristics["concurrencyLimit"] = concurrency.GetInt32();
+        }
+
+        // Extract Operational Metadata
+        if (configJson.RootElement.TryGetProperty("metadata", out var metadata))
+        {
+            if (metadata.TryGetProperty("createdAt", out var createdAt))
+                function.OperationalMetadata["createdAt"] = createdAt.GetString();
+
+            if (metadata.TryGetProperty("modifiedAt", out var modifiedAt))
+                function.OperationalMetadata["modifiedAt"] = modifiedAt.GetString();
+
+            if (metadata.TryGetProperty("author", out var author))
+                function.OperationalMetadata["author"] = author.GetString();
+
+            if (metadata.TryGetProperty("environment", out var environment))
+                function.OperationalMetadata["environment"] = environment.GetString();
+        }
+
+        // Extract Monitoring Settings
+        if (configJson.RootElement.TryGetProperty("monitoring", out var monitoring))
+        {
+            if (monitoring.TryGetProperty("applicationInsightsKey", out var aiKey))
+                function.MonitoringSettings["applicationInsightsEnabled"] = "true";
+
+            if (monitoring.TryGetProperty("samplingRate", out var samplingRate))
+                function.MonitoringSettings["samplingRate"] = samplingRate.GetDouble();
+
+            if (monitoring.TryGetProperty("logLevel", out var logLevel))
+                function.MonitoringSettings["logLevel"] = logLevel.GetString();
+
+            if (monitoring.TryGetProperty("metrics", out var metrics) && metrics.ValueKind == JsonValueKind.True)
+                function.MonitoringSettings["metricsEnabled"] = true;
+        }
+
+        return function;
     }
 }

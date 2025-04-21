@@ -92,6 +92,18 @@ public class AppServiceNode : ArmResourceNode
     {
         public string Name { get; set; }
         public string TriggerType { get; set; }
+
+        public string? QueueName { get; set; }
+
+        public string? EventHubName { get; set; }
+        public string? ServiceBusQueueName { get; set; }
+        public string? ServiceBusTopicName { get; set; }
+        public Dictionary<string, object> BindingDetails { get; set; }
+        public Dictionary<string, object>? ScalingDetails { get; set; }
+        public Dictionary<string, string>? RuntimeInfo { get; set; }
+        public Dictionary<string, object>? PerformanceCharacteristics { get; set; }
+        public Dictionary<string, object>? OperationalMetadata { get; set; }
+        public Dictionary<string, object>? MonitoringSettings { get; set; }
     }
 
     public AppServiceNode(string resourceType,
