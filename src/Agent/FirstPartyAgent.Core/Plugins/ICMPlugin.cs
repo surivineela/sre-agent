@@ -107,7 +107,7 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[get_icm_incident_details][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             var incident = _icmApiClient.IsEnabled()? await _icmApiClient.GetIncidentAsync(incidentId): await _icmWorkflowClient.GetIncidentAsync(incidentId);
-            incident.Summary = await ProcessComplexICMContent(incident.Summary, kernel);
+            incident.Summary = await ProcessComplexICMContent(incident.Summary, kernel, !_icmWorkflowClient.ProcessImages);
             return incident;
         }
 
@@ -151,7 +151,7 @@ namespace FirstPartyAgent.Core.Plugins
                 {
                     if (entry.IsHtml)
                     {
-                        entry.Text = await ProcessComplexICMContent(entry.Text, kernel);
+                        entry.Text = await ProcessComplexICMContent(entry.Text, kernel, !_icmWorkflowClient.ProcessImages);
                     }
                 }
             }

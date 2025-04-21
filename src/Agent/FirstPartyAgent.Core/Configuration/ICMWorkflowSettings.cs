@@ -54,6 +54,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string HumanInterventionServiceName { get; set; } = string.Empty;
         public string HumanInterventionTeamName { get; set; } = string.Empty;
         public bool ReadOnly { get; set; } = false;
+        public bool ProcessImages { get; set; } = true;
         public bool ICMBacktestingModeEnabled { get; set; } = false;
     }
 }

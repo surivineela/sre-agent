@@ -22,10 +22,12 @@ namespace FirstPartyAgent.Core.Services
         private readonly ICMWorkflowSettings _icmWorkflowSettings;
         private const string ActionPath = "triggers/manual/execute";
         private readonly int TimeoutInSeconds = 600;
+        public bool ProcessImages = true;
 
         public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
             _icmWorkflowSettings = icmWorkflowSettings;
+            ProcessImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
 
