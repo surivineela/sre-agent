@@ -11,7 +11,7 @@ using Microsoft.Extensions.Logging;
 namespace Agent.Tests.Common;
 public class ApprovalTestHelper
 {
-    public static async Task<Tuple<bool,string>> DoApproval(
+    public static async Task DoApproval(
         DurableTaskClient durableTaskClient,
         TimeProvider timeProvider,
         string instanceID,
@@ -37,7 +37,7 @@ public class ApprovalTestHelper
                     var approvalId = approvalOrchestration.InstanceId;
                     var approvalStatus = new ApprovalStatus(approvalId, timeProvider.GetUtcNow().DateTime, timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null, "description");
                     await durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
-                    return new (true, "");
+                    return;
                 }
             }
 
@@ -45,8 +45,7 @@ public class ApprovalTestHelper
             if (parent.IsCompleted)
             {
                 var errorMessage = $"Orchestration {instanceID} completed unexpectedly with status {parent.RuntimeStatus}. Details: {parent.FailureDetails} ";
-                logger?.LogError(errorMessage);
-                return new (false, errorMessage);
+                throw new InvalidOperationException(errorMessage);
             }
 
         }

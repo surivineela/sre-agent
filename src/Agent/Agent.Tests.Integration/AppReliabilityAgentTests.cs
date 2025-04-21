@@ -108,7 +108,7 @@ namespace Agent.Tests.Integration
 
                     // -- test specific
                     _mockApprovalPlugin = new MockApprovalPlugin();
-                    _mockArmPlugin = new MockArmPlugin(_timeProvider, _mockApprovalPlugin);
+                    _mockArmPlugin = new MockArmPlugin(_timeProvider);
                     _mockArmPlugin.ConfigureReliability(_testApps.ToDictionary(x => x.ResourceId));
                     _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
                     _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);

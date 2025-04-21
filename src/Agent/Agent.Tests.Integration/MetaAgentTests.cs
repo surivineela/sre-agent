@@ -82,7 +82,7 @@ public class MetaAgentTests : IAsyncLifetime
                 // -- test specific
                 var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
                 var mockApprovalPlugin = new MockApprovalPlugin();
-                var mockArmPlugin = new MockArmPlugin(timeProvider, mockApprovalPlugin);
+                var mockArmPlugin = new MockArmPlugin(timeProvider);
                 // mockArmPlugin.ConfigureTlsStatus(testApps.ToDictionary(x => x.ResourceId));
                 var mockMetricsPlugin = new MockMetricsPlugin(timeProvider);
                 var mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(timeProvider);

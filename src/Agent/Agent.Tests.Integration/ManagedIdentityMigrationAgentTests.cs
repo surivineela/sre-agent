@@ -102,7 +102,7 @@ namespace Agent.Tests.Integration
 
                     // -- test specific
                     _mockApprovalPlugin = new MockApprovalPlugin();
-                    _mockArmPlugin = new MockArmPlugin(_timeProvider, _mockApprovalPlugin);
+                    _mockArmPlugin = new MockArmPlugin(_timeProvider);
                     _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
                     _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);
                     _mockTimePlugin = new MockTimePlugin(_timeProvider);

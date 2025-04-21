@@ -65,17 +65,33 @@ public static class TestHelpers
         builder.Services.AddChatClient(sp => sp.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName));
         outLLMDeploymentName = llmDeploymentName;
 
-        builder.Services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>().
-                        AddSingleton<IThreadRepository, InmemoryThreadRepository>().
-                        AddSingleton<ThreadService>().
-                        AddSingleton<SinkService>().
-                        // NOTE: use mock for teams plugin as we don't rely on teams for Agent Eval.
-                        AddSingleton(sp => new Mock<IPostToTeamsPlugin>().Object).
-                        AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
-        // These plugins don't have any dependencies on appsettings.json
-        builder.Services.AddSingleton<ITimePlugin, TimePlugin>()
-                        .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>();
+
 
         return builder;
+    }
+
+    public static HostApplicationBuilder RegisterDefaultServices(this HostApplicationBuilder builder)
+    {
+        builder.Services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
+        builder.Services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+        builder.Services.AddSingleton<ThreadService>();
+        builder.Services.AddSingleton<SinkService>();
+        // NOTE: use mock for teams plugin as we don't rely on teams for Agent Eval.
+        builder.Services.AddSingleton(sp => new Mock<IPostToTeamsPlugin>().Object);
+
+        return builder;
+    }
+
+    public static ChatResponse? GetChatResponseForUser(this ChatMessage msg)
+    {
+        var response = msg switch
+        {
+            _ when msg.Role == ChatRole.Assistant && !string.IsNullOrEmpty(msg.Text) => new ChatResponse(msg),
+            _ when msg.Contents.OfType<FunctionCallContent>().SingleOrDefault() is { Name: "NotifyUser" } functionCall =>
+                new ChatResponse(new ChatMessage(ChatRole.Assistant, functionCall.Arguments["message"].ToString())),
+            _ => null
+        };
+
+        return response;
     }
 }

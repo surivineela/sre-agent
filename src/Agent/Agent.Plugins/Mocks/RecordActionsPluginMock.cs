@@ -15,11 +15,11 @@ namespace Agent.Plugins.Mocks
     public class MockRecordActionsPlugin : IRecordActionsPlugin
     {
         private readonly TimeProvider _timeProvider;
-        private readonly ILogger<MockRecordActionsPlugin>? _logger;
+        private readonly ILogger? _logger;
         private readonly Dictionary<Guid, Dictionary<Guid, Action>> _actionsByThread = new();
         private readonly Random _random = new Random(42);
 
-        public MockRecordActionsPlugin(TimeProvider timeProvider, ILogger<MockRecordActionsPlugin>? logger)
+        public MockRecordActionsPlugin(TimeProvider timeProvider, ILogger? logger)
         {
             _timeProvider = timeProvider;
             _logger = logger;

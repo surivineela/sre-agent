@@ -11,14 +11,12 @@ namespace Agent.Plugins.Mocks
     public class MockArmPlugin : IArmPlugin
     {
         private readonly TimeProvider _timeProvider;
-        private readonly MockApprovalPlugin _approvalPlugin;
         private readonly Dictionary<string, TlsStatus> _tlsStatuses = new();
         private readonly Dictionary<string, AppReliability> _reliabilityStatuses = new();
 
-        public MockArmPlugin(TimeProvider timeProvider, MockApprovalPlugin approvalPlugin)
+        public MockArmPlugin(TimeProvider timeProvider)
         {
             _timeProvider = timeProvider;
-            _approvalPlugin = approvalPlugin;
         }
 
         public void ConfigureTlsStatus(

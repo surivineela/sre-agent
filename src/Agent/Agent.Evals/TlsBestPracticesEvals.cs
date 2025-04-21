@@ -1,27 +1,18 @@
-using Agent.Core.Extensions;
-using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
-using Agent.Plugins;
-using Agent.Plugins.Definitions;
-using Agent.Plugins.Mocks;
-using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
-using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
+using Agent.Tests.Common.ScenarioTestHelpers;
 using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask.Client.AzureManaged;
-using Microsoft.DurableTask.Worker;
-using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Time.Testing;
 
 namespace Agent.Evals;
+
 [TestClass]
 public class TlsBestPracticesEvals
 {
@@ -29,21 +20,13 @@ public class TlsBestPracticesEvals
 
     private IHost _host;
     private ChatConfiguration _chatConfiguration;
-
+    private string? _llmDeploymentName;
+    private BasicMockSetup _mocks;
     private static int _iterationCount = 1;
 
-    private TimeProvider _timeProvider;
+    private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
     private DurableTaskClient _durableTaskClient;
     private TlsBestPracticeAgentFactory _agentFactory;
-    private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
-
-    private MockApprovalPlugin _mockApprovalPlugin;
-    private MockRecordActionsPlugin _mockRecordActionsPlugin;
-    private MockArmPlugin _mockArmPlugin;
-    private MockMetricsPlugin _mockMetricsPlugin;
-    private MockTimePlugin _mockTimePlugin;
-    private MockCommunicationService _mockCommunicationService;
-    private string? _llmDeploymentName;
 
     private List<TlsStatus> _testApps = new List<TlsStatus>
     {
@@ -54,79 +37,25 @@ public class TlsBestPracticesEvals
         new TlsStatus ( MinimumTlsVersion : "1.0", Name : "app5", ResourceId : $"{BaseResourceId}/app5", Location:"eastus" ),
     };
 
-
-    // Static constructor to initialize _iterationCount
-    static TlsBestPracticesEvals()
-    {
-        // Retrieve the IterationCount from environment variables or a default value
-        string iterationCountEnv = Environment.GetEnvironmentVariable("IterationCount");
-        if (int.TryParse(iterationCountEnv, out int parsedIterations))
-        {
-            Console.WriteLine($"Static Constructor: IterationCount is {parsedIterations}");
-            _iterationCount = parsedIterations;
-        }
-        else
-        {
-            Console.WriteLine("TlsBestPracticesEvals Static Constructor: IterationCount not found or invalid. Using default value.");
-        }
-    }
-
     [TestInitialize]
     public async Task TestInitialize()
     {
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
+        builder.RegisterDefaultServices();
+        builder.ConfigureDurable();
+
+        _mocks = new BasicMockSetup(DateTimeOffset.Parse("2025-02-24T01:00:00Z"), null);
+        _mocks.ArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
+
         var services = builder.Services;
-
-        _timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
-        _mockApprovalPlugin = new MockApprovalPlugin();
-        _mockArmPlugin = new MockArmPlugin(_timeProvider, _mockApprovalPlugin);
-        _mockArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
-        _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
-        _mockTimePlugin = new MockTimePlugin(_timeProvider);
-        _mockCommunicationService = new MockCommunicationService(logger: null);
-        _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, logger: null);
-
-        services.AddSingleton<TimeProvider>(_timeProvider);
-        services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
-        services.AddSingleton<IRecordActionsPlugin>(_mockRecordActionsPlugin);
-        services.AddSingleton<IArmPlugin>(_mockArmPlugin);
-        services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
-        services.AddSingleton<ITimePlugin>(_mockTimePlugin);
-        services.AddSingleton<IAgentOutboundCommunicationService>(_mockCommunicationService);
-
-        services.AddSingleton<MetricsPluginDefinition>();
-        services.AddSingleton<ArmPluginDefinition>();
-        services.AddSingleton<RecordActionsPluginDefinition>();
-        services.AddSingleton<ControlFlowPluginDefinition>();
-        services.AddSingleton<ApprovalPluginDefinition>();
-
-        services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
+        services.AddMockServices(_mocks);
+        services.AddPluginDefinitions();
         services.AddSingleton<ToolsRepository>();
-
         services.AddSingleton<TlsBestPracticeAgentFactory>();
 
-        string durableConnectionString = builder.ResolveDtsConnectionString();
-
-        services.AddDurableTaskWorker(durableBuilder =>
-        {
-            durableBuilder.AddTasks(r =>
-            {
-                DurableHelper.AddAllGeneratedTasks(r);
-            });
-
-            durableBuilder.UseDurableTaskScheduler(durableConnectionString);
-        });
-
-        services.AddDurableTaskClient(durableBuilder =>
-        {
-            durableBuilder.UseDurableTaskScheduler(durableConnectionString);
-        });
-
         var sp = services.BuildServiceProvider();
-
         _durableTaskClient = sp.GetRequiredService<DurableTaskClient>();
         _agentFactory = sp.GetRequiredService<TlsBestPracticeAgentFactory>();
-
         _host = builder.Build();
 
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
@@ -155,7 +84,11 @@ public class TlsBestPracticesEvals
     [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
     public async Task UpdateHealthyApps(string iteration)
     {
-        string groundedContext = """
+        var tokenSource = new CancellationTokenSource();
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        evalInput.GroundedContext = """
             ## Ground Truth:
             1. Recieve the list of applications that need to be updated to the specified TLS version
             2. Request and wait for an approval
@@ -169,7 +102,7 @@ public class TlsBestPracticesEvals
             - The response should avoid unnecessary information or ambiguity.
             """;
 
-        string exampleResponse = """
+        evalInput.ExampleResponse = """
             Here are several examples of good responses for a few different steps of the process:
 
             ## Example 1
@@ -191,78 +124,34 @@ public class TlsBestPracticesEvals
             The update was completed successfully without any issues. 🎉
             """;
 
-        var tokenSource = new CancellationTokenSource();
-        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
-
-        var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
+        var agentInput = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
         string? instanceID = "";
 
         try
         {
-            instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
+            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
 
-            var (approved, approvalError) = await ApprovalTestHelper.DoApproval(
+            await ApprovalTestHelper.DoApproval(
                 _durableTaskClient,
-                _timeProvider,
+                _mocks.TimeProvider,
                 instanceID,
                 null, // seriously MSTest, why don't you have an ILogger?
                 tokenSource.Token);
 
-            if (!approved)
-            {
-                Assert.Fail(approvalError);
-            }
-
-            var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
-            if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
-            {
-                Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
-            }
-
+            OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
             Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
 
-            var fullHistoryRaw = orchestrationMetadata.ReadCustomStatusAs<string>();
-            var fullHistory = System.Text.Json.JsonSerializer.Deserialize<ChatMessage[]>(fullHistoryRaw, new System.Text.Json.JsonSerializerOptions
-            {
-
-                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-            });
-
-
-            List<ChatMessage> messagesSoFar = new List<ChatMessage>();
-
-            //var messagesToUser = _mockCommunicationService.Messages
-            //    .Select(x => new ChatMessage(ChatRole.Assistant, x))
-            //    .ToList();
-
-            foreach (var msg in fullHistory)
-            {
-                messagesSoFar.Add(msg);
-
-                var response = msg switch
-                {
-                    _ when msg.Role == ChatRole.Assistant && !string.IsNullOrEmpty(msg.Text) => new ChatResponse(msg),
-                    _ when msg.Contents.OfType<FunctionCallContent>().SingleOrDefault() is { Name: "NotifyUser" } functionCall =>
-                        new ChatResponse(new ChatMessage(ChatRole.Assistant, functionCall.Arguments["message"].ToString())),
-                    _ => null
-                };
-
-                if (response != null)
-                {
-                    await response.EvaluateAsync(this.TestContext, this._chatConfiguration, messagesSoFar, groundedContext, exampleResponse, _llmDeploymentName);
-                }
-            }
-
-
+            var fullHistory = orchestrationMetadata.ReadChatHistory();
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
 
             foreach (var app in _testApps)
             {
-                TestContext.WriteLine($"Test complete. App {app.Name} is now set to TLS {_mockArmPlugin.GetTlsStatus(app.ResourceId)}");
+                TestContext.WriteLine($"Test complete. App {app.Name} is now set to TLS {_mocks.ArmPlugin.GetTlsStatus(app.ResourceId)}");
             }
 
             foreach (var app in _testApps)
             {
-                Assert.AreEqual("1.2", _mockArmPlugin.GetTlsStatus(app.ResourceId), ignoreCase: true, $"App {app.Name} does not have expected TLS setting.");
+                Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(app.ResourceId), ignoreCase: true, $"App {app.Name} does not have expected TLS setting.");
             }
         }
         catch (Grpc.Core.RpcException ex)

@@ -23,6 +23,7 @@ using Agent.Runtime.SubAgents;
 using Moq;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using Agent.Prometheus.Services;
+using Agent.Runtime.Communication;
 
 namespace Agent.Evals;
 
@@ -69,6 +70,15 @@ public sealed class AKSAgentEvals
         // Create thread repository first
 
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
+        builder.RegisterDefaultServices();
+
+        //==== moved from TestHelpers.BuildTestApp() ====
+        builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
+        // These plugins don't have any dependencies on appsettings.json
+        builder.Services.AddSingleton<ITimePlugin, TimePlugin>()
+                        .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>();
+        //==== end ====
+
         /* ===== Below section requires the appsettings to have corresponding configuration values ==== */
         // The easiest way to make it work is to use the same appsettings.json with your local development for Agent.Web.
         builder.Services.AddSingleton<IConfiguration>(builder.Configuration);

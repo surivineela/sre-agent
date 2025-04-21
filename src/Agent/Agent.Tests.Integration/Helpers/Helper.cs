@@ -34,12 +34,7 @@ namespace Agent.Tests.Integration.Helpers
             CancellationToken cancellationToken,
             ILogger? logger = null)
         {
-            var (approved, msg) = await ApprovalTestHelper.DoApproval(durableTaskClient, timeProvider, instanceID, logger, cancellationToken);
-
-            if (!approved)
-            {
-                Assert.Fail(msg);
-            }
+            await ApprovalTestHelper.DoApproval(durableTaskClient, timeProvider, instanceID, logger, cancellationToken);
         }
 
         public static async Task CleanupAllOrchestration<T>(

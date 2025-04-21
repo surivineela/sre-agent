@@ -24,7 +24,7 @@ public static class EvaluatorExtensions
         this ChatResponse chatResponse,
         TestContext testContext,
         ChatConfiguration? chatConfiguration,
-        List<ChatMessage> messages,
+        IEnumerable<ChatMessage> messages,
         string groundedContext,
         string exampleResponse,
         string? llmDeploymentName)

@@ -105,7 +105,7 @@ namespace Agent.Tests.Integration
                 .UseFunctionInvocation();
 
             _mockApprovalPlugin = new MockApprovalPlugin();
-            _mockArmPlugin = new MockArmPlugin(_timeProvider, _mockApprovalPlugin);
+            _mockArmPlugin = new MockArmPlugin(_timeProvider);
             _mockArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
             _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
             _mockTimePlugin = new MockTimePlugin(_timeProvider);
