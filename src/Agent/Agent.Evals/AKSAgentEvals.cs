@@ -18,12 +18,14 @@ using Agent.Plugins.Implementation;
 using Agent.Core.Helpers;
 using Microsoft.Extensions.AI.Evaluation;
 using Agent.Core.Services;
-using Agent.Core.Models.Api.v1;
 using Agent.Runtime.SubAgents;
 using Moq;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 using Agent.Prometheus.Services;
 using Agent.Runtime.Communication;
+using Agent.Tests.Common;
+using Agent.Tests.Common.Mocks;
+using Agent.Tests.Common.ScenarioTestHelpers;
+using Agent.Plugins.Mocks;
 
 namespace Agent.Evals;
 
@@ -39,6 +41,8 @@ public sealed class AKSAgentEvals
     private ChatConfiguration _chatConfiguration;
     private KubernetesAgentFactory _kubernetesAgentFactory;
     private DurableTaskClient _durableTaskClient;
+    private BasicMockSetup _mocks;
+    private MockKubePlugin _mockKubePlugin;
 
     private string _llmDeploymentName;
     private static int _iterationCount = 1; // Default value
@@ -71,75 +75,22 @@ public sealed class AKSAgentEvals
 
         var builder = TestHelpers.BuildTestApp(out _llmDeploymentName);
         builder.RegisterDefaultServices();
-
-        //==== moved from TestHelpers.BuildTestApp() ====
-        builder.Services.AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>();
-        // These plugins don't have any dependencies on appsettings.json
-        builder.Services.AddSingleton<ITimePlugin, TimePlugin>()
-                        .AddSingleton<IRecordActionsPlugin, RecordActionsPlugin>();
-        //==== end ====
-
-        /* ===== Below section requires the appsettings to have corresponding configuration values ==== */
-        // The easiest way to make it work is to use the same appsettings.json with your local development for Agent.Web.
-        builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-        builder.Services.AddSingleton<IAuthenticationService, AuthenticationService>();
-        builder.Services.AddSingleton<IArmClientFactory, ArmClientFactory>().
-                         AddSingleton<ArmHelper>().
-                         AddSingleton<IArmPlugin, ArmPlugin>();
-        // GremlinGraphDatabaseClient requires the appsettings to have GremlinGraphDb
-        builder.Services.AddSingleton<IGraphDatabaseClient, GremlinGraphDatabaseClient>();
-        builder.Services
-            .AddTransient<IKubePlugin, KubePlugin>()
-            .AddTransient<IChartPlugin, ChartPlugin>()
-            .AddTransient<ChartPlugin>()
-            .AddTransient<IGraphDBPlugin, GraphDBPlugin>();
-        builder.Services
-            .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
-            .AddSingleton<IGrafanaPlugin, GrafanaPlugin>();
-        // We can use dts simulator to satisfy the durable task client below by:
+        // We are using dts simulator to satisfy the durable task client below by:
         // docker run --rm -it --name dts-emulator -p 14280:8080 -p 14282:8082 -e ClientAuth__DisableAuthentication=true mcr.microsoft.com/dts/dts-emulator:v0.0.6
-        builder.Services.AddDurableTaskWorker(b =>
-        {
-            b.AddTasks(r =>
-            {
-                DurableHelper.AddAllGeneratedTasks(r);
-            });
+        builder.ConfigureDurable();
 
-            string durableConnectionString = builder.ResolveDtsConnectionString();
-            b.UseDurableTaskScheduler(durableConnectionString);
+        _mocks = new BasicMockSetup(DateTimeOffset.Parse("2025-02-24T01:00:00Z"), null);
 
-            builder.Services.AddOptions<DurableTaskSchedulerWorkerOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
-            {
-                var authService = sp.GetRequiredService<IAuthenticationService>();
-                var tokenCredential = authService.GetDtsCredential();
+        var services = builder.Services;
+        services.AddMockServices(_mocks);
+        AKSTestHelpers.AddPluginDefinitions(services);
+        services.AddSingleton<ToolsRepository>();
+        services.AddSingleton<KubePluginDefinition>();
 
-                option.Credential = tokenCredential;
-            });
-        });
-        builder.Services.AddDurableTaskClient(b =>
-        {
-            string durableConnectionString = builder.ResolveDtsConnectionString();
-            b.UseDurableTaskScheduler(durableConnectionString);
+        _mockKubePlugin = new MockKubePlugin();
+        builder.Services.AddSingleton<IKubePlugin>(_mockKubePlugin);
+        builder.Services.AddSingleton<KubernetesAgentFactory>();
 
-            builder.Services.AddOptions<DurableTaskSchedulerClientOptions>(b.Name).Configure<IServiceProvider>((option, sp) =>
-            {
-                var authService = sp.GetRequiredService<IAuthenticationService>();
-                var tokenCredential = authService.GetDtsCredential();
-
-                option.Credential = tokenCredential;
-            });
-        });
-        /* ===== End of section that requires the appsettings to have corresponding configuration values ==== */
-        builder.Services.AddSingleton<KubernetesAgentFactory>()
-                        .AddSingleton<ArmHelper>()
-                        .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
-                        .AddSingleton<KubePluginDefinition>()
-                        .AddSingleton<ChartPluginDefinition>()
-                        .AddSingleton<GraphDBPluginDefinition>();
-
-        AddMockService(builder.Services);
-
-        builder.Services.AddArmHelperHttpClient();
 
         var sp = builder.Services.BuildServiceProvider();
 
@@ -156,35 +107,6 @@ public sealed class AKSAgentEvals
         await _host.StartAsync();
     }
 
-    // Below are the plugins not used in AKSAgent but required for ToolsRepository
-    private void AddMockService(IServiceCollection services)
-    {
-
-        services.AddSingleton<ToolsRepository>()
-            .AddSingleton<TimePluginDefinition>()
-            .AddSingleton<MIConfigurationCheckPluginDefinition>()
-            .AddSingleton(sp => new Mock<IMIConfigurationCheckPlugin>().Object)
-            .AddSingleton<GithubWorkflowTriggerPluginDefinition>()
-            .AddSingleton(sp => new Mock<IGithubWorkflowTriggerPlugin>().Object)
-            .AddSingleton<RemediationPluginDefinition>()
-            .AddSingleton(sp => new Mock<IRemediationPlugin>().Object)
-            .AddSingleton<AppIdentityUpdatePluginDefinition>()
-            .AddSingleton(sp => new Mock<IAppIdentityUpdatePlugin>().Object)
-            .AddSingleton<ControlFlowPluginDefinition>()
-            .AddSingleton<ApprovalPluginDefinition>()
-            .AddSingleton(sp => new Mock<IApprovalPlugin>().Object)
-            .AddSingleton<ContainerAppPluginDefinition>()
-            .AddSingleton(sp => new Mock<IContainerAppPlugin>().Object)
-            .AddSingleton<ReliabilityPluginDefinition>()
-            .AddSingleton(sp => new Mock<IReliabilityPlugin>().Object)
-            .AddSingleton<MetricsPluginDefinition>()
-            .AddSingleton(sp => new Mock<IMetricsPlugin>().Object)
-            .AddSingleton<RecordActionsPluginDefinition>()
-            .AddSingleton(sp => new Mock<IRecordActionsPlugin>().Object)
-            .AddSingleton<GrafanaPluginDefinition>()
-            .AddSingleton(sp => new Mock<IGrafanaPlugin>().Object);
-
-    }
 
     [TestCleanup]
     public async Task TestCleanup()
@@ -201,11 +123,19 @@ public sealed class AKSAgentEvals
         }
     }
 
+    public static string FormatAKSResourceId(string subscriptionId, string resourceGroupName, string aksClusterName)
+    {
+        return $"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.ContainerService/managedClusters/{aksClusterName}";
+    }
+
     [TestMethod]
     [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
     public async Task AKSAgentGenerateResourceGraph(Guid testRunGuid)
     {
-        string groundedContext = """
+        var tokenSource = new CancellationTokenSource();
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        evalInput.GroundedContext = """
             ## Ground Truth:
             1. Subscription ID, resource group, AKS cluster name, resource namespace and name are provided clearly.
             2. Agent can access to the AKS cluster by generating the resource ID from the information.
@@ -216,7 +146,7 @@ public sealed class AKSAgentEvals
             - The response listed the component names, types (if not Deployment)
             """;
 
-        var exampleResponse = $"""
+        evalInput.ExampleResponse = $"""
             Here's the microservices topology relationship for the checkout deployment:
             checkout depends on [cart, currency, email, payment, product-catalog, shipping, kafka]
             cart depends on valkey-cart
@@ -224,11 +154,8 @@ public sealed class AKSAgentEvals
             shipping depends on quote
             """;
 
-        var tokenSource = new CancellationTokenSource();
-        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
-
         var deploymentName = "checkout";
-        var input = $"""
+        var agentInput = $"""
         Can you draw a dependency graph for the following components in the AKS cluster?
         - Subscription ID: {_subscriptionId}
         - Resource Group: {_resourceGroupName}
@@ -238,107 +165,62 @@ public sealed class AKSAgentEvals
         """;
         string? instanceID = "";
 
+        _mockKubePlugin.ConfigureNamespaces(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            "default, kube-system, kube-public");
+        _mockKubePlugin.ConfigureDeployments(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            _deploymentNamespace,
+            "checkout, cart, currency, email, payment, product-catalog, shipping, kafka, valkey-cart, quote");
+        _mockKubePlugin.ConfigureStatefulSets(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            _deploymentNamespace,
+            "redis");
+
+        _mocks.GraphDBPlugin.ConfigureAKSMicroservices(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            _deploymentNamespace,
+            deploymentName,
+            "checkout depends on [cart, currency, email, payment, product-catalog, shipping, kafka], cart depends on valkey-cart, product-catalog depends on redis (StatefulSet), shipping depends on quote");
+        _mocks.GraphDBPlugin.ConfigureAKSMicroservices(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            _deploymentNamespace,
+            "cart",
+            "cart depends on valkey-cart");
+        _mocks.GraphDBPlugin.ConfigureAKSMicroservices(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            _deploymentNamespace,
+            "product-catalog",
+            "product-catalog depends on redis (StatefulSet)");
+        _mocks.GraphDBPlugin.ConfigureAKSMicroservices(
+            FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName),
+            _deploymentNamespace,
+            "shipping",
+            "shipping depends on quote");
         try
         {
-            instanceID = await _kubernetesAgentFactory.StartOrchestration(input, testRunGuid);
-
-            // Create a background thread to poll messages via threadRepository
-            var threadRepository = _host.Services.GetRequiredService<IThreadRepository>();
-            var pollingCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(tokenSource.Token);
-
-            // Create a thread-safe queue to pass messages from background thread to main thread
-            var messageQueue = new System.Collections.Concurrent.ConcurrentQueue<string>();
-
-            // Force output flushing
-            Console.SetError(new System.IO.StreamWriter(Console.OpenStandardError()) { AutoFlush = true });
-            Console.SetOut(new System.IO.StreamWriter(Console.OpenStandardOutput()) { AutoFlush = true });
-
-            Console.WriteLine($"CONSOLE: Test starting {testRunGuid}");
-
-            Task pollingTask = Task.Run(async () =>
-            {
-                try
-                {
-                    DateTime MaxTimestamp = DateTime.MinValue;
-                    while (!pollingCancellationTokenSource.Token.IsCancellationRequested)
-                    {
-                        // Poll messages from the thread repository for the current thread
-                        var messages = await threadRepository.GetMessagesAsync(testRunGuid);
-                        if (messages != null && messages.Any())
-                        {
-                            foreach (var msg in messages)
-                            {
-                                if (msg.TimeStamp <= MaxTimestamp)
-                                    continue;
-
-                                Console.WriteLine($"Message: {msg.Author}: {msg.Text}");
-                            }
-
-                            if (messages.Any())
-                                MaxTimestamp = messages.Max(m => m.TimeStamp);
-                        }
-
-                        // Reduced polling interval to get more frequent updates
-                        await Task.Delay(TimeSpan.FromMilliseconds(500), pollingCancellationTokenSource.Token);
-                    }
-                }
-                catch (OperationCanceledException)
-                {
-                    // Expected when cancellation is requested
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine($"DEBUG ERROR: {ex.Message}");
-                    Console.WriteLine($"Error in polling thread: {ex}");
-                    messageQueue.Enqueue($"ERROR in polling thread: {ex}");
-                }
-            }, pollingCancellationTokenSource.Token);
+            instanceID = await _kubernetesAgentFactory.StartOrchestration(agentInput, testRunGuid);
 
             // Continue with orchestration
             var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
-
-            // Clean up
-            pollingCancellationTokenSource.Cancel();
-
-            // Rest of your existing code...
-            if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
-            {
-                Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
-            }
-
             Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
 
-            var fullHistoryRaw = orchestrationMetadata.ReadCustomStatusAs<string>();
-            var fullHistory = System.Text.Json.JsonSerializer.Deserialize<ChatMessage[]>(fullHistoryRaw, new System.Text.Json.JsonSerializerOptions
+            var fullHistory = orchestrationMetadata.ReadChatHistory();
+            var results = await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            bool hasHighMatch = false;
+            for (int i = 0; i < results.Count; i++)
             {
-
-                PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase
-            });
-
-
-            List<ChatMessage> messagesSoFar = new List<ChatMessage>();
-
-            foreach (var msg in fullHistory)
-            {
-                messagesSoFar.Add(msg);
-
-                var response = msg switch
+                var result = results[i];
+                if (result.Equivalence.Value >= 4)
                 {
-                    _ when msg.Role == ChatRole.Assistant && !string.IsNullOrEmpty(msg.Text) => new ChatResponse(msg),
-                    _ when msg.Contents.OfType<FunctionCallContent>().SingleOrDefault() is { Name: "NotifyUser" } functionCall =>
-                        new ChatResponse(new ChatMessage(ChatRole.Assistant, functionCall.Arguments["message"].ToString())),
-                    _ => null
-                };
-
-                if (response != null)
-                {
-                    var result = await response.EvaluateAsync(this.TestContext, this._chatConfiguration, messagesSoFar, groundedContext, exampleResponse, _llmDeploymentName);
-                    // var jsonOptions = new System.Text.Json.JsonSerializerOptions { WriteIndented = true };
-                    // string jsonResult = System.Text.Json.JsonSerializer.Serialize(result, jsonOptions);
-                    // Console.WriteLine($"Result: {jsonResult}");
+                    hasHighMatch = true;
                 }
             }
-
+            Assert.AreEqual(_mockKubePlugin.AksClusterResourceId, FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName), ignoreCase: true, $"AKS cluster resource ID is not as expected.");
+            if (!hasHighMatch)
+            {
+                Assert.Fail("No any high equivalency result match in the chat history, indicates the test failed.");
+            }
         }
         catch (Grpc.Core.RpcException ex)
         {
@@ -352,7 +234,6 @@ public sealed class AKSAgentEvals
             }
             Assert.Fail("Orchestration timed out");
         }
-
     }
 
 

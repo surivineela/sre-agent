@@ -22,8 +22,15 @@ public class BasicMockSetup
     public MockTimePlugin TimePlugin { get; set; }
     public MockCommunicationService CommunicationService { get; set; }
 
+    public MockGrafanaPlugin GrafanaPlugin { get; set; }
+    public MockGraphDBPlugin GraphDBPlugin { get; set; }
+
+    public ILogger? Logger { get; set; }
+
     public BasicMockSetup(DateTimeOffset mockedCurrentDateTime, ILogger? logger)
     {
+        Logger = logger;
+
         TimeProvider = new FakeTimeProvider(mockedCurrentDateTime);
         ApprovalPlugin = new MockApprovalPlugin();
         ArmPlugin = new MockArmPlugin(TimeProvider);
@@ -32,6 +39,9 @@ public class BasicMockSetup
         TimePlugin = new MockTimePlugin(TimeProvider);
         CommunicationService = new MockCommunicationService(logger: logger);
         RecordActionsPlugin = new MockRecordActionsPlugin(TimeProvider, logger: logger);
+
+        GrafanaPlugin = new MockGrafanaPlugin();
+        GraphDBPlugin = new MockGraphDBPlugin();
     }
 
 }
@@ -46,6 +56,11 @@ public static class ServiceCollectionExtensionsForMocks
         services.AddSingleton<IArmPlugin>(mocks.ArmPlugin);
         services.AddSingleton<IMetricsPlugin>(mocks.MetricsPlugin);
         services.AddSingleton<ITimePlugin>(mocks.TimePlugin);
-        services.AddSingleton<IAgentOutboundCommunicationService>(mocks.CommunicationService);
+        services.AddSingleton<IAgentOutboundCommunicationService>(mocks.CommunicationService)
+                .AddSingleton<IChartPlugin>(new ChartPlugin(null, mocks.CommunicationService));
+
+
+        services.AddSingleton<IGrafanaPlugin>(mocks.GrafanaPlugin);
+        services.AddSingleton<IGraphDBPlugin>(mocks.GraphDBPlugin);
     }
 }

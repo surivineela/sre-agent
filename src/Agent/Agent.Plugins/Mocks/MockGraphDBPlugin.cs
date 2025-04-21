@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -14,11 +14,13 @@ namespace Agent.Plugins.Mocks
         private List<string> _containerAppsWithNodesWithoutSourceCodeNodes;
         private Dictionary<string, string> _containerAppsToSourceCodeNodeMapping;
         private List<string> _reposScanned;
+        private Dictionary<string, string> _aksDependencyDescriptions;
 
         public MockGraphDBPlugin()
         {
             _containerAppsToSourceCodeNodeMapping = new Dictionary<string, string>();
             _reposScanned = new List<string>();
+            _aksDependencyDescriptions = new Dictionary<string, string>();
         }
 
         public MockGraphDBPlugin(List<string> containerAppsWithNodesWithoutSourceCodeNodes)
@@ -155,9 +157,21 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
+        public void ConfigureAKSMicroservices(string AKSClusterResourceId, string _namespace, string deploymentName, string dependency)
+        {
+            string key = $"{AKSClusterResourceId}:{_namespace}:{deploymentName}";
+            _aksDependencyDescriptions[key] = dependency;
+        }
+
         public Task<string> VisualizeAKSMicroserviceTopology(string AKSClusterResourceId, string _namespace, string deploymentName, Guid? threadId = null)
         {
-            throw new NotImplementedException();
+            string key = $"{AKSClusterResourceId}:{_namespace}:{deploymentName}";
+            if (_aksDependencyDescriptions.TryGetValue(key, out string dependency))
+            {
+                return Task.FromResult(dependency);
+            }
+
+            return Task.FromResult("No dependency information available");
         }
 
         public Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
