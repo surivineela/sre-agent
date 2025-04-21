@@ -15,30 +15,28 @@ using Microsoft.Extensions.AI;
 namespace Agent.Runtime.SubAgents;
 
 // [Export]
-public sealed class ToolsRepository : IMcpConnectable
+public class ToolsRepository : IMcpConnectable
 {
     private readonly Dictionary<string, IToolFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
     private IServiceProvider _serviceProvider;
-    private readonly IFirstPartySubAgentsFactory _firstPartySubAgentsFactory;
+    private readonly IFirstPartySubAgentsFactory? _firstPartySubAgentsFactory;
 
     /// <summary>
     /// Returns a chat message for each connected server with instructions on how to use the tools being exposed.
     /// </summary>
     public IEnumerable<ChatMessage> MCPServerInstructions => _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
 
-    public ToolsRepository(IServiceProvider sp, IFirstPartySubAgentsFactory firstPartySubAgentsFactory)
+    protected ToolsRepository(IServiceProvider sp, bool registerThirdPartyPlugins = false)
     {
         _serviceProvider = sp;
-        _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
-        if (_firstPartySubAgentsFactory.IsFirstPartyAgent())
-        {
-            RegisterFirstPartyPlugins();
-        }
-        else
+        if (registerThirdPartyPlugins)
         {
             RegisterThirdPartyPlugins();
-        }     
+        }
+    }
+    public ToolsRepository(IServiceProvider sp) : this(sp, true)
+    {
     }
 
     private void RegisterThirdPartyPlugins()
@@ -253,25 +251,5 @@ public sealed class ToolsRepository : IMcpConnectable
         return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
     }
 
-    private void RegisterFirstPartyPlugins()
-    {
-        RegisterPlugin<ControlFlowPluginDefinition>();
-        RegisterPlugin<ApprovalPluginDefinition>();
-        RegisterPlugin<TimePluginDefinition>();
-        var firstPartySubAgentPlugins = _firstPartySubAgentsFactory.GetRequiredPluginDefinitionTypes();
-        foreach (var pluginType in firstPartySubAgentPlugins)
-        {
-            // Use reflection to call the generic RegisterPlugin<T>() method
-            var method = typeof(ToolsRepository).GetMethod(nameof(RegisterPlugin), BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
-            var genericMethod = method?.MakeGenericMethod(pluginType);
 
-            if (genericMethod == null)
-            {
-                throw new InvalidOperationException($"Failed to create generic method for '{pluginType.Name}'.");
-            }
-
-            // Invoke the generic method
-            genericMethod.Invoke(this, null);
-        }
-    }
 }

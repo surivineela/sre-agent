@@ -64,17 +64,6 @@ using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
 
-var agentName = Environment.GetEnvironmentVariable("AGENT_NAME");
-// default to 3P MetaAgent if no agent name is provided
-if (string.IsNullOrEmpty(agentName))
-{
-    // change it to "RCAAgent" to start 1P ACA Agent for local testing
-    agentName = "RCAAgent";
-    // change it to "MetaAgent" to start 3P Agent for local testing
-    //agentName = "MetaAgent";
-
-    Environment.SetEnvironmentVariable("AGENT_NAME", agentName);
-}
 var firstPartySubAgentsFactory = new FirstPartySubAgentsFactory();
 var isFirstAgent = firstPartySubAgentsFactory.IsFirstPartyAgent();
 
@@ -207,7 +196,6 @@ builder.Host.UseSerilog();
         .AddSingleton<IMIConfigurationCheckPlugin, MIConfigurationCheckPlugin>()
         .AddSingleton<IAppIdentityUpdatePlugin, AppIdentityUpdatePlugin>()
         .AddSingleton<ITimePlugin, TimePlugin>()
-        .AddSingleton<ToolsRepository>()
         .AddSingleton<McpToolsRepository>()
         .AddSingleton<IThreadOrchestrationManager, CosmosThreadOrchestrationManager>()
         .AddSingleton<SinkService>()
@@ -245,8 +233,14 @@ builder.Host.UseSerilog();
 
     if (isFirstAgent)
     {
+        builder.Services.AddSingleton<FirstPartyToolsRepository>();
         builder.RegisterFirstPartySubAgentsDependencies();
     }
+    else
+    {
+        builder.Services.AddSingleton<ToolsRepository>();
+    }
+
     // Register all subagent factories that derive from the shared impl
     var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
     foreach (var type in genericSubAgentFactories)
