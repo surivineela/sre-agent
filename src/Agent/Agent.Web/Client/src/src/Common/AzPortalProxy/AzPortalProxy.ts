@@ -2,6 +2,7 @@ import Url from "../Helpers/Url";
 import { AgentSiteToAzPortalVerbs, AzPortalToAgentSiteVerbs } from "./AzPortalProxyVerbs";
 import { IEvent } from "./Models/IEvent";
 import { IEnvironmentInfo } from "./Models/IEnvironmentInfo";
+import { ITelemetryInfo } from "./Models/ITelemetryInfo";
 
 export default class AzPortalProxy {
   public shellSrc: string = '';
@@ -44,6 +45,10 @@ export default class AzPortalProxy {
 
     this.postMessage(AgentSiteToAzPortalVerbs.ready, null);
     this.postMessage(AgentSiteToAzPortalVerbs.readyForData, null);
+  }
+
+  public log(info: ITelemetryInfo) {
+    this.postMessage(AgentSiteToAzPortalVerbs.log, info);
   }
 
   private postMessage(verb: string, data: object | null) {
