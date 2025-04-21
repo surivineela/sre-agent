@@ -51,7 +51,7 @@ namespace FirstPartyAgent.Core.Services
                 {
                     throw new Exception("The environment variable 'ICMWorkflows:CertificateSubjectName' is not set.");
                 }
-                if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName))
+                if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
                 {
                     throw new Exception("You need to set at least one of the two environment variables - 'ICMWorkflows:CertificateSubjectName' or 'ICMWorkflows:UserToken'.");
                 }
