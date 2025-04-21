@@ -78,6 +78,8 @@ public class AppServiceNode : ArmResourceNode
     [GraphProperty("skuCapacity")]
     public int? SkuCapacity { get; set; }
 
+    [GraphProperty("zoneRedundant")]
+    public bool? ZoneRedundant { get; set; }
 
     public List<Function> Functions { get; set; } = new List<Function>();
 

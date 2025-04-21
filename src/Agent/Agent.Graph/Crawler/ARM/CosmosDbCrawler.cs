@@ -6,6 +6,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.CosmosDB;
+using Azure.ResourceManager.CosmosDB.Models;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 
@@ -40,6 +41,20 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
         var cosmosDbAccount = cosmosDbResponse.Value;
 
         cosmosDbNode.ConsistencyPolicy = cosmosDbAccount.Data.ConsistencyPolicy?.DefaultConsistencyLevel.ToString();
+        cosmosDbNode.ProvisioningState = cosmosDbAccount.Data.ProvisioningState;
+
+        cosmosDbNode.ConsistencyPolicy = cosmosDbAccount.Data.ConsistencyPolicy?.DefaultConsistencyLevel.ToString();
+        cosmosDbNode.ProvisioningState = cosmosDbAccount.Data.ProvisioningState;
+        cosmosDbNode.MinimalTlsVersion = cosmosDbAccount.Data.MinimalTlsVersion.ToString();
+
+        cosmosDbNode.WriteLocations = SerializeLocations(cosmosDbAccount.Data.WriteLocations);
+        cosmosDbNode.ReadLocations = SerializeLocations(cosmosDbAccount.Data.ReadLocations);
+        cosmosDbNode.IPRules = SerializeIPRules(cosmosDbAccount.Data.IPRules);
+
+        cosmosDbNode.PublicNetworkAccess = cosmosDbAccount.Data.PublicNetworkAccess?.ToString();
+        cosmosDbNode.BackupPolicy = cosmosDbAccount.Data.BackupPolicy?.MigrationState.ToString();
+        cosmosDbNode.DocumentEndpoint = cosmosDbAccount.Data.DocumentEndpoint;
+        cosmosDbNode.EnableAutomaticFailover = cosmosDbAccount.Data.EnableAutomaticFailover.ToString();
 
         await _graphDbClient.AddOrUpdateNodeAsync(cosmosDbNode);
 
@@ -62,6 +77,22 @@ public class CosmosDbCrawler : GenericArmResourceCrawler
 
             yield return databaseNode;
         }
+    }
+
+    private string SerializeLocations(IReadOnlyList<CosmosDBAccountLocation> locations)
+    {
+        if (locations == null || locations.Count == 0)
+            return null;
+
+        return string.Join(",", locations.Select(l => l.LocationName));
+    }
+
+    private string SerializeIPRules(IList<CosmosDBIPAddressOrRange> rules)
+    {
+        if (rules == null || rules.Count == 0)
+            return null;
+
+        return string.Join(",", rules.Select(r => r.IPAddressOrRange));
     }
 }
 

@@ -17,7 +17,7 @@ public class ConnectedIntegrationsPluginDefinition
     }
 
     [KernelFunction("get_all_active_integrations")]
-    [Description("Returns a list of all currently active integrations along with their configuration details. These are external integrations that the agent connects to example: Azure Managed Grafana, Pager Duty,etc.")]
+    [Description("Returns a list of all currently active integrations along with their configuration details. These are external integrations that the agent connects to example: DashboardSettings/Azure Managed Grafana, Pager Duty,etc. Also gives instructions on how to configure")]
     public List<IntegrationInfo> GetAllActiveConnectedIntegrations()
     {
         return _plugin.GetAllActiveIntegrations();

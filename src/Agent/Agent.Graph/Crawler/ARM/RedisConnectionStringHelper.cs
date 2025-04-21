@@ -94,4 +94,3 @@ public class RedisConnectionStringHelper
         return string.Empty;
     }
 }
-

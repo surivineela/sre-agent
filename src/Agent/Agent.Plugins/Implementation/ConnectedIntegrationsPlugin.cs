@@ -38,7 +38,7 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
             IsActive = dashConfigured,
             Details = dashConfigured
                 ? $"GrafanaUrl={_dashboard.GrafanaUrl}"
-                : "Missing URL or API key"
+                : "Missing URL or API key. Configure Grafana URL and API key in this Microsoft.App/agents resource's DashboardSettings through an ARM call.",
         });
 
         // Incident Management (e.g. PagerDuty)
@@ -49,7 +49,7 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
             IsActive = incidentConfigured,
             Details = incidentConfigured
                 ? $"Kind={_incident.Kind}"
-                : "No incident management provider configured"
+                : "No incident management provider configured. Configure IncidentManagementSettings on this Microsoft.App/agents resource through an ARM call."
         });
 
         // Application Insights
@@ -61,7 +61,7 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
             IsActive = appInsightsConfigured,
             Details = appInsightsConfigured
                 ? $"ConnectionString set"
-                : "ConnectionString missing"
+                : "ConnectionString missing. Configure AppInsights settings on this Microsoft.App/Agents resource through an ARM call"
         });
 
         return integrations;

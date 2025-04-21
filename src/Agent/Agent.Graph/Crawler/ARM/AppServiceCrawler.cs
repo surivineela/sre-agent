@@ -82,6 +82,11 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     }
                 }
 
+                if (appServicePlanData != null)
+                {
+                    appServiceNode.ZoneRedundant = appServicePlanData.IsZoneRedundant;
+                }
+
                 var metadata = GetStackVersion(webConfig.Data);
                 appServiceNode.SkuName = appServicePlanData.Sku?.Name;
                 appServiceNode.SkuTier = appServicePlanData.Sku?.Tier;
