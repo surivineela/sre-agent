@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -8,9 +8,9 @@ using System.Reflection;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Interfaces;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Agent.Runtime.SubAgents;
 
@@ -20,16 +20,29 @@ public sealed class ToolsRepository : IMcpConnectable
     private readonly Dictionary<string, IToolFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
     private IServiceProvider _serviceProvider;
+    private readonly IFirstPartySubAgentsFactory _firstPartySubAgentsFactory;
 
     /// <summary>
     /// Returns a chat message for each connected server with instructions on how to use the tools being exposed.
     /// </summary>
     public IEnumerable<ChatMessage> MCPServerInstructions => _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
 
-    public ToolsRepository(IServiceProvider sp)
+    public ToolsRepository(IServiceProvider sp, IFirstPartySubAgentsFactory firstPartySubAgentsFactory)
     {
         _serviceProvider = sp;
+        _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
+        if (_firstPartySubAgentsFactory.IsFirstPartyAgent())
+        {
+            RegisterFirstPartyPlugins();
+        }
+        else
+        {
+            RegisterThirdPartyPlugins();
+        }     
+    }
 
+    private void RegisterThirdPartyPlugins()
+    {
         RegisterPlugin<MetricsPluginDefinition>();
         RegisterPlugin<ChartPluginDefinition>();
         RegisterPlugin<RecordActionsPluginDefinition>();
@@ -140,7 +153,18 @@ public sealed class ToolsRepository : IMcpConnectable
 
     public List<AITool> ResolveTools(IReadOnlyList<string> toolSignatures)
     {
-        return this.GetAllTools(toolSignatures).Select<string, AITool>(sig => this.FindAiFunction(sig).ToolFunction).ToList();
+        // Step 1: Retrieve all tools  
+        var allTools = this.GetAllTools(toolSignatures);
+
+        // Step 2: Map tool signatures to AITool objects  
+        var aiTools = allTools.Select<string, AITool>(sig =>
+        {
+            var toolFunction = this.FindAiFunction(sig).ToolFunction;
+            return toolFunction;
+        }).ToList();
+
+        // Step 3: Return the resolved tools  
+        return aiTools;
     }
 
     public static string GetSignature(
@@ -227,5 +251,27 @@ public sealed class ToolsRepository : IMcpConnectable
     public IReadOnlyList<string> GetAllTools(IReadOnlyList<string> localTools)
     {
         return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
+    }
+
+    private void RegisterFirstPartyPlugins()
+    {
+        RegisterPlugin<ControlFlowPluginDefinition>();
+        RegisterPlugin<ApprovalPluginDefinition>();
+        RegisterPlugin<TimePluginDefinition>();
+        var firstPartySubAgentPlugins = _firstPartySubAgentsFactory.GetRequiredPluginDefinitionTypes();
+        foreach (var pluginType in firstPartySubAgentPlugins)
+        {
+            // Use reflection to call the generic RegisterPlugin<T>() method
+            var method = typeof(ToolsRepository).GetMethod(nameof(RegisterPlugin), BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly);
+            var genericMethod = method?.MakeGenericMethod(pluginType);
+
+            if (genericMethod == null)
+            {
+                throw new InvalidOperationException($"Failed to create generic method for '{pluginType.Name}'.");
+            }
+
+            // Invoke the generic method
+            genericMethod.Invoke(this, null);
+        }
     }
 }

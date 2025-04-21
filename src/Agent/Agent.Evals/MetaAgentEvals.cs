@@ -16,6 +16,7 @@ using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using Moq;
 using Microsoft.Extensions.Azure;
+using Agent.Runtime.MetaAgent.Interfaces;
 
 namespace Agent.Evals;
 
@@ -107,6 +108,7 @@ public class MetaAgentEvals
         IMetaAgentVmRdpInvestigatorPlugin? vmRdpInvestigatorPlugin = null,
         IMetaAgentContainerImageTroubleshooterPlugin? containerImageTroubleshooterPlugin = null,
         IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
+        IFirstPartySubAgentsFactory? firstPartySubAgentsFactory = null,
         IThreadRepository threadRepository = null,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null)
     {
@@ -137,6 +139,7 @@ public class MetaAgentEvals
             vmRdpInvestigatorPlugin ?? Mock.Of<IMetaAgentVmRdpInvestigatorPlugin>(),
             containerImageTroubleshooterPlugin ?? Mock.Of<IMetaAgentContainerImageTroubleshooterPlugin>(),
             functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>(),
+            firstPartySubAgentsFactory ?? Mock.Of<IFirstPartySubAgentsFactory>(),
             threadRepository ?? Mock.Of<IThreadRepository>(),
             sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>(),
             Mock.Of<IConnectedIntegrationsPlugin>());

@@ -21,6 +21,7 @@ using Agent.Prometheus.Services;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
@@ -44,6 +45,7 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Seb.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -61,6 +63,20 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
+
+var agentName = Environment.GetEnvironmentVariable("AGENT_NAME");
+// default to 3P MetaAgent if no agent name is provided
+if (string.IsNullOrEmpty(agentName))
+{
+    // change it to "RCAAgent" to start 1P ACA Agent for local testing
+    agentName = "RCAAgent";
+    // change it to "MetaAgent" to start 3P Agent for local testing
+    //agentName = "MetaAgent";
+
+    Environment.SetEnvironmentVariable("AGENT_NAME", agentName);
+}
+var firstPartySubAgentsFactory = new FirstPartySubAgentsFactory();
+var isFirstAgent = firstPartySubAgentsFactory.IsFirstPartyAgent();
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -90,6 +106,7 @@ builder.Host.UseSerilog();
     // builder.Services.AddSingleton<Microsoft.Bot.Schema.ConversationReference>(new Microsoft.Bot.Schema.ConversationReference());
 
     // Register plugins and their dependencies
+
     builder.Services
         .AddSingleton<Agent.Runtime.MetaAgent.IAgent, MetaAgent>()
         .AddSingleton<IAppServicePlugin, AppServicePlugin>()
@@ -128,6 +145,9 @@ builder.Host.UseSerilog();
         .AddSingleton<FunctionAppConnectivityAgentFactory>()
         .AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
         .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
+
+        .AddSingleton<IFirstPartySubAgentsFactory>(firstPartySubAgentsFactory)
+
         .AddSingleton<SqlDbQueryPerfAgentFactory>()
         .AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>()
 
@@ -223,7 +243,10 @@ builder.Host.UseSerilog();
         .AddSingleton<IResourceMetricsCollector, AppServiceMetricsCollector>()
         .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>();
 
-
+    if (isFirstAgent)
+    {
+        builder.RegisterFirstPartySubAgentsDependencies();
+    }
     // Register all subagent factories that derive from the shared impl
     var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
     foreach (var type in genericSubAgentFactories)
@@ -268,8 +291,11 @@ builder.Host.UseSerilog();
     }
 
     // Kick off background processes
-    builder.Services.AddHostedService<TimerService>();
-
+    if (!isFirstAgent)
+    {
+        builder.Services.AddHostedService<TimerService>();
+    }
+    
     // Kick off MCP Server Initializer
     builder.Services.AddSingleton<MCPMetaAgent>();
     builder.Services.AddHostedService<MCPMetaAgentManagementService>();
@@ -286,6 +312,10 @@ builder.Host.UseSerilog();
         b.AddTasks(r =>
         {
             DurableHelper.AddAllGeneratedTasks(r);
+            if(isFirstAgent)
+            {
+                FirstPartyDurableHelper.AddAllGeneratedTasks(r);
+            }
         });
 
         string durableConnectionString = builder.ResolveDtsConnectionString();

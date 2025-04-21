@@ -1,4 +1,3 @@
-using Agent.Core.Models.Api.v1;
 using Agent.Runtime.Communication;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
@@ -20,15 +19,15 @@ namespace Agent.Runtime.SubAgents
         where TActivity : SimpleResourceSubAgentActivityBase<TActivityInput>
         where TActivityInput : SimpleResourceSubAgentActivityInput, new()
     {
-        private readonly IThreadOrchestrationManager mappingManager;
-        private readonly DurableTaskClient durableTaskClient;
-        ToolsRepository toolsRepository;
+        private readonly IThreadOrchestrationManager _mappingManager;
+        private readonly DurableTaskClient _durableTaskClient;
+        ToolsRepository _toolsRepository;
 
         protected SimpleResourceSubAgentFactoryBase(ToolsRepository toolsRepository, IThreadOrchestrationManager mappingManager, DurableTaskClient durableTaskClient)
         {
-            this.mappingManager = mappingManager;
-            this.durableTaskClient = durableTaskClient;
-            this.toolsRepository = toolsRepository;
+            _mappingManager = mappingManager;
+            _durableTaskClient = durableTaskClient;
+            _toolsRepository = toolsRepository;
         }
 
         /// <summary>
@@ -50,7 +49,7 @@ namespace Agent.Runtime.SubAgents
             var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
             var threadIdStr = threadId.ToString();
 
-            await mappingManager.AddMappingAsync(threadIdStr, instanceId);
+            await _mappingManager.AddMappingAsync(threadIdStr, instanceId);
 
             // Generate the tool signatures from the supplied lambdas
             var toolSignatures = GetToolList()
@@ -63,7 +62,7 @@ namespace Agent.Runtime.SubAgents
                 ToolSignatures = toolSignatures,
             };
 
-            return await durableTaskClient.ScheduleNewOrchestrationInstanceAsync(
+            return await _durableTaskClient.ScheduleNewOrchestrationInstanceAsync(
                 OrchestrationInstanceIdPrefix,
                 agentInput,
                 new StartOrchestrationOptions(InstanceId: instanceId)

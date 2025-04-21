@@ -23,6 +23,7 @@
 	<ItemGroup>
 		<ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
 		<ProjectReference Include="..\Agent.Plugins\Agent.Plugins.csproj" />
+		<ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -60,5 +61,19 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	</ItemGroup>
+  
+  <!-- Add system prompt files -->
+  <ItemGroup>
+    <None Update="FirstPartyAgents\ACA\RCAAgentSystemPrompt.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <!-- Add sub-agents plan files -->
+  <ItemGroup>
+    <None Update="FirstPartySubAgents\ACA\HelloWorldAgent\HelloWorldAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
 </Project>

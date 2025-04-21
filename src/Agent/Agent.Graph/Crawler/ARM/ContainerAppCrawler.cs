@@ -218,7 +218,7 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             cappNode.MaxReplicas = capp.Template.Scale.MaxReplicas;
         }
 
-        if (capp.Configuration?.Ingress.Traffic?.Count > 0)
+        if (capp.Configuration?.Ingress?.Traffic?.Count > 0)
         {
             cappNode.Traffic = [];
             foreach (var traffic in capp.Configuration.Ingress.Traffic)

@@ -12,6 +12,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
@@ -145,7 +146,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
+    private readonly IFirstPartySubAgentsFactory _firstPartySubAgentsFactory;
     private readonly IThreadRepository _threadRepository;
+
 
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -169,11 +172,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
         IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
+        IFirstPartySubAgentsFactory firstPartySubAgentsFactory,
         IThreadRepository threadRepository,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin,
         IConnectedIntegrationsPlugin connectedIntegrationsPlugin
         )
     {
+        _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
+
         _chatClient = chatClient;
         _threadService = threadService;
         _mcpToolsRepository = mcpToolsRepository;
@@ -200,6 +206,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         _webAppDownPlugin = webAppDownPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
+
+        
         _threadRepository = threadRepository;
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
     }
@@ -211,7 +219,51 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;
+        var _aiTools = new List<AITool>();
+        string prompt;
+        if (_firstPartySubAgentsFactory.IsFirstPartyAgent())
+        {
+            prompt = _firstPartySubAgentsFactory.GetSystemPrompt();
+            _aiTools = GetFirstPartySubAgentsTools(threadGuid);
+        }
+        else
+        {
+            prompt = SystemPrompt;
+            _aiTools = GetThirdPartySubAgentsTools(threadGuid);
+        }
 
+        var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
+        var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
+
+        try
+        {
+            var response = await ChatClientHelper.ExecuteWithRetryAsync(
+            async () => await _chatClient.GetResponseAsync(
+            chatHistory,
+            new ChatOptions
+            {
+                Tools = _aiTools,
+                ToolMode = ChatToolMode.Auto,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    //["AllowParallelToolCalls"] = false,
+                }
+            }),
+            _log, 10);
+
+            await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
+            return response.Messages.Last().Text;
+        }
+        catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
+        {
+            _log.LogError(ex, "An error occurred while processing the user message.");
+            return ex.Message;
+
+        }
+    }
+
+    private List<AITool> GetThirdPartySubAgentsTools(Guid threadGuid)
+    {
         _storageAccountPlugin.ThreadId = threadGuid;
         _tlsBestPracticesPlugin.ThreadId = threadGuid;
         _managedIdentityMigrationPlugin.ThreadId = threadGuid;
@@ -284,9 +336,22 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations)
         ];
 
+        var subAgentTools = GetSubAgentTools(threadGuid, typeof(MetaAgent).Assembly);
+        if(subAgentTools?.Count > 0)
+        {
+            _aiTools.AddRange(subAgentTools);
+        }
+
+        _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
+        return _aiTools;
+    }
+
+    private List<AITool> GetSubAgentTools(Guid threadGuid, Assembly subAgentsAssembly)
+    {
+        List<AITool> subAgentAItools = [];
         // Get all instances of background-scanning subagents and register their methods
         var subClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
-            typeof(MetaAgent).Assembly,
+            subAgentsAssembly,
             typeof(SimpleResourceSubAgentPluginBase<,,,,>)
         );
         foreach (var type in subClasses)
@@ -309,40 +374,20 @@ DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.";
             // Get a handle to its methods, and register them in the tools
             var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance);
             var startAgentAsync = type.GetMethod("StartAgentAsync", BindingFlags.Public | BindingFlags.Instance);
-            _aiTools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
-            _aiTools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
+            subAgentAItools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
+            subAgentAItools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
         }
+        return subAgentAItools;
+    }
 
-
-        _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
-
-        var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
-        var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
-
-        try
+    private List<AITool> GetFirstPartySubAgentsTools(Guid threadGuid)
+    {
+        List<AITool> _aiTools = [];
+        var subAgentTools = GetSubAgentTools(threadGuid, _firstPartySubAgentsFactory.GetSubAgentsAssembly());
+        if (subAgentTools?.Count > 0)
         {
-            var response = await ChatClientHelper.ExecuteWithRetryAsync(
-            async () => await _chatClient.GetResponseAsync(
-            chatHistory,
-            new ChatOptions
-            {
-                Tools = _aiTools,
-                ToolMode = ChatToolMode.Auto,
-                AdditionalProperties = new AdditionalPropertiesDictionary
-                {
-                    //["AllowParallelToolCalls"] = false,
-                }
-            }),
-            _log, 10);
-
-            await response.UpdateAgentChatHistoryAsync(agentChatHistory, _threadRepository, agentContext.Id);
-            return response.Messages.Last().Text;
+            _aiTools.AddRange(subAgentTools);
         }
-        catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
-        {
-            _log.LogError(ex, "An error occurred while processing the user message.");
-            return ex.Message;
-
-        }
+        return _aiTools;
     }
 }
