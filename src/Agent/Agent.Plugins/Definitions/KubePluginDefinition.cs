@@ -317,5 +317,29 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
         {
             return await _kubePlugin.ScaleStatefulSetAsync(AKSClusterResourceId, _namespace, statefulSetName, replicas);
         }
+
+        [KernelFunction("GetAPIServerStatus")]
+        [Description(
+@"Get the status of the apiserver for the AKS cluster.
+Used whenever user wants to check the apiserver status of the AKS cluster. Apiserver is the main component of Kubernetes control plane.
+eg: show me the status of apiserver")]
+        public async Task<string> GetAPIServerStatusAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description("Time range for checking status, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
+        {
+            return await _kubePlugin.GetAPIServerStatusAsync(AKSClusterResourceId, timeRange);
+        }
+
+        [KernelFunction("GetEtcdStatus")]
+        [Description(
+@"Get the status of the etcd for the AKS cluster. 
+Used whenever user wants to check the etcd status of the AKS cluster. Etcd is the key-value store used by Kubernetes to store all cluster data which is the main component of Kubernetes control plane.
+eg: show me the status of etcd")]
+        public async Task<string> GetEtcdStatusAsync(
+    [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+    [Description("Time range for checking status, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
+        {
+            return await _kubePlugin.GetEtcdStatusAsync(AKSClusterResourceId, timeRange);
+        }
     }
 }

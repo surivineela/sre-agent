@@ -29,5 +29,7 @@ namespace Agent.Plugins
         Task<string> GetKubeStatefulsetSpecStatusAsync(string AKSClusterResourceId, string _namespace, string name);
         Task<string> GetKubeStatefulSetEventsAsync(string AKSClusterResourceId, string _namespace, string name);
         Task<string> ScaleStatefulSetAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);
+        Task<string> GetAPIServerStatusAsync(string AKSClusterResourceId, string timeRange);
+        Task<string> GetEtcdStatusAsync(string AKSClusterResourceId, string timeRange);
     }
 }

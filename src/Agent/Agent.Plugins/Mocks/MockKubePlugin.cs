@@ -116,4 +116,14 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
+
+    public Task<string> GetAPIServerStatusAsync(string AKSClusterResourceId, string timespan)
+    {
+        throw new NotImplementedException();
+    }
+
+    public Task<string> GetEtcdStatusAsync(string AKSClusterResourceId, string timespan)
+    {
+        throw new NotImplementedException();
+    }
 }

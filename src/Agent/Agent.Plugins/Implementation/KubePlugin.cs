@@ -21,10 +21,12 @@ using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Models;
 using Microsoft.Extensions.AI;
 using Agent.Prometheus.Services;
 using Agent.Core.Configuration;
 using Agent.Prometheus;
+using Agent.Graph.Crawler.Metrics;
 
 namespace Agent.Plugins
 {
@@ -38,6 +40,7 @@ namespace Agent.Plugins
         private readonly IPrometheusQueryService _prometheusQueryService;
         private readonly string? _prometheusQueryEndpoint;
         private readonly DashboardSettings _dashboardSettings;
+        private readonly IAzureMetricsClient _azureMetricsClient;
 
         private ThreadContext Context { get; set; }
         private readonly ConcurrentDictionary<string, IKubernetes> _clientCache = new();
@@ -49,6 +52,7 @@ namespace Agent.Plugins
             IAuthenticationService authenticationService,
             IChatClient chatClient,
             IPrometheusQueryService prometheusQueryService,
+            IAzureMetricsClient azureMetricsClient,
             DashboardSettings dashboardSettings,
             ILogger<KubePlugin>? logger)
         {
@@ -57,6 +61,7 @@ namespace Agent.Plugins
             _chatClient = chatClient;
             _prometheusQueryService = prometheusQueryService;
             _dashboardSettings = dashboardSettings;
+            _azureMetricsClient = azureMetricsClient;
 
             _prometheusQueryEndpoint = _dashboardSettings.PrometheusUrl;
         }
@@ -1011,6 +1016,111 @@ namespace Agent.Plugins
             // Default to 5m if parsing fails
             return "5m";
         }
+
+        public async Task<string> GetAPIServerStatusAsync(string resourceId, string timeRange = "10m")
+        {
+            if (string.IsNullOrEmpty(resourceId))
+            {
+                return "Error: AKS cluster Resource ID is required";
+            }
+            
+            try
+            {
+
+                var metrics = new List<Agent.Core.Models.Metric>
+                {
+                    new Agent.Core.Models.Metric { Name = "apiserver_cpu_usage_percentage", Unit = "Percent", Aggregation = "Average" },
+                    new Agent.Core.Models.Metric { Name = "apiserver_current_inflight_requests", Unit = "Count", Aggregation = "Total" },
+                    new Agent.Core.Models.Metric { Name = "apiserver_memory_usage_percentage", Unit = "Percent", Aggregation = "Average"}
+                };
+
+                
+                var sb = new StringBuilder();
+                sb.AppendLine("## API Server Status");
+                sb.AppendLine();
+
+                //string displayName = GetDisplayName(metricName);
+                //string unit = GetUnit(metricName);
+
+                // Get the metric using IAzureMetricsClient
+                var metricsData = await _azureMetricsClient.GetMetricsAsync(resourceId, metrics, timeRange);
+
+                if (metricsData == null)
+                {
+                    sb.AppendLine("  No data available");
+                }
+                else
+                {
+                    var cpuUsage = metricsData.FirstOrDefault(m => m.Name == "apiserver_cpu_usage_percentage")?.Value ?? 0;
+                    sb.AppendLine($"- apiserver cpu usage: {cpuUsage}%");
+                    var memUsage = metricsData.FirstOrDefault(m => m.Name == "apiserver_memory_usage_percentage")?.Value ?? 0;
+                    sb.AppendLine($"- apiserver memory usage: {memUsage}%");
+                    var inflightReqs = metricsData.FirstOrDefault(m => m.Name == "apiserver_current_inflight_requests")?.Value ?? 0;
+                    sb.AppendLine($"- apiserver current inflight requests: {inflightReqs}");
+                }
+                
+                
+                return sb.ToString().TrimEnd();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error fetching API server metrics for AKS cluster {ResourceId}", resourceId);
+                return $"Error retrieving API server metrics: {ex.Message}";
+            }
+        }
+
+        public async Task<string> GetEtcdStatusAsync(string resourceId, string timeRange = "10m")
+        {
+            if (string.IsNullOrEmpty(resourceId))
+            {
+                return "Error: AKS cluster Resource ID is required";
+            }
+
+            try
+            {
+
+                var metrics = new List<Agent.Core.Models.Metric>
+                {
+                    new Agent.Core.Models.Metric { Name = "etcd_cpu_usage_percentage", Unit = "Percent", Aggregation = "Average" },
+                    new Agent.Core.Models.Metric { Name = "etcd_memory_usage_percentage", Unit = "Percent", Aggregation = "Average" },
+                    new Agent.Core.Models.Metric { Name = "etcd_database_usage_percentage", Unit = "Percent", Aggregation = "Average"}
+                };
+
+
+                var sb = new StringBuilder();
+                sb.AppendLine("## API Server Status");
+                sb.AppendLine();
+
+                //string displayName = GetDisplayName(metricName);
+                //string unit = GetUnit(metricName);
+
+                // Get the metric using IAzureMetricsClient
+                var metricsData = await _azureMetricsClient.GetMetricsAsync(resourceId, metrics, timeRange);
+
+                if (metricsData == null)
+                {
+                    sb.AppendLine("  No data available");
+                }
+                else
+                {
+                    var cpuUsage = metricsData.FirstOrDefault(m => m.Name == "etcd_cpu_usage_percentage")?.Value ?? 0;
+                    sb.AppendLine($"- etcd cpu usage: {cpuUsage}%");
+                    var memUsage = metricsData.FirstOrDefault(m => m.Name == "etcd_memory_usage_percentage")?.Value ?? 0;
+                    sb.AppendLine($"- etcd memory usage: {memUsage}%");
+                    var dbUsage = metricsData.FirstOrDefault(m => m.Name == "etcd_database_usage_percentage")?.Value ?? 0;
+                    sb.AppendLine($"- etcd database usage: {dbUsage}%");
+                }
+
+
+                return sb.ToString().TrimEnd();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "Error fetching etcd metrics for AKS cluster {ResourceId}", resourceId);
+                return $"Error retrieving etcd metrics: {ex.Message}";
+            }
+        }
+
 
     }
 }
