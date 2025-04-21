@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Net.Http.Headers;
+using System.Runtime.CompilerServices;
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -12,8 +13,12 @@ using Agent.Plugins.Models;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources.Models;
+using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models;
+using ScottPlot.Colormaps;
+using ScottPlot.Hatches;
 
 namespace Agent.Plugins.Implementation
 {
@@ -276,170 +281,113 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
+        public async Task<RemediationResult> StorageAccountSetContainerPublicAccess(string resourceId, FeatureState featureState)
         {
-            try
-            {
-                _logger?.LogInformation($"[storage_account_disable_public_containers] Invoked with resourceId: {resourceId}");
-
-                var storageAccount = await _armHelper.GetStorageAccountAsync(resourceId);
-
-                // Check for management locks
-                var lockCheckResult = await CheckForManagementLocksAsync(
-                    storageAccount, 
-                    "disable public containers", 
-                    "Storage account");
-                    
-                if (lockCheckResult != null)
-                    return lockCheckResult;
-
-                // Determine if public access is enabled
-                if (storageAccount.Data.AllowBlobPublicAccess == true)
+            return await RemediateArmResource(
+                resourceId,
+                "Storage Account",
+                fetchResourceFunc: _armHelper.GetStorageAccountAsync,
+                remediationActionFunc: async (resource) =>
                 {
-                    var blobService = storageAccount.GetBlobService();
-                    var containers = blobService.GetBlobContainers().GetAllAsync();
-
-                    // Disabling public access to containers.
-                    // Disabling public access at the storage account level does not affect existing containers.
-                    await foreach (var container in containers)
+                    bool desiredState = featureState == FeatureState.Enabled;
+                    if (desiredState != resource.Data.AllowBlobPublicAccess)
                     {
-                        if (container.Data.PublicAccess != StoragePublicAccessType.None)
+                        var blobService = resource.GetBlobService();
+                        var containers = blobService.GetBlobContainers().GetAllAsync();
+
+                        if (!desiredState)
                         {
-                            // Disabling public access to containers
-                            _logger.LogInformation($"[storage_account_disable_public_containers] Disabling public access to container: {container.Data.Name}");
-                            container.Data.PublicAccess = StoragePublicAccessType.None;
-                            await container.UpdateAsync(container.Data);
+                            await foreach (var container in containers)
+                            {
+                                if (container.Data.PublicAccess != StoragePublicAccessType.None)
+                                {
+                                    _logger.LogInformation($"Disabling public access to container: {container.Data.Name}");
+                                    container.Data.PublicAccess = StoragePublicAccessType.None;
+                                    await container.UpdateAsync(container.Data);
+                                }
+                            }
                         }
+
+                        await _armHelper.SetStorageAccountContainerPublicAccess(resourceId, featureState);
                     }
-
-                    // Disabling public access to blobs
-                    await _armHelper.DisablePublicContainers(resourceId);
-
-                    return new RemediationResult(
-                        Success: true,
-                        Action: "Disabled public containers",
-                        Details: "Public access to all containers was disabled",
-                        OperationId: null,
-                        FinishedTime: DateTime.Now);
-                }
-                
-                return new RemediationResult(
-                    Success: true,
-                    Action: $"No remediation performed on {storageAccount.Id}",
-                    Details: "Remediation did nothing",
-                    OperationId: null,
-                    FinishedTime: DateTime.Now);
-            }
-            catch (Exception ex)
-            {
-                return new RemediationResult(
-                    Success: false,
-                    Action: "Failed to disable public containers",
-                    Details: ex.Message,
-                    OperationId: null,
-                    FinishedTime: DateTime.Now);
-            }
+                });
         }
 
-        public async Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId)
+        public async Task<RemediationResult> StorageAccountSetSharedKeySupport(string resourceId, FeatureState featureState)
         {
-            try
-            {
-                _logger?.LogInformation($"[storage_account_disable_shared_key_support] Invoked with resourceId: {resourceId}");
-
-                // Get the storage account name from the resourceId
-                if (!_armHelper.IsWellFormattedResourceId(resourceId))
+            return await RemediateArmResource(
+                resourceId,
+                "Storage Account",
+                fetchResourceFunc: _armHelper.GetStorageAccountAsync,
+                remediationActionFunc: async (resource) =>
                 {
-                    return new RemediationResult(
-                        Success: false,
-                        Action: "Invalid resource ID",
-                        Details: "The provided resource ID is not well formatted",
-                        OperationId: null,
-                        FinishedTime: DateTime.Now);
-                }
-
-                var storageAccount = await _armHelper.GetStorageAccountAsync(resourceId);
-
-                // Check for management locks
-                var lockCheckResult = await CheckForManagementLocksAsync(
-                    storageAccount, 
-                    "disable storage account shared key support", 
-                    "Storage account");
-                    
-                if (lockCheckResult != null)
-                    return lockCheckResult;
-
-                //Determine if shared key support is enabled
-                if (storageAccount.Data.AllowSharedKeyAccess == true || storageAccount.Data.AllowSharedKeyAccess == null)
-                {
-                    // Disabling shared key access
-                    _logger?.LogInformation($"[storage_account_disable_shared_key_support] Disabling shared key access for storage account");
-                    await _armHelper.DisableSharedKeySupportAsync(resourceId);
-
-                    return new RemediationResult(
-                        Success: true,
-                        Action: $"Disabled {storageAccount.Id} shared key access",
-                        Details: "Storage account shared key access was disabled",
-                        OperationId: null,
-                        FinishedTime: DateTime.Now);
-                }
-
-                return new RemediationResult(
-                    Success: true,
-                    Action: $"No remediation performed on {storageAccount.Id}",
-                    Details: "Remediation did nothing",
-                    OperationId: null,
-                    FinishedTime: DateTime.Now);
-            }
-            catch (Exception ex)
-            {
-                return new RemediationResult(
-                    Success: false,
-                    Action: "Failed to disable storage account shared key support",
-                    Details: ex.Message,
-                    OperationId: null,
-                    FinishedTime: DateTime.Now);
-            }
+                    bool desiredState = featureState == FeatureState.Enabled;
+                    if (desiredState != resource.Data.AllowSharedKeyAccess)
+                    {
+                        _logger?.LogInformation($"Setting shared key access to {desiredState} for storage account");
+                        await _armHelper.SetStorageAccountSharedKeySupportAsync(resourceId, featureState);
+                    }
+                });
         }
 
         public async Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {
-            try
-            {
-                _logger?.LogInformation($"[cosmosdb_set_local_auth_support] Invoked with resourceId: {resourceId}");
+            return await RemediateArmResource(
+                resourceId,
+                "CosmosDb",
+                fetchResourceFunc: _armHelper.GetCosmosDbAccountAsync,
+                remediationActionFunc: async (resource) =>
+                {
+                    _logger?.LogInformation($"Setting local auth support for CosmosDb");
+                    await _armHelper.SetCosmosDbLocalAuthSupport(resourceId, featureState);
+                });
+        }
 
-                var cosmosDbResource = await _armHelper.GetCosmosDbAccountAsync(resourceId);
+        public async Task<RemediationResult> EventHubSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return await RemediateArmResource(
+                resourceId,
+                "EventHub",
+                fetchResourceFunc: _armHelper.GetEventHubAccountAsync,
+                remediationActionFunc: async (resource) =>
+                {
+                    _logger?.LogInformation($"Setting local auth support for Event Hub");
+                    await _armHelper.SetEventHubLocalAuthSupport(resourceId, featureState);
+                });
+        }
 
-                // Check for management locks
-                var lockCheckResult = await CheckForManagementLocksAsync(
-                    cosmosDbResource, 
-                    "set local auth support on CosmosDb", 
-                    "CosmosDb");
-                    
-                if (lockCheckResult != null)
-                    return lockCheckResult;
+        public async Task<RemediationResult> ServiceBusSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return await RemediateArmResource(
+                resourceId,
+                "ServiceBus",
+                fetchResourceFunc: _armHelper.GetServiceBusAccountAsync,
+                remediationActionFunc: async (resource) =>
+                {
+                    _logger?.LogInformation($"Setting local auth support for Service Bus");
+                    await _armHelper.SetServiceBusLocalAuthSupport(resourceId, featureState);
+                });
+        }
 
-                // Enable local auth support
-                _logger?.LogInformation($"[cosmosdb_set_local_auth_support] Setting local auth support for CosmosDb");
-                await _armHelper.SetCosmosDbLocalAuthSupport(resourceId, featureState);
-
-                _logger?.LogInformation($"[cosmosdb_set_local_auth_support] Storage account is locked preventing updates");
-                return new RemediationResult(
-                    Success: true,
-                    Action: "CosmosDb Local Auth Support Set",
-                    Details: "CosmosDb Local Auth Support Set",
-                    OperationId: null,
-                    FinishedTime: DateTime.Now);
-            }
-            catch (Exception ex)
-            {
-                return new RemediationResult(
-                    Success: false,
-                    Action: "Failed to set local auth support on CosmosDb",
-                    Details: ex.Message,
-                    OperationId: null,
-                    FinishedTime: DateTime.Now);
-            }
+        public async Task<RemediationResult> AzureSqlServerSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return await RemediateArmResource(
+                resourceId,
+                "SqlServer",
+                fetchResourceFunc: _armHelper.GetSqlServerAsync,
+                remediationActionFunc: async (resource) =>
+                {
+                    _logger?.LogInformation($"Setting local auth support for Sql Server");
+                    if(resource.Data.Administrators?.AdministratorType == SqlAdministratorType.ActiveDirectory)
+                    {
+                        _logger?.LogInformation($"Setting local auth support for Sql Server");
+                        await _armHelper.SetSqlServerEntraAuthSupport(resourceId, featureState);
+                    }
+                    else
+                    {
+                        _logger?.LogInformation($"Sql Server is not configured with an AD Administrator.");
+                    }
+                });
         }
 
         public static RemediationResult? IsOperationNotApproved(
@@ -567,25 +515,68 @@ namespace Agent.Plugins.Implementation
             return token.Token;
         }
 
-        private async Task<RemediationResult?> CheckForManagementLocksAsync<T>(T resource, string operationName, string resourceType) where T : ArmResource
+        /// <summary>
+        /// Performs a given remediation on an ARM resource, after checking for management locks.
+        /// Will return the correct failure/success message based on the outcome of the remediation.
+        /// </summary>
+        /// <typeparam name="T">Must be an ArmResource derivative</typeparam>
+        /// <param name="resourceId">The full resource ID; this will be checked for correctness.</param>
+        /// <param name="resourceTypeName">The name of the type of resource, used for human readable messages.</param>
+        /// <param name="fetchResourceFunc">A function that returns the ArmResource given the resource ID</param>
+        /// <param name="remediationActionFunc">A function that performs the actual remediation.</param>
+        /// <param name="operationName">Pulled automatically from the calling method; for messages.</param>
+        /// <returns>A remediation result which describes the action taken (or the error)</returns>
+        private async Task<RemediationResult> RemediateArmResource<T>(
+            string resourceId,
+            string resourceTypeName,
+            Func<string, Task<T>> fetchResourceFunc,
+            Func<T, Task> remediationActionFunc,
+            [CallerMemberName] string operationName = ""
+        ) where T : ArmResource
         {
-            var managementLockResources = resource.GetManagementLocks().GetAllAsync();
-
-            await foreach (var managementLock in managementLockResources)
+            try
             {
-                if (managementLock.Data.Level == ManagementLockLevel.ReadOnly)
-                {
-                    _logger?.LogInformation($"[{operationName}] {resourceType} is locked preventing updates");
-                    return new RemediationResult(
-                        Success: false,
-                        Action: $"Failed to {operationName}",
-                        Details: $"{resourceType} is locked preventing updates",
-                        OperationId: null,
-                        FinishedTime: DateTime.Now);
-                }
-            }
+                _logger?.LogInformation($"[{operationName}] Invoked with resourceId: {resourceId}");
 
-            return null;
+                // Fetch the resource
+                var resource = await fetchResourceFunc(resourceId);
+
+                // Check for management locks
+                var managementLockResources = resource.GetManagementLocks().GetAllAsync();
+                await foreach (var managementLock in managementLockResources)
+                {
+                    if (managementLock.Data.Level == ManagementLockLevel.ReadOnly)
+                    {
+                        _logger?.LogInformation($"[{operationName}] {resourceTypeName} is locked preventing updates");
+                        return new RemediationResult(
+                            Success: false,
+                            Action: $"Failed to {operationName}",
+                            Details: $"{resourceTypeName} is locked preventing updates",
+                            OperationId: null,
+                            FinishedTime: DateTime.Now);
+                    }
+                }
+
+                // Perform the remediation action
+                await remediationActionFunc(resource);
+
+                return new RemediationResult(
+                    Success: true,
+                    Action: $"{operationName} completed successfully",
+                    Details: $"{operationName} was applied to {resource.Id}",
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"[{operationName}] Error during operation for resource {resourceId}: {ex.Message}");
+                return new RemediationResult(
+                    Success: false,
+                    Action: $"Failed to {operationName}",
+                    Details: ex.Message,
+                    OperationId: null,
+                    FinishedTime: DateTime.Now);
+            }
         }
     }
 }

@@ -2,6 +2,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Runtime.SubAgents
 {
@@ -40,7 +41,14 @@ namespace Agent.Runtime.SubAgents
             var log = context.CreateReplaySafeLogger(this.GetType().Name);
 
             // Initial planning phase: generate plan
-            var chatHistory = await context.CallActivityAsync<List<Microsoft.Extensions.AI.ChatMessage>>(typeof(TActivity).Name, agentInput.ActivityInput);
+            var chatHistory = await context.CallActivityAsync<List<ChatMessage>>(typeof(TActivity).Name, agentInput.ActivityInput);
+
+            // Before processing the plan, send the intro message to the user, which will give them
+            // a rundown of what's proposed.
+            var introMessage = await context.CallActivityAsync<ChatMessage>(
+                new TaskName(nameof(SimpleResourceSubAgentIntroActivity)),
+                new SimpleResourceSubAgentIntroActivityInput(agentInput.ThreadId, agentInput.ActivityInput.GetPlanText())
+            );
 
             // Send a summary and start the execution
             chatHistory = await context.CallSendSummaryAndStartActivityAsync(

@@ -44,6 +44,12 @@
     <None Update="SubAgents\StorageAccountAgent\StorageAccountAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+	<None Update="SubAgents\SimpleResourceSubAgent\SimpleResourceAgentDefaultPlan.txt">
+	  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	</None>
+    <None Update="SubAgents\CVEAgent\CVEPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>	  
     <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesInfo.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

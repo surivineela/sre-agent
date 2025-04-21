@@ -14,7 +14,12 @@ using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.CosmosDB;
 using Azure.ResourceManager.CosmosDB.Models;
+using Azure.ResourceManager.EventHubs;
 using Azure.ResourceManager.Resources;
+using Azure.ResourceManager.ServiceBus;
+using Azure.ResourceManager.ServiceBus.Models;
+using Azure.ResourceManager.Sql;
+using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
@@ -561,6 +566,21 @@ public class ArmHelper
         return await GetResourceSettings(resourceIds, FetchCosmosDbStatusAsync);
     }
 
+    public async Task<List<EventHubStatus>> GetEventHubSettings(List<string> resourceIds)
+    {
+        return await GetResourceSettings(resourceIds, FetchEventHubStatusAsync);
+    }
+
+    public async Task<List<ServiceBusStatus>> GetServiceBusSettings(List<string> resourceIds)
+    {
+        return await GetResourceSettings(resourceIds, FetchServiceBusStatusAsync);
+    }
+
+    public async Task<List<SqlServerSettings>> GetAzureSqlServerSettings(List<string> resourceIds)
+    {
+        return await GetResourceSettings(resourceIds, FetchSqlServerStatusAsync);
+    }
+
     /// <summary>
     /// Checks if a given string is a valid resource identifier.
     /// </summary>
@@ -639,26 +659,53 @@ public class ArmHelper
         return await cosmosDBAccountResource.GetAsync();
     }
 
-    public async Task DisableSharedKeySupportAsync(string resourceId)
+    public async Task<EventHubsNamespaceResource> GetEventHubAccountAsync(string resourceId)
     {
         var armClient = _armClientFactory.GetArmClient();
-        var storageAccountResource = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
+        var eventHubsNamespaceResource = armClient.GetEventHubsNamespaceResource(new ResourceIdentifier(resourceId));
+        return await eventHubsNamespaceResource.GetAsync();
+    }
+
+    public async Task<ServiceBusNamespaceResource> GetServiceBusAccountAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var serviceBusNamespaceResource = armClient.GetServiceBusNamespaceResource(new ResourceIdentifier(resourceId));
+        return await serviceBusNamespaceResource.GetAsync();
+    }
+
+    public async Task<SqlServerResource> GetSqlServerAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
+        var sqlServerResource = armClient.GetSqlServerResource(new ResourceIdentifier(resourceId));
+        return await sqlServerResource.GetAsync();
+    }
+
+    public async Task SetStorageAccountSharedKeySupportAsync(string resourceId, FeatureState featureState)
+    {
+        var storageAccountResource = await GetStorageAccountAsync(resourceId);
         var storageAccountPatch = new StorageAccountPatch()
         {
-            AllowSharedKeyAccess = false
+            AllowSharedKeyAccess = featureState == FeatureState.Enabled ? true : false
         };
         await storageAccountResource.UpdateAsync(storageAccountPatch);
     }
 
-    public async Task DisablePublicContainers(string resourceId)
+    public async Task SetStorageAccountContainerPublicAccess(string resourceId, FeatureState featureState)
     {
-        var armClient = _armClientFactory.GetArmClient();
-        var storageAccountResource = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
+        var storageAccountResource = await GetStorageAccountAsync(resourceId);
         var storageAccountPatch = new StorageAccountPatch()
         {
-            AllowBlobPublicAccess = false
+            AllowBlobPublicAccess = featureState == FeatureState.Enabled ? true : false
         };
         await storageAccountResource.UpdateAsync(storageAccountPatch);
+    }
+
+    public async Task SetSqlServerEntraAuthSupport(string resourceId, FeatureState featureState)
+    {
+        var sqlServer = await GetSqlServerAsync(resourceId);
+        var sqlServerAdOnlyAuthResult = await sqlServer.GetSqlServerAzureADOnlyAuthenticationAsync(AuthenticationName.Default);
+        sqlServerAdOnlyAuthResult.Value.Data.IsAzureADOnlyAuthenticationEnabled = (featureState == FeatureState.Enabled);
+        await sqlServerAdOnlyAuthResult.Value.UpdateAsync(WaitUntil.Completed, sqlServerAdOnlyAuthResult.Value.Data);
     }
 
     public async Task<string> GetDetectorResponse(string resourceId, string detectorId)
@@ -823,6 +870,40 @@ public class ArmHelper
             );
     }
 
+    public async Task<EventHubStatus> FetchEventHubStatusAsync(string resourceId)
+    {
+        var eventHubsNamespaceResource = await GetEventHubAccountAsync(resourceId);
+        return new EventHubStatus(
+            ResourceId: resourceId,
+            Name: eventHubsNamespaceResource.Data.Name,
+            Location: eventHubsNamespaceResource.Data.Location,
+            LocalAuthEnabled: eventHubsNamespaceResource.Data.DisableLocalAuth ?? false
+            );
+    }
+
+    public async Task<ServiceBusStatus> FetchServiceBusStatusAsync(string resourceId)
+    {
+        var serviceBusNamespaceResource = await GetServiceBusAccountAsync(resourceId);
+        return new ServiceBusStatus(
+            ResourceId: resourceId,
+            Name: serviceBusNamespaceResource.Data.Name,
+            Location: serviceBusNamespaceResource.Data.Location,
+            LocalAuthEnabled: serviceBusNamespaceResource.Data.DisableLocalAuth ?? false
+            );
+    }
+
+    public async Task<SqlServerSettings> FetchSqlServerStatusAsync(string resourceId)
+    {
+        var sqlServerResource = await GetSqlServerAsync(resourceId);
+
+        return new SqlServerSettings(
+            ResourceId: resourceId,
+            Name: sqlServerResource.Data.Name,
+            Location: sqlServerResource.Data.Location,
+            IsAzureADOnlyAuthenticationEnabled: sqlServerResource.Data.Administrators?.IsAzureADOnlyAuthenticationEnabled ?? false
+            );
+    }
+
     public async Task SetCosmosDbLocalAuthSupport(string resourceId, FeatureState featureState)
     {
         var cosmosDBAccountResource = await GetCosmosDbAccountAsync(resourceId);
@@ -844,6 +925,24 @@ public class ArmHelper
         {
             await cosmosDBAccountResource.UpdateAsync(WaitUntil.Completed, cosmosDbPatch);
         }
+    }
+
+    public async Task SetEventHubLocalAuthSupport(string resourceId, FeatureState featureState)
+    {
+        var eventHubResource = await GetEventHubAccountAsync(resourceId);
+
+        eventHubResource.Data.DisableLocalAuth = (featureState == FeatureState.Disabled);
+        await eventHubResource.UpdateAsync(eventHubResource.Data);
+    }
+
+    public async Task SetServiceBusLocalAuthSupport(string resourceId, FeatureState featureState)
+    {
+        var serviceBusNamespaceResource = await GetServiceBusAccountAsync(resourceId);
+        var serviceBusNamespacePatch = new ServiceBusNamespacePatch(serviceBusNamespaceResource.Data.Location);
+
+        serviceBusNamespacePatch.DisableLocalAuth = (featureState == FeatureState.Disabled);
+
+        await serviceBusNamespaceResource.UpdateAsync(serviceBusNamespacePatch);
     }
 
     public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)

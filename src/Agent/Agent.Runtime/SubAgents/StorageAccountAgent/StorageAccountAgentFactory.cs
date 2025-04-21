@@ -39,8 +39,9 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
         protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
         {
             var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-            yield return () => remediationPluginDefinition.StorageAccountDisableSharedKeySupport;
-            yield return () => remediationPluginDefinition.StorageAccountDisablePublicContainers;
+            yield return () => remediationPluginDefinition.StorageAccountSetSharedKeySupport;
+            yield return () => remediationPluginDefinition.StorageAccountSetContainerPublicAccess;
+            // TODO: Add enable tools for rollback support
 
             var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
             yield return () => recordActionsPluginDefinition.RecordAction;

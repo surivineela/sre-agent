@@ -1,5 +1,10 @@
 using System.ComponentModel;
+using System.Text;
 using Agent.Core.Helpers;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
+using Agent.Runtime.SubAgents.CosmosDbAgent;
 using Kusto.Cloud.Platform.Utils;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -23,6 +28,20 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
                 new List<SimpleResourceSubAgentResourceInformation>())
         {
         }
+
+        public override string GetPlanText()
+        {
+            var resourceBullets = Resources.Select(r => $"\t- {r.ResourceId}");
+            return $"""
+                I can update the resources below to set their key-based auth to {KeyBasedAccessDesiredState}
+                and their blob public-access support to {BlobPublicAccessDesiredState}.
+                I will update them one at a time, waiting 30 seconds between each one.
+
+                  {string.Join(Environment.NewLine, resourceBullets)}
+
+                Would you like me to proceed as planned above? I can trigger an approval flow.
+                """;
+        }
     }
 
     [DurableTask]
@@ -32,13 +51,25 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
         {
         }
 
-        public override string GetPromptText(StorageAccountAgentActivityInput input)
+        public override string ResourceTypeName { get; } = "storage account";
+
+        public override string ActionToTake(StorageAccountAgentActivityInput input)
         {
-            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(StorageAccountAgent), "StorageAccountAgentPlan.txt");
-            var systemPrompt = File.ReadAllText(path)
-                .Replace("{{desiredStorageAccountKeyAccess}}", input.KeyBasedAccessDesiredState.ToString())
-                .Replace("{{desiredStorageAccountBlobPublicAccess}}", input.BlobPublicAccessDesiredState.ToString());
-            return systemPrompt;
+            var result = new StringBuilder();
+            result.Append(input.KeyBasedAccessDesiredState == FeatureState.Enabled
+                ? "enable key based access"
+                : "disable key based access"
+                );
+            result.Append(input.BlobPublicAccessDesiredState == FeatureState.Enabled
+                ? "and enable blob public access"
+                : "and disable blob public access"
+                );
+            return result.ToString();
         }
+
+        public override string[] ToolNames { get; } = [
+            nameof(IRemediationPlugin.StorageAccountSetSharedKeySupport),
+            nameof(IRemediationPlugin.StorageAccountSetContainerPublicAccess),
+            nameof(ControlFlowPluginDefinition.Wait)];
     }
 }

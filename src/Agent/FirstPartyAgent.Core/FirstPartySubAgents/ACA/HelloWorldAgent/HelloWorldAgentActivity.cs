@@ -16,6 +16,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
             : this(new List<SimpleResourceSubAgentResourceInformation>())
         {
         }
+
+        public override string GetPlanText()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     // [MENDATORY]
@@ -24,6 +29,14 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
     {
         public HelloWorldAgentActivity(IChatClient chatClient) : base(chatClient)
         {
+        }
+
+        public override string ResourceTypeName { get; } = nameof(HelloWorldAgent);
+        public override string[] ToolNames { get; } = new string[] { };
+
+        public override string ActionToTake(HelloWorldAgentActivityInput input)
+        {
+            throw new NotImplementedException();
         }
 
         public override string GetPromptText(HelloWorldAgentActivityInput input)

@@ -6,18 +6,18 @@ using Kusto.Cloud.Platform.Utils;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 
-namespace Agent.Runtime.SubAgents.CosmosDbAgent
+namespace Agent.Runtime.SubAgents.AzureSqlServerAgent
 {
 
-    public record CosmosDbAgentActivityInput(
-        [Description("Into what state should we put key-based local auth access for these cosmosDbs?")]
-        FeatureState CosmosDbSetLocalAuthSupport,
-        [Description("The list of CosmosDbs (as resource IDs) to affect in this run.")]
+    public record AzureSqlServerAgentActivityInput(
+        [Description("Into what state should we put key-based local auth access for these AzureSqlServers?")]
+        FeatureState AzureSqlServerSetLocalAuthSupport,
+        [Description("The list of AzureSqlServers (as resource IDs) to affect in this run.")]
         List<SimpleResourceSubAgentResourceInformation> Resources
         )
         : SimpleResourceSubAgentActivityInput(Resources)
     {
-        public CosmosDbAgentActivityInput()
+        public AzureSqlServerAgentActivityInput()
             : this(
                 FeatureState.Disabled,
                 new List<SimpleResourceSubAgentResourceInformation>())
@@ -28,7 +28,7 @@ namespace Agent.Runtime.SubAgents.CosmosDbAgent
         {
             var resourceBullets = Resources.Select(r => $"\t- {r.ResourceId}");
             return $"""
-                I can update the resources below to set their local-auth login support to {CosmosDbSetLocalAuthSupport}.
+                I can update the resources below to set their local-auth login support to {AzureSqlServerSetLocalAuthSupport}.
                 I will update them one at a time, waiting 30 seconds between each one.
 
                   {string.Join(Environment.NewLine, resourceBullets)}
@@ -39,21 +39,21 @@ namespace Agent.Runtime.SubAgents.CosmosDbAgent
     }
 
     [DurableTask]
-    public class CosmosDbAgentActivity : SimpleResourceSubAgentActivityBase<CosmosDbAgentActivityInput>
+    public class AzureSqlServerActivity : SimpleResourceSubAgentActivityBase<AzureSqlServerAgentActivityInput>
     {
-        public CosmosDbAgentActivity(IChatClient chatClient) : base(chatClient)
+        public AzureSqlServerActivity(IChatClient chatClient) : base(chatClient)
         {
         }
 
-        public override string ResourceTypeName { get; } = "CosmosDB";
+        public override string ResourceTypeName { get; } = "AzureSqlServer";
 
-        public override string ActionToTake(CosmosDbAgentActivityInput input) =>
-            input.CosmosDbSetLocalAuthSupport == FeatureState.Enabled
+        public override string ActionToTake(AzureSqlServerAgentActivityInput input) =>
+            input.AzureSqlServerSetLocalAuthSupport == FeatureState.Enabled
             ? "enable local auth support"
             : "disable local auth support";
 
         public override string[] ToolNames { get; } = [
-            nameof(IRemediationPlugin.CosmosDbSetLocalAuthSupport),
+            nameof(IRemediationPlugin.AzureSqlServerSetLocalAuthSupport),
             nameof(ControlFlowPluginDefinition.Wait)
         ];
     }

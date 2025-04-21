@@ -17,8 +17,8 @@ namespace Agent.Plugins.Mocks
         public MockRemediationPlugin(TimeProvider timeProvider, IApprovalPlugin approvalPlugin, IArmPlugin armPlugin)
         {
             _timeProvider = timeProvider;
-            _approvalPlugin = (MockApprovalPlugin) approvalPlugin;
-            _armPlugin = (MockArmPlugin) armPlugin;
+            _approvalPlugin = (MockApprovalPlugin)approvalPlugin;
+            _armPlugin = (MockArmPlugin)armPlugin;
         }
 
         public async Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId)
@@ -44,7 +44,7 @@ namespace Agent.Plugins.Mocks
         public async Task<RemediationResult> RestartWebApp(string resourceId)
         {
             bool success = await _armPlugin.RestartWebApp(resourceId);
-            
+
             return new RemediationResult(
                 Success: success,
                 Action: "RestartWebApp",
@@ -63,7 +63,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<RemediationResult> StorageAccountDisableSharedKeySupport(string resourceId)
+        public Task<RemediationResult> StorageAccountSetSharedKeySupport(string resourceId, FeatureState featureState)
         {
             return Task.FromResult(
                 new RemediationResult(
@@ -75,7 +75,7 @@ namespace Agent.Plugins.Mocks
             ));
         }
 
-        public Task<RemediationResult> StorageAccountDisablePublicContainers(string resourceId)
+        public Task<RemediationResult> StorageAccountSetContainerPublicAccess(string resourceId, FeatureState featureState)
         {
             return Task.FromResult(
                 new RemediationResult(
@@ -93,6 +93,42 @@ namespace Agent.Plugins.Mocks
                 new RemediationResult(
                     Success: true,
                     Action: "SetLocalAuthSupport",
+                    Details: $"Local Auth in {resourceId} have been set to {featureState}.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
+
+        public Task<RemediationResult> EventHubSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "SetLocalAuthSupport",
+                    Details: $"Local Auth in {resourceId} have been set to {featureState}.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
+
+        public Task<RemediationResult> ServiceBusSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "SetLocalAuthSupport",
+                    Details: $"Local Auth in {resourceId} have been set to {featureState}.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
+
+        public Task<RemediationResult> AzureSqlServerSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "AzureSqlServerSetLocalAuthSupport",
                     Details: $"Local Auth in {resourceId} have been set to {featureState}.",
                     OperationId: Guid.NewGuid().ToString(),
                     FinishedTime: _timeProvider.GetUtcNow().DateTime
