@@ -10,14 +10,14 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins
 {
-    public class WaitPlugin : IWaitPlugin
+    public class ControlFlowV2Plugin : IControlFlowV2Plugin
     {
         private readonly IThreadRepository _repository;
-        private readonly ILogger<WaitPlugin> _logger;
+        private readonly ILogger<ControlFlowV2Plugin> _logger;
         private readonly Guid _agentContextId;
         private readonly Guid _threadId;
 
-        public WaitPlugin(IThreadRepository repository, Guid agentContextId, Guid threadId, ILogger<WaitPlugin> logger)
+        public ControlFlowV2Plugin(IThreadRepository repository, Guid agentContextId, Guid threadId, ILogger<ControlFlowV2Plugin> logger)
         {
             _repository = repository ?? throw new ArgumentNullException(nameof(repository));
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
@@ -25,7 +25,7 @@ namespace Agent.Plugins
             _threadId = threadId;
         }
 
-        public async Task StartWait(string waitReason, DateTime? waitUntil = null)
+        public async Task StartWait(string waitReason, TimeSpan? waitFor = null)
         {
             _logger.LogInformation($"Starting wait state for context {_agentContextId} thread {_threadId} with reason: {waitReason}");
 
@@ -34,7 +34,7 @@ namespace Agent.Plugins
             {
                 ContextState = ContextStateEnum.Waiting,
                 WaitInformation = new WaitInformation(
-                    WaitUntil: waitUntil,
+                    WaitUntil: !waitFor.HasValue ? null : DateTime.UtcNow.Add(waitFor.Value),
                     Reason: waitReason)
             };
 
@@ -54,6 +54,21 @@ namespace Agent.Plugins
             {
                 ContextState = ContextStateEnum.Processing,
                 WaitInformation = null
+            };
+
+            await _repository.UpdateAgentContextAsync(updatedAgentContext);
+        }
+
+        public async Task Complete()
+        {
+            _logger.LogInformation($"Completing context {_agentContextId} thread {_threadId}");
+
+            var agentContext = await _repository.GetAgentContextAsync(agentContextId: _agentContextId, threadId: _threadId);
+            var updatedAgentContext = agentContext with
+            {
+                ContextState = ContextStateEnum.Completed,
+                WaitInformation = null,
+                ApprovalInformation = null
             };
 
             await _repository.UpdateAgentContextAsync(updatedAgentContext);
