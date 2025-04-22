@@ -21,23 +21,23 @@ namespace Agent.Plugins.Mocks
                 new Dictionary<string, IReadOnlyList<SecurityRuleData>>());
         }
 
-        public Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId)
+        public Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId, string imageReference)
         {
             var result = new AcrAuthenticationStatus
             {
                 ResourceId = resourceId,
-                ImageReference = "myregistry.azurecr.io/myapp:latest",
+                ImageReference = imageReference,
                 IsAuthenticated = true
             };
             return Task.FromResult(result);
         }
 
-        public Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId)
+        public Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId, string imageReference)
         {
             var result = new ExternalRegistryVerificationResult
             {
                 ResourceId = resourceId,
-                ImageReference = "docker.io/library/nginx:latest",
+                ImageReference = imageReference,
                 RegistryType = RegistryType.DockerHub,
                 IsSuccessful = true,
                 RegistryAccessible = true
@@ -54,7 +54,7 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult(result);
         }
 
-        public Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string resourceId)
+        public Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string imageReference)
         {
             var result = new ImagePullingResult
             {

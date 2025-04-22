@@ -31,15 +31,17 @@ namespace Agent.Plugins.Definitions
         /// Checks if the resource has proper authentication configured for Azure Container Registry
         /// </summary>
         /// <param name="resourceId">The resource ID to check ACR authentication for</param>
+        /// <param name="imageReference">The image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)</param>
         /// <returns>Authentication status and any error details</returns>
-        Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId);
+        Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId, string imageReference);
 
         /// <summary>
         /// Verifies connectivity and authentication to an external (non-ACR) registry
         /// </summary>
         /// <param name="resourceId">The resource ID to verify external registry for</param>
+        /// <param name="imageReference">The image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)</param>
         /// <returns>Verification result with detailed status</returns>
-        Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId);
+        Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId, string imageReference);
 
         /// <summary>
         /// Checks if there are any current or recent image pulling issues
@@ -51,9 +53,9 @@ namespace Agent.Plugins.Definitions
         /// <summary>
         /// Checks if the ACR image is accessible
         /// </summary>
-        /// <param name="resourceId">The resource ID to check ACR image accessibility for</param>
+        /// <param name="imageReference">The image reference to check if it is accessible (e.g. myregistry.azurecr.io/myapp:v2)</param>
         /// <returns>Result indicating if the image is accessible</returns>
-        Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string resourceId);
+        Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string imageReference);
 
         /// <summary>
         /// Rolls back a Container App or Web App to the last known working image

@@ -25,6 +25,7 @@ using Azure.Monitor.Query.Models;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Net.Http.Headers;
+using Azure.ResourceManager.Resources;
 
 namespace Agent.Plugins.Implementation
 {
@@ -279,69 +280,60 @@ namespace Agent.Plugins.Implementation
         /// <summary>
         /// Checks if a Container App is properly authenticated to an Azure Container Registry
         /// </summary>
-        public async Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId)
+        public async Task<AcrAuthenticationStatus> CheckAcrAuthentication(string resourceId, string imageReference)
         {
-           _logger.LogInformation($"Checking ACR authentication for app {resourceId}");
+            _logger.LogInformation($"Checking ACR authentication for app {resourceId} with image {imageReference}");
 
-           string imageReference = await GetImageReferenceFromResourceId(resourceId);
-           var result = new AcrAuthenticationStatus
-           {
-               ResourceId = resourceId,
-               ImageReference = imageReference,
-               IsAuthenticated = false // Default to false
-           };
+            var result = new AcrAuthenticationStatus
+            {
+                ResourceId = resourceId,
+                ImageReference = imageReference,
+                IsAuthenticated = false // Default to false
+            };
 
-           if (string.IsNullOrEmpty(imageReference))
-           {
-               result.ErrorMessage = "Could not determine image reference from the resource";
-               _logger.LogWarning(result.ErrorMessage);
-               return result;
-           }
+            if (string.IsNullOrEmpty(imageReference))
+            {
+                result.ErrorMessage = "No image reference provided";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+
+            string registryName = ExtractRegistryName(imageReference);
+            if (string.IsNullOrEmpty(registryName))
+            {
+                result.ErrorMessage = "Could not extract registry name from image reference";
+                _logger.LogWarning(result.ErrorMessage);
+                return result;
+            }
+
+            // Only proceed if it's an ACR image
+            if (!imageReference.Contains(".azurecr.io/", StringComparison.OrdinalIgnoreCase) &&
+                !imageReference.Contains(".acr.io/", StringComparison.OrdinalIgnoreCase))
+            {
+                result.ErrorMessage = "Image reference does not point to an Azure Container Registry";
+                _logger.LogInformation(result.ErrorMessage);
+                return result;
+            }
+
             try
             {
-               string registryName = ExtractRegistryName(imageReference);
-               if (string.IsNullOrEmpty(registryName))
-               {
-                   result.ErrorMessage = "Could not extract registry name from image reference";
-                   _logger.LogWarning(result.ErrorMessage);
-                   return result;
-               }
+                var armClient = _armClientFactory.GetArmClient();
+                var resourceIdentifier = new ResourceIdentifier(resourceId);
 
-                // Only proceed if it's an ACR image
-                if (!imageReference.Contains(".azurecr.io/", StringComparison.OrdinalIgnoreCase) &&
-                    !imageReference.Contains(".acr.io/", StringComparison.OrdinalIgnoreCase))
+                if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
                 {
-                    _logger.LogInformation(result.ErrorMessage);
-                    result.ErrorMessage = "Image is not from Azure Container Registry. Use verify_external_registry tool for non-ACR images.";
-                    result.PotentialSolution = "For non-ACR images, configure registry credentials in the Container App settings.";
-                    return result;
+                    result = await CheckContainerAppAcrAuth(armClient, resourceId, registryName, imageReference);
                 }
-               var armClient = _armClientFactory.GetArmClient();
-               var resourceIdentifier = new ResourceIdentifier(resourceId);
-
-                // Check if the image exists in the registry
-                var imageExists = await CheckImageExistsInAcr(imageReference);
-                if (!imageExists)
+                else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
                 {
-                    result.IsAuthenticated = false;
-                    result.ErrorMessage = $"The image {imageReference} was not found in the registry";
-                    result.PotentialSolution = "Verify the image reference is correct and the image has been pushed to the registry";
+                    result = await CheckWebAppAcrAuth(armClient, resourceId, registryName, imageReference);
+                }
+                else
+                {
+                    result.ErrorMessage = $"Resource type {resourceIdentifier.ResourceType} is not supported for ACR authentication check.";
                     _logger.LogWarning(result.ErrorMessage);
                 }
 
-               if (resourceIdentifier.ResourceType == ContainerAppResource.ResourceType)
-               {
-                   result = await CheckContainerAppAcrAuth(armClient, resourceId, registryName, imageReference);
-               }
-               else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
-               {
-                   result = await CheckWebAppAcrAuth(armClient, resourceId, registryName, imageReference);
-               }
-               else
-               {
-                   result.ErrorMessage = $"Resource type {resourceIdentifier.ResourceType} is not supported for ACR authentication check.";
-                   _logger.LogWarning(result.ErrorMessage);
-               }
                 // Perform common checks only if authentication hasn't already failed definitively
                 if (result.IsAuthenticated) // Check connectivity if auth seems okay so far
                 {
@@ -369,13 +361,14 @@ namespace Agent.Plugins.Implementation
                     }
                 }
             }
-           catch (Exception ex)
-           {
-               _logger.LogError(ex, $"Error checking ACR authentication for resource {resourceId}");
-               result.IsAuthenticated = false;
-               result.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
-           }
-           return result;
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error checking ACR authentication for resource {resourceId}");
+                result.IsAuthenticated = false;
+                result.ErrorMessage = $"An unexpected error occurred: {ex.Message}";
+            }
+
+            return result;
         }
 
         // Method to handle Container App ACR authentication check
@@ -663,11 +656,8 @@ namespace Agent.Plugins.Implementation
         /// <summary>
         /// Verifies connectivity and authentication to an external registry
         /// </summary>
-        public async Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId)
+        public async Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId, string imageReference)
         {
-            // Get the image reference from the resource ID
-            string imageReference = await GetImageReferenceFromResourceId(resourceId);
-
             _logger.LogInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
             return await VerifyExternalRegistryAsync(imageReference, resourceId);
         }
@@ -1021,58 +1011,120 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string resourceId)
+        public async Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string imageReference)
         {
+            _logger.LogInformation($"Checking if ACR image is accessible: {imageReference}");
+            
+            // Validate input
+            if (string.IsNullOrEmpty(imageReference))
+            {
+                return new ImagePullingResult
+                {
+                    IsSuccessful = false,
+                    FailureReason = "Empty image reference provided"
+                };
+            }
+
+            var registryName = ExtractRegistryHostname(imageReference);
+            var (repository, tag) = ExtractRepositoryAndTag(imageReference);
+            string manifestUrl = $"https://{registryName}/v2/{repository}/manifests/{tag}";
+            
+            // First try with token authentication
             try
             {
-                var armClient = _armClientFactory.GetArmClient();
-                var resourceIdentifier = new ResourceIdentifier(resourceId);
-                var imageReference = await GetImageReferenceFromResourceId(resourceId);
-                if (string.IsNullOrEmpty(imageReference))
-                {
-                    return new ImagePullingResult
-                    {
-                        IsSuccessful = false,
-                        FailureReason = "Could not determine container image reference"
-                    };
-                }
-                var registryName = ExtractRegistryHostname(imageReference);
-                var (repository, tag) = ExtractRepositoryAndTag(imageReference);
-                string scope = $"https://{registryName}";
-
-                var tokenRequestContext = new TokenRequestContext(new[] { $"{scope}/.default" });
+                var tokenRequestContext = new TokenRequestContext(new[] { $"https://{registryName}/.default" });
                 var credential = _authService.GetArmOperationCredential();
                 var accessToken = await credential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
-
-                string manifestUrl = $"https://{registryName}/v2/{repository}/manifests/{tag}";
 
                 var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
                 request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.docker.distribution.manifest.v2+json"));
 
                 var response = await _httpClient.SendAsync(request);
-
+                
+                // Check for specific status code
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning($"Image {imageReference} was not found in registry (404 NotFound)");
+                    return new ImagePullingResult
+                    {
+                        IsSuccessful = false,
+                        FailureReason = $"Image not found in registry {registryName}"
+                    };
+                }
+                
                 if (response.IsSuccessStatusCode)
                 {
+                    _logger.LogInformation($"Image {imageReference} is accessible with token authentication");
                     return new ImagePullingResult
                     {
                         IsSuccessful = true,
                         FailureReason = "Image manifest is accessible"
                     };
                 }
+                
+                _logger.LogWarning($"Token auth response: {(int)response.StatusCode} {response.ReasonPhrase}");
+            }
+            catch (Exception tokenAuthEx)
+            {
+                _logger.LogWarning(tokenAuthEx, "Token authentication failed, will try anonymous access");
+            }
 
+            // Fall back to anonymous access
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
+                request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.docker.distribution.manifest.v2+json"));
+
+                var response = await _httpClient.SendAsync(request);
+                
+                // Only consider 404 as a definitive "image not found" response
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning($"Image {imageReference} was not found in registry (404 NotFound)");
+                    return new ImagePullingResult
+                    {
+                        IsSuccessful = false,
+                        FailureReason = $"Image not found in registry {registryName}"
+                    };
+                }
+                
+                // For all other response codes, we'll assume the image might be accessible
+                // but there could be auth issues or other temporary problems
+                if (response.IsSuccessStatusCode)
+                {
+                    _logger.LogInformation($"Image {imageReference} is accessible anonymously");
+                    return new ImagePullingResult
+                    {
+                        IsSuccessful = true,
+                        FailureReason = "Image manifest is accessible anonymously"
+                    };
+                }
+                
+                // For 401 Unauthorized, the registry exists but needs auth
+                if (response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return new ImagePullingResult
+                    {
+                        IsSuccessful = true, // Image likely exists but requires auth
+                        FailureReason = $"Image requires authentication (401) - this is normal for private images"
+                    };
+                }
+                
+                // For other status codes, assume image might exist but there are access issues
                 return new ImagePullingResult
                 {
-                    IsSuccessful = false,
-                    FailureReason = $"Failed to access image manifest: {response.StatusCode} - {response.ReasonPhrase}"
+                    IsSuccessful = true, // Assume image might exist
+                    FailureReason = $"Got status code {(int)response.StatusCode} ({response.ReasonPhrase}) - assuming image might exist but has access issues"
                 };
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error checking image accessibility: {imageReference}");
                 return new ImagePullingResult
                 {
                     IsSuccessful = false,
-                    FailureReason = $"Error checking image manifest accessibility: {ex.Message}"
+                    FailureReason = $"Error checking image accessibility: {ex.Message}"
                 };
             }
         }
@@ -1340,7 +1392,7 @@ namespace Agent.Plugins.Implementation
              _logger.LogInformation($"Attempting to find ACR '{registryName}' accessible from resource {appResourceId}");
             // Assuming appResourceId gives context for the subscription
             var appIdentifier = new ResourceIdentifier(appResourceId);
-            var subscription = armClient.GetSubscriptionResource(appIdentifier);
+            var subscription = armClient.GetSubscriptionResource(SubscriptionResource.CreateResourceIdentifier(appIdentifier.SubscriptionId));
 
             try
             {
@@ -1467,39 +1519,6 @@ namespace Agent.Plugins.Implementation
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error testing connectivity to external registry: {hostname}");
-                return false;
-            }
-        }
-
-        private async Task<bool> CheckImageExistsInAcr(string imageReference)
-        {
-            try
-            {
-                var registryName = ExtractRegistryName(imageReference);
-                if (string.IsNullOrEmpty(registryName))
-                {
-                    _logger.LogWarning("Could not extract registry name from image reference");
-                    return false;
-                }
-
-                var (repo, tag) = ExtractRepositoryAndTag(imageReference);
-                if (string.IsNullOrEmpty(repo))
-                {
-                    _logger.LogWarning("Could not extract repository from image reference");
-                    return false;
-                }
-
-                // Try to get the manifest for the image
-                var manifestUrl = $"https://{registryName}.azurecr.io/v2/{repo}/manifests/{tag}";
-                var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
-                request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
-
-                var response = await _httpClient.SendAsync(request);
-                return response.IsSuccessStatusCode;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error checking if image exists in ACR: {imageReference}");
                 return false;
             }
         }
@@ -2278,15 +2297,17 @@ namespace Agent.Plugins.Implementation
                     if (assignment.Data.PrincipalId == principalId &&
                         IsRoleWithAcrPullPermissions(assignment.Data.RoleDefinitionId))
                     {
+                        _logger.LogInformation($"Found matching role assignment for principal ID {principalId} with role {assignment.Data.RoleDefinitionId}");
                         return true;
                     }
                 }
 
+                _logger.LogWarning($"No matching role assignments found for principal ID {principalId} on registry {registryId.Name}");
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking user-assigned identity role assignments");
+                _logger.LogError(ex, $"Error checking user-assigned identity role assignments for principal ID {principalId} on registry {registryId.Name}");
                 return false;
             }
         }
@@ -2971,7 +2992,7 @@ namespace Agent.Plugins.Implementation
                             {
                                 // We can't actually access the secret, so simulate pull
                                 _logger.LogInformation($"Container App using username/password auth for {registryHost}");
-                                result.IsSuccessful = await CheckImageExistsInAcr(imageReference);
+                                result.IsSuccessful = (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                                 result.AuthenticationMethod = "Username/Password (simulated)";
                                 result.Details = "Cannot perform actual pull with username/password; verifying image exists only";
                                 
@@ -3053,7 +3074,7 @@ namespace Agent.Plugins.Implementation
                         {
                             // Simulate pull with credentials check
                             _logger.LogInformation($"Web App using username/password auth for {registryHost}");
-                            result.IsSuccessful = await CheckImageExistsInAcr(imageReference);
+                            result.IsSuccessful = (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                             result.AuthenticationMethod = "Username/Password (simulated)";
                             result.Details = "Cannot perform actual pull with credentials; verifying image exists only";
                             
@@ -3175,7 +3196,7 @@ namespace Agent.Plugins.Implementation
                     // we'll use our access token and check if the image exists in ACR
                     if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                     {
-                        bool imageExists = await CheckImageExistsInAcr(imageReference);
+                        bool imageExists = (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                         result.IsSuccessful = imageExists;
                         result.Details = "Simulating pull with user-assigned identity; verifying image existence";
                         
@@ -3414,7 +3435,7 @@ namespace Agent.Plugins.Implementation
                 // For ACR
                 else if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                 {
-                    return await CheckImageExistsInAcr(imageReference);
+                    return (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                 }
                 // For other registries
                 else

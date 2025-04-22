@@ -44,18 +44,23 @@ namespace Agent.Plugins.Definitions
         [Description("Check if the Container App has proper authentication to Azure Container Registry. Validates ACR connectivity and permissions.")]
         public async Task<AcrAuthenticationStatus> CheckAcrAuthentication(
             [Description("Resource ID of the Container App to check")]
-            string resourceId)
+            string resourceId,
+            [Description("Image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string imageReference)
         {
-            return await _containerImagePullFailurePlugin.CheckAcrAuthentication(resourceId);
+            return await _containerImagePullFailurePlugin.CheckAcrAuthentication(resourceId, imageReference);
         }
 
         [KernelFunction("verify_external_registry")]
         [Description("Verify connectivity and authentication to an external container registry. Checks for rate limits, availability issues, or authentication failures.")]
         public async Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(
             [Description("Resource ID of the Container App to check")]
-            string resourceId)
+            string resourceId,
+            [Description("Image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string imageReference
+            )
         {
-            return await _containerImagePullFailurePlugin.VerifyExternalRegistry(resourceId);
+            return await _containerImagePullFailurePlugin.VerifyExternalRegistry(resourceId, imageReference);
         }
 
         [KernelFunction("check_image_pulling")]
@@ -70,10 +75,10 @@ namespace Agent.Plugins.Definitions
         [KernelFunction("is_acr_image_manifest_accessible")]
         [Description("Check if the image in ACR is accessible. Validates ACR connectivity.")]
         public async Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(
-            [Description("Resource ID of the Container App to check")]
-            string resourceId)
+            [Description("Image reference to check if it is accessible for (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string imageReference)
         {
-            return await _containerImagePullFailurePlugin.IsAzureContainerRegistryImageAccessibleAsync(resourceId);
+            return await _containerImagePullFailurePlugin.IsAzureContainerRegistryImageAccessibleAsync(imageReference);
         }
 
         [KernelFunction("rollback_to_last_working_image")]
