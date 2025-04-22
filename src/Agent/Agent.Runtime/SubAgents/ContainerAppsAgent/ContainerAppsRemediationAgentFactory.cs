@@ -31,6 +31,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         IRecordActionsPlugin recordActionsPlugin,
         IGraphDBPlugin graphDbPlugin,
         IChartPlugin chartPlugin,
+        INSGRulePlugin nSGRulePlugin,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
@@ -49,9 +50,11 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
         toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
         toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.CreateOrUpdateNSGRuleAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.RemoveNSGRuleAsync));
         toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
+
+        var nsgRulePluginDefinition = new NSGRulePluginDefinition(nSGRulePlugin);
+        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.RemoveNSGRuleAsync));
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
         toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));

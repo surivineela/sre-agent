@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -330,95 +330,6 @@ namespace Agent.Plugins.Implementation
             {
                 _logger.LogError(ex, $"Error in GetAllNSGRulesForContainerAppAsync with resourceId {resourceId}");
                 return result;
-            }
-        }
-
-        public async Task<bool> CreateOrUpdateNSGRuleAsync(
-            [Description("Azure resource ID of the NSG to update")] string nsgResourceId,
-            [Description("The security rule data object containing all rule configuration")] SecurityRuleData rule)
-        {
-            _logger.LogInformation($"[create_or_update_nsg_rule] Invoked for rule '{rule.Name}' on NSG: {nsgResourceId}");
-
-            try
-            {
-                var credential = _authService.GetArmOperationCredential();
-                var armClient = new ArmClient(credential);
-
-                // Get the NSG resource
-                var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
-
-                // Check if the NSG exists
-                await nsgResource.GetAsync();
-
-                // Get the security rules collection and create/update the rule
-                SecurityRuleCollection securityRules = nsgResource.GetSecurityRules();
-
-                try
-                {
-                    // Check if the rule exists
-                    await securityRules.GetAsync(rule.Name);
-                    _logger.LogInformation($"Updating existing security rule '{rule.Name}' in NSG {nsgResourceId}");
-                }
-                catch (RequestFailedException ex) when (ex.Status == 404)
-                {
-                    _logger.LogInformation($"Security rule '{rule.Name}' not found in NSG {nsgResourceId}, creating new rule");
-                }
-
-                // CreateOrUpdate handles both creating a new rule and updating an existing one
-                await securityRules.CreateOrUpdateAsync(WaitUntil.Completed, rule.Name, rule);
-                _logger.LogInformation($"Successfully created/updated security rule '{rule.Name}' in NSG {nsgResourceId}");
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error in CreateOrUpdateNSGRuleAsync with nsgResourceId {nsgResourceId}, rule {rule.Name}");
-                return false;
-            }
-        }
-
-        public async Task<bool> RemoveNSGRuleAsync(
-            [Description("Azure resource ID of the NSG containing the rule")] string nsgResourceId,
-            [Description("Name of the security rule to remove")] string ruleName)
-        {
-            _logger.LogInformation($"[remove_nsg_rule] Invoked to remove rule '{ruleName}' from NSG: {nsgResourceId}");
-
-            try
-            {
-                var credential = _authService.GetArmOperationCredential();
-                var armClient = new ArmClient(credential);
-
-                // Get the NSG resource
-                var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
-
-                // Check if the NSG exists
-                await nsgResource.GetAsync();
-
-                // Get the security rules collection
-                SecurityRuleCollection securityRules = nsgResource.GetSecurityRules();
-
-                try
-                {
-                    // Check if the rule exists
-                    var existingRule = await securityRules.GetAsync(ruleName);
-
-                    // Delete the rule
-                    _logger.LogInformation($"Removing security rule '{ruleName}' from NSG {nsgResourceId}");
-                    await existingRule.Value.DeleteAsync(WaitUntil.Completed);
-                    _logger.LogInformation($"Successfully removed security rule '{ruleName}' from NSG {nsgResourceId}");
-                    return true;
-                }
-                catch (RequestFailedException ex) when (ex.Status == 404)
-                {
-                    // Rule doesn't exist, nothing to remove
-                    _logger.LogInformation($"Security rule '{ruleName}' not found in NSG {nsgResourceId}, nothing to remove");
-                    return true;
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, $"Error in RemoveNSGRuleAsync with nsgResourceId {nsgResourceId}, rule {ruleName}");
-                return false;
             }
         }
 

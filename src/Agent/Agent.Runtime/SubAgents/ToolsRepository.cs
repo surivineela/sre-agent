@@ -74,6 +74,7 @@ public class ToolsRepository : IMcpConnectable
         RegisterPlugin<AppIdentityUpdatePluginDefinition>();
         RegisterPlugin<ControlFlowPluginDefinition>();
         RegisterPlugin<ApprovalPluginDefinition>();
+        RegisterPlugin<NSGRulePluginDefinition>();
         RegisterPlugin<ContainerAppPluginDefinition>();
         RegisterPlugin<ReliabilityPluginDefinition>();
         RegisterPlugin<KubePluginDefinition>();

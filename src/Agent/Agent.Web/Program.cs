@@ -121,6 +121,7 @@ builder.Host.UseSerilog();
         .AddSingleton<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>()
         .AddSingleton<AppReliabilityAgentFactory>()
         .AddSingleton<AppCodeAnalysisAgentFactory>()
+        .AddSingleton<INSGRulePlugin, NSGRulePlugin>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<ContainerImagePullFailureAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
@@ -133,7 +134,7 @@ builder.Host.UseSerilog();
         .AddSingleton<FunctionAppConnectivityAgentFactory>()
         .AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
         .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
-
+        
         .AddSingleton<IFirstPartySubAgentsFactory>(firstPartySubAgentsFactory)
 
         .AddSingleton<SqlDbQueryPerfAgentFactory>()
@@ -152,6 +153,7 @@ builder.Host.UseSerilog();
         .AddTransient<AppIdentityUpdatePluginDefinition>()
         .AddTransient<ControlFlowPluginDefinition>()
         .AddTransient<ApprovalPluginDefinition>()
+        .AddTransient<NSGRulePluginDefinition>()
         .AddTransient<ContainerAppPluginDefinition>()
         .AddTransient<ReliabilityPluginDefinition>()
         .AddTransient<KubePluginDefinition>()

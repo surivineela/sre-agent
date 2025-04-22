@@ -21,7 +21,8 @@ public sealed class VmRdpInvestigatorAgentFactory
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
         IAzureSupportCenterPlugin supportCenterPlugin,
-        IRecordActionsPlugin recordActionsPlugin)
+        IRecordActionsPlugin recordActionsPlugin,
+        INSGRulePlugin nsgRulePlugin)
     {
         var toolSignatures = new List<string>();
 
@@ -40,6 +41,11 @@ public sealed class VmRdpInvestigatorAgentFactory
         toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
         toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.PowerOnVirtualMachine));
         toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.GetVirtualMachineBootDiagnostics));
+
+        var nsgRulePluginDefinition = new NSGRulePluginDefinition(nsgRulePlugin);
+        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.GetNSGRules));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.RemoveNSGRuleAsync));
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         //toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));

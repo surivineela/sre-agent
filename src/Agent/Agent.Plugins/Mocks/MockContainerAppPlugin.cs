@@ -10,11 +10,6 @@ namespace Agent.Plugins.Mocks
 {
     public class MockContainerAppPlugin : IContainerAppPlugin
     {
-        public Task<bool> CreateOrUpdateNSGRuleAsync(string nsgResourceId, SecurityRuleData rule)
-        {
-            throw new NotImplementedException();
-        }
-
         public Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
         {
             throw new NotImplementedException();
@@ -51,11 +46,6 @@ namespace Agent.Plugins.Mocks
         }
 
         public Task<IReadOnlyList<RevisionInfo>> ListContainerAppRevisionsAsync(string resourceId)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<bool> RemoveNSGRuleAsync(string nsgResourceId, string ruleName)
         {
             throw new NotImplementedException();
         }
