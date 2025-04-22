@@ -6,6 +6,6 @@ namespace Agent.Plugins
 {
     public interface IAppInsightsPlugin
     {
-        Task<string> ExecuteAppInsightsQuery(string queryString); 
+        Task<string> ExecuteAppInsightsQuery(string resourceId, string queryString); 
     }
 }

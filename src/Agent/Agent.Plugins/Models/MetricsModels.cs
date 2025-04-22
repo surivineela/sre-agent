@@ -22,7 +22,7 @@ namespace Agent.Plugins
 
     public sealed record ThreadTimeSeriesData(
         DateTime TimeStamp,
-        int ThreadCount);
+        double ThreadCount);
 
     public sealed record LatencySeriesData(
         DateTime TimeStamp,

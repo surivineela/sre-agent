@@ -28,7 +28,6 @@ public sealed class CPUAnalysisAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
-    private readonly ArmHelper _armHelper;
 
     public const string OrchestrationInstanceIdPrefix = nameof(CPUAnalysisAgent);
 
@@ -38,11 +37,13 @@ public sealed class CPUAnalysisAgentFactory
         IGithubIssuePlugin githubPlugin,
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
-        ArmHelper armHelper)
+        ICpuAnalysisPlugin cpuAnalysisPlugin,
+        IAppCodeAnalysisPlugin appCodeAnalysisPlugin)
     {
         var toolSignatures = new List<string>();
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
@@ -50,19 +51,22 @@ public sealed class CPUAnalysisAgentFactory
         toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        // var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
+        // toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
         toolSignatures.Add(ToolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
 
-        toolSignatures.Add(ToolsRepository.GetSignature(() => ScaleUpAppServicePlanBySku));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => CollectMemoryDumpForApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => AutoScaleApp));
+        var cpuAnalysisPluginDefinition = new CpuAnalysisPluginDefinition(cpuAnalysisPlugin);
+        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.ScaleUpAppServicePlanBySku));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectMemoryDumpForApp));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.AutoScaleApp));
+
+        var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
+        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
-        _armHelper = armHelper;
     }
 
     public async Task<string> StartOrchestration(
@@ -82,91 +86,4 @@ public sealed class CPUAnalysisAgentFactory
         return JsonSerializer.Deserialize<CPUAnalysisAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }
 
-    [KernelFunction("scale_up_app_service_plan_by_sku")]
-    [Description("Scale up the app service plan by sku")]
-    public async Task<string> ScaleUpAppServicePlanBySku(
-    [Description("resourceId of the app")] string resourceId)
-    {
-        var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
-        var currentSku = await _armHelper.GetCurrentSkuAsync(appServicePlanId);
-        var nextSku = ArmHelper.GetNextSku(currentSku);
-        var success = await _armHelper.ScaleUpAppServicePlanByNameAsync(resourceId, nextSku);
-        if (success)
-        {
-            return $"The app service plan for {resourceId} has been scaled up to {nextSku.Name}";
-        }
-        return $"There was an issue scaling up your app service plan";
-    }
-
-    [KernelFunction("collect_memory_dump_for_app")]
-    [Description("Collect Memory Dump for App")]
-    public async Task<string> CollectMemoryDumpForApp(
-    [Description("resourceId of the app")] string resourceId)
-    {
-        // call arm helper
-        var responseString = await _armHelper.TakeMemoryDumpAsync(resourceId);
-
-        if (String.IsNullOrEmpty(responseString))
-        {
-            return $"There was an issue collecting the memory dump for {resourceId}";
-        }
-        return $"The memory dump for {resourceId} has been collected, the link is: {responseString}";
-    }
-
-    [KernelFunction("autoscale_app_service")]
-    [Description("Create AutoScale Settings for App to Autoscale App")]
-    public async Task<string> AutoScaleApp(
-        [Description("resourceId of the app")] string subscriptionId,
-        string resourceGroupName,
-        string autoScaleSettingName,
-        string location,
-        string resourceId,
-        int minCount,
-        int maxCount,
-        int targetCount,
-        string profileName = "DefaultProfile",
-        string metricName = "CpuPercentage",
-        string operatorProperty = "GreaterThan",
-        double threshold = 70.0,
-        string timeAggregation = "Average",
-        string statistic = "Average",
-        string timeGrain = "PT1M",
-        string timeWindow = "PT5M",
-        string scaleDirection = "Increase",
-        string scaleType = "ChangeCount",
-        string scaleValue = "1",
-        string cooldown = "PT5M")
-    {
-
-        var response = await _armHelper.CreateAutoScaleSetting(
-             subscriptionId,
-             resourceGroupName,
-             autoScaleSettingName,
-             location,
-             resourceId,
-             minCount,
-             maxCount,
-             targetCount, // Argument 8: Changed from string to int
-             profileName,
-             metricName,
-             operatorProperty,
-             threshold,
-             timeAggregation,
-             statistic,
-             timeGrain,
-             timeWindow,
-             scaleDirection,
-             scaleType,
-             scaleValue,
-             cooldown
-         );
-
-
-        if (String.IsNullOrEmpty(response))
-        {
-            return "There was an issue creating the auto-scaling configuration.";
-        }
-
-        return "Auto-scaling configuration has been successfully applied. ";
-    }
 }

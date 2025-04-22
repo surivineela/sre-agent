@@ -133,23 +133,31 @@ namespace Agent.Plugins
         public async Task<IReadOnlyList<ThreadTimeSeriesData>> GetThreadMetrics(
             string resourceId)
         {
-            Console.WriteLine($"[get_webapp_thread_metrics] Invoked with resourceId: {resourceId}");
-
-            var metrics = new List<Metric>
+            try
             {
-                new Metric { Name = "Thread", Unit = "Count", Aggregation = "Total" }
-            };
+                Console.WriteLine($"[get_webapp_thread_metrics] Invoked with resourceId: {resourceId}");
 
-            var metricsData = await _armHelper.FetchMetricsAsync(
-                resourceId.ToString(),
-                metrics);
+                var metrics = new List<Metric>
+                {
+                    new Metric { Name = "Threads", Unit = "count", Aggregation = "Average" }
+                };
 
-            return metricsData
-                .Select(m => new ThreadTimeSeriesData(
-                    TimeStamp: m.Timestamp,
-                    // m.Value is cpu time in seconds in a minute
-                    ThreadCount: (int)m.Value))
-                .ToArray();
+                var metricsData = await _armHelper.FetchMetricsAsync(
+                    resourceId,
+                    metrics);
+
+                return metricsData
+                    .Select(m => new ThreadTimeSeriesData(
+                        TimeStamp: m.Timestamp,
+                        // m.Value is thread count
+                        ThreadCount: m.Value))
+                    .ToArray();
+            }
+            catch (Exception ex)
+            {
+                throw;
+            }
+
         }
     }
 }

@@ -28,7 +28,8 @@ public class AppServicePlanNode : ArmResourceNode
         string resourceType,
         string resourceId,
         string subscriptionId,
+        string resourceGroupName,
         string resourceName,
         string? location = null)
-        : base(resourceType, resourceId, subscriptionId, resourceName, location) { }
+        : base(resourceType, resourceId, subscriptionId, resourceGroupName, resourceName, location) { }
 }

@@ -46,7 +46,6 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
-using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -64,6 +63,7 @@ using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
+using FirstPartyAgent.Core.FirstPartyAgents;
 
 var firstPartySubAgentsFactory = new FirstPartySubAgentsFactory();
 var isFirstAgent = firstPartySubAgentsFactory.IsFirstPartyAgent();
@@ -120,7 +120,6 @@ builder.Host.UseSerilog();
         .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
         .AddSingleton<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>()
         .AddSingleton<AppReliabilityAgentFactory>()
-        .AddSingleton<IMetaAgentAppCodeAnalysisPlugin, AppCodeAnalysisPlugin>()
         .AddSingleton<AppCodeAnalysisAgentFactory>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
         .AddSingleton<ContainerImagePullFailureAgentFactory>()
@@ -159,11 +158,16 @@ builder.Host.UseSerilog();
         .AddTransient<GitHubIssuePluginDefinition>()
         .AddTransient<AzureSupportCenterPluginDefinition>()
         .AddTransient<ContainerImagePullFailurePluginDefinition>()
+        .AddTransient<CpuAnalysisPluginDefinition>()
+        .AddTransient<AppCodeAnalysisPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
         .AddTransient<IMetaAgentTlsBestPracticesPlugin, TlsBestPracticesPlugin>()
         .AddTransient<IMetaAgentKubernetesAgentPlugin, KubernetesAgentPlugin>()
+        .AddTransient<IMetaAgentWebAppDownPlugin, WebAppDownPlugin>()
+        .AddTransient<IMetaAgentCPUAnalysisPlugin, CPUAnalysisAgentPlugin>()
+        .AddTransient<IMetaAgentAppCodeAnalysisPlugin, AppCodeAnalysisAgentPlugin>()
         .AddTransient<IKubePlugin, KubePlugin>()
         .AddTransient<IMetaAgentAppServiceRemediationPlugin, AppServiceRemediationPlugin>()
         .AddTransient<IChartPlugin, ChartPlugin>()
@@ -175,16 +179,16 @@ builder.Host.UseSerilog();
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()
         .AddSingleton<TlsBestPracticesScanner>()
-        .AddSingleton<IMetaAgentWebAppDownPlugin, WebAppDownPlugin>()
-        .AddSingleton<IMetaAgentCPUAnalysisPlugin, CPUAnalysisPlugin>()
         .AddSingleton<IMetaAgentStorageAccountPlugin, StorageAccountPlugin>()
         .AddSingleton<WebAppDownAgentFactory>()
         .AddSingleton<CPUAnalysisAgentFactory>()
+        .AddSingleton<AppCodeAnalysisAgentFactory>()
         .AddSingleton<SourceCodeScanner>()
         .AddSingleton<CVEScanner>()
         .AddSingleton<FeedbackRCAScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<DailyReportScanner>()
+        .AddSingleton<AppServiceScanner>()
         .AddSingleton<DailyReportSummaryAgentFactory>()
         .AddSingleton<IPostToTeamsPlugin, PostToTeamsPlugin>()
         .AddSingleton<IApprovalPlugin, ApprovalPlugin>()
@@ -207,6 +211,8 @@ builder.Host.UseSerilog();
         .AddSingleton<IMetricsRegistry, MetricsRegistry>()
         .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()
         .AddSingleton<AppInsightsPlugin>()
+        .AddSingleton<ICpuAnalysisPlugin, CpuAnalysisPlugin>()
+        .AddSingleton<IAppCodeAnalysisPlugin, AppCodeAnalysisPlugin>()
 
 
         // Register the communication activities

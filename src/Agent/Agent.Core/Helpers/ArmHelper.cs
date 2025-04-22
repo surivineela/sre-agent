@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net.Http.Headers;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
@@ -10,14 +12,16 @@ using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.CosmosDB;
 using Azure.ResourceManager.CosmosDB.Models;
+using Azure.ResourceManager;
 using Azure.ResourceManager.EventHubs;
-using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using Azure.ResourceManager.ServiceBus.Models;
+using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
@@ -41,12 +45,16 @@ public class ArmHelper
 {
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IArmClientFactory _armClientFactory;
+    private readonly IAuthenticationService _authService;
+    private readonly AzureSettings _azureSettings;
 
     // Crawler MI is used for production environment as current solution
-    public ArmHelper(IHttpClientFactory httpClientFactory, IArmClientFactory armClientFactory)
+    public ArmHelper(IHttpClientFactory httpClientFactory, IArmClientFactory armClientFactory, IAuthenticationService authService, AzureSettings azureSettings)
     {
         _httpClientFactory = httpClientFactory;
         _armClientFactory = armClientFactory;
+        _authService = authService;
+        _azureSettings = azureSettings;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -498,8 +506,7 @@ public class ArmHelper
                 return string.Empty;
             }
 
-            var requestUrl = $"https://management.azure.com/{appServiceResource}/extensions/daas/sessions?api-version=2015-08-01";
-
+            var requestUrl = $"https://management.azure.com{appServiceResource}/extensions/daas/sessions?api-version=2015-08-01";
             var payload = new
             {
                 Mode = "Collect",
@@ -1028,33 +1035,96 @@ public class ArmHelper
         return bootDiagnosticLogs;
     }
 
-    public async Task<string> ExecuteAppInsightsQuery(string queryString)
+    public async Task<string> GetAppSettings(string resourceId)
+    {
+        var requestUrl = $"https://management.azure.com{resourceId}/config/appSettings/list?api-version=2022-03-01";
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var cred = _authService.GetArmOperationCredential();
+        var token = await cred.GetTokenAsync(new TokenRequestContext(["https://management.azure.com/.default"]), CancellationToken.None);
+
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+
+        HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
+
+        var appSettings = await responseMessage.Content.ReadAsStringAsync();
+        
+        return appSettings;
+    }
+
+    public async Task<string> GetAppInsightsAppIdBySubscription(string subscriptionId, string instrumentationKey)
     {
         try
         {
-            var appInsightsSettings = new AppInsightsSettings();
-            string baseURL = "https://api.applicationinsights.io/v1/apps/{0}/query";
-            string appId = appInsightsSettings.ApplicationId;
-
+            var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
-            object requestPayload = new
-            {
-                query = queryString
-            };
-            string jsonBody = JsonSerializer.Serialize(requestPayload);
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, string.Format(baseURL, appId))
-            {
-                Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
-            };
-
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
 
-            var content = await responseMessage.Content.ReadAsStringAsync();
-            return content;
+            if (responseMessage.IsSuccessStatusCode)
+            {
+                var content = await responseMessage.Content.ReadAsStringAsync();
+                var jsonDoc = JsonDocument.Parse(content);
+                var root = jsonDoc.RootElement;
+
+                 foreach (var component in root.GetProperty("value").EnumerateArray())
+                {
+                    if (component.TryGetProperty("properties", out var properties) &&
+                        properties.TryGetProperty("InstrumentationKey", out var key) &&
+                        key.GetString() == instrumentationKey)
+                    {
+                        var appIdFound = properties.TryGetProperty("AppId", out var appId);
+                        return appIdFound ? appId.GetString()! : string.Empty ;
+                    }
+                }
+
+                return string.Empty; // Return empty if no match found  
+            }
+            else
+            {
+                // Handle unsuccessful response  
+                var errorContent = await responseMessage.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to get App Insights resource ID. Response: {errorContent}");
+            }
         }
         catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while getting the App Insights resource ID.", ex);
+        }
+    }
+
+    public async Task<string> ExecuteAppInsightsQuery(string appInsightsAppId, string queryString)
+    {
+        try
+        {            
+            var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
+            
+            var httpClient = _httpClientFactory.CreateClient();
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
+
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+            // Send the query
+            var response = await httpClient.PostAsJsonAsync(endpoint, new { query = queryString });
+
+            // Read and display the result
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return content;
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+        catch (Exception)
         {
             throw;
         }
@@ -1062,10 +1132,11 @@ public class ArmHelper
 
     public async Task<bool> SwapAppServiceSlotsAsync(string resourceId, bool preserveVNetValue, string sourceSlotName, string targetSlotName)
     {
+
         try
         {
             // Construct the request URL for swapping slots  
-            string requestUrl = $"https://management.azure.com/subscriptions/{resourceId}/slots/{sourceSlotName}/slotsswap?api-version=2022-03-01";
+            string requestUrl = $"https://management.azure.com{resourceId}/slots/{sourceSlotName}/slotsswap?api-version=2022-03-01";
 
             // Prepare the request body  
             var requestBody = new
@@ -1077,11 +1148,21 @@ public class ArmHelper
             // Serialize the request body to JSON  
             string jsonBody = JsonSerializer.Serialize(requestBody);
 
+
+            var cred = _authService.GetArmOperationCredential();
+
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+
             // Create the HTTP request  
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
+
+
+            // Attach the token to the request  
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
             // Create and send the HTTP request  
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
@@ -1139,8 +1220,8 @@ public class ArmHelper
             var events = jsonResponse["value"]?.Children<JObject>();
 
             // Extract deployment and swap details  
-            var deployments = ExtractOperationDetails(events, "Microsoft.Resources/deployments/write");
-            var swaps = ExtractOperationDetails(events, "Microsoft.Web/sites/slots/slotsswap/action");
+            var deployments = ExtractOperationDetails(events, "deploy");
+            var swaps = ExtractOperationDetails(events, "slotsSwap");
 
             return (deployments, swaps);
         }
@@ -1159,8 +1240,8 @@ public class ArmHelper
             var operationName = evt["operationName"]?["value"]?.ToString();
             if (operationName?.Contains(operationFilter) == true)
             {
-                var status = evt["status"]?.ToString() ?? string.Empty;
-                var isSuccessful = string.Equals(status, "Succeeded", StringComparison.OrdinalIgnoreCase);
+                var status = evt["properties"]?["statusCode"]?.ToString() ?? string.Empty;
+                var isSuccessful = status.Contains("Accepted", StringComparison.OrdinalIgnoreCase);
 
                 var detail = new OperationDetail
                 {
@@ -1169,7 +1250,7 @@ public class ArmHelper
                     Timestamp = DateTime.TryParse(evt["eventTimestamp"]?.ToString(), out var timestamp) ? (DateTime?)timestamp : null,
                     ResourceId = evt["resourceId"]?.ToString() ?? string.Empty,
                     Caller = evt["caller"]?.ToString() ?? string.Empty,
-                    ErrorMessage = isSuccessful ? null : evt["properties"]?["statusMessage"]?.ToString(),
+                    ErrorMessage = isSuccessful ? null : evt["properties"]?["statusCode"]?.ToString(),
                     IsSuccessful = isSuccessful
                 };
 

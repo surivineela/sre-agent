@@ -10,7 +10,5 @@ namespace Agent.Core.Configuration
     {
         [Required]
         public string ConnectionString { get; set; } = string.Empty;
-
-        public string ApplicationId { get; set; } = string.Empty;
     }
 }

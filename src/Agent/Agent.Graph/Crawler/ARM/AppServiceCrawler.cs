@@ -237,6 +237,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 resourceType: "Microsoft.Web/serverfarms",
                 resourceId: webApp.Data.AppServicePlanId,
                 subscriptionId: planId.SubscriptionId,
+                resourceGroupName: planId.ResourceGroupName,
                 resourceName: planId.Name,
                 location: webApp.Data.Location);
 

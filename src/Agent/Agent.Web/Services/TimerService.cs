@@ -17,6 +17,8 @@ using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
+using Agent.Runtime.SubAgents.WebAppDownAgent;
+using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
@@ -73,6 +75,7 @@ public class TimerService : IHostedService, IDisposable
     private DailyReportScanner _dailyReportScanner;
     private SourceCodeScanner _sourceCodeScanner;
     private CVEScanner _cveScanner;
+    private AppServiceScanner _appServiceScanner;
     private ScoreCardService _scoreCardService;
     private FeedbackRCAScanner _feedbackRCAScanner;
 
@@ -99,6 +102,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _cveCrawlerTimerIsRunning = false;
     private TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _appServiceCrawlerTimer = null;
+    private bool _appServiceCrawlerTimerIsRunning = false;
+    private TimeSpan _appServiceTimerInterval = TimeSpan.FromMinutes(10);
+
     private Timer? _scoreCardTimer = null;
     private bool _scoreCardTimerIsRunning = false;
     private TimeSpan _scoreCardTimerInterval = TimeSpan.FromMinutes(10);
@@ -124,6 +131,7 @@ public class TimerService : IHostedService, IDisposable
         TlsBestPracticesScanner tlsBestPracticesScanner,
         DailyReportScanner dailyReportScanner,
         SourceCodeScanner sourceCodeScanner,
+        AppServiceScanner appServiceScanner,
         CVEScanner cveScanner,
         ILogger<TimerService> logger,
         IServiceProvider serviceProvider,
@@ -149,6 +157,7 @@ public class TimerService : IHostedService, IDisposable
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
         _dailyReportScanner = dailyReportScanner;
         _sourceCodeScanner = sourceCodeScanner;
+        _appServiceScanner = appServiceScanner;
         _cveScanner = cveScanner;
         _scoreCardService = scoreCardService;
         _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
@@ -190,6 +199,9 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInformation($"Starting CVE timer...");
         StartCVETimer(cancellationToken);
+
+        _logger.LogInformation("Starting App Service timer...");
+        //StartAppServiceTimer(cancellationToken);
 
         StartAllGenericSubAgentTimers(cancellationToken);
 
@@ -503,6 +515,31 @@ public class TimerService : IHostedService, IDisposable
                 _scoreCardTimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _scoreCardTimerInterval);
+    }
+
+    public void StartAppServiceTimer(CancellationToken cancellationToken)
+    {
+        _appServiceCrawlerTimer = new Timer(async _ =>
+        {
+            if (_appServiceCrawlerTimerIsRunning)
+            {
+                _logger.LogInformation("App service scanner is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _appServiceCrawlerTimerIsRunning = true;
+                await _appServiceScanner.Scan(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing app service timer.");
+            }
+            finally
+            {
+                _appServiceCrawlerTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _appServiceTimerInterval);
     }
 
     public void SendWelcomeToPagerDutyMessageTimer(CancellationToken cancellationToken)

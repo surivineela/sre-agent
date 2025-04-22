@@ -110,8 +110,13 @@ public class MetaAgentEvals
         IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
         IFirstPartySubAgentsFactory? firstPartySubAgentsFactory = null,
         IThreadRepository threadRepository = null,
-        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null)
+        IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null,
+        IMetaAgentAppCodeAnalysisPlugin appCodeAnalysisPlugin = null,
+        IMetaAgentCPUAnalysisPlugin cpuAnalysisPlugin = null,
+        IAppCodeAnalysisPlugin appCodePlugin = null,
+        ICpuAnalysisPlugin cpuPlugin = null)
     {
+
         return new MetaAgent(
             chatClient,
             logger ?? Mock.Of<ILogger<MetaAgent>>(),
@@ -142,7 +147,12 @@ public class MetaAgentEvals
             firstPartySubAgentsFactory ?? Mock.Of<IFirstPartySubAgentsFactory>(),
             threadRepository ?? Mock.Of<IThreadRepository>(),
             sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>(),
-            Mock.Of<IConnectedIntegrationsPlugin>());
+            Mock.Of<IConnectedIntegrationsPlugin>(),
+            appCodeAnalysisPlugin ?? Mock.Of<IMetaAgentAppCodeAnalysisPlugin>(),
+            cpuAnalysisPlugin ?? Mock.Of<IMetaAgentCPUAnalysisPlugin>(),
+            appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
+            cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>()
+        );
     }
 
     [TestMethod]

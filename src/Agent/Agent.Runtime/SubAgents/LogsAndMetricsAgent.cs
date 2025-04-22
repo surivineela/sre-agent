@@ -26,12 +26,13 @@ namespace Agent.Runtime.SubAgents
 
         public override IList<AITool> Tools()
         {
+            var metricsPluginDefinition = new MetricsPluginDefinition(_metricsPlugin);
             return new List<AITool>
             {
-                AIFunctionFactory.Create(_metricsPlugin.GetFunctionAppRequestAvailability),
-                AIFunctionFactory.Create(_metricsPlugin.GetWebAppCpuMetrics),
-                AIFunctionFactory.Create(_metricsPlugin.GetMemoryMetrics),
-                AIFunctionFactory.Create(_metricsPlugin.GetSuccessfulRequestVolumeAsync),
+                AIFunctionFactory.Create(metricsPluginDefinition.GetFunctionAppRequestAvailability),
+                AIFunctionFactory.Create(metricsPluginDefinition.GetWebAppCpuMetrics),
+                AIFunctionFactory.Create(metricsPluginDefinition.GetMemoryMetrics),
+                AIFunctionFactory.Create(metricsPluginDefinition.GetSuccessfulRequestVolumeAsync),
             };
         }
 

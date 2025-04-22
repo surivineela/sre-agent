@@ -9,7 +9,7 @@ using System.ComponentModel;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class CPUAnalysisPlugin : IMetaAgentCPUAnalysisPlugin
+public class CPUAnalysisAgentPlugin: IMetaAgentCPUAnalysisPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly CPUAnalysisAgentFactory _cpuAnalysisAgentFactory;
@@ -17,7 +17,7 @@ public class CPUAnalysisPlugin : IMetaAgentCPUAnalysisPlugin
 
     public Guid? ThreadId { get; set; }
 
-    public CPUAnalysisPlugin(
+    public CPUAnalysisAgentPlugin(
         DurableTaskClient durableTaskClient,
         CPUAnalysisAgentFactory cpuAnalysisAgentFactory,
         ArmHelper armHelper)
@@ -49,10 +49,13 @@ public class CPUAnalysisPlugin : IMetaAgentCPUAnalysisPlugin
     [KernelFunction("start_cpu_analysis_workflow")]
     [Description("Start the workflow to resolve multiple apps with high CPU.")]
     public async Task<string> StartCPUAnalysisAgent(
-        [Description("The list of apps to be modified")] CPUAnalysisInput input,
-        Guid threadId)
+        [Description("The list of apps to be modified")] CPUAnalysisInput input)
     {
-        var instanceId = await _cpuAnalysisAgentFactory.StartOrchestration(input, threadId);
+        if (ThreadId == null)
+        {
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
+        }
+        var instanceId = await _cpuAnalysisAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to adopt best reliability practice, the workflow instance id is: {instanceId}";
     }
 }

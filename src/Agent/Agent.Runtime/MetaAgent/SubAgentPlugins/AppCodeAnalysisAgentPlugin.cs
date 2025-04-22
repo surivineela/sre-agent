@@ -12,14 +12,14 @@ using System.ComponentModel;
 
 namespace Agent.Runtime.MetaAgent;
 
-public class AppCodeAnalysisPlugin : IMetaAgentAppCodeAnalysisPlugin
+public class AppCodeAnalysisAgentPlugin: IMetaAgentAppCodeAnalysisPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly AppCodeAnalysisAgentFactory _appCodeAnalysisAgentFactory;
 
     public Guid? ThreadId { get; set; }
 
-    public AppCodeAnalysisPlugin(
+    public AppCodeAnalysisAgentPlugin(
         DurableTaskClient durableTaskClient,
         AppCodeAnalysisAgentFactory appCodeAnalysisFactory)
     {
@@ -52,9 +52,15 @@ public class AppCodeAnalysisPlugin : IMetaAgentAppCodeAnalysisPlugin
         [Description("The list of apps to be modified")] AppCodeAnalysisInput input,
         Guid threadId)
     {
-        var instanceId = await _appCodeAnalysisAgentFactory.StartOrchestration(input, threadId);
+        if (ThreadId == null)
+        {
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
+        }
+        var instanceId = await _appCodeAnalysisAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to fix the apps' code issues, the workflow instance id is: {instanceId}";
     }
+
+
 
 }
 

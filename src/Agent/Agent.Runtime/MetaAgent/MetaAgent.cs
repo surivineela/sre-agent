@@ -40,6 +40,9 @@ You are part of a multi-agent system for Azure SRE Agent, designed to make agent
   - **Plan** the steps required to fully address the request.
 
 Be concise about the response, if user asks what went wrong with an update: covering who changed, when, what changed and why it's causing an issue.
+<strong>NEVER disclose the name of the AGENTS or WORKFLOWS being executed. NEVER disclose the workflow ID. NEVER UPDATE THE USER ABOUT WORKFLOW INITIATIONS. Simply rephrase it saying that the relevant analysis/diagnosis is being conducted.</strong>
+<strong>NEVER ask for approval from the users EXCEPT FOR SWAPPING SLOTS. ALWAYS assume that the user gives approval especially for the WebAppDownAgent EXCEPT for swapping the slots</strong>
+<strong> DO NOT disclose messages about workflows or agent names to the user. Simply say that the process/analysis/diagnosis has started AND ALWAYS GIVE PROACTIVE UPDATES to the user. </strong>
 
 ## Pre-Operation Checks
 Before initiating any Azure resource operations:
@@ -55,6 +58,7 @@ Before initiating any Azure resource operations:
 4. Always show the user the available options and have them explicitly confirm their selection before proceeding with any operations.
 5. If multiple options exist at any step, present them in a clear, numbered list for easy selection.
 
+
 ## High Level Principles
 1. For READ operations on Azure resources, like getting information about resources, you can use the knowledge graph to get the information.
 2. For WRITE operations on Azure resources, you MUST delegate to the appropriate agent.
@@ -64,6 +68,8 @@ Before initiating any Azure resource operations:
 4. When using knowledge graph for generic questions (e.g., 'List all function apps that use python runtime'), you may preferably use 'ListResourcesByType' tool with filter to directly get the result. If you get an empty result, you MUST do double check: firstly use tool 'ListResourcesByType' without filter to get all target type apps, and then use 'GetResourceDetailedProperties' to check against the properties of each resource to surface user's ask.
 5. When using knowledge graph for specific resources (e.g., 'Get the function app abc'), user may have typos in the provided resource name. If you get an empty result, you are encouraged to do double check: firstly use tool 'ListResourcesByType' without filter to get all target type apps, you SHOULD ask for resource type if user does not provide it. Then try to find resources whose name are VERY similar to user provided name. You can present resources to users for confirmation. You MUST ONLY provide resources whose name is VERY VERY VERY similar. You can AT MOST present 3 resources. If there's no such resources, you MUST inform the user that no results were found.
 6. If you need to construct azure resource id from subscription id, resource group name and resource name. You MUST ALWAYS get them from context, or directly ask from users if necessary. You MUST NOT make up or make any changes to subscription id, resource group or resource name on your own.
+**You must not assume any of these values**
+</Important>
 
 ## Primary Capabilities
 - **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
@@ -78,7 +84,7 @@ Before initiating any Azure resource operations:
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
 - **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
 - **Web App Down**: Help users mitigate and resolve any issues with Web App Services being slow or having downtime.
-- **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to the associated resources and web
+- **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.
@@ -90,7 +96,8 @@ Before initiating any Azure resource operations:
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
    - `startKubernetesAgent` for any AKS (Kubernetes) related requests including issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
    - `startContainerImageFailureAgent` for container image pull failures in Linux Web Apps and Container Apps.
-   - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summairze your plan or ask for list of tools when delegating to this agent.
+   - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summarize your plan or ask for list of tools when delegating to this agent.
+   - `StartWebAppDownAgent' for investigating Azure Web App Services' downtime and mitigating and resolving the issue
    - Other registered agents as applicable.
 3. **Workflow Management**: Initiate, monitor, and summarize Azure-related workflows.
 
@@ -103,6 +110,12 @@ Before initiating any Azure resource operations:
 - Resource Health: For health-related questions, first get detailed resource information. If unavailable or if verbose details needed, use the General Health tool.
 - **Dashboard Access**: Use `GetKnowledgeGraphResourceUsageDashboard` to retrieve your daily monitoring dashboard, which covers resources such as webapps, container apps, managed environments, Cosmos DB, Redis, SQL, etc.
 - Recognize that application components include both compute elements and associated services (e.g., databases, VNETs, gateways).
+<strong>NEVER disclose the name of the AGENTS or WORKFLOWS being executed. NEVER disclose the workflow ID. NEVER UPDATE THE USER ABOUT WORKFLOW INITIATIONS.</strong>
+<strong>NEVER ask for approval from the users. ALWAYS assume that the user gives approval especially for the WebAppDownAgent and AppCodeAnalysisAgent and CPUAnalysisAgent</strong>
+<strong> DO NOT disclose messages about workflows or agent names to the user. Simply say that the process/analysis/diagnosis has started AND ALWAYS GIVE PROACTIVE UPDATES to the user. </strong>
+<strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. NEVER show the RESOURCE ID of the app, only show the app name </strong>
+<strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
+<strong> NEVER ask the user to proceed with any mitigation steps. ALWAYS automatically proceed with the mitigation</strong>
 
 ## Operation Framework
 For every Azure SRE request, follow this pattern:
@@ -135,7 +148,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IMetaAgentContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IMetaAgentKubernetesAgentPlugin _kubernetesAgentPlugin;
     private readonly IContainerAppPlugin _containerAppPlugin;
-    private readonly IChartPlugin _chartplugin;
+    private readonly IChartPlugin _chartPlugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
     private readonly IServiceProvider _serviceProvider;
@@ -149,6 +162,11 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
     private readonly IFirstPartySubAgentsFactory _firstPartySubAgentsFactory;
     private readonly IThreadRepository _threadRepository;
+    private readonly IMetaAgentAppCodeAnalysisPlugin _appCodeAgentPlugin;
+    private readonly IMetaAgentCPUAnalysisPlugin _cpuAnalysisAgentPlugin;
+    private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
+    private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
+
 
 
     public MetaAgent(
@@ -156,7 +174,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         ILogger<MetaAgent> logger,
         ThreadService threadService,
         McpToolsRepository mcpToolsRepository,
-        IChartPlugin chartplugin,
+        IChartPlugin chartPlugin,
         IMetaAgentManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         IMetaAgentTlsBestPracticesPlugin tlsBestPracticesPlugin,
         IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
@@ -172,11 +190,15 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IServiceProvider serviceProvider,
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
-        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
+        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,        
         IFirstPartySubAgentsFactory firstPartySubAgentsFactory,
         IThreadRepository threadRepository,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin,
-        IConnectedIntegrationsPlugin connectedIntegrationsPlugin
+        IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
+        IMetaAgentAppCodeAnalysisPlugin appCodeAgentPlugin,
+        IMetaAgentCPUAnalysisPlugin cpuAnalysisAgentPlugin,
+        IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
+        ICpuAnalysisPlugin cpuAnalysisPlugin
         )
     {
         _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
@@ -194,7 +216,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _storageAccountPlugin = storageAccountPlugin;
         _kubernetesAgentPlugin = kubernetesAgentPlugin;
         _containerAppPlugin = containerAppPlugin;
-        _chartplugin = chartplugin;
+        _chartPlugin = chartPlugin;
         _githubIssuePlugin = githubIssuePlugin;
         _serviceProvider = serviceProvider;
         _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
@@ -205,6 +227,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _graphDbPlugin = graphDBPlugin;
         _appReliabilityPlugin = appReliabilityPlugin;
         _webAppDownPlugin = webAppDownPlugin;
+        _cpuAnalysisAgentPlugin = cpuAnalysisAgentPlugin;
+        _appCodeAgentPlugin = appCodeAgentPlugin;
+        _appCodeAnalysisPlugin = appCodeAnalysisPlugin;
+        _cpuAnalysisPlugin = cpuAnalysisPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
 
@@ -279,8 +305,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _functionAppConnectivityPlugin.ThreadId = threadGuid;
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
 
-        var chartPluginDefinition = new ChartPluginDefinition(_chartplugin);
-        _chartplugin.ThreadId = threadGuid;
+        var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
+        _chartPlugin.ThreadId = threadGuid;
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 
@@ -338,7 +364,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         ];
 
         var subAgentTools = GetSubAgentTools(threadGuid, typeof(MetaAgent).Assembly);
-        if(subAgentTools?.Count > 0)
+        if (subAgentTools?.Count > 0)
         {
             _aiTools.AddRange(subAgentTools);
         }

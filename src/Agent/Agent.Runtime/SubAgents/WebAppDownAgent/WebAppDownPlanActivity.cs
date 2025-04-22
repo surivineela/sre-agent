@@ -24,7 +24,7 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
         {
             var existingAppsDetails = string.Join(Environment.NewLine,
                 input.Apps.Select(x => $"The app {x.ResourceId} is down!"));
-            var path = Path.Combine("..", "Agent.Runtime", "SubAgents", "WebAppDownAgent", "AppReliabilityPlan.txt");
+            var path = Path.Combine("..", "Agent.Runtime", "SubAgents", "WebAppDownAgent", "WebAppDownPlan.txt");
             var systemPrompt = File.ReadAllText(path);
             var userMessage = $"Here are the apps that need to be fixed: {existingAppsDetails}";
             List<ChatMessage> messages = [

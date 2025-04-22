@@ -14,18 +14,15 @@ public class WebAppDownPlugin : IMetaAgentWebAppDownPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
     private readonly WebAppDownAgentFactory _webAppDownAgentFactory;
-    private readonly ArmHelper _armHelper;
 
     public Guid? ThreadId { get; set; }
 
     public WebAppDownPlugin(
         DurableTaskClient durableTaskClient,
-        WebAppDownAgentFactory webAppDownAgentFactory,
-        ArmHelper armHelper)
+        WebAppDownAgentFactory webAppDownAgentFactory)
     {
         _durableTaskClient = durableTaskClient;
         _webAppDownAgentFactory = webAppDownAgentFactory;
-        _armHelper = armHelper;
     }
 
     [KernelFunction("list_web_app_down_workflow")]
@@ -50,24 +47,14 @@ public class WebAppDownPlugin : IMetaAgentWebAppDownPlugin
     [KernelFunction("start_web_app_down_workflow")]
     [Description("Start the workflow to mitigate and resolve the web apps that are down or slow")]
     public async Task<string> StartWebAppDownAgent(
-        [Description("The list of apps to be modified")] WebAppDownInput input,
-        Guid threadId)
+        [Description("The list of apps to be modified")] WebAppDownInput input)
     {
-        var instanceId = await _webAppDownAgentFactory.StartOrchestration(input, threadId);
+        if (ThreadId == null)
+        {
+            throw new InvalidOperationException("ThreadId must be set before start orchestration.");
+        }
+
+        var instanceId = await _webAppDownAgentFactory.StartOrchestration(input, ThreadId.Value);
         return $"A workflow has been started to fix the apps facing slowness or downtime, the workflow instance id is: {instanceId}";
     }
-
-    // Tools to implement
-    /*
-     * 
-         -uses Arm API to get custom activity logs, specifically site management operations (e.g. swap operations) 
-
-        -tool to query Application Insights 
-
-        -use ARM API to run AppLens detectors 
-
-        -can trigger a deployment swap (for easy mitigation, if user wants)
-
-     */
 }
-

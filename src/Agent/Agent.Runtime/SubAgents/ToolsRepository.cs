@@ -77,9 +77,13 @@ public class ToolsRepository : IMcpConnectable
         RegisterPlugin<ContainerAppPluginDefinition>();
         RegisterPlugin<ReliabilityPluginDefinition>();
         RegisterPlugin<KubePluginDefinition>();
+        RegisterPlugin<AppCodeAnalysisPluginDefinition>();
+        RegisterPlugin<CpuAnalysisPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);
+        Register200<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
+        Register200<GitHubIssuePluginDefinition>(x => x.CreateGithubIssueComment);
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
         RegisterPlugin<ContainerImagePullFailurePluginDefinition>();

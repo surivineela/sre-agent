@@ -84,7 +84,7 @@ public class MetricsRegistry : IMetricsRegistry
         {
             Name = "resources_created_last_30_days",
             Description = "Count of resources created in the last 30 days",
-            Query = "g.V().has('createdTime', gte(new Date().getTime() - 30*24*60*60*1000)).count()",
+            Query = "g.V().has('createdTime', gte(datetime() - 30*24*60*60*1000)).count()",
             Type = MetricType.Gauge,
             ScrapeIntervalSeconds = 600
         });

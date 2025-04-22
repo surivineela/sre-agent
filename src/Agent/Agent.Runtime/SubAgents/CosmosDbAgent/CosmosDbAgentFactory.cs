@@ -52,7 +52,7 @@ namespace Agent.Runtime.SubAgents.CosmosDbAgent
             yield return () => controlFlowPluginDefinition.AskUserForInput;
 
             var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-            yield return () => approvalPluginDefinition.StartApprovalFlow;
+            //yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

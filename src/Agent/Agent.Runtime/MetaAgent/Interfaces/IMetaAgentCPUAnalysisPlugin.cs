@@ -25,6 +25,6 @@ namespace Agent.Runtime.MetaAgent
         /// <param name="input">The input data for the agent</param>
         /// <param name="context">The thread context</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartCPUAnalysisAgent(CPUAnalysisInput input, Guid threadId);
+        Task<string> StartCPUAnalysisAgent(CPUAnalysisInput input);
     }
 }
