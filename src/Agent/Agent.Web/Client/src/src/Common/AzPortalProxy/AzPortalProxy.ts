@@ -3,6 +3,8 @@ import { AgentSiteToAzPortalVerbs, AzPortalToAgentSiteVerbs } from "./AzPortalPr
 import { IEvent } from "./Models/IEvent";
 import { IEnvironmentInfo } from "./Models/IEnvironmentInfo";
 import { ITelemetryInfo } from "./Models/ITelemetryInfo";
+import { Guid } from "../Helpers/Guid";
+import { INotificationInfo, INotificationState } from "./Models/INotificationInfo";
 
 export default class AzPortalProxy {
   public shellSrc: string = '';
@@ -49,6 +51,31 @@ export default class AzPortalProxy {
 
   public log(info: ITelemetryInfo) {
     this.postMessage(AgentSiteToAzPortalVerbs.log, info);
+  }
+
+  public startNotification(title: string, description: string) {
+    const notification: INotificationInfo = {
+      title,
+      description,
+      id: Guid.newTinyGuid(),
+      state: 'start',
+    };
+
+    this.postMessage(AgentSiteToAzPortalVerbs.updateNotification, notification);
+    return notification.id;
+  }
+
+  public stopNotification(id: string, success: boolean, description: string) {
+    let state: INotificationState = success ? 'success' : 'fail';
+
+    const notification: INotificationInfo = {
+      id,
+      state,
+      description,
+      title: '',
+    };
+
+    this.postMessage(AgentSiteToAzPortalVerbs.updateNotification, notification);
   }
 
   private postMessage(verb: string, data: object | null) {

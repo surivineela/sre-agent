@@ -1,11 +1,12 @@
-export class AgentSiteToAzPortalVerbs{
+export class AgentSiteToAzPortalVerbs {
     public static readonly ready = 'ready';                // Initial ready message required by AzPortal so that they know when the blade is loaded
     public static readonly readyForData = 'readyForData';  // Portal absorbs the first ready message, so we need our own to indicate when the iframe is ready to receive data
     public static readonly message = 'message';
     public static readonly log = 'log';
+    public static readonly updateNotification = 'update-notification';
 }
 
-export class AzPortalToAgentSiteVerbs{
+export class AzPortalToAgentSiteVerbs {
     public static readonly sendEnvironmentInfo = 'send-environment-info';
     public static readonly sendToken = 'send-token';
     public static readonly sendTheme = 'send-theme';
