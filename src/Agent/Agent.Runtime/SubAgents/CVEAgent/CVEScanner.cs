@@ -47,8 +47,8 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
         public async Task Scan(CancellationToken cancellationToken)
         {
-            var cveAgentContexts = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.CVE && x.IsThreadActive)
+            var cveAgentContexts = (await _threadRepository.GetAllAgentContextsAsync())
+                ?.Where(x => x.AgentType == AgentTypeEnum.CVE && (x.ContextState != ContextStateEnum.Completed || x.ContextState != ContextStateEnum.Failed))
                 ?.ToList();
 
             if (cveAgentContexts != null && cveAgentContexts.Count > 0)

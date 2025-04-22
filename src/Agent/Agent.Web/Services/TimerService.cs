@@ -186,8 +186,7 @@ public class TimerService : IHostedService, IDisposable
         StartDailyReportTimer(cancellationToken);
 
         _logger.LogInformation($"Starting Source Code timer...");
-        // TODO: fix the agent starting multiple source code linking threads
-        // StartSourceCodeTimer(cancellationToken);
+        StartSourceCodeTimer(cancellationToken);
 
         _logger.LogInformation($"Starting CVE timer...");
         StartCVETimer(cancellationToken);

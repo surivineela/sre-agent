@@ -42,6 +42,7 @@ public interface IThreadRepository
 
     Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId);
     Task<IEnumerable<AgentContext>> GetAgentContextsForThreadAsync(Guid threadId);
+    Task<IEnumerable<AgentContext>> GetAllAgentContextsAsync();
     Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext);
     Task<AgentContext> UpdateAgentContextAsync(AgentContext agentContext);
     Task<bool> UpdateAgentContextAssignmentInfoAsync(

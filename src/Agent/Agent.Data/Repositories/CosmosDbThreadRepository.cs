@@ -870,6 +870,23 @@ public class CosmosDbThreadRepository : IThreadRepository
         return agentContexts;
     }
 
+    public async Task<IEnumerable<AgentContext>> GetAllAgentContextsAsync()
+    {
+        var agentContexts = new List<AgentContext>();
+        var query = _client.GetContainer<AgentContextDocument>(_databaseName).GetItemLinqQueryable<AgentContextDocument>()
+            .Where(m => m.DocumentType == "AgentContext");
+
+        using var iterator = query.ToFeedIterator();
+        while (iterator.HasMoreResults)
+        {
+            foreach (var agentContextDoc in await iterator.ReadNextAsync())
+            {
+                agentContexts.Add(agentContextDoc.ToDomainModel());
+            }
+        }
+        return agentContexts;
+    }
+
     public async Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext)
     {
         // Ensure IDs are set

@@ -377,6 +377,13 @@ namespace Agent.Data.Repositories
                 .AsEnumerable());
         }
 
+        public Task<IEnumerable<AgentContext>> GetAllAgentContextsAsync()
+        {
+            return Task.FromResult(_agentContexts
+                .Select(kvp => kvp.Value)
+                .AsEnumerable());
+        }
+
         public Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext)
         {
             _agentContexts[(agentContext.ThreadId, agentContext.Id)] = agentContext;

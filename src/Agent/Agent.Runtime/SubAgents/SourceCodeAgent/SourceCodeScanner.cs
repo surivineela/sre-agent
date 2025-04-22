@@ -44,11 +44,11 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
 
         public async Task Scan(CancellationToken cancellationToken)
         {
-            var sourceCodeAgentV2ThreadContext = (await _threadRepository.GetThreadContextsAsync())
-                ?.Where(x => x.AgentTypeEnum == AgentTypeEnum.SourceCode && x.IsThreadActive)
+            var sourceCodeAgentV2AgentContexts = (await _threadRepository.GetAllAgentContextsAsync())
+                ?.Where(x => x.AgentType == AgentTypeEnum.SourceCode && (x.ContextState != ContextStateEnum.Completed || x.ContextState != ContextStateEnum.Failed))
                 ?.ToList();
 
-            if (sourceCodeAgentV2ThreadContext != null && sourceCodeAgentV2ThreadContext.Count > 0)
+            if (sourceCodeAgentV2AgentContexts != null && sourceCodeAgentV2AgentContexts.Count > 0)
             {
                 _logger.LogInformation("SourceCodeAgentV2 thread context already exists. Skipping scan.");
                 return;
