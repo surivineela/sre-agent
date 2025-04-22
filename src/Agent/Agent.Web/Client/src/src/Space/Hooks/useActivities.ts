@@ -22,7 +22,12 @@ export const useActivities = (initialThreadId?: string | null) => {
   const canPollThread = useRef<boolean>(true);
 
   const addThread = useCallback((thread: Thread) => {
-    setThreads(prevThreads => [thread, ...prevThreads]);
+    setThreads(prevThreads => {
+      if (prevThreads.some((t: Thread) => t.id === thread.id)) {
+        return prevThreads;
+      }
+      return [thread, ...prevThreads];
+    });
     setActiveThreadId(thread.id);
     selectThread(thread);
   }, []);
