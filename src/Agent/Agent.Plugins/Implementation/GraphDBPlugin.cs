@@ -801,7 +801,7 @@ g.V().has('id', '{deploymentResourceId}')
                 {
                     { "var-ds", "azure-monitor-oob" },
                     { "var-ns", resourceType },
-                    { "var-sub", resource.ResourceType },
+                    { "var-sub", resource.SubscriptionId },
                     { "var-rg", resource.ResourceGroupName.ToLowerInvariant() },
                     { "var-resource", resource.ResourceName.ToLowerInvariant() }
                 };
