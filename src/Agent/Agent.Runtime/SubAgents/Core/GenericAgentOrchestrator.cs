@@ -27,6 +27,7 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
 
     internal virtual Task OnUserMessage(TaskOrchestrationContext context, List<ChatMessage> chatHistory, ChatMessage userMessage)
     {
+        chatHistory.Add(userMessage);
         return Task.CompletedTask;
     }
 
