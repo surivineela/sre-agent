@@ -18,6 +18,6 @@ namespace Agent.Runtime.MetaAgent
         /// </summary>
         /// <param name="input">The input data for the agent</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartFunctionAppConnectivityAgent(FunctionAppConnectivityAgentInput input);
+        Task<string> StartFunctionAppConnectivityAgent(string functionAppResourceId);
     }
 }

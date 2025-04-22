@@ -24,14 +24,14 @@ public class FunctionAppConnectivityPlugin : IMetaAgentFunctionAppConnectivityPl
     [KernelFunction("check_function_app_connectivity_to_storage_account")]
     [Description("Start the workflow to check the connectivity between Azure Function app and web or Azure Storage Account")]
     public async Task<string> StartFunctionAppConnectivityAgent(
-        [Description("Inputs to the agent that includes arm resource id for the Function app to investigate, a list of tools and thread context.")] FunctionAppConnectivityAgentInput input)
+        [Description("Inputs to the agent that includes arm resource id for the Function app to investigate, a list of tools and thread context.")] string functionAppResourceId)
     {
         if (ThreadId == null)
         {
             throw new InvalidOperationException("Thread context is not set. Please set the context before starting the workflow.");
         }
 
-        var instanceId = await _functionAppConnectivityAgentFactory.StartOrchestration(input, ThreadId.Value);
+        var instanceId = await _functionAppConnectivityAgentFactory.StartOrchestration(functionAppResourceId, ThreadId.Value);
         return $"A workflow has been started to check connectivity from Function app to the target destination: {instanceId}";
     }
 }

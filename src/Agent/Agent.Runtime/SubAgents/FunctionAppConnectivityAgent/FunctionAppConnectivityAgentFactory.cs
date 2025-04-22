@@ -39,12 +39,12 @@ public sealed class FunctionAppConnectivityAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-       FunctionAppConnectivityAgentInput input,
+       string functionAppResourceId,
        Guid threadId)
     {
         return await _durableTaskClient.ScheduleNewFunctionAppConnectivityAgentInstanceAsync(
             new FunctionAppConnectivityAgentInput(
-                FunctionAppResourceId: input.FunctionAppResourceId,
+                FunctionAppResourceId: functionAppResourceId,
                 ToolSignatures: _toolSignatures,
                 ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}"));
