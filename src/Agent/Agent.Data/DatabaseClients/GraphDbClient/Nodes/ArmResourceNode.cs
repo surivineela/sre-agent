@@ -2,12 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using System.Reflection;
 using System.Text.RegularExpressions;
 using Agent.Data.DatabaseClients.Attributes;
-using Gremlin.Net.Structure;
 
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
