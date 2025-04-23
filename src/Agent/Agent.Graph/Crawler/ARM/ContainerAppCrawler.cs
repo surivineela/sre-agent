@@ -164,6 +164,9 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         cappNode.TargetPort = capp.Configuration?.Ingress?.TargetPort;
         cappNode.ActiveRevisionMode = capp.Configuration?.ActiveRevisionsMode.ToString();
 
+        cappNode.ClientCertificateMode = capp.Configuration?.Ingress.ClientCertificateMode?.ToString();
+        cappNode.AllowInsecure = capp.Configuration?.Ingress.AllowInsecure;
+        cappNode.CorsPolicyJson = capp.Configuration?.Ingress.CorsPolicy is null ? null : JsonSerializer.Serialize(capp.Configuration?.Ingress.CorsPolicy);
         if (!string.IsNullOrEmpty(capp.Configuration?.Ingress?.Fqdn))
         {
             cappNode.HostNames.Add(capp.Configuration.Ingress.Fqdn);
@@ -178,6 +181,13 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
                 }
             }
         }
+
+        // dapr properties
+        var dapr = capp.Configuration?.Dapr;
+        cappNode.DaprEnabled = dapr?.IsEnabled;
+        cappNode.DaprAppId = dapr?.AppId;
+        cappNode.DaprAppPort = dapr?.AppPort;
+        cappNode.DaprLogLevel = dapr?.LogLevel?.ToString();
 
         // containers properties
         if (capp.Template?.Containers.Count > 0)

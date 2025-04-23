@@ -19,6 +19,21 @@ public class ContainerAppNode : ArmResourceNode
     [GraphProperty("transport")]
     public string? Transport { get; set; }
 
+    [GraphProperty("clientCertificateMode")] public string? ClientCertificateMode { get; set; }
+    [GraphProperty("allowInsecure")] public bool? AllowInsecure { get; set; }
+    [GraphProperty("corsPolicyJson")] public string? CorsPolicyJson { get; set; }
+
+    [GraphProperty("daprEnabled")]
+    public bool? DaprEnabled { get; set; }
+
+    [GraphProperty("daprAppId")]
+    public string? DaprAppId { get; set; }
+
+    [GraphProperty("daprAppPort")]
+    public int? DaprAppPort { get; set; }
+
+    [GraphProperty("daprLogLevel")]
+    public string? DaprLogLevel { get; set; }
     public List<string> HostNames { get; set; } = [];
 
     public List<Container> Containers { get; set; } = [];
