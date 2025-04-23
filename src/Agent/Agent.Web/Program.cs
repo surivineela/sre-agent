@@ -14,6 +14,7 @@ using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Services;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
@@ -61,9 +62,11 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Serilog;
+using Serilog.Filters;
 using Serilog.Sinks.AzureDataExplorer;
 using Serilog.Sinks.AzureDataExplorer.Extensions;
 using FirstPartyAgent.Core.FirstPartyAgents;
+using System;
 
 var firstPartySubAgentsFactory = new FirstPartySubAgentsFactory();
 var isFirstAgent = firstPartySubAgentsFactory.IsFirstPartyAgent();
@@ -72,10 +75,6 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.LoadAppSettings(builder.Environment.IsDevelopment());
 builder.ValidateAndRegisterAppSettings<AppSettings>();
-
-ConfigureLogger();
-
-builder.Host.UseSerilog();
 
 {
     // Configure Azure settings
@@ -354,6 +353,8 @@ builder.Host.UseSerilog();
     });
 
     builder.Services.AddCosmosClient();
+
+    ConfigureLogger();
 }
 
 // Register TeamsConnector service
@@ -483,56 +484,63 @@ ILoggerFactory GetLoggerFactory(ResourceBuilder resourceBuilder, AzureSettings a
 
 void ConfigureLogger()
 {
-    if (builder.Environment.IsDevelopment())
+    var internalKustoClusterSettings = new KustoClusterConfiguration
     {
-        // Enable Serilog self-logging to output internal errors to the console
-        Serilog.Debugging.SelfLog.Enable(Console.Out);
-    }
-
-    var loggerConfiguration = new LoggerConfiguration()
-            .ReadFrom.Configuration(builder.Configuration)
-            .Enrich.WithProperty("AgentName", Environment.GetEnvironmentVariable("AGENT_NAME"));
-
-    var kustoConfig = new Dictionary<string, string>
-    {
-        { "ClusterUri", GetKustoClusterConfiguration("ClusterUri") },
-        { "DatabaseName", GetKustoClusterConfiguration("DatabaseName") },
-        { "TableName", GetKustoClusterConfiguration("TableName") }
+        ClusterUri = GetInternalKustoClusterConfiguration("ClusterUri"),
+        DatabaseName = GetInternalKustoClusterConfiguration("DatabaseName"),
+        TableName = GetInternalKustoClusterConfiguration("TableName"),
+        Identity = GetInternalKustoClusterConfiguration("Identity")
     };
 
-    if (kustoConfig.Values.All(value => !string.IsNullOrEmpty(value)))
-    {
-        Log.Logger.Information("Configuring Kusto cluster sink with the following configuration: {KustoConfig}", kustoConfig);
-        var kustoSinkOptions = new AzureDataExplorerSinkOptions
+    var externalKustoClusterUri = GetKustoClusterConfiguration("ClusterUri");
+    var externalKustoClusterDatabaseName = GetKustoClusterConfiguration("DatabaseName");
+    var externalKustoClusterTableName = GetKustoClusterConfiguration("TableName");
+    var externalKustoClusterIdentity = GetKustoClusterConfiguration("Identity");
+    var externalKustoClusterSettings = (!string.IsNullOrEmpty(externalKustoClusterUri)
+        && !string.IsNullOrEmpty(externalKustoClusterDatabaseName)
+        && !string.IsNullOrEmpty(externalKustoClusterTableName)
+        && !string.IsNullOrEmpty(externalKustoClusterIdentity))
+        ? new KustoClusterConfiguration
         {
-            IngestionEndpointUri = kustoConfig["ClusterUri"],
-            DatabaseName = kustoConfig["DatabaseName"],
-            TableName = kustoConfig["TableName"]
-        };
-
-        if (!builder.Environment.IsDevelopment())
-        {
-            // When running in Azure, use managed identity for authentication else local user auth is used
-            var identity = GetKustoClusterConfiguration("Identity");
-            kustoSinkOptions = !string.IsNullOrEmpty(identity) && !string.Equals(identity, "System", StringComparison.OrdinalIgnoreCase)
-                ? kustoSinkOptions.WithAadUserAssignedManagedIdentity(identity)
-                : kustoSinkOptions.WithAadSystemAssignedManagedIdentity();
+            ClusterUri = GetKustoClusterConfiguration("ClusterUri"),
+            DatabaseName = GetKustoClusterConfiguration("DatabaseName"),
+            TableName = GetKustoClusterConfiguration("TableName"),
+            Identity = GetKustoClusterConfiguration("Identity")
         }
+        : null;
 
-        loggerConfiguration.WriteTo.AzureDataExplorerSink(kustoSinkOptions);
-        Log.Logger = loggerConfiguration.CreateLogger();
-        Log.Logger.Information("Configured Kusto cluster sink with the following configuration: {KustoConfig}", kustoConfig);
+    builder.Logging.ClearProviders();
+
+    if (builder.Environment.IsDevelopment())
+    {
+        builder.Logging.AddConsole();
     }
     else
     {
-        Log.Logger = loggerConfiguration.CreateLogger();
-        Log.Logger.Warning("Kusto cluster sink is not enabled. Missing configuration: {KustoConfig}", kustoConfig);
+        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? throw new ArgumentNullException("AGENT_NAME", "Environment variable AGENT_NAME is not set.");
+
+        builder.Services.AddSingleton<ILoggerProvider>(sp =>
+        {
+            var authenticationService = sp.GetRequiredService<IAuthenticationService>();
+
+            return new AzureDataExplorerLoggerProvider(
+                agentName: agentName,
+                internalKustoClusterConfiguration: internalKustoClusterSettings,
+                externalKustoClusterConfiguration: externalKustoClusterSettings,
+                authenticationService: authenticationService);
+        });
     }
 }
 
 string GetKustoClusterConfiguration(string key)
 {
     const string prefix = "AppSettings__Core__Azure__FirstParty__KustoClusterConfiguration_";
+    return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
+}
+
+string GetInternalKustoClusterConfiguration(string key)
+{
+    const string prefix = "AppSettings__Core__KustoClusterConfiguration_";
     return Environment.GetEnvironmentVariable($"{prefix}{key}") ?? string.Empty;
 }
 

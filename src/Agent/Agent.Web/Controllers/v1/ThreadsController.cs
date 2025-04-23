@@ -15,6 +15,7 @@ using System.Text;
 using Agent.Data.DataModels;
 using Agent.Runtime.MetaAgent;
 using System.Text.Json;
+using Agent.Logging;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -234,6 +235,8 @@ namespace Agent.Web.Controllers.v1
                 return NotFound();
 
             var messageFeedbackId = Guid.NewGuid();
+
+            logger.LogInternalInformation($"Creating feedback for thread {threadId} with messageFeedbackId {messageFeedbackId}. Request: {JsonSerializer.Serialize(request)}");
 
             var messageFeedback = await agentInboundCommunicationService.ProcessFeedbackAsync(new ThreadMessageFeedback
             (

@@ -21,5 +21,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public InstanceManagementSettings InstanceManagement { get; set; } = new();
+
+        [Required]
+        public KustoClusterConfiguration KustoClusterConfiguration { get; set; } = new();
     }
 }

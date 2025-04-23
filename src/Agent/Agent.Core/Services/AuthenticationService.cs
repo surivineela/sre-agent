@@ -34,6 +34,16 @@ public class AuthenticationService : IAuthenticationService
         return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
+    public TokenCredential GetKustoCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
     public TokenCredential GetDocumentDbCredential()
     {
         if (_hostEnvironment.IsDevelopment())

@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
@@ -58,6 +59,8 @@ namespace Agent.Runtime.SubAgents.CVEAgent
                 var rca = response.Where(response => response.Role == ChatRole.Assistant)
                     .Select(response => response.Text)
                     .LastOrDefault();
+
+                _logger.LogInternalInformation($"Generated RCA for messageFeedback id {messageFeedback.Id} for thread {messageFeedback.ThreadId}: {rca}");
 
                 if (!string.IsNullOrEmpty(rca))
                 {

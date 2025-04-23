@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
@@ -44,6 +45,9 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
 
         public async Task Scan(CancellationToken cancellationToken)
         {
+            _logger.LogInternalInformation("Test internal log");
+            _logger.LogExternalInformation("Test external log");
+
             var sourceCodeAgentV2AgentContexts = (await _threadRepository.GetAllAgentContextsAsync())
                 ?.Where(x => x.AgentType == AgentTypeEnum.SourceCode && (x.ContextState != ContextStateEnum.Completed || x.ContextState != ContextStateEnum.Failed))
                 ?.ToList();

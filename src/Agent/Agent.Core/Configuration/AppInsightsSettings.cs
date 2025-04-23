@@ -8,7 +8,6 @@ namespace Agent.Core.Configuration
 {
     public class AppInsightsSettings
     {
-        [Required]
         public string ConnectionString { get; set; } = string.Empty;
     }
 }

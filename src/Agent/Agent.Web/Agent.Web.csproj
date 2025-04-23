@@ -11,6 +11,7 @@
     <PackageReference Include="Markdig" />
     <PackageReference Include="Microsoft.AspNetCore.OData" />
     <PackageReference Include="Microsoft.AspNetCore.StaticFiles" />
+    <PackageReference Include="Microsoft.Azure.Kusto.Ingest" />
     <PackageReference Include="OpenTelemetry.Exporter.Console" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
     <PackageReference Include="Serilog" />
@@ -27,6 +28,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
     <ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
+    <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
     <ProjectReference Include="..\Agent.Runtime\Agent.Runtime.csproj" />
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />

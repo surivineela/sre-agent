@@ -24,6 +24,7 @@ using Newtonsoft.Json;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
+using Agent.Logging;
 
 namespace Agent.Web.Services;
 
@@ -307,6 +308,9 @@ public class TimerService : IHostedService, IDisposable
     {
         _sourceCodeCrawlerTimer = new Timer(async _ =>
         {
+            _logger.LogInternalInformation("Test internal log");
+            _logger.LogExternalInformation("Test external log");
+
             if (!_crawlerFinishedOnce)
             {
                 _logger.LogInformation("StartSourceCodeTimer: Resource crawler still in progress, wait for one round of scan to complete..");
