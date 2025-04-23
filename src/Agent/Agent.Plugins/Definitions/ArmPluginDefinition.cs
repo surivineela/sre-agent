@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -88,6 +88,19 @@ namespace Agent.Plugins
             return await _armPlugin.CheckTcpConnectivity(resourceId, host, port);
         }
 
+        [Description("Check if DNS resolution from the function app to the storage account's endpoint")]
+        public async Task<string> CheckDnsResolution(
+            [Description("Full resource id of an Azure resource and the url of the target storage account's endpoint")] string resourceId, string destinationUrl)
+        {
+            return await _armPlugin.CheckDnsResolution(resourceId, destinationUrl);
+        }
+
+        [Description("Retrieves the key value pair for given App Setting key")]
+        public async Task<IDictionary<string, string>> FetchAppSetting(
+            [Description("Full resource id of an Azure resource and the App Setting key to look up")] string resourceId, string appSettingKey)
+        {
+            return await _armPlugin.FetchAppSetting(resourceId, appSettingKey);
+        }
     }
 }
 

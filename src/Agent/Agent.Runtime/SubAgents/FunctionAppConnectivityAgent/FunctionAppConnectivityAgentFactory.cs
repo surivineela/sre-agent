@@ -20,7 +20,8 @@ public sealed class FunctionAppConnectivityAgentFactory
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
-        IRoleAssignmentPlugin roleAssignmentPlugin
+        IRoleAssignmentPlugin roleAssignmentPlugin,
+        IGraphDBPlugin graphDBPlugin
         )
     {
         _toolsRepository = toolsRepository;
@@ -36,6 +37,8 @@ public sealed class FunctionAppConnectivityAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.FetchAppSetting));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleAssignments));
@@ -43,6 +46,9 @@ public sealed class FunctionAppConnectivityAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.RemoveRoleAssignment));
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.CheckRoleAssignment));
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleDetailsFromNameAsync));
+
+        var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
+        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.GetResourceIdForResourceName));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

@@ -346,6 +346,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourcesByType),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceDetailedProperties),
+            AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceIdForResourceName),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
             AIFunctionFactory.Create(_webAppDownPlugin.ListWebAppDownWorkflows),

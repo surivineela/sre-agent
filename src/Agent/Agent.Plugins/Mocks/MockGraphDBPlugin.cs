@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -193,6 +193,11 @@ namespace Agent.Plugins.Mocks
         public List<string> GetReposScanned()
         {
             return _reposScanned;
+        }
+
+        public Task<string> GetResourceIdForResourceName(string resourceName)
+        {
+            return Task.FromResult<string>("/subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp");
         }
     }
 }

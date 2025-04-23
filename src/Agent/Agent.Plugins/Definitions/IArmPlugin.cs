@@ -18,6 +18,8 @@ namespace Agent.Plugins
         Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnostics(string resourceId);
         Task<string> CheckConnectivity(string resourceId);
         Task<string> CheckTcpConnectivity(string resourceId, string host, int port);
+        Task<string> CheckDnsResolution(string resourceId, string destinationUrl);
+        Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey);
     }
 }
 

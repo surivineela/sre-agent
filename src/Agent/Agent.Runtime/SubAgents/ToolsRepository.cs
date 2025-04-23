@@ -51,6 +51,7 @@ public class ToolsRepository : IToolsRepository
         Register200<GraphDBPluginDefinition>(x => x.AddSourceCodeNodeToContainerAppNode);
         Register200<GraphDBPluginDefinition>(x => x.GetContainerAppsWithNodesWithoutSourceCodeNodes);
         Register200<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);
+        Register200<GraphDBPluginDefinition>(x => x.GetResourceIdForResourceName);
 
         // Not all tools were registered, so registering individually
         Register200<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
@@ -60,6 +61,8 @@ public class ToolsRepository : IToolsRepository
         Register200<ArmPluginDefinition>(x => x.GetVirtualMachineBootDiagnostics);
         Register200<ArmPluginDefinition>(x => x.CheckConnectivity);
         Register200<ArmPluginDefinition>(x => x.CheckTcpConnectivity);
+        Register200<ArmPluginDefinition>(x => x.CheckDnsResolution);
+        Register200<ArmPluginDefinition>(x => x.FetchAppSetting);
 
         RegisterPlugin<TimePluginDefinition>();
         RegisterPlugin<MIConfigurationCheckPluginDefinition>();

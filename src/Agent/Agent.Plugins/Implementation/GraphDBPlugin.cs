@@ -775,6 +775,12 @@ g.V().has('id', '{deploymentResourceId}')
             return results.FirstOrDefault(new Dictionary<string, object>());
         }
 
+        public async Task<string> GetResourceIdForResourceName(string resourceName)
+        {
+            var query = $@"g.V().has(""resourceName"", ""{resourceName}"").values('resourceId')";
+            var results = await GraphDbClient.Query<string>(query);
+            return results.FirstOrDefault("");
+        }
 
         #region Additional Methods
         /// <summary>

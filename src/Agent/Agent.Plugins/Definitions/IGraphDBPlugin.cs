@@ -164,5 +164,7 @@ namespace Agent.Plugins
         Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId);
         Task<Dictionary<string, object>> GetResourceDetailedProperties(string resourceId);
         Task UpdateRepoNodeWithLastScanTime(string repoUrl);
+
+        Task<String> GetResourceIdForResourceName(string resourceName);
     }
 }

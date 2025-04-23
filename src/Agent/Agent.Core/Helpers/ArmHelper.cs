@@ -27,6 +27,8 @@ using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
+using OpenTelemetry.Resources;
+using Octokit;
 
 namespace Agent.Core.Helpers;
 
@@ -1325,6 +1327,55 @@ public class ArmHelper
         return "TCP ping check failed.";
     }
 
+    public async Task<string> CheckDnsResolution(string resourceId, string desinationUrl)
+    {
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+
+        httpClient.BaseAddress = new Uri("https://management.azure.com");
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/dnsCheck?api-version=2022-03-01");
+
+        string payload = $@"{{  
+            ""properties"": {{  
+                ""dnsName"": ""{desinationUrl}""
+            }}  
+        }}";
+        request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
+
+        var res = await httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            var dnsResolutionCheckResult = await res.Content.ReadAsStringAsync();
+            return dnsResolutionCheckResult;
+        }
+
+        return "Dns Resolution check failed.";
+    }
+
+    public async Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appsettingKey)
+    {
+        var appSettingKv = new Dictionary<string, string>();
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+
+        httpClient.BaseAddress = new Uri("https://management.azure.com");
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/config/appsettings/list?api-version=2024-04-01");
+
+        var res = await httpClient.SendAsync(request);
+        if (res.IsSuccessStatusCode)
+        {
+            string responseJson = await res.Content.ReadAsStringAsync();
+            var appSettingsJobject = JObject.Parse(responseJson)["properties"];
+            var value = appSettingsJobject[appsettingKey];
+            if (value != null)
+            {
+                appSettingKv[appsettingKey] = value.ToString();
+            }
+        }
+
+        return appSettingKv;
+    }
     #region Private Methods
 
     private async Task<List<T>> GetResourceSettings<T>(

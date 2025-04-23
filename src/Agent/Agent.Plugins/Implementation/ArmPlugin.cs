@@ -126,6 +126,16 @@ namespace Agent.Plugins.Implementation
         {
             return await _armHelper.CheckTcpConnectivityAsync(resourceId, host, port);
         }
+
+        public async Task<string> CheckDnsResolution(string resourceId, string desinationUrl)
+        {
+            return await _armHelper.CheckDnsResolution(resourceId, desinationUrl);
+        }
+
+        public async Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey)
+        {
+            return await _armHelper.FetchAppSetting(resourceId, appSettingKey);
+        }
     }
 }
 
