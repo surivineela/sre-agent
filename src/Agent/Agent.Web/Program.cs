@@ -61,10 +61,6 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using Serilog;
-using Serilog.Filters;
-using Serilog.Sinks.AzureDataExplorer;
-using Serilog.Sinks.AzureDataExplorer.Extensions;
 using FirstPartyAgent.Core.FirstPartyAgents;
 using System;
 
