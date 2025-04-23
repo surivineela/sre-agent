@@ -60,6 +60,7 @@ namespace Agent.Runtime.SubAgents
             {
                 ActivityInput = input,
                 ToolSignatures = toolSignatures,
+                ThreadId = threadId
             };
 
             return await _durableTaskClient.ScheduleNewOrchestrationInstanceAsync(
