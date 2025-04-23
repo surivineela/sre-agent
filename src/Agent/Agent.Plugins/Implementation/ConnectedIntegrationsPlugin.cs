@@ -42,13 +42,13 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
         });
 
         // Incident Management (e.g. PagerDuty)
-        var incidentConfigured = !string.IsNullOrWhiteSpace(_incident.Kind);
+        var incidentConfigured = !string.IsNullOrWhiteSpace(_incident.Type);
         integrations.Add(new IntegrationInfo
         {
             Name = "IncidentManagement",
             IsActive = incidentConfigured,
             Details = incidentConfigured
-                ? $"Kind={_incident.Kind}"
+                ? $"Kind={_incident.Type}"
                 : "No incident management provider configured. Configure IncidentManagementSettings on this Microsoft.App/agents resource through an ARM call."
         });
 

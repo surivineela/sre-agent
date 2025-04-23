@@ -597,7 +597,7 @@ public class TimerService : IHostedService, IDisposable
                 messageBuilder.AppendLine();
                 messageBuilder.AppendLine("I'm here to help monitor your applications and keep everything running smoothly.");
 
-                if (_incidentManagementSettings != null && string.Equals(_incidentManagementSettings?.Kind, "pagerduty", StringComparison.OrdinalIgnoreCase))
+                if (_incidentManagementSettings != null && string.Equals(_incidentManagementSettings?.Type, "pagerduty", StringComparison.OrdinalIgnoreCase))
                 {
                     messageBuilder.AppendLine("**I'm now connected to PagerDuty** and ready to process incidents for your environment.");
                 }
@@ -612,7 +612,7 @@ public class TimerService : IHostedService, IDisposable
                 messageBuilder.AppendLine("I'm designed to work proactively on your behalf! From time to time, I'll notify you about important updates and ask for your approval before taking action. I'll continuously monitor your systems in the background, so you can focus on what matters most.");
                 messageBuilder.AppendLine();
 
-                if (_incidentManagementSettings != null && string.Equals(_incidentManagementSettings?.Kind, "pagerduty", StringComparison.OrdinalIgnoreCase))
+                if (_incidentManagementSettings != null && string.Equals(_incidentManagementSettings?.Type, "pagerduty", StringComparison.OrdinalIgnoreCase))
                 {
                     messageBuilder.AppendLine("### 🚨 **PagerDuty Integration Active**:");
                     messageBuilder.AppendLine();
