@@ -167,6 +167,93 @@ namespace Agent.Plugins
             return string.Join(", ", statefulSetNames);
         }
 
+        public async Task<string> DiagnoseAKSAppAsync(string resourceId, string _namespace, string kind, string name)
+        {
+            _logger?.LogInformation("Diagnosing {Kind} {Name} in namespace {Namespace}", kind, name, _namespace);
+            var diagnosis = new StringBuilder();
+            var tasks = new List<Task>();
+
+            // Dictionary to store task results
+            var results = new Dictionary<string, string>();
+
+            switch (kind.ToLowerInvariant())
+            {
+                case "deployment":
+                    tasks.Add(GetKubeDeploymentSpecStatusAsync(resourceId, _namespace, name)
+                        .ContinueWith(task => results["SpecStatus"] = task.Result));
+
+                    tasks.Add(GetKubeDeploymentEventsAsync(resourceId, _namespace, name)
+                        .ContinueWith(task => results["Events"] = task.Result));
+                    break;
+
+                case "statefulset":
+                    tasks.Add(GetKubeStatefulsetSpecStatusAsync(resourceId, _namespace, name)
+                        .ContinueWith(task => results["SpecStatus"] = task.Result));
+
+                    tasks.Add(GetKubeStatefulSetEventsAsync(resourceId, _namespace, name)
+                        .ContinueWith(task => results["Events"] = task.Result));
+                    break;
+
+                default:
+                    return "Unsupported kind. Only Deployment and StatefulSet are supported.";
+            }
+            tasks.Add(GetCpuMetricsForWorkloadAsync(resourceId, _namespace, kind, name)
+            .ContinueWith(task => results["CpuMetrics"] = task.Result));
+
+            tasks.Add(GetMemoryMetricsForWorkloadAsync(resourceId, _namespace, kind, name)
+                .ContinueWith(task => results["MemoryMetrics"] = task.Result));
+
+            // Get pods and their diagnostics information in parallel
+            var podListTask = GetKubePodsAsync(resourceId, _namespace, kind, name);
+            tasks.Add(podListTask);
+
+            await Task.WhenAll(tasks);
+
+            // Process pod diagnostics after we have the pod list
+            var podList = podListTask.Result;
+            var podTasks = new List<Task>();
+            var podResults = new Dictionary<string, Dictionary<string, string>>();
+
+            foreach (var pod in podList.Split(", ").Where(p => !string.IsNullOrEmpty(p)))
+            {
+                _logger.LogInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
+                podResults[pod] = new Dictionary<string, string>();
+                podTasks.Add(GetPodYamlAsync(resourceId, _namespace, pod)
+                    .ContinueWith(task => podResults[pod]["PodYaml"] = task.Result));
+
+                podTasks.Add(GetKubePodEventsAsync(resourceId, _namespace, pod)
+                    .ContinueWith(task => podResults[pod]["Events"] = task.Result));
+
+                podTasks.Add(GetKubePodLogsAsync(resourceId, _namespace, pod)
+                    .ContinueWith(task => podResults[pod]["Logs"] = task.Result));
+            }
+
+            await Task.WhenAll(podTasks);
+
+            // Build the final diagnosis output
+            diagnosis.AppendLine($"{kind} Spec and Status:");
+            diagnosis.AppendLine(results["SpecStatus"]);
+            diagnosis.AppendLine($"{kind} Events:");
+            diagnosis.AppendLine(results["Events"]);
+            diagnosis.AppendLine("CPU Metrics:");
+            diagnosis.AppendLine(results["CpuMetrics"]);
+            diagnosis.AppendLine("Memory Metrics:");
+            diagnosis.AppendLine(results["MemoryMetrics"]);
+
+            // Add pod diagnostics
+            foreach (var pod in podResults.Keys)
+            {
+                diagnosis.AppendLine($"Pod Spec and Status for {pod}:");
+                diagnosis.AppendLine(podResults[pod]["PodYaml"]);
+                diagnosis.AppendLine($"Pod Events for {pod}:");
+                diagnosis.AppendLine(podResults[pod]["Events"]);
+                diagnosis.AppendLine($"Pod Logs for {pod}:");
+                diagnosis.AppendLine(podResults[pod]["Logs"]);
+            }
+
+            return diagnosis.ToString();
+        }
+
         public async Task<string> GetKubePodsAsync(string resourceId, string _namespace, string kind, string name)
         {
             _client = await GetOrCreateClientAsync(resourceId);
@@ -616,12 +703,12 @@ namespace Agent.Plugins
             }
         }
 
-        public async Task<string> GetPodCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
+        public async Task<string> GetCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
         {
             return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, "cpu", timeRange);
         }
 
-        public async Task<string> GetPodMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
+        public async Task<string> GetMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
         {
             return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, "memory", timeRange);
         }

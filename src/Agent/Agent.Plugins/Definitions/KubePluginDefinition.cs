@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using Agent.Core.Models.Api.v1;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -66,35 +65,6 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
              [Description($"Name of the Kubernetes resource, e.g. 'nginx', 'backend', 'redis'")] string name)
         {
             return await _kubePlugin.GetKubePodsAsync(AKSClusterResourceId, _namespace, kind, name);
-        }
-
-        [KernelFunction("get_kube_deployment_spec_status")]
-        [Description(
-@"Get the specification and status of a deployment in the specified namespace.
-Used whenever user wants to check the detailed configuration and current status of a specific deployment.
-eg: show me the spec and status of the 'nginx-deployment' in the 'default' namespace.
-eg: show me the YAML of the 'nginx-deployment' in the 'default' namespace.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubeDeploymentSpecStatusAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
-        {
-            return await _kubePlugin.GetKubeDeploymentSpecStatusAsync(AKSClusterResourceId, _namespace, deploymentName);
-        }
-
-        [KernelFunction("get_kube_deployment_events")]
-        [Description(
-@"Get the events of a deployment in the specified namespace.
-Used whenever user wants to check the events or history of a specific deployment.
-eg: show me the events of the 'nginx-deployment' in the 'default' namespace.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubeDeploymentEventsAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
-        {
-            return await _kubePlugin.GetKubeDeploymentEventsAsync(AKSClusterResourceId, _namespace, deploymentName);
         }
 
         [KernelFunction("rollout_restart_deployment")]
@@ -213,43 +183,6 @@ eg: show me the YAML of VirtualService 'my-service' in the 'istio-system' namesp
             return await _kubePlugin.GetCustomResourceYamlAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
         }
 
-        [KernelFunction("get_pod_yaml")]
-        [Description(
-@"Get the YAML representation of a pod including metadata, spec and status.
-Used whenever user wants to see detailed configuration of a pod.
-eg: show me the YAML of pod 'nginx-pod-xyz' in the 'default' namespace.")]
-        public async Task<string> GetPodYamlAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-    [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-    [Description($"Name of the Kubernetes pod, e.g. 'backend-947df49ff-l2zb4'")] string pod)
-        {
-            return await _kubePlugin.GetPodYamlAsync(AKSClusterResourceId, _namespace, pod);
-        }
-
-        [KernelFunction("get_cpu_metrics")]
-        [Description("Get CPU utilization metrics for a Kubernetes workload (deployment or statefulset) as percentage of limit")]
-        public async Task<string> GetPodCpuMetricsForWorkloadAsync(
-        [Description("The resource ID of the Azure Kubernetes Service cluster")] string AKSClusterResourceId,
-        [Description("Kubernetes namespace where the workload is located")] string _namespace,
-        [Description("The type of Kubernetes workload ('deployment' or 'statefulset')")] string workloadType,
-        [Description("Name of the Kubernetes workload (deployment or statefulset) to get CPU metrics for")] string workloadName,
-        [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
-        {
-            return await _kubePlugin.GetPodCpuMetricsForWorkloadAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, timeRange);
-        }
-
-        [KernelFunction("get_memory_metrics")]
-        [Description("Get memory utilization metrics for a Kubernetes workload (deployment or statefulset) as percentage of limit")]
-        public async Task<string> GetPodMemoryMetricsForWorkloadAsync(
-        [Description("The resource ID of the Azure Kubernetes Service cluster")] string AKSClusterResourceId,
-        [Description("Kubernetes namespace where the workload is located")] string _namespace,
-        [Description("The type of Kubernetes workload ('deployment' or 'statefulset')")] string workloadType,
-        [Description("Name of the Kubernetes workload (deployment or statefulset) to get memory metrics for")] string workloadName,
-        [Description("Time range for rate calculations, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
-        {
-            return await _kubePlugin.GetPodMemoryMetricsForWorkloadAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, timeRange);
-        }
-
         [KernelFunction("get_recently_updated_workloads")]
         [Description(
 @"Get a list of Kubernetes workloads (Deployments, StatefulSets) that were updated within a specified time frame.
@@ -276,34 +209,6 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.GetKubeStatefulsetsAsync(AKSClusterResourceId, _namespace);
         }
 
-        [KernelFunction("GetKubeStatefulsetSpecStatus")]
-        [Description(
-@"Get the specification and status of a StatefulSet in the specified namespace.
-Used whenever user wants to check the detailed configuration and current status of a specific StatefulSet.
-eg: show me the spec and status of the 'redis' StatefulSet in the 'default' namespace.
-eg: show me the YAML of the 'mongodb' StatefulSet in the 'default' namespace.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubeStatefulsetSpecStatusAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes StatefulSet, e.g. 'redis', 'mongodb'")] string statefulSetName)
-        {
-            return await _kubePlugin.GetKubeStatefulsetSpecStatusAsync(AKSClusterResourceId, _namespace, statefulSetName);
-        }
-
-        [KernelFunction("GetKubeStatefulSetEvents")]
-        [Description(
-@"Get the events of a StatefulSet in the specified namespace.
-Used whenever user wants to check the events or history of a specific StatefulSet.
-eg: show me the events of the 'redis' StatefulSet in the 'default' namespace.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubeStatefulSetEventsAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes StatefulSet, e.g. 'redis', 'mongodb'")] string statefulSetName)
-        {
-            return await _kubePlugin.GetKubeStatefulSetEventsAsync(AKSClusterResourceId, _namespace, statefulSetName);
-        }
 
         [KernelFunction("ScaleStatefulSet")]
         [Description(
@@ -342,6 +247,23 @@ eg: show me the status of etcd")]
     [Description("Time range for checking status, e.g. '5m', '1h', '2d'")] string timeRange = "5m")
         {
             return await _kubePlugin.GetEtcdStatusAsync(AKSClusterResourceId, timeRange);
+        }
+
+        [KernelFunction("DiagnoseAKSApp")]
+        [Description(
+@"Used to diagnose an AKS application (deployment or statefulset resource) in the specified AKS namespace to get all detailed information belong to the resource. 
+It will first get all spec, status, and events of the resource, then get all pods belong to the resource.
+For each pod, it will pod spec, status, events, logs, CPU/Memory metrics to this pod.
+e.g.: diagnose the 'nginx' deployment in the 'default' namespace.
+e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' namespace.
+")]
+        public async Task<string> DiagnoseAKSAppAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
+            [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset'")] string kind,
+            [Description($"Name of the Kubernetes resource, e.g. 'nginx', 'backend', 'redis'")] string name)
+        {
+            return await _kubePlugin.DiagnoseAKSAppAsync(AKSClusterResourceId, _namespace, kind, name);
         }
     }
 }

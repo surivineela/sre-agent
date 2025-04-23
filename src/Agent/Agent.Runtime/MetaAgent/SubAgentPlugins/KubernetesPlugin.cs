@@ -30,7 +30,7 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
         _logger = logger;
     }
 
-    [KernelFunction("list_kubernetes_agent_workflow")]
+    [KernelFunction("ListKubernetesAgentWorkflow")]
     [Description("List the information of started workflow for azure kubernetes service")]
     public async Task<IReadOnlyList<WorkflowMetadata<string>>> ListKubernetesAgentWorkflow()
     {
@@ -51,8 +51,8 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
         return list;
     }
 
-    [KernelFunction("start_kubernetes_agent_workflow")]
-    [Description("Start the workflow for queries related to azure kubernetes service")]
+    [KernelFunction("StartKubernetesAgentWorkflow")]
+    [Description("Start the workflow to handle any requests related to AKS (Azure Kubernetes Service)")]
     public async Task<string> StartKubernetesAgentWorkflow(
         [Description("The list of complete Kubernetes workloads having the issue and a description of the problem")] string input)
     {

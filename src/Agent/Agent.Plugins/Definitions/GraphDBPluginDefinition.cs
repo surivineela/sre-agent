@@ -67,10 +67,11 @@ namespace Agent.Plugins
             return await _plugin.VisualizeApplicationComponents(resourceId, hops, threadId);
         }
 
+        // TODO(jianbo): this not working for AKS, need to fix.
         [KernelFunction("DiscoverApplications")]
         [Description("Analyzes an Azure subscription and returns a List<ApplicationGraph>, where each ApplicationGraph represents a distinct application. " +
     "Each ApplicationGraph contains: id, name, entryPoint (main resource Node), nodes (List<Node> of related resources), and edges (List<Edge> showing relationships). " +
-    "Entry points are identified from Container Apps, App Services, and AKS clusters. " +
+    "Entry points are identified from Container Apps, App Services. " +
     "The function maps out application topologies, including all connected resources and relationships. " +
     "Returns an empty list if no applications are found.")]
         public async Task<List<ApplicationGraph>> DiscoverApplications(
@@ -126,7 +127,7 @@ namespace Agent.Plugins
             "The output provides counts for different resource types and totals that can be used for dashboards or resource management.")]
         public async Task<dynamic> GetManagedResourcesInfoAsync()
         {
-           return await  _plugin.GetManagedResourcesInfoAsync();
+            return await _plugin.GetManagedResourcesInfoAsync();
         }
 
         [KernelFunction("SearchResource")]

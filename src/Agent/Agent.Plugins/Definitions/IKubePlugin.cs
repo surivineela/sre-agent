@@ -11,8 +11,6 @@ namespace Agent.Plugins
         Task<string> GetKubeNamespacesAsync(string AKSClusterResourceId);
         Task<string> GetKubeDeploymentsAsync(string AKSClusterResourceId, string _namespace);
         Task<string> GetKubePodsAsync(string AKSClusterResourceId, string _namespace, string kind, string name);
-        Task<string> GetKubeDeploymentSpecStatusAsync(string AKSClusterResourceId, string _namespace, string name);
-        Task<string> GetKubeDeploymentEventsAsync(string AKSClusterResourceId, string _namespace, string name);
         Task<string> RolloutRestartDeploymentAsync(string AKSClusterResourceId, string _namespace, string name);
         Task<string> ScaleDeploymentAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);
         Task<string> GetKubePodEventsAsync(string AKSClusterResourceId, string _namespace, string pod);
@@ -21,15 +19,11 @@ namespace Agent.Plugins
         Task<string> ListCRDsAsync(string AKSClusterResourceId);
         Task<string> ListCustomResourcesAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind);
         Task<string> GetCustomResourceYamlAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind, string name);
-        Task<string> GetPodYamlAsync(string AKSClusterResourceId, string _namespace, string pod);
-        Task<string> GetPodCpuMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
-        Task<string> GetPodMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m");
         Task<string> GetRecentlyUpdatedWorkloadsAsync(string AKSClusterResourceId, string _namespace, int minutesAgo);
         Task<string> GetKubeStatefulsetsAsync(string AKSClusterResourceId, string _namespace);
-        Task<string> GetKubeStatefulsetSpecStatusAsync(string AKSClusterResourceId, string _namespace, string name);
-        Task<string> GetKubeStatefulSetEventsAsync(string AKSClusterResourceId, string _namespace, string name);
         Task<string> ScaleStatefulSetAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);
         Task<string> GetAPIServerStatusAsync(string AKSClusterResourceId, string timeRange);
         Task<string> GetEtcdStatusAsync(string AKSClusterResourceId, string timeRange);
+        Task<string> DiagnoseAKSAppAsync(string AKSClusterResourceId, string _namespace, string kind, string name);
     }
 }

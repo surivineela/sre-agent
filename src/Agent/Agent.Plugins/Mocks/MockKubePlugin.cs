@@ -227,4 +227,8 @@ public class MockKubePlugin : IKubePlugin
     {
         throw new NotImplementedException();
     }
+    public Task<string> DiagnoseAKSAppAsync(string AKSClusterResourceId, string _namespace, string kind, string name)
+    {
+        throw new NotImplementedException();
+    }
 }
