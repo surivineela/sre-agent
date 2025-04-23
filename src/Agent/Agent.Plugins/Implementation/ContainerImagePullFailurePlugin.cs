@@ -928,7 +928,7 @@ namespace Agent.Plugins.Implementation
                             FailureReason = "Container App not found"
                         };
                     }
-
+                    string lastestRevision = containerApp.Data.LatestRevisionName;
                     var managedEnvResource = (await armClient.GetContainerAppManagedEnvironmentResource(
                         new ResourceIdentifier(containerApp.Data.EnvironmentId)).GetAsync()).Value;
 
@@ -939,7 +939,7 @@ namespace Agent.Plugins.Implementation
                         string query =
                          $@"
                         ContainerAppSystemLogs_CL 
-                        | where ContainerAppName_s == '{containerApp.Id.Name}'
+                        | where ContainerAppName_s == '{containerApp.Id.Name}' and RevisionName_s == '{lastestRevision}'
                         | where Reason_s == 'ContainerTerminated'
                         | where Log_s has_any ('ImagePullBackOff', 'ErrImagePull','ImagePullFailure')
                         | top 1 by TimeGenerated desc
@@ -948,7 +948,7 @@ namespace Agent.Plugins.Implementation
 
                         var credential = _authService.GetArmOperationCredential();
                         var logsClient = new LogsQueryClient(credential);
-                        var timespan = TimeSpan.FromMinutes(30);
+                        var timespan = TimeSpan.FromHours(3);
                         var result = (await logsClient.QueryWorkspaceAsync(logAnalyticsCustomerId, query, new QueryTimeRange(timespan))).Value;
                         var imagePullingResult = ExtractPullingResultFromTable(result.Table, "Log_s");
                         return imagePullingResult;
