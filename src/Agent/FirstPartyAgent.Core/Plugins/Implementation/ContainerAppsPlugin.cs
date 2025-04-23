@@ -26,11 +26,12 @@ namespace FirstPartyAgent.Plugins
 
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(string subscriptionId)
         {
+            _logger.LogInformation($"GetSubscriptionDetail Started: {subscriptionId}");
             return await _icmWorkflowClient.GetSubscriptionDetail(subscriptionId);
         }
 
         public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(string subsriptionId)
-        { 
+        {
             return await _icmWorkflowClient.GetSubscriptionUsage(subsriptionId);
         }
 
@@ -92,6 +93,7 @@ namespace FirstPartyAgent.Plugins
             [Description("The target quota limit of the quota request")] string targetQuotaLimit
             )
         {
+            _logger.LogInformation($"ValidateQuotaRequest Started: quotaType={quotaType}, subscriptionId={subscriptionId}, region={region}, targetQuotaLimit={targetQuotaLimit}");
             var subscriptionDetails = await GetSubscriptionDetail(subscriptionId);
             string offerType = subscriptionDetails?.OfferType;
 
@@ -113,6 +115,8 @@ namespace FirstPartyAgent.Plugins
                 OfferType = offerType,
                 Reason = validationResult.reason
             });
+
+            _logger.LogInformation($"ValidateQuotaRequest Completed: {result}");
 
             return result;
         }

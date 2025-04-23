@@ -6,8 +6,11 @@ using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Plugins.Definitions;
+using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -32,6 +35,12 @@ public static class ServiceCollectionExtensions
 
         // ADD hard coded settings for now with keeping default in context of ACA for easy local testing and deployment.
         builder.Services.AddSingleton(new HelloWorldSettings());
+
+        builder.Services.AddOptionsWithValidateOnStart<ICMWorkflowSettings>()
+                .BindConfiguration("AppSettings:FirstPartyAgent:ICMWorkflowSettings")
+                .ValidateDataAnnotations();
+
+        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ICMWorkflowSettings>>().Value);
     }
 
     private static void RegisterFirstPartyPluginDependencies(this IServiceCollection services)
@@ -40,6 +49,10 @@ public static class ServiceCollectionExtensions
         // one should add new fundamental plugin dependencies here
         // Note: Don't add sub-agent plugin like 'HelloWorldAgentPlugin' which is automatically loaded.
         services.AddSingleton<lHelloWorldPlugin, HelloWorldPlugin>();
+        services.AddSingleton<IcmPluginDefinition>();
+        services.AddSingleton<IIcmPlugin, IcmPlugin>();
+        services.AddSingleton<ContainerAppsPluginDefinition>();
+        services.AddSingleton<IContainerAppsPlugin, ContainerAppsPlugin>();
     }
 
     private static void RegisterFirstPartySubAgentPluginImplementationDependencies(this IServiceCollection services)
@@ -47,6 +60,7 @@ public static class ServiceCollectionExtensions
         // TODO: automatically inject these DI in next iteration
         // one should add new sub agents specific dependencies here
         services.AddSingleton<IHelloWorldService, HelloWorldService>();
+        services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
     }
 
     // !!! Note: no new sub-agent plugin should be added here !!!

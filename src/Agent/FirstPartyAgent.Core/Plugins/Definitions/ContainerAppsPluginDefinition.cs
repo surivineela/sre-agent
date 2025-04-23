@@ -5,7 +5,6 @@
 using System.ComponentModel;
 using FirstPartyAgent.Constants;
 using FirstPartyAgent.Models;
-using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Plugins.Definitions
@@ -15,10 +14,9 @@ namespace FirstPartyAgent.Plugins.Definitions
     /// https://github.com/microsoft/semantic-kernel/issues/10323
     /// </summary>
     /// <param name="plugin"></param>
-    public class ContainerAppsPluginDefinition(IContainerAppsPlugin plugin, ILogger<ContainerAppsPluginDefinition> logger)
+    public class ContainerAppsPluginDefinition(IContainerAppsPlugin plugin)
     {
         private readonly IContainerAppsPlugin _plugin = plugin;
-        private readonly ILogger<ContainerAppsPluginDefinition> _logger = logger;
 
 
         [KernelFunction(KernelFunctionNames.ACA.GetSubscriptionDetail)]
@@ -33,10 +31,7 @@ The return value includes the detailed information of the given subscription id.
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(
             [Description("Subscription ID")] string subscriptionId)
         {
-            _logger.LogInformation($"GetSubscriptionDetail Started: {subscriptionId}");
-            var result = await _plugin.GetSubscriptionDetail(subscriptionId);
-            _logger.LogInformation($"GetSubscriptionDetail Completed: {result?.OfferType}, {result?.QuotaId}");
-            return result;
+            return await _plugin.GetSubscriptionDetail(subscriptionId);
         }
 
         //[KernelFunction(KernelFunctionNames.ACA.SetSubscriptionQuota)]
@@ -88,10 +83,7 @@ This function helps ensure quota requests comply with predefined rules and provi
             [Description("The Azure region of the quota request")] string region,
             [Description("The target quota limit of the quota request")] string targetQuotaLimit)
         {
-            _logger.LogInformation($"ValidateQuotaRequest Started: {quotaType}, {subscriptionId}, {region}, {targetQuotaLimit}");
-            var message = await _plugin.ValidateQuotaRequest(quotaType, subscriptionId, region, targetQuotaLimit);
-            _logger.LogInformation($"ValidateQuotaRequest Completed: {message}");
-            return message;
+            return await _plugin.ValidateQuotaRequest(quotaType, subscriptionId, region, targetQuotaLimit);
         }
     }
 }

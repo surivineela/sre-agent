@@ -3,8 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
+using Agent.Plugins;
 using Agent.Runtime.MetaAgent.Interfaces;
 using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Plugins.Definitions;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
@@ -24,7 +26,11 @@ public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
         // TODO: make it generic
         var types = new List<Type>
         {
-            typeof(HelloWorldPluginDefinition)
+            typeof(HelloWorldPluginDefinition),
+            //Plugins requires by quota agent.
+            //TODO: going to make it read from env variable
+            typeof(ContainerAppsPluginDefinition),
+            typeof(IcmPluginDefinition)
         };
         return types;
     }

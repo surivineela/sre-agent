@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -14,7 +14,7 @@ namespace FirstPartyAgent.Plugins.Definitions
         private readonly IIcmPlugin _plugin = plugin;
 
         [KernelFunction(KernelFunctionNames.Icm.IcmGetIncidentInfo)]
-        [Description("Get ICM incident information")]
+        [Description("Get ICM incident information. Returns an Incident with IncidentId, IncidentType, CloudInstance, Slice, HitCount, ParentIncidentId, Environment, CreatedBy, ImpactStartDate, CreatedDate, ModifiedDate, Status, OwningService, OwningServiceId, OwningTeam, OwningTeamName, Owner,Severity, DiscussionEntry, MonitoringRole, MonitoringSlice, Tags, Title and Summary.")]
         public async Task<Incident?> GetIncidentInfo(
             [Description("Incident ID")] string incidentId)
         {

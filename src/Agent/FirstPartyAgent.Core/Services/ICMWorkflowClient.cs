@@ -214,7 +214,9 @@ namespace FirstPartyAgent.Core.Services
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.SubscriptionDetailWorkflowName, JsonConvert.SerializeObject(new { SubscriptionId = subscriptionId }));
             if (response.IsSuccessStatusCode) {
                 var content = await response.Content.ReadAsStringAsync();
-                return JsonConvert.DeserializeObject<SubscriptionDetail>(content);
+                var result = JsonConvert.DeserializeObject<SubscriptionDetail>(content);
+                _logger.LogInformation($"GetSubscriptionDetail Completed. The subscription OfferType is {result?.OfferType}, QuotaId is {result?.QuotaId}");
+                return result;
             }
             _logger.LogError($"Failed to fetch SubscriptionDetail for subscription {subscriptionId}, statusCode: {response.StatusCode}");
             return null;
