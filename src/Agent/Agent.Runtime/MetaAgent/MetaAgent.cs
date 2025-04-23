@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -234,7 +234,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
 
-        
+
         _threadRepository = threadRepository;
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
     }
@@ -351,7 +351,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceCount),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListResourcesByType),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetKnowledgeGraphResourceUsageDashboard),
-            AIFunctionFactory.Create(graphDbPluginDefinition.VisualizeAKSMicroserviceTopology),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetResourceDetailedProperties),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.ListVmRdpInvestigateWorkflows),
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),

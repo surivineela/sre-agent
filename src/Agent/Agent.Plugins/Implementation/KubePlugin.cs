@@ -167,30 +167,26 @@ namespace Agent.Plugins
             return string.Join(", ", statefulSetNames);
         }
 
-        // get pods of a deployment in a namespace
-        public async Task<string> GetKubePodsAsync(string resourceId, string _namespace, string deployment)
+        public async Task<string> GetKubePodsAsync(string resourceId, string _namespace, string kind, string name)
         {
             _client = await GetOrCreateClientAsync(resourceId);
-            // get deployment in namespace
-            var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
-            IDictionary<string, string> labels = null;
-            if (deploy == null)
+            IDictionary<string, string> labels = new Dictionary<string, string>();
+            switch (kind.ToLowerInvariant())
             {
-                // TODO: add GetKubePodsForStatefulSetAsync to get pods of a statefulset
-                if (deployment == "redis")
-                {
+                case "deployment":
+                    // get deployment in namespace
+                    var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
+                    // extract pod spec labels in the deployment
+                    labels = deploy.Spec.Template.Metadata.Labels;
+                    break;
+                case "statefulset":
                     // Fallback to redis deployment if specified
-                    var sts = await _client.AppsV1.ReadNamespacedStatefulSetAsync("redis", _namespace);
+                    var sts = await _client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
                     labels = sts.Spec.Template.Metadata.Labels;
-                }
-                else
-                {
-                    return "Deployment not found";
-                }
+                    break;
+                default:
+                    return "Unsupported kind. Only Deployment and StatefulSet are supported.";
             }
-            // extract pod spec labels in the deployment
-            labels = deploy.Spec.Template.Metadata.Labels;
-            // get pods of this deployment by selecting labels
             var pods = await _client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: $"{string.Join(",", labels.Select(label => $"{label.Key}={label.Value}"))}");
             var podNames = pods.Items.Select(pod => pod.Metadata.Name);
             return string.Join(", ", podNames);
@@ -407,8 +403,9 @@ namespace Agent.Plugins
         }
 
         // show logs of a pod in a namespace with last several lines, default is 100
-        public async Task<string> GetKubePodLogsAsync(string resourceId, string _namespace, string pod, int lines = 100)
+        public async Task<string> GetKubePodLogsAsync(string resourceId, string _namespace, string pod, string containerName = "", int lines = 100)
         {
+
             _client = await GetOrCreateClientAsync(resourceId);
             // get pod in namespace
             var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
@@ -417,8 +414,10 @@ namespace Agent.Plugins
                 return "Pod not found";
             }
 
-            // TODO: Determine container name based on pod spec
-            string containerName = null;
+            if (string.IsNullOrEmpty(containerName))
+            {
+                containerName = podObj.Spec.Containers.FirstOrDefault()?.Name;
+            }
 
             // get logs of this pod with HTTP messages
             var response = await _client.CoreV1.ReadNamespacedPodLogWithHttpMessagesAsync(
@@ -1023,7 +1022,7 @@ namespace Agent.Plugins
             {
                 return "Error: AKS cluster Resource ID is required";
             }
-            
+
             try
             {
 
@@ -1034,7 +1033,7 @@ namespace Agent.Plugins
                     new Agent.Core.Models.Metric { Name = "apiserver_memory_usage_percentage", Unit = "Percent", Aggregation = "Average"}
                 };
 
-                
+
                 var sb = new StringBuilder();
                 sb.AppendLine("## API Server Status");
                 sb.AppendLine();
@@ -1058,8 +1057,8 @@ namespace Agent.Plugins
                     var inflightReqs = metricsData.FirstOrDefault(m => m.Name == "apiserver_current_inflight_requests")?.Value ?? 0;
                     sb.AppendLine($"- apiserver current inflight requests: {inflightReqs}");
                 }
-                
-                
+
+
                 return sb.ToString().TrimEnd();
             }
             catch (Exception ex)

@@ -56,15 +56,16 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 
         [KernelFunction("get_kube_pods")]
         [Description(
-@"Get all pods in the specified deployment and namespace.
-Used whenever user wants to list pods in a specific deployment. eg: list all pods in the 'nginx-deployment' in the 'default' namespace.
+@"Get all pods belong to the specific resource and namespace.
+Used whenever user wants to list pods in a specific deployment or statefulset. eg: list all pods in the 'nginx-deployment' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         public async Task<string> GetKubePodsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes deployment, e.g. 'nginx', 'backend'")] string deploymentName)
+             [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset'")] string kind,
+             [Description($"Name of the Kubernetes resource, e.g. 'nginx', 'backend', 'redis'")] string name)
         {
-            return await _kubePlugin.GetKubePodsAsync(AKSClusterResourceId, _namespace, deploymentName);
+            return await _kubePlugin.GetKubePodsAsync(AKSClusterResourceId, _namespace, kind, name);
         }
 
         [KernelFunction("get_kube_deployment_spec_status")]
@@ -147,11 +148,12 @@ eg: show me the last 100 lines of logs from pod 'nginx-pod-xyz' in the 'default'
 If user didn't specify namespace in the context, try to use 'default' namespace")]
         public async Task<string> GetKubePodLogsAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes pod, e.g. 'backend-947df49ff-l2zb4'")] string pod,
-             [Description($"Line of the logs to be print out from pods containers, it's optional, if not specified, default value is 100 lines.")] int lines = 100)
+            [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
+            [Description($"Name of the Kubernetes pod, e.g. 'backend-947df49ff-l2zb4'")] string pod,
+            [Description($"Container Name inside the Kubernetes pod, e.g. 'main'. The value can be optional or empty")] string container = "",
+            [Description($"Line of the logs to be print out from pods containers, it's optional, if not specified, default value is 100 lines.")] int lines = 100)
         {
-            return await _kubePlugin.GetKubePodLogsAsync(AKSClusterResourceId, _namespace, pod, lines);
+            return await _kubePlugin.GetKubePodLogsAsync(AKSClusterResourceId, _namespace, pod, container, lines);
         }
 
         [KernelFunction("exec_command_in_pod")]

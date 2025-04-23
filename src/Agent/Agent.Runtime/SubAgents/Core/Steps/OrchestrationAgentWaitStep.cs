@@ -28,9 +28,24 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
             waitSeconds = 0.1;
         }
 
-        agent.WaitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), agent.WaitTokenSource.Token);
-        var resultContent = new FunctionResultContent(FunctionCall.CallId, "Wait operation submitted.");
-        agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-        log.LogInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
+        try
+        {
+            // Make sure we're not using a canceled token
+            if (agent.WaitTokenSource.IsCancellationRequested)
+            {
+                agent.WaitTokenSource = new CancellationTokenSource();
+            }
+
+            agent.WaitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), agent.WaitTokenSource.Token);
+            var resultContent = new FunctionResultContent(FunctionCall.CallId, "Wait operation submitted.");
+            agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+            log.LogInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "[{ThreadId}] Error creating wait timer", threadId);
+            var errorContent = new FunctionResultContent(FunctionCall.CallId, $"Error during wait operation: {ex.Message}");
+            agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { errorContent }));
+        }
     }
 }

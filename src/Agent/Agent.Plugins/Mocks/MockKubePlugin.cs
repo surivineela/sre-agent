@@ -118,12 +118,12 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> GetKubePodLogsAsync(string resourceId, string _namespace, string pod, int lines = 100)
+    public Task<string> GetKubePodLogsAsync(string resourceId, string _namespace, string pod, string container = "", int lines = 100)
     {
         throw new NotImplementedException();
     }
 
-    public Task<string> GetKubePodsAsync(string resourceId, string _namespace, string deployment)
+    public Task<string> GetKubePodsAsync(string resourceId, string _namespace, string kind, string deployment)
     {
         var key = $"{resourceId}:{_namespace}";
 

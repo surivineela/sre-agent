@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -30,6 +30,5 @@ public abstract class GenericAgentOrchestrator<TInput, TResult> : TaskOrchestrat
         chatHistory.Add(userMessage);
         return Task.CompletedTask;
     }
-
 
 }

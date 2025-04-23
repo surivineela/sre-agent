@@ -163,7 +163,6 @@ public class OrchestrationAgent
         OrchestrationAgent agent = this;
         string threadId = this.ThreadId.ToString();
 
-
         // If there's an active wait task, the agent is not driving the task forward.
         // However they still need to be responsive to user questions. Answering these questions might take multiple conversation turns (because of tool calls).
         // So in that case, we don't want to block on the pending wait task.
@@ -185,17 +184,38 @@ public class OrchestrationAgent
 
             if (agent.WaitTask != null && agent.WaitTask.IsCompleted)
             {
-                // TODO: error handling
-                if (agent.WaitTask is Task<ApprovalStatus>)
+                try
                 {
-                    ApprovalStatus = await (Task<ApprovalStatus>)agent.WaitTask;
+                    // Handle the task result
+                    if (agent.WaitTask is Task<ApprovalStatus>)
+                    {
+                        ApprovalStatus = await (Task<ApprovalStatus>)agent.WaitTask;
+                    }
+                    else
+                    {
+                        await agent.WaitTask;
+                    }
+                    log.LogInformation("[{ThreadId}] waitTask completed", threadId);
                 }
-                else
+                catch (TaskCanceledException)
                 {
-                    await agent.WaitTask;
+                    log.LogInformation("[{ThreadId}] waitTask was canceled", threadId);
+                    // Task cancellation is expected when tokens are canceled, so we don't need to propagate this exception
                 }
-                agent.WaitTask = null;
-                log.LogInformation("[{ThreadId}] waitTask completed", threadId);
+                catch (OperationCanceledException)
+                {
+                    log.LogInformation("[{ThreadId}] waitTask operation was canceled", threadId);
+                    // Operation cancellation is expected when tokens are canceled, so we don't need to propagate this exception
+                }
+                catch (Exception ex)
+                {
+                    log.LogError(ex, "[{ThreadId}] Error awaiting waitTask", threadId);
+                    // Consider whether to rethrow or handle other exceptions differently
+                }
+                finally
+                {
+                    agent.WaitTask = null;
+                }
             }
             else
             {
