@@ -123,7 +123,7 @@ namespace Agent.Tests.Integration
                     services.AddSingleton<ITimePlugin>(_mockTimePlugin);
                     services.AddSingleton<IMIConfigurationCheckPlugin>(_mockMIConfigurationCheckPlugin);
                     services.AddSingleton<IAppIdentityUpdatePlugin>(_mockAppIdentityUpdatePlugin);
-                    services.AddSingleton<ToolsRepository>();
+                    services.AddSingleton<IToolsRepository, ToolsRepository>();
                     services.AddSingleton<AppReliabilityAgentFactory>();
 
                     services.AddDurableTaskWorker(builder =>

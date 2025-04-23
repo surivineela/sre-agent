@@ -17,6 +17,7 @@ public sealed class DailyReportSummaryAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
     private readonly IThreadOrchestrationManager _mappingManager;
     public const string OrchestrationInstanceIdPrefix = nameof(DailyReportSummaryAgent);
 
@@ -26,36 +27,37 @@ public sealed class DailyReportSummaryAgentFactory
         IApprovalPlugin approvalPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IGraphDBPlugin graphDBPlugin,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
+        _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
 
         // Metrics plugin for basic telemetry
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         // Grafana plugin for dashboard and visualization
         var grafanaPluginDefinition = new GrafanaPluginDefinition(grafanaPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => grafanaPluginDefinition.ModifyGrafanaDashboard));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => grafanaPluginDefinition.ModifyGrafanaDashboard));
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDBPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.VisualizeApplicationComponents));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.DiscoverApplications));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.GetApplicationComponentsSummary));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.VisualizeApplicationComponents));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.DiscoverApplications));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.GetApplicationComponentsSummary));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
 
         // Control flow plugin for basic orchestration functions
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         // Approval plugin for user interactions
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

@@ -26,7 +26,7 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
-            ToolsRepository toolsRepository,
+            IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient
             )
             : base(toolsRepository, mappingManager, durableTaskClient)

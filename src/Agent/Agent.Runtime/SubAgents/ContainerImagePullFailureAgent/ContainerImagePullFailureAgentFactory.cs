@@ -13,6 +13,7 @@ public sealed class ContainerImagePullFailureAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerImagePullFailureAgent);
@@ -26,32 +27,33 @@ public sealed class ContainerImagePullFailureAgentFactory
         IChartPlugin chartPlugin,
         IContainerAppPlugin containerAppPlugin,
         IContainerImagePullFailurePlugin containerImagePullFailurePlugin,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
+        _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         // Registry verification tools
         var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RollbackToLastWorkingImage));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.UpdateContainerImage));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RetryImagePull));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RollbackToLastWorkingImage));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.UpdateContainerImage));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.RetryImagePull));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

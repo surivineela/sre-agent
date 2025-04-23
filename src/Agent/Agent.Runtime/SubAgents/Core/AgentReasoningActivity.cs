@@ -19,9 +19,9 @@ namespace Agent.Runtime.SubAgents.Core;
 public class AgentReasoningActivity : TaskActivity<GetNextActionInput, AgentReasoningResult>
 {
     protected readonly IChatClient _chatClient;
-    private readonly ToolsRepository _toolsRepository;
+    private readonly IToolsRepository _toolsRepository;
 
-    public AgentReasoningActivity(IChatClient chatClient, ToolsRepository toolsRepository)
+    public AgentReasoningActivity(IChatClient chatClient, IToolsRepository toolsRepository)
     {
         _chatClient = chatClient;
         _toolsRepository = toolsRepository;
@@ -41,7 +41,7 @@ public class AgentReasoningActivity : TaskActivity<GetNextActionInput, AgentReas
             }
         };
 
-        var allMessages = _toolsRepository.MCPServerInstructions.Concat(input.ChatMessages).ToList();
+        var allMessages = _toolsRepository.GetMCPServerInstructions().Concat(input.ChatMessages).ToList();
 
         var response = await _chatClient.GetResponseAsync(allMessages, chatOptions);
 

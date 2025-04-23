@@ -11,7 +11,13 @@ namespace Agent.Runtime;
 
 public class AgentToolsRegistry
 {
+    private readonly IToolsRepository _toolsRepository;
     private readonly List<string> _toolSignatures = new();
+
+    public AgentToolsRegistry(IToolsRepository toolsRepository)
+    {
+        _toolsRepository = toolsRepository;
+    }
 
     public IReadOnlyList<string> ToolSignatures => _toolSignatures.AsReadOnly();
 
@@ -62,7 +68,7 @@ public class AgentToolsRegistry
         }
 
         // Generate the signature and add it to the list
-        var signature = ToolsRepository.GetSignature(methodInfo);
+        var signature = _toolsRepository.GetSignature(methodInfo);
         _toolSignatures.Add(signature);
     }
 
@@ -81,7 +87,7 @@ public class AgentToolsRegistry
 
         foreach (var method in methodsToRegister)
         {
-            var signature = ToolsRepository.GetSignature(method);
+            var signature = _toolsRepository.GetSignature(method);
             _toolSignatures.Add(signature);
         }
     }

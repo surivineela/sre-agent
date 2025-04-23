@@ -19,16 +19,19 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices;
 // [Export]
 public sealed class TlsBestPracticeAgentFactory
 {
-    private readonly AgentToolsRegistry _toolsRegistry = new AgentToolsRegistry();
+    private readonly AgentToolsRegistry _toolsRegistry;
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(TlsBestPracticesAgent);
 
     public TlsBestPracticeAgentFactory(
+        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
+        _toolsRegistry = new AgentToolsRegistry(toolsRepository);
+
         _toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
         _toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
         _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();

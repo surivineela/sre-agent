@@ -21,7 +21,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
             IApprovalPlugin approvalPlugin,
             lHelloWorldPlugin helloWorldPlugin,
             IThreadOrchestrationManager mappingManager,
-            ToolsRepository toolsRepository,
+            IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient
             )
             : base(toolsRepository, mappingManager, durableTaskClient)

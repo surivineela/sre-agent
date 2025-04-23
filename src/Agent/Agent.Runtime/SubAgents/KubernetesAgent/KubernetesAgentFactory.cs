@@ -16,16 +16,18 @@ namespace Agent.Runtime.SubAgents.KubernetesAgent;
 // [Export]
 public sealed class KubernetesAgentFactory
 {
-    private readonly AgentToolsRegistry _toolsRegistry = new AgentToolsRegistry();
+    private readonly AgentToolsRegistry _toolsRegistry;
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(KubernetesAgent);
 
     public KubernetesAgentFactory(
+        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
+        _toolsRegistry = new AgentToolsRegistry(toolsRepository);
         _toolsRegistry.RegisterPlugin<TimePluginDefinition>();
         _toolsRegistry.RegisterPlugin<KubePluginDefinition>();
         _toolsRegistry.RegisterPlugin<ChartPluginDefinition>();

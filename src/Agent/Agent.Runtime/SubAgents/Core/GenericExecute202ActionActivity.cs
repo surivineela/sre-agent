@@ -13,12 +13,12 @@ namespace Agent.Runtime.SubAgents.Core;
 public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, ChatMessage>
 {
     private readonly IChatClient _chatClient;
-    private readonly ToolsRepository _toolsRepository;
+    private readonly IToolsRepository _toolsRepository;
     private readonly ILogger<GenericExecute202ActionActivity> _logger;
 
     public GenericExecute202ActionActivity(
         IChatClient chatClient,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         ILogger<GenericExecute202ActionActivity> logger
         )
     {

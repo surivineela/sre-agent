@@ -12,35 +12,37 @@ public sealed class FunctionAppConnectivityAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
 
     public const string OrchestrationInstanceIdPrefix = nameof(FunctionAppConnectivityAgentFactory);
 
     public FunctionAppConnectivityAgentFactory(
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
         IRoleAssignmentPlugin roleAssignmentPlugin
         )
     {
+        _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleAssignments));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.AddRoleAssignment));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.RemoveRoleAssignment));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.CheckRoleAssignment));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleDetailsFromNameAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleAssignments));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.AddRoleAssignment));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.RemoveRoleAssignment));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.CheckRoleAssignment));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleDetailsFromNameAsync));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

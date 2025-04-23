@@ -21,6 +21,7 @@ public sealed class AppCodeAnalysisAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
 
     public const string OrchestrationInstanceIdPrefix = nameof(AppCodeAnalysisAgent);
 
@@ -29,35 +30,36 @@ public sealed class AppCodeAnalysisAgentFactory
         IMetricsPlugin metricsPlugin,
         IGithubIssuePlugin githubPlugin,
         IChartPlugin chartPlugin,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin)
     {
+        _toolsRepository = toolsRepository;
         //change tool signatures 
         var toolSignatures = new List<string>();
 
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
         //toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));
 
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetCallStackForApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.PerformDeploymentSwapForApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetDeploymentActivity));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetCallStackForApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.PerformDeploymentSwapForApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetDeploymentActivity));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

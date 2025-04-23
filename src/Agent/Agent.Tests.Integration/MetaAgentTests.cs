@@ -97,7 +97,7 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<ITimePlugin>(mockTimePlugin);
                 services.AddSingleton<IMIConfigurationCheckPlugin>(mockMIConfigurationCheckPlugin);
                 services.AddSingleton<IAppIdentityUpdatePlugin>(mockAppIdentityUpdatePlugin);
-                services.AddSingleton<ToolsRepository>();
+                services.AddSingleton<IToolsRepository, ToolsRepository>();
                 services.AddSingleton<ManagedIdentityMigrationAgentFactory>();
                 services.AddSingleton<TlsBestPracticeAgentFactory>();
                 services.AddSingleton<AppReliabilityAgentFactory>();

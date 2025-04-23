@@ -15,17 +15,11 @@ using Microsoft.Extensions.AI;
 namespace Agent.Runtime.SubAgents;
 
 // [Export]
-public class ToolsRepository : IMcpConnectable
+public class ToolsRepository : IToolsRepository
 {
     private readonly Dictionary<string, IToolFunction> _aiFunctions = new();
     private ConcurrentDictionary<McpConnection, IReadOnlyList<string>> _connectionToToolSignatures = new();
     private IServiceProvider _serviceProvider;
-    private readonly IFirstPartySubAgentsFactory? _firstPartySubAgentsFactory;
-
-    /// <summary>
-    /// Returns a chat message for each connected server with instructions on how to use the tools being exposed.
-    /// </summary>
-    public IEnumerable<ChatMessage> MCPServerInstructions => _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
 
     protected ToolsRepository(IServiceProvider sp, bool registerThirdPartyPlugins = false)
     {
@@ -89,6 +83,14 @@ public class ToolsRepository : IMcpConnectable
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
         RegisterPlugin<ContainerImagePullFailurePluginDefinition>();
+    }
+
+    /// <summary>
+    /// Returns a chat message for each connected server with instructions on how to use the tools being exposed.
+    /// </summary>
+    public IEnumerable<ChatMessage> GetMCPServerInstructions()
+    {
+        return _connectionToToolSignatures.Keys.Select(c => new ChatMessage(ChatRole.User, c.ServerInstructions));
     }
 
     public void RegisterPlugin<T>()
@@ -171,7 +173,7 @@ public class ToolsRepository : IMcpConnectable
         return aiTools;
     }
 
-    public static string GetSignature(
+    public string GetSignature(
         Expression<Func<Delegate>> actionSelector)
     {
         var actionMethod = GetMethod(actionSelector);
@@ -188,7 +190,7 @@ public class ToolsRepository : IMcpConnectable
 
     public Dictionary<string, IToolFunction> GetAllFunctions() => _aiFunctions;
 
-    public static string GetSignature(MethodInfo method)
+    public string GetSignature(MethodInfo method)
     {
         if (method.DeclaringType is null
             || method.DeclaringType.FullName is null)

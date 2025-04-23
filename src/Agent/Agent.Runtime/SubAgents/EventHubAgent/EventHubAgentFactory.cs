@@ -21,7 +21,7 @@ namespace Agent.Runtime.SubAgents.EventHubAgent
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
-            ToolsRepository toolsRepository,
+            IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient
             )
             : base(toolsRepository, mappingManager, durableTaskClient)

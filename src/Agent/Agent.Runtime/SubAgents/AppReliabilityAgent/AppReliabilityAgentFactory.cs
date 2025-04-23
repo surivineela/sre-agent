@@ -24,6 +24,8 @@ public sealed class AppReliabilityAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
+
 
     public const string OrchestrationInstanceIdPrefix = nameof(AppReliabilityAgent);
 
@@ -31,30 +33,31 @@ public sealed class AppReliabilityAgentFactory
         IMetricsPlugin metricsPlugin,
         IReliabilityPlugin reliabilityPlugin,
         IApprovalPlugin approvalPlugin,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmClientFactory armClientFactory)
     {
+        _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         var reliabilityPluginDefinition = new ReliabilityPluginDefinition(reliabilityPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAutoHeal));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAlwaysOn));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHealthCheck));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHostWorkers));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.GetAppsToMonitor));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAutoHeal));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateAlwaysOn));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHealthCheck));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => reliabilityPluginDefinition.UpdateHostWorkers));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => reliabilityPluginDefinition.GetAppsToMonitor));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => reliabilityPluginDefinition.GetReliabilityOrchestrationStatus));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        //toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        //toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

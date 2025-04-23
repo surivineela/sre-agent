@@ -18,6 +18,7 @@ public sealed class AppServiceRemediationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(AppServiceRemediationAgent);
@@ -29,47 +30,48 @@ public sealed class AppServiceRemediationAgentFactory
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IChartPlugin chartPlugin,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
+        _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         // TODO: use StartGetXXX once we have DTS version of the plugin
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetSuccessfulRequestVolumeAsync));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
 
         var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => remediationPluginDefinition.ScaleAppServicePlanVertically));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => remediationPluginDefinition.SuggestNextSku));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => remediationPluginDefinition.CalculateScalingCost));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.ScaleAppServicePlanVertically));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.SuggestNextSku));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.CalculateScalingCost));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.RestartWebApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

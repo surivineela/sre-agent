@@ -127,7 +127,7 @@ namespace Agent.Tests.Integration
             services.AddSingleton<ApprovalPluginDefinition>();
 
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
-            services.AddSingleton<ToolsRepository>();
+            services.AddSingleton<IToolsRepository, ToolsRepository>();
 
             services.AddSingleton<TlsBestPracticeAgentFactory>();
 

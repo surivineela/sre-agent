@@ -18,7 +18,7 @@ public sealed class WebAppDownAgentFactory
 {
     //private readonly AgentToolsRegistry _toolsRegistry = new AgentToolsRegistry();
     private readonly IReadOnlyList<string> _toolSignatures;
-
+    private readonly IToolsRepository _toolsRepository;
     private readonly DurableTaskClient _durableTaskClient;
 
     public const string OrchestrationInstanceIdPrefix = nameof(WebAppDownAgent);
@@ -29,51 +29,53 @@ public sealed class WebAppDownAgentFactory
         ICpuAnalysisPlugin cpuAnalysisPlugin,
         IMetricsPlugin metricsPlugin,
         IChartPlugin chartPlugin,
+        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
 
+        _toolsRepository = toolsRepository;
         //_toolsRegistry.RegisterPlugin<MetricsPluginDefinition>();
         var toolSignatures = new List<string>();
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics)); 
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetWebAppCpuMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics)); 
 
         //_toolsRegistry.RegisterPlugin<GitHubIssuePluginDefinition>();
         var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue)); 
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue)); 
 
         //_toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
          var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        // toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput)); 
+        // toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput)); 
 
         //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        //toolSignatures.Add(toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        //toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         //_toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesDataAsync);
          var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync)); 
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync)); 
 
         //_toolsRegistry.RegisterPlugin<AppCodeAnalysisPluginDefinition>();
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.PerformDeploymentSwapForApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetDeploymentActivity));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetCallStackForApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetSummaryOfExceptions));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfLastException));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfMostCommonException));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetAppConsoleLogs));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.PerformDeploymentSwapForApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetDeploymentActivity));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetCallStackForApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetSummaryOfExceptions));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfLastException));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfMostCommonException));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetAppConsoleLogs));
 
         // _toolsRegistry.RegisterPlugin<CpuAnalysisPluginDefinition>();
         var cpuAnalysisPluginDefinition = new CpuAnalysisPluginDefinition(cpuAnalysisPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectMemoryDumpForApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.ScaleUpAppServicePlanBySku));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.AutoScaleApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectMemoryDumpForApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.ScaleUpAppServicePlanBySku));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.AutoScaleApp));
 
         //_mappingManager = mappingManager;
         _durableTaskClient = durableTaskClient;

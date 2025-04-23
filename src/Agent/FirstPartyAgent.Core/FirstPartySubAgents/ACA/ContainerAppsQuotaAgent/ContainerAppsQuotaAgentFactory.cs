@@ -22,7 +22,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
             ITimePlugin timePlugin,
             IIcmPlugin icmPlugin,
             IContainerAppsPlugin containerAppsPlugin,
-            ToolsRepository toolsRepository,
+            IToolsRepository toolsRepository,
             IThreadOrchestrationManager mappingManager,
             DurableTaskClient durableTaskClient
             )

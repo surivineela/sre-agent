@@ -21,9 +21,9 @@ namespace Agent.Runtime.SubAgents
     {
         private readonly IThreadOrchestrationManager _mappingManager;
         private readonly DurableTaskClient _durableTaskClient;
-        ToolsRepository _toolsRepository;
+        IToolsRepository _toolsRepository;
 
-        protected SimpleResourceSubAgentFactoryBase(ToolsRepository toolsRepository, IThreadOrchestrationManager mappingManager, DurableTaskClient durableTaskClient)
+        protected SimpleResourceSubAgentFactoryBase(IToolsRepository toolsRepository, IThreadOrchestrationManager mappingManager, DurableTaskClient durableTaskClient)
         {
             _mappingManager = mappingManager;
             _durableTaskClient = durableTaskClient;
@@ -53,7 +53,7 @@ namespace Agent.Runtime.SubAgents
 
             // Generate the tool signatures from the supplied lambdas
             var toolSignatures = GetToolList()
-                .Select(x => ToolsRepository.GetSignature(x))
+                .Select(x => _toolsRepository.GetSignature(x))
                 .ToList();
 
             var agentInput = new TAgentInput

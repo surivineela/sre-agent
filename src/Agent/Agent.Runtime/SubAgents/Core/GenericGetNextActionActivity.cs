@@ -14,12 +14,12 @@ namespace Agent.Runtime.SubAgents.Core;
 public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, ChatMessage>
 {
     protected readonly IChatClient ChatClient;
-    private readonly ToolsRepository _toolsRepository;
+    private readonly IToolsRepository _toolsRepository;
     private readonly ILogger<GenericGetNextAction2Activity> _logger;
 
     public GenericGetNextAction2Activity(
         IChatClient chatClient,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         ILogger<GenericGetNextAction2Activity> logger)
     {
         ChatClient = chatClient;
@@ -39,7 +39,7 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
             }
         };
 
-        var allMessages = _toolsRepository.MCPServerInstructions.Concat(input.ChatMessages).ToList();
+        var allMessages = _toolsRepository.GetMCPServerInstructions().Concat(input.ChatMessages).ToList();
 
         var response = await ChatClientHelper.ExecuteWithRetryAsync(
             async () => await ChatClient.GetResponseAsync(allMessages, chatOptions),

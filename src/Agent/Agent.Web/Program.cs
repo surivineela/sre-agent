@@ -243,12 +243,12 @@ builder.Host.UseSerilog();
 
     if (isFirstAgent)
     {
-        builder.Services.AddSingleton<FirstPartyToolsRepository>();
+        builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
         builder.RegisterFirstPartySubAgentsDependencies();
     }
     else
     {
-        builder.Services.AddSingleton<ToolsRepository>();
+        builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
     }
 
     // Register all subagent factories that derive from the shared impl

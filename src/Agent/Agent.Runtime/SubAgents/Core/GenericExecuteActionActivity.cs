@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -11,11 +11,11 @@ namespace Agent.Runtime.SubAgents.Core;
 [DurableTask]
 public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, ExecuteActionOutput>
 {
-    private readonly ToolsRepository _toolsRepository;
+    private readonly IToolsRepository _toolsRepository;
     private readonly ILogger<GenericExecuteActionActivity> _logger;
 
     public GenericExecuteActionActivity(
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         ILogger<GenericExecuteActionActivity> logger
         )
     {

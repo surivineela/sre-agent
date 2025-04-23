@@ -21,7 +21,7 @@ namespace Agent.Runtime.SubAgents.ServiceBusAgent
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
-            ToolsRepository toolsRepository,
+            IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient
             )
             : base(toolsRepository, mappingManager, durableTaskClient)

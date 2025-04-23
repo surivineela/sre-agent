@@ -81,7 +81,7 @@ public sealed class AKSAgentEvals
         var services = builder.Services;
         services.AddMockServices(_mocks);
         AKSTestHelpers.AddPluginDefinitions(services);
-        services.AddSingleton<ToolsRepository>();
+        services.AddSingleton<IToolsRepository, ToolsRepository>();
         services.AddSingleton<KubePluginDefinition>();
 
         _mockKubePlugin = new MockKubePlugin();

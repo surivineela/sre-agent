@@ -27,7 +27,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     private Timer _reconnectTimer;
     private readonly SemaphoreSlim _reconnectTimerLock = new(1, 1);
     private ILoggerFactory _loggerFactory;
-    private readonly ToolsRepository _toolsRepository;
+    private readonly IToolsRepository _toolsRepository;
     private readonly McpToolsRepository _mcpToolsRepository;
 
     /// <summary>
@@ -38,7 +38,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     public MCPMetaAgentManagementService(
         MCPMetaAgent mcpMetaAgent,
         MCPSettings mcpSettings,
-        ToolsRepository toolsRepository,
+        IToolsRepository toolsRepository,
         McpToolsRepository mcpToolsRepository,
         ILogger<MCPMetaAgentManagementService> logger,
         ILoggerFactory loggerFactory)

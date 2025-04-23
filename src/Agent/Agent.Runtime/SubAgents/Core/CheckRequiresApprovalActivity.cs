@@ -11,9 +11,9 @@ namespace Agent.Runtime.SubAgents.Core;
 [DurableTask]
 public class CheckRequiresApprovalActivity : TaskActivity<(IReadOnlyList<string>, string), bool>
 {
-    private readonly ToolsRepository _toolsRepository;
+    private readonly IToolsRepository _toolsRepository;
 
-    public CheckRequiresApprovalActivity(ToolsRepository toolsRepository)
+    public CheckRequiresApprovalActivity(IToolsRepository toolsRepository)
     {
         _toolsRepository = toolsRepository;
     }

@@ -18,6 +18,7 @@ public sealed class ContainerAppsRemediationAgentFactory
 {
     private readonly IReadOnlyList<string> _toolSignatures;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IToolsRepository _toolsRepository;
     private readonly IThreadOrchestrationManager _mappingManager;
 
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsRemediationAgent);
@@ -33,50 +34,52 @@ public sealed class ContainerAppsRemediationAgentFactory
         IChartPlugin chartPlugin,
         INSGRulePlugin nSGRulePlugin,
         IThreadOrchestrationManager mappingManager,
+        IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
     {
+        _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
         var timePluginDefinition = new TimePluginDefinition(timePlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
         var containerAppPluginDefinition = new ContainerAppPluginDefinition(containerAppPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.ListRevisionsAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics));
-        //toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListRevisionsAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics));
+        //toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListContainerAppsAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
 
         var nsgRulePluginDefinition = new NSGRulePluginDefinition(nSGRulePlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => nsgRulePluginDefinition.RemoveNSGRuleAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.RemoveNSGRuleAsync));
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(ToolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
         var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(ToolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
