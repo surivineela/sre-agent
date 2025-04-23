@@ -39,7 +39,8 @@ public sealed class CPUAnalysisAgentFactory
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
-        IAppCodeAnalysisPlugin appCodeAnalysisPlugin)
+        IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
+        IDotnetAnalysisPlugin dotnetAnalysisPlugin)
     {
         _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
@@ -62,12 +63,17 @@ public sealed class CPUAnalysisAgentFactory
         var cpuAnalysisPluginDefinition = new CpuAnalysisPluginDefinition(cpuAnalysisPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.ScaleUpAppServicePlanBySku));
         toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectMemoryDumpForApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.CollectProfileForApp));
         toolSignatures.Add(_toolsRepository.GetSignature(() => cpuAnalysisPluginDefinition.AutoScaleApp));
 
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
 
-        _toolSignatures = toolSignatures;
+        var dotnetAnalysisPluginDefinition = new DotnetAnalysisPluginDefinition(dotnetAnalysisPlugin);
+        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetMemoryAnalysis));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetGCCPUAnalysis));
+
         _durableTaskClient = durableTaskClient;
     }
 

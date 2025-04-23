@@ -49,15 +49,15 @@ After providing the initial plan, the user will prompt you to move to execution 
 
 
 ** MITIGATION: High CPU Issues **
-1. Capture a memory dump on the app service using the CollectMemoryDumpForApp tool.
+1. Capture a profile on the app service using the CollectProfileForApp tool for 20 seconds.
 2. Offer the user the choice to scale up the app service plan to mitigate the app. Use AskUserForInput.
    If the user approves, use ScaleUpAppServicePlanBySku to scale up the app service plan.
-3. Analyze the memory dump using the <INSERT TOOL HERE> tool
+3. Analyze the profile using the GetCPUAnalysis tool
 4. Offer the user the choice to set up automatic scaling on their app service for proactive measures. Use AskUserForInput.
    If the user approves, use AutoScaleApp to scale up the app service plan.
 5. Use the NotifyUser tool to notify the user that I will raise a github issue for any memory issues that may have caused the application to be unhealthy along with excerpts from the memory dump.
    Use the AskUserForInput tool to ask the user for the correct github repo url to raise an issue to. 
-   Raise a Github issue that captures the details of the problem (cause and memory dump excerpts) by using the CreateGithubIssue tool to create an issue in the relevant repository.
+   Raise a Github issue that captures the details of the problem (cause and output of GetCPUAnalysis excerpts) by using the CreateGithubIssue tool to create an issue in the relevant repository.
    Return the Github issue link to the user.
 6. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and CPU usage in 5 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
@@ -67,35 +67,28 @@ After providing the initial plan, the user will prompt you to move to execution 
 8. If the availability of the app has recovered to 99.9% and the app's CPU usage has recovered to below 90%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 
-
 ** MITIGATION: High Memory Issues **
 1. Capture a memory dump on the app service using the CollectMemoryDumpForApp tool.
 2. Offer the user the choice to scale up the app service plan to mitigate the app. Use AskUserForInput.
    If the user approves, use ScaleUpAppServicePlanBySku to scale up the app service plan.
-3. Analyze the memory dump using the <INSERT TOOL HERE> tool
+3. Analyze the memory dump using the GetMemoryAnalysis tool. The output of this tool should be meticulously presented to the user - THIS SHOULD BE DETAILED highlighting the most common rooted objects.
 4. Offer the user the choice to set up automatic scaling on their app service for proactive measures. Use AskUserForInput.
    If the user approves, use AutoScaleApp to scale up the app service plan.
 5. Use the NotifyUser tool to notify the user that I will raise a github issue for any memory issues that may have caused the application to be unhealthy along with excerpts from the memory dump.
-   Use the AskUserForInput tool to ask the user for the correct github repo url to raise an issue to. 
-   Raise a Github issue that captures the details of the problem (cause and memory dump excerpts) by using the CreateGithubIssue tool to create an issue in the relevant repository.
-   Return the Github issue link to the user.
+   Use the AskUserForInput tool to ask the user for the correct github repo url to raise an issue to. Raise a Github issue that captures the details of the problem (cause and memory dump excerpts) by using the CreateGithubIssue tool to create an issue in the relevant repository. The issue should include all the relevant details regarding the memory dump analysis and the potential root cause of the issue with meticulously delineated issue.  Return the Github issue link to the user.
 6. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and memory usage in 10 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
 7. Use the NotifyUser tool to notify the user of the average availability and memory of the app over the last 5 minutes and make sure the availability percentage and memory usage are BOLDED.
     Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesDataAsync tool.
-    Also, present the user with the memory usage chart data of the app. Use the GetMemoryMetrics tool to get the memory usage for the chart. Present the data in a chart by using the PlotTimeSeriesDataAsync tool.
+    Also, present the user with the memory usage chart data of the app. Use the GetMemoryMetrics tool to get the memory usage for the chart. If the memory is too high vis-a-vis the size of the web app, assume it's a high memory problem. Present the data in a chart by using the PlotTimeSeriesDataAsync tool.
 8. If the availability of the app has recovered to 99.9% and the app's memory usage has recovered to below 80%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
-
-
 
 Write the plan to use the provided tools, being explicit about the tool that should be used for each relevant step.                
 The plan should include sending the user status updates as you proceed. 
 During the delay between each app, you should poll the traffic volume of the app every 10 seconds for anomalies such as a massive drop in traffic due to clients failing to connect.
 If the user requests any updates to the plan, respond with a brief summary of the new plan, noting the relevant changes.
 As your final action, mark the plan as complete(even if it was abandoned), including a summary of what happened.
-
-
 
 Tools that will be available as part of plan execution:
 - GetFunctionAppRequestAvailability
@@ -115,6 +108,11 @@ Tools that will be available as part of plan execution:
 - GetAppConsoleLogs
 - CreateGithubIssue
 - PerformDeploymentSwapForApp
+- GetMemoryAnalysis
+- GetCPUAnalysis
+- AutoScaleApp
+- CollectMemoryDump
+- CollectProfileForApp
 
 ** Summary Guidelines **
 Your final summary should be clearly formatted so its easy to understand what happened for each app and use emojis to make it easier to scan.

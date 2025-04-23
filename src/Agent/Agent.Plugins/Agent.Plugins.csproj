@@ -16,6 +16,8 @@
 	  <PackageReference Include="Azure.ResourceManager.Network" />
 	  <PackageReference Include="Azure.Storage.Blobs" />
 	  <PackageReference Include="Microsoft.Azure.Management.Monitor.Fluent" />
+	  <PackageReference Include="Microsoft.Diagnostics.Runtime" />
+	  <PackageReference Include="Microsoft.Diagnostics.Tracing.TraceEvent" />
 	  <PackageReference Include="Microsoft.Graph" />
     <PackageReference Include="ScottPlot" />
     <PackageReference Include="Microsoft.SemanticKernel" />

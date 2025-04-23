@@ -158,6 +158,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<ContainerImagePullFailurePluginDefinition>()
         .AddTransient<CpuAnalysisPluginDefinition>()
         .AddTransient<AppCodeAnalysisPluginDefinition>()
+        .AddTransient<DotnetAnalysisPluginDefinition>()
         .AddTransient<RoleAssignmentPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
@@ -212,6 +213,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<AppInsightsPlugin>()
         .AddSingleton<ICpuAnalysisPlugin, CpuAnalysisPlugin>()
         .AddSingleton<IAppCodeAnalysisPlugin, AppCodeAnalysisPlugin>()
+        .AddSingleton<IDotnetAnalysisPlugin, DotnetAnalysisPlugin>()
 
 
         // Register the communication activities
