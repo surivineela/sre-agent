@@ -74,6 +74,7 @@ public sealed class CPUAnalysisAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetGCCPUAnalysis));
 
+        _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;
     }
 
