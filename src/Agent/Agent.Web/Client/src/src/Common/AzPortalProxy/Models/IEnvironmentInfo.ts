@@ -1,4 +1,4 @@
-import { ITheme } from "@fluentui/react";
+import { ITheme } from "./ITheme";
 import { IUserInfo } from "./IUserInfo";
 
 export interface IEnvironmentInfo {

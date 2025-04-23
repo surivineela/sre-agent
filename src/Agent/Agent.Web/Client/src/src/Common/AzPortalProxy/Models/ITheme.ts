@@ -1,4 +1,4 @@
-const enum ThemeMode {
+export enum ThemeMode {
     Light = 0,
     Dark = 1
 }
@@ -15,7 +15,7 @@ export interface ITheme {
     /**
      * Theme name.
      */
-    name: string;
+    name: 'light' | 'dark';
     /**
      * Theme title.
      */

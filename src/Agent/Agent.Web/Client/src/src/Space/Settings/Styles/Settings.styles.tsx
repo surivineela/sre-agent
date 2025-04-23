@@ -1,6 +1,7 @@
 import { FontWeights } from '@fluentui/react';
 import { CSSProperties } from 'react';
 import { tokens } from '@fluentui/react-components';
+import type { Theme } from '@fluentui/theme';
 
 const noMcpServersContainer: CSSProperties = {
   display: 'flex',
@@ -59,13 +60,15 @@ const accessControlSettingsContainer: CSSProperties = { display: 'flex', flexDir
 
 const accessControlSettingsButton: CSSProperties = { width: 'fit-content' };
 
-const navContainer: CSSProperties = {
-  display: 'flex',
-  height: '100vh',
-  paddingTop: '0.5rem',
-  borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-  backgroundColor: tokens.colorNeutralBackground3,
-};
+const getNavContainerStyles = (theme: Theme): CSSProperties =>{
+  return {
+    display: 'flex',
+    height: '100vh',
+    paddingTop: '0.5rem',
+    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
+    backgroundColor: theme.semanticColors.bodyBackground,
+  };
+}
 
 const navPivotContainer: CSSProperties = {
   flex: 1,
@@ -95,10 +98,10 @@ export const useSettingsStyles = () => {
     generalSettingsHeader,
     accessControlSettingsContainer,
     accessControlSettingsButton,
-    navContainer,
     navPivotContainer,
     incidentManagementDescriptionStyle,
     pagerDutyLogoStyle,
+    getNavContainerStyles,
   };
 };
 

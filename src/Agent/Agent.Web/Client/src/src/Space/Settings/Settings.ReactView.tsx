@@ -1,10 +1,11 @@
-import { INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
-import { FC, useEffect, useState } from 'react';
+import { INavLinkGroup, initializeIcons, Nav, ThemeContext } from '@fluentui/react';
+import { FC, useContext, useEffect, useState } from 'react';
 import { Settings_Tabs } from '../../Strings/SREResources.resjson';
 import AccessControl from './AccessControl.ReactView';
 import AgentDetails from './AgentDetails.ReactView';
 import IncidentManagement from './IncidentManagement.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
+import type { Theme } from '@fluentui/theme';
 
 interface ISettingsProps {
     parameters: {
@@ -50,11 +51,12 @@ const Settings: FC<ISettingsProps> = ({ parameters }) => {
     }, []);
 
     const styles = useSettingsStyles();
+    const theme = useContext(ThemeContext);
 
     const [selectedKey, setSelectedKey] = useState<SettingsKeys>(SettingsKeys.IncidentManagement);
 
     return iconsInitialized && (
-        <div style={styles.navContainer}>
+        <div style={styles.getNavContainerStyles(theme as Theme)}>
             <Nav
                 groups={navLinkGroups}
                 styles={navStyles}

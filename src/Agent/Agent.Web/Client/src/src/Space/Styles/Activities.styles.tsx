@@ -105,21 +105,16 @@ export const useChatInputStyles = () => {
             borderStyle: 'solid',
             borderRadius: 3,
             borderWidth: '2px',
-            backgroundColor: colors.inputBackground,
             maxWidth: '1000px',
             margin: 'auto',
             marginBottom: '10px',
         },
         textField: {
-            fieldGroup: {
-                backgroundColor: colors.inputBackground,
-            },
             field: {
                 maxHeight: '60px',
                 minHeight: '25px',
                 overflowX: 'hidden',
                 overflowY: 'auto',
-                backgroundColor: colors.inputBackground,
                 '::placeholder, :-ms-input-placeholder, ::-ms-input-placeholder': {
                     color: colors.inputPlaceholderText,
                     opacity: 1, // Firefox adds a lower opacity to the placeholder, so we use opacity: 1 to fix this.,

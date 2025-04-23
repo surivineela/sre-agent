@@ -5,6 +5,10 @@ import { AzPortalContext } from './src/Common/AzPortalProxy/Providers/AzPortalPr
 import { EnvironmentContext } from './src/Common/AzPortalProxy/Providers/StartupInfoContext';
 import SREAgentSpace from './src/Space/SREAgentSpace';
 import { IEnvironmentInfo } from './src/Common/AzPortalProxy/Models/IEnvironmentInfo';
+import { AzureThemeLight, AzureThemeDark } from '@fluentui/azure-themes';
+import { ThemeMode } from './src/Common/AzPortalProxy/Models/ITheme';
+import { ThemeProvider } from '@fluentui/react';
+import { FluentProvider, webDarkTheme, webLightTheme } from '@fluentui/react-components';
 const portalProxy = new AzPortalProxy();
 
 const App: React.FC = () => {
@@ -17,13 +21,16 @@ const App: React.FC = () => {
   // When we're running in standalone mode, we won't be getting any environment information
   // so we can load, but any features which depend on ARM won't work.
   const uiReady = AzPortalProxy.inStandaloneMode ||
-    (environmentInfo.armEndpoint && environmentInfo.token && environmentInfo.resourceId);
-
+    (environmentInfo.armEndpoint && environmentInfo.token && environmentInfo.resourceId && environmentInfo.theme);
   return uiReady ? (
     <EnvironmentContext.Provider value={environmentInfo}>
-      <AzPortalContext.Provider value={portalProxy}>
-        <SREAgentSpace />
-      </AzPortalContext.Provider>
+      <ThemeProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? AzureThemeDark : AzureThemeLight}>
+        <FluentProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? webDarkTheme : webLightTheme}>
+          <AzPortalContext.Provider value={portalProxy}>
+            <SREAgentSpace />
+          </AzPortalContext.Provider>
+        </FluentProvider>
+      </ThemeProvider>
     </EnvironmentContext.Provider>
   ) : null;
 

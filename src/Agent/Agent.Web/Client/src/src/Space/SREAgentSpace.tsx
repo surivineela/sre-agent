@@ -1,9 +1,18 @@
 import { SelectTabData, SelectTabEvent, Tab, TabList } from "@fluentui/react-components";
-import { FC, useEffect, useState, useCallback } from "react";
+import { FC, useEffect, useState, useCallback, useContext } from "react";
 import { SreAgentTabs } from "../Strings/SREResources.resjson";
 import Activities from "./Activities/Activities.ReactView";
 import Graph from "./Graph/Graph";
 import Settings from "./Settings/Settings.ReactView";
+import { ThemeContext } from "@fluentui/react";
+import type { Theme } from '@fluentui/theme';
+
+
+const getTabListStyle = (theme: Theme) =>{
+    return {
+        backgroundColor: theme.semanticColors.bodyBackground
+    }
+}
 
 enum TabValues {
     Activities = "activities",
@@ -17,6 +26,7 @@ const placeholderRegion = 'PlaceholderRegion';
 const SREAgentSpace: FC = () => {
     const [selectedValue, setSelectedValue] = useState<TabValues>(TabValues.Activities);
     const [initialThreadId, setInitialThreadId] = useState<string | null | undefined>(null);
+    const theme = useContext(ThemeContext);
 
     const onTabSelect = useCallback((_: SelectTabEvent, data: SelectTabData) => {
         setInitialThreadId(null);
@@ -41,7 +51,7 @@ const SREAgentSpace: FC = () => {
 
     return (
         <div>
-            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect}>
+            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
                 <Tab id="Activities" value={TabValues.Activities}>
                     {SreAgentTabs.activities}
                 </Tab>
