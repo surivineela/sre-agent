@@ -2,8 +2,9 @@ import { Thread } from '../../Common/Contracts/SreAgent';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import axios from 'axios';
+import { getLatestThread, noGapBetweenNewThreadsAndExistingThreads, processThreads } from '../Activities/Utility';
 
-const getThreads = async (skip: number, top = 20) => {
+const getThreads = async (skip: number, top = 20): Promise<Thread[]> => {
   try {
     const { data } = await axios.get(`../api/v1/threads?skip=${skip}&top=${top}&orderby=createdTimestamp+desc`);
     return data.value ?? [];
@@ -11,6 +12,26 @@ const getThreads = async (skip: number, top = 20) => {
     return [];
   }
 };
+
+const pollLatestThreads = async (currentLatestThread?: Thread) => {
+  const latestThreads: Thread[] = [];
+
+  while (true) {
+    const threads = await getThreads(latestThreads.length, 10);
+    latestThreads.push(...threads);
+
+    if (threads.length === 0) {
+      break;
+    }
+
+    if (noGapBetweenNewThreadsAndExistingThreads(latestThreads, currentLatestThread)) {
+      break;
+    }
+  }
+
+  return latestThreads;
+
+}
 
 export const useActivities = (initialThreadId?: string | null) => {
   const [threads, setThreads] = useState<Thread[]>([]);
@@ -20,16 +41,11 @@ export const useActivities = (initialThreadId?: string | null) => {
   const [activeThreadId, setActiveThreadId] = useState<string>('');
 
   const canPollThread = useRef<boolean>(true);
+  const latestThread = useRef<Thread>();
 
   const addThread = useCallback((thread: Thread) => {
-    setThreads(prevThreads => {
-      if (prevThreads.some((t: Thread) => t.id === thread.id)) {
-        return prevThreads;
-      }
-      return [thread, ...prevThreads];
-    });
+    setThreads(prevThreads => processThreads(prevThreads, [thread], true));
     setActiveThreadId(thread.id);
-    selectThread(thread);
   }, []);
 
   const selectThread = useCallback((thread: Thread | null) => {
@@ -40,6 +56,10 @@ export const useActivities = (initialThreadId?: string | null) => {
 
   useEffect(() => setThreadContentKey(Guid.newGuid()), [selectedThread]);
 
+  useEffect(() => {
+    latestThread.current = getLatestThread(threads);
+  }, [threads])
+
   // Polling exisitng threads
   useEffect(() => {
     let isSubscribed = true;
@@ -47,21 +67,19 @@ export const useActivities = (initialThreadId?: string | null) => {
     const getThreadsRequest = async () => {
       const shouldSetInitialThread = initialThreadId && threads.length === 0;
 
-      const newThreads = await getThreads(threads.length, 20);
+      const oldThreads = await getThreads(threads.length, 20);
 
-      if (newThreads.length > 0) {
-        // delay 3 seconds before set threads to trigger new polling
-        await Promise.resolve((resolve: any, _: any) => setTimeout(resolve, 2000));
+      // delay 2 seconds before set threads to trigger new polling
+      await Promise.resolve((resolve: any, _: any) => setTimeout(resolve, 2000));
 
-        if (isSubscribed) {
-          setThreads(prevThreads => [...prevThreads, ...newThreads]);
-          setThreadsInitialized(true);
+      if (isSubscribed) {
+        setThreads(prevThreads => processThreads(prevThreads, oldThreads, false));
+        setThreadsInitialized(true);
 
-          if (shouldSetInitialThread) {
-            const thread = threads.find((thread: Thread) => thread.id === initialThreadId);
-            if (thread) {
-              selectThread(thread);
-            }
+        if (shouldSetInitialThread) {
+          const thread = threads.find((thread: Thread) => thread.id === initialThreadId);
+          if (thread) {
+            selectThread(thread);
           }
         }
       }
@@ -83,20 +101,10 @@ export const useActivities = (initialThreadId?: string | null) => {
 
       canPollThread.current = false;
 
-      const lastestTenThreads = await getThreads(0, 10);
+      const lastestTenThreads = await pollLatestThreads(latestThread.current);
 
       if (lastestTenThreads.length > 0) {
-        setThreads(prevThreads => {
-          const newThreads: Thread[] = [];
-
-          for (let i = lastestTenThreads.length - 1; i >= 0; i--) {
-            if (!prevThreads.some((thread: Thread) => thread.id === lastestTenThreads[i].id)) {
-              newThreads.push(lastestTenThreads[i]);
-            }
-          }
-
-          return [...newThreads, ...prevThreads];
-        });
+        setThreads(prevThreads => processThreads(prevThreads, lastestTenThreads, true));
       }
 
       canPollThread.current = true;
