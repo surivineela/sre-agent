@@ -61,7 +61,7 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
             throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
         var instanceId = await _kubernetesAgentFactory.StartOrchestration(input, ThreadId.Value);
-        return $"A workflow has been started to remediate Kubernetes workloads, the workflow instance id is: {instanceId}, thread id is: {ThreadId}.";
+        return $"A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: {instanceId}, thread id is: {ThreadId}.";
     }
 }
 

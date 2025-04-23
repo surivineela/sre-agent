@@ -29,7 +29,7 @@ public class MetaAgentEvals
     private IChatClient? _chatClient;
     private ChatConfiguration? _chatConfiguration;
 
-    private static int _iterationCount = 10; // Default value
+    private static int _iterationCount = 1; // Default value
 
     private string? _llmDeploymentName;
 
@@ -128,12 +128,7 @@ public class MetaAgentEvals
             appServiceRemediationPlugin ?? Mock.Of<IMetaAgentAppServiceRemediationPlugin>(),
             containerAppsRemediationPlugin ?? Mock.Of<IMetaAgentContainerAppsRemediationPlugin>(),
             storageAccountPlugin ?? Mock.Of<IMetaAgentStorageAccountPlugin>(),
-            kubernetesAgentPlugin ?? Mock.Of<IMetaAgentKubernetesAgentPlugin>(k =>
-                k.ListKubernetesAgentWorkflow() == Task.FromResult<IReadOnlyList<WorkflowMetadata<string>>>(
-                    new List<WorkflowMetadata<string>> { new WorkflowMetadata<string>("mock-id", "mock-input") { } }.AsReadOnly()
-                ) &&
-                k.StartKubernetesAgentWorkflow(It.IsAny<string>()) == Task.FromResult("This is a mock plugin, no real workflow started.")
-            ),
+            kubernetesAgentPlugin ?? Mock.Of<IMetaAgentKubernetesAgentPlugin>(),
             appServicePlugin ?? Mock.Of<IAppServicePlugin>(),
             containerAppPlugin ?? Mock.Of<IContainerAppPlugin>(),
             githubIssuePlugin ?? Mock.Of<IGithubIssuePlugin>(),
@@ -498,5 +493,78 @@ public class MetaAgentEvals
 
         mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.AtLeastOnce);
         mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), "", ""), Times.Once);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
+    public async Task MetaAgent_Delegate_to_AKSAgent(string testRunGuid)
+    {
+        string groundedContext = """
+            ## Ground Truth:
+            1. Delegate the question to the Kubernetes agent.
+            2. The Kubernetes agent should be able to handle the question.
+
+            ## Expected Response Characteristics
+            - The response should clearly show Kubernetes Agent is handling the question or starting the diagnostic.
+            """;
+
+        var exampleResponse = $"""
+             A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: AKS-Orchestration-0236eab7-7166-43b5-9424-48ee43ef04f6-2025-04-30-12-13-45, thread id is: 0236eab7-7166-43b5-9424-48ee43ef04f6.
+            """;
+
+        var userMsg = "Can you show me the AKS APIServer status? cluster name is `prod-shopping-c1`, subscription id is `ea2aa16c-c257-4359-aaea-ff2b0f3b3d10`, resource group name is `rg`";
+        var threadMsgs = new List<Message>
+        {
+            new Message(Guid.Parse(testRunGuid), DateTime.UtcNow, new Author(Role.User, testRunGuid, "testUser"), userMsg),
+        };
+
+        var mockThreadRepository = new Mock<IThreadRepository>();
+        mockThreadRepository.Setup(x => x.GetMessagesAsync(It.IsAny<Guid>(), It.IsAny<ODataQueryOptions>()))
+            .ReturnsAsync(threadMsgs);
+
+        var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
+
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
+
+        mockThreadRepository.Setup(x => x.GetReasoningMessageAsync(reasoningMessage.Id, reasoningMessage.AgentContextId))
+            .ReturnsAsync(reasoningMessage);
+
+        var sinkService = new SinkService(
+            Mock.Of<IThreadRepository>(),
+            Mock.Of<ILogger<SinkService>>());
+
+        var threadService = new ThreadService(
+            Mock.Of<ILogger<ThreadService>>(),
+            mockThreadRepository.Object,
+            Mock.Of<IThreadOrchestrationManager>(),
+            sinkService);
+
+        var mockGraphDbPlugin = new Mock<IGraphDBPlugin>();
+        var mockKubernetesAgentPlugin = new Mock<IMetaAgentKubernetesAgentPlugin>();
+        mockKubernetesAgentPlugin.Setup(x => x.StartKubernetesAgentWorkflow
+            (It.IsAny<string>())).ReturnsAsync("A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: AKS-Orchestration-0236eab7-7166-43b5-9424-48ee43ef04f6-2025-04-30-12-13-45, thread id is: 0236eab7-7166-43b5-9424-48ee43ef04f6. Will provide followup updates once the workflow is completed.");
+        mockKubernetesAgentPlugin.Verify(x => x.StartKubernetesAgentWorkflow(It.IsAny<string>()), Times.Once);
+        mockKubernetesAgentPlugin.Setup(x => x.ListKubernetesAgentWorkflow())
+            .ReturnsAsync(new List<WorkflowMetadata<string>>
+            {
+                new WorkflowMetadata<string>("mock-id", "mock-input")
+            });
+
+        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, threadRepository: mockThreadRepository.Object, kubernetesAgentPlugin: mockKubernetesAgentPlugin.Object);
+
+        var userChatMsg = new List<ChatMessage>
+        {
+            userChatMessage
+        };
+        var result = await agent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
+
+        Console.WriteLine($"Agent responds: {result}");
+
+        var agentMsg = new ChatMessage(ChatRole.Assistant, result);
+        var response = new ChatResponse(agentMsg);
+
+        await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
     }
 }

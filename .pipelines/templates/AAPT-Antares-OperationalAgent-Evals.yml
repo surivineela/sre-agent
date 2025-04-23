@@ -5,6 +5,12 @@ parameters:
   type: number
   default: 30
 
+variables:
+  ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+    iterationCount: 1
+  ${{ else }}:
+    iterationCount: 5
+
 steps:
 - script: echo Integration Test Pipeline Run $(Build.BuildNumber)!
   displayName: 'Starting Evals run'
@@ -59,7 +65,7 @@ steps:
     OpenAIEndpoint: $(SRE_AGENT_OPENAI_ENDPOINT)
     OpenAIKey: $(EvalsOpenAIKey)
     OpenAIModel: $(SRE_AGENT_OPENAI_MODEL)
-    IterationCount: 5
+    IterationCount: $(iterationCount)
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
   displayName: 'Running evals'
   continueOnError: true

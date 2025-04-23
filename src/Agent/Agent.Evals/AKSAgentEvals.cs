@@ -29,9 +29,6 @@ using Agent.Plugins.Mocks;
 
 namespace Agent.Evals;
 
-// !! Note:
-// To run this test, you need to have a valid AKS cluster installed with these test apps: https://github.com/wonderflow/opentelemetry-demo/tree/sre-demo/kubernetes
-// The agent needs to have access to the cluster.
 [TestClass]
 public sealed class AKSAgentEvals
 {
