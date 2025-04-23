@@ -243,7 +243,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
         {
             try
             {
-                var appGroups = await _graphDatabaseClient.Query<Dictionary<string, object>>("g.V().has('appHealthInfo').project('resourceType','resourceId', 'subscriptionId', 'location', 'appHealthInfo').by(values('resourceType')).by(values('resourceId')).by(values('subscriptionId')).by(values('location')).by(values('appHealthInfo'))");
+                var appGroups = await _graphDatabaseClient.Query<Dictionary<string, object>>("g.V().has('resourceType').has('resourceId').has('subscriptionId').has('location').has('appHealthInfo').project('resourceType','resourceId', 'subscriptionId', 'location', 'appHealthInfo').by(values('resourceType')).by(values('resourceId')).by(values('subscriptionId')).by(values('location')).by(values('appHealthInfo'))");
                 foreach (var app in appGroups)
                 {
                     if (app is not null)

@@ -24,7 +24,7 @@ public class MetricsRegistry : IMetricsRegistry
         {
             Name = "resource_count_by_subscription",
             Description = "Count of resources grouped by subscription",
-            Query = "g.V().groupCount().by('subscriptionId')",
+            Query = "g.V().has('subscriptionId').groupCount().by('subscriptionId')",
             Type = MetricType.Gauge,
             ScrapeIntervalSeconds = 300
         });
@@ -34,7 +34,7 @@ public class MetricsRegistry : IMetricsRegistry
         {
             Name = "resource_count_by_resource_group",
             Description = "Count of resources grouped by resource group",
-            Query = "g.V().groupCount().by('resourceGroupName')",
+            Query = "g.V().has('resourceGroupName').groupCount().by('resourceGroupName')",
             Type = MetricType.Gauge,
             ScrapeIntervalSeconds = 300
         });
@@ -90,23 +90,24 @@ public class MetricsRegistry : IMetricsRegistry
         });
 
         // Resource tag metrics
-        RegisterMetric(new MetricDefinition
-        {
-            Name = "resource_count_by_environment_tag",
-            Description = "Count of resources grouped by environment tag",
-            Query = "g.V().has('tags').where(__.values('tags').has('environment')).groupCount().by(__.values('tags').select('environment'))",
-            Type = MetricType.Gauge,
-            ScrapeIntervalSeconds = 300
-        });
+        // Currently, there's no tags in the knowledge graph. 
+        // RegisterMetric(new MetricDefinition
+        // {
+        //     Name = "resource_count_by_environment_tag",
+        //     Description = "Count of resources grouped by environment tag",
+        //     Query = "g.V().has('tags').where(__.values('tags').has('environment')).groupCount().by(__.values('tags').select('environment'))",
+        //     Type = MetricType.Gauge,
+        //     ScrapeIntervalSeconds = 300
+        // });
 
-        RegisterMetric(new MetricDefinition
-        {
-            Name = "resources_missing_required_tags",
-            Description = "Count of resources missing required tags (environment, owner, costCenter)",
-            Query = "g.V().not(__.has('tags').where(__.values('tags').has('environment').and().has('owner').and().has('costCenter'))).count()",
-            Type = MetricType.Gauge,
-            ScrapeIntervalSeconds = 300
-        });
+        // RegisterMetric(new MetricDefinition
+        // {
+        //     Name = "resources_missing_required_tags",
+        //     Description = "Count of resources missing required tags (environment, owner, costCenter)",
+        //     Query = "g.V().not(__.has('tags').where(__.values('tags').has('environment').and().has('owner').and().has('costCenter'))).count()",
+        //     Type = MetricType.Gauge,
+        //     ScrapeIntervalSeconds = 300
+        // });
 
         // Resource type metrics by subscription
         RegisterMetric(new MetricDefinition
@@ -212,25 +213,27 @@ public class MetricsRegistry : IMetricsRegistry
             ScrapeIntervalSeconds = 600
         });
 
+        // Currently, there's no tags in the knowledge graph.
         // Resource cost metrics
-        RegisterMetric(new MetricDefinition
-        {
-            Name = "resources_by_cost_center",
-            Description = "Count of resources by cost center tag",
-            Query = "g.V().has('tags').where(__.values('tags').has('costCenter')).groupCount().by(__.values('tags').select('costCenter'))",
-            Type = MetricType.Gauge,
-            ScrapeIntervalSeconds = 300
-        });
+        // RegisterMetric(new MetricDefinition
+        // {
+        //     Name = "resources_by_cost_center",
+        //     Description = "Count of resources by cost center tag",
+        //     Query = "g.V().has('tags').where(__.values('tags').has('costCenter')).groupCount().by(__.values('tags').select('costCenter'))",
+        //     Type = MetricType.Gauge,
+        //     ScrapeIntervalSeconds = 300
+        // });
 
+        // Currently, there's no 'createdTime' in the knowledge graph. Besides, cosmos gremlin doesn't support lambda syntax
         // Resource age distribution
-        RegisterMetric(new MetricDefinition
-        {
-            Name = "resource_age_distribution",
-            Description = "Distribution of resources by age in days",
-            Query = "g.V().has('createdTime').groupCount().by{it.get().value('createdTime') > (new Date().getTime() - 30*24*60*60*1000) ? 'last30days' : it.get().value('createdTime') > (new Date().getTime() - 90*24*60*60*1000) ? 'last90days' : it.get().value('createdTime') > (new Date().getTime() - 180*24*60*60*1000) ? 'last180days' : 'older'}",
-            Type = MetricType.Gauge,
-            ScrapeIntervalSeconds = 3600
-        });
+        // RegisterMetric(new MetricDefinition
+        // {
+        //     Name = "resource_age_distribution",
+        //     Description = "Distribution of resources by age in days",
+        //     Query = "g.V().has('createdTime').groupCount().by{it.get().value('createdTime') > (new Date().getTime() - 30*24*60*60*1000) ? 'last30days' : it.get().value('createdTime') > (new Date().getTime() - 90*24*60*60*1000) ? 'last90days' : it.get().value('createdTime') > (new Date().getTime() - 180*24*60*60*1000) ? 'last180days' : 'older'}",
+        //     Type = MetricType.Gauge,
+        //     ScrapeIntervalSeconds = 3600
+        // });
 
         // Specific resource service metrics
         RegisterMetric(new MetricDefinition
