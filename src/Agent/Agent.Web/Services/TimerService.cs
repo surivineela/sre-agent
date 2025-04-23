@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -181,6 +181,11 @@ public class TimerService : IHostedService, IDisposable
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
+        if (_timerSettings.Disabled)
+        {
+            _logger.LogWarning("Timer is disabled in appsettings. Skipping timer initialization.");
+            return Task.CompletedTask;
+        }
         _logger.LogInformation($"Starting background services...");
 
         StartCrawlerTimer(cancellationToken);
@@ -641,7 +646,7 @@ public class TimerService : IHostedService, IDisposable
 
                 var title = "Azure SRE Partner Active";
 
-                (var _, var agentContext)= await _agentInboundCommunicationService.CreateAgentThread(
+                (var _, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                                title: title,
                                message: messageBuilder.ToString(),
                                agentTypeEnum: AgentTypeEnum.Meta,

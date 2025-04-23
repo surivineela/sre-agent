@@ -230,34 +230,47 @@ namespace Agent.Plugins
                         }
                     }
 
-                    // TODO: read threadcontext from cosmos db if Context is null
+                    // --- Deduplication Step (AFTER Filtering) to reduce the input size for the LLM ---
+                    var uniqueFilteredResults = new List<Dictionary<string, object>>();
+                    var seenJsonRepresentations = new HashSet<string>();
+                    var jsonSerializerOptionsForDeduplication = new JsonSerializerOptions { };
 
-                    var jsonResult = JsonSerializer.Serialize(typedResult, new JsonSerializerOptions { WriteIndented = true });
-                    var prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, convert it to brief text to show the relationships between microservices (the dependency true).
-                    Each JSON object in the data represents services that work together.
-                    Start the introduction by saying: Here's the relationship of the microservices topology starting from component {deploymentName}:
-                    Then show the relationship in the following format, add Type in () behind the component name, ignore when type is Deployment, e.g:
-                    * a -> [b, c]
-                    * b -> d (type)
-                    * c -> [d (type), e]
-                    End the brief summary by saying: Following is the diagram showing a virtualized relationship.
-                    Strict Requirements:
-                    * Please ensure all components are listed in the description instead of omit by saying details in diagram.
-                    Input JSON:
-                    {jsonResult}";
-                    // This response will be returned as function output and being added to chat history via generic agent reasoning loop.
-                    var responseText = await ChatClient.GetResponseAsync(prompt);
-                    _logger.LogInformation($"Relationships generated successfully: {responseText.Text}");
+                    _logger.LogDebug($"[VisualizeAKSMicroserviceTopology] Starting deduplication for {typedResult.Count} filtered items.");
+                    foreach (var filteredItem in typedResult) // Iterate through the *filtered* list
+                    {
+                        try
+                        {
+                            // Serialize the filtered object to its JSON string representation
+                            string itemJson = JsonSerializer.Serialize(filteredItem, jsonSerializerOptionsForDeduplication);
 
-                    prompt = @$"Using the provided data of Kubernetes deployments/statefulsets, create a valid Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram.
+                            // HashSet.Add returns true if the item was added (i.e., it was unique *after filtering*)
+                            if (seenJsonRepresentations.Add(itemJson))
+                            {
+                                uniqueFilteredResults.Add(filteredItem); // Add the filtered object
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger.LogWarning($"[VisualizeAKSMicroserviceTopology] Could not serialize filtered item for deduplication. Skipping item. Error: {ex.Message}");
+                            // Decide if you want to add the item anyway or skip it if serialization fails
+                            // uniqueFilteredResults.Add(filteredItem); // Optional: Add even if serialization fails
+                        }
+                    }
+                    _logger.LogDebug($"[VisualizeAKSMicroserviceTopology] Deduplication complete. Filtered items: {typedResult.Count}, Unique items after filtering: {uniqueFilteredResults.Count}");
+                    // --- End Deduplication Step ---
+
+                    var jsonResult = JsonSerializer.Serialize(uniqueFilteredResults, new JsonSerializerOptions { WriteIndented = true });
+                    var prompt = $"""
+                    Using the provided data of Kubernetes deployments/statefulsets, create a Mermaid diagram that shows the relationships between microservices. Each JSON object in the data represents services that work together, so draw connections between them in the mermaid diagram. 
 Strict Requirements:
 * Please ensure that each unique dependency is listed only once.
-* Use deployment/statefulset name as the node identifier.
-* Output ONLY the raw Mermaid specification as plain text starting with 'graph LR;'. Do not include any markdown formatting, code fences, or additional text.
+* Use deployment/statefulset name as the node identifier, mark the type behind the name if the type is not deployment by using this syntax: **name["name (type)"]**.
+* Output ONLY the **VALID**, **RAW** Mermaid specification as plain text starting with 'graph LR;'. Do not include any markdown formatting, code fences, or additional text.
 * Use '-->' to represent the dependency between two components.
 
 Input JSON:
-{jsonResult}";
+{jsonResult}
+""";
                     var response = await ChatClient.GetResponseAsync(prompt);
                     var mermaidSpec = response.Text;
                     _logger.LogInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
@@ -266,8 +279,18 @@ Input JSON:
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
                     await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Microservice Topology](data:image/png;base64,{base64EncodedGraph})\r\n");
 
+                    // Construct the final response string for the LLM, this helps the LLM to further answer questions regarding the topology
+                    string llmResponse = $@"I have analyzed the microservice topology starting from '{deploymentName}' in the '{_namespace}' namespace within the cluster '{AKSClusterResourceId}'.
 
-                    return responseText.Text;
+A visual diagram representing these relationships has been generated and added to our chat.
+
+For reference, here is the raw Mermaid specification used to create the diagram:
+```mermaid
+{mermaidSpec}
+```";
+
+                    _logger.LogInformation("[VisualizeAKSMicroserviceTopology] Successfully generated visualization and response text.");
+                    return llmResponse;
                 }
                 catch (Exception ex)
                 {
@@ -451,7 +474,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 // Query with specific deployment as starting point
                 string deploymentResourceId = $"{formattedResourceId}_apps_v1_namespaces_{namespaceName}_deployments_{deploymentName}";
 
-// We are leaving out contains for now
+                // We are leaving out contains for now
                 string query = $@"
 g.V().has('id', '{deploymentResourceId}')
 .repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))

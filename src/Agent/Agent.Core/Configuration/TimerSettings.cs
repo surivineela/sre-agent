@@ -19,5 +19,8 @@ namespace Agent.Core.Configuration
 
         [Required]
         public int ScoreCardUpdateIntervalInMinutes { get; set; } = 30;
+
+        // This provides a way to disable the timer for testing/developing purposes
+        public bool Disabled { get; set; } = false;
     }
 }
