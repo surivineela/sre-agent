@@ -118,8 +118,10 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                 Constants.KubernetesV1Version,
                 Constants.KubernetesPodType);
             await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-            var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Connected);
+            var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+            var edge2 = new ArmResourceEdge(podNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.OwnedBy);
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
             yield return podNode;
         }

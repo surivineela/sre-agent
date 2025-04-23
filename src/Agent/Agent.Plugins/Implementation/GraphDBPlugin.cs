@@ -198,7 +198,7 @@ namespace Agent.Plugins
                     string tempJson = JsonSerializer.Serialize(result);
                     var typedResult = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(tempJson);
 
-                    // Filter out pods and services from each item
+                    // Filter out pods, services, and nodes from each item
                     foreach (var item in typedResult)
                     {
                         if (item.ContainsKey("objects"))
@@ -215,11 +215,11 @@ namespace Agent.Plugins
                                     var resourceTypeJson = JsonSerializer.Serialize(obj["resourceType"]);
                                     var resourceTypes = JsonSerializer.Deserialize<List<string>>(resourceTypeJson);
 
-                                    // Check if the first resource type ends with /services or /pods
+                                    // Check if the first resource type ends with /services, /pods or /nodes
                                     if (resourceTypes.Count > 0)
                                     {
                                         string resourceType = resourceTypes[0];
-                                        return !resourceType.EndsWith("/services") && !resourceType.EndsWith("/pods");
+                                        return !resourceType.EndsWith("/services") && !resourceType.EndsWith("/pods") && !resourceType.EndsWith("/nodes");
                                     }
                                 }
                                 return true; // Keep objects without resourceType
@@ -451,9 +451,10 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 // Query with specific deployment as starting point
                 string deploymentResourceId = $"{formattedResourceId}_apps_v1_namespaces_{namespaceName}_deployments_{deploymentName}";
 
+// We are leaving out contains for now
                 string query = $@"
 g.V().has('id', '{deploymentResourceId}')
-.repeat(out('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
+.repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
 .emit()
 .path().by(valueMap('name', 'resourceType'))";
 

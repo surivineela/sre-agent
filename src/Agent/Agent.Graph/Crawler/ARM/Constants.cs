@@ -68,6 +68,7 @@ public class Constants
         public const string References = "REFERENCES";
         public const string BackedBy = "BACKED_BY";
         public const string RevisionOf = "REVISION_OF";
+        public const string OwnedBy = "OWNED_BY";
     }
 
     // indicates this node is a part of specific topology
