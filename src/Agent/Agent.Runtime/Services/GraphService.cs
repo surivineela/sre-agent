@@ -6,8 +6,8 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
-using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 using Microsoft.Extensions.Logging;
+using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Runtime.Services;
 
@@ -91,24 +91,24 @@ public class GraphService : IGraphService
     private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId, int hops)
     {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
-                   .union(
-                       repeat(
-                           union(
-                               inE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').outV(),
-                               outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV()
-                           )
-                           .not(has('resourceType', within('resourcegroups', 'subscription')))
-                           .simplePath()
-                       )
-                       .times({hops})
-                       .emit()
-                   )
-                   .dedup()
-                   .project('id', 'name', 'type', 'properties')
-                   .by(id())
-                   .by(coalesce(values('resourceName'), constant('')))
-                   .by(label())
-                   .by(valueMap())";
+                    .union(
+                        repeat(
+                            union(
+                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
+                                inE('LINKED', 'CONNECTED', 'HOSTED_ON').outV()
+                            )
+                            .not(has('resourceType', within('resourcegroups', 'subscription')))
+                            .simplePath()
+                        )
+                        .times({hops})
+                        .emit()
+                    )
+                    .dedup()
+                    .project('id', 'name', 'type', 'properties')
+                    .by(id())
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(label())
+                    .by(valueMap())";
 
         var resultSet = await _graphDatabaseClient.Query(query);
         return resultSet;
@@ -137,9 +137,11 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<AppGroupItem>> GetAppGroupResourcesAsync(string resourceId)
     {
+        int hops = 2;
+
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();
-        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, 2);
+        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, hops);
 
         return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
     }
