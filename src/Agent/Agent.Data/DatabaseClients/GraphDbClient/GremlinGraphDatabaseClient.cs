@@ -109,6 +109,24 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public async Task<bool> AddOrUpdateNodeAsync(string nodelabel, string nodeId, string resourceType, IDictionary<string, object> properties)
         {
             var sanitizedNodeId = GetSanitizedCosmosDBId(nodeId);
+
+            // NOTE: This is a temporary workaround to avoid the crawler from overwriting these properties
+            if (properties.ContainsKey("appHealthInfo") && 
+                (properties["appHealthInfo"] == null || 
+                 properties["appHealthInfo"].ToString() == "null" || 
+                 string.IsNullOrEmpty(properties["appHealthInfo"].ToString())))
+            {
+                properties.Remove("appHealthInfo");
+            }
+
+            if (properties.ContainsKey("remarks") && 
+                (properties["remarks"] == null || 
+                 properties["remarks"].ToString() == "null" || 
+                 string.IsNullOrEmpty(properties["remarks"].ToString())))
+            {
+                properties.Remove("remarks");
+            }
+
             var query = $"g.V('{sanitizedNodeId}').fold().coalesce(unfold()";
             foreach (var property in properties)
             {
