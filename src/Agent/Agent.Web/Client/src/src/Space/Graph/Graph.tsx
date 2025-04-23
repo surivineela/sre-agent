@@ -38,8 +38,7 @@ const GraphContent = (props: IGraphProps) => {
         hoverNode,
         unHoverNode,
         nodesToHightlight,
-        edgesToHightlight,
-        selectedAppGroupId
+        edgesToHightlight
     } = useGraph();
 
     const { root, reactFlow, spinner } = useGraphStyles();
@@ -53,8 +52,7 @@ const GraphContent = (props: IGraphProps) => {
             hoverNode,
             unHoverNode,
             nodesToHightlight,
-            edgesToHightlight,
-            selectedAppGroupId
+            edgesToHightlight
         }}>
         <div className={root}>
             <ResourceSelector onAppGroupUpdate={onAppGroupUpdate} />

@@ -5,8 +5,7 @@ interface HealthStatusProps {
     health?: string;
     showReportButton?: boolean;
     onClickReportButton?: () => Promise<void>;
-    isSendingReport?: boolean;
-    fontSize?: 100 | 200 | 300 | 400 | 500 | 600 | 700 | 800 | 900 | 1000 | undefined;
+    isSendingReport?: boolean
 }
 
 const useStyles = makeStyles({
@@ -19,7 +18,7 @@ const useStyles = makeStyles({
     }
 });
 
-const HealthStatus = ({ health, showReportButton, onClickReportButton, isSendingReport, fontSize }: HealthStatusProps) => {
+const HealthStatus = ({ health, showReportButton, onClickReportButton, isSendingReport }: HealthStatusProps) => {
 
     const { container } = useStyles();
 
@@ -44,7 +43,7 @@ const HealthStatus = ({ health, showReportButton, onClickReportButton, isSending
 
     return health ? <div className={container}>
         {healthIconSrc && <Image src={healthIconSrc} width={16} height={16} />}
-        <Text size={fontSize}>{healthText}</Text>
+        <Text>{healthText}</Text>
         {
             showReportButton && isNodeUnhealthy && (
                 isSendingReport ?

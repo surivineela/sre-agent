@@ -7,7 +7,7 @@ import { getSourceAndTargetHandleId } from "../Graph/Utility";
 export const useGraphLayout = () => {
     const workerRef = useRef<Worker>();
 
-    const getEdges = (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string) => {
+    const getEdges = (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[]) => {
         return edges.map((edge: any) => {
             const edgeSource = edge.sources?.[0] ?? edge.source;
             const edgeTarget = edge.targets?.[0] ?? edge.target;
@@ -19,7 +19,7 @@ export const useGraphLayout = () => {
                 const sourcePos = source.position;
                 const targetPos = target.position;
 
-                const { sourceHandle, targetHandle } = getSourceAndTargetHandleId(sourcePos, targetPos, source.id === rootNodeId, target.id === rootNodeId);
+                const { sourceHandle, targetHandle } = getSourceAndTargetHandleId(sourcePos, targetPos);
 
                 edgeResult.sourceHandle = sourceHandle;
                 edgeResult.targetHandle = targetHandle;
@@ -28,7 +28,7 @@ export const useGraphLayout = () => {
         });
     }
 
-    const getElkLayout = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string): Promise<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }> => {
+    const getElkLayout = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[]): Promise<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }> => {
         return new Promise((resolve, reject) => {
             const worker = workerRef.current;
             if (!worker) return reject('Worker not initialized')
@@ -38,7 +38,7 @@ export const useGraphLayout = () => {
 
                 if (type === 'success' && layout) {
                     const computedNodes: Node<GraphNode>[] = (layout.children ?? []).map((node: any) => ({ ...node, position: { x: node.x ?? 0, y: node.y ?? 0 } }));
-                    const computedEdges: Edge<GraphEdge>[] = getEdges(computedNodes, (layout.edges ?? []), rootNodeId);
+                    const computedEdges: Edge<GraphEdge>[] = getEdges(computedNodes, (layout.edges ?? []));
 
                     resolve({ nodes: computedNodes, edges: computedEdges });
                 } else {
@@ -51,11 +51,11 @@ export const useGraphLayout = () => {
             worker.onmessage = (event) => {
                 handleMessage(event);
             };
-            worker.postMessage({ nodes, edges, rootNodeId })
+            worker.postMessage({ nodes, edges })
         });
     }
 
-    const getDagreLayout = (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string) => {
+    const getDagreLayout = (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[]) => {
         const dagreGraph = new graphlib.Graph().setDefaultEdgeLabel(() => ({}));
         dagreGraph.setGraph({ rankdir: 'LR', ranksep: NodeSize.width });
 
@@ -63,8 +63,8 @@ export const useGraphLayout = () => {
         nodes.forEach((node) =>
             dagreGraph.setNode(node.id, {
                 ...node,
-                width: node.id === rootNodeId ? NodeSize.appGroupWidth : NodeSize.width,
-                height: node.id === rootNodeId ? NodeSize.appGroupHeight : NodeSize.height,
+                width: NodeSize.width,
+                height: NodeSize.height,
             }),
         );
 
@@ -80,7 +80,7 @@ export const useGraphLayout = () => {
             return { ...node, position: { x, y } };
         });
 
-        const computedEdges = getEdges(computedNodes, edges, rootNodeId);
+        const computedEdges = getEdges(computedNodes, edges);
 
         return {
             nodes: computedNodes,
@@ -88,11 +88,11 @@ export const useGraphLayout = () => {
         }
     };
 
-    const layoutGraph = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string) => {
+    const layoutGraph = async (nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[]) => {
         if (nodes.length < 20) {
-            return Promise.resolve(getDagreLayout(nodes, edges, rootNodeId));
+            return Promise.resolve(getDagreLayout(nodes, edges));
         } else {
-            return getElkLayout(nodes, edges, rootNodeId);
+            return getElkLayout(nodes, edges);
         }
     }
 

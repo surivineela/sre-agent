@@ -18,7 +18,6 @@ export const useGraph = () => {
     const [graph, setGraph] = useState<Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>>(
         new Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>()
     );
-    const [selectedAppGroupId, setSelectedAppGroupId] = useState<string>();
     const [isLoading, setIsLoading] = useState(false);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [selectedNode, setSelectedNode] = useState<GraphNode>();
@@ -70,7 +69,7 @@ export const useGraph = () => {
             if (!graph.has(appGroup.id)) {
                 const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
                 const { nodes, edges } = getNewNodesAndEdges(appGroup, resources);
-                layoutGraph(nodes, edges, appGroup.id).then(result => {
+                layoutGraph(nodes, edges).then(result => {
                     setGraph(prev => {
                         const newGraph = new Map(prev);
                         newGraph.set(appGroup.id, { ...result });
@@ -78,7 +77,6 @@ export const useGraph = () => {
                     });
                     setNodes(result.nodes);
                     setEdges(result.edges);
-                    setSelectedAppGroupId(appGroup?.id);
                     setIsLoading(prev => {
                         if (prev) {
                             return false;
@@ -90,13 +88,11 @@ export const useGraph = () => {
                 const { nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
                 setNodes(nodes);
                 setEdges(edges);
-                setSelectedAppGroupId(appGroup?.id);
                 setIsLoading(false);
             }
         } else {
             setNodes([]);
             setEdges([]);
-            setSelectedAppGroupId(undefined);
             setIsLoading(false);
         }
     }, [graph, closePanel, setNodes, setEdges]);
@@ -119,7 +115,6 @@ export const useGraph = () => {
         isPanelOpen,
         selectedNode,
         onAppGroupUpdate,
-        selectedAppGroupId,
         hoverNode,
         unHoverNode,
         nodesToHightlight,

@@ -5,7 +5,7 @@ import {
 } from "@fluentui/react-components";
 import { Card, CardHeader } from "@fluentui/react-components";
 import { NodeProps, Node, Handle, Position } from "@xyflow/react";
-import { memo, useContext } from "react";
+import { memo, useContext, useMemo } from "react";
 import { GraphContext, GraphNode, HandlePosition } from "../Contracts/Graph";
 import HealthStatus from "./HealthStatus";
 import { getAppHealthInfo, getHandleId } from "./Utility";
@@ -62,25 +62,33 @@ const resolveIcon = (azureType?: string): string => {
 // ────────────────────────────────────────────────────────────────────────────────
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
-    const { openPanel, hoverNode, unHoverNode, nodesToHightlight, selectedAppGroupId } =
+    const { openPanel, hoverNode, unHoverNode, nodesToHightlight } =
         useContext(GraphContext);
 
-    const { card, rootCard, cardHightlight, header, rootHeader, headerText, rootHeaderText, description } =
+    const { card, cardHightlight, header, headerText, description } =
         useGraphNodeStyles();
 
-    const isRootNode = id === selectedAppGroupId;
+    const type = useMemo(() => {
+        const resourceType = data?.properties?.type;
+        if (resourceType) {
+            const typeArray = resourceType.split("/");
+            return typeArray[typeArray.length - 1];
+        } else {
+            return 'subscription';
+        }
+    }, [data?.properties?.type]);
 
     // Title link
     const Header = () =>
         data.name ? (
             <Link
-                className={isRootNode ? rootHeaderText : headerText}
+                className={headerText}
                 onClick={(e) => {
                     e.stopPropagation();
                     openPanel(data);
                 }}
             >
-                <Text wrap={false} block={false} size={isRootNode ? 900 : 600}>
+                <Text wrap={false} block={false} size={600}>
                     {data.name}
                 </Text>
             </Link>
@@ -91,10 +99,10 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
         <Text
             wrap={false}
             block={false}
-            size={isRootNode ? 600 : 400}
+            size={400}
             className={mergeClasses(headerText, description)}
         >
-            {data?.properties?.type ?? "subscription"}
+            {type}
         </Text>
     );
 
@@ -106,12 +114,12 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                     openPanel(data);
                 }}
                 className={mergeClasses(
-                    isRootNode ? rootCard : card,
+                    card,
                     nodesToHightlight.includes(id) ? cardHightlight : undefined
                 )}
             >
                 <CardHeader
-                    className={isRootNode ? rootHeader : header}
+                    className={header}
                     image={
                         <img
                             width={32}
@@ -124,7 +132,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                     description={<Description />}
                 />
                 {/* Updated to use getAppHealthInfo */}
-                <HealthStatus health={getAppHealthInfo(data.properties)?.Health} fontSize={600} />
+                <HealthStatus health={getAppHealthInfo(data.properties)?.Health} />
             </Card>
         </div>
     );

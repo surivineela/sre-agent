@@ -6,8 +6,8 @@ const elk = new ELK({
     workerUrl: '../elk-worker.min.js'
 })
 
-self.onmessage = async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[], rootNodeId: string }>) => {
-    const { nodes, edges, rootNodeId } = event.data;
+self.onmessage = async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>) => {
+    const { nodes, edges } = event.data;
 
     try {
         const layout = await elk.layout({
@@ -16,8 +16,8 @@ self.onmessage = async (event: MessageEvent<{ nodes: Node<GraphNode>[], edges: E
                 ...node,
                 x: node.position.x,
                 y: node.position.y,
-                width: node.id === rootNodeId ? NodeSize.appGroupWidth : NodeSize.width,
-                height: node.id === rootNodeId ? NodeSize.appGroupHeight : NodeSize.height,
+                width: NodeSize.width,
+                height: NodeSize.height,
             })),
             edges: edges.map(edge => ({
                 ...edge,

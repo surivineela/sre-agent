@@ -66,7 +66,6 @@ interface GraphContextProps {
     unHoverNode: () => void;
     nodesToHightlight: string[];
     edgesToHightlight: string[];
-    selectedAppGroupId?: string;
 }
 
 export const GraphContext = createContext<GraphContextProps>({
@@ -82,8 +81,6 @@ export const GraphContext = createContext<GraphContextProps>({
 export class NodeSize {
     static readonly width = 300;
     static readonly height = 100;
-    static readonly appGroupWidth = 400;
-    static readonly appGroupHeight = 185;
 }
 
 export type HandlePosition = 'T' | 'B' | 'L' | 'R';

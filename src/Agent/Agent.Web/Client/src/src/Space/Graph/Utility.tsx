@@ -115,27 +115,18 @@ export const getHandleId = (position: HandlePosition, isTarget: boolean) => {
     return `${position}-${isTarget ? 'in' : 'out'}`;
 }
 
-export const getSourceAndTargetHandleId = (
-    leftCenterPos: { x: number, y: number },
-    rightcenterPos: { x: number, y: number },
-    isLeftRootNode: boolean,
-    isRightRootNode: boolean
-): { sourceHandle: string; targetHandle: string } => {
-    const getWidth = (isRootNode: boolean) => isRootNode ? NodeSize.appGroupWidth : NodeSize.width;
-    const getHeight = (isRootNode: boolean) => isRootNode ? NodeSize.appGroupHeight : NodeSize.height;
+export const getSourceAndTargetHandleId = (leftCenterPos: { x: number, y: number }, rightcenterPos: { x: number, y: number }): { sourceHandle: string; targetHandle: string } => {
 
-    const getHandlePosition = (x: number, y: number, position: HandlePosition, isRootNode: boolean) => {
-        const width = getWidth(isRootNode);
-        const height = getHeight(isRootNode);
+    const getHandlePosition = (x: number, y: number, position: HandlePosition) => {
         switch (position) {
             case 'T':
-                return { x: x, y: y - height / 2 };
+                return { x: x, y: y - NodeSize.height / 2 };
             case 'B':
-                return { x: x, y: y + height / 2 };
+                return { x: x, y: y + NodeSize.height / 2 };
             case 'L':
-                return { x: x - width / 2, y: y };
+                return { x: x - NodeSize.width / 2, y: y };
             case 'R':
-                return { x: x + width / 2, y: y };
+                return { x: x + NodeSize.width / 2, y: y };
             default:
                 return { x, y };
         }
@@ -151,11 +142,11 @@ export const getSourceAndTargetHandleId = (
     const positions: HandlePosition[] = ['T', 'B', 'L', 'R']
 
     const sourceNodeHandlePos = Array.from({ length: 4 }, (_, index) =>
-        getHandlePosition(leftCenterPos.x, leftCenterPos.y, positions[index], isLeftRootNode)
+        getHandlePosition(leftCenterPos.x, leftCenterPos.y, positions[index])
     );
 
     const targetNodeHandlePos = Array.from({ length: 4 }, (_, index) =>
-        getHandlePosition(rightcenterPos.x, rightcenterPos.y, positions[index], isRightRootNode)
+        getHandlePosition(rightcenterPos.x, rightcenterPos.y, positions[index])
     )
 
     for (let i = 0; i < 4; i++) {
