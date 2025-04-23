@@ -2,9 +2,12 @@ import { Action } from '../../Common/Contracts/SreAgent';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import axios from 'axios';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 
 const getActions = async (threadId: string) => {
-  const { data } = await axios.get(`../api/v1/threads/${threadId}/actions`);
+  const { data } = await axios.get(`../api/v1/threads/${threadId}/actions`, {
+    headers: getAgentHeaders()
+  });
   return data.value ?? [];
 };
 

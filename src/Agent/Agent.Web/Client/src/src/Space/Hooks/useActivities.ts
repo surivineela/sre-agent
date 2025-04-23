@@ -3,10 +3,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import axios from 'axios';
 import { getLatestThread, noGapBetweenNewThreadsAndExistingThreads, processThreads } from '../Activities/Utility';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 
 const getThreads = async (skip: number, top = 20): Promise<Thread[]> => {
   try {
-    const { data } = await axios.get(`../api/v1/threads?skip=${skip}&top=${top}&orderby=createdTimestamp+desc`);
+    const { data } = await axios.get(`../api/v1/threads?skip=${skip}&top=${top}&orderby=createdTimestamp+desc`, {
+      headers: getAgentHeaders()
+    });
     return data.value ?? [];
   } catch {
     return [];

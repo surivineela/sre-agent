@@ -21,7 +21,7 @@ const App: React.FC = () => {
   // When we're running in standalone mode, we won't be getting any environment information
   // so we can load, but any features which depend on ARM won't work.
   const uiReady = AzPortalProxy.inStandaloneMode ||
-    (environmentInfo.armEndpoint && environmentInfo.token && environmentInfo.resourceId && environmentInfo.theme);
+    (environmentInfo.armEndpoint && environmentInfo.armToken && environmentInfo.resourceId && environmentInfo.theme && environmentInfo.sreAgentToken);
   return uiReady ? (
     <EnvironmentContext.Provider value={environmentInfo}>
       <ThemeProvider theme={environmentInfo.theme?.mode === ThemeMode.Dark ? AzureThemeDark : AzureThemeLight}>

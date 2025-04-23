@@ -5,7 +5,8 @@ export interface IEnvironmentInfo {
   effectiveLocale: string;
   resourceId: string;
   armEndpoint: string;
-  token?: string;
+  armToken?: string;
+  sreAgentToken?: string;
   theme?: ITheme;
   userInfo?: IUserInfo;
 }

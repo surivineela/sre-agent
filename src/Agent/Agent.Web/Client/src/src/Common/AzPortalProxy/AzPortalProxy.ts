@@ -5,13 +5,13 @@ import { IEnvironmentInfo } from "./Models/IEnvironmentInfo";
 import { ITelemetryInfo } from "./Models/ITelemetryInfo";
 import { Guid } from "../Helpers/Guid";
 import { INotificationInfo, INotificationState } from "./Models/INotificationInfo";
+import { ITokenInfo } from "./Models/ITokenInfo";
 
 export default class AzPortalProxy {
   public shellSrc: string = '';
 
   private readonly portalFrameBladeSignature = 'FxFrameBlade';
 
-  private internalEnvInfo: IEnvironmentInfo = {} as IEnvironmentInfo;
   private setEnvironmentInfo: React.Dispatch<React.SetStateAction<IEnvironmentInfo>> = {} as React.Dispatch<React.SetStateAction<IEnvironmentInfo>>;
 
   private readonly acceptedSignatures = [
@@ -28,7 +28,9 @@ export default class AzPortalProxy {
     'portal.azure.net',
   ];
 
-  public static get inStandaloneMode(){
+  public static envInfo: IEnvironmentInfo = {} as IEnvironmentInfo;
+
+  public static get inStandaloneMode() {
     return window.self === window.top;
   }
 
@@ -110,41 +112,55 @@ export default class AzPortalProxy {
     switch (methodName) {
       case AzPortalToAgentSiteVerbs.sendEnvironmentInfo:
         const envInfo = data as IEnvironmentInfo;
-        this.internalEnvInfo = {
-          ...this.internalEnvInfo,
+        AzPortalProxy.envInfo = {
+          ...AzPortalProxy.envInfo,
           effectiveLocale: envInfo.effectiveLocale,
           resourceId: envInfo.resourceId,
           armEndpoint: envInfo.armEndpoint
         };
-        this.setEnvironmentInfo(this.internalEnvInfo);
+        this.setEnvironmentInfo(AzPortalProxy.envInfo);
         break;
 
       case AzPortalToAgentSiteVerbs.sendToken:
-        this.internalEnvInfo = {
-          ...this.internalEnvInfo,
-          token: data.token
-        };
-        this.setEnvironmentInfo(this.internalEnvInfo);
+        this.updateToken(data);
         break;
 
       case AzPortalToAgentSiteVerbs.sendTheme:
-        this.internalEnvInfo = {
-          ...this.internalEnvInfo,
+        AzPortalProxy.envInfo = {
+          ...AzPortalProxy.envInfo,
           theme: data
         };
-        this.setEnvironmentInfo(this.internalEnvInfo);
+        this.setEnvironmentInfo(AzPortalProxy.envInfo);
         break;
 
       case AzPortalToAgentSiteVerbs.sendUserInfo:
-        this.internalEnvInfo = {
-          ...this.internalEnvInfo,
+        AzPortalProxy.envInfo = {
+          ...AzPortalProxy.envInfo,
           userInfo: data.userInfo
         }
-        this.setEnvironmentInfo(this.internalEnvInfo);
+        this.setEnvironmentInfo(AzPortalProxy.envInfo);
         break;
 
       default:
         break;
     }
+  }
+
+  private updateToken(tokenInfo: ITokenInfo) {
+    if (tokenInfo.type === 'arm') {
+      AzPortalProxy.envInfo = {
+        ...AzPortalProxy.envInfo,
+        armToken: tokenInfo.token
+      }
+    } else if (tokenInfo.type === 'sreagent') {
+      AzPortalProxy.envInfo = {
+        ...AzPortalProxy.envInfo,
+        sreAgentToken: tokenInfo.token
+      }
+    } else {
+      throw Error('Unrecognized token type: ' + tokenInfo.type);
+    }
+
+    this.setEnvironmentInfo(AzPortalProxy.envInfo);
   }
 }

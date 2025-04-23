@@ -4,10 +4,13 @@ import { Node, Edge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/
 import { GraphEdge, GraphNode, Resource, ResourceExtended } from '../Contracts/Graph';
 import { getNewNodesAndEdges, getSubscriptionIdFromNodeId } from '../Graph/Utility';
 import { useGraphLayout } from './useGraphLayout';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 
 export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
     try {
-        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups/${resourceId}`);
+        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups/${resourceId}`, {
+            headers: getAgentHeaders()
+        });
         return data ?? [];
     } catch {
         return [];

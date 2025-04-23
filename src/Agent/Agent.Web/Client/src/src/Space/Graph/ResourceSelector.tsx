@@ -3,6 +3,7 @@ import { ResourceExtended, Subscription } from "../Contracts/Graph";
 import axios from "axios";
 import { Dropdown, Field, OptionOnSelectData, SelectionEvents, Skeleton, SkeletonItem, Option, Text, Caption1 } from "@fluentui/react-components";
 import { useResourceSelectorStyles } from "../Styles/Graph.styles";
+import { getAgentHeaders } from "../../Common/Helpers/headers";
 
 interface IResourceSelectorProps {
     onAppGroupUpdate: (appGroup?: ResourceExtended) => void
@@ -10,7 +11,9 @@ interface IResourceSelectorProps {
 
 const getSubscriptions = async (): Promise<Subscription[]> => {
     try {
-        const { data } = await axios.get(`../api/v1/graph/subscriptions`);
+        const { data } = await axios.get(`../api/v1/graph/subscriptions`, {
+            headers: getAgentHeaders()
+        });
         return data ?? [];
     } catch {
         return [];
@@ -19,7 +22,9 @@ const getSubscriptions = async (): Promise<Subscription[]> => {
 
 const getAppGroups = async (subscriptionId: string): Promise<ResourceExtended[]> => {
     try {
-        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups`);
+        const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups`, {
+            headers: getAgentHeaders()
+        });
         return data ?? [];
     } catch {
         return [];

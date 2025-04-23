@@ -5,6 +5,7 @@ import { AgentContext } from '../Activities/Activities.ReactView';
 import { MessagePollingInterval } from '../Contracts/Activities';
 import { Activities } from '../../Strings/SREResources.resjson';
 import axios from 'axios';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 
 const user = {
   displayName: 'Web Client User',
@@ -12,7 +13,9 @@ const user = {
 }
 const getMessages = async (threadId: string) => {
   const url = `../api/v1/threads/${threadId}/messages`;
-    const { data } = await axios.get(url);
+    const { data } = await axios.get(url, {
+      headers: getAgentHeaders()
+    });
   return data.value ?? [];
 };
 
@@ -24,6 +27,8 @@ const sendMessage = async (threadId: string, message: string) => {
     role: 'User',
     displayName: displayName,
     userId: userId,
+  }, {
+    headers: getAgentHeaders()
   });
 };
 
@@ -32,6 +37,8 @@ const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedba
   await axios.post(url, {
     isPositive: isPositive,
     feedbackText: feedbackText
+  }, {
+    headers: getAgentHeaders()
   });
 };
 
@@ -45,6 +52,8 @@ const createThread = async (message: string) => {
       userId: userId,
       displayName: displayName,
     }
+  }, {
+    headers: getAgentHeaders()
   });
   return response?.data;
 };

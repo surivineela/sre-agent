@@ -3,10 +3,13 @@ import { GraphContext, ResourceExtended } from "../Contracts/Graph";
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Guid } from "../../Common/Helpers/Guid";
 import { Link, Toast, ToastBody, ToastIntent, ToastTitle, ToastTrigger, useToastController } from "@fluentui/react-components";
+import { getAgentHeaders } from "../../Common/Helpers/headers";
 
 const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
     try {
-        const { data } = await axios.get(`../api/v1/graph/resource/${resourceId}`);
+        const { data } = await axios.get(`../api/v1/graph/resource/${resourceId}`, {
+            headers: getAgentHeaders()
+        });
         return (data ?? [])?.[0];
     } catch {
         return undefined;
@@ -14,7 +17,9 @@ const getResource = async (resourceId: string): Promise<ResourceExtended | undef
 }
 
 const patchResource = async (resourceId: string, remarks: string): Promise<void> => {
-    await axios.patch(`../api/v1/graph/resource/${resourceId}/remarks`, { remarks });
+    await axios.patch(`../api/v1/graph/resource/${resourceId}/remarks`, { remarks }, {
+        headers: getAgentHeaders()
+    });
 }
 
 export const createThread = async (resourceId: string) => {
@@ -26,6 +31,8 @@ export const createThread = async (resourceId: string) => {
             userId: 'web-client-user',
             displayName: 'Web Client User',
         }
+    }, {
+        headers: getAgentHeaders()
     });
     return response?.data;
 }
