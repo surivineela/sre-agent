@@ -18,7 +18,8 @@ public sealed class FunctionAppConnectivityAgentFactory
     public FunctionAppConnectivityAgentFactory(
         ToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
-        IArmPlugin armPlugin
+        IArmPlugin armPlugin,
+        IRoleAssignmentPlugin roleAssignmentPlugin
         )
     {
         var toolSignatures = new List<string>();
@@ -33,6 +34,13 @@ public sealed class FunctionAppConnectivityAgentFactory
         toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
         toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
         toolSignatures.Add(ToolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
+
+        var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
+        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleAssignments));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.AddRoleAssignment));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.RemoveRoleAssignment));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.CheckRoleAssignment));
+        toolSignatures.Add(ToolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleDetailsFromNameAsync));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

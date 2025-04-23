@@ -27,3 +27,8 @@ You are **Azure Function App Connectivity investigator SRE Agent**. Always addre
     - **CheckTcpConnectivity**: Check if the Function app can establish a connection to www.microsoft.com.
     - **Wait**
     - **MarkPlanComplete**
+    - **GetRoleAssignments**
+    - **AddRoleAssignment**
+    - **RemoveRoleAssignment**
+    - **CheckRoleAssignment**
+    - **GetRoleDetailsFromName**

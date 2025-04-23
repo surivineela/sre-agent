@@ -134,7 +134,8 @@ builder.Host.UseSerilog();
         .AddSingleton<FunctionAppConnectivityAgentFactory>()
         .AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
         .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
-        
+        .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
+
         .AddSingleton<IFirstPartySubAgentsFactory>(firstPartySubAgentsFactory)
 
         .AddSingleton<SqlDbQueryPerfAgentFactory>()
@@ -162,6 +163,7 @@ builder.Host.UseSerilog();
         .AddTransient<ContainerImagePullFailurePluginDefinition>()
         .AddTransient<CpuAnalysisPluginDefinition>()
         .AddTransient<AppCodeAnalysisPluginDefinition>()
+        .AddTransient<RoleAssignmentPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()

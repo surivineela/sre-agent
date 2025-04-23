@@ -80,6 +80,7 @@ public class ToolsRepository : IMcpConnectable
         RegisterPlugin<KubePluginDefinition>();
         RegisterPlugin<AppCodeAnalysisPluginDefinition>();
         RegisterPlugin<CpuAnalysisPluginDefinition>();
+        RegisterPlugin<RoleAssignmentPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);
