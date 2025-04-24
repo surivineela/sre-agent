@@ -62,7 +62,8 @@ public sealed class AgentContextProcessingService(
             chatClient,
             loggerFactory,
             serviceProvider,
-            outboundCommunicationService);
+            outboundCommunicationService,
+            instanceManagementSettings.ReasoningLoopMaxRetryCount);
 
         processor.OnReasoningFinished += HandleReasoningComplete;
 

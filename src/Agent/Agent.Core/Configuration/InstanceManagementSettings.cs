@@ -24,6 +24,9 @@ public class InstanceManagementSettings
     public int InstanceAssignmentWatchIntervalSeconds { get; set; }
 
     [Required]
+    public int ReasoningLoopMaxRetryCount { get; set; }
+
+    [Required]
     public bool ProcessingEnabled { get; set; }
 }
 

@@ -18,7 +18,8 @@ internal class ReasoningLoopProcessor(
     IChatClient chatClient,
     ILoggerFactory loggerFactory,
     IServiceProvider serviceProvider,
-    IAgentOutboundCommunicationService outboundCommunicationService
+    IAgentOutboundCommunicationService outboundCommunicationService,
+    int maxRetryCount
 )
 {
     public event EventHandler<string>? OnReasoningFinished;
@@ -28,13 +29,10 @@ internal class ReasoningLoopProcessor(
     public string InstanceId => assignment.InstanceId;
 
     private bool _complete = false;
-
     private bool _systemPromptSent = false;
-
     private string _subAgentIdentifier = string.Empty;
-
     private Guid _lastProcessedUserMessageId = Guid.Empty;
-
+    private int _retryCount = 0;
     private readonly ILogger<ReasoningLoopProcessor> _logger = loggerFactory.CreateLogger<ReasoningLoopProcessor>();
 
     public async Task RunLoopAsync()
@@ -49,51 +47,30 @@ internal class ReasoningLoopProcessor(
         {
             try
             {
-                // 1. check for new user messages
-                (agentContext, bool newUserMessage, AgentChatHistory? chatHistory) = await HandleNewUserMessagesAsync(agentContext);
+                // run reasoning loop iteration
+                TimeSpan waitTime = await RunLoopIterationAsync(agentContext);
 
-                // 2. handle waiting state
-                (agentContext, chatHistory, bool continueExecution) = await HandleWaitAsync(agentContext, chatHistory);
-
-                if (!continueExecution)
+                // wait before next iteration
+                if (waitTime > TimeSpan.Zero)
                 {
-                    await Task.Delay(3000);
-                    continue;
+                    await Task.Delay(waitTime);
                 }
-
-                // 3. handle approval state
-                //(agentContext, continueExecution) = await HandleApprovalStateAsync(agentContext);
-
-                //if (!continueExecution)
-                //{
-                //    await Task.Delay(3000);
-                //    continue;
-                //}
-
-                // 3. process reasoning step
-                agentContext = await ProcessReasoningStepAsync(agentContext, chatHistory);
-
-                if (agentContext.HandoffState == ContextStateEnum.Completed
-                    || agentContext.HandoffState == ContextStateEnum.Failed
-                    || agentContext.ContextState == ContextStateEnum.Completed
-                    || agentContext.ContextState == ContextStateEnum.Failed)
-                {
-                    _complete = true;
-                    break;
-                }
-
-                // delay before next iteration
-                await Task.Delay(3000);
             }
             catch (Exception e)
             {
-                _logger.LogError(e,
-                    "Unhandled error occurred during agent context reasoning, agent context {AgentContextId}, instance {InstanceId}",
-                    AgentContextId,
-                    InstanceId);
-
-                // retry after 5 seconds
-                await Task.Delay(5000);
+                _logger.LogError(e, "Unhandled error occurred during agent context reasoning, agent context {AgentContextId}, instance {InstanceId}", AgentContextId, InstanceId);
+                _complete = true;
+                agentContext = agentContext with
+                {
+                    ContextState = ContextStateEnum.Failed,
+                    HandoffState = ContextStateEnum.Failed
+                };
+                await threadRepository.UpdateAgentContextAsync(agentContext);
+            }
+            finally
+            {
+                // refresh agent context
+                agentContext = await threadRepository.GetAgentContextAsync(Guid.Parse(AgentContextId), Guid.Parse(ThreadId));
             }
         }
 
@@ -110,6 +87,86 @@ internal class ReasoningLoopProcessor(
         }
 
         await NotifyFinishedAsync(agentContext);
+    }
+
+    /// <summary>
+    /// Run a single iteration of the reasoning loop.
+    /// </summary>
+    /// <param name="agentContext">Agent context</param>
+    /// <returns>Time to wait before next iteration.</returns>
+    internal async Task<TimeSpan> RunLoopIterationAsync(AgentContext? agentContext)
+    {
+        if (agentContext == null)
+        {
+            return TimeSpan.Zero;
+        }
+
+        try
+        {
+            // 1. check for new user messages
+            (agentContext, bool newUserMessage, AgentChatHistory? chatHistory) = await HandleNewUserMessagesAsync(agentContext);
+
+            // 2. handle waiting state
+            (agentContext, chatHistory, bool continueExecution) = await HandleWaitAsync(agentContext, chatHistory);
+
+            if (!continueExecution)
+            {
+                return TimeSpan.FromSeconds(3);
+            }
+
+            // 3. handle approval state
+            //(agentContext, continueExecution) = await HandleApprovalStateAsync(agentContext);
+
+            //if (!continueExecution)
+            //{
+            //    await Task.Delay(3000);
+            //    continue;
+            //}
+
+            // 3. process reasoning step
+            agentContext = await ProcessReasoningStepAsync(agentContext, chatHistory);
+
+            _retryCount = 0;
+
+            if (agentContext.HandoffState == ContextStateEnum.Completed
+                || agentContext.HandoffState == ContextStateEnum.Failed
+                || agentContext.ContextState == ContextStateEnum.Completed
+                || agentContext.ContextState == ContextStateEnum.Failed)
+            {
+                _complete = true;
+                return TimeSpan.Zero;
+            }
+
+            return TimeSpan.FromSeconds(3);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e,
+                "Unhandled error occurred during agent context reasoning, agent context {AgentContextId}, instance {InstanceId}",
+                AgentContextId,
+                InstanceId);
+
+            _retryCount++;
+
+            if (_retryCount >= maxRetryCount)
+            {
+                _logger.LogError("Max retry count reached for agent context {AgentContextId}, instance {InstanceId}", AgentContextId, InstanceId);
+                _complete = true;
+
+                agentContext = agentContext with
+                {
+                    ContextState = ContextStateEnum.Failed,
+                    HandoffState = ContextStateEnum.Failed
+                };
+
+                await threadRepository.UpdateAgentContextAsync(agentContext);
+
+                return TimeSpan.Zero;
+            }
+
+            // retry after 5 seconds
+            return TimeSpan.FromSeconds(5);
+        }
     }
 
     private async Task<(AgentContext updatedContext, bool newUserMessage, AgentChatHistory? chatHistory)> HandleNewUserMessagesAsync(AgentContext agentContext)
@@ -199,9 +256,8 @@ internal class ReasoningLoopProcessor(
             _systemPromptSent = true;
 
             // refresh agentContext
-            agentContext = await threadRepository.GetAgentContextAsync(Guid.Parse(AgentContextId), Guid.Parse(ThreadId));
-
-            return agentContext;
+            agentContext = await threadRepository.GetAgentContextAsync(Guid.Parse(AgentContextId), Guid.Parse(ThreadId))
+                ?? throw new InvalidOperationException($"Agent context {AgentContextId} not found in database after processing step");
         }
         catch (ArgumentOutOfRangeException)
         {

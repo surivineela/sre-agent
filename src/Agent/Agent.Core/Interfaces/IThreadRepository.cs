@@ -40,7 +40,7 @@ public interface IThreadRepository
     Task<bool> DeleteMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
     Task<MessageFeedback> GetMessageFeedbackNeedingRCAAsync();
 
-    Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId);
+    Task<AgentContext?> GetAgentContextAsync(Guid agentContextId, Guid threadId);
     Task<IEnumerable<AgentContext>> GetAgentContextsForThreadAsync(Guid threadId);
     Task<IEnumerable<AgentContext>> GetAllAgentContextsAsync();
     Task<AgentContext> CreateAgentContextAsync(AgentContext agentContext);

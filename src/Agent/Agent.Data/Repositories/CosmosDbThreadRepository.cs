@@ -850,7 +850,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     #endregion
 
     #region AgentContext Operations
-    public async Task<AgentContext> GetAgentContextAsync(Guid agentContextId, Guid threadId)
+    public async Task<AgentContext?> GetAgentContextAsync(Guid agentContextId, Guid threadId)
     {
         try
         {
