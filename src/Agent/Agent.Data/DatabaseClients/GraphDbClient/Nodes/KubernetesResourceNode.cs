@@ -15,8 +15,8 @@ public class KubernetesResourceNode : GraphNode
     [GraphProperty("clusterResourceId")]
     public string ClusterResourceId { get; set; }
 
-    [GraphProperty("name")]
-    public string Name { get; set; }
+    [GraphProperty("resourceName")]
+    public string ResourceName { get; set; }
 
     [GraphProperty("group")]
     public string Group { get; set; }
@@ -32,7 +32,7 @@ public class KubernetesResourceNode : GraphNode
     public KubernetesResourceNode(
         IKubernetesObject k8sObject,
         string clusterResourceId,
-        string name,
+        string resourceName,
         string group,
         string apiVersion,
         string kind,
@@ -42,7 +42,7 @@ public class KubernetesResourceNode : GraphNode
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();
-        Name = name.ToLowerInvariant();
+        ResourceName = resourceName.ToLowerInvariant();
         Group = group.ToLowerInvariant();
         ApiVersion = apiVersion.ToLowerInvariant();
         Kind = kind.ToLowerInvariant();
@@ -58,8 +58,8 @@ public class KubernetesResourceNode : GraphNode
 
     public override string GetNodeId()
     {
-        // This should already be in the format: {clusterResourceId}/{group}/{version}/{kind}/{name}
-        return $"{ClusterResourceId}/{Group}/{ApiVersion}/{Kind}/{Name}";
+        // This should already be in the format: {clusterResourceId}/{group}/{version}/{kind}/{resourceName}
+        return $"{ClusterResourceId}/{Group}/{ApiVersion}/{Kind}/{ResourceName}";
         ;
     }
 

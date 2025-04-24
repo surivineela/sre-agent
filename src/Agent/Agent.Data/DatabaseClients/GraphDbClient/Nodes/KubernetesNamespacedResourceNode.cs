@@ -15,20 +15,20 @@ public class KubernetesNamespacedResourceNode : KubernetesResourceNode
         IKubernetesObject? k8sObject,
         string clusterResourceId,
         string @namespace,
-        string name,
+        string resourceName,
         string group,
         string apiVersion,
         string kind,
         IDictionary<string, string> annotations = null,
-        IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, name, group, apiVersion, kind, annotations, labels)
+        IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, resourceName, group, apiVersion, kind, annotations, labels)
     {
         Namespace = @namespace.ToLowerInvariant();
     }
 
     public override string GetNodeId()
     {
-        // This should already be in the format: {clusterResourceId}/{group}/{version}/namespaces/{namespace}/{kind}/{name}
-        return $"{ClusterResourceId}/{Group}/{ApiVersion}/namespaces/{Namespace}/{Kind}/{Name}";
+        // This should already be in the format: {clusterResourceId}/{group}/{version}/namespaces/{namespace}/{kind}/{resourceName}
+        return $"{ClusterResourceId}/{Group}/{ApiVersion}/namespaces/{Namespace}/{Kind}/{ResourceName}";
         ;
     }
 }

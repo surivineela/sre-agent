@@ -30,6 +30,9 @@ public class GraphService : IGraphService
             // Pending: webapp, sql
         };
 
+    // Define the allowed Kubernetes resource types
+    private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets", "services" };
+
     public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory)
     {
         _graphDatabaseClient = graphDatabaseClient;
@@ -172,6 +175,18 @@ public class GraphService : IGraphService
             if (processedNodes.Contains(relatedResourceId))
             {
                 continue;
+            }
+
+            bool isKubernetesResource = resource["type"].StartsWith("k8s/", StringComparison.OrdinalIgnoreCase);
+
+            if (isKubernetesResource)
+            {
+                // Skip if the resource type doesn't contain any of the allowed types (deployments, statefulsets, services, namespaces)
+                // This is because we're only displaying deployments, statefulsets, services, and namespaces in the UI
+                if (!allowedTypes.Any(type => resource["type"].Contains(type, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
             }
 
             var childItems = await ProcessResourceHierarchyAsync(relatedResourceId, processedNodes, remainingLevels - 1);

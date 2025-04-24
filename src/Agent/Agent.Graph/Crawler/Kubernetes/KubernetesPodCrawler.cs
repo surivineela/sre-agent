@@ -29,7 +29,7 @@ public class KubernetesPodCrawler : IResourceCrawler
         var pod = (V1Pod)podNode.ResourceObject;
         if (pod == null)
         {
-            pod = await _k8sService.GetPodAsync(podNode.ClusterResourceId, podNode.Namespace, podNode.Name);
+            pod = await _k8sService.GetPodAsync(podNode.ClusterResourceId, podNode.Namespace, podNode.ResourceName);
         }
 
         if (pod == null)

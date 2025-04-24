@@ -38,7 +38,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
             deployment = await _k8sService.GetDeploymentAsync(
                 deploymentNode.ClusterResourceId,
                 deploymentNode.Namespace,
-                deploymentNode.Name);
+                deploymentNode.ResourceName);
         }
 
         if (deployment == null)

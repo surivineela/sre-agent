@@ -41,7 +41,7 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
             daemonSet = await _k8sService.GetDeploymentAsync(
                 daemonSetNode.ClusterResourceId,
                 daemonSetNode.Namespace,
-                daemonSetNode.Name);
+                daemonSetNode.ResourceName);
         }
 
         if (daemonSet == null)

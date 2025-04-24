@@ -43,7 +43,7 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
             statefulSet = await _k8sService.GetStatefulSetAsync(
                 statefulSetNode.ClusterResourceId,
                 statefulSetNode.Namespace,
-                statefulSetNode.Name);
+                statefulSetNode.ResourceName);
         }
 
         if (statefulSet == null)

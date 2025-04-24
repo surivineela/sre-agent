@@ -31,7 +31,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
         var service = (V1Service)serviceNode.ResourceObject;
         if (service == null)
         {
-            service = await _k8sService.GetServiceAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.Name);
+            service = await _k8sService.GetServiceAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.ResourceName);
         }
 
         if (service == null)
