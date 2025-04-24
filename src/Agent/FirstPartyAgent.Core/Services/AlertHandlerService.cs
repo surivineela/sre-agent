@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Castle.Core.Logging;
+using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Models;
 using Microsoft.Bot.Configuration;
 using Microsoft.Extensions.Configuration;
@@ -18,7 +19,7 @@ public class AlertHandlerService
     private readonly ICosmosDBService _cosmosDbService;
     private readonly AzureAlertingClient _azureAlertingClient;
 
-    private readonly string icmAlertConfigsContainerName = "icmalertconfigs";
+    private string icmAlertConfigsContainerName = "icmalertconfigs";
     private readonly Dictionary<string, ICMAlertConfig> _icmAlertConfigs
         = new Dictionary<string, ICMAlertConfig>(StringComparer.OrdinalIgnoreCase);
 
@@ -26,11 +27,16 @@ public class AlertHandlerService
     private const string icmAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
     private readonly ILogger<AlertHandlerService> _logger;
 
-    public AlertHandlerService(IHostEnvironment hostEnvironment, IStorageService storageService, ICosmosDBService cosmosDBService, AzureAlertingClient azureAlertingClient, ILogger<AlertHandlerService> logger)
+    public AlertHandlerService(StorageAccountSettings storageAccountSettings, IHostEnvironment hostEnvironment, IStorageService storageService, ICosmosDBService cosmosDBService, AzureAlertingClient azureAlertingClient, ILogger<AlertHandlerService> logger)
     {
         _storageService = storageService;
         _cosmosDbService = cosmosDBService;
         _azureAlertingClient = azureAlertingClient;
+        if (!string.IsNullOrWhiteSpace(storageAccountSettings.IcmAlertConfigsContainerName))
+        {
+            icmAlertConfigsContainerName = storageAccountSettings.IcmAlertConfigsContainerName;
+        }
+
         _logger = logger;
 
         Initialize(hostEnvironment);

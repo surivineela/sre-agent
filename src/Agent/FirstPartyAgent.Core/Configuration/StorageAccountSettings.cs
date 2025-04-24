@@ -7,6 +7,7 @@ namespace FirstPartyAgent.Core.Configuration
     public class StorageAccountSettings
     {
         public string AccountUrl { get; set; }
+        public string IcmAlertConfigsContainerName { get; set; }
     }
 }
 
