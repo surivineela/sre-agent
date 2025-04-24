@@ -4,7 +4,6 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Models;
-using Microsoft.Extensions.Options;
 
 namespace Agent.Plugins.Implementation;
 public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
@@ -15,13 +14,13 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
     private readonly AppInsightsSettings _appInsights;
 
     public ConnectedIntegrationsPlugin(
-        IOptions<DashboardSettings> dashboardOptions,
-        IOptions<IncidentManagementSettings> incidentOptions,
-        IOptions<AppInsightsSettings> appInsightsOptions)
+        DashboardSettings dashboardOptions,
+        IncidentManagementSettings incidentOptions,
+        AppInsightsSettings appInsightsOptions)
     {
-        _dashboard = dashboardOptions.Value;
-        _incident = incidentOptions.Value;
-        _appInsights = appInsightsOptions.Value;
+        _dashboard = dashboardOptions;
+        _incident = incidentOptions;
+        _appInsights = appInsightsOptions;
     }
 
     public List<IntegrationInfo> GetAllActiveIntegrations()

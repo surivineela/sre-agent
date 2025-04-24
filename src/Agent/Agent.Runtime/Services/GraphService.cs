@@ -299,7 +299,7 @@ public class GraphService : IGraphService
                             if (dashboard.TryGetProperty("url", out var urlElement) &&
                                 urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
                             {
-                                dashboardUrl = $"{urlElement.GetString()}";
+                                dashboardUrl = $"{_grafanaUrl}{urlElement.GetString()}";
                                 break;
                             }
                         }
