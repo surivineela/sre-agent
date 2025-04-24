@@ -183,27 +183,79 @@ const ChatMessage = ({ message, isTyping, threadId }: IChatMessageProps) => {
                     {!isTyping && ( // Only show buttons when the agent is not typing
                         <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
                             <button
+                                className="feedback-button"
                                 style={{
-                                    background: 'none',
-                                    border: 'none',
+                                    background: 'transparent', // Transparent background
+                                    border: 'none', // No border
                                     cursor: 'pointer',
                                     marginRight: '8px',
-                                    color: '#0078D4',
+                                    padding: '4px 8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.1s',
                                 }}
                                 onClick={() => handleFeedbackClick(true)} // Thumbs up
                             >
-                                👍
+                                <svg width="16" height="16" viewBox="0 0 24 24"
+                                    fill={isPositiveFeedback === true ? "#0057b8" : "none"}
+                                    stroke={isPositiveFeedback === true ? "black" : "#cccccc"}
+                                    strokeWidth="2"
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.setAttribute('stroke', 'black');
+                                    }}
+                                    onMouseOut={(e) => {
+                                        if (isPositiveFeedback !== true) {
+                                            e.currentTarget.setAttribute('stroke', '#cccccc');
+                                        }
+                                    }}
+                                    onMouseDown={(e) => {
+                                        e.currentTarget.setAttribute('fill', '#003d8f');
+                                    }}
+                                    onMouseUp={(e) => {
+                                        e.currentTarget.setAttribute('fill', isPositiveFeedback === true ? '#0057b8' : 'none');
+                                    }}
+                                >
+                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
+                                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                </svg>
                             </button>
                             <button
+                                className="feedback-button"
                                 style={{
-                                    background: 'none',
-                                    border: 'none',
+                                    background: 'transparent', // Transparent background
+                                    border: 'none', // No border
                                     cursor: 'pointer',
-                                    color: '#0078D4',
+                                    padding: '4px 8px',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    transition: 'transform 0.1s',
                                 }}
                                 onClick={() => handleFeedbackClick(false)} // Thumbs down
                             >
-                                👎
+                                <svg width="16" height="16" viewBox="0 0 24 24"
+                                    fill={isPositiveFeedback === false ? "#c01c28" : "none"}
+                                    stroke={isPositiveFeedback === false ? "black" : "#cccccc"}
+                                    strokeWidth="2"
+                                    onMouseOver={(e) => {
+                                        e.currentTarget.setAttribute('stroke', 'black');
+                                    }}
+                                    onMouseOut={(e) => {
+                                        if (isPositiveFeedback !== false) {
+                                            e.currentTarget.setAttribute('stroke', '#cccccc');
+                                        }
+                                    }}
+                                    onMouseDown={(e) => {
+                                        e.currentTarget.setAttribute('fill', '#a51419');
+                                    }}
+                                    onMouseUp={(e) => {
+                                        e.currentTarget.setAttribute('fill', isPositiveFeedback === false ? '#c01c28' : 'none');
+                                    }}
+                                >
+                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"></path>
+                                    <path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+                                </svg>
                             </button>
                         </div>
                     )}
