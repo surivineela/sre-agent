@@ -1,4 +1,9 @@
-trigger: none  # https://aka.ms/obpipelines/triggers
+# https://aka.ms/obpipelines/triggers
+trigger:
+  batch: true
+  branches:
+    include:
+    - main
 
 parameters:
 - name: timeoutMinutes
@@ -7,6 +12,8 @@ parameters:
 
 variables:
   ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
+    iterationCount: 1
+  ${{ elseif eq(variables['Build.Reason'], 'BatchedCI') }}:
     iterationCount: 1
   ${{ else }}:
     iterationCount: 5
