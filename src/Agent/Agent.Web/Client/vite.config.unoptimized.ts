@@ -3,10 +3,10 @@ import react from '@vitejs/plugin-react-swc'
 
 console.log('Building unoptimized');
 export default defineConfig({
-  base: '/',
+  base: '/static',
   plugins: [react()],
   build: {
-    outDir: '../wwwroot/',
+    outDir: '../wwwroot/static',
     emptyOutDir: true,
     minify: false,
     sourcemap: true,

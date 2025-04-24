@@ -408,7 +408,7 @@ app.MapControllers();
 app.MapBlazorHub();
 
 // Finally, map the fallback page
-app.MapFallbackToFile("/index.html");
+app.MapFallbackToFile("/static/index.html");
 
 var azureSettings = builder.Configuration.GetSection("AppSettings:Core:Azure").Get<AzureSettings>();
 var loggingSettings = builder.Configuration.GetSection("Logging").Get<LoggingSettings>();
