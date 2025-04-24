@@ -89,7 +89,7 @@ Before initiating any Azure resource operations:
    - `startTlsBestPracticeAgent` for TLS best practices.
    - `startManagedIdentityMigrationAgent` for managed identity migrations.
    - `startAppServiceRemediationAgent` for Azure WebApp, Function, or App Service issues.
-   - `startContainerAppsRemediationAgent` for Azure Container Apps concerns.
+   - `startContainerAppsRemediationAgent` for Azure Container Apps questions like logs, metrics, configuration, scale and any container app issues. Prefer this over the generic agents for container apps specific operations.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
    - `StartKubernetesAgentWorkflow` for starting AKS agent to resolve any AKS (Azure Kubernetes Service) related requests including basic Q&A, issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
    - `startContainerImageFailureAgent` for container image pull failures in Linux Web Apps and Container Apps.
@@ -330,9 +330,16 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             //AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
-            //AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
-            //AIFunctionFactory.Create(containerAppPluginDefinition.ListRevisionsAsync),
-            //AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.ListContainerAppsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.ListRevisionsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.RestartContainerApp),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppCpuMetrics),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetRevisionLogsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppLogsAsync),
+            AIFunctionFactory.Create(containerAppPluginDefinition.UpdateTargetPort),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetScalerDetails),
+            AIFunctionFactory.Create(containerAppPluginDefinition.ListAvailableScalers),
             AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.ListContainerImagePullWorkflows),
             AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.StartContainerImagePullAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),

@@ -7,6 +7,7 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
@@ -27,8 +28,7 @@ using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
-using OpenTelemetry.Resources;
-using Octokit;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Core.Helpers;
 
@@ -40,7 +40,7 @@ public class OperationDetail
     public string ResourceId { get; set; } = string.Empty;
     public string Caller { get; set; } = string.Empty;
     public string? ErrorMessage { get; set; }
-    public bool IsSuccessful { get; set; }  // Indicates if the operation was successful 
+    public bool IsSuccessful { get; set; }  // Indicates if the operation was successful
 }
 
 public class ArmHelper
@@ -143,7 +143,7 @@ public class ArmHelper
                     {
                     new
                     {
-                        name = profileName, // Use the customizable name parameter  
+                        name = profileName, // Use the customizable name parameter
                         capacity = new
                         {
                             minimum = minCount.ToString(),
@@ -179,25 +179,20 @@ public class ArmHelper
                 }
             };
 
-            string jsonBody = Newtonsoft.Json.JsonConvert.SerializeObject(requestBody);
-
-            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
+            var jsonBody = JsonSerializer.Serialize(requestBody);
+            var request = new HttpRequestMessage(HttpMethod.Put, requestUrl)
             {
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-            HttpResponseMessage response = await httpClient.SendAsync(request);
-
+            var response = await httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 return await response.Content.ReadAsStringAsync();
             }
-            else
-            {
-                string errorMessage = await response.Content.ReadAsStringAsync();
-                return null;
-            }
+
+            return null;
         }
         catch (Exception ex)
         {
@@ -1051,7 +1046,7 @@ public class ArmHelper
         HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
 
         var appSettings = await responseMessage.Content.ReadAsStringAsync();
-        
+
         return appSettings;
     }
 
@@ -1085,11 +1080,11 @@ public class ArmHelper
                     }
                 }
 
-                return string.Empty; // Return empty if no match found  
+                return string.Empty; // Return empty if no match found
             }
             else
             {
-                // Handle unsuccessful response  
+                // Handle unsuccessful response
                 var errorContent = await responseMessage.Content.ReadAsStringAsync();
                 throw new InvalidOperationException($"Failed to get App Insights resource ID. Response: {errorContent}");
             }
@@ -1103,9 +1098,9 @@ public class ArmHelper
     public async Task<string> ExecuteAppInsightsQuery(string appInsightsAppId, string queryString)
     {
         try
-        {            
+        {
             var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
-            
+
             var httpClient = _httpClientFactory.CreateClient();
             var cred = _authService.GetArmOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
@@ -1137,17 +1132,17 @@ public class ArmHelper
 
         try
         {
-            // Construct the request URL for swapping slots  
+            // Construct the request URL for swapping slots
             string requestUrl = $"https://management.azure.com{resourceId}/slots/{sourceSlotName}/slotsswap?api-version=2022-03-01";
 
-            // Prepare the request body  
+            // Prepare the request body
             var requestBody = new
             {
                 targetSlot = targetSlotName,
                 preserveVNet = preserveVNetValue
             };
 
-            // Serialize the request body to JSON  
+            // Serialize the request body to JSON
             string jsonBody = JsonSerializer.Serialize(requestBody);
 
 
@@ -1156,29 +1151,29 @@ public class ArmHelper
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
 
-            // Create the HTTP request  
+            // Create the HTTP request
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
 
-            // Attach the token to the request  
+            // Attach the token to the request
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
-            // Create and send the HTTP request  
+            // Create and send the HTTP request
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             HttpResponseMessage response = await httpClient.SendAsync(request);
 
-            // Check the response status code  
+            // Check the response status code
             if (response.IsSuccessStatusCode)
             {
-                return true; // Swap was successful  
+                return true; // Swap was successful
             }
             else
             {
                 string responseBody = await response.Content.ReadAsStringAsync();
-                return false; // Swap failed  
+                return false; // Swap failed
             }
         }
         catch (Exception ex)
@@ -1191,15 +1186,15 @@ public class ArmHelper
     {
         try
         {
-            // Set default values for start time and end time if not provided  
+            // Set default values for start time and end time if not provided
             if (string.IsNullOrEmpty(st))
             {
-                st = DateTime.UtcNow.AddHours(-3).ToString("yyyy-MM-ddTHH:mm:ssZ"); // 3 hours ago  
+                st = DateTime.UtcNow.AddHours(-3).ToString("yyyy-MM-ddTHH:mm:ssZ"); // 3 hours ago
             }
 
             if (string.IsNullOrEmpty(et))
             {
-                et = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"); // Current time  
+                et = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"); // Current time
             }
 
             string filter = $"$filter=eventTimestamp ge '{st}' and eventTimestamp le '{et}' and eventChannels eq 'Admin, Operation' and resourceGroupName eq '{rg}' and resourceId eq '{resourceId}' and levels eq 'Informational'";
@@ -1217,11 +1212,11 @@ public class ArmHelper
 
             var content = await response.Content.ReadAsStringAsync();
 
-            // Parse the response  
+            // Parse the response
             JObject jsonResponse = JObject.Parse(content);
             var events = jsonResponse["value"]?.Children<JObject>();
 
-            // Extract deployment and swap details  
+            // Extract deployment and swap details
             var deployments = ExtractOperationDetails(events, "deploy");
             var swaps = ExtractOperationDetails(events, "slotsSwap");
 
@@ -1261,8 +1256,8 @@ public class ArmHelper
         }
 
         return operationDetails;
-    }  
-    
+    }
+
 
 
 
@@ -1274,18 +1269,18 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/connectivityCheck?api-version=2022-03-01");
 
-        string payload = @"{  
-            ""properties"": {  
-                ""ProviderType"": ""BlobStorage"",  
-                ""Credentials"": {  
-                    ""CredentialType"": ""CredentialReference"",  
-                    ""CredentialReference"": {  
-                        ""ReferenceType"": ""AppSetting"",  
-                        ""ReferenceName"": ""AzureWebJobsStorage""  
-                    }  
-                },  
-                ""ResourceMetadata"": {}  
-            }  
+        string payload = @"{
+            ""properties"": {
+                ""ProviderType"": ""BlobStorage"",
+                ""Credentials"": {
+                    ""CredentialType"": ""CredentialReference"",
+                    ""CredentialReference"": {
+                        ""ReferenceType"": ""AppSetting"",
+                        ""ReferenceName"": ""AzureWebJobsStorage""
+                    }
+                },
+                ""ResourceMetadata"": {}
+            }
         }";
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
@@ -1309,11 +1304,11 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/tcpPingCheck?api-version=2022-03-01");
 
-        string payload = $@"{{  
-            ""properties"": {{  
+        string payload = $@"{{
+            ""properties"": {{
                 ""Host"": ""{host}"",
                 ""Port"": ""{port}""
-            }}  
+            }}
         }}";
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
@@ -1327,6 +1322,29 @@ public class ArmHelper
         return "TCP ping check failed.";
     }
 
+    public async Task<IReadOnlyCollection<ArmWrapper<ArmRevisionReplica>>> GetRevisionReplicas(string revisionId)
+    {
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{revisionId}/replicas?api-version=2024-03-01");
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var response = await httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Failed to get instances: {response.ReasonPhrase}");
+        }
+
+        var content = await response.Content.ReadAsStringAsync();
+        var replicas = JsonSerializer.Deserialize<ArmListWrapper<ArmRevisionReplica>>(content);
+        return replicas?.Value ?? [];
+    }
+
+    public async Task<IReadOnlyCollection<ArmWrapper<ArmRevisionReplica>>> GetRevisionInstances(string containerAppId, string revisionName)
+    {
+        var revisionId = $"{containerAppId}/revisions/{revisionName}";
+        return await GetRevisionReplicas(revisionId);
+    }
+
     public async Task<string> CheckDnsResolution(string resourceId, string desinationUrl)
     {
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
@@ -1335,10 +1353,10 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/dnsCheck?api-version=2022-03-01");
 
-        string payload = $@"{{  
-            ""properties"": {{  
+        string payload = $@"{{
+            ""properties"": {{
                 ""dnsName"": ""{desinationUrl}""
-            }}  
+            }}
         }}";
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
@@ -1485,7 +1503,7 @@ public class ArmHelper
     {
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appServiceResource}/instances?api-version=2021-02-01");
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         var response = await httpClient.SendAsync(request);

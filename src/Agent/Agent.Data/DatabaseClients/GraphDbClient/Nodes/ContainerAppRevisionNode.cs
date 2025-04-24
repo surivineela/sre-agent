@@ -11,6 +11,9 @@ public class ContainerAppRevisionNode : ArmResourceNode
     [GraphProperty("name")]
     public string? Name { get; set; }
 
+    [GraphProperty("appName")]
+    public string? AppName { get; set; }
+
     [GraphProperty("trafficWeight")]
     public int? TrafficWeight { get; set; }
 

@@ -204,7 +204,7 @@ namespace Agent.Plugins
             "3) Gather metadata for resources across your Azure environment, or " +
             "The output is a list of resource objects with all their properties. " +
             "Each resource includes details like name, location, resource group, and type-specific configuration.")]
-        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType,
+        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.app/containerapps/revisions, 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType,
             [Description("The property name to filter on. This is optional, if no additional filter is needed, pass an empty string")] string propertyName,
             [Description("The property value to match. This is optional, if no additional filter is needed, pass an empty string")] string propertyValue)
         {

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -54,6 +54,11 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetRevisionLogsAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppLogsAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.UpdateTargetPort));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListAvailableScalers));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetScalerDetails));
 
         var nsgRulePluginDefinition = new NSGRulePluginDefinition(nSGRulePlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));

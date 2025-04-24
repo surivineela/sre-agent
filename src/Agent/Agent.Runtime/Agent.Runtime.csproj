@@ -41,7 +41,7 @@
     </None>
     <None Update="SubAgents\SqlDbQueryPerfAgent\SqlDbQueryPerfAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>	  
+    </None>
     <None Update="SubAgents\StorageAccountAgent\StorageAccountAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -64,6 +64,9 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\ContainerAppsAgent\Docs\scalers\*.md">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\KubernetesAgent\KubernetesAgent.txt">

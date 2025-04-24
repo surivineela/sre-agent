@@ -20,8 +20,6 @@ using Azure.ResourceManager.AppService.Models;
 using Microsoft.Extensions.Logging;
 using System.Net;
 using System.Text.RegularExpressions;
-using Azure.Monitor.Query;
-using Azure.Monitor.Query.Models;
 using System.IO.Compression;
 using System.Text.Json;
 using System.Net.Http.Headers;
@@ -35,17 +33,23 @@ namespace Agent.Plugins.Implementation
         private readonly IArmClientFactory _armClientFactory;
         private readonly HttpClient _httpClient;
         private readonly IAuthenticationService _authService;
+        private readonly ILogAnalyticsService _logAnalyticsService;
+        private readonly ILogAnalysisService _logAnalysisService;
 
         public ContainerImagePullFailurePlugin(
             ILogger<ContainerImagePullFailurePlugin> logger,
             IContainerAppPlugin containerAppPlugin,
             IArmClientFactory armClientFactory,
-            IAuthenticationService authService)
+            IAuthenticationService authService,
+            ILogAnalyticsService logAnalyticsService,
+            ILogAnalysisService logAnalysisService)
         {
             _logger = logger;
             _armClientFactory = armClientFactory;
             _httpClient = new HttpClient();
             _authService = authService;
+            _logAnalyticsService = logAnalyticsService;
+            _logAnalysisService = logAnalysisService;
         }
 
         /// <summary>
@@ -772,7 +776,7 @@ namespace Agent.Plugins.Implementation
 
                         _logger.LogInformation($"Rate Limit Remaining: {rateLimitRemaining}/{rateLimitLimit}, Reset Time: {rateLimitReset}");
 
-                        // If remaining requests are 0, handle rate limiting  
+                        // If remaining requests are 0, handle rate limiting
                         if (int.TryParse(rateLimitRemaining, out int remaining) && remaining == 0)
                         {
                             _logger.LogWarning("Rate limit exceeded. Please wait until the limit resets.");
@@ -785,7 +789,7 @@ namespace Agent.Plugins.Implementation
                         }
                     }
 
-                    // Fallback to Retry-After logic if needed  
+                    // Fallback to Retry-After logic if needed
                     if (response.Headers.TryGetValues("Retry-After", out var values))
                     {
                         var retryAfter = values.FirstOrDefault();
@@ -936,22 +940,15 @@ namespace Agent.Plugins.Implementation
                     var logAnalyticsCustomerId = managedEnvResource.Data.AppLogsConfiguration?.LogAnalyticsConfiguration?.CustomerId;
                     if (!string.IsNullOrEmpty(logAnalyticsCustomerId))
                     {
-                        string query =
-                         $@"
-                        ContainerAppSystemLogs_CL 
-                        | where ContainerAppName_s == '{containerApp.Id.Name}' and RevisionName_s == '{lastestRevision}'
-                        | where Reason_s == 'ContainerTerminated'
-                        | where Log_s has_any ('ImagePullBackOff', 'ErrImagePull','ImagePullFailure')
-                        | top 1 by TimeGenerated desc
-                        | project Log_s
-                        ";
-
-                        var credential = _authService.GetArmOperationCredential();
-                        var logsClient = new LogsQueryClient(credential);
-                        var timespan = TimeSpan.FromHours(3);
-                        var result = (await logsClient.QueryWorkspaceAsync(logAnalyticsCustomerId, query, new QueryTimeRange(timespan))).Value;
-                        var imagePullingResult = ExtractPullingResultFromTable(result.Table, "Log_s");
-                        return imagePullingResult;
+                        var result = await _logAnalyticsService.GetLatestImagePullingLogAsync(
+                            workspaceId: logAnalyticsCustomerId,
+                            containerAppName: containerApp.Id.Name,
+                            revisionName: lastestRevision,
+                            ago: TimeSpan.FromHours(3));
+                        return new ImagePullingResult
+                        {
+                            IsSuccessful = string.IsNullOrEmpty(result), FailureReason = result
+                        };
                     }
                     return new ImagePullingResult
                     {
@@ -1014,7 +1011,7 @@ namespace Agent.Plugins.Implementation
         public async Task<ImagePullingResult> IsAzureContainerRegistryImageAccessibleAsync(string imageReference)
         {
             _logger.LogInformation($"Checking if ACR image is accessible: {imageReference}");
-            
+
             // Validate input
             if (string.IsNullOrEmpty(imageReference))
             {
@@ -1028,7 +1025,7 @@ namespace Agent.Plugins.Implementation
             var registryName = ExtractRegistryHostname(imageReference);
             var (repository, tag) = ExtractRepositoryAndTag(imageReference);
             string manifestUrl = $"https://{registryName}/v2/{repository}/manifests/{tag}";
-            
+
             // First try with token authentication
             try
             {
@@ -1041,7 +1038,7 @@ namespace Agent.Plugins.Implementation
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.docker.distribution.manifest.v2+json"));
 
                 var response = await _httpClient.SendAsync(request);
-                
+
                 // Check for specific status code
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -1052,7 +1049,7 @@ namespace Agent.Plugins.Implementation
                         FailureReason = $"Image not found in registry {registryName}"
                     };
                 }
-                
+
                 if (response.IsSuccessStatusCode)
                 {
                     _logger.LogInformation($"Image {imageReference} is accessible with token authentication");
@@ -1062,7 +1059,7 @@ namespace Agent.Plugins.Implementation
                         FailureReason = "Image manifest is accessible"
                     };
                 }
-                
+
                 _logger.LogWarning($"Token auth response: {(int)response.StatusCode} {response.ReasonPhrase}");
             }
             catch (Exception tokenAuthEx)
@@ -1077,7 +1074,7 @@ namespace Agent.Plugins.Implementation
                 request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.docker.distribution.manifest.v2+json"));
 
                 var response = await _httpClient.SendAsync(request);
-                
+
                 // Only consider 404 as a definitive "image not found" response
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -1088,7 +1085,7 @@ namespace Agent.Plugins.Implementation
                         FailureReason = $"Image not found in registry {registryName}"
                     };
                 }
-                
+
                 // For all other response codes, we'll assume the image might be accessible
                 // but there could be auth issues or other temporary problems
                 if (response.IsSuccessStatusCode)
@@ -1100,7 +1097,7 @@ namespace Agent.Plugins.Implementation
                         FailureReason = "Image manifest is accessible anonymously"
                     };
                 }
-                
+
                 // For 401 Unauthorized, the registry exists but needs auth
                 if (response.StatusCode == HttpStatusCode.Unauthorized)
                 {
@@ -1110,7 +1107,7 @@ namespace Agent.Plugins.Implementation
                         FailureReason = $"Image requires authentication (401) - this is normal for private images"
                     };
                 }
-                
+
                 // For other status codes, assume image might exist but there are access issues
                 return new ImagePullingResult
                 {
@@ -1204,107 +1201,7 @@ namespace Agent.Plugins.Implementation
             return pullFailuresFromInstance;
         }
 
-        private ContainerLogAnalysisResult AnalyzeContainerLogs(IEnumerable<string> logs)
-        {
-            var result = new ContainerLogAnalysisResult
-            {
-                HasPullFailure = false
-            };
-
-            if (logs == null || !logs.Any())
-            {
-                result.ErrorMessage = "No logs available for analysis";
-                return result;
-            }
-
-            // Common error patterns
-            var errorPatterns = new Dictionary<string, (string Diagnosis, string Fix)>
-            {
-                { @"unauthorized|authentication required|access denied",
-                    ("Authentication failure when pulling the image",
-                     "Verify registry credentials or managed identity configuration") },
-
-                { @"not found|404|no such image",
-                    ("Image not found in the registry",
-                     "Verify the image name and tag are correct") },
-
-                { @"exceeded rate limit|rate limited|too many requests",
-                    ("Registry rate limit exceeded",
-                     "Use authenticated pulls or wait for rate limit reset") },
-
-                { @"network timeout|connection refused|cannot connect",
-                    ("Network connectivity issues",
-                     "Check network configuration and NSG rules") },
-
-                { @"insufficient memory|no space left|disk pressure",
-                    ("Resource constraints preventing image pull",
-                     "Check available resources and cleanup unused images") },
-
-                { @"manifest unknown|manifest invalid|unsupported manifest",
-                    ("Invalid or unsupported image manifest",
-                     "Verify image architecture compatibility and manifest format") }
-            };
-
-            foreach (var log in logs)
-            {
-                foreach (var pattern in errorPatterns)
-                {
-                    if (Regex.IsMatch(log, pattern.Key, RegexOptions.IgnoreCase))
-                    {
-                        result.HasPullFailure = true;
-                        result.ErrorMessage = log;
-                        result.DetailedDiagnosis = pattern.Value.Diagnosis;
-                        result.SuggestedFix = pattern.Value.Fix;
-                        return result;
-                    }
-                }
-
-                // Check for specific error codes
-                if (log.Contains("ExitCode="))
-                {
-                    var exitCodeMatch = Regex.Match(log, @"ExitCode=(\d+)");
-                    if (exitCodeMatch.Success)
-                    {
-                        string exitCode = exitCodeMatch.Groups[1].Value;
-                        switch (exitCode)
-                        {
-                            case "125":
-                                result.HasPullFailure = true;
-                                result.DetailedDiagnosis = "Container runtime error during image pull";
-                                result.SuggestedFix = "Check container runtime health and configuration";
-                                break;
-                            case "127":
-                                result.HasPullFailure = true;
-                                result.DetailedDiagnosis = "Command not found error, possible container runtime issue";
-                                result.SuggestedFix = "Verify container runtime installation and configuration";
-                                break;
-                                // Add more exit codes as needed
-                        }
-
-                        if (result.HasPullFailure)
-                        {
-                            result.ErrorMessage = log;
-                            return result;
-                        }
-                    }
-                }
-            }
-
-            // Special case: Check for Back-off pattern
-            var backoffLogs = logs.Where(l => l.Contains("Back-off pulling image")).ToList();
-            if (backoffLogs.Any())
-            {
-                result.HasPullFailure = true;
-                result.ErrorMessage = backoffLogs.First();
-                result.DetailedDiagnosis = "Container runtime is backing off from pulling the image due to repeated failures";
-                result.SuggestedFix = "Check previous error messages for root cause";
-                return result;
-            }
-
-            return result;
-        }
-
-        private async Task<ContainerLogAnalysisResult> GetContainerLogAnalysis(string resourceId)
+        private async Task<LogAnalysisResult> GetContainerLogAnalysis(string resourceId)
         {
             try
             {
@@ -1322,23 +1219,12 @@ namespace Agent.Plugins.Implementation
                     var logAnalyticsCustomerId = managedEnvResource.Value.Data.AppLogsConfiguration?.LogAnalyticsConfiguration?.CustomerId;
                     if (!string.IsNullOrEmpty(logAnalyticsCustomerId))
                     {
-                        string query = $@"
-                            ContainerAppSystemLogs_CL 
-                            | where ContainerAppName_s == '{containerApp.Value.Data.Name}' 
-                            | where TimeGenerated > ago(1h)
-                            | where Log_s has 'pull' or Log_s has 'image'
-                            | project TimeGenerated, Log_s
-                            | order by TimeGenerated desc
-                        ";
+                        var logs = await _logAnalyticsService.GetAllImagePullingLogsAsync(
+                            workspaceId: logAnalyticsCustomerId,
+                            containerAppName: containerApp.Value.Data.Name,
+                            ago: TimeSpan.FromMinutes(30));
 
-                        var credential = _authService.GetArmOperationCredential();
-                        var logsClient = new LogsQueryClient(credential);
-                        var timeRange = new QueryTimeRange(TimeSpan.FromHours(1));
-
-                        var queryResult = await logsClient.QueryWorkspaceAsync(logAnalyticsCustomerId, query, timeRange);
-                        var logs = queryResult.Value.Table.Rows.Select(row => row[1].ToString()).ToList();
-
-                        return AnalyzeContainerLogs(logs);
+                        return _logAnalysisService.AnalyzeContainerAppLogs(logs);
                     }
                 }
                 else if (resourceIdentifier.ResourceType == WebSiteResource.ResourceType && await CheckIsLinuxApp(resourceIdentifier, armClient))
@@ -1356,25 +1242,21 @@ namespace Agent.Plugins.Implementation
                             {
                                 logLines.Add(line);
                             }
-                            return AnalyzeContainerLogs(logLines);
+                            return _logAnalysisService.AnalyzeContainerAppLogs(logLines);
                         }
                     }
                 }
 
-                return new ContainerLogAnalysisResult
-                {
-                    HasPullFailure = false,
-                    ErrorMessage = "No logs available for analysis"
-                };
+                return new LogAnalysisResult(
+                    HasPullFailure: false,
+                    ErrorMessage: "No logs available for analysis");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error analyzing container logs for {resourceId}");
-                return new ContainerLogAnalysisResult
-                {
-                    HasPullFailure = false,
-                    ErrorMessage = $"Error analyzing logs: {ex.Message}"
-                };
+                return new LogAnalysisResult (
+                    HasPullFailure: false,
+                    ErrorMessage: $"Error analyzing logs: {ex.Message}");
             }
         }
 
@@ -1662,210 +1544,6 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private class ResourceLogAnalyzer
-        {
-            private readonly ILogger _logger;
-            private readonly Dictionary<string, (string Pattern, string Message, string Solution)> _errorPatterns;
-
-            public ResourceLogAnalyzer(ILogger logger)
-            {
-                _logger = logger;
-                _errorPatterns = new Dictionary<string, (string Pattern, string Message, string Solution)>
-                {
-                    // Container App specific patterns
-                    { "ContainerApp_NoImage", (
-                        @"Failed to resolve image|image .* not found|repository .* not found",
-                        "Container image not found in the registry",
-                        "Verify the image name, tag, and registry path are correct"
-                    )},
-                    { "ContainerApp_Auth", (
-                        @"unauthorized|authentication required|denied: access forbidden|access denied",
-                        "Authentication failed when pulling the image",
-                        "Check registry credentials or managed identity configuration"
-                    )},
-                    { "ContainerApp_Network", (
-                        @"network timeout|connection refused|connection timed out|TLS handshake timeout",
-                        "Network connectivity issues when pulling the image",
-                        "Verify network configuration, NSG rules, and registry endpoint accessibility"
-                    )},
-                    // Linux Web App specific patterns
-                    { "WebApp_StartupFailed", (
-                        @"failed to start container|container .* failed to start",
-                        "Container failed to start after pulling",
-                        "Check container startup configuration and environment variables"
-                    )},
-                    { "WebApp_ImagePull", (
-                        @"Error: ImagePullBackOff|Back-off pulling image",
-                        "Container runtime is backing off from pulling the image",
-                        "Check previous error messages for root cause and verify registry access"
-                    )},
-                    { "WebApp_Registry", (
-                        @"cannot pull from registry|registry lookup failed",
-                        "Failed to communicate with container registry",
-                        "Verify registry URL and network connectivity"
-                    )}
-                };
-            }
-
-            public ContainerLogAnalysisResult AnalyzeContainerAppLogs(IEnumerable<(DateTime Timestamp, string Message)> logs)
-            {
-                var result = new ContainerLogAnalysisResult { HasPullFailure = false };
-
-                if (logs?.Any() != true)
-                {
-                    result.ErrorMessage = "No logs available for analysis";
-                    return result;
-                }
-
-                // Get the most recent logs first
-                var orderedLogs = logs.OrderByDescending(l => l.Timestamp);
-
-                foreach (var (timestamp, message) in orderedLogs)
-                {
-                    foreach (var errorPattern in _errorPatterns)
-                    {
-                        if (Regex.IsMatch(message, errorPattern.Value.Pattern, RegexOptions.IgnoreCase))
-                        {
-                            result.HasPullFailure = true;
-                            result.ErrorMessage = message;
-                            result.DetailedDiagnosis = $"[{timestamp:yyyy-MM-dd HH:mm:ss}] {errorPattern.Value.Message}";
-                            result.SuggestedFix = errorPattern.Value.Solution;
-                            return result;
-                        }
-                    }
-                }
-
-                // Check for cyclic failures
-                if (HasCyclicFailures(orderedLogs))
-                {
-                    result.HasPullFailure = true;
-                    result.ErrorMessage = "Detected repeated pull failures";
-                    result.DetailedDiagnosis = "Container is experiencing cyclic pull failures";
-                    result.SuggestedFix = "Review authentication configuration and network connectivity";
-                    return result;
-                }
-
-                return result;
-            }
-
-            public ContainerLogAnalysisResult AnalyzeWebAppLogs(IEnumerable<string> logs)
-            {
-                var result = new ContainerLogAnalysisResult { HasPullFailure = false };
-
-                if (logs?.Any() != true)
-                {
-                    result.ErrorMessage = "No logs available for analysis";
-                    return result;
-                }
-
-                // Parse timestamp if available
-                var parsedLogs = logs.Select(log =>
-                {
-                    var match = Regex.Match(log, @"^\[(\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2})\](.*)$");
-                    if (match.Success)
-                    {
-                        return (
-                            Timestamp: DateTime.Parse(match.Groups[1].Value),
-                            Message: match.Groups[2].Value.Trim()
-                        );
-                    }
-                    return (Timestamp: DateTime.MinValue, Message: log);
-                })
-                .OrderByDescending(l => l.Timestamp);
-
-                foreach (var (timestamp, message) in parsedLogs)
-                {
-                    foreach (var errorPattern in _errorPatterns)
-                    {
-                        if (Regex.IsMatch(message, errorPattern.Value.Pattern, RegexOptions.IgnoreCase))
-                        {
-                            result.HasPullFailure = true;
-                            result.ErrorMessage = message;
-                            result.DetailedDiagnosis = timestamp != DateTime.MinValue
-                                ? $"[{timestamp:yyyy-MM-dd HH:mm:ss}] {errorPattern.Value.Message}"
-                                : errorPattern.Value.Message;
-                            result.SuggestedFix = errorPattern.Value.Solution;
-                            return result;
-                        }
-                    }
-                }
-
-                // Check for environment-specific issues
-                if (HasEnvironmentIssues(logs))
-                {
-                    result.HasPullFailure = true;
-                    result.ErrorMessage = "Detected environment configuration issues";
-                    result.DetailedDiagnosis = "Container environment variables or configuration may be incorrect";
-                    result.SuggestedFix = "Review environment variables and app settings";
-                    return result;
-                }
-
-                return result;
-            }
-
-            private bool HasEnvironmentIssues(IEnumerable<string> logs)
-            {
-                var envIssuePatterns = new[]
-                {
-                    @"invalid environment variable",
-                    @"missing required environment variable",
-                    @"configuration error",
-                    @"invalid application setting",
-                    @"environment variable .* not set",
-                    @"required configuration .* missing"
-                };
-
-                return logs.Any(log =>
-                    envIssuePatterns.Any(pattern =>
-                        Regex.IsMatch(log, pattern, RegexOptions.IgnoreCase)));
-            }
-
-            private bool HasCyclicFailures(IEnumerable<(DateTime Timestamp, string Message)> logs)
-            {
-                const int failureThreshold = 3;
-                const int timeWindowMinutes = 15;
-
-                var recentFailures = logs
-                    .Where(l => DateTime.UtcNow.Subtract(l.Timestamp).TotalMinutes <= timeWindowMinutes)
-                    .Where(l => l.Message.Contains("failed to pull") ||
-                               l.Message.Contains("ImagePullBackOff") ||
-                               l.Message.Contains("ErrImagePull"))
-                    .Take(failureThreshold + 1)
-                    .ToList();
-
-                return recentFailures.Count >= failureThreshold;
-            }
-
-            public bool IsCriticalError(string logMessage)
-            {
-                var criticalPatterns = new[]
-                {
-                    @"authentication failed",
-                    @"access denied",
-                    @"permission denied",
-                    @"certificate error",
-                    @"TLS handshake failure",
-                    @"network is unreachable",
-                    @"operation not permitted"
-                };
-
-                return criticalPatterns.Any(pattern =>
-                    Regex.IsMatch(logMessage, pattern, RegexOptions.IgnoreCase));
-            }
-
-            public string GetErrorSeverity(string logMessage)
-            {
-                if (IsCriticalError(logMessage))
-                    return "Critical";
-
-                if (logMessage.Contains("warning", StringComparison.OrdinalIgnoreCase) ||
-                    logMessage.Contains("retry", StringComparison.OrdinalIgnoreCase))
-                    return "Warning";
-
-                return "Info";
-            }
-        }
-
         private async Task<bool> CheckManagedIdentityRoleAssignmentAsync(
             ArmClient armClient,
             ManagedServiceIdentity identity,
@@ -2150,7 +1828,7 @@ namespace Agent.Plugins.Implementation
                 throw new ArgumentException("Image reference cannot be null or empty.", nameof(imageReference));
             }
 
-            // Normalize the input by removing any double slashes  
+            // Normalize the input by removing any double slashes
             imageReference = imageReference.Replace("//", "/");
 
             var dockerImageRegex = new Regex(
@@ -2165,7 +1843,7 @@ namespace Agent.Plugins.Implementation
             }
 
             string repository = match.Groups["repository"].Value;
-            string tag = match.Groups["tag"].Success ? match.Groups["tag"].Value : "latest"; // Default tag is 'latest'  
+            string tag = match.Groups["tag"].Success ? match.Groups["tag"].Value : "latest"; // Default tag is 'latest'
 
             return (repository, tag);
         }
@@ -2345,31 +2023,6 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private ImagePullingResult ExtractPullingResultFromTable(LogsTable table, string columnName)
-        {
-            var rows = table.Rows;
-            if (rows.Count == 0 || rows[0].Count == 0)
-            {
-                return new ImagePullingResult()
-                {
-                    IsSuccessful = true,
-                    FailureReason = ""
-                };
-            }
-            var columns = table.Columns;
-            int columnIndex = columns.ToList().FindIndex(c => c.Name == columnName);
-            if (columnIndex < 0)
-            {
-                throw new Exception($"Column name: {columnName} not exist in the table");
-            }
-            string error = rows[0][columnIndex].ToString();
-            return new ImagePullingResult()
-            {
-                FailureReason = error,
-                IsSuccessful = false
-            };
-        }
-
         #endregion
 
         /// <summary>
@@ -2380,7 +2033,7 @@ namespace Agent.Plugins.Implementation
         public async Task<RollbackImageResult> RollbackToLastWorkingImage(string resourceId)
         {
             _logger.LogInformation($"Rolling back to last known working image for resource: {resourceId}");
-            
+
             var result = new RollbackImageResult
             {
                 ResourceId = resourceId,
@@ -2436,7 +2089,7 @@ namespace Agent.Plugins.Implementation
 
                 // Get all revisions for this Container App
                 var revisions = await containerAppResource.GetContainerAppRevisions().ToListAsync();
-                
+
                 // Sort revisions by created time in descending order (newest first)
                 revisions = revisions
                     .OrderByDescending(r => r.Data.CreatedOn)
@@ -2701,7 +2354,7 @@ namespace Agent.Plugins.Implementation
         public async Task<ContainerUpdateResult> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
         {
             _logger.LogInformation($"Updating container image for resource: {resourceId} to {newImageReference}");
-            
+
             var result = new ContainerUpdateResult
             {
                 ResourceId = resourceId,
@@ -2893,7 +2546,7 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInformation($"Attempting to pull image: {imageReference}. Using resource auth: {useResourceAuth}");
             var startTime = DateTimeOffset.UtcNow;
-            
+
             var result = new ImagePullResult
             {
                 ImageReference = imageReference,
@@ -2906,14 +2559,14 @@ namespace Agent.Plugins.Implementation
             {
                 // Extract registry information
                 string registryHost = ExtractRegistryHostname(imageReference);
-                
+
                 if (string.IsNullOrEmpty(registryHost))
                 {
                     result.ErrorMessage = "Could not determine registry hostname from image reference";
                     result.SuggestedFix = "Make sure the image reference has a valid format (e.g. registry.com/repository:tag)";
                     return result;
                 }
-                
+
                 // If using resource auth and resourceId is provided, get the resource's authentication configuration
                 if (useResourceAuth && !string.IsNullOrEmpty(resourceId))
                 {
@@ -2938,8 +2591,8 @@ namespace Agent.Plugins.Implementation
         }
 
         private async Task<ImagePullResult> PullImageWithResourceAuth(
-            string imageReference, 
-            string resourceId, 
+            string imageReference,
+            string resourceId,
             ImagePullResult result)
         {
             var startTime = DateTimeOffset.UtcNow;
@@ -2954,40 +2607,40 @@ namespace Agent.Plugins.Implementation
                     // Get the Container App resource
                     var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                     var containerApp = await containerAppResource.GetAsync();
-                    
+
                     // Extract auth configs from the Container App
                     var registryConfiguration = containerApp.Value.Data.Configuration?.Registries;
                     string registryHost = ExtractRegistryHostname(imageReference);
-                    
+
                     // Result metadata
                     result.AuthenticationMethod = "Container App Configuration";
-                    
+
                     // If the registry is ACR
                     if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                     {
                         result.Details = "Using ACR authentication from Container App configuration";
-                        
+
                         // Find the matching registry config
-                        var matchingConfig = registryConfiguration?.FirstOrDefault(r => 
+                        var matchingConfig = registryConfiguration?.FirstOrDefault(r =>
                             r.Server != null && r.Server.Contains(registryHost, StringComparison.OrdinalIgnoreCase));
-                        
+
                         if (matchingConfig != null)
                         {
                             // Use the identity if configured
                             if (!string.IsNullOrEmpty(matchingConfig.Identity))
                             {
                                 var pullResult = await PullWithManagedIdentity(
-                                    imageReference, 
-                                    containerApp.Value.Data.Identity, 
+                                    imageReference,
+                                    containerApp.Value.Data.Identity,
                                     matchingConfig.Identity,
                                     result);
-                                
+
                                 var endTime = DateTimeOffset.UtcNow;
                                 pullResult.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                                 return pullResult;
                             }
                             // Otherwise try username/password
-                            else if (!string.IsNullOrEmpty(matchingConfig.Username) && 
+                            else if (!string.IsNullOrEmpty(matchingConfig.Username) &&
                                      !string.IsNullOrEmpty(matchingConfig.PasswordSecretRef))
                             {
                                 // We can't actually access the secret, so simulate pull
@@ -2995,13 +2648,13 @@ namespace Agent.Plugins.Implementation
                                 result.IsSuccessful = (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                                 result.AuthenticationMethod = "Username/Password (simulated)";
                                 result.Details = "Cannot perform actual pull with username/password; verifying image exists only";
-                                
+
                                 if (!result.IsSuccessful)
                                 {
                                     result.ErrorMessage = "Image not found in registry";
                                     result.SuggestedFix = "Verify image exists";
                                 }
-                                
+
                                 var endTime = DateTimeOffset.UtcNow;
                                 result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                                 return result;
@@ -3015,27 +2668,27 @@ namespace Agent.Plugins.Implementation
                         }
                     }
                     // For Docker Hub and other registries
-                    else 
+                    else
                     {
-                        var matchingConfig = registryConfiguration?.FirstOrDefault(r => 
+                        var matchingConfig = registryConfiguration?.FirstOrDefault(r =>
                             r.Server != null && r.Server.Contains(registryHost, StringComparison.OrdinalIgnoreCase));
-                        
+
                         if (matchingConfig != null)
                         {
                             _logger.LogInformation($"Container App has explicit config for registry {registryHost}");
-                            
+
                             // For external registries, we can only simulate with check if image exists
                             bool imageExists = await CheckImageExistsInRegistry(imageReference, registryHost);
                             result.IsSuccessful = imageExists;
                             result.AuthenticationMethod = "External Registry Config (simulated)";
                             result.Details = "Cannot perform actual pull; verifying image exists only";
-                            
+
                             if (!result.IsSuccessful)
                             {
                                 result.ErrorMessage = "Image not found in registry or credentials are invalid";
                                 result.SuggestedFix = "Verify image exists and credentials are correct";
                             }
-                            
+
                             var endTime = DateTimeOffset.UtcNow;
                             result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                             return result;
@@ -3052,22 +2705,22 @@ namespace Agent.Plugins.Implementation
                     // Get the Web App resource
                     var webAppResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
                     var webApp = await webAppResource.GetAsync();
-                    
+
                     // Get app settings for registry auth
                     var appSettingsResult = await webAppResource.GetApplicationSettingsAsync();
                     var appSettings = appSettingsResult.Value.Properties;
-                    
+
                     // Result metadata
                     result.AuthenticationMethod = "Web App Configuration";
                     result.Details = "Using Web App configuration for pull authentication";
-                    
+
                     string registryHost = ExtractRegistryHostname(imageReference);
-                    
+
                     // Check if registry is ACR
                     if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                     {
                         // Check if using username/password auth
-                        if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) && 
+                        if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) &&
                             !string.IsNullOrEmpty(registryUrl) &&
                             appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_USERNAME", out _) &&
                             appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_PASSWORD", out _))
@@ -3077,13 +2730,13 @@ namespace Agent.Plugins.Implementation
                             result.IsSuccessful = (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                             result.AuthenticationMethod = "Username/Password (simulated)";
                             result.Details = "Cannot perform actual pull with credentials; verifying image exists only";
-                            
+
                             if (!result.IsSuccessful)
                             {
                                 result.ErrorMessage = "Image not found in registry ";
                                 result.SuggestedFix = "Verify image exists and credentials are correct";
                             }
-                            
+
                             var endTime = DateTimeOffset.UtcNow;
                             result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                             return result;
@@ -3097,24 +2750,24 @@ namespace Agent.Plugins.Implementation
                     else
                     {
                         // For Docker Hub and other registries, check app settings
-                        if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) && 
+                        if (appSettings.TryGetValue("DOCKER_REGISTRY_SERVER_URL", out string registryUrl) &&
                             !string.IsNullOrEmpty(registryUrl) &&
                             registryUrl.Contains(registryHost, StringComparison.OrdinalIgnoreCase))
                         {
                             // Simulate pull for external registry
                             _logger.LogInformation($"Web App has explicit config for registry {registryHost}");
-                            
+
                             bool imageExists = await CheckImageExistsInRegistry(imageReference, registryHost);
                             result.IsSuccessful = imageExists;
                             result.AuthenticationMethod = "External Registry Config (simulated)";
                             result.Details = "Cannot perform actual pull; verifying image exists only";
-                            
+
                             if (!result.IsSuccessful)
                             {
                                 result.ErrorMessage = "Image not found in registry or credentials are invalid";
                                 result.SuggestedFix = "Verify image exists and credentials are correct";
                             }
-                            
+
                             var endTime = DateTimeOffset.UtcNow;
                             result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                             return result;
@@ -3131,7 +2784,7 @@ namespace Agent.Plugins.Implementation
                     result.ErrorMessage = "Unsupported resource type";
                     result.SuggestedFix = "Only Container Apps and Linux Web Apps are supported for authenticated pulls";
                     result.AuthenticationMethod = "None";
-                    
+
                     var endTime = DateTimeOffset.UtcNow;
                     result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                     return result;
@@ -3150,8 +2803,8 @@ namespace Agent.Plugins.Implementation
         }
 
         private async Task<ImagePullResult> PullWithManagedIdentity(
-            string imageReference, 
-            ManagedServiceIdentity identity, 
+            string imageReference,
+            ManagedServiceIdentity identity,
             string identityName,
             ImagePullResult result)
         {
@@ -3159,15 +2812,15 @@ namespace Agent.Plugins.Implementation
             {
                 _logger.LogInformation($"Attempting to pull {imageReference} using managed identity: {identityName}");
                 result.AuthenticationMethod = $"Managed Identity ({identityName})";
-                
+
                 // Get token credential for ACR
                 string registryHost = ExtractRegistryHostname(imageReference);
                 string registryName = ExtractRegistryName(imageReference);
-                
+
                 // Check if this is a system-assigned identity
                 if (identityName == "system")
                 {
-                    if (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned && 
+                    if (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned &&
                         identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned)
                     {
                         result.IsSuccessful = false;
@@ -3175,7 +2828,7 @@ namespace Agent.Plugins.Implementation
                         result.SuggestedFix = "Enable system-assigned managed identity for the resource";
                         return result;
                     }
-                    
+
                     // Use system-assigned identity to check if image exists
                     var credential = _authService.GetArmOperationCredential();
                     return await PerformImagePullWithToken(imageReference, credential, result);
@@ -3183,7 +2836,7 @@ namespace Agent.Plugins.Implementation
                 else
                 {
                     // This is a user-assigned identity
-                    if (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned && 
+                    if (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned &&
                         identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned)
                     {
                         result.IsSuccessful = false;
@@ -3191,7 +2844,7 @@ namespace Agent.Plugins.Implementation
                         result.SuggestedFix = "Enable user-assigned managed identity for the resource";
                         return result;
                     }
-                    
+
                     // Since we can't actually get the specific user-assigned identity credential,
                     // we'll use our access token and check if the image exists in ACR
                     if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
@@ -3199,13 +2852,13 @@ namespace Agent.Plugins.Implementation
                         bool imageExists = (await IsAzureContainerRegistryImageAccessibleAsync(imageReference)).IsSuccessful;
                         result.IsSuccessful = imageExists;
                         result.Details = "Simulating pull with user-assigned identity; verifying image existence";
-                        
+
                         if (!imageExists)
                         {
                             result.ErrorMessage = "Image not found in ACR or identity lacks permissions";
                             result.SuggestedFix = "Verify image exists and identity has AcrPull role";
                         }
-                        
+
                         return result;
                     }
                     else
@@ -3229,16 +2882,16 @@ namespace Agent.Plugins.Implementation
         }
 
         private async Task<ImagePullResult> PullWithDefaultAcrAuth(
-            string imageReference, 
+            string imageReference,
             ManagedServiceIdentity identity,
             ImagePullResult result)
         {
             try
             {
                 _logger.LogInformation($"Attempting to pull {imageReference} using default ACR auth");
-                
+
                 string registryHost = ExtractRegistryHostname(imageReference);
-                
+
                 if (!registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                 {
                     result.IsSuccessful = false;
@@ -3246,10 +2899,10 @@ namespace Agent.Plugins.Implementation
                     result.SuggestedFix = "Use explicit authentication for non-ACR registries";
                     return result;
                 }
-                
+
                 // Check if managed identity is enabled
-                if (identity == null || 
-                    (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned && 
+                if (identity == null ||
+                    (identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssigned &&
                      identity.ManagedServiceIdentityType != ManagedServiceIdentityType.SystemAssignedUserAssigned &&
                      identity.ManagedServiceIdentityType != ManagedServiceIdentityType.UserAssigned))
                 {
@@ -3258,11 +2911,11 @@ namespace Agent.Plugins.Implementation
                     result.SuggestedFix = "Enable managed identity or configure explicit registry credentials";
                     return result;
                 }
-                
+
                 // Try to pull using our ARM credential
                 var credential = _authService.GetArmOperationCredential();
                 result.AuthenticationMethod = "Default ACR Authentication";
-                
+
                 return await PerformImagePullWithToken(imageReference, credential, result);
             }
             catch (Exception ex)
@@ -3281,10 +2934,10 @@ namespace Agent.Plugins.Implementation
             try
             {
                 _logger.LogInformation($"Attempting to pull {imageReference} anonymously");
-                
+
                 result.AuthenticationMethod = "Anonymous";
                 string registryHost = ExtractRegistryHostname(imageReference);
-                
+
                 if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                 {
                     result.IsSuccessful = false;
@@ -3292,17 +2945,17 @@ namespace Agent.Plugins.Implementation
                     result.SuggestedFix = "Configure ACR authentication using managed identity or credentials";
                     return result;
                 }
-                
+
                 // For Docker Hub and other registries
                 bool imageExists = await CheckImageExistsInRegistry(imageReference, registryHost);
                 result.IsSuccessful = imageExists;
-                
+
                 if (!imageExists)
                 {
                     result.ErrorMessage = "Image not found or requires authentication";
                     result.SuggestedFix = "Verify image exists and configure registry authentication if needed";
                 }
-                
+
                 return result;
             }
             catch (Exception ex)
@@ -3322,13 +2975,13 @@ namespace Agent.Plugins.Implementation
             try
             {
                 string registryHost = ExtractRegistryHostname(imageReference);
-                
+
                 // For ACR, try to use ARM credential
                 if (registryHost.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase))
                 {
                     var credential = _authService.GetArmOperationCredential();
                     result.AuthenticationMethod = "ARM Credential";
-                    
+
                     return await PerformImagePullWithToken(imageReference, credential, result);
                 }
                 // For other registries, try anonymous pull
@@ -3350,7 +3003,7 @@ namespace Agent.Plugins.Implementation
         }
 
         private async Task<ImagePullResult> PerformImagePullWithToken(
-            string imageReference, 
+            string imageReference,
             TokenCredential credential,
             ImagePullResult result)
         {
@@ -3359,7 +3012,7 @@ namespace Agent.Plugins.Implementation
             {
                 string registryHost = ExtractRegistryHostname(imageReference);
                 string registryName = registryHost.Replace(".azurecr.io", "", StringComparison.OrdinalIgnoreCase);
-                
+
                 // Get token for ACR
                 var tokenRequestContext = new TokenRequestContext(new[] { $"https://{registryHost}/.default" });
                 var token = await credential.GetTokenAsync(tokenRequestContext, CancellationToken.None);
@@ -3371,21 +3024,21 @@ namespace Agent.Plugins.Implementation
                     result.SuggestedFix = "Check managed identity permissions";
                     return result;
                 }
-                
+
                 // Get the repository and tag
                 var (repository, tag) = ExtractRepositoryAndTag(imageReference);
-                
+
                 // Check manifest using the token
                 var manifestUrl = $"https://{registryHost}/v2/{repository}/manifests/{tag}";
                 var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
                 request.Headers.Add("Authorization", $"Bearer {token.Token}");
                 request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
-                
+
                 var response = await _httpClient.SendAsync(request);
-                
+
                 result.IsSuccessful = response.IsSuccessStatusCode;
                 result.Details = $"HTTP Status: {(int)response.StatusCode} {response.StatusCode}";
-                
+
                 if (!response.IsSuccessStatusCode)
                 {
                     if (response.StatusCode == HttpStatusCode.NotFound)
@@ -3404,7 +3057,7 @@ namespace Agent.Plugins.Implementation
                         result.SuggestedFix = "Check registry configuration and network connectivity";
                     }
                 }
-                
+
                 var endTime = DateTimeOffset.UtcNow;
                 result.PullDurationSeconds = (endTime - startTime).TotalSeconds;
                 return result;
@@ -3427,7 +3080,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 // For Docker Hub
-                if (registryHost.Contains("docker.io", StringComparison.OrdinalIgnoreCase) || 
+                if (registryHost.Contains("docker.io", StringComparison.OrdinalIgnoreCase) ||
                     string.IsNullOrEmpty(registryHost))
                 {
                     return await CheckImageExistsInDockerHub(imageReference);
@@ -3450,7 +3103,7 @@ namespace Agent.Plugins.Implementation
                     {
                         repository = repository.Substring(registryHost.Length);
                     }
-                    
+
                     // If it starts with a slash, remove it
                     if (repository.StartsWith("/"))
                     {
@@ -3464,23 +3117,23 @@ namespace Agent.Plugins.Implementation
                         tag = repository.Substring(tagSeparatorIndex + 1);
                         repository = repository.Substring(0, tagSeparatorIndex);
                     }
-                    
+
                     _logger.LogInformation($"Checking image existence in registry {registryHost}, repository: {repository}, tag: {tag}");
-                    
+
                     // Try anonymous pull
                     var registryUrl = $"https://{registryHost}/v2/{repository}/manifests/{tag}";
                     var request = new HttpRequestMessage(HttpMethod.Head, registryUrl);
                     request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
-                    
+
                     var response = await _httpClient.SendAsync(request);
-                    
+
                     _logger.LogInformation($"Registry response: {(int)response.StatusCode} {response.StatusCode}, URL: {registryUrl}");
-                    
+
                     if (response.IsSuccessStatusCode)
                     {
                         return true;
                     }
-                    
+
                     if (response.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         // Try to get authentication details from WWW-Authenticate header
@@ -3488,14 +3141,14 @@ namespace Agent.Plugins.Implementation
                         if (authHeader != null)
                         {
                             _logger.LogInformation($"Registry {registryHost} requires authentication: {authHeader.Scheme}");
-                            
+
                             // For non-standard registries, we could try basic auth or bearer token in a future enhancement
                             // For now, just report that authentication is required
                         }
-                        
+
                         return false;
                     }
-                    
+
                     return false;
                 }
             }

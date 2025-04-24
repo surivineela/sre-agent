@@ -2,7 +2,6 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Collections;
 using System.ComponentModel;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -12,12 +11,14 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using static Agent.Core.Extensions.TaskExtensions;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace Agent.Plugins.Implementation
 {
@@ -26,20 +27,29 @@ namespace Agent.Plugins.Implementation
         private readonly ArmHelper _armHelper;
         private readonly IGraphDatabaseClient _databaseClient;
         private readonly ILogger<ContainerAppPlugin> _logger;
-        private readonly IArmClientFactory _armClientFactory;
+        private readonly ArmClient _armClient;
         private readonly IAuthenticationService _authService;
+        private readonly HttpClient _httpClient;
+        private readonly ILogAnalyticsService _logAnalyticsService;
+        private readonly IChatClient _chatClient;
 
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
             ILogger<ContainerAppPlugin> logger,
             IArmClientFactory armClientFactory,
-            IAuthenticationService authService)
+            IAuthenticationService authService,
+            IHttpClientFactory httpClientFactory,
+            ILogAnalyticsService logAnalyticsService,
+            IChatClient chatClient)
         {
-            _armClientFactory = armClientFactory;
+            _armClient = armClientFactory.GetArmClient();
             _databaseClient = graphDbClient;
             _armHelper = armHelper;
             _logger = logger;
             _authService = authService;
+            _httpClient = httpClientFactory.CreateClient(nameof(ContainerAppPlugin));
+            _logAnalyticsService = logAnalyticsService;
+            _chatClient = chatClient;
         }
 
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
@@ -109,11 +119,7 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var credential = _authService.GetArmOperationCredential();
-
-                var armClient = new ArmClient(credential);
-
-                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
 
                 var containerApp = await containerAppResource.GetAsync();
 
@@ -278,11 +284,8 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var credential = _authService.GetArmOperationCredential();
-                var armClient = new ArmClient(credential);
-
                 // Get the Container App to find its environment
-                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 if (containerApp.Value.Data.ManagedEnvironmentId == null)
@@ -292,7 +295,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Get the Container App Environment
-                var environment = armClient.GetContainerAppManagedEnvironmentResource(containerApp.Value.Data.ManagedEnvironmentId);
+                var environment = _armClient.GetContainerAppManagedEnvironmentResource(containerApp.Value.Data.ManagedEnvironmentId);
                 var environmentData = await environment.GetAsync();
 
                 // Check if environment has VNet configuration with infrastructure subnet
@@ -305,14 +308,14 @@ namespace Agent.Plugins.Implementation
 
                 // Get the infrastructure subnet
                 string infrastructureSubnetId = environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId;
-                var subnet = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
+                var subnet = _armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
                 var subnetData = await subnet.GetAsync();
 
                 // Check if subnet has NSG
                 if (subnetData.Value.Data.NetworkSecurityGroup != null)
                 {
                     string nsgId = subnetData.Value.Data.NetworkSecurityGroup.Id;
-                    var nsg = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
+                    var nsg = _armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
                     var nsgData = await nsg.GetAsync();
 
                     // Add this NSG's rules to the result dictionary
@@ -419,6 +422,328 @@ namespace Agent.Plugins.Implementation
                 _logger.LogError(ex, $"Error scaling container app {resourceId}");
                 return false;
             }
+        }
+
+        public async Task<string> GetContainerAppLogsAsync(string resourceId, string? revisionName = null)
+        {
+            _logger.LogInformation("GetRevisionLogsAsync(resourceId: {resourceId}, revisionName: {revisionName})", resourceId, revisionName);
+
+            try
+            {
+                var containerApp = await _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId)).GetAsync();
+                if (!containerApp.HasValue)
+                {
+                    _logger.LogWarning("Container App with ID '{resourceId}' not found.", resourceId);
+                    return string.Empty;
+                }
+
+                revisionName = NormalizeRevisionName(containerApp, revisionName);
+                if (string.IsNullOrEmpty(revisionName))
+                {
+                    _logger.LogWarning("Revision name is null or empty.");
+                    return string.Empty;
+                }
+
+                var streamToken = await containerApp.Value.GetAuthTokenAsync();
+                if (!streamToken.HasValue)
+                {
+                    _logger.LogWarning("No auth token found for Container App {containerAppName}", containerApp.Value.Data.Name);
+                    return string.Empty;
+                }
+
+                var logs = await new[]
+                    {
+                        GetStreamedSystemLogsAsync(containerApp, streamToken),
+                        GetHistoricalLogsAsync(containerApp, revisionName, LogType.System),
+                        GetStreamedConsoleLogsAsync(containerApp, streamToken, revisionName),
+                        GetHistoricalLogsAsync(containerApp, revisionName, LogType.Application)
+                    }
+                    .IgnoreAndFilterFailures(_logger);
+                return await SummarizeLogs(logs.SelectMany(l => l));
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error in GetRevisionLogsAsync with resourceId {resourceId}, revisionName {revisionName}");
+                return null;
+            }
+        }
+
+        private async Task<string> SummarizeLogs(IEnumerable<string> logs)
+        {
+            _logger.LogInformation("Summarizing logs");
+            const string prompt = $"Please summarize these application logs. " +
+                                  $"This summary will be used to determine if there any potential issues with the application. " +
+                                  $"Make sure it's complete, detailed, and references any particular numbers, error messages, error codes verbatim in case they are relevant for debugging";
+
+            var messages = new []
+            {
+                new ChatMessage(ChatRole.System, prompt),
+                new ChatMessage(ChatRole.User, string.Join("\n", logs))
+            };
+
+            var options = new ChatOptions
+            {
+                Temperature = (float)0.2,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    ["response_format"] = "text"
+                }
+            };
+
+            var response = await _chatClient.GetResponseAsync(messages, options);
+            return response.Text;
+        }
+
+        public async Task<bool> UpdateTargetPort(string resourceId, int targetPort)
+        {
+            _logger.LogInformation("[UpdateTargetPort] Invoked with resourceId: {resourceId}, targetPort: {targetPort}", resourceId, targetPort);
+
+            try
+            {
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+
+                if (containerApp.Value.Data.Configuration?.Ingress == null)
+                {
+                    _logger.LogError($"No ingress configuration found in the app {resourceId}");
+                    return false;
+                }
+
+                // Update the target port
+                containerApp.Value.Data.Configuration.Ingress.TargetPort = targetPort;
+
+                // Apply the update
+                await containerAppResource.UpdateAsync(WaitUntil.Completed, containerApp.Value.Data);
+
+                _logger.LogInformation($"Successfully updated target port of container app {resourceId} to {targetPort}");
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating target port for container app {resourceId}");
+                return false;
+            }
+        }
+
+        public IReadOnlyList<string> ListAvailableScalers()
+        {
+            var docsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ContainerAppsAgent", "Docs", "scalers");
+            return Directory
+                .GetFiles(docsPath)
+                .Where(f => f.EndsWith(".md"))
+                .Select(Path.GetFileNameWithoutExtension)
+                .Concat([
+                    "http",
+                    "tcp"
+                ])
+                .ToList()!;
+        }
+
+        public async Task<string> GetScalerDetails(string scalerName)
+        {
+            if (string.IsNullOrEmpty(scalerName))
+            {
+                return "Scaler name cannot be null or empty.";
+            }
+
+            if (string.Equals(scalerName, "http", StringComparison.OrdinalIgnoreCase))
+            {
+                return @"""
+                    HTTP scaler is used to scale container apps based on HTTP request metrics. It allows you to define scaling rules based on the number of incoming requests.
+                    The scale rule looks like
+                    scale: {
+                       minReplicas: 1
+                       maxReplicas: 10
+                       rules: [
+                         {
+                           http: {
+                             name: my-http-rule
+                             metadata: {
+                               concurrentRequests: '10'
+                             },
+                           }
+                         }
+                       ]
+                     }
+                        """;
+            }
+            else if (string.Equals(scalerName, "tcp", StringComparison.OrdinalIgnoreCase))
+            {
+                return @"""
+                    TCP scaler is used to scale container apps based on TCP request metrics. It allows you to define scaling rules based on the number of connections.
+                    The scale rule looks like
+                    scale: {
+                       minReplicas: 1
+                       maxReplicas: 10
+                       rules: [
+                         {
+                           tcp: {
+                             name: my-tcp-rule
+                             metadata: {
+                               concurrentConnections: '10'
+                             },
+                           }
+                         }
+                       ]
+                     }
+                        """;
+            }
+
+            var docsPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ContainerAppsAgent", "Docs", "scalers");
+            var filePath = Path.Combine(docsPath, $"{scalerName}.md");
+
+            if (!File.Exists(filePath))
+            {
+                return $"Scaler '{scalerName}' not found.";
+            }
+
+            return await File.ReadAllTextAsync(filePath);
+        }
+
+        enum LogType
+        {
+            System,
+            Application,
+        }
+
+        private async Task<IReadOnlyCollection<string>> GetStreamedSystemLogsAsync(
+            ContainerAppResource containerApp,
+            Response<ContainerAppAuthToken> streamToken)
+        {
+            var eventsStreamUrl = containerApp.Data.EventStreamEndpoint;
+            try
+            {
+                return await this.GetLogsAsync(eventsStreamUrl.ToString(), streamToken);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to get logs from {eventsStreamUrl}.", eventsStreamUrl);
+                return [];
+            }
+        }
+
+        private async Task<IReadOnlyCollection<string>> GetStreamedConsoleLogsAsync(
+            ContainerAppResource containerApp,
+            ContainerAppAuthToken streamToken,
+            string revisionName)
+        {
+            // Get container App revision
+            var revision = await containerApp.GetContainerAppRevisionAsync(revisionName);
+            if (!revision.HasValue)
+            {
+                _logger.LogWarning("Revision {revisionName} not found for Container App {containerAppName}", revisionName, containerApp.Data.Name);
+                return [];
+            }
+
+            // Get revision instances
+            var replicas = await _armHelper.GetRevisionReplicas(revision.Value.Id.ToString());
+
+            var logs = await replicas
+                .Select(r => r?.Properties?.InitContainers?.Concat(r?.Properties?.Containers ?? []) ?? [])
+                .SelectMany(c => c)
+                .Select(c => this.GetLogsAsync(c.LogStreamEndpoint, streamToken))
+                .IgnoreAndFilterFailures(_logger) ?? [];
+
+            return logs.SelectMany(l => l).ToList();
+        }
+
+        private async Task<string[]> GetLogsAsync(string? argLogStreamEndpoint, ContainerAppAuthToken streamToken)
+        {
+            if (string.IsNullOrEmpty(argLogStreamEndpoint))
+            {
+                return [];
+            }
+
+            var logStreamEndpoint = new Uri($"{argLogStreamEndpoint}?follow=false&output=text&tailLines=25");
+            var request = new HttpRequestMessage(HttpMethod.Get, logStreamEndpoint);
+            request.Headers.Add("Authorization", $"Bearer {streamToken.Token}");
+
+            var response = await _httpClient.SendAsync(request);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                return content.Split("\n");
+            }
+            else
+            {
+                _logger.LogError("Failed to get logs from {logStreamEndpoint}. Status code: {StatusCode}", logStreamEndpoint, response.StatusCode);
+                return [];
+            }
+        }
+
+        private async Task<IReadOnlyCollection<string>> GetHistoricalLogsAsync(
+            ContainerAppResource containerApp,
+            string revisionName,
+            LogType logType)
+        {
+            // 1. Get stream token
+            var streamToken = await containerApp.GetAuthTokenAsync();
+            if (!streamToken.HasValue)
+            {
+                _logger.LogWarning("No auth token found for Container App {containerAppName}", containerApp.Data.Name);
+                return [];
+            }
+
+            var workspaceId = await GetContainerAppWorkspaceIdAsync(containerApp);
+            if (string.IsNullOrEmpty(workspaceId))
+            {
+                _logger.LogWarning("No workspace ID found for Container App {containerAppName}", containerApp.Data.Name);
+                return ["ContainerApp is missing a Log Analytics workspace ID for historical logs"];
+            }
+
+            var startTime = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromHours(2));
+            var endTime = DateTimeOffset.UtcNow;
+            var logAnalyticsLogs = logType switch
+            {
+                LogType.System => await _logAnalyticsService.GetContainerAppSystemLogsAsync(
+                    workspaceId,
+                    containerAppName: containerApp.Data.Name,
+                    startTime,
+                    endTime,
+                    revisionName),
+                LogType.Application => await _logAnalyticsService.GetContainerAppApplicationLogsAsync(
+                    workspaceId,
+                    containerAppName: containerApp.Data.Name,
+                    startTime,
+                    endTime,
+                    revisionName),
+                _ => throw new ArgumentOutOfRangeException(nameof(logType), logType, null)
+            };
+
+            if (logAnalyticsLogs == null! || logAnalyticsLogs.Count == 0)
+            {
+                _logger.LogWarning("No logs found for Container App {containerAppName} in the last 2 hours", containerApp.Data.Name);
+                return [];
+            }
+
+            return logAnalyticsLogs
+                .Select(log => log.Log)
+                .ToList();
+        }
+
+        private async Task<string> GetContainerAppWorkspaceIdAsync(ContainerAppResource containerApp)
+        {
+            var environment = await _armClient.GetContainerAppManagedEnvironmentResource(containerApp.Data.EnvironmentId).GetAsync();
+            if (!environment.HasValue)
+            {
+                return string.Empty;
+            }
+
+            var workspaceId = environment.Value.Data.AppLogsConfiguration?.LogAnalyticsConfiguration?.CustomerId;
+            return workspaceId ?? string.Empty;
+        }
+
+        private static string? NormalizeRevisionName(ContainerAppResource containerApp, string? revisionName)
+        {
+            var result = revisionName;
+            if (!string.IsNullOrEmpty(result))
+            {
+                return result;
+            }
+
+            result = containerApp.Data.LatestRevisionName;
+
+            return result;
         }
 
         private static RevisionInfo TranslateNodeToDescriptor(ContainerAppRevisionNode revisionNode, bool limited = false)

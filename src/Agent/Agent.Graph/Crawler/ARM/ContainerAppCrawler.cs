@@ -80,11 +80,12 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
             {
                 SubscriptionId = cappNode.SubscriptionId,
                 ResourceGroupName = cappNode.ResourceGroupName,
-                ResourceId = revision.Id.ToString(),
+                ResourceId = revision.Id.ToString().ToLower(),
                 ResourceType = revision.Data.ResourceType.ToString().ToLower(),
                 ResourceName = revision.Data.Name,
                 Location = cappNode.Location,
                 Name = revision.Data.Name,
+                AppName = cappNode.ResourceName,
                 Fqdn = revision.Data.Fqdn,
                 Labels = string.Join(", ", revision.Data.Labels),
                 Template = JsonSerializer.Serialize(revision.Data.Template),

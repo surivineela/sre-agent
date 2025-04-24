@@ -50,4 +50,10 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetAzureOpenAICredential();
+
+    /// <summary>
+    /// Get the credential to access Log Analytics workspace
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetLogAnalyticsCredential();
 }

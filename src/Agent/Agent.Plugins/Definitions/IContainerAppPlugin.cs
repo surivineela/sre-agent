@@ -28,5 +28,13 @@ namespace Agent.Plugins.Definitions
         Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId);
 
         Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas);
+
+        Task<string> GetContainerAppLogsAsync(string resourceId, string? revisionName = null);
+
+        Task<bool> UpdateTargetPort(string resourceId, int targetPort);
+
+        IReadOnlyList<string> ListAvailableScalers();
+
+        Task<string> GetScalerDetails(string scalerName);
     }
 }

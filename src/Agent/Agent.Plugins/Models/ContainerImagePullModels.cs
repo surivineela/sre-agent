@@ -13,37 +13,37 @@ namespace Agent.Plugins.Models
         /// Whether the monitoring operation was successful
         /// </summary>
         public bool Success { get; set; }
-        
+
         /// <summary>
         /// Error message if monitoring failed
         /// </summary>
         public string Error { get; set; }
-        
+
         /// <summary>
         /// Name of the container app
         /// </summary>
         public string ContainerAppName { get; set; }
-        
+
         /// <summary>
         /// Resource ID of the container app
         /// </summary>
         public string ResourceId { get; set; }
-        
+
         /// <summary>
         /// Calculated availability percentage
         /// </summary>
         public double AvailabilityPercentage { get; set; }
-        
+
         /// <summary>
         /// Generated chart data in base64 format
         /// </summary>
         public string ChartData { get; set; }
-        
+
         /// <summary>
         /// Whether the availability is below the acceptable threshold
         /// </summary>
         public bool HasLowAvailability { get; set; }
-        
+
         /// <summary>
         /// Results of container log inspection if there was low availability
         /// </summary>
@@ -59,27 +59,27 @@ namespace Agent.Plugins.Models
         /// Resource ID of the container app
         /// </summary>
         public string ResourceId { get; set; }
-        
+
         /// <summary>
         /// Whether an image pull failure was detected
         /// </summary>
         public bool HasImagePullFailure { get; set; }
-        
+
         /// <summary>
         /// Type of failure detected
         /// </summary>
         public string FailureType { get; set; }
-        
+
         /// <summary>
         /// Details of the error
         /// </summary>
         public string ErrorDetails { get; set; }
-        
+
         /// <summary>
         /// Image reference that failed to pull
         /// </summary>
         public string ImageReference { get; set; }
-        
+
         /// <summary>
         /// Type of registry the image is from
         /// </summary>
@@ -95,22 +95,22 @@ namespace Agent.Plugins.Models
         /// Resource ID of the container app
         /// </summary>
         public string ResourceId { get; set; }
-        
+
         /// <summary>
         /// Image reference being checked
         /// </summary>
         public string ImageReference { get; set; }
-        
+
         /// <summary>
         /// Whether authentication is successful
         /// </summary>
         public bool IsAuthenticated { get; set; }
-        
+
         /// <summary>
         /// Error message if authentication failed
         /// </summary>
         public string ErrorMessage { get; set; }
-        
+
         /// <summary>
         /// Potential solution to fix the authentication issue
         /// </summary>
@@ -295,7 +295,7 @@ namespace Agent.Plugins.Models
         /// Suggested fix if the pull failed
         /// </summary>
         public string SuggestedFix { get; set; }
-        
+
         /// <summary>
         /// Time taken in seconds to attempt the pull
         /// </summary>
@@ -356,17 +356,6 @@ namespace Agent.Plugins.Models
         public string Tag { get; set; }
         public RegistryType RegistryType { get; set; }
         public bool RequiresAuth { get; set; }
-    }
-
-    /// <summary>
-    /// Result of analyzing container logs for image pull failures
-    /// </summary>
-    public class ContainerLogAnalysisResult
-    {
-        public bool HasPullFailure { get; set; }
-        public string ErrorMessage { get; set; }
-        public string DetailedDiagnosis { get; set; }
-        public string SuggestedFix { get; set; }
     }
 
     public class RegistryAuthConfig

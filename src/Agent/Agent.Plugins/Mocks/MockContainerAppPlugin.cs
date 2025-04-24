@@ -59,6 +59,26 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> GetContainerAppLogsAsync(string resourceId, string? revisionName)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> UpdateTargetPort(string resourceId, int targetPort)
+        {
+            throw new NotImplementedException();
+        }
+
+        public IReadOnlyList<string> ListAvailableScalers()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetScalerDetails(string scalerName)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

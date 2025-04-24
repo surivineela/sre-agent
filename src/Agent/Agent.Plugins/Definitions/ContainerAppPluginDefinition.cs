@@ -1,8 +1,9 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
 using Microsoft.SemanticKernel;
@@ -19,19 +20,24 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("get_container_app")]
-        [Description("PREFERRED METHOD FOR CONTAINER APP DETAILS: Gets detailed information about a specific Azure Container App by its resource ID. " +
+        [Description(
+            "PREFERRED METHOD FOR CONTAINER APP DETAILS: Gets detailed information about a specific Azure Container App by its resource ID. " +
             "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, AppHealthInfo, and environment details. " +
             "Always use this specialized method for Container Apps instead of generic resource search functions for more complete and accurate information." +
             "For the AppHealthInfo information (such requests, cpu, and memory metrics, cost etc. format the output in markdown tabular format.")]
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(
-            [Description("The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")] string resourceId)
+            [Description(
+                "The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")]
+            string resourceId)
         {
             return await _containerAppPlugin.GetContainerAppInfoAsync(resourceId);
         }
 
         [Description("List all revisions for a container app by its resource ID.")]
         public async Task<IReadOnlyList<RevisionInfo>> ListRevisionsAsync(
-            [Description("The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")] string resourceId)
+            [Description(
+                "The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")]
+            string resourceId)
         {
             return await _containerAppPlugin.ListContainerAppRevisionsAsync(resourceId);
         }
@@ -44,11 +50,13 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("list_container_apps")]
-        [Description("PREFERRED METHOD FOR CONTAINER APPS: Lists all Azure Container Apps in the specified subscription. " +
+        [Description(
+            "PREFERRED METHOD FOR CONTAINER APPS: Lists all Azure Container Apps in the specified subscription. " +
             "Returns detailed ContainerAppDescriptor objects with resource ID, name, location, state, workload profile, FQDN, and environment details. " +
             "This is the most direct and efficient way to get Container App information - use this instead of generic resource search methods. Returns an empty list if no Container Apps are found.")]
         public async Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(
-            [Description("The subscription ID (GUID) to scan for Container Apps.")] Guid subscriptionId)
+            [Description("The subscription ID (GUID) to scan for Container Apps.")]
+            Guid subscriptionId)
         {
             return await _containerAppPlugin.ListContainerAppsAsync(subscriptionId);
         }
@@ -67,28 +75,34 @@ namespace Agent.Plugins.Definitions
         #region Metrics
 
         [KernelFunction("get_containerapp_request_count_metrics")]
-        [Description("Start a background operation to get the total request count metrics of a specific Container App instance at per minute granularity" +
-        " for the past 30 minutes, Container App is healthy if all data points are at least 99.9 availability.")]
+        [Description(
+            "Start a background operation to get the total request count metrics of a specific Container App instance at per minute granularity" +
+            " for the past 30 minutes, Container App is healthy if all data points are at least 99.9 availability.")]
         public async Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestMetrics(
-      [Description("The resource ID of the ContainerApp resource.")] string resourceId)
+            [Description("The resource ID of the ContainerApp resource.")]
+            string resourceId)
         {
             return await _containerAppPlugin.GetContainerAppRequestMetrics(resourceId);
         }
 
         [KernelFunction("get_containerapp_memory_metrics")]
-        [Description("Start a background operation to get the average memory usage of a specific Container App instance at per minute granularity for the past 30 minutes," +
-        " Container App is healthy if over half of the data points is less than 80% memory utilization.")]
+        [Description(
+            "Start a background operation to get the average memory usage of a specific Container App instance at per minute granularity for the past 30 minutes," +
+            " Container App is healthy if over half of the data points is less than 80% memory utilization.")]
         public async Task<IReadOnlyList<MemoryUsageTimeSeriesData>> GetContainerAppMemoryMetrics(
-            [Description("The resource ID of the ContainerApp resource.")] string resourceId)
+            [Description("The resource ID of the ContainerApp resource.")]
+            string resourceId)
         {
             return await _containerAppPlugin.GetContainerAppMemoryMetrics(resourceId);
         }
 
         [KernelFunction("get_containerapp_cpu_metrics")]
-        [Description("Get the average CPU utilization metrics of a specific Container App instance at per minute granularity" +
-                 " for the past 30 minutes, Container App is healthy if over half of the data points is less than 80% CPU utilization, zero metric value doesn't indicate the app is unhealthy")]
+        [Description(
+            "Get the average CPU utilization metrics of a specific Container App instance at per minute granularity" +
+            " for the past 30 minutes, Container App is healthy if over half of the data points is less than 80% CPU utilization, zero metric value doesn't indicate the app is unhealthy")]
         public async Task<IReadOnlyList<CpuUsageTimeSeriesData>> GetContainerAppCpuMetrics(
-            [Description("The resource ID of the ContainerApp resource.")] string resourceId)
+            [Description("The resource ID of the ContainerApp resource.")]
+            string resourceId)
         {
             return await _containerAppPlugin.GetContainerAppCpuMetrics(resourceId);
         }
@@ -98,11 +112,13 @@ namespace Agent.Plugins.Definitions
         #region NSG Plugins
 
         [KernelFunction("get_containerapp_nsg_rules")]
-        [Description("Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +
+        [Description(
+            "Retrieves all Network Security Groups (NSGs) associated with a Container App and their security rules. " +
             "Returns a dictionary where keys are NSG resource IDs and values are lists of security rules. " +
             "Use this to identify network access issues or restrictive rules that might be blocking traffic to/from the Container App.")]
         public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(
-            [Description("The resource ID of the Container App instance.")] string resourceId)
+            [Description("The resource ID of the Container App instance.")]
+            string resourceId)
         {
             return await _containerAppPlugin.GetAllNSGRulesForContainerAppAsync(resourceId);
         }
@@ -110,19 +126,69 @@ namespace Agent.Plugins.Definitions
         #endregion
 
         [KernelFunction("scale_container_app")]
-        [Description("Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
+        [Description(
+            "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
         public async Task<bool> ScaleContainerApp(
-            [Description("Azure resource ID of the Container App to scale")] string resourceId,
-            [Description("Desired memory allocation (e.g., '1Gi', '512Mi')")] string desiredMemory,
-            [Description("Minimum number of replicas to run (e.g., 1)")] int minReplicas,
-            [Description("Maximum number of replicas to scale to (e.g., 10)")] int maxReplicas)
+            [Description("Azure resource ID of the Container App to scale")]
+            string resourceId,
+            [Description("Desired memory allocation (e.g., '1Gi', '512Mi')")]
+            string desiredMemory,
+            [Description("Minimum number of replicas to run (e.g., 1)")]
+            int minReplicas,
+            [Description("Maximum number of replicas to scale to (e.g., 10)")]
+            int maxReplicas)
         {
-            if (string.IsNullOrWhiteSpace(resourceId) || string.IsNullOrWhiteSpace(desiredMemory) || minReplicas < 0 || maxReplicas < minReplicas)
+            if (string.IsNullOrWhiteSpace(resourceId) || string.IsNullOrWhiteSpace(desiredMemory) || minReplicas < 0 ||
+                maxReplicas < minReplicas)
             {
                 throw new ArgumentException("Invalid input parameters.");
             }
 
             return await _containerAppPlugin.ScaleContainerApp(resourceId, desiredMemory, minReplicas, maxReplicas);
+        }
+
+        [Description("Get the logs of a specific revision of a Container App instance.")]
+        public async Task<string> GetRevisionLogsAsync(
+            [Description("The resource ID of the Container App instance.")]
+            string resourceId,
+            [Description("Optional revision name. Leave empty to use the latest revision.")]
+            string? revisionName)
+        {
+            return await _containerAppPlugin.GetContainerAppLogsAsync(resourceId, revisionName);
+        }
+
+        [Description("Get the logs of the latest revision of a Container App instance.")]
+        public async Task<string> GetContainerAppLogsAsync(
+            [Description("The resource ID of the Container App instance.")]
+            string resourceId)
+        {
+            return await _containerAppPlugin.GetContainerAppLogsAsync(resourceId);
+        }
+
+        [Description("Update the target port of a Container App instance.")]
+        [RequiresApproval]
+        public async Task<bool> UpdateTargetPort(
+            [Description("The resource ID of the Container App instance.")]
+            string resourceId,
+            [Description("The target port to set for the Container App instance.")]
+            int targetPort)
+        {
+            return await _containerAppPlugin.UpdateTargetPort(resourceId, targetPort);
+        }
+
+
+        [Description("List available scaler names")]
+        public Task<IReadOnlyList<string>> ListAvailableScalers()
+        {
+            return Task.FromResult(_containerAppPlugin.ListAvailableScalers());
+        }
+
+        [Description("Get the details of a specific scaler for a Container App instance.")]
+        public async Task<string> GetScalerDetails(
+            [Description("The scaler name to get details for.")]
+            string scalerName)
+        {
+            return await _containerAppPlugin.GetScalerDetails(scalerName);
         }
     }
 }

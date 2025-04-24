@@ -278,6 +278,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     builder.Services.AddArmHelperHttpClient();
     builder.Services.AddRazorHttpClient();
     builder.Services.AddCrawlerHttpClient();
+    builder.Services.AddSingleton<ILogAnalyticsService, LogAnalyticsService>();
+    builder.Services.AddSingleton<ILogAnalysisService, LogAnalysisService>();
 
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()
