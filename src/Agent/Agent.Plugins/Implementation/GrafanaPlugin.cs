@@ -21,37 +21,27 @@ namespace Agent.Plugins.Implementation
         private readonly DashboardSettings _dashboardSettings;
         private readonly IChatClient _chatClient;
         private readonly IAuthenticationService _authService;
-        public GrafanaPlugin(ILogger<GrafanaPlugin> logger, DashboardSettings dashboardSettings, IChatClient chatClient, IAuthenticationService authService)
+        private readonly IHttpClientFactory _httpClientFactory;
+        public GrafanaPlugin(ILogger<GrafanaPlugin> logger, DashboardSettings dashboardSettings, IChatClient chatClient, IAuthenticationService authService, IHttpClientFactory httpClientFactory)
         {
-            _logger = logger;
+            _httpClientFactory = httpClientFactory;
             _dashboardSettings = dashboardSettings;
             _chatClient = chatClient;
             _authService = authService;
+            _logger = logger;
+            _httpClientFactory = httpClientFactory;
         }
+        
 
         private async Task<HttpClient> CreateAuthenticatedClientAsync()
         {
-            /*
-            var client = new HttpClient();
-            client.BaseAddress = new Uri(grafanaUrl);
-            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             
-            // Get token using managed identity
-            var accessToken = await _azureCredential.GetTokenAsync(
-                new TokenRequestContext(new[] { _resourceId }));
-            
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", accessToken.Token);
-            
-            return client;
-            */
-            var client = new HttpClient();
+            var client = _httpClientFactory.CreateClient();
             client.BaseAddress = new Uri(_dashboardSettings.GrafanaUrl);
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
 
-            // Prepare the basic authentication header value.
-            // string authInfo = "admin:admin"; // Change as needed.
-            // var encodedAuth = Convert.ToBase64String(Encoding.ASCII.GetBytes(authInfo));
-            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", _dashboardSettings.GrafanaApiKey);
+            var token = await _authService.GetGrafanaAccessToken();
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
             return client;
         }
@@ -242,11 +232,9 @@ namespace Agent.Plugins.Implementation
         /// </summary>
         private async Task<string> GetDashboardJson(string dashboardUid)
         {
-            using (var httpClient = new HttpClient())
+            using (var httpClient = await CreateAuthenticatedClientAsync())
             {
-                httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_dashboardSettings.GrafanaApiKey}");
-
-                var response = await httpClient.GetAsync($"{_dashboardSettings.GrafanaUrl}/api/dashboards/uid/{dashboardUid}");
+                var response = await httpClient.GetAsync($"/api/dashboards/uid/{dashboardUid}");
 
                 if (!response.IsSuccessStatusCode)
                 {

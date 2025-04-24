@@ -15,6 +15,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Agent.Runtime.Services;
+using Azure.Core;
 using Azure.Identity;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
@@ -47,6 +48,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IGraphService _graphDbService;
         private readonly bool _persistScreenshotsInFolder;
         private List<ArmResourceNode> _armResourceNodes;
+        private readonly IAuthenticationService _authenticationService;
 
         private readonly string DashboardScreenshotsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashboardScreenshots");
 
@@ -74,6 +76,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             IChatClient chatClient,
             DashboardSettings dashboardSettings,
             IGraphService graphDbService,
+            IAuthenticationService authenticationService,
             string mainDashboardFile = "Main-Dashboard.json",
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
@@ -111,6 +114,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _dashboardSettings = dashboardSettings;
             _graphDbService = graphDbService;
             _persistScreenshotsInFolder = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PERSIST_SCREENSHOTS"));
+            _authenticationService = authenticationService;
         }
 
         public async Task<Thread?> ScanAndGenerateReport(CancellationToken cancellationToken)
@@ -292,7 +296,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         {
             try
             {
-                var token = GetAccessTokenForGrafana();
+                var token = await GetAccessTokenForGrafana();
 
                 // Dictionary to store dashboard screenshots (name -> base64 image)
                 Dictionary<string, string> dashboardScreenshots = new Dictionary<string, string>();
@@ -427,7 +431,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     var payload = new
                     {
                         grafanaEndpoint = _grafanaUrl.TrimEnd('/'),
-                        grafanaToken = GetAccessTokenForGrafana(),
+                        grafanaToken = await GetAccessTokenForGrafana(),
                         dashboardUrl = dashboardUrlWithParameters,
                     };
 
@@ -584,7 +588,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         {
             try
             {
-                string token = GetAccessTokenForGrafana();
+                string token = await GetAccessTokenForGrafana();
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
                 // Check if data source already exists
@@ -849,7 +853,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     $"\"title\": \"SRE Agent Resource Monitoring Dashboard\"");
 
                 // Get access token for Azure Managed Grafana
-                var token = GetAccessTokenForGrafana();
+                var token = await GetAccessTokenForGrafana();
 
                 var input = new DashboardInput
                 {
@@ -873,9 +877,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private string GetAccessTokenForGrafana()
+        private async Task<string> GetAccessTokenForGrafana()
         {
-            return _dashboardSettings.GrafanaApiKey ?? throw new Exception("Grafana API TOKEN not found");
+            return await _authenticationService.GetGrafanaAccessToken();
         }
 
         private async Task<string> PublishDashboardToManagedGrafana(string dashboardJson, string accessToken, DashboardInput[] inputs)
@@ -894,7 +898,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var requestJson = JsonSerializer.Serialize(importRequest);
             var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-            var token = GetAccessTokenForGrafana();
+            var token = await GetAccessTokenForGrafana();
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
 
@@ -921,7 +925,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         {
             try
             {
-                var token = GetAccessTokenForGrafana();
+                var token = await GetAccessTokenForGrafana();
 
                 _httpClient.DefaultRequestHeaders.Clear();
                 _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
@@ -1031,7 +1035,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         {
             var dashboards = Directory.GetFiles(_dashboardsDirectory, "*.json").Except(excludes);
 
-            var accessToken = GetAccessTokenForGrafana();
+            var accessToken = await GetAccessTokenForGrafana();
             foreach (var dashboard in dashboards)
             {
                 var dashboardJson = File.ReadAllText(dashboard);

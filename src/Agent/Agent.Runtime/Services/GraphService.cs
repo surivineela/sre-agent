@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
@@ -16,9 +17,9 @@ public class GraphService : IGraphService
     private readonly IGraphDatabaseClient _graphDatabaseClient;
     private readonly ILogger<GraphService> _logger;
     private readonly string _grafanaUrl;
-    private readonly string _grafanaToken;
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DashboardSettings _dashboardSettings;
+    private readonly IAuthenticationService _authenticationService;
 
     private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -33,22 +34,23 @@ public class GraphService : IGraphService
     // Define the allowed Kubernetes resource types
     private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets", "services" };
 
-    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory)
+    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService)
     {
         _graphDatabaseClient = graphDatabaseClient;
         _logger = logger;
         _dashboardSettings = dashboardSettings;
 
         _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
-        _grafanaToken = dashboardSettings.GrafanaApiKey;
         _httpClientFactory = httpClientFactory;
+        _authenticationService = authenticationService;
     }
 
-    private HttpClient GetHttpClient()
+    private async Task<HttpClient> GetHttpClient()
     {
         var client = _httpClientFactory.CreateClient();
         client.DefaultRequestHeaders.Clear();
-        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {_grafanaToken}");
+        var token = await _authenticationService.GetGrafanaAccessToken();
+        client.DefaultRequestHeaders.Add("Authorization", $"Bearer {token}");
         return client;
     }
 
@@ -288,7 +290,7 @@ public class GraphService : IGraphService
                     string dashboardUrl = baseUrl;
                     try
                     {
-                        using var httpClient = GetHttpClient();
+                        using var httpClient = await GetHttpClient();
                         var dashboardResponse = await httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
                         dashboardResponse.EnsureSuccessStatusCode();
                         var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();

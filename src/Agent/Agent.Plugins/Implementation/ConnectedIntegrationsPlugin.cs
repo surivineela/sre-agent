@@ -31,6 +31,7 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
         var dashConfigured =
             !string.IsNullOrWhiteSpace(_dashboard.GrafanaUrl) &&
             !string.IsNullOrWhiteSpace(_dashboard.GrafanaApiKey);
+        // todo: change the integration detail to include UMI instructions
         integrations.Add(new IntegrationInfo
         {
             Name = "Dashboard",

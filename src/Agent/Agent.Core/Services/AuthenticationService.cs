@@ -114,12 +114,30 @@ public class AuthenticationService : IAuthenticationService
 
     public TokenCredential GetAzureMonitorWorkspaceCredential()
     {
+        return GetDashboardCredential();
+    }
+
+    private TokenCredential GetDashboardCredential()
+    {
         if (_hostEnvironment.IsDevelopment())
         {
             return GetDefaultAzureCredential();
         }
 
         return GetManagedIdentityCredential(_dashboardSettings.Identity);
+    }
+
+    public async Task<string> GetGrafanaAccessToken()
+    {
+        if (!string.IsNullOrEmpty(_dashboardSettings.GrafanaApiKey))
+        {
+            return _dashboardSettings.GrafanaApiKey;
+        }
+
+        var cred = GetDashboardCredential();
+        // https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-api-calls?tabs=post#get-an-access-token
+        var token = await cred.GetTokenAsync(new TokenRequestContext([ "ce34e7e5-485f-4d76-964f-b3d2b16d1e4f/.default" ]), CancellationToken.None);
+        return token.Token;
     }
 
     public TokenCredential GetAzureOpenAICredential()
@@ -141,4 +159,6 @@ public class AuthenticationService : IAuthenticationService
 
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
+
+    
 }

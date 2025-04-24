@@ -46,6 +46,13 @@ public interface IAuthenticationService
     public TokenCredential GetAzureMonitorWorkspaceCredential();
 
     /// <summary>
+    /// Get the bearer token to access the grafana api.
+    /// Could be admin api key or managed identity token.
+    /// </summary>
+    /// <returns></returns>
+    public Task<string> GetGrafanaAccessToken();
+
+    /// <summary>
     /// Get the credential to access the azure open ai service
     /// </summary>
     /// <returns></returns>

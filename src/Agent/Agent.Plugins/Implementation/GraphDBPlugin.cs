@@ -40,7 +40,6 @@ namespace Agent.Plugins
 
         // Additional fields for health dashboard screenshot and LLM summarization
         private readonly string _grafanaUrl;
-        private readonly string _grafanaToken;
         private readonly string _puppeteerScreenshotApiUrl;
         private readonly HttpClient _httpClient;
         private readonly DashboardSettings _dashboardSettings;
@@ -73,7 +72,6 @@ namespace Agent.Plugins
             _dashboardSettings = dashboardSettings;
 
             _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
-            _grafanaToken = dashboardSettings.GrafanaApiKey;
             _puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io";
             _httpClient = new HttpClient();
             _authService = authService;
@@ -850,7 +848,8 @@ g.V().has('id', '{deploymentResourceId}')
                 }
 
                 _httpClient.DefaultRequestHeaders.Clear();
-                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_dashboardSettings.GrafanaApiKey}");
+                var grafanaAccessToken = await _authService.GetGrafanaAccessToken();
+                _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {grafanaAccessToken}");
                 var dashboardResponse = await _httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
                 dashboardResponse.EnsureSuccessStatusCode();
                 var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
@@ -1554,7 +1553,7 @@ Please provide a highly concise summary with sections for each of the above poin
                 var payload = new
                 {
                     grafanaEndpoint = _grafanaUrl,
-                    grafanaToken = _grafanaToken,
+                    grafanaToken = await _authService.GetGrafanaAccessToken(),
                     dashboardUrl
                 };
 
