@@ -9,6 +9,8 @@ import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 import ReactMarkdown from 'react-markdown';
 import { Activities } from '../../Strings/SREResources.resjson';
 import { sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
+import { Button } from '@fluentui/react-components';
+import { SquareDismissRegular } from '@fluentui/react-icons';
 
 // Helper function to parse and render markdown with images
 const renderMarkdownWithImages = (text: string) => {
@@ -46,7 +48,7 @@ const renderMarkdownWithImages = (text: string) => {
     return parts;
 };
 
-const ChatMessage = ({ message, isTyping, threadId }: IChatMessageProps) => {
+const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const [showFeedbackPopup, setShowFeedbackPopup] = useState(false); // State to control popup visibility
     const [feedbackText, setFeedbackText] = useState(''); // State to store feedback text
@@ -173,153 +175,163 @@ const ChatMessage = ({ message, isTyping, threadId }: IChatMessageProps) => {
     switch (message.author.role) {
         case 'SREAgent':
             return (
-                <CopilotMessage
-                    {...agentMessageProps}
-                    key={message.id}
-                    style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
-                    className={ChatBoxStyles.agentMessage}
-                >
-                    {renderContent()}
-                    {!isTyping && ( // Only show buttons when the agent is not typing
-                        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                            <button
-                                className="feedback-button"
-                                style={{
-                                    background: 'transparent', // Transparent background
-                                    border: 'none', // No border
-                                    cursor: 'pointer',
-                                    marginRight: '8px',
-                                    padding: '4px 8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'transform 0.1s',
-                                }}
-                                onClick={() => handleFeedbackClick(true)} // Thumbs up
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24"
-                                    fill={isPositiveFeedback === true ? "#0057b8" : "none"}
-                                    stroke={isPositiveFeedback === true ? "black" : "#cccccc"}
-                                    strokeWidth="2"
-                                    onMouseOver={(e) => {
-                                        e.currentTarget.setAttribute('stroke', 'black');
-                                    }}
-                                    onMouseOut={(e) => {
-                                        if (isPositiveFeedback !== true) {
-                                            e.currentTarget.setAttribute('stroke', '#cccccc');
-                                        }
-                                    }}
-                                    onMouseDown={(e) => {
-                                        e.currentTarget.setAttribute('fill', '#003d8f');
-                                    }}
-                                    onMouseUp={(e) => {
-                                        e.currentTarget.setAttribute('fill', isPositiveFeedback === true ? '#0057b8' : 'none');
-                                    }}
-                                >
-                                    <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
-                                    <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                                </svg>
-                            </button>
-                            <button
-                                className="feedback-button"
-                                style={{
-                                    background: 'transparent', // Transparent background
-                                    border: 'none', // No border
-                                    cursor: 'pointer',
-                                    padding: '4px 8px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    transition: 'transform 0.1s',
-                                }}
-                                onClick={() => handleFeedbackClick(false)} // Thumbs down
-                            >
-                                <svg width="16" height="16" viewBox="0 0 24 24"
-                                    fill={isPositiveFeedback === false ? "#c01c28" : "none"}
-                                    stroke={isPositiveFeedback === false ? "black" : "#cccccc"}
-                                    strokeWidth="2"
-                                    onMouseOver={(e) => {
-                                        e.currentTarget.setAttribute('stroke', 'black');
-                                    }}
-                                    onMouseOut={(e) => {
-                                        if (isPositiveFeedback !== false) {
-                                            e.currentTarget.setAttribute('stroke', '#cccccc');
-                                        }
-                                    }}
-                                    onMouseDown={(e) => {
-                                        e.currentTarget.setAttribute('fill', '#a51419');
-                                    }}
-                                    onMouseUp={(e) => {
-                                        e.currentTarget.setAttribute('fill', isPositiveFeedback === false ? '#c01c28' : 'none');
-                                    }}
-                                >
-                                    <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"></path>
-                                    <path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
-                                </svg>
-                            </button>
-                        </div>
-                    )}
-                    {showFeedbackPopup && (
-                        <div
-                            style={{
-                                position: 'absolute',
-                                bottom: '10px',
-                                right: '10px',
-                                backgroundColor: 'white',
-                                color: 'black',
-                                padding: '16px',
-                                borderRadius: '8px',
-                                boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                                zIndex: 1000,
-                                width: '300px',
-                            }}
-                        >
-                            <h4>Thank you for your feedback!</h4>
-                            <textarea
-                                style={{
-                                    width: '100%',
-                                    height: '60px',
-                                    marginTop: '8px',
-                                    padding: '8px',
-                                    borderRadius: '4px',
-                                    border: '1px solid #ccc',
-                                }}
-                                placeholder="Enter your feedback here..."
-                                value={feedbackText}
-                                onChange={(e) => setFeedbackText(e.target.value)}
-                            />
+                <div>
+                    <CopilotMessage
+                        {...agentMessageProps}
+                        key={message.id}
+                        style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
+                        className={ChatBoxStyles.agentMessage}
+                    >
+                        {renderContent()}
+                        {!isTyping && ( // Only show buttons when the agent is not typing
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
                                 <button
+                                    className="feedback-button"
                                     style={{
-                                        backgroundColor: '#0078D4',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '8px 12px',
-                                        borderRadius: '4px',
+                                        background: 'transparent', // Transparent background
+                                        border: 'none', // No border
                                         cursor: 'pointer',
                                         marginRight: '8px',
+                                        padding: '4px 8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'transform 0.1s',
                                     }}
-                                    onClick={handleFeedbackSubmit}
+                                    onClick={() => handleFeedbackClick(true)} // Thumbs up
                                 >
-                                    Submit
+                                    <svg width="16" height="16" viewBox="0 0 24 24"
+                                        fill={isPositiveFeedback === true ? "#0057b8" : "none"}
+                                        stroke={isPositiveFeedback === true ? "black" : "#cccccc"}
+                                        strokeWidth="2"
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.setAttribute('stroke', 'black');
+                                        }}
+                                        onMouseOut={(e) => {
+                                            if (isPositiveFeedback !== true) {
+                                                e.currentTarget.setAttribute('stroke', '#cccccc');
+                                            }
+                                        }}
+                                        onMouseDown={(e) => {
+                                            e.currentTarget.setAttribute('fill', '#003d8f');
+                                        }}
+                                        onMouseUp={(e) => {
+                                            e.currentTarget.setAttribute('fill', isPositiveFeedback === true ? '#0057b8' : 'none');
+                                        }}
+                                    >
+                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
+                                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
+                                    </svg>
                                 </button>
                                 <button
+                                    className="feedback-button"
                                     style={{
-                                        backgroundColor: '#ccc',
-                                        color: 'black',
-                                        border: 'none',
-                                        padding: '8px 12px',
-                                        borderRadius: '4px',
+                                        background: 'transparent', // Transparent background
+                                        border: 'none', // No border
                                         cursor: 'pointer',
+                                        padding: '4px 8px',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        transition: 'transform 0.1s',
                                     }}
-                                    onClick={() => setShowFeedbackPopup(false)}
+                                    onClick={() => handleFeedbackClick(false)} // Thumbs down
                                 >
-                                    Cancel
+                                    <svg width="16" height="16" viewBox="0 0 24 24"
+                                        fill={isPositiveFeedback === false ? "#c01c28" : "none"}
+                                        stroke={isPositiveFeedback === false ? "black" : "#cccccc"}
+                                        strokeWidth="2"
+                                        onMouseOver={(e) => {
+                                            e.currentTarget.setAttribute('stroke', 'black');
+                                        }}
+                                        onMouseOut={(e) => {
+                                            if (isPositiveFeedback !== false) {
+                                                e.currentTarget.setAttribute('stroke', '#cccccc');
+                                            }
+                                        }}
+                                        onMouseDown={(e) => {
+                                            e.currentTarget.setAttribute('fill', '#a51419');
+                                        }}
+                                        onMouseUp={(e) => {
+                                            e.currentTarget.setAttribute('fill', isPositiveFeedback === false ? '#c01c28' : 'none');
+                                        }}
+                                    >
+                                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"></path>
+                                        <path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
+                                    </svg>
                                 </button>
                             </div>
-                        </div>
-                    )}
-                </CopilotMessage>
+                        )}
+                        {showFeedbackPopup && (
+                            <div
+                                style={{
+                                    position: 'absolute',
+                                    bottom: '10px',
+                                    right: '10px',
+                                    backgroundColor: 'white',
+                                    color: 'black',
+                                    padding: '16px',
+                                    borderRadius: '8px',
+                                    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
+                                    zIndex: 1000,
+                                    width: '300px',
+                                }}
+                            >
+                                <h4>Thank you for your feedback!</h4>
+                                <textarea
+                                    style={{
+                                        width: '100%',
+                                        height: '60px',
+                                        marginTop: '8px',
+                                        padding: '8px',
+                                        borderRadius: '4px',
+                                        border: '1px solid #ccc',
+                                    }}
+                                    placeholder="Enter your feedback here..."
+                                    value={feedbackText}
+                                    onChange={(e) => setFeedbackText(e.target.value)}
+                                />
+                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
+                                    <button
+                                        style={{
+                                            backgroundColor: '#0078D4',
+                                            color: 'white',
+                                            border: 'none',
+                                            padding: '8px 12px',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                            marginRight: '8px',
+                                        }}
+                                        onClick={handleFeedbackSubmit}
+                                    >
+                                        Submit
+                                    </button>
+                                    <button
+                                        style={{
+                                            backgroundColor: '#ccc',
+                                            color: 'black',
+                                            border: 'none',
+                                            padding: '8px 12px',
+                                            borderRadius: '4px',
+                                            cursor: 'pointer',
+                                        }}
+                                        onClick={() => setShowFeedbackPopup(false)}
+                                    >
+                                        Cancel
+                                    </button>
+                                </div>
+                            </div>
+                        )}
+                    </CopilotMessage>
+                    {isTyping && <Button
+                        icon={<SquareDismissRegular />}
+                        onClick={() => cancelResponse?.()}
+                        appearance="transparent"
+                        style={{ width: '90%' }}
+                    >
+                        {'Cancel'}
+                    </Button>}
+                </div>
             );
         default:
             return (

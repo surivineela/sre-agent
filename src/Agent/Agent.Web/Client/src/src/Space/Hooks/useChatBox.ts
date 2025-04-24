@@ -14,21 +14,21 @@ const user = {
   userId: 'web-client-user',
 }
 
-const getMessages = async (threadId: string, skip: number, top = MessagePollingCounts.default): Promise<Message[]> => {
+const getMessages = async (threadId: string, skip: number, top = MessagePollingCounts.default, signal?: AbortSignal): Promise<Message[]> => {
   try {
     const url = `../api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
     const { data } = await axios.get(url, {
-      headers: getAgentHeaders()
+      headers: getAgentHeaders(),
+      signal
     });
     return data.value ?? [];
   } catch {
     // ToDo: handle error
     return [];
   }
-
 };
 
-const sendMessage = async (threadId: string, message: string): Promise<Message | undefined> => {
+const sendMessage = async (threadId: string, message: string, signal?: AbortSignal): Promise<Message | undefined> => {
   try {
     const { userId, displayName } = user;
     const url = `../api/v1/threads/${threadId}/messages`;
@@ -38,7 +38,8 @@ const sendMessage = async (threadId: string, message: string): Promise<Message |
       displayName: displayName,
       userId: userId,
     }, {
-      headers: getAgentHeaders()
+      headers: getAgentHeaders(),
+      signal
     });
 
     return response?.data
@@ -65,8 +66,7 @@ const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedba
 
 };
 
-const createThread = async (message: string) => {
-
+const createThread = async (message: string, signal?: AbortSignal) => {
   try {
     const { userId, displayName } = user;
     const url = `../api/v1/threads`;
@@ -78,7 +78,8 @@ const createThread = async (message: string) => {
         displayName: displayName,
       }
     }, {
-      headers: getAgentHeaders()
+      headers: getAgentHeaders(),
+      signal
     });
     return response?.data;
   } catch {
@@ -110,12 +111,12 @@ const composeTemporaryUserMessage = (message: string): Message => {
  * @param interval
  * @returns 
  */
-const pollResponses = async (threadId: string, latestMessage?: Message) => {
+const pollResponses = async (threadId: string, latestMessage?: Message, signal?: AbortSignal) => {
   // lateste response sorted in descending order by timestamp
   const responses: Message[] = [];
 
   while (true) {
-    const messages: Message[] = await getMessages(threadId, responses.length, MessagePollingCounts.active);
+    const messages: Message[] = await getMessages(threadId, responses.length, MessagePollingCounts.active, signal);
     if (messages.length < 0) {
       break;
     } else {
@@ -168,6 +169,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
   const latestMessageRef = useRef<Message>();
   const messagesDivRef = useRef<HTMLDivElement>(null);
   const intersectionObserverRef = useRef<HTMLDivElement>(null);
+  const abortControllerRef = useRef<AbortController>();
 
   const isDownButtonVisible = messagesDivRef.current && messagesDivRef.current.scrollHeight - messagesDivRef.current.offsetHeight - messagesDivRef.current.scrollTop > 2;
 
@@ -177,8 +179,15 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     scrollToBottom();
   }, []);
 
+  const cancelResponse = useCallback(() => {
+    abortControllerRef.current?.abort();
+  }, []);
+
   const sendMessageHandler = useCallback(
     async (message: string) => {
+
+      abortControllerRef.current = new AbortController();
+      const { signal } = abortControllerRef.current;
 
       setWaitingForSendMessageResponse(true);
       setTemporaryUserMessage(composeTemporaryUserMessage(message));
@@ -190,19 +199,26 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
       //ToDo: Handle errors of sendMessage, createThread and pollResponses
       if (currentThreadId) {
         // issue a request to send a message
-        const latestMessage = await sendMessage(currentThreadId, message);
-        latestMessageRef.current = latestMessage;
+        const latestMessage = await sendMessage(currentThreadId, message, signal);
+        if (latestMessage) {
+          latestMessageRef.current = latestMessage;
+        }
       } else {
         // issue a request to create a new thread
-        newThread = await createThread(message);
-        latestMessageRef.current = newThread?.lastMessage;
+        newThread = await createThread(message, signal);
+        if (newThread) {
+          latestMessageRef.current = newThread.lastMessage;
+        }
       }
 
       const threadId = currentThreadId || newThread?.id;
 
       if (threadId) {
         // poll answers
-        answers = await pollResponses(threadId, latestMessageRef.current);
+        answers = await pollResponses(threadId, latestMessageRef.current, signal);
+        if (answers.length > 0) {
+          latestMessageRef.current = answers[0];
+        }
       }
 
       if (isMounted.current) {
@@ -340,7 +356,8 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     onClickDownButton,
     isDownButtonVisible,
     intersectionObserverRef,
-    currentThreadId
+    currentThreadId,
+    cancelResponse
   };
 };
 

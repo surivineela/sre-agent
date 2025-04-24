@@ -21,7 +21,8 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
     onClickDownButton,
     isDownButtonVisible,
     intersectionObserverRef,
-    currentThreadId
+    currentThreadId,
+    cancelResponse,
   } = useChatBox(
     addThread,
     threadId
@@ -38,7 +39,7 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
               <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
             ))}
             {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} />}
-            {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={currentThreadId || ''} />}
+            {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={currentThreadId || ''} cancelResponse={cancelResponse} />}
           </CopilotChat>
         </div>
         <Button icon={<ArrowDownRegular />} className={mergeClasses(ChatBoxStyles.arrowDownButton, isDownButtonVisible ? undefined : ChatBoxStyles.hiddenButton)} onClick={onClickDownButton} />
