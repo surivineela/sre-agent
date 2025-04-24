@@ -1,4 +1,4 @@
-import { Thread } from "../../Common/Contracts/Azure/SreAgent";
+import { Thread, Message } from "../../Common/Contracts/Azure/SreAgent";
 import { getSafeDateTime } from "../../Common/Helpers/Date";
 
 export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse: boolean) => {
@@ -30,4 +30,33 @@ export const getLatestThread = (threads?: Thread[]) => {
     if (threads && threads.length > 0) {
         return threads[0];
     }
+}
+
+/**
+ * @param prevMessages messages sorted in ascending order by timestamp
+ * @param currentMessages messages sorted in descending order by timestamp
+ * @param reverse if true, the current messages are placed before the old messages
+ * @returns 
+ */
+export const processMessages = (prevMessages: Message[], currentMessages: Message[], reverse: boolean) => {
+    const messagesToAdd: Message[] = [];
+    for (let i = currentMessages.length - 1; i >= 0; i--) {
+        if (!prevMessages.some((message: Message) => message.id === currentMessages[i].id)) {
+            messagesToAdd.push(currentMessages[i]);
+        }
+    }
+
+    if (messagesToAdd.length === 0) {
+        // Do not return copied old messages as it will introduce unnecessary re-renders
+        return prevMessages;
+    }
+
+    return reverse ? [...messagesToAdd, ...prevMessages] : [...prevMessages, ...messagesToAdd];
+};
+
+export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
+    if (messages.length === 0 || !currentLatestMessage) {
+        return true;
+    }
+    return getSafeDateTime(messages[0].timeStamp).getTime() < getSafeDateTime(currentLatestMessage.timeStamp).getTime() || messages.some((message: Message) => message.id === currentLatestMessage.id)
 }

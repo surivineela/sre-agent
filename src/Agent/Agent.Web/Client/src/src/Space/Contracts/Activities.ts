@@ -1,7 +1,7 @@
 import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 
 export interface IActivitiesProps {
-    resourceId: string;
+  resourceId: string;
 }
 
 export interface AgentContextProps {
@@ -51,4 +51,14 @@ export interface IInputProps {
 export class MessagePollingInterval {
   public static readonly default = 5000;
   public static readonly active = 2000;
+}
+
+export class MessagePollingCounts {
+  public static readonly default = 10;
+  public static readonly active = 2;
+}
+
+export class MessageLoadingCounts {
+  public static readonly default = 20;
+  public static readonly active = 1;
 }

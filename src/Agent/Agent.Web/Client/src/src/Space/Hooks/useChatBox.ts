@@ -2,27 +2,30 @@ import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { useState, useCallback, useEffect, useRef, useContext, useMemo } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AgentContext } from '../Activities/Activities.ReactView';
-import { MessagePollingInterval } from '../Contracts/Activities';
+import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
 import { Activities } from '../../Strings/SREResources.resjson';
 import axios from 'axios';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import debounce from 'lodash/debounce';
+import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 
 const user = {
   displayName: 'Web Client User',
   userId: 'web-client-user',
 }
-const getMessages = async (threadId: string) => {
-  const url = `../api/v1/threads/${threadId}/messages`;
-    const { data } = await axios.get(url, {
-      headers: getAgentHeaders()
-    });
+
+const getMessages = async (threadId: string, skip: number, top = MessagePollingCounts.default): Promise<Message[]> => {
+  const url = `../api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
+  const { data } = await axios.get(url, {
+    headers: getAgentHeaders()
+  });
   return data.value ?? [];
 };
 
-const sendMessage = async (threadId: string, message: string) => {
+const sendMessage = async (threadId: string, message: string): Promise<Message | undefined> => {
   const { userId, displayName } = user;
   const url = `../api/v1/threads/${threadId}/messages`;
-  await axios.post(url, {
+  const response = await axios.post(url, {
     text: message,
     role: 'User',
     displayName: displayName,
@@ -30,6 +33,8 @@ const sendMessage = async (threadId: string, message: string) => {
   }, {
     headers: getAgentHeaders()
   });
+
+  return response?.data
 };
 
 const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
@@ -58,14 +63,10 @@ const createThread = async (message: string) => {
   return response?.data;
 };
 
-const getNewMessages = (oldMessages: Message[], newMessages: Message[]) => {
-  return newMessages.slice(oldMessages.length);
-};
-
 const composeTemporaryUserMessage = (message: string): Message => {
   return {
     id: Guid.newGuid(),
-    timestamp: new Date().toISOString(),
+    timeStamp: new Date().toISOString(),
     author: {
       role: 'User',
       userId: Guid.newGuid(),
@@ -76,10 +77,37 @@ const composeTemporaryUserMessage = (message: string): Message => {
   };
 };
 
+/**
+ * Polling 2 messages each time until polled messages includes the latest message in the current messages, which 
+ * indicates there is no message left out between the latest message sand polled messages.
+ * @param latestMessage
+ * @param threadId 
+ * @param interval
+ * @returns 
+ */
+const pollResponses = async (threadId: string, latestMessage?: Message) => {
+  // lateste response sorted in descending order by timestamp
+  const responses: Message[] = [];
+
+  while (true) {
+    const messages: Message[] = await getMessages(threadId, responses.length, MessagePollingCounts.active);
+    if (messages.length < 0) {
+      break;
+    } else {
+      responses.push(...messages);
+      if (noGapBetweenNewMessagesAndExistingMessages(responses, latestMessage)) {
+        break;
+      }
+    }
+  }
+
+  return [...responses];
+}
+
 const composeAgentTypingMessage = (): Message => {
   return {
     id: Guid.newGuid(),
-    timestamp: new Date().toISOString(),
+    timeStamp: new Date().toISOString(),
     author: {
       role: 'SREAgent',
       userId: Guid.newGuid(),
@@ -92,117 +120,181 @@ const composeAgentTypingMessage = (): Message => {
 const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
-  const [shouldLoadHistory, setShouldLoadHistory] = useState<boolean>(true);
+
+  const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
+  const [noChatHistoryLeftToLoad, setNoChatHistoryLeftToLoad] = useState<boolean>(false);
+  const [waitingForSendMessageResponse, setWaitingForSendMessageResponse] = useState<boolean>(false);
+
   const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
   const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
-  const [pausePolling, setPausePolling] = useState<boolean>(true);
+
+  const [enableIntersectObserver, setEnableIntersectObserver] = useState<boolean>(false);
+
   const { threadsInitialized } = useContext(AgentContext);
 
   const disableInput = useMemo(
-    () => !!agentTypingMessage || shouldLoadHistory || !threadsInitialized,
-    [agentTypingMessage, shouldLoadHistory, threadsInitialized]
+    () => !!agentTypingMessage || isLoadingInitialChatHistory || !threadsInitialized,
+    [agentTypingMessage, isLoadingInitialChatHistory, threadsInitialized]
   );
 
   const isMounted = useRef(true);
-  const latestMessageIdRef = useRef<string>('');
+  const isPreviousNewMessagesPollingCompleted = useRef(true);
+  const isPreviousChatHistoryLoadingCompleted = useRef(true);
+  const latestMessageRef = useRef<Message>();
+  const messagesDivRef = useRef<HTMLDivElement>(null);
+  const intersectionObserverRef = useRef<HTMLDivElement>(null);
+
+  const isDownButtonVisible = messagesDivRef.current && messagesDivRef.current.scrollHeight - messagesDivRef.current.offsetHeight - messagesDivRef.current.scrollTop > 2;
+
+  const scrollToBottom = () => messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: 'smooth' });
+
+  const onClickDownButton = useCallback(() => {
+    scrollToBottom();
+  }, []);
 
   const sendMessageHandler = useCallback(
     async (message: string) => {
 
-          setPausePolling(true);
-          setTemporaryUserMessage(composeTemporaryUserMessage(message));
-          setAgentTypingMessage(composeAgentTypingMessage());
+      setWaitingForSendMessageResponse(true);
+      setTemporaryUserMessage(composeTemporaryUserMessage(message));
+      setAgentTypingMessage(composeAgentTypingMessage());
 
-        if (currentThreadId) {
-          // issue a request to send a message
-          await sendMessage(currentThreadId, message);
+      let newThread: Thread | undefined = undefined;
+      let answers: Message[] = [];
 
-          // poll messages until the first answer is received.
-          const newMessages: any[] = await getMessages(currentThreadId);
+      //ToDo: Handle errors of sendMessage, createThread and pollResponses
+      if (currentThreadId) {
+        // issue a request to send a message
+        const latestMessage = await sendMessage(currentThreadId, message);
+        latestMessageRef.current = latestMessage;
+      } else {
+        // issue a request to create a new thread
+        newThread = await createThread(message);
+        latestMessageRef.current = newThread?.lastMessage;
+      }
 
-          if (isMounted.current) {
-              if (newMessages[newMessages.length - 1]?.id) {
-                latestMessageIdRef.current = newMessages[newMessages.length - 1].id;
-              }
+      const threadId = currentThreadId || newThread?.id;
 
-              setTemporaryUserMessage(null);
-              setAgentTypingMessage(null);
-              setMessages(prev => [...prev, ...getNewMessages(prev, newMessages)]);
-              setPausePolling(false);
-          }
-        } else {
-          // issue a request to create a new thread
-          const newThread: any = await createThread(message);
-          if (newThread) {
-            // poll messages until the first answer is received
-            const newMessages: any[] = await getMessages(newThread.id);
+      if (threadId) {
+        // poll answers
+        answers = await pollResponses(threadId, latestMessageRef.current);
+      }
 
-            if (isMounted.current) {
-                latestMessageIdRef.current = newMessages[newMessages.length - 1]?.id ?? '';
-                setTemporaryUserMessage(null);
-                setAgentTypingMessage(null);
-                setMessages(prev => [...prev, ...getNewMessages(prev, newMessages)]);
-                setPausePolling(false);
+      if (isMounted.current) {
+        setTemporaryUserMessage(null);
+        setAgentTypingMessage(null);
+        setMessages(prev => processMessages(prev, answers, false));
+        setWaitingForSendMessageResponse(false);
 
-                setCurrentThreadId(newThread.id);
-                addThread(newThread);
-            }
-          }
+        if (newThread) {
+          setCurrentThreadId(newThread.id);
+          addThread(newThread);
         }
+      }
     },
     [currentThreadId, addThread]
   );
+
+  const onIntersect = debounce(async (entries: IntersectionObserverEntry[]) => {
+    const entry = entries[0];
+
+    if (entry.isIntersecting && currentThreadId && isPreviousChatHistoryLoadingCompleted.current && !noChatHistoryLeftToLoad) {
+      isPreviousChatHistoryLoadingCompleted.current = false;
+      const currentMessages = await getMessages(currentThreadId, messages.length, MessageLoadingCounts.active);
+
+      if (isMounted.current) {
+        if (currentMessages.length > 0) {
+          setMessages(prev => processMessages(prev, currentMessages, true));
+        }
+
+        // The threshold depends on the number of the messages this query is intended to return.
+        // if the top parameter for calling getMessages, the threshold should be changed accordingly
+        if (currentMessages.length < MessageLoadingCounts.active) {
+          setNoChatHistoryLeftToLoad(true);
+        }
+      }
+
+      isPreviousChatHistoryLoadingCompleted.current = true;
+    };
+  }, 100);
 
   useEffect(() => {
     let isSubscribed = true;
 
     const pollMessages = async () => {
-      if (currentThreadId && !pausePolling && !shouldLoadHistory) {
-        const latestMessages: any[] = await getMessages(currentThreadId);
+      if (currentThreadId && !isLoadingInitialChatHistory && !waitingForSendMessageResponse && isPreviousNewMessagesPollingCompleted.current) {
+        isPreviousNewMessagesPollingCompleted.current = false;
 
-        const newMessageId = latestMessages[latestMessages.length - 1]?.id;
-
-        if (isSubscribed && newMessageId && newMessageId !== latestMessageIdRef.current) {
-          latestMessageIdRef.current = newMessageId;
-          setMessages(prev => {
-            const newMessages = getNewMessages(prev, latestMessages);
-            return [...prev, ...newMessages];
-          });
+        const latestMessages = await pollResponses(currentThreadId, latestMessageRef.current);
+        if (isSubscribed && latestMessages && latestMessages.length > 0) {
+          setMessages(prev => processMessages(prev, latestMessages, false));
+          latestMessageRef.current = latestMessages[0];
         }
-      }
-    };
 
-    const timer = setInterval(pollMessages, MessagePollingInterval.default);
-
-    return () => {
-      clearInterval(timer);
-      isSubscribed = false;
-    };
-  }, [currentThreadId, pausePolling, shouldLoadHistory]);
-
-  useEffect(() => {
-    let isSubscribed = true;
-    if (shouldLoadHistory) {
-      if (currentThreadId) {
-        const loadHistory = async () => {
-          const messages = await getMessages(currentThreadId);
-          if (isSubscribed) {
-              setShouldLoadHistory(false);
-              setMessages(messages);
-              setPausePolling(false);
-          }
-        };
-
-        loadHistory();
-      } else {
-        setShouldLoadHistory(false);
+        isPreviousNewMessagesPollingCompleted.current = true;
       }
     }
 
+    const interval = setInterval(pollMessages, MessagePollingInterval.default);
+
+    return () => {
+      clearInterval(interval);
+      isSubscribed = false;
+      isPreviousNewMessagesPollingCompleted.current = true;
+    };
+  }, [currentThreadId, isLoadingInitialChatHistory, waitingForSendMessageResponse]);
+
+  // Load the latest 10 chat message history
+  useEffect(() => {
+    let isSubscribed = true;
+
+    const loadLatest20ChatHistory = async () => {
+      if (currentThreadId) {
+        const messages = await getMessages(currentThreadId, 0, MessageLoadingCounts.default);
+
+        if (isSubscribed) {
+          setIsLoadingInitialChatHistory(false);
+          setMessages(prev => processMessages(prev, messages, true));
+          latestMessageRef.current = messages[0];
+
+          // The threshold depends on the number of the messages this query is intended to return.
+          // if the top parameter for calling getMessages, the threshold should be changed accordingly
+          if (messages.length < MessagePollingCounts.default) {
+            setNoChatHistoryLeftToLoad(true);
+          }
+        }
+      } else {
+        setIsLoadingInitialChatHistory(false);
+        setNoChatHistoryLeftToLoad(true);
+      }
+    }
+
+    loadLatest20ChatHistory();
+
     return () => {
       isSubscribed = false;
-    };
-  }, [currentThreadId, shouldLoadHistory]);
+    }
+  }, [currentThreadId]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(onIntersect);
+    if (observer && intersectionObserverRef.current && enableIntersectObserver) {
+      observer.observe(intersectionObserverRef.current);
+    }
+
+    return () => {
+      observer?.disconnect();
+    }
+  }, [messages, enableIntersectObserver])
+
+  useEffect(() => {
+    // auto scroll to the bottom when the initial history loading is completed, and a new question is sent, or waiting for the answers
+    if (!isLoadingInitialChatHistory) {
+      scrollToBottom();
+      setEnableIntersectObserver(true);
+    }
+
+  }, [temporaryUserMessage, agentTypingMessage, isLoadingInitialChatHistory]);
 
   useEffect(() => {
     isMounted.current = true;
@@ -214,11 +306,15 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
 
   return {
     messages,
+    isLoadingInitialChatHistory,
     temporaryUserMessage,
     agentTypingMessage,
-    shouldLoadHistory,
     sendMessage: sendMessageHandler,
     disableInput,
+    messagesDivRef,
+    onClickDownButton,
+    isDownButtonVisible,
+    intersectionObserverRef
   };
 };
 

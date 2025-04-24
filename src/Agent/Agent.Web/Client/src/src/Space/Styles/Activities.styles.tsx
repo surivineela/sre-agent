@@ -63,6 +63,7 @@ export const ChatBoxStyles = mergeStyleSets({
         fontSize: '16px',
         backgroundColor: tokens.colorNeutralForegroundInverted,
         borderRadius: tokens.borderRadiusXLarge,
+        position: 'relative',
     },
     chatContainer: {
         overflowX: 'hidden',
@@ -89,17 +90,38 @@ export const ChatBoxStyles = mergeStyleSets({
             width: '90%',
         },
     },
+    arrowDownButton: {
+        position: 'absolute',
+        bottom: '150px',
+        left: '50%',
+        zIndex: '1',
+        borderRadius: '50% !important',
+        opacity: '1',
+        transition: "opacity 0.3s ease",
+        pointerEvents: 'auto',
+    },
+    hiddenButton: {
+        opacity: '0',
+        pointerEvents: 'none',
+    }
 });
 
-export const useChatInputStyles = () => {
+export const useChatInputStyles = makeStyles({
+    root: {
+        flex: '0 0 auto',
+        marginTop: '20px',
+        marginBottom: '20px'
+    },
+    footer: {
+        display: 'flex',
+        justifyContent: 'flex-end',
+    },
+});
+
+export const useChatInputTextStyles = () => {
     const colors = getTheme().semanticColors;
 
     return {
-        root: {
-            flex: '0 0 auto',
-            marginTop: '20px',
-            marginBottom: '20px'
-        },
         textFieldContainer: {
             borderColor: colors.buttonBackgroundCheckedHovered,
             borderStyle: 'solid',
@@ -120,11 +142,7 @@ export const useChatInputStyles = () => {
                     opacity: 1, // Firefox adds a lower opacity to the placeholder, so we use opacity: 1 to fix this.,
                 },
             },
-        },
-        footer: {
-            display: 'flex',
-            justifyContent: 'flex-end',
-        },
+        }
     };
 };
 

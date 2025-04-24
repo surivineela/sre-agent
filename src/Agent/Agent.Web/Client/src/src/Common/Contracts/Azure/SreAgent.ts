@@ -71,7 +71,7 @@ export interface Thread {
 
 export interface Message {
     id: string;
-    timestamp: string;
+    timeStamp: string;
     author: MessageAuthor;
     text: string;
 }

@@ -1,5 +1,5 @@
 import { memo, useCallback, useState } from 'react';
-import { useChatInputStyles } from '../Styles/Activities.styles';
+import { useChatInputStyles, useChatInputTextStyles } from '../Styles/Activities.styles';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { Activities } from '../../Strings/SREResources.resjson';
@@ -10,7 +10,8 @@ import { SendRegular } from "@fluentui/react-icons";
 const Input = ({ sendMessage, disableInput }: IInputProps) => {
   const [input, setInput] = useState<string>();
 
-  const { root, textFieldContainer, textField, footer } = useChatInputStyles();
+  const { root, footer } = useChatInputStyles();
+  const { textFieldContainer, textField } = useChatInputTextStyles();
 
   const chatInputHandleSendClick = useCallback(() => {
     const messageToSend = input?.trim() ?? '';
@@ -22,7 +23,7 @@ const Input = ({ sendMessage, disableInput }: IInputProps) => {
   }, [input, sendMessage]);
 
   return (
-    <div className={mergeStyles(root as IStyle)}>
+    <div className={root}>
       <div className={mergeStyles(textFieldContainer as IStyle)}>
         <TextField
           placeholder={Activities.chatInputPlaceholder}
@@ -47,8 +48,8 @@ const Input = ({ sendMessage, disableInput }: IInputProps) => {
             }
           }}
         />
-        <div className={mergeStyles(footer as IStyle)}>
-          <Button icon={<SendRegular style={{ color: tokens.colorBrandForeground1	 }} />} disabled={disableInput} onClick={chatInputHandleSendClick} shape="circular" appearance="subtle" />
+        <div className={footer}>
+          <Button icon={<SendRegular style={{ color: tokens.colorBrandForeground1 }} />} disabled={disableInput} onClick={chatInputHandleSendClick} shape="circular" appearance="subtle" />
         </div>
       </div>
     </div>
