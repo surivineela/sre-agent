@@ -144,6 +144,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var todayReportTime = new DateTime(now.Year, now.Month, now.Day, 7, 0, 0, DateTimeKind.Utc); // 7 AM UTC
 
             // Skip if it's not time yet for the daily report
+            // the daily report timer interval is 1 hour, so this will evaluate to false if the current hour is 7
             if (now.Hour != todayReportTime.Hour && didItOnce)
             {
                 _logger.LogDebug("Not time for daily report yet. Current hour: {CurrentHour}, Target hour: {TargetHour}",
@@ -157,35 +158,91 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _armResourceNodes = await _graphDbService.GetAllResourceNodes();
             _logger.LogInformation("Found {Count} resource nodes in the knowledge graph", _armResourceNodes.Count);
 
-            // Create and publish custom dashboard
-            string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);
-            (string dashboardUrl, string dashboardUid) = await CreateAndPublishDashboard(uid);
+            // generate health summary from score cards
+            var (healthInfoList, healthSummary) = await GetAppHealthSummaryAsync();
+            _logger.LogInformation("Generated health summary for resources");
 
-            // Activate predefined Azure Monitor dashboards
-            await ActivateAzureMonitorDashboards();
+            // generate new thread summary
+            var threadSummary = await GenerateThreadSummaryAsync();
+            _logger.LogInformation("Generated thread summary");
 
-            // Activate predefined customized dashboards (except the main dashboard)
-            await ActivateCustomizedDashboards([_mainDashboardFilePath]);
+            // generate dashboard summary
+            // create and publish custom dashboard
+            // add try catch, in case of grafana or dashboard failures daily report is still generated
+            string dashboardSummary = string.Empty;
+            string dashboardUrl = string.Empty;
+            try
+            {
+                string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);
+                (dashboardUrl, string dashboardUid) = await CreateAndPublishDashboard(uid);
+
+                // Activate predefined Azure Monitor dashboards
+                await ActivateAzureMonitorDashboards();
+
+                // Activate predefined customized dashboards (except the main dashboard)
+                await ActivateCustomizedDashboards([_mainDashboardFilePath]);
+
+                // NEW: Capture screenshots of all dashboards and get LLM summary before starting orchestration
+                _logger.LogInformation("Capturing dashboard screenshots for LLM analysis");
+                dashboardSummary = await CaptureAndSummarizeDashboardsAsync(dashboardUrl);
+            }
+            catch
+            {
+                _logger.LogError("Failed to create and publish dashboard, generate daily report without it");
+            }
+
+            // pass all generated summaries to create concise summary of dashboard and generate action items
+            var conciseSummary = await GenerateConciseSummaryAsync(dashboardSummary, dashboardUrl, string.Join("\n", healthInfoList), threadSummary);
 
             // Create a thread for the report
-            var dateFormatted = now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            // NEW: Capture screenshots of all dashboards and get LLM summary before starting orchestration
-            _logger.LogInformation("Capturing dashboard screenshots for LLM analysis");
-            var dashboardSummary = await CaptureAndSummarizeDashboardsAsync(dashboardUrl);
+            var initialMessage = new StringBuilder();
 
-            var conciseSummary = await GenerateConciseSummaryAsync(dashboardSummary, dashboardUrl);
+            // Add the title with the day of the week and date
+            var dayOfWeek = now.ToString("dddd", CultureInfo.InvariantCulture); // e.g., Monday
+            var dateFormatted = now.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture); // e.g., March 20, 2023
+            initialMessage.AppendLine($"# Daily Report - {dayOfWeek}, {dateFormatted} UTC");
+            initialMessage.AppendLine();
 
-            var screenshot = (await CaptureDashboardScreenshotAsync(SreDashboard, armResourceNode: null))?.Screenshot;
-            PersistScreenshot("SreDashboard", screenshot);
+            // Add a friendly introduction
+            initialMessage.AppendLine("👋 Hi there! Your friendly SRE Agent here. I've been working hard over the past 24 hours to keep everything running smoothly.");
+            initialMessage.AppendLine("Here are the actions I recommend you consider or take to ensure everything stays on track:");
+            initialMessage.AppendLine();
 
-            var initialMessage = $"{conciseSummary}\n\n" + $"**I created this dashboard for you to give an overview : [SRE Agent Resource Dashboard]({dashboardUrl})**\n\n";
+            // Append the concise summary, health summary, and thread summary
+            initialMessage.AppendLine(conciseSummary);
+            initialMessage.AppendLine();
+            initialMessage.AppendLine("### Here is the state of things currently:");
+            initialMessage.AppendLine();
+            initialMessage.AppendLine(healthSummary);
+            initialMessage.AppendLine();
+            initialMessage.AppendLine(threadSummary);
+            initialMessage.AppendLine();
+
+            if (string.IsNullOrEmpty(dashboardUrl))
+            {
+                // Add a note about the dashboard
+                initialMessage.AppendLine($"**I created this dashboard for you to give an overview: [SRE Agent Resource Dashboard]({dashboardUrl})**");
+                initialMessage.AppendLine();
+            }
+
             (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
-                initialMessage,
+                initialMessage.ToString(),
                 agentTypeEnum: AgentTypeEnum.DTS);
 
+            // to do: stacyzeng - add retry logic
             // Append the screenshot as separate message, this message will be excluded from the chat history to LLM due to token limitation.
-            await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Id, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
+            try
+            {
+                var screenshot = (await CaptureDashboardScreenshotAsync(SreDashboard, armResourceNode: null))?.Screenshot;
+                PersistScreenshot("SreDashboard", screenshot);
+                await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Id, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
+            }
+            catch
+            {
+                // if screenshot fails daily report is still generated
+                _logger.LogError("Failed to capture screenshot, generate daily report without it");
+            }
 
             // Prepare the input for the agent
             var input = new DailyReportSummaryInput
@@ -730,22 +787,25 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task<string> GenerateConciseSummaryAsync(string detailedSummary, string dashboardUrl)
+        private async Task<string> GenerateConciseSummaryAsync(string detailedSummary, string dashboardUrl, string appHealthSummary, string threadsSummary)
         {
             var messages = new List<ChatMessage>();
 
             // Concise refinement instructions
             messages.Add(new ChatMessage(ChatRole.System,
-                "You are Azure SRE Agent. Your task is now to refine the provided detailed dashboard summary " +
-                "into a very concise version. Focus solely on the most critical insights, key metrics, and actionable findings. " +
+                "You are Azure SRE Agent. Your task is now to refine the provided detailed summary" +
+                "into a very concise version. Focus solely on the most actionable findings, critical insights, and key metrics." +
                 "Eliminate any unnecessary details while retaining the essence of the dashboard analysis." +
+                "Then based on the refined summary, appHealthSummary, and threadsSummary provide action steps." +
+                "if there is no detailed dashboard summary, still provide a response based on appHealthSummary and threadsSummary" +
                 "**Response Format 📝**\n" +
-                "- Begin with the local time and date of the analysis\n" +
-                "- Use H3 headin{gs only (###) with professional emojis\n" +
+                "- First provide a section with Suggested Actions and Key Insights. Make sure actional steps is first.\n" +
+                "- Provide reasoning for identified metrics and anomalies\n" +
+                "- Follow up with a section with Actions already taken by SRE agent. Include how many incidents were worked on based on the threads summary and how many resources monitored based on the appHealthSummary\n" +
+                "- Use H3 headings only (###) with professional emojis\n" +
                 "- Include appropriate line breaks for readability\n" +
                 "- Put Azure IDs in code blocks\n" +
                 "- Use clear indicators: ✅ healthy, ⚠️ warning, ❌ critical\n" +
-                "- Provide reasoning for identified metrics and anomalies\n" +
                 "- Focus on actionable insights\n"
             ));
             messages.Add(new ChatMessage(ChatRole.System, $"Refinement performed at: {DateTime.Now:yyyy-MM-dd HH:mm:ss} local time."));
@@ -754,8 +814,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 $"Here is the detailed summary:\n\n{detailedSummary}\n\n" +
                 $"If there is a gremlin json(Very concise), summarize it in max 1-2 lines.\n\n" +
                 $"Notify: Activated the Default Dashboards on Azure Managed Grafana for Cosmos, WebApp, Redis, ContainerApp, Storage. Used some of these dashboard to produce the summary for today\n\n" +
-                $"Include: Here are the results of Critical CVEs detected by Application Groups: nextjs-contianerapp with connected source code: https://github.com/serverless-paas-balam/sreagent-demo-nextjsauth, has a critical CVE: Authorization Bypass in Next.js Middleware #1\r\nImpact\r\nIt is possible to bypass authorization checks within a Next.js application, if the authorization check occurs in middleware.\r\n\r\nPatches\r\nFor Next.js 15.x, this issue is fixed in 15.2.3\r\nFor Next.js 14.x, this issue is fixed in 14.2.25\r\nFor Next.js 13.x, this issue is fixed in 13.5.9\r\nFor Next.js 12.x, this issue is fixed in 12.3.5\r\nFor Next.js 11.x, consult the below workaround.\r\nNote: Next.js deployments hosted on Vercel are automatically protected against this vulnerability. User should pay attention to this ASAP" +
-                "Please produce a very concise version highlighting only the most important points, <important>include the CVE Summary with repo url and app name.</important>"
+                "Please produce a very concise version highlighting only the most important points and make all points as actionable as possible"
             ));
 
             var options = new ChatOptions
@@ -981,24 +1040,136 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 _logger.LogInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));
             }
         }
-    }
 
-    public class ScreenshotResponse
-    {
-        [JsonPropertyName("screenshot")]
-        public string Screenshot { get; set; }
-    }
+        private async Task<(List<AppHealthInfo>, string)> GetAppHealthSummaryAsync()
+        {
+            var healthInfoList = new List<AppHealthInfo>();
+            var summary = new StringBuilder();
+            summary.AppendLine($"###🔍 Resource Health Summary:");
+            summary.AppendLine();
+            summary.AppendLine($"**{_armResourceNodes.Count}** resources found\n");
 
-    public class DashboardInput
-    {
-        [JsonPropertyName("name")]
-        public string Name { get; set; } = string.Empty;
-        [JsonPropertyName("type")]
-        public string Type { get; set; } = string.Empty;
-        [JsonPropertyName("pluginId")]
-        public string PluginId { get; set; } = string.Empty;
-        [JsonPropertyName("value")]
-        public string Value { get; set; } = string.Empty;
+            foreach (var node in _armResourceNodes)
+            {
+                if (node.AppHealthInfo != null)
+                {
+                    healthInfoList.Add(node.AppHealthInfo);
+                }
+            }
+
+            if (!healthInfoList.Any())
+            {
+                summary.AppendLine("No health information available for any resources");
+
+                return (healthInfoList, summary.ToString());
+            }
+
+            // Calculate summary statistics
+            var healthyCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Healthy);
+            var degradedCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Degraded);
+            var unhealthyCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Unhealthy);
+            var unknownCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Unknown);
+            var totalCount = healthyCount + degradedCount + unhealthyCount + unknownCount;
+
+            var avgAvailability = healthInfoList.Where(h => h.Availability.HasValue).Average(h => h.Availability.Value);
+            var avgCpuUsage = healthInfoList.Where(h => h.AvgCpuUsage.HasValue).Average(h => h.AvgCpuUsage.Value);
+            var avgMemoryUsage = healthInfoList.Where(h => h.AvgMemoryUsage.HasValue).Average(h => h.AvgMemoryUsage.Value);
+            var totalCost = healthInfoList.Where(h => h.Costs.HasValue).Sum(h => h.Costs.Value);
+
+            summary.AppendLine($"**Total number of resources with health info: {totalCount}**");
+            summary.AppendLine();
+            summary.AppendLine($"📊 **Health Status:**");
+            summary.AppendLine($"- ✅ Healthy: {healthyCount}");
+            summary.AppendLine($"- ⚠️ Degraded: {degradedCount}");
+            summary.AppendLine($"- ❌ Unhealthy: {unhealthyCount}");
+            summary.AppendLine($"- ❓ Unknown: {unknownCount}");
+            summary.AppendLine();
+            summary.AppendLine($"📈 **Performance Metrics:**");
+            summary.AppendLine($"- Average Availability: {avgAvailability:F2}%");
+            summary.AppendLine($"- Average CPU Usage: {avgCpuUsage:F2}%");
+            summary.AppendLine($"- Average Memory Usage: {avgMemoryUsage:F2} bytes");
+
+            return (healthInfoList, summary.ToString());
+        }
+
+
+        private async Task<string> GenerateThreadSummaryAsync()
+        {
+            var now = DateTime.UtcNow;
+            var last24Hours = now.AddDays(-1);
+
+            // Fetch threads created in the last 24 hours
+            var recentThreads = await _threadRepository.GetThreadsAsync();
+            // to do: stacy zeng - further break agent created threads by source code, security, etc threads
+            var agentThreads = recentThreads
+                .Where(t => t.CreatedTimestamp >= last24Hours && t.Source == ThreadSource.Agent)
+                .ToList();
+            var incidentThreads = recentThreads
+                .Where(t => t.CreatedTimestamp >= last24Hours && t.Source == ThreadSource.Incident)
+                .ToList();
+
+            // Build the summary
+            var threadSummary = new StringBuilder();
+            threadSummary.AppendLine("### 💬 Check out these new threads from the past day:");
+            threadSummary.AppendLine();
+
+            // Add Alert Threads Section
+            threadSummary.AppendLine($"#### 🛠️ SRE Agent identified issues and created {agentThreads.Count} new threads");
+            threadSummary.AppendLine($"#### 🚨 Agent Created Threads new:");
+            if (agentThreads.Any())
+            {
+                foreach (var thread in agentThreads)
+                {
+                    threadSummary.AppendLine($"- **Title**: {thread.Title}");
+                    threadSummary.AppendLine($"  **Created**: {thread.CreatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC");
+                }
+                _logger.LogInformation("Added {Count} alert threads to the summary.", agentThreads.Count);
+            }
+            else
+            {
+                threadSummary.AppendLine("No new alert threads in the past 24 hours.");
+                _logger.LogInformation("No alert threads found in the past 24 hours.");
+            }
+            threadSummary.AppendLine();
+
+            // Add Incident Threads Section
+            threadSummary.AppendLine($"#### 🛠️ SRE Agent investigated and addressed {incidentThreads.Count} new incidents ");
+            threadSummary.AppendLine($"#### 🔒 Incident Threads new:");
+            if (incidentThreads.Any())
+            {
+                foreach (var thread in incidentThreads)
+                {
+                    threadSummary.AppendLine($"- **Title**: {thread.Title}");
+                    threadSummary.AppendLine($"  **Created**: {thread.CreatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC");
+                }
+                _logger.LogInformation("Added {Count} incident threads to the summary.", incidentThreads.Count);
+            }
+            else
+            {
+                threadSummary.AppendLine("No new incident threads in the past 24 hours.");
+                _logger.LogInformation("No incident threads found in the past 24 hours.");
+            }
+
+            return threadSummary.ToString();
+        }
+
+        public class ScreenshotResponse
+        {
+            [JsonPropertyName("screenshot")]
+            public string Screenshot { get; set; }
+        }
+
+        public class DashboardInput
+        {
+            [JsonPropertyName("name")]
+            public string Name { get; set; } = string.Empty;
+            [JsonPropertyName("type")]
+            public string Type { get; set; } = string.Empty;
+            [JsonPropertyName("pluginId")]
+            public string PluginId { get; set; } = string.Empty;
+            [JsonPropertyName("value")]
+            public string Value { get; set; } = string.Empty;
+        }
     }
 }
 

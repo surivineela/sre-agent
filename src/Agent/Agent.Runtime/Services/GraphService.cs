@@ -376,19 +376,19 @@ public class GraphService : IGraphService
         }
 
         _logger.LogInformation("Updating properties for resource {resourceId}", resourceId);
-        
+
         // check if the vertex exists
         string checkQuery = $"g.V().has('id', '{resourceId}').count()";
 
         var checkResult = await _graphDatabaseClient.Query(checkQuery);
-        
+
         if (checkResult == null || !checkResult.Any() || Convert.ToInt64(checkResult.First()) == 0)
         {
             _logger.LogWarning($"Resource {resourceId} not found in the graph database");
             throw new KeyNotFoundException($"Resource with ID {resourceId} not found");
         }
 
-        var bindings = new Dictionary<string, object>();  
+        var bindings = new Dictionary<string, object>();
 
         string updateQuery = $"g.V().has('id', '{resourceId}')"; // TODO: currently we are using the resource id as is (_resource_capps_sample_). Refactor this to use /resource/resourceId format.
 
@@ -402,7 +402,7 @@ public class GraphService : IGraphService
         string tsParamName = "updateTs";
 
         updateQuery += $".property('{tsParamName}', {now})";
-        
+
         _logger.LogDebug("Executing property update query for {resourceId}", resourceId);
         try
         {

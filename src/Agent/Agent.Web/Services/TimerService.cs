@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -94,7 +94,7 @@ public class TimerService : IHostedService, IDisposable
 
     private Timer? _dailyReportTimer = null;
     private bool _dailyReportTimerIsRunning = false;
-    private TimeSpan _dailyReportTimerInterval = TimeSpan.FromHours(24);
+    private TimeSpan _dailyReportTimerInterval = TimeSpan.FromHours(1); // daily report timer needs to attempt to run every hour so we can send it at 7am everyday
     private Timer? _sourceCodeCrawlerTimer = null;
     private bool _sourceCodeCrawlerTimerIsRunning = false;
     private TimeSpan _sourceCodeTimerInterval = TimeSpan.FromMinutes(1);
