@@ -1,4 +1,4 @@
-import { Thread } from '../../Common/Contracts/SreAgent';
+import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import axios from 'axios';

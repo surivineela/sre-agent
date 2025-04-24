@@ -5,7 +5,7 @@ import {  useThreadActionsStyles } from '../Styles/Activities.styles';
 import { ActionsResources, SreAgentResources } from '../../Strings/SREResources.resjson';
 import debounce from 'lodash/debounce';
 import { AgentContext } from './Activities.ReactView';
-import { Action, ActionStatus } from '../../Common/Contracts/SreAgent';
+import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
 import { Text, Card, CardHeader, CardFooter, SearchBoxChangeEvent, InputOnChangeData, SearchBox } from '@fluentui/react-components';
 import { useActions } from '../Hooks/useActions';
 import { getSafeDateTime } from '../../Common/Helpers/Date';

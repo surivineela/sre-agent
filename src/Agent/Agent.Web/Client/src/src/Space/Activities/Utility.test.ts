@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { Thread } from '../../Common/Contracts/SreAgent';
+import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getLatestThread, noGapBetweenNewThreadsAndExistingThreads, processThreads } from './Utility';

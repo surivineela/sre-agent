@@ -1,22 +1,18 @@
-import { FC } from "react";
+import { FC, useContext, useMemo } from "react";
 import { Settings_Tabs, SreAgentResources } from "../../Strings/SREResources.resjson";
 import { Label } from '@fluentui/react/lib/Label';
 import { useSettingsStyles } from "./Styles/Settings.styles";
-import { useAgentDetails } from "./Hooks/useAgentDetails";
+import { EnvironmentContext } from "../../Common/AzPortalProxy/Providers/StartupInfoContext";
+import { useSreAgent } from "./Hooks/useSreAgent";
+import { ArmResourceDescriptor } from "../../Common/Helpers/ResourceDescriptors";
 
-interface AgentDetailsProps {
-    parameters: {
-        resourceId: string;
-        region: string;
-    };
-}
-
-const AgentDetails: FC<AgentDetailsProps> = ({ parameters }) => {
-    const { resourceId, region } = parameters;
-
+const AgentDetails: FC = () => {
     const styles = useSettingsStyles();
+    const {resourceId } = useContext(EnvironmentContext);
+    const { agent } = useSreAgent(resourceId);
+    const region = useMemo(() => agent?.location, [agent?.location]);
 
-    const { resourceGroup, subscription, resourceName } = useAgentDetails(resourceId);
+    const { resourceGroup, subscription, resourceName } = useMemo(() => new ArmResourceDescriptor(resourceId), [resourceId]);
 
     return (
         <>
@@ -25,9 +21,9 @@ const AgentDetails: FC<AgentDetailsProps> = ({ parameters }) => {
                 <Label>{SreAgentResources.name}</Label>
                 {resourceName}
                 <Label>{SreAgentResources.subscription}</Label>
-                {resourceGroup}
-                <Label>{SreAgentResources.resourceGroup}</Label>
                 {subscription}
+                <Label>{SreAgentResources.resourceGroup}</Label>
+                {resourceGroup}
                 {region && (
                     <>
                         <Label>{SreAgentResources.region}</Label>

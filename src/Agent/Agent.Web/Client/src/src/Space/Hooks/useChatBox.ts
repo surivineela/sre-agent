@@ -1,4 +1,4 @@
-import { Message, Thread } from '../../Common/Contracts/SreAgent';
+import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { useState, useCallback, useEffect, useRef, useContext, useMemo } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import { AgentContext } from '../Activities/Activities.ReactView';

@@ -10,7 +10,7 @@ import {
   } from '@fluentui/react-icons';
 import { Dispatch, useMemo } from 'react';
 import { useIncidentStatusBarStyles } from '../Styles/Incident.styles';
-import { IncidentStatus, Thread } from '../../Common/Contracts/SreAgent';
+import { IncidentStatus, Thread } from '../../Common/Contracts/Azure/SreAgent';
   
 export enum SelectedTimes {
     OneDay = '24hrs',

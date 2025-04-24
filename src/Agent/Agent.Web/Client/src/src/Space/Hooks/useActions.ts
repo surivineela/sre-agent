@@ -1,4 +1,4 @@
-import { Action } from '../../Common/Contracts/SreAgent';
+import { Action } from '../../Common/Contracts/Azure/SreAgent';
 import { useContext, useEffect, useMemo, useState } from 'react';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import axios from 'axios';

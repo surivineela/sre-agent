@@ -14,7 +14,7 @@ import {
   IncidentStatus,
   Thread,
   ThreadSource,
-} from "../../Common/Contracts/SreAgent";
+} from "../../Common/Contracts/Azure/SreAgent";
 import {
   Button,
   InputOnChangeData,

@@ -12,6 +12,7 @@ export enum SreAgentResources {
   connectedToTeams = 'Connected to Teams',
   create = 'Create',
   delete = 'Delete',
+  discard = 'Discard',
   endpoint = 'Endpoint',
   enterName = 'Enter name',
   failed = 'Failed',
@@ -97,15 +98,32 @@ export enum Actions_Status {
   pending = 'Pending',
 }
 
-export enum incidentManagementResources {
+export enum IncidentManagementResources {
   incidentManagement = 'Incident management',
-    incidentManagementDescription = 'Automate incident response with AI-powered monitoring and resolution..',
+  incidentManagementDescription = 'Automate incident response with AI-powered monitoring and resolution..',
   incidentPlatform = 'Incident platform',
 }
 
-export enum pagerDutyResources {
+export enum IncidentManagementPlatformResources {
+  disconnected = 'Disconnected',
   pagerDuty = 'PagerDuty',
-    pagerDutyDescription = 'Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.',
+}
+
+export enum IncidentManagementNotifications {
+  saveTitle = 'Save incident managment configuration',
+  saveStarted = 'Saving incident managment configuration',
+  saveSucceeded = 'Successfully saved incident management configuration',
+  saveFailed = 'Failed to save incident management configuration',
+}
+
+export enum IncidentManagementSaveErrors {
+  managedConnectionFailure = 'Failed to create managed connection',
+  logicAppFailure = 'Failed to create logic app',
+  configFailure = 'Failed to save incident management configuration',
+}
+
+export enum PagerDutyResources {
+  pagerDutyDescription = 'Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.',
   pagerDutyApiKey = 'PagerDuty API Key',
 }
 

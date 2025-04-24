@@ -1,16 +1,11 @@
-import { FC } from "react";
+import { FC, useContext } from "react";
 import { AccessControlResources, Settings_Tabs } from "../../Strings/SREResources.resjson";
 import { DefaultButton } from "@fluentui/react/lib/Button";
 import { useSettingsStyles } from "./Styles/Settings.styles";
+import { EnvironmentContext } from "../../Common/AzPortalProxy/Providers/StartupInfoContext";
 
-interface AccessControlProps {
-    parameters: {
-        resourceId: string;
-    };
-}
-
-const AccessControl: FC<AccessControlProps> = ({ parameters }) => {
-    const { resourceId } = parameters;
+const AccessControl: FC = () => {
+    const { resourceId } = useContext(EnvironmentContext);
 
     const styles = useSettingsStyles();
 

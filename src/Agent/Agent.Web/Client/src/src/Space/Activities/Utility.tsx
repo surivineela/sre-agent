@@ -1,4 +1,4 @@
-import { Thread } from "../../Common/Contracts/SreAgent";
+import { Thread } from "../../Common/Contracts/Azure/SreAgent";
 import { getSafeDateTime } from "../../Common/Helpers/Date";
 
 export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse: boolean) => {

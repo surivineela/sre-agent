@@ -1,4 +1,4 @@
-import { Message, Thread } from '../../Common/Contracts/SreAgent';
+import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 
 export interface IActivitiesProps {
     resourceId: string;

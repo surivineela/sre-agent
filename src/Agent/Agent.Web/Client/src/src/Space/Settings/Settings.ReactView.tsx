@@ -7,12 +7,6 @@ import IncidentManagement from './IncidentManagement.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 import type { Theme } from '@fluentui/theme';
 
-interface ISettingsProps {
-    parameters: {
-        resourceId: string;
-        region: string;
-    };
-}
 
 enum SettingsKeys {
     IncidentManagement = 'incidentManagement',
@@ -42,7 +36,7 @@ const navLinkGroups: INavLinkGroup[] = [
     },
 ];
 
-const Settings: FC<ISettingsProps> = ({ parameters }) => {
+const Settings: FC = () => {
     const [ iconsInitialized, setIconsInitialized ] = useState(false);
 
     useEffect(() => {
@@ -68,9 +62,9 @@ const Settings: FC<ISettingsProps> = ({ parameters }) => {
                 }}
             />
             <div style={styles.navPivotContainer}>
-                {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement parameters={parameters} />}
-                {selectedKey === SettingsKeys.AccessControl && <AccessControl parameters={parameters} />}
-                {selectedKey === SettingsKeys.AgentDetails && <AgentDetails parameters={parameters} />}
+                {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
+                {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
+                {selectedKey === SettingsKeys.AgentDetails && <AgentDetails />}
             </div>
         </div>
     );

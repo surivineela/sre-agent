@@ -1,90 +1,42 @@
-import { DefaultButton, Dropdown, IDropdownOption, PrimaryButton, TextField } from "@fluentui/react";
-import { FC, useState } from "react";
-import { incidentManagementResources, pagerDutyResources, Settings_Tabs, SreAgentResources } from "../../Strings/SREResources.resjson";
-import { incidentManagementDropdownStyles, incidentManagementTextFieldStyles, useSettingsStyles } from "./Styles/Settings.styles";
+import { Formik } from 'formik';
+import { FC, useContext } from "react";
+import { EnvironmentContext } from "../../Common/AzPortalProxy/Providers/StartupInfoContext";
+import { IncidentManagementFormValues } from "../Contracts/IncidentManagement";
+import { useIncidentManagement } from "./Hooks/useIncidentManagement";
+import IncidentManagementForm from "./IncidentManagementForm";
 
-interface IncidentManagementProps {
-    parameters: {
-        resourceId: string;
-    };
-}
+const IncidentManagement: FC = () => {
+    const environmentContext = useContext(EnvironmentContext);
 
-const IncidentManagement: FC<IncidentManagementProps> = () => {
-    const styles = useSettingsStyles();
-    const [selectedPlatform, setSelectedPlatform] = useState<string | undefined>();
+    const {
+        loading,
+        loaded,
+        loadFailure,
+        saving,
+        saveFailure,
+        initialValues,
+        save
+    } = useIncidentManagement(environmentContext.resourceId);
 
-    const handlePlatformChange = (_: React.FormEvent<HTMLDivElement>, option?: IDropdownOption) => {
-        if (option) {
-            setSelectedPlatform(option.key as string);
-        }
-    };
-
-    return (
-        <>
-            <div style={styles.generalSettingsHeader}>{Settings_Tabs.incidentManagement}</div>
-            <div>
-                <div style={styles.incidentManagementDescriptionStyle}>{incidentManagementResources.incidentManagementDescription}</div>
-                <Dropdown
-                    id="incidentPlatform"
-                    options={[
-                        { key: 'pagerDuty', text: pagerDutyResources.pagerDuty },
-                    ]}
-                    label={incidentManagementResources.incidentPlatform}
-                    required={true}
-                    styles={incidentManagementDropdownStyles}
-                    onChange={handlePlatformChange}
+    return <Formik<IncidentManagementFormValues>
+        initialValues={initialValues}
+        enableReinitialize={true}
+        onSubmit={save}
+    >
+        {formikProps => {
+            return (
+                <IncidentManagementForm
+                    formikProps={formikProps}
+                    loading={loading}
+                    loaded={loaded}
+                    loadFailure={loadFailure}
+                    saving={saving}
+                    saveFailure={saveFailure}
                 />
+            );
+        }}
+    </Formik>
 
-                {selectedPlatform === 'pagerDuty' && (
-                    <>
-                        <hr></hr>
-                        <div>
-                            <img src="./PagerDuty.svg" alt="PagerDuty" style={styles.pagerDutyLogoStyle} />
-                        </div>
-                        <div style={styles.incidentManagementDescriptionStyle}>{pagerDutyResources.pagerDutyDescription}</div>
-                        <TextField
-                            id="logicAppName"
-                            label={SreAgentResources.logicAppName}
-                            required={true}
-                            styles={incidentManagementTextFieldStyles}
-                        />
-                        <Dropdown
-                            id="region"
-                            options={[
-                                { key: 'eastUs', text: 'East US' },
-                                { key: 'westUs', text: 'West US' },
-                                { key: 'centralUs', text: 'Central US' },
-                            ]}
-                            label={SreAgentResources.region}
-                            required={true}
-                            styles={incidentManagementDropdownStyles}
-                        />
-                        <TextField
-                            id="pagerDutyApiKey"
-                            label={pagerDutyResources.pagerDutyApiKey}
-                            required={true}
-                            styles={incidentManagementTextFieldStyles}
-                        />
-                    </>
-                )}
-
-                <div>
-                    <PrimaryButton
-                        style={{ borderRadius: 5 }}
-                        onClick={() => { }}
-                        text={"Save"}
-                        disabled={false}
-                    />
-                    <DefaultButton
-                        style={{ borderRadius: 5, marginLeft: 10 }}
-                        onClick={() => { }}
-                        text={"Discard"}
-                        disabled={false}
-                    />
-                </div>
-            </div>
-        </>
-    );
 };
 
 export default IncidentManagement;
