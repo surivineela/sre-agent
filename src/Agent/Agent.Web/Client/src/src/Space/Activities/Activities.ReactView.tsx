@@ -17,13 +17,13 @@ interface IActivitiesProps {
 }
 
 const Activities: FC<IActivitiesProps> = ({ initialThreadId }: IActivitiesProps) => {
-  const { threads, threadsInitialized, selectedThread, threadContentKey, selectThread, addThread, activeThreadId } = useActivities(initialThreadId);
+  const { threads, threadsInitialized, selectedThread, threadContentKey, selectThread, addThread, deleteThread, activeThreadId } = useActivities(initialThreadId);
 
   return (
     <AgentContext.Provider value={{ threadContentKey, threadsInitialized, activeThreadId }}>
       <div style={activitiesStylesRoot}>
         <ThreadsMenu threads={threads} selectThread={selectThread} />
-        <ThreadContent thread={selectedThread} addThread={addThread} />
+        <ThreadContent thread={selectedThread} addThread={addThread} deleteThread={deleteThread} />
         <ThreadActions thread={selectedThread} />
       </div>
     </AgentContext.Provider>

@@ -49,6 +49,8 @@ export enum SreAgentResources {
   task = 'Task',
   threadCount = 'Thread count',
   logicAppName = 'Logic App name',
+  yes = 'Yes',
+  no = 'No'
 }
 
 export enum SreAgentTabs {
@@ -84,6 +86,15 @@ export enum Activities {
   actionsPivotHeader = 'Actions',
   chatInputPlaceholder = 'I want to...',
   sreAgentDisplayName = 'Azure SRE Agent',
+}
+
+export enum Activities_ThreadHeader {
+  deleteThreadTitle = 'Delete thread',
+  deleteThreadInProgressDescription = 'Deleting thread with title {0}',
+  deleteThreadSuccessDescription = 'Thread with title {0} deleted successfully',
+  deleteThreadFailureDescription = 'Failed to delete thread with title {0} with error: {1}',
+  deleteThreadDialogTitle = 'Delete thread?',
+  deleteThreadDialogDescription = 'This will permanently delete the chat and all actions in this thread.',
 }
 
 export enum Actions_Headers {

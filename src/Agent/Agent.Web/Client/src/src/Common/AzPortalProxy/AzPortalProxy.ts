@@ -82,14 +82,16 @@ export default class AzPortalProxy {
 
   private postMessage(verb: string, data: object | null) {
     console.log(`Request AgentSiteToAzPortal: '${verb}'`);
-    window.parent.postMessage(
-      {
-        data,
-        kind: verb,
-        signature: this.portalFrameBladeSignature,
-      },
-      this.shellSrc
-    );
+    if (!AzPortalProxy.inStandaloneMode) {
+      window.parent.postMessage(
+        {
+          data,
+          kind: verb,
+          signature: this.portalFrameBladeSignature,
+        },
+        this.shellSrc
+      );
+    }
   }
 
   private iframeReceivedMsg(event: IEvent): void {

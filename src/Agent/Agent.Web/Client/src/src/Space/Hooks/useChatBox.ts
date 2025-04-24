@@ -15,52 +15,77 @@ const user = {
 }
 
 const getMessages = async (threadId: string, skip: number, top = MessagePollingCounts.default): Promise<Message[]> => {
-  const url = `../api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
-  const { data } = await axios.get(url, {
-    headers: getAgentHeaders()
-  });
-  return data.value ?? [];
+  try {
+    const url = `../api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
+    const { data } = await axios.get(url, {
+      headers: getAgentHeaders()
+    });
+    return data.value ?? [];
+  } catch {
+    // ToDo: handle error
+    return [];
+  }
+
 };
 
 const sendMessage = async (threadId: string, message: string): Promise<Message | undefined> => {
-  const { userId, displayName } = user;
-  const url = `../api/v1/threads/${threadId}/messages`;
-  const response = await axios.post(url, {
-    text: message,
-    role: 'User',
-    displayName: displayName,
-    userId: userId,
-  }, {
-    headers: getAgentHeaders()
-  });
+  try {
+    const { userId, displayName } = user;
+    const url = `../api/v1/threads/${threadId}/messages`;
+    const response = await axios.post(url, {
+      text: message,
+      role: 'User',
+      displayName: displayName,
+      userId: userId,
+    }, {
+      headers: getAgentHeaders()
+    });
 
-  return response?.data
+    return response?.data
+  } catch {
+    // ToDo: handle error
+    return undefined;
+  }
+
 };
 
 const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
-  const url = `../api/v1/threads/${threadId}/feedbacks`;
-  await axios.post(url, {
-    isPositive: isPositive,
-    feedbackText: feedbackText
-  }, {
-    headers: getAgentHeaders()
-  });
+  try {
+    const url = `../api/v1/threads/${threadId}/feedbacks`;
+    await axios.post(url, {
+      isPositive: isPositive,
+      feedbackText: feedbackText
+    }, {
+      headers: getAgentHeaders()
+    });
+  } catch {
+    // ToDo: handle error
+    return undefined;
+  }
+
 };
 
 const createThread = async (message: string) => {
-  const { userId, displayName } = user;
-  const url = `../api/v1/threads`;
 
-  const response = await axios.post(url, {
-    startMessage: {
-      text: message,
-      userId: userId,
-      displayName: displayName,
-    }
-  }, {
-    headers: getAgentHeaders()
-  });
-  return response?.data;
+  try {
+    const { userId, displayName } = user;
+    const url = `../api/v1/threads`;
+
+    const response = await axios.post(url, {
+      startMessage: {
+        text: message,
+        userId: userId,
+        displayName: displayName,
+      }
+    }, {
+      headers: getAgentHeaders()
+    });
+    return response?.data;
+  } catch {
+    // ToDo: handle error
+    return undefined;
+  }
+
 };
 
 const composeTemporaryUserMessage = (message: string): Message => {

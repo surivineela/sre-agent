@@ -26,6 +26,13 @@ export const ThreadContentStyles = mergeStyleSets({
         fontSize: '16px',
         lineHeight: '22px',
     },
+    titleContainer: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        gap: '10px',
+    },
     title: {
         fontWeight: 600,
         lineHeight: '22px',

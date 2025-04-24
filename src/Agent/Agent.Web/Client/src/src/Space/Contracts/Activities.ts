@@ -18,6 +18,7 @@ export interface IThreadsMenuProps {
 export interface IThreadContentProps {
   thread?: Thread | null;
   addThread: (thread: Thread) => void;
+  deleteThread: (thread: Thread) => void;
 }
 
 export interface IThreadActivitiesProps {
