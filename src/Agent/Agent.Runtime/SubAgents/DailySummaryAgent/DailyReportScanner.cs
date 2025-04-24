@@ -158,6 +158,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             didItOnce = true;
 
+            // to do: stacyzeng - remove this in future temporary solution
+            // delay the scanner by 15 mins to allow more resources to be crawled & health info populated
+            await Task.Delay(TimeSpan.FromMinutes(15));
+
             // Get the list of resource types from the knowledge graph
             _armResourceNodes = await _graphDbService.GetAllResourceNodes();
             _logger.LogInformation("Found {Count} resource nodes in the knowledge graph", _armResourceNodes.Count);
@@ -240,7 +244,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 var screenshot = (await CaptureDashboardScreenshotAsync(SreDashboard, armResourceNode: null))?.Screenshot;
                 PersistScreenshot("SreDashboard", screenshot);
-                await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Id, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
+                if (screenshot != null)
+                {
+                    await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Id, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
+                }
             }
             catch
             {
