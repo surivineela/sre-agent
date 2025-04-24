@@ -28,6 +28,10 @@ using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
+using OpenTelemetry.Resources;
+using Octokit;
+using static System.Net.WebRequestMethods;
+using Azure.ResourceManager.AppService;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Core.Helpers;
@@ -1120,6 +1124,24 @@ public class ArmHelper
             {
                 return string.Empty;
             }
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+    }
+
+    public async Task<List<string>> GetHostNamesOfAppServices(string resourceId)
+    {
+        try
+        {
+            var credential = _authService.GetArmOperationCredential();
+            var armClient = new ArmClient(credential);
+            ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
+            WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
+            var appData = webApp.Data;
+            var hostNames = appData.EnabledHostNames.Where(h => !h.Contains(".scm."));
+            return hostNames.ToList();
         }
         catch (Exception)
         {

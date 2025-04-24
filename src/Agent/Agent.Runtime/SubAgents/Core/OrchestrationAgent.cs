@@ -356,6 +356,13 @@ public abstract class OrchestrationAgentStep
         {
             return new OrchestrationAgentVisualizeAKSMicroserviceTopologyStep { FunctionCall = functionCall };
         }
+        else if (functionCall.Name == nameof(ChartPluginDefinition.PlotBarChartAsync) ||
+                 functionCall.Name == nameof(ChartPluginDefinition.PlotPieChartAsync) ||
+                 functionCall.Name == nameof(ChartPluginDefinition.PlotScatterAsync) ||
+                 functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesDataAsync))
+        {
+            return new OrchestrationAgentChartStep { FunctionCall = functionCall };
+        }
         else
         {
             return new OrchestrationAgentGenericExecuteStep { FunctionCall = functionCall };

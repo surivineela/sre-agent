@@ -34,7 +34,6 @@ public sealed class CPUAnalysisAgentFactory
 
     public CPUAnalysisAgentFactory(
         IMetricsPlugin metricsPlugin,
-        IApprovalPlugin approvalPlugin,
         IGithubIssuePlugin githubPlugin,
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
@@ -54,8 +53,6 @@ public sealed class CPUAnalysisAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
-        // var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        // toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));

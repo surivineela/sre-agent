@@ -1,7 +1,7 @@
 {
     // RG
     "resourceGroupNameSuffix": "-operations-agent-3p-rg",
-    "location": "swedencentral",
+    "location": "westus",
 
     // Cosmos account for graph databases
     "cosmosAccountNameSuffix": "-cosmosdb-graph",
@@ -14,8 +14,8 @@
 
     // OpenAI
     "openAIAccountNameSuffix": "-openai",
-    "openAILLMModel": "gpt-4.1-mini",
-    "openAILLMModelVersion": "2025-04-14",
+    "openAILLMModel": "gpt-4o",
+    "openAILLMModelVersion": "2024-11-20",
     "openAIEmbeddingGeneratorModel": "text-embedding-ada-002",
     "openAIEmbeddingGeneratorModelVersion": "2",
 

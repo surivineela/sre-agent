@@ -8,7 +8,6 @@ namespace Agent.Core.Models;
 public class WebAppDownInput
 {
     public List<DownApp> Apps { get; set; }
-
 }
 
 public sealed record DownApp(string ResourceId);

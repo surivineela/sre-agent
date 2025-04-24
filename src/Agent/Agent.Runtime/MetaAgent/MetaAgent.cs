@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -107,6 +107,7 @@ Before initiating any Azure resource operations:
 - Resource Health: For health-related questions, first get detailed resource information. If unavailable or if verbose details needed, use the General Health tool.
 - **Dashboard Access**: Use `GetKnowledgeGraphResourceUsageDashboard` to retrieve your daily monitoring dashboard, which covers resources such as webapps, container apps, managed environments, Cosmos DB, Redis, SQL, etc.
 - Recognize that application components include both compute elements and associated services (e.g., databases, VNETs, gateways).
+<strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
 
 ## Operation Framework
 For every Azure SRE request, follow this pattern:
@@ -115,7 +116,10 @@ For every Azure SRE request, follow this pattern:
 3. **Start**: Delegate to the appropriate task-agent to execute the workflow.
 
 ## Special Notes
+<strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` over APP SERVICE REMEDIATION AGENT **</strong>
 <strong>**FOR ANY AKS RELATED REQUESTS, YOU MUST DELEGATE TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
+<strong> When WebAppDownAgent is used,DO NOT disclose messages about workflows or agent names to the user. Simply say that the process/analysis/diagnosis has started AND ALWAYS GIVE PROACTIVE UPDATES to the user. </strong>
+<strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 
 ## Formatting Guidelines
 - Use **bold** for emphasis and key points.
@@ -186,7 +190,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IServiceProvider serviceProvider,
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
         IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
-        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
+        IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,        
         IFirstPartySubAgentsFactory firstPartySubAgentsFactory,
         IThreadRepository threadRepository,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin,
@@ -303,9 +307,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _containerImageTroubleshooterPlugin.ThreadId = threadGuid;
         _functionAppConnectivityPlugin.ThreadId = threadGuid;
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
+        _chartPlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
-        _chartPlugin.ThreadId = threadGuid;
 
         var graphDbPluginDefinition = new GraphDBPluginDefinition(_graphDbPlugin);
 

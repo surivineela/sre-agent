@@ -47,7 +47,7 @@ public class WebAppDownPlugin : IMetaAgentWebAppDownPlugin
     [KernelFunction("start_web_app_down_workflow")]
     [Description("Start the workflow to mitigate and resolve the web apps that are down or slow")]
     public async Task<string> StartWebAppDownAgent(
-        [Description("The list of apps to be modified")] WebAppDownInput input)
+        [Description("The list of apps to be fixed")] WebAppDownInput input)
     {
         if (ThreadId == null)
         {
