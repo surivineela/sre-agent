@@ -15,7 +15,10 @@ public record AgentContextDocument(
     WaitInformation? WaitInformation,
     ApprovalInformation? ApprovalInformation,
     string? AssignedInstanceId = null,
-    DateTimeOffset? AssignmentExpires = null
+    DateTimeOffset? AssignmentExpires = null,
+    string? InputDataSerialized = null,
+    AgentTypeEnum? HandoffFromAgentType = null,
+    ContextStateEnum? HandoffState = null
 ) : ICosmosDocument
 {
     public string DocumentType => "AgentContext";
@@ -35,7 +38,10 @@ public record AgentContextDocument(
             WaitInformation: agentContext.WaitInformation,
             ApprovalInformation: agentContext.ApprovalInformation,
             AssignedInstanceId: agentContext.AssignedInstanceId,
-            AssignmentExpires: agentContext.AssignmentExpires
+            AssignmentExpires: agentContext.AssignmentExpires,
+            InputDataSerialized: agentContext.InputDataSerialized,
+            HandoffFromAgentType: agentContext.HandoffFromAgentType,
+            HandoffState: agentContext.HandoffState
         );
 
     public AgentContext ToDomainModel() =>
@@ -47,6 +53,9 @@ public record AgentContextDocument(
             WaitInformation: WaitInformation,
             ApprovalInformation: ApprovalInformation,
             AssignedInstanceId: AssignedInstanceId,
-            AssignmentExpires: AssignmentExpires
+            AssignmentExpires: AssignmentExpires,
+            InputDataSerialized: InputDataSerialized,
+            HandoffFromAgentType: HandoffFromAgentType,
+            HandoffState: HandoffState
         );
 }

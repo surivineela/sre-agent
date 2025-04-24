@@ -15,7 +15,7 @@ public record AgentChatHistoryDocument(
     public string DocumentType => "AgentChatHistory";
     public string Id => GetDocumentId(AgentContextId);
     public string PartitionKey => AgentContextId; // Use AgentContextId as partition key
-    public required bool HasNewUserMessage { get; set; }
+    public string LatestUserMessageId { get; set; } = string.Empty;
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
     public static string GetDocumentId(string agentContextId) =>
@@ -28,7 +28,7 @@ public record AgentChatHistoryDocument(
             ReasoningMessageIds: agentChatHistory.ReasoningMessageIds.Select(m => m.ToString()).ToList()
         )
         {
-            HasNewUserMessage = agentChatHistory.HasNewUserMessage
+            LatestUserMessageId = agentChatHistory.LatestUserMessageId.ToString()
         };
 
     public AgentChatHistory ToDomainModel() =>
@@ -37,7 +37,7 @@ public record AgentChatHistoryDocument(
             ReasoningMessageIds: ReasoningMessageIds.Select(m => Guid.Parse(m)).ToList()
         )
         {
-            HasNewUserMessage = HasNewUserMessage
+            LatestUserMessageId = Guid.Parse(LatestUserMessageId)
         };
 }
 

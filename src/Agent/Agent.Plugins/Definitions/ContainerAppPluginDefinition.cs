@@ -54,6 +54,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("restart_containerapp_revision")]
+        [Description("Restarts a container app. Use this to restart a container app to resolve transient issues that may be fixed by restarting the instance.")]
         public async Task<string> RestartContainerApp(
             [Description("The resource ID of the Container App.")]
             string appResourceId,

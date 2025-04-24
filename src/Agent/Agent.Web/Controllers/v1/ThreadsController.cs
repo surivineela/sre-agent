@@ -2,20 +2,20 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models.Api.v1;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.OData.Query;
-using Action = Agent.Core.Models.Api.v1.Action;
-using Thread = Agent.Core.Models.Api.v1.Thread;
-using Agent.Core.Interfaces;
-using Microsoft.Extensions.AI;
-using Agent.Core.Helpers;
 using System.ComponentModel.DataAnnotations;
 using System.Text;
+using System.Text.Json;
+using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Runtime.MetaAgent;
-using System.Text.Json;
 using Agent.Logging;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.Extensions.AI;
+using Action = Agent.Core.Models.Api.v1.Action;
+using Thread = Agent.Core.Models.Api.v1.Thread;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -185,6 +185,7 @@ namespace Agent.Web.Controllers.v1
                 return NotFound();
 
             var agentContexts = await repository.GetAgentContextsForThreadAsync(threadId);
+
             var agentContext = agentContexts.FirstOrDefault();
             if (agentContext == null)
                 return NotFound();

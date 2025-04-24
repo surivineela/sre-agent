@@ -82,10 +82,9 @@ namespace Agent.Runtime.SubAgents
             foreach (var reasoningMessage in responseReasoningMessages)
             {
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
-                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
             }
 
-            await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
+            await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, responseReasoningMessages);
 
             return agentResponse;
         }
@@ -100,10 +99,9 @@ namespace Agent.Runtime.SubAgents
             foreach (var reasoningMessage in responseReasoningMessages)
             {
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
-                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
             }
 
-            await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
+            await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, responseReasoningMessages);
 
             return agentResponse;
         }

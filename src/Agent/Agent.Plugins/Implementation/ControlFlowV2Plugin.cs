@@ -5,7 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
-using Azure;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Plugins
@@ -16,13 +16,21 @@ namespace Agent.Plugins
         private readonly ILogger<ControlFlowV2Plugin> _logger;
         private readonly Guid _agentContextId;
         private readonly Guid _threadId;
+        private readonly AgentContext _agentContext;
+        private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
 
-        public ControlFlowV2Plugin(IThreadRepository repository, Guid agentContextId, Guid threadId, ILogger<ControlFlowV2Plugin> logger)
+        public ControlFlowV2Plugin(
+            IThreadRepository repository,
+            IAgentOutboundCommunicationService outboundCommunicationService,
+            AgentContext context,
+            ILogger<ControlFlowV2Plugin> logger)
         {
-            _repository = repository ?? throw new ArgumentNullException(nameof(repository));
-            _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-            _agentContextId = agentContextId;
-            _threadId = threadId;
+            _repository = repository;
+            _logger = logger;
+            _outboundCommunicationService = outboundCommunicationService;
+            _agentContextId = context.Id;
+            _threadId = context.ThreadId;
+            _agentContext = context;
         }
 
         public async Task StartWait(string waitReason, TimeSpan? waitFor = null)
@@ -35,6 +43,7 @@ namespace Agent.Plugins
                 ContextState = ContextStateEnum.Waiting,
                 WaitInformation = new WaitInformation(
                     WaitUntil: !waitFor.HasValue ? null : DateTime.UtcNow.Add(waitFor.Value),
+                    ResponseFromUserIsPending: false,
                     Reason: waitReason)
             };
 
@@ -67,6 +76,7 @@ namespace Agent.Plugins
             var updatedAgentContext = agentContext with
             {
                 ContextState = ContextStateEnum.Completed,
+                HandoffState = ContextStateEnum.Completed,
                 WaitInformation = null,
                 ApprovalInformation = null
             };
@@ -93,12 +103,57 @@ namespace Agent.Plugins
             {
                 ContextState = ContextStateEnum.PendingApproval,
                 WaitInformation = null,
-                ApprovalInformation = new ApprovalInformation(approvalUrl)
+                ApprovalInformation = new ApprovalInformation(approvalUrl, approvalV2.Id)
             };
 
             await _repository.UpdateAgentContextAsync(updatedAgentContext);
 
-            return new ApprovalInformation(approvalUrl);
+            return updatedAgentContext.ApprovalInformation;
+        }
+
+        public async Task<string> GetApprovalState()
+        {
+            var approvalInfo = _agentContext.ApprovalInformation;
+
+            if (approvalInfo == null)
+            {
+                return string.Empty;
+            }
+
+            var approvalObj = await _repository.GetApprovalV2Async(approvalInfo.ApprovalId, _agentContextId);
+
+            if (approvalObj == null)
+            {
+                return string.Empty;
+            }
+
+            return approvalObj.Status.ToString();
+        }
+
+        public async Task AskForUserInput(string message)
+        {
+            _logger.LogInformation(
+                "User input needed, setting wait state for context {AgentContextId} thread {ThreadId} with agent message: {message}",
+                _agentContextId, _threadId, message);
+
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_agentContext, new(ChatRole.Assistant, message));
+
+            var agentContext = await _repository.GetAgentContextAsync(agentContextId: _agentContextId, threadId: _threadId);
+            var updatedAgentContext = agentContext with
+            {
+                ContextState = ContextStateEnum.Waiting,
+                WaitInformation = new WaitInformation(
+                    WaitUntil: null,
+                    ResponseFromUserIsPending: true,
+                    Reason: message)
+            };
+
+            await _repository.UpdateAgentContextAsync(updatedAgentContext);
+        }
+
+        public Task NotifyUser(string message)
+        {
+            return _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_agentContext, new(ChatRole.Assistant, message));
         }
     }
 }

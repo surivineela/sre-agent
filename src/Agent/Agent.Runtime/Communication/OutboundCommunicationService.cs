@@ -71,4 +71,24 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
     {
         await _postToTeamsService.PostTeamsMessage(threadId, activity, messageId);
     }
+
+    public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
+    {
+        _logger.LogInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
+            context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
+
+        return _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty);
+    }
+
+    public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
+    {
+        var message = $"{subAgentIdentifier} completed with status: {status}";
+
+        if (!string.IsNullOrEmpty(summary))
+        {
+            message += $" summary: {summary}";
+        }
+
+        return UpdateThreadWithAgentMessageAsync(context, new(ChatRole.Assistant, message));
+    }
 }

@@ -399,8 +399,8 @@ namespace Agent.Data.Repositories
         public Task<bool> UpdateAgentContextAssignmentInfoAsync(
             Guid agentContextId,
             Guid threadId,
-            string assignedInstanceId,
-            DateTimeOffset expiration)
+            string? assignedInstanceId,
+            DateTimeOffset? expiration)
         {
             _agentContexts.TryGetValue((threadId, agentContextId), out var agentContext);
 
@@ -474,6 +474,18 @@ namespace Agent.Data.Repositories
 
         public Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory)
         {
+            _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
+            return Task.FromResult(agentChatHistory);
+        }
+
+        public Task<AgentChatHistory> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages)
+        {
+            foreach (var reasoningMessage in reasoningMessages)
+            {
+                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
+                _reasoningMessages[(agentChatHistory.AgentContextId, reasoningMessage.Id)] = reasoningMessage;
+            }
+
             _agentChatHistories[agentChatHistory.AgentContextId] = agentChatHistory;
             return Task.FromResult(agentChatHistory);
         }

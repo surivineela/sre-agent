@@ -239,9 +239,11 @@ public class CosmosDbInstanceManagementRepository(
         //using FeedIterator<WorkerInstanceDocument> resultSet =
         //    cosmosClient.GetContainer<WorkerInstanceDocument>(databaseName).GetItemQueryIterator<WorkerInstanceDocument>(query);
 
+        var workerHearbeatThreshold = DateTimeOffset.UtcNow.Subtract(TimeSpan.FromSeconds(10));
+
         var query = cosmosClient.GetContainer<WorkerInstanceDocument>(databaseName)
             .GetItemLinqQueryable<WorkerInstanceDocument>()
-            .Where(i => i.DocumentType == "WorkerInstance" && i.HealthState == WorkerInstanceHealthState.Ready)
+            .Where(i => i.DocumentType == "WorkerInstance" && i.HealthState == WorkerInstanceHealthState.Ready && i.LastHeartbeat > workerHearbeatThreshold)
             .OrderBy(i => i.CurrentAgentCount);
 
         using var resultSet = query.ToFeedIterator();

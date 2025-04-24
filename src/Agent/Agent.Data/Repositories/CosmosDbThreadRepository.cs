@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -722,6 +721,22 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    private async Task<(T document, string etag)> GetDocumentWithEtagAsync<T>(string id, string partitionKey) where T : ICosmosDocument
+    {
+        try
+        {
+            ItemResponse<T> response = await _client.GetContainer<T>(_databaseName).ReadItemAsync<T>(
+                id,
+                new PartitionKey(partitionKey)
+            );
+            return (response.Resource, response.ETag);
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return (default, null);
+        }
+    }
+
     #endregion
 
     #region Message Operations
@@ -928,11 +943,9 @@ public class CosmosDbThreadRepository : IThreadRepository
     public async Task<bool> UpdateAgentContextAssignmentInfoAsync(
         Guid agentContextId,
         Guid threadId,
-        string assignedInstanceId,
-        DateTimeOffset expiration)
+        string? assignedInstanceId,
+        DateTimeOffset? expiration)
     {
-        ArgumentNullException.ThrowIfNull(assignedInstanceId);
-
         try
         {
             TransactionalBatch batch = _client.GetContainer<AgentContextDocument>(_databaseName)
@@ -1088,6 +1101,93 @@ public class CosmosDbThreadRepository : IThreadRepository
         AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
         await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).UpsertItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
         return agentChatHistory;
+    }
+
+    public async Task<AgentChatHistory> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages)
+    {
+        // Ensure IDs are set
+        if (agentChatHistory.AgentContextId == Guid.Empty)
+        {
+            return null;
+        }
+
+        // get existing document from cosmos with etag
+        var (existingDocument, etag) = await GetDocumentWithEtagAsync<AgentChatHistoryDocument>(
+            AgentChatHistoryDocument.GetDocumentId(agentChatHistory.AgentContextId.ToString()),
+            agentChatHistory.AgentContextId.ToString()
+        );
+
+        if (existingDocument == null)
+        {
+            try
+            {
+                foreach (var message in reasoningMessages)
+                {
+                    agentChatHistory.ReasoningMessageIds.Add(message.Id);
+
+                    if (message.Role == ReasoningMessageRoleEnum.User)
+                    {
+                        agentChatHistory.LatestUserMessageId = message.Id;
+                    }
+                }
+
+                AgentChatHistoryDocument agentChatHistoryDoc = AgentChatHistoryDocument.FromDomainModel(agentChatHistory);
+                var createResponse = await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).CreateItemAsync(agentChatHistoryDoc, new PartitionKey(agentChatHistoryDoc.PartitionKey));
+                return createResponse.Resource.ToDomainModel();
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                // another thread created the document at the same time, fetch it and continue
+                (existingDocument, etag) = await GetDocumentWithEtagAsync<AgentChatHistoryDocument>(
+                    AgentChatHistoryDocument.GetDocumentId(agentChatHistory.AgentContextId.ToString()),
+                    agentChatHistory.AgentContextId.ToString()
+                );
+            }
+        }
+
+        // retry a few times
+        const int retryLimit = 3;
+        for (int i = 0; i < retryLimit; i++)
+        {
+            try
+            {
+                foreach (var message in reasoningMessages)
+                {
+                    existingDocument.ReasoningMessageIds.Add(message.Id.ToString());
+
+                    if (message.Role == ReasoningMessageRoleEnum.User)
+                    {
+                        existingDocument.LatestUserMessageId = message.Id.ToString();
+                    }
+                }
+
+                var updateResponse = await _client.GetContainer<AgentChatHistoryDocument>(_databaseName).ReplaceItemAsync(
+                    existingDocument,
+                    existingDocument.Id,
+                    new PartitionKey(existingDocument.PartitionKey),
+                    new ItemRequestOptions { IfMatchEtag = etag }
+                );
+
+                return updateResponse.Resource.ToDomainModel();
+            }
+            catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.PreconditionFailed)
+            {
+                if (i == retryLimit - 1)
+                {
+                    // log the error and throw an exception
+                    _logger.LogError("Failed to update agent chat history for agent context {AgentContextId} after {RetryCount} attempts", agentChatHistory.AgentContextId, retryLimit);
+                    throw;
+                }
+
+                // another thread updated the document since we fetched it, re-fetch the document and retry
+                (existingDocument, etag) = await GetDocumentWithEtagAsync<AgentChatHistoryDocument>(
+                    AgentChatHistoryDocument.GetDocumentId(agentChatHistory.AgentContextId.ToString()),
+                    agentChatHistory.AgentContextId.ToString()
+                );
+            }
+        }
+
+        throw new Exception("Failed to update agent chat history after multiple attempts.");
     }
 
     public async Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId)

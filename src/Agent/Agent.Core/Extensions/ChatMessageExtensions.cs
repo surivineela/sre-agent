@@ -72,10 +72,9 @@ namespace Agent.Core.Extensions
             foreach (var reasoningMessage in reasoningMessages)
             {
                 await threadRepository.CreateReasoningMessageAsync(reasoningMessage);
-                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
             }
 
-            await threadRepository.UpdateAgentChatHistoryAsync(agentChatHistory);
+            await threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessages);
         }
 
         public static ReasoningMessageRoleEnum GetReasoningMessageRole(this ChatRole chatRole)

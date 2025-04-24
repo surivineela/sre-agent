@@ -12,5 +12,8 @@ public record AgentContext(
     WaitInformation? WaitInformation,
     ApprovalInformation? ApprovalInformation,
     string? AssignedInstanceId = null,
-    DateTimeOffset? AssignmentExpires = null
+    DateTimeOffset? AssignmentExpires = null,
+    string? InputDataSerialized = null,
+    AgentTypeEnum? HandoffFromAgentType = null,
+    ContextStateEnum? HandoffState = null
 );

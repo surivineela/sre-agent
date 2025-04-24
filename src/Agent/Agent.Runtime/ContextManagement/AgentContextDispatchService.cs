@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
+using Agent.Runtime.V2;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -80,23 +81,60 @@ public sealed class AgentContextDispatchService(
     {
         foreach (var agentContext in changes)
         {
-            if (agentContext.AgentType == AgentTypeEnum.Meta // ignore meta agent
-                || agentContext.AgentType == AgentTypeEnum.DTS) // ignore durable task service agents
-            {
-                continue;
-            }
-
-            if (agentContext.ContextState == ContextStateEnum.Completed)
+            // if this handoff context was completed, remove the assignment info
+            // do this before validating agent type, because the type will get reset back
+            // to the delegating agent type when the handoff completed
+            if (agentContext.HandoffState == ContextStateEnum.Completed || agentContext.HandoffState == ContextStateEnum.Failed)
             {
                 // check if we need to delete the assignment doc
                 if (!string.IsNullOrEmpty(agentContext.AssignedInstanceId))
                 {
                     await instanceManagementRepository.DeleteAgentContextInstanceAssignmentAsync(agentContext.Id, agentContext.AssignedInstanceId);
+
+                    await threadRepository
+                        .UpdateAgentContextAssignmentInfoAsync(
+                            Guid.Parse(agentContext.Id),
+                            Guid.Parse(agentContext.ThreadId),
+                            assignedInstanceId: null,
+                            expiration: null);
                 }
 
                 continue;
             }
 
+            // do not assign meta agents or durable agents for processing
+            if (agentContext.AgentType == AgentTypeEnum.Meta
+                || agentContext.AgentType == AgentTypeEnum.DTS)
+            {
+                continue;
+            }
+
+            // TODO: temporary condition, only handle onboarded types
+            if (!SubAgentV2TypeMapping.IsSubAgentV2(agentContext.AgentType))
+            {
+                continue;
+            }
+
+            // check completion state if this wasn't a handoff
+            if (agentContext.ContextState == ContextStateEnum.Completed || agentContext.ContextState == ContextStateEnum.Failed)
+            {
+                // check if we need to delete the assignment doc
+                if (!string.IsNullOrEmpty(agentContext.AssignedInstanceId))
+                {
+                    await instanceManagementRepository.DeleteAgentContextInstanceAssignmentAsync(agentContext.Id, agentContext.AssignedInstanceId);
+
+                    await threadRepository
+                        .UpdateAgentContextAssignmentInfoAsync(
+                            Guid.Parse(agentContext.Id),
+                            Guid.Parse(agentContext.ThreadId),
+                            assignedInstanceId: null,
+                            expiration: null);
+                }
+
+                continue;
+            }
+
+            // check if assignment is needed
             if (string.IsNullOrEmpty(agentContext.AssignedInstanceId)
                 || agentContext.AssignmentExpires == null
                 || agentContext.AssignmentExpires < DateTimeOffset.UtcNow)

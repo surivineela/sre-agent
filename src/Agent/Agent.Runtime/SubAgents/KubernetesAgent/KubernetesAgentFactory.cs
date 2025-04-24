@@ -4,7 +4,6 @@
 
 using System.Text.Json;
 using Agent.Core;
-using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
@@ -23,11 +22,10 @@ public sealed class KubernetesAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(KubernetesAgent);
 
     public KubernetesAgentFactory(
-        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
-        _toolsRegistry = new AgentToolsRegistry(toolsRepository);
+        _toolsRegistry = new AgentToolsRegistry();
         _toolsRegistry.RegisterPlugin<TimePluginDefinition>();
         _toolsRegistry.RegisterPlugin<KubePluginDefinition>();
         _toolsRegistry.RegisterPlugin<ChartPluginDefinition>();

@@ -13,6 +13,7 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
+using Agent.Runtime.V2;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -123,9 +124,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                     Role: ReasoningMessageRoleEnum.User,
                     SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, threadMessage.Message)));
                 await _repository.CreateReasoningMessageAsync(reasoningMessage);
-                agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
-                agentChatHistory.HasNewUserMessage = true;
-                await _repository.UpdateAgentChatHistoryAsync(agentChatHistory);
+
+                await _repository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, reasoningMessage);
             }
 
             if (!string.IsNullOrEmpty(orchestrationInstanceId))
@@ -154,7 +154,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 string agentResponse = string.Empty;
                 bool isComplete = false;
 
-                if (AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
+                if (agentContext != null && AgentTypeHelper.IsScannerAgent(agentContext.AgentType))
                 {
                     ScannerSubAgent scannerSubAgent = null;
                     switch (agentContext.AgentType)
@@ -174,6 +174,12 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                         agentResponse = await scannerSubAgent.DoWork(agentContext: agentContext, agentChatHistory: agentChatHistory, threadMessage.Message);
                     }
                 }
+                else if (agentContext != null && SubAgentV2TypeMapping.IsSubAgentV2(agentContext.AgentType))
+                {
+                    // reasoning loop processor handles these agent handoffs
+                    // no work required here, just return
+                    return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
+                }
                 else
                 {
                     // Process the message with MetaAgent
@@ -184,7 +190,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             }
             else
             {
-                // TODO (jianbosun): 
+                // TODO (jianbosun):
                 // For now, we assume there's only 1:1 mapping for threadId and orchestrationInstanceId,
                 // but we may change this to allow multiple orchestrations per thread, e.g. to choose sub-agent type in one thread as a different orchestration.
                 // This will enable us for scenarios that need to share chat history with multiple orchestrations for different purposes.

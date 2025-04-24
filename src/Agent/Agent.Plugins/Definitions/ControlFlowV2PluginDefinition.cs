@@ -47,6 +47,24 @@ namespace Agent.Plugins.Definitions
         {
             return await _controlFlowV2Plugin.StartApprovalFlow(title);
         }
+
+        [Description("Get the state of the approval flow that was previously started")]
+        public Task<string> GetApprovalState()
+        {
+            return _controlFlowV2Plugin.GetApprovalState();
+        }
+
+        [Description("Asks the user for input and waits until it is provided")]
+        public async Task AskForUserInput([Description("Message for the user, asking for the input that is required")] string message)
+        {
+            await _controlFlowV2Plugin.AskForUserInput(message);
+        }
+
+        [Description("Notifies the user about the current state. This is for providing updates, not for asking a question to the user.")]
+        public Task NotifyUser([Description("Message for the user, to update on the current status")] string message)
+        {
+            return _controlFlowV2Plugin.NotifyUser(message);
+        }
     }
 }
 

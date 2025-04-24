@@ -18,9 +18,10 @@ public sealed class AgentContextProcessingService(
     ILoggerFactory loggerFactory,
     IInstanceManagementRepository instanceManagementRepository,
     IThreadRepository threadRepository,
-    IServiceProvider serviceProvider,
     InstanceManagementSettings instanceManagementSettings,
-    [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient
+    [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
+    IServiceProvider serviceProvider,
+    IAgentOutboundCommunicationService outboundCommunicationService
 )
 {
     private readonly ConcurrentDictionary<string, ReasoningLoopProcessor> _agentContexts = new();
@@ -58,10 +59,10 @@ public sealed class AgentContextProcessingService(
         ReasoningLoopProcessor processor = new(
             assignment,
             threadRepository,
-            instanceManagementRepository,
             chatClient,
-            loggerFactory.CreateLogger<ReasoningLoopProcessor>(),
-            serviceProvider);
+            loggerFactory,
+            serviceProvider,
+            outboundCommunicationService);
 
         processor.OnReasoningFinished += HandleReasoningComplete;
 

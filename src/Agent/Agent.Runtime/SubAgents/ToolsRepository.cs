@@ -7,8 +7,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Runtime.Interfaces;
-using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.Models;
 using Microsoft.Extensions.AI;
 
@@ -133,8 +132,8 @@ public class ToolsRepository : IToolsRepository
         Expression<Func<T, Delegate>> submitFunctionSelector,
         Expression<Func<T, Delegate>> executeFunctionSelector)
     {
-        var submitMethodInfo = AgentToolsRegistry.GetMethodFromExpression(submitFunctionSelector);
-        var executeMethodInfo = AgentToolsRegistry.GetMethodFromExpression(executeFunctionSelector);
+        var submitMethodInfo = ToolHelper.GetMethodFromExpression(submitFunctionSelector);
+        var executeMethodInfo = ToolHelper.GetMethodFromExpression(executeFunctionSelector);
 
         return Register202<T>(submitMethodInfo, executeMethodInfo);
     }
@@ -149,7 +148,7 @@ public class ToolsRepository : IToolsRepository
 
     public string Register200<T>(Expression<Func<T, Delegate>> executeFunctionSelector)
     {
-        var methodInfo = AgentToolsRegistry.GetMethodFromExpression(executeFunctionSelector);
+        var methodInfo = ToolHelper.GetMethodFromExpression(executeFunctionSelector);
         return Register200<T>(methodInfo);
     }
 
@@ -180,9 +179,7 @@ public class ToolsRepository : IToolsRepository
     public string GetSignature(
         Expression<Func<Delegate>> actionSelector)
     {
-        var actionMethod = GetMethod(actionSelector);
-        var sig = GetSignature(actionMethod);
-        return sig;
+        return ToolHelper.GetSignature(actionSelector);
     }
 
     public IToolFunction FindAiFunction(
@@ -196,32 +193,7 @@ public class ToolsRepository : IToolsRepository
 
     public string GetSignature(MethodInfo method)
     {
-        if (method.DeclaringType is null
-            || method.DeclaringType.FullName is null)
-        {
-            throw new ArgumentNullException("method's DeclaringType.FullName not exist");
-        }
-
-        var className = method.DeclaringType.FullName;
-        var methodName = method.Name;
-        var parameters = string.Join(", ", method.GetParameters()
-            .Select(p => p.ParameterType.FullName));
-
-        return $"{className}.{methodName}({parameters})";
-    }
-
-    private static MethodInfo GetMethod<R>(Expression<Func<R>> selector)
-        where R : Delegate
-    {
-        if (selector.Body is UnaryExpression unaryExpression
-            && unaryExpression.Operand is MethodCallExpression methodCallExpression
-            && methodCallExpression.Object is ConstantExpression constantExpression
-            && constantExpression.Value is MethodInfo methodInfo)
-        {
-            return methodInfo;
-        }
-
-        throw new ArgumentOutOfRangeException(nameof(selector));
+        return ToolHelper.GetSignature(method);
     }
 
     private string GetAIFunctionSignature(

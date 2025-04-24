@@ -17,10 +17,21 @@ public interface IAgentOutboundCommunicationService
     /// Updates a thread with a message from an agent
     /// </summary>
     Task UpdateThreadWithAgentMessageAsync(Guid? threadId, string orchestrationInstanceId, ChatMessage message);
+
+    /// <summary>
+    /// Updates a thread with a message from an agent
+    /// </summary>
+    Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message);
+
     /// <summary>
     /// Notifies about agent task completion
     /// </summary>
     Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null);
+
+    /// <summary>
+    /// Notifies about agent task completion
+    /// </summary>
+    Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null);
 
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 

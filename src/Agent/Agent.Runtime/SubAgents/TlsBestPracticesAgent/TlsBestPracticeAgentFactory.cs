@@ -2,16 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Plugins.Definitions;
-using Agent.Plugins;
-using Microsoft.DurableTask.Client;
-using Microsoft.DurableTask;
-using Agent.Core.Models;
 using System.Text.Json;
 using Agent.Core;
-using Agent.Core.Models.Api.v1;
+using Agent.Core.Models;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
-using Microsoft.Extensions.AI;
+using Microsoft.DurableTask;
+using Microsoft.DurableTask.Client;
 
 namespace Agent.Runtime.SubAgents.TlsBestPractices;
 
@@ -26,11 +24,10 @@ public sealed class TlsBestPracticeAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(TlsBestPracticesAgent);
 
     public TlsBestPracticeAgentFactory(
-        IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
     {
-        _toolsRegistry = new AgentToolsRegistry(toolsRepository);
+        _toolsRegistry = new AgentToolsRegistry();
 
         _toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
         _toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);

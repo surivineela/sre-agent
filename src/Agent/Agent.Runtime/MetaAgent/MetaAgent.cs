@@ -11,10 +11,10 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Plugins.Implementation;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.V2;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -32,7 +32,7 @@ Your operations leverage a knowledge graph that monitors resources and integrate
 
 ## Multi-Agent Coordination & Chain-of-Thought Reasoning:
 You are part of a multi-agent system for Azure SRE Agent, designed to make agent coordination and execution easy.
-- **Agents & Handoffs**: Use specialized agents with dedicated tools and instructions. When necessary, initiate handoffs via functions (e.g., `start<agent_name>agent`) without drawing attention to the transfer.
+- **Agents & Handoffs**: Use specialized agents with dedicated tools and instructions. When necessary, initiate handoffs via functions (e.g., `start<agent_name>agent` or `StartSubAgentAsync`) without drawing attention to the transfer.
 - **Chain-of-Thought Process**: You must think Step by Step
   - **Analyze** the request to identify its relation to Azure and the specific service.
   - **Validate** that all required details (subscription ID, resource group, resource name) are provided.
@@ -47,9 +47,9 @@ Before initiating any Azure resource operations:
 2. **If any value is missing**:
    - Use the `ListSubscriptions` tool to retrieve available subscriptions.
    - Present a clear, numbered list of subscriptions for user selection.
-   - Use the resource-specific `List*` tool(e.g. ListAppServices for app service and ListContainerApps for container apps) to show available resources. 
+   - Use the resource-specific `List*` tool(e.g. ListAppServices for app service and ListContainerApps for container apps) to show available resources.
    - Always show available resources' resource group, resource name, resource id to the user when asking for user selection
-   - Remember the user's selection for future operations. 
+   - Remember the user's selection for future operations.
    - DO NOT make up resource id when calling other tools. Use the resource id returned from the List* tool.
 3. **Never assume** any subscription, resource group, resource name or resource id; always present explicit options.
 4. Always show the user the available options and have them explicitly confirm their selection before proceeding with any operations.
@@ -162,6 +162,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
 
 
+    private readonly InstanceManagementSettings _instanceManagementSettings;
+
 
     public MetaAgent(
         [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
@@ -192,7 +194,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IMetaAgentAppCodeAnalysisPlugin appCodeAgentPlugin,
         IMetaAgentCPUAnalysisPlugin cpuAnalysisAgentPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
-        ICpuAnalysisPlugin cpuAnalysisPlugin
+        ICpuAnalysisPlugin cpuAnalysisPlugin,
+        InstanceManagementSettings instanceManagementSettings
         )
     {
         _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
@@ -231,6 +234,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 
         _threadRepository = threadRepository;
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
+
+        _instanceManagementSettings = instanceManagementSettings;
     }
 
     public async Task<string> ProcessUserMessageAsync(AgentContext agentContext, AgentChatHistory agentChatHistory)
@@ -250,7 +255,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         else
         {
             prompt = SystemPrompt;
-            _aiTools = GetThirdPartySubAgentsTools(threadGuid);
+            _aiTools = GetThirdPartySubAgentsTools(threadGuid, agentContext);
         }
 
         var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
@@ -283,7 +288,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         }
     }
 
-    private List<AITool> GetThirdPartySubAgentsTools(Guid threadGuid)
+    private List<AITool> GetThirdPartySubAgentsTools(Guid threadGuid, AgentContext context)
     {
         _storageAccountPlugin.ThreadId = threadGuid;
         _tlsBestPracticesPlugin.ThreadId = threadGuid;
@@ -318,8 +323,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_appReliabilityPlugin.StartAppReliabilityAgent),
             AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
             AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
-            AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
-            AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
+            //AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
+            //AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgentWorkflow),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
             //AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
@@ -357,14 +362,97 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations)
         ];
 
+        if (!_instanceManagementSettings.ProcessingEnabled)
+        {
+            // TODO: just for testing the old version of this agent vs. new version
+            _aiTools.AddRange([
+                AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
+                AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent)
+            ]);
+        }
+
         var subAgentTools = GetSubAgentTools(threadGuid, typeof(MetaAgent).Assembly);
         if (subAgentTools?.Count > 0)
         {
             _aiTools.AddRange(subAgentTools);
         }
 
+        _aiTools.AddRange(GetSubAgentV2Tools(threadGuid, context, typeof(MetaAgent).Assembly));
+
         _aiTools.AddRange(_mcpToolsRepository.GetAllFunctions());
         return _aiTools;
+    }
+
+    private List<AITool> GetSubAgentV2Tools(Guid threadGuid, AgentContext context, Assembly assembly)
+    {
+        List<AITool> subAgentAItools = [];
+
+        if (!_instanceManagementSettings.ProcessingEnabled)
+        {
+            return subAgentAItools;
+        }
+
+        // get subagents with input data
+        var subAgentWithInputPluginClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
+            assembly,
+            typeof(SubAgentV2Plugin<,>));
+
+        foreach (var type in subAgentWithInputPluginClasses)
+        {
+            try
+            {
+                var instance = Activator.CreateInstance(type, _threadRepository, threadGuid, context);
+
+                if (instance is not null)
+                {
+                    var startSubAgent = type.GetMethod("StartSubAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+
+                    if (startSubAgent is null)
+                    {
+                        _log.LogError("Method 'StartSubAgentAsync' does not exist on type {PluginType}", type);
+                        continue;
+                    }
+
+                    subAgentAItools.Add(AIFunctionFactory.Create(startSubAgent, instance));
+                }
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Failed to add tools for plugin {PluginType}", type);
+            }
+        }
+
+        // get subagents without input data
+        var subAgentWithoutInputPluginClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
+            assembly,
+            typeof(SubAgentV2Plugin<>));
+
+        foreach (var type in subAgentWithoutInputPluginClasses)
+        {
+            try
+            {
+                var instance = Activator.CreateInstance(type, _threadRepository, threadGuid, context);
+
+                if (instance is not null)
+                {
+                    var startSubAgent = type.GetMethod("StartSubAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+
+                    if (startSubAgent is null)
+                    {
+                        _log.LogError("Method 'StartSubAgentAsync' does not exist on type {PluginType}", type);
+                        continue;
+                    }
+
+                    subAgentAItools.Add(AIFunctionFactory.Create(startSubAgent, instance));
+                }
+            }
+            catch (Exception e)
+            {
+                _log.LogError(e, "Failed to add tools for plugin {PluginType}", type);
+            }
+        }
+
+        return subAgentAItools;
     }
 
     private List<AITool> GetSubAgentTools(Guid threadGuid, Assembly subAgentsAssembly)

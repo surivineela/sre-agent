@@ -48,8 +48,8 @@ public interface IThreadRepository
     Task<bool> UpdateAgentContextAssignmentInfoAsync(
         Guid agentContextId,
         Guid threadId,
-        string assignedInstanceId,
-        DateTimeOffset expiration);
+        string? assignedInstanceId,
+        DateTimeOffset? expiration);
     Task<bool> DeleteAgentContextAsync(Guid agentContextId, Guid threadId);
 
     Task<ReasoningMessage> GetReasoningMessageAsync(Guid reasoningMessageId, Guid agentContextId);
@@ -59,6 +59,7 @@ public interface IThreadRepository
     Task<AgentChatHistory> GetAgentChatHistoryAsync(Guid agentContextId);
     Task<AgentChatHistory> CreateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
     Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
+    Task<AgentChatHistory> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages);
     Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId);
 
     Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId);

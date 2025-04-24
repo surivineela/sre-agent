@@ -32,6 +32,11 @@ namespace Agent.Tests.Common.Mocks
             return Task.CompletedTask;
         }
 
+        public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task PostActivity(string threadId, Activity activity, string messageId = "")
         {
             _logger?.LogInformation($"ThreadId: {threadId}, Activity: {activity.Text}");
@@ -43,6 +48,11 @@ namespace Agent.Tests.Common.Mocks
             _logger?.LogInformation($"ThreadId: {threadId}, AgentId: {agentId}, Message: {message.Text}");
             Messages.Add(message.Text);
             return Task.CompletedTask;
+        }
+
+        public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
+        {
+            throw new NotImplementedException();
         }
     }
 }

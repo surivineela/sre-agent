@@ -11,7 +11,7 @@ public record AgentChatHistory(
     List<Guid> ReasoningMessageIds
 )
 {
-    public bool HasNewUserMessage { get; set; } = false;
+    public Guid LatestUserMessageId { get; set; } = Guid.Empty;
 
     public async Task<List<ReasoningMessage>> GetReasoningMessagesAsync(IThreadRepository threadRepository)
     {

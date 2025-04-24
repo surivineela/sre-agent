@@ -1,3 +1,4 @@
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -5,6 +6,7 @@ using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Microsoft.AspNetCore.OData.Query;
@@ -13,10 +15,7 @@ using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using System.Text.Json;
 using Moq;
-using Microsoft.Extensions.Azure;
-using Agent.Runtime.MetaAgent.Interfaces;
 
 namespace Agent.Evals;
 
@@ -146,7 +145,8 @@ public class MetaAgentEvals
             appCodeAnalysisPlugin ?? Mock.Of<IMetaAgentAppCodeAnalysisPlugin>(),
             cpuAnalysisPlugin ?? Mock.Of<IMetaAgentCPUAnalysisPlugin>(),
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
-            cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>()
+            cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
+            Mock.Of<InstanceManagementSettings>()
         );
     }
 
