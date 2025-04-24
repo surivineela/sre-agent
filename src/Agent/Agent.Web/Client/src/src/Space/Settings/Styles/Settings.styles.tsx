@@ -60,7 +60,7 @@ const accessControlSettingsContainer: CSSProperties = { display: 'flex', flexDir
 
 const accessControlSettingsButton: CSSProperties = { width: 'fit-content' };
 
-const getNavContainerStyles = (theme: Theme): CSSProperties =>{
+const getNavContainerStyles = (theme: Theme): CSSProperties => {
   return {
     display: 'flex',
     height: '100vh',
@@ -129,38 +129,47 @@ export const navStyles = {
 
 export const incidentManagementTextFieldStyles = {
   wrapper: {
-      width: 700,
-      display: 'flex',
-      marginTop: 20,
-      marginBottom: 20,
+    width: 700,
+    display: 'flex',
+    marginTop: 20,
+    marginBottom: 20,
   },
   subComponentStyles: {
-      label: {
-          root: {
-              width: 240,
-          },
-      }
+    label: {
+      root: {
+        width: 240,
+      },
+    }
   },
   fieldGroup: {
-      width: 460,
-      borderRadius: tokens.borderRadiusLarge,
+    width: 460,
+    borderRadius: tokens.borderRadiusLarge,
   },
+};
+
+export const incidentManagementMaskedTextFieldStyles = {
+  ...incidentManagementTextFieldStyles,
+  field: {
+    fontFamily: 'monospace',
+    WebkitTextSecurity: 'disc', // Safari-specific obfuscation
+    textSecurity: 'disc', // Obfuscates text in supported browsers
+  }
 };
 
 export const incidentManagementDropdownStyles = {
   root: {
-      width: 700,
-      display: 'flex',
-      marginTop: 20,
-      marginBottom: 20,
+    width: 700,
+    display: 'flex',
+    marginTop: 20,
+    marginBottom: 20,
   },
   label: {
-      width: 240,
+    width: 240,
   },
   title: {
     borderRadius: tokens.borderRadiusLarge,
   },
   dropdown: {
-      width: 460
+    width: 460
   },
 };

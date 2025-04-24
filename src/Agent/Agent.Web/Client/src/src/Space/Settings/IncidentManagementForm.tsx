@@ -2,7 +2,7 @@ import { DefaultButton, Dropdown, PrimaryButton, TextField } from "@fluentui/rea
 import { FC, useMemo } from "react";
 import { IncidentManagementPlatformResources, IncidentManagementResources, PagerDutyResources, Settings_Tabs, SreAgentResources } from "../../Strings/SREResources.resjson";
 import { IncidentManagementFormProps, IncidentManagementPlatform } from "../Contracts/IncidentManagement";
-import { incidentManagementDropdownStyles, incidentManagementTextFieldStyles, useSettingsStyles } from "./Styles/Settings.styles";
+import { incidentManagementDropdownStyles, incidentManagementMaskedTextFieldStyles, useSettingsStyles } from "./Styles/Settings.styles";
 
 
 const IncidentManagementForm: FC<IncidentManagementFormProps> = ({ formikProps, loading, loadFailure, saving }: IncidentManagementFormProps) => {
@@ -48,7 +48,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({ formikProps, 
                             id="connectionKey"
                             label={PagerDutyResources.pagerDutyApiKey}
                             required={true}
-                            styles={incidentManagementTextFieldStyles}
+                            styles={incidentManagementMaskedTextFieldStyles}
                             value={values.connectionKey}
                             onChange={(_event, newValue) => {
                                 setFieldValue("connectionKey", newValue, true);
