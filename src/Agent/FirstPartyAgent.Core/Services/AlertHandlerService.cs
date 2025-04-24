@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -97,7 +97,7 @@ public class AlertHandlerService
             _logger.LogInformation($"AzureAlertingPlugin: Fetching Alert Details from CosmosDB. azureAlertingId: {azureAlertingId}");
             try
             {
-                var alertDetails = _cosmosDbService.GetQueryableContainer<AlertDetailsBase>(_cosmosDbService.IcmConfigsDatabaseName, icmAgentAlertDetailsCosmosDbContainer)
+                var alertDetails = _cosmosDbService.GetQueryableContainer<AlertDetailsBase>(_cosmosDbService.IcmAgentDatabaseName, icmAgentAlertDetailsCosmosDbContainer)
                     .Where(a => a.Id.ToString() == azureAlertingId)
                     .ToList();
                 if (alertDetails != null && alertDetails.Count > 0)
@@ -149,7 +149,7 @@ public class AlertHandlerService
         ICMAlertConfig config;
         if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
         {
-            var queryable = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmConfigsDatabaseName, icmAgentConfigCosmosDbContainer);
+            var queryable = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, icmAgentConfigCosmosDbContainer);
 
             var result = await queryable.Where(x => x.AlertingId == alertingId).ToListAsync();
             config = result.FirstOrDefault();
@@ -213,7 +213,7 @@ public class AlertHandlerService
     {
         if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
         {
-            var configs = await _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmConfigsDatabaseName, icmAgentConfigCosmosDbContainer).ToListAsync();
+            var configs = await _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, icmAgentConfigCosmosDbContainer).ToListAsync();
             foreach (var config in configs)
             {
                 _icmAlertConfigs[config.AlertingId] = config;

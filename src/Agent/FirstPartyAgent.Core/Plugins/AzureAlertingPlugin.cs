@@ -108,7 +108,7 @@ namespace FirstPartyAgent.Core.Plugins
                     await kernel.LogInformation($"[get_alert_details_and_custom_instructions][{DateTime.UtcNow}] Fetching alert details for Azure Alerting Id: {alertId}", _logger, _teamsClient, _sessionMessageService);
                     var alertConfig = alertId == customAlertConfig?.AlertingId ? customAlertConfig : await _alertHandlerService.GetICMAlertConfigAsync(alertId);
                     if (alertConfig == null) alertConfig = new ICMAlertConfig() { AlertingId = alertId };
-                    var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
+                    // var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
 
                     if (alertConfig != null)
                     {

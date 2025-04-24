@@ -36,11 +36,13 @@ namespace FirstPartyAgent.Core.Models
         public bool IsAllowedOnExternalSubs { get; set; }
     }
 
-    public class GenevaActionsConfigCosmos {
+    public class GenevaActionsConfigCosmos
+    {
         [JsonProperty("id")]
         [JsonPropertyName("id")]
-        public string Id { get; set; }
+        public string Id { get; set; } = Guid.NewGuid().ToString();
         public List<GenevaActionConfig> GenevaActions { get; set; }
+        public int TeamId { get; set; }
     }
 
     public class GenevaActionConfigBase
@@ -130,5 +132,17 @@ namespace FirstPartyAgent.Core.Models
         public string IcmServiceName { get; set; }
         public string IcmTeamName { get; set; }
         public int? IcmTeamId { get; set; }
+    }
+
+    public class AgentDeployment
+    {
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public int TeamId { get; set; }
+        public string SubscriptionId { get; set; }
+        public string ResourceGroup { get; set; }
+        public string Name { get; set; }
+        public string Location { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -20,15 +20,24 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly IKustoPlugin _kustoPlugin;
         private readonly ILogger<GenevaActionsPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
-        private readonly List<GenevaActionConfig> _allGenevaActions;
+        private List<GenevaActionConfig> _allGenevaActions;
         private readonly IStorageService _storageService;
         private readonly ICosmosDBService _cosmosDbService;
+        private ISessionMessageService _sessionMessageService;
         private readonly string storageGenevaActionsContainerName = "genevaactionsconfig";
-        private readonly string cosmosGenevaActionsContainerName = "genevaactionsconfig";
+        private readonly string cosmosGenevaActionsContainerName = "GenevaActionsConfigs";
         private readonly string genevaActionsConfigName = "GenevaActions";
 
-        public GenevaActionsPlugin(BaseIcmWorkflowClient icmWorkflowClient, IKustoPlugin kustoPlugin, ILogger<GenevaActionsPlugin> logger, ITeamsClient teamsClient, IStorageService storageService, ICosmosDBService cosmosDBService)
+        public GenevaActionsPlugin(
+            BaseIcmWorkflowClient icmWorkflowClient,
+            IKustoPlugin kustoPlugin,
+            ILogger<GenevaActionsPlugin> logger,
+            ITeamsClient teamsClient,
+            IStorageService storageService,
+            ICosmosDBService cosmosDBService,
+            ISessionMessageService sessionMessageService)
         {
+            _sessionMessageService = sessionMessageService;
             _logger = logger;
             _icmWorkflowClient = icmWorkflowClient;
             _kustoPlugin = kustoPlugin;
@@ -48,14 +57,14 @@ namespace FirstPartyAgent.Core.Plugins
             {
                 try
                 {
-                    var genevaActionsContainer = _cosmosDbService.GetQueryableContainer<GenevaActionsConfigCosmos>(_cosmosDbService.IcmConfigsDatabaseName, cosmosGenevaActionsContainerName);
-                    var genevaActionsConfig = genevaActionsContainer.Where(a => a.Id.ToString() == genevaActionsConfigName).ToList();
+                    var genevaActionsContainer = _cosmosDbService.GetQueryableContainer<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, cosmosGenevaActionsContainerName);
+                    var genevaActionsConfig = await genevaActionsContainer.ToListAsync();
 
-                    if (genevaActionsConfig != null && genevaActionsConfig.Count > 0)
-                    {
-                        _allGenevaActions.AddRange(genevaActionsConfig.FirstOrDefault().GenevaActions);
-                        return;
-                    }
+                    _allGenevaActions = genevaActionsConfig
+                        .SelectMany(c => c.GenevaActions)
+                        .GroupBy(a => a.ActionName)
+                        .Select(g => g.First())
+                        .ToList();
                 }
                 catch (Exception ex)
                 {
@@ -115,7 +124,7 @@ namespace FirstPartyAgent.Core.Plugins
         private async Task<bool> IsSubscriptionInternal(string subscriptionId, Kernel kernel)
         {
             var logMessage = $"Checking if subscription {subscriptionId} is internal.";
-            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             var kustoQuery = $@"DataStudio_ServiceTree_AzureSubscription_Snapshot
                 | where SubscriptionId == '{subscriptionId}'
                 | project ServiceName, SubscriptionId, ServiceId, Environment
@@ -142,7 +151,7 @@ namespace FirstPartyAgent.Core.Plugins
             var response = await _icmWorkflowClient.SendICMWorkflowRequest(genevaActionConfig.WorkflowName, payload, genevaActionConfig.TenantId);
 
             var logMessage = $"ExecuteGenevaActionWorkflowStatus - workflowName: {genevaActionConfig.WorkflowName}, statusCode: {response.StatusCode}";
-            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
 
             if (response.IsSuccessStatusCode)
             {
@@ -164,7 +173,7 @@ namespace FirstPartyAgent.Core.Plugins
            Kernel kernel)
         {
             var logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Invoked with actionName {actionName} and parameters: {JsonConvert.SerializeObject(inputParameters)}";
-            await kernel.LogInformation(logMessage, _logger, _teamsClient);
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             var genevaAction = _allGenevaActions.Where(x => x.ActionName == actionName).FirstOrDefault();
             if (genevaAction == null)
             {
@@ -188,7 +197,7 @@ namespace FirstPartyAgent.Core.Plugins
                 if (!isSubscriptionInternal && !genevaAction.IsAllowedOnExternalSubs)
                 {
                     logMessage = $"The subscription {subscriptionId} is external. This action is not allowed.";
-                    await kernel.LogInformation(logMessage, _logger, _teamsClient);
+                    await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
                     return logMessage;
                 }
             }

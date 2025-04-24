@@ -205,7 +205,7 @@ public class AlertProcessingService : IAlertProcessingService
 
     public (Func<Task<ChatMessage>> processor, string sessionId) GetAlertProcessorAndSessionId(AlertRequestBody alertRequest)
     {
-        string sessionId = GetSessionId(alertRequest);
+        string sessionId = GetSessionId(alertRequest) + "-" + Guid.NewGuid().ToString();
         return (() => ProcessAlertAsync(alertRequest, sessionId), sessionId);
     }
 

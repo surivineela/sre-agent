@@ -23,16 +23,19 @@ namespace FirstPartyAgent.Core.Services
     /// 
     public interface ICosmosDBService
     {
+        CosmosClient CosmosClient { get; }
         IOrderedQueryable<T> GetQueryableContainer<T>(string databaseName, string containerName);
 
         Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey);
 
         bool IsEnabled { get; }
-        string IcmConfigsDatabaseName { get; }
+
+        string IcmAgentDatabaseName { get; }
     }
 
     public class CosmosDBServiceDisabled : ICosmosDBService
     {
+        public CosmosClient CosmosClient => null;
         public IOrderedQueryable<T> GetQueryableContainer<T>(string databaseName, string containerName)
         {
             return new List<T>().AsQueryable().OrderBy(x => 0);
@@ -43,7 +46,7 @@ namespace FirstPartyAgent.Core.Services
             return Task.CompletedTask;
         }
 
-        public string IcmConfigsDatabaseName => "IcmConfigs";
+        public string IcmAgentDatabaseName => "HotsiteAgent";
 
         public bool IsEnabled => false;
     }
@@ -54,12 +57,13 @@ namespace FirstPartyAgent.Core.Services
         private readonly CosmosClient _cosmosClient;
         private string _accountUrl;
         private string _managedIdentityClient;
-        public string _icmConfigsDatabaseName;
+        public string _icmAgentDatabaseName;
         private bool Enabled = true;
 
+        public CosmosClient CosmosClient => _cosmosClient;
         public bool IsEnabled => Enabled;
 
-        public string IcmConfigsDatabaseName => _icmConfigsDatabaseName;
+        public string IcmAgentDatabaseName => _icmAgentDatabaseName;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="CosmosDBService"/> class.
@@ -73,7 +77,7 @@ namespace FirstPartyAgent.Core.Services
 
             _accountUrl = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:AccountUrl", string.Empty);
             _managedIdentityClient = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:MsiClientId", string.Empty); //"051f9d76-ce6d-4428-b55c-048b6ded238a"; //configuration.GetValue<string>("CosmosDb:ManagedIdentityClient", string.Empty);
-            _icmConfigsDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmConfigsDatabaseName", string.Empty); // "IcmConfigs"; //configuration.GetValue<string>("CosmosDb:IcmConfigsDatabaseName", string.Empty);
+            _icmAgentDatabaseName = configuration.GetValue<string>("AppSettings:Core:External:CosmosDB:IcmAgentDatabaseName", string.Empty); // "IcmConfigs"; //configuration.GetValue<string>("CosmosDb:IcmConfigsDatabaseName", string.Empty);
 
             if (!hostEnvironment.IsDevelopment() && string.IsNullOrWhiteSpace(_accountUrl))
             {

@@ -5,11 +5,15 @@
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
+using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System.Net;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 
 namespace FirstPartyAgent.FunctionApp
 {
@@ -26,10 +30,10 @@ namespace FirstPartyAgent.FunctionApp
         private readonly AlertHandlerService _alertHandlerService;
 
         public ApiController(
-            ILogger<ApiController> logger, 
-            IChatService chatService, 
-            IStorageService storageService, 
-            IAlertProcessingService alertProcessingService, 
+            ILogger<ApiController> logger,
+            IChatService chatService,
+            IStorageService storageService,
+            IAlertProcessingService alertProcessingService,
             ISessionMessageService sessionMessageService,
             ICosmosDBService cosmosDBService,
             ICMWorkflowClient icmWorkflowClient,
@@ -239,10 +243,10 @@ namespace FirstPartyAgent.FunctionApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ProcessAlertStream")] HttpRequestData req)
         {
             _logger.LogInformation("Processing streaming ProcessAlert request");
-            
+
             // Create a response with 200 OK status
             var response = req.CreateResponse(HttpStatusCode.OK);
-            
+
             // Set content type
             response.Headers.Add("Content-Type", "text/plain; charset=utf-8");
 
@@ -259,8 +263,8 @@ namespace FirstPartyAgent.FunctionApp
                 return badResponse;
             }
 
-            
-            if (!string.IsNullOrWhiteSpace(alertRequest.CustomAlertConfig.AlertingId) )
+
+            if (!string.IsNullOrWhiteSpace(alertRequest.CustomAlertConfig.AlertingId))
             {
                 var incidentDetails = await _icmWorkflowClient.GetIncidentAsync(alertRequest.IncidentId);
                 if (alertRequest.CustomAlertConfig.AlertingId != incidentDetails.MonitoringSlice)
@@ -293,25 +297,25 @@ namespace FirstPartyAgent.FunctionApp
             [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportAlertDetails")] HttpRequestData req)
         {
             _logger.LogInformation("Processing ImportAlertDetails request");
-            
+
             try
             {
                 // Read file content from the request
                 string fileContent = await new StreamReader(req.Body).ReadToEndAsync();
-                
+
                 if (string.IsNullOrEmpty(fileContent))
                 {
                     var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
                     await badResponse.WriteAsJsonAsync(new { error = "File content is empty" });
                     return badResponse;
                 }
-                
+
                 // Parse the file content into a list of AlertDetails
                 List<WawsAlertDetails> wawsAlertDetailsList;
                 try
                 {
                     wawsAlertDetailsList = JsonConvert.DeserializeObject<List<WawsAlertDetails>>(fileContent);
-                    
+
                     if (wawsAlertDetailsList == null || !wawsAlertDetailsList.Any())
                     {
                         var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
@@ -319,14 +323,14 @@ namespace FirstPartyAgent.FunctionApp
                         return badResponse;
                     }
                 }
-                catch (JsonException ex)
+                catch (Newtonsoft.Json.JsonException ex)
                 {
                     _logger.LogError($"Failed to parse file content: {ex.Message}");
                     var badResponse = req.CreateResponse(HttpStatusCode.BadRequest);
                     await badResponse.WriteAsJsonAsync(new { error = $"Failed to parse file content: {ex.Message}" });
                     return badResponse;
                 }
-                
+
                 _logger.LogInformation($"Successfully parsed {wawsAlertDetailsList.Count} AlertDetails from file");
 
                 var teamsJsonPath = Path.Combine(AppContext.BaseDirectory, "IcmTeams.json");
@@ -335,8 +339,8 @@ namespace FirstPartyAgent.FunctionApp
 
                 var alertDetails = wawsAlertDetailsList
                     .Where(a => a.Actions.Any(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo)))
-                    .Select(a => 
-                    { 
+                    .Select(a =>
+                    {
                         var alertDetail = new AlertDetails(a);
                         var action = a.Actions.FirstOrDefault(act => !string.IsNullOrWhiteSpace(act.TeamAssignedTo));
                         alertDetail.TeamAssignedTo = action.TeamAssignedTo;
@@ -346,10 +350,10 @@ namespace FirstPartyAgent.FunctionApp
                         return alertDetail;
                     });
 
-                foreach(var group in alertDetails.GroupBy(a => a.TeamId))
+                foreach (var group in alertDetails.GroupBy(a => a.TeamId))
                 {
                     await _cosmosDBService.BulkWriteAsync(
-                        _cosmosDBService.IcmConfigsDatabaseName,
+                        _cosmosDBService.IcmAgentDatabaseName,
                         hotsiteAgentAlertDetailsCosmosDbContainer,
                         group,
                         new Microsoft.Azure.Cosmos.PartitionKey(group.Key ?? 0));
@@ -358,13 +362,85 @@ namespace FirstPartyAgent.FunctionApp
 
                 var response = req.CreateResponse(HttpStatusCode.OK);
 
-                
+
                 await response.WriteStringAsync($"Successfully imported {alertDetails.Count()} alert details");
                 return response;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"Failed to process ImportAlertDetails request: {ex.Message}");
+                var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await badResponse.WriteAsJsonAsync(new { error = $"Failed to process request: {ex.Message}" });
+                return badResponse;
+            }
+        }
+
+        [Function("ImportGenevaActions")]
+        public async Task<HttpResponseData> ImportGenevaActions(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportGenevaActions")] HttpRequestData req)
+        {
+            _logger.LogInformation("Processing ImportGenevaActions request");
+
+            try
+            {
+                var db = _cosmosDBService.CosmosClient.GetDatabase(_cosmosDBService.IcmAgentDatabaseName);
+                var containerProperties = new ContainerProperties
+                {
+                    Id = "GenevaActionsConfigs",
+                    PartitionKeyPath = "/TeamId",
+                    UniqueKeyPolicy = new UniqueKeyPolicy
+                    {
+                        UniqueKeys =
+                        {
+                            new UniqueKey { Paths = { "/TeamId" } },
+                        }
+                    }
+                };
+                await db.CreateContainerIfNotExistsAsync(containerProperties);
+
+                var config = await req.ReadFromJsonAsync<GenevaActionsConfigCosmos>();
+
+                await _cosmosDBService.BulkWriteAsync(_cosmosDBService.IcmAgentDatabaseName,
+                    "GenevaActionsConfigs",
+                    new List<GenevaActionsConfigCosmos> { config },
+                    new PartitionKey(config.TeamId));
+
+                return req.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to process ImportGenevaActions request: {ex.Message}");
+                var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
+                await badResponse.WriteAsJsonAsync(new { error = $"Failed to process request: {ex.Message}" });
+                return badResponse;
+            }
+        }
+
+        [Function("ImportAgentDeployments")]
+        public async Task<HttpResponseData> ImportAgentDeployments(
+            [HttpTrigger(AuthorizationLevel.Function, "post", Route = "ImportAgentDeployments")] HttpRequestData req)
+        {
+            _logger.LogInformation("Processing ImportAgentDeployments request");
+            try
+            {
+                var db = _cosmosDBService.CosmosClient.GetDatabase(_cosmosDBService.IcmAgentDatabaseName);
+                var containerProperties = new ContainerProperties
+                {
+                    Id = "AgentDeployments",
+                    PartitionKeyPath = "/TeamId",
+                };
+                await db.CreateContainerIfNotExistsAsync(containerProperties);
+
+                var data = await req.ReadFromJsonAsync<AgentDeployment>();
+                await _cosmosDBService.BulkWriteAsync(_cosmosDBService.IcmAgentDatabaseName,
+                    "AgentDeployments",
+                    new List<AgentDeployment> { data },
+                    new PartitionKey(data.TeamId));
+                return req.CreateResponse(HttpStatusCode.OK);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Failed to process ImportAgentDeployments request: {ex.Message}");
                 var badResponse = req.CreateResponse(HttpStatusCode.InternalServerError);
                 await badResponse.WriteAsJsonAsync(new { error = $"Failed to process request: {ex.Message}" });
                 return badResponse;
