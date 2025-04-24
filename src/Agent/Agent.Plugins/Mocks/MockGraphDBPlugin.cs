@@ -195,7 +195,7 @@ namespace Agent.Plugins.Mocks
             return _reposScanned;
         }
 
-        public Task<string> GetResourceIdForResourceName(string resourceName)
+        public Task<string> GetResourceIdForResourceName(string resourceName, string resourceType)
         {
             return Task.FromResult<string>("/subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp");
         }
