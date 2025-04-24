@@ -42,14 +42,26 @@ namespace Agent.Web.Controllers.v1
         }
 
         /// <summary>
+        /// Returns a list of all available resource types in the graph
+        /// </summary>
+        /// <returns>List of resource types</returns>
+        [HttpGet("resourceTypes")]
+        public async Task<ActionResult<IEnumerable<string>>> GetResourceTypes()
+        {
+            var result = await _graphService.GetResourceTypesAsync();
+            return Ok(result);
+        }
+
+        /// <summary>
         /// Gets all app groups for a specific subscription
         /// </summary>
         /// <param name="subId">The subscription ID</param>
+        /// <param name="resourceType">Optional resource type to filter app groups</param>
         /// <returns>List of app groups</returns>
         [HttpGet("{subId}/appGroups")]
-        public async Task<ActionResult<ResultSet<dynamic>>> GetAppGroupsBySubscription(string subId)
+        public async Task<ActionResult<ResultSet<dynamic>>> GetAppGroupsBySubscription(string subId, [FromQuery] string resourceType = null)
         {
-            var result = await _graphService.GetAppGroupsBySubscriptionAsync(subId);
+            var result = await _graphService.GetAppGroupsBySubscriptionAsync(subId, resourceType);
             return Ok(result);
         }
 

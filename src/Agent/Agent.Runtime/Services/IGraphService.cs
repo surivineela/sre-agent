@@ -24,6 +24,11 @@ public interface IGraphService
     Task<ResultSet<dynamic>> QuerySubscriptionsAsync();
 
     /// <summary>
+    /// Get the list of all available resource types in the graph
+    /// </summary>
+    Task<ResultSet<dynamic>> GetResourceTypesAsync();
+
+    /// <summary>
     /// Query the graph database with a given query
     /// </summary>
     /// <param name="query">The query to execute</param>
@@ -34,8 +39,9 @@ public interface IGraphService
     /// Get the app groups for a given subscription
     /// </summary>
     /// <param name="subscriptionId">The subscription ID</param>
+    /// <param name="resourceType">The resource type to filter by (optional)</param>
     /// <returns>The app groups</returns>
-    Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId);
+    Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId, string? resourceType = null);
 
     /// <summary>
     /// Get all connected resources for a given app group

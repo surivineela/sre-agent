@@ -18,6 +18,8 @@ public class Constants
     public const string ManagedClusterType = "Microsoft.ContainerService/managedClusters";
     public const string UserAssignedManagedIdentityType = "Microsoft.ManagedIdentity/userAssignedIdentities";
     public const string AzureKubernetesServiceType = "Microsoft.ContainerService/managedClusters";
+    public const string AzureKubernetesServiceDeploymentType = "k8s/apps/v1/deployments";
+    public const string AzureKubernetesServiceStatefulSetType = "k8s/apps/v1/statefulsets";
     public const string AzureRedisCacheType = "Microsoft.Cache/redis";
     public const string AzureSQLType = "Microsoft.Sql/servers";
     public const string CosmosDbType = "Microsoft.DocumentDB/databaseAccounts";

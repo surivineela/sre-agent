@@ -32,7 +32,7 @@ public class GraphService : IGraphService
         };
 
     // Define the allowed Kubernetes resource types
-    private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets", "services" };
+    private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
 
     public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService)
     {
@@ -70,27 +70,109 @@ public class GraphService : IGraphService
         return await _graphDatabaseClient.Query(query);
     }
 
-    public async Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId)
+    public async Task<ResultSet<dynamic>> GetResourceTypesAsync()
+    {
+        var resourceTypes = new List<dynamic>
+        {
+            ArmConstants.ContainerAppType.ToLower(),
+            ArmConstants.AppServiceType.ToLower(),
+            ArmConstants.AzureKubernetesServiceType.ToLower(),
+            ArmConstants.AzureKubernetesServiceDeploymentType.ToLower(),
+            ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()
+        };
+
+        return new ResultSet<dynamic>(resourceTypes, new Dictionary<string, object>());
+    }
+
+    public async Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId, string? resourceType = null)
     {
         _logger.LogInformation("Querying app groups for subscription {subscriptionId}", subscriptionId);
         if (string.IsNullOrWhiteSpace(subscriptionId))
         {
             throw new ArgumentException("Subscription ID cannot be null or empty", nameof(subscriptionId));
         }
-
-        string query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}')
-                        .has('resourceType', within(
+        var resourceTypeFilter = $@"within(
                             '{ArmConstants.ContainerAppType.ToLower()}',
                             '{ArmConstants.AppServiceType.ToLower()}',
-                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}',
-                        ))
+                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}'
+                        )";
+        if (!string.IsNullOrWhiteSpace(resourceType))
+        {
+            if (resourceType.Contains("k8s/"))
+            {
+                resourceTypeFilter = $@"within(
+                            '{ArmConstants.AzureKubernetesServiceType.ToLower()}'
+                        )";
+            }
+            else
+            {
+                resourceTypeFilter = $@"within(
+                            '{resourceType.ToLower()}'
+                        )";
+            }
+        }
+
+        string query = $@"g.V().has('subscriptionId', '{subscriptionId.ToLower()}')
+                        .has('resourceType', {resourceTypeFilter})
                         .project('id', 'name', 'type', 'properties')
                         .by(id())
                         .by(coalesce(values('resourceName'), constant('')))
                         .by(label())
                         .by(valueMap())";
 
-        return await _graphDatabaseClient.Query(query);
+        var azureResourceApps = await _graphDatabaseClient.Query(query);
+
+        // Check if we have any AKS resources in the results
+        var aksResources = azureResourceApps.Where(resource =>
+            resource["type"].ToString().Equals(ArmConstants.AzureKubernetesServiceType, StringComparison.OrdinalIgnoreCase))
+            .ToList();
+
+        if (aksResources.Any())
+        {
+            var k8sResourceTypeFilter = $@"within(
+                            '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}',
+                            '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}'
+                        )";
+            if (!string.IsNullOrWhiteSpace(resourceType))
+            {
+                k8sResourceTypeFilter = $@"within(
+                            '{resourceType.ToLower()}'
+                        )";
+            }
+
+            _logger.LogInformation("Found {count} AKS resources, fetching their deployments and statefulsets", aksResources.Count);
+
+            var allResults = new List<dynamic>(azureResourceApps);
+
+            foreach (var aksResource in aksResources)
+            {
+                // Replace direct property access with GetFirstValueAsString method
+                string aksResourceId = GetFirstValueAsString(aksResource["properties"] as IDictionary<string, object>, "resourceId");
+                _logger.LogInformation("Querying deployments and statefulsets for AKS clusterResourceId {resourceId}", aksResourceId);
+
+                // Query to get deployments and statefulsets for this AKS cluster
+                string k8sQuery = $@"g.V().has('clusterResourceId', '{aksResourceId}')
+                            .has('resourceType',  {k8sResourceTypeFilter})
+                            .project('id', 'name', 'type', 'properties')
+                            .by(id())
+                            .by(coalesce(values('resourceName'), constant('')))
+                            .by(label())
+                            .by(valueMap())";
+
+                var k8sResources = await _graphDatabaseClient.Query(k8sQuery);
+
+                if (k8sResources != null && k8sResources.Any())
+                {
+                    _logger.LogInformation("Found {count} deployments/statefulsets for AKS resource {resourceId}",
+                        k8sResources.Count, aksResourceId);
+                    allResults.AddRange(k8sResources);
+                }
+            }
+
+            return new ResultSet<dynamic>(allResults, new Dictionary<string, object>());
+        }
+
+        return azureResourceApps;
     }
 
     private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId, int hops)
@@ -146,13 +228,38 @@ public class GraphService : IGraphService
 
         // HashSet to track visited nodes to avoid cycles
         var processedNodes = new HashSet<string>();
-        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, hops);
+
+        // Only apply K8s filter for Azure Kubernetes Service resources
+        Func<dynamic, bool> nodeFilter = resource => true; // Default to allow all resources
+        Console.WriteLine($"Graph ResourceId: {resourceId}");
+        if (resourceId.Contains("microsoft.containerservice_managedclusters") && !resourceId.Contains("namespaces"))
+        {
+            nodeFilter = K8sResourceFilter;
+        }
+
+        var appGroupItems = await ProcessResourceHierarchyAsync(resourceId, processedNodes, hops, nodeFilter);
 
         return new ResultSet<AppGroupItem>(appGroupItems, new Dictionary<string, object>());
     }
 
+    // Renamed filter method to determine if a Kubernetes resource should be included
+    private bool K8sResourceFilter(dynamic resource)
+    {
+        // If it's a Kubernetes resource, check if it's an allowed type
+        bool isKubernetesResource = resource["type"].StartsWith("k8s/", StringComparison.OrdinalIgnoreCase);
+
+        if (isKubernetesResource)
+        {
+            // Skip if the resource type doesn't contain any of the allowed types
+            return allowedTypes.Any(type => resource["type"].Contains(type, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // Include all non-Kubernetes resources
+        return true;
+    }
+
     // Recursive method to explore the connected resources for a given resource
-    private async Task<List<AppGroupItem>> ProcessResourceHierarchyAsync(string resourceId, HashSet<string> processedNodes, int remainingLevels)
+    private async Task<List<AppGroupItem>> ProcessResourceHierarchyAsync(string resourceId, HashSet<string> processedNodes, int remainingLevels, Func<dynamic, bool> nodeFilter)
     {
         if (remainingLevels <= 0 || processedNodes.Contains(resourceId))
         {
@@ -179,19 +286,13 @@ public class GraphService : IGraphService
                 continue;
             }
 
-            bool isKubernetesResource = resource["type"].StartsWith("k8s/", StringComparison.OrdinalIgnoreCase);
-
-            if (isKubernetesResource)
+            // Apply the node filter function
+            if (!nodeFilter(resource))
             {
-                // Skip if the resource type doesn't contain any of the allowed types (deployments, statefulsets, services, namespaces)
-                // This is because we're only displaying deployments, statefulsets, services, and namespaces in the UI
-                if (!allowedTypes.Any(type => resource["type"].Contains(type, StringComparison.OrdinalIgnoreCase)))
-                {
-                    continue;
-                }
+                continue;
             }
 
-            var childItems = await ProcessResourceHierarchyAsync(relatedResourceId, processedNodes, remainingLevels - 1);
+            var childItems = await ProcessResourceHierarchyAsync(relatedResourceId, processedNodes, remainingLevels - 1, nodeFilter);
 
             var properties = resource["properties"] as IDictionary<string, object>;
 

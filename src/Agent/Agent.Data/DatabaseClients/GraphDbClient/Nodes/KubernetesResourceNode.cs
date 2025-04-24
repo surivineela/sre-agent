@@ -11,6 +11,16 @@ public class KubernetesResourceNode : GraphNode
 {
     // Set to the k8s resource object to avoid fetching it twice
     public IKubernetesObject ResourceObject { get; set; }
+
+    [GraphProperty("subscriptionId")]
+    public string SubscriptionId { get; set; }
+
+    [GraphProperty("resourceGroupName")]
+    public string ResourceGroupName { get; set; }
+
+    [GraphProperty("location")]
+    public string Location { get; set; }
+
     // the cluster arm resource id
     [GraphProperty("clusterResourceId")]
     public string ClusterResourceId { get; set; }
@@ -28,6 +38,9 @@ public class KubernetesResourceNode : GraphNode
     public string Kind { get; set; }
     public IDictionary<string, string> Annotations { get; set; }
     public IDictionary<string, string> Labels { get; set; }
+
+    [GraphJsonProperty("appHealthInfo")]
+    public AppHealthInfo AppHealthInfo { get; set; }
 
     public KubernetesResourceNode(
         IKubernetesObject k8sObject,

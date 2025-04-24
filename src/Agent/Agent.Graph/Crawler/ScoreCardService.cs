@@ -43,6 +43,27 @@ public class ScoreCardService
 
             try
             {
+                var resourceType = result["type"]?.ToString();
+                if (string.IsNullOrEmpty(resourceType))
+                {
+                    _logger.LogWarning($"Resource type is null or empty for result: {result}");
+                    continue;
+                }
+                var updated = false;
+                if (resourceType.Equals(Constants.AzureKubernetesServiceDeploymentType, StringComparison.OrdinalIgnoreCase) ||
+                    resourceType.Equals(Constants.AzureKubernetesServiceStatefulSetType, StringComparison.OrdinalIgnoreCase))
+                {
+                    var node = CreateKubernetesResourceNodeFromDictionary(result);
+                    if (node == null)
+                    {
+                        _logger.LogWarning($"Could not create KubernetesResourceNode from result");
+                        continue;
+                    }
+
+                    updated = await UpdateScoreCardForAKSNode(node);
+                    if (updated) updatedCount++;
+                    continue;
+                }
                 var armResourceNode = CreateArmResourceNodeFromDictionary(result);
                 if (armResourceNode == null)
                 {
@@ -50,7 +71,7 @@ public class ScoreCardService
                     continue;
                 }
 
-                var updated = await UpdateScoreCard(armResourceNode);
+                updated = await UpdateScoreCard(armResourceNode);
                 if (updated) updatedCount++;
             }
             catch (Exception ex)
@@ -117,6 +138,70 @@ public class ScoreCardService
         }
     }
 
+    private KubernetesResourceNode CreateKubernetesResourceNodeFromDictionary(Dictionary<string, object> result)
+    {
+        try
+        {
+            // Get primary fields
+            string id = result["id"]?.ToString();
+            string name = result["name"]?.ToString();
+            string type = result["type"]?.ToString();
+
+            var properties = result["properties"] as Dictionary<string, object>;
+            if (properties == null)
+            {
+                _logger.LogWarning($"Properties is null for node {id}");
+                return null;
+            }
+
+            // Extract Kubernetes specific values
+            string clusterResourceId = GetFirstPropertyValue(properties, "clusterResourceId");
+            string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
+            string group = GetFirstPropertyValue(properties, "group");
+            string apiVersion = GetFirstPropertyValue(properties, "apiVersion");
+            string kind = GetFirstPropertyValue(properties, "kind");
+
+            // Extract annotations and labels
+            Dictionary<string, string> annotations = new Dictionary<string, string>();
+            Dictionary<string, string> labels = new Dictionary<string, string>();
+
+            foreach (var prop in properties)
+            {
+                if (prop.Key.StartsWith("annotation_"))
+                {
+                    string annotationKey = prop.Key.Substring("annotation_".Length);
+                    string value = GetFirstPropertyValue(properties, prop.Key);
+                    annotations[annotationKey] = value;
+                }
+                else if (prop.Key.StartsWith("label_"))
+                {
+                    string labelKey = prop.Key.Substring("label_".Length);
+                    string value = GetFirstPropertyValue(properties, prop.Key);
+                    labels[labelKey] = value;
+                }
+            }
+
+            // Create the KubernetesResourceNode
+            var kubernetesResourceNode = new KubernetesResourceNode(
+                k8sObject: null, // ResourceObject is not available during graph query
+                clusterResourceId: clusterResourceId,
+                resourceName: resourceName,
+                group: group,
+                apiVersion: apiVersion,
+                kind: kind,
+                annotations: annotations.Count > 0 ? annotations : null,
+                labels: labels.Count > 0 ? labels : null
+            );
+
+            return kubernetesResourceNode;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error converting dictionary to KubernetesResourceNode");
+            return null;
+        }
+    }
+
     // Helper method to extract the first value from a property that might be an array
     private string GetFirstPropertyValue(Dictionary<string, object> properties, string key)
     {
@@ -147,7 +232,7 @@ public class ScoreCardService
             _logger.LogWarning($"No metrics collector found for resource type {node.ResourceType}, resource name: {node.ResourceName}");
             return false;
         }
-        
+
         try
         {
             var appHealthInfo = await collector.CollectMetricsAsync(node);
@@ -162,6 +247,29 @@ public class ScoreCardService
         }
     }
 
+
+    private async Task<bool> UpdateScoreCardForAKSNode(KubernetesResourceNode node)
+    {
+
+        // TODO(jianbo): add collector for AKS to update with real metrics
+        try
+        {
+            var appHealthInfo = new AppHealthInfo
+            {
+                Availability = 1,
+                Health = ScorecardHealthState.Unknown,
+            };
+            node.AppHealthInfo = appHealthInfo;
+            await _graphDatabaseClient.AddOrUpdateNodeAsync(node);
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Failed to update appHealthInfo for node {node.GetNodeId()} ({node.ResourceName})");
+            return false;
+        }
+    }
+
     private string GetResourceNodesToUpdateQuery()
     {
         // TODO: Update the query with resources that has AppHealthInfo
@@ -171,6 +279,8 @@ public class ScoreCardService
                     '{Constants.ContainerAppType.ToLower()}',
                     '{Constants.AppServiceType.ToLower()}',
                     '{Constants.AzureRedisCacheType.ToLower()}',
+                    '{Constants.AzureKubernetesServiceDeploymentType.ToLower()}',
+                    '{Constants.AzureKubernetesServiceStatefulSetType.ToLower()}',
                 ))
                 .project('id', 'name', 'type', 'properties')
                 .by(id())
