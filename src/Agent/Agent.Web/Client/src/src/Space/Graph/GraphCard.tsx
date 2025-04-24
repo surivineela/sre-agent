@@ -48,6 +48,40 @@ const ICON_LOOKUP: Record<string, string> = {
     networksecuritygroup: "NSG.svg",
 };
 
+// Friendly names for resource types
+const FRIENDLY_NAMES: Record<string, string> = {
+    // Compute / containers
+    containerapp: "Container App",
+    containerappjob: "Container App Job",
+    managedenvironment: "Managed Environment",
+
+    // Kubernetes / orchestrators
+    aks: "Kubernetes Service",
+    managedcluster: "Kubernetes Service",
+    kubernetes: "Kubernetes Service",
+    scaleset: "Scale Set",
+
+    // Web & Functions
+    webapp: "Web App",
+    functionapp: "Function App",
+    site: "Web App",
+
+    // Databases & caches
+    cosmos: "Cosmos DB",
+    cosmosdb: "Cosmos DB",
+    sql: "SQL Server",
+    sqlserver: "SQL Server",
+    redis: "Redis Cache",
+    cache: "Redis Cache",
+
+    // Networking
+    vnet: "Virtual Network",
+    virtualnetwork: "Virtual Network",
+    subnet: "Subnet",
+    nsg: "Network Security Group",
+    networksecuritygroup: "Network Security Group",
+};
+
 const DEFAULT_ICON = "azureResource.svg";
 
 const resolveIcon = (azureType?: string): string => {
@@ -55,6 +89,21 @@ const resolveIcon = (azureType?: string): string => {
     const t = azureType.toLowerCase();
     const match = Object.keys(ICON_LOOKUP).find((k) => t.includes(k));
     return ICON_BASE + (match ? ICON_LOOKUP[match] : DEFAULT_ICON);
+};
+
+// Get friendly name for resource type
+const getFriendlyName = (azureType?: string): string => {
+    if (!azureType) return 'Subscription';
+    const t = azureType.toLowerCase();
+    const match = Object.keys(FRIENDLY_NAMES).find((k) => t.includes(k));
+    
+    if (match) {
+        return FRIENDLY_NAMES[match];
+    } else {
+        // Extract the type from resourceType path as fallback
+        const typeArray = azureType.split("/");
+        return typeArray[typeArray.length - 1];
+    }
 };
 
 // ────────────────────────────────────────────────────────────────────────────────
@@ -71,8 +120,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const type = useMemo(() => {
         const resourceType = data?.properties?.type;
         if (resourceType) {
-            const typeArray = resourceType.split("/");
-            return typeArray[typeArray.length - 1];
+            return getFriendlyName(resourceType);
         } else {
             return 'subscription';
         }
