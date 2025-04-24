@@ -193,8 +193,7 @@ namespace FirstPartyAgent.Core.Plugins
             var subscriptionId = inputParameters.ContainsKey("subscriptionId") ? inputParameters["subscriptionId"] : (inputParameters.ContainsKey("subscription") ? inputParameters["subscription"] : null);
             if (!string.IsNullOrWhiteSpace(subscriptionId))
             {
-                var isSubscriptionInternal = await IsSubscriptionInternal(subscriptionId, kernel);
-                if (!isSubscriptionInternal && !genevaAction.IsAllowedOnExternalSubs)
+                if (!genevaAction.IsAllowedOnExternalSubs && !(await IsSubscriptionInternal(subscriptionId, kernel)))
                 {
                     logMessage = $"The subscription {subscriptionId} is external. This action is not allowed.";
                     await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);

@@ -52,5 +52,21 @@
     "TenantId": "8b4ee84d-c4b2-47db-b046-c4e863852b3c",
     "WorkflowName": "AddRRSSubExclusionGeneva-SREAgent1P-AJSHARM",
     "WorkflowInputParameters": [ "subscriptionId" ]
+  },
+  {
+    "IsWriteAction": false,
+    "IsAllowedOnExternalSubs": true,
+    "ActionName": "GetQuota",
+    "TenantId": "5fb60258-f245-48c7-8809-feed665c100d",
+    "WorkflowName": "SreAgent-QuotaGet",
+    "WorkflowInputParameters": [ "region", "subscriptionId", "quotaId" ]
+  },
+  {
+    "IsWriteAction": true,
+    "IsAllowedOnExternalSubs": true,
+    "ActionName": "IncreaseQuota",
+    "TenantId": "5fb60258-f245-48c7-8809-feed665c100d",
+    "WorkflowName": "SreAgent-QuotaIncrease",
+    "WorkflowInputParameters": [ "region", "subscriptionId", "quotaId", "limit" ]
   }
 ]  
