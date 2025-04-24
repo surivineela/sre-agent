@@ -339,7 +339,8 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     messagesDivRef,
     onClickDownButton,
     isDownButtonVisible,
-    intersectionObserverRef
+    intersectionObserverRef,
+    currentThreadId
   };
 };
 
