@@ -271,7 +271,7 @@ Strict Requirements:
 Input JSON:
 {jsonResult}
 """;
-                    var response = await ChatClient.GetResponseAsync(prompt);
+                    var response = await ChatClient.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
                     var mermaidSpec = response.Text;
                     _logger.LogInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 

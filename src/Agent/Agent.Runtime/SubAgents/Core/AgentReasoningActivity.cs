@@ -38,7 +38,11 @@ public class AgentReasoningActivity : TaskActivity<GetNextActionInput, AgentReas
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 ["AllowParallelToolCalls"] = false
-            }
+            },
+            // Configure low temperature first to make the response deterministic
+            // So we can refine our prompt based on a stable response.
+            // After the result become stable, we can increase the temperature to get more creative responses.
+            Temperature = 0.3f,
         };
 
         var allMessages = _toolsRepository.GetMCPServerInstructions().Concat(input.ChatMessages).ToList();

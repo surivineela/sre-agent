@@ -535,7 +535,10 @@ namespace Agent.Plugins
 
             try
             {
-                var chatResponse = await _chatClient.GetResponseAsync(prompt);
+                var chatResponse = await _chatClient.GetResponseAsync(prompt, new ChatOptions
+                {
+                    Temperature = 0.5f,
+                });
                 return chatResponse.Messages.FirstOrDefault()?.Text ?? rawLogs;
             }
             catch (Exception ex)

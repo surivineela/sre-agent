@@ -30,13 +30,14 @@ public class GenericGetNextAction2Activity : TaskActivity<GetNextActionInput, Ch
     public override async Task<ChatMessage> RunAsync(TaskActivityContext context, GetNextActionInput input)
     {
         var chatOptions = new ChatOptions
-    {
+        {
             Tools = _toolsRepository.GetAllTools(input.ToolSignatures).Select<string, AITool>(sig => _toolsRepository.FindAiFunction(sig).ToolFunction).ToList(),
             ToolMode = ChatToolMode.RequireAny,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
                 ["AllowParallelToolCalls"] = false
-            }
+            },
+            Temperature = 0.3f,
         };
 
         var allMessages = _toolsRepository.GetMCPServerInstructions().Concat(input.ChatMessages).ToList();
