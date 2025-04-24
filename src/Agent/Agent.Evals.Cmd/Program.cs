@@ -10,6 +10,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Secrets;
 using Azure.Messaging.EventHubs;
 using Agent.Evals.Common;
+using System.Collections;
 
 namespace Agent.Evals.Cmd;
 
@@ -70,11 +71,25 @@ public class Program
             return;
         }
 
-        var buildId = Environment.GetEnvironmentVariable("Build_BuildId", EnvironmentVariableTarget.Process);
-        var buildNumber = Environment.GetEnvironmentVariable("Build_BuildNumber", EnvironmentVariableTarget.Process);
-        
+        var buildId = Environment.GetEnvironmentVariable("BUILD_BUILDID");
+        var buildNumber = Environment.GetEnvironmentVariable("BUILD_BUILDNUMBER");
+        var buildBranch = Environment.GetEnvironmentVariable("BUILD_SOURCEBRANCH");
+
+        // Iterate through all environment variables and log those starting with "Build"
+        Console.WriteLine("Build-related environment variables:");
+        foreach (DictionaryEntry entry in Environment.GetEnvironmentVariables())
+        {
+            string key = entry.Key.ToString();
+            if (key.StartsWith("Build", StringComparison.OrdinalIgnoreCase))
+            {
+                Console.WriteLine($"  {key} = {entry.Value}");
+            }
+        }
+        Console.WriteLine();
+
         var testResults = new Dictionary<string, TestResult>();
         var testIdToTestInfoMap = new Dictionary<string, (string, string)>();
+        string testRunId = string.Empty;
 
         XmlNode? testDefinitionsNode = null;
         XmlNode? resultsNode = null;
@@ -82,6 +97,11 @@ public class Program
         {
             if (node.Name == "TestRun")
             {
+                if (string.IsNullOrEmpty(testRunId))
+                {
+                    testRunId = node.Attributes?.GetNamedItem("id")?.Value ?? string.Empty;
+                }
+
                 foreach (XmlNode childnode in node.ChildNodes)
                 {
                     if (childnode.Name == "TestDefinitions")
@@ -161,7 +181,7 @@ public class Program
 
                         var result = new TestResult
                         {
-                            TestId = $"{testId}-{evalsGuid}",
+                            TestId = $"{testId}__{evalsGuid}",
                             TestMethod = testName,
                             ClassName = className,
                             BuildId = buildId,
@@ -182,6 +202,13 @@ public class Program
                         result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
                         result.HasPassed = hasPassed;
                         result.LLMDeploymentName = evaluationResults.LLMDeploymentName;
+
+                        // Parse AdditionalInfo in kusto with parse-kv:
+                        // | parse-kv AdditionalInfo as (TestRunId:string, Branch:string) with (pair_delimiter=",", kv_delimiter=":")
+                        var additionInfoBuilder = new StringBuilder();
+                        additionInfoBuilder.Append($"TestRunId:{testRunId},");
+                        additionInfoBuilder.Append($"Branch:{buildBranch},");
+                        result.AdditionalInfo = additionInfoBuilder.ToString();
 
                         testResults[result.TestId] = result;
                     }                    
