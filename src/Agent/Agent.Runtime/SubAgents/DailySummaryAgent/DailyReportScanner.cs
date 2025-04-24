@@ -1049,7 +1049,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         {
             var healthInfoList = new List<AppHealthInfo>();
             var summary = new StringBuilder();
-            summary.AppendLine($"###🔍 Resource Health Summary:");
+            summary.AppendLine($"### 🔍 Resource Health Summary:");
             summary.AppendLine();
             summary.AppendLine($"**{_armResourceNodes.Count}** resources found\n");
 

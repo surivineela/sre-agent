@@ -314,7 +314,7 @@ public class GraphService : IGraphService
     public async Task<List<ArmResourceNode>> GetAllResourceNodes()
     {
         _logger.LogInformation("Fetching all resource nodes from the graph database.");
-        var allResourceNodes = await _graphDatabaseClient.Query("g.V().project('resourceType', 'resourceName','resourceGroupName','subscriptionId', 'resourceId').by(coalesce(values('resourceType'), constant('MISSING'))).by(coalesce(values('resourceName'), constant('MISSING'))).by(coalesce(values('resourceGroupName'), constant('MISSING'))).by(coalesce(values('subscriptionId'), constant('MISSING'))).by(coalesce(values('resourceId'), constant('MISSING')))");
+        var allResourceNodes = await _graphDatabaseClient.Query("g.V().project('resourceType', 'resourceName','resourceGroupName','subscriptionId', 'resourceId', 'properties').by(coalesce(values('resourceType'), constant('MISSING'))).by(coalesce(values('resourceName'), constant('MISSING'))).by(coalesce(values('resourceGroupName'), constant('MISSING'))).by(coalesce(values('subscriptionId'), constant('MISSING'))).by(coalesce(values('resourceId'), constant('MISSING'))).by(valueMap())");
 
         if (allResourceNodes is null || allResourceNodes.Count == 0)
         {
@@ -324,14 +324,51 @@ public class GraphService : IGraphService
 
         _logger.LogInformation($"Fetched {allResourceNodes.Count} resource nodes from the graph database.");
 
-        return [.. allResourceNodes.Select(node => new ArmResourceNode
+        var resources = new List<ArmResourceNode>();
+        foreach (var node in allResourceNodes)
+        {
+            if (node is IDictionary<string, object> dict)
             {
-                ResourceType = node["resourceType"],
-                ResourceName = node["resourceName"],
-                ResourceGroupName = node["resourceGroupName"],
-                SubscriptionId = node["subscriptionId"],
-                ResourceId = node["resourceId"]
-            })];
+                AppHealthInfo appHealthInfo = null;
+
+                if (dict.TryGetValue("properties", out var propertiesObj) && propertiesObj != null)
+                {
+                    var properties = (IDictionary<string, object>)propertiesObj;
+
+                    if (properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
+                    {
+                        var options = new JsonSerializerOptions
+                        {
+                            IncludeFields = true,
+                        };
+
+                        var jsonStringList = ((IEnumerable<object>)appHealthInfoObj)
+                            .OfType<string>()
+                            .ToList();
+
+                        if (jsonStringList.Count > 0 && jsonStringList[0] != null)
+                        {
+                            // Deserialize the first object (or all, if needed)
+                            appHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0], options);
+                        }
+                    }
+                }
+
+                var armResourceNode = new ArmResourceNode
+                {
+                    ResourceType = node["resourceType"],
+                    ResourceName = node["resourceName"],
+                    ResourceGroupName = node["resourceGroupName"],
+                    SubscriptionId = node["subscriptionId"],
+                    ResourceId = node["resourceId"],
+                    AppHealthInfo = appHealthInfo
+                };
+
+                resources.Add(armResourceNode);
+            }
+        }
+
+        return resources;
     }
 
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
