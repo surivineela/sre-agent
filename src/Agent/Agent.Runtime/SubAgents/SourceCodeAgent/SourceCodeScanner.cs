@@ -49,7 +49,7 @@ namespace Agent.Runtime.SubAgents.SourceCodeAgent
             _logger.LogExternalInformation("Test external log");
 
             var sourceCodeAgentV2AgentContexts = (await _threadRepository.GetAllAgentContextsAsync())
-                ?.Where(x => x.AgentType == AgentTypeEnum.SourceCode && (x.ContextState != ContextStateEnum.Completed || x.ContextState != ContextStateEnum.Failed))
+                ?.Where(x => x.AgentType == AgentTypeEnum.SourceCode && x.ContextState != ContextStateEnum.Completed && x.ContextState != ContextStateEnum.Failed)
                 ?.ToList();
 
             if (sourceCodeAgentV2AgentContexts != null && sourceCodeAgentV2AgentContexts.Count > 0)

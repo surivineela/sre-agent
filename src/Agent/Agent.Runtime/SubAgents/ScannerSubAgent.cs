@@ -60,11 +60,7 @@ namespace Agent.Runtime.SubAgents
 
                 agentChatHistory.ReasoningMessageIds.Add(reasoningMessage.Id);
 
-                if (messageToAddToChatHistory.Role == ChatRole.User)
-                {
-                    await _sinkService.SinkUserMessageAsync(messageToAddToChatHistory.Text, agentContext.ThreadId);
-                }
-                else if (messageToAddToChatHistory.Role == ChatRole.Assistant && !string.IsNullOrEmpty(messageToAddToChatHistory.Text))
+                if (messageToAddToChatHistory.Role == ChatRole.Assistant && !string.IsNullOrEmpty(messageToAddToChatHistory.Text))
                 {
                     await _sinkService.SinkAgentMessageAsync(agentContext.ThreadId, messageToAddToChatHistory.Text);
                 }
