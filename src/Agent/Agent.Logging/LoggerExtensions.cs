@@ -8,7 +8,9 @@ public static class LoggerExtensions
     {
         using (logger.BeginScope(new Dictionary<string, object> { { AzureDataExplorerLogger.LogTypeName, AzureDataExplorerLogger.InternalLogType } }))
         {
-            logger.LogInformation($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", AzureDataExplorerLogger.InternalLogType);
+            string escapedMessage = message.Replace("{", "{{").Replace("}", "}}");
+
+            logger.LogInformation($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {escapedMessage}", AzureDataExplorerLogger.InternalLogType);
         }
     }
 
@@ -16,7 +18,9 @@ public static class LoggerExtensions
     {
         using (logger.BeginScope(new Dictionary<string, object> { { AzureDataExplorerLogger.LogTypeName, AzureDataExplorerLogger.ExternalLogType } }))
         {
-            logger.LogInformation($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", AzureDataExplorerLogger.ExternalLogType);
+            string escapedMessage = message.Replace("{", "{{").Replace("}", "}}");
+
+            logger.LogInformation($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {escapedMessage}", AzureDataExplorerLogger.ExternalLogType);
         }
     }
 
@@ -24,6 +28,8 @@ public static class LoggerExtensions
     {
         using (logger.BeginScope(new Dictionary<string, object> { { AzureDataExplorerLogger.LogTypeName, AzureDataExplorerLogger.InternalLogType } }))
         {
+            string escapedMessage = message.Replace("{", "{{").Replace("}", "}}");
+
             logger.LogWarning($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", AzureDataExplorerLogger.InternalLogType);
         }
     }
@@ -32,6 +38,8 @@ public static class LoggerExtensions
     {
         using (logger.BeginScope(new Dictionary<string, object> { { AzureDataExplorerLogger.LogTypeName, AzureDataExplorerLogger.ExternalLogType } }))
         {
+            string escapedMessage = message.Replace("{", "{{").Replace("}", "}}");
+
             logger.LogWarning($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", AzureDataExplorerLogger.ExternalLogType);
         }
     }
@@ -40,6 +48,8 @@ public static class LoggerExtensions
     {
         using (logger.BeginScope(new Dictionary<string, object> { { AzureDataExplorerLogger.LogTypeName, AzureDataExplorerLogger.InternalLogType } }))
         {
+            string escapedMessage = message.Replace("{", "{{").Replace("}", "}}");
+
             logger.LogError($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", AzureDataExplorerLogger.InternalLogType);
         }
     }
@@ -48,6 +58,8 @@ public static class LoggerExtensions
     {
         using (logger.BeginScope(new Dictionary<string, object> { { AzureDataExplorerLogger.LogTypeName, AzureDataExplorerLogger.ExternalLogType } }))
         {
+            string escapedMessage = message.Replace("{", "{{").Replace("}", "}}");
+
             logger.LogError($"{{{AzureDataExplorerLogger.LogTypeName}}}>>> {message}", AzureDataExplorerLogger.ExternalLogType);
         }
     }
