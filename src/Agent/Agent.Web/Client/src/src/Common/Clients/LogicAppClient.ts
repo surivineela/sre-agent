@@ -17,6 +17,19 @@ export default class LogicAppClient {
             apiVersion,
         });
     };
+
+    public static deleteLogicApp = (
+        resourceId: string,
+        apiVersion = ApiVersions.logicAppApiVersion20190501
+    ) => {
+
+        return MakeArmCall<void>({
+            resourceId,
+            commandName: 'deleteLogicApp',
+            method: 'DELETE',
+            apiVersion,
+        });
+    };
 }
 
 export const generatePagerDutyLogicAppPayload = (

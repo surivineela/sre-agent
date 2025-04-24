@@ -145,6 +145,9 @@ export const incidentManagementTextFieldStyles = {
     width: 460,
     borderRadius: tokens.borderRadiusLarge,
   },
+  field: {
+    borderRadius: tokens.borderRadiusLarge,
+  }
 };
 
 export const incidentManagementMaskedTextFieldStyles = {
@@ -153,6 +156,7 @@ export const incidentManagementMaskedTextFieldStyles = {
     fontFamily: 'monospace',
     WebkitTextSecurity: 'disc', // Safari-specific obfuscation
     textSecurity: 'disc', // Obfuscates text in supported browsers
+    borderRadius: tokens.borderRadiusLarge,
   }
 };
 

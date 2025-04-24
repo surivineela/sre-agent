@@ -129,7 +129,8 @@ export enum IncidentManagementNotifications {
 
 export enum IncidentManagementSaveErrors {
   managedConnectionFailure = 'Failed to create managed connection',
-  logicAppFailure = 'Failed to create logic app',
+  logicAppCreateFailure = 'Failed to create logic app',
+  logicAppDeleteFailure = 'Failed to delete logic app',
   configFailure = 'Failed to save incident management configuration',
 }
 
