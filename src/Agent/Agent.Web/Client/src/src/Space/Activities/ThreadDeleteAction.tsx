@@ -1,4 +1,3 @@
-import { memo } from "react";
 import {
     Button,
     Dialog,
@@ -14,13 +13,11 @@ import {
     MenuList,
     MenuPopover,
     MenuTrigger,
-    tokens
-} from "@fluentui/react-components";
-import { DeleteRegular, MoreHorizontal20Regular } from "@fluentui/react-icons";
-import {
-    SreAgentResources,
-    Activities_ThreadHeader as ThreadHeaderResources
-} from "../../Strings/SREResources.resjson";
+    tokens,
+} from '@fluentui/react-components';
+import { DeleteRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
+import { memo } from 'react';
+import { SreAgentResources, Activities_ThreadHeader as ThreadHeaderResources } from '../../Strings/SREResources.resjson';
 
 const useStyles = makeStyles({
     dangerButton: {
@@ -30,19 +27,18 @@ const useStyles = makeStyles({
             backgroundColor: tokens.colorStatusDangerBackground3Hover,
         },
         ':active': {
-            backgroundColor: tokens.colorStatusDangerBackground3Pressed
+            backgroundColor: tokens.colorStatusDangerBackground3Pressed,
         },
     },
 });
 
 const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => void }) => {
-
     const { dangerButton } = useStyles();
 
     return (
         <Dialog modalType="alert">
             <Menu>
-                <MenuTrigger >
+                <MenuTrigger>
                     <Button
                         style={{ display: 'inline-block' }}
                         appearance="transparent"
@@ -52,11 +48,10 @@ const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => 
                 </MenuTrigger>
                 <MenuPopover>
                     <MenuList>
-                        < DialogTrigger disableButtonEnhancement >
+                        <DialogTrigger disableButtonEnhancement>
                             <MenuItem icon={<DeleteRegular />}>{'Delete'}</MenuItem>
-                        </DialogTrigger >
+                        </DialogTrigger>
                     </MenuList>
-
                 </MenuPopover>
             </Menu>
 
@@ -66,7 +61,9 @@ const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => 
                     <DialogContent>{ThreadHeaderResources.deleteThreadDialogDescription}</DialogContent>
                     <DialogActions>
                         <DialogTrigger>
-                            <Button className={dangerButton} onClick={() => handleThreadDelete()}>{SreAgentResources.yes}</Button>
+                            <Button className={dangerButton} onClick={() => handleThreadDelete()}>
+                                {SreAgentResources.yes}
+                            </Button>
                         </DialogTrigger>
                         <DialogTrigger disableButtonEnhancement>
                             <Button appearance="secondary">{SreAgentResources.no}</Button>
@@ -74,8 +71,8 @@ const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => 
                     </DialogActions>
                 </DialogBody>
             </DialogSurface>
-        </Dialog >
-    )
+        </Dialog>
+    );
 };
 
 export default memo(ThreadDeleteAction);

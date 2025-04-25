@@ -1,8 +1,8 @@
+import { makeStyles, tokens } from '@fluentui/react-components';
+import { IButtonStyles } from '@fluentui/react/lib/Button';
 import { getTheme, IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { useTheme } from '@fluentui/react/lib/Theme';
-import { IButtonStyles } from '@fluentui/react/lib/Button';
 import { CSSProperties } from 'react';
-import { makeStyles, tokens } from '@fluentui/react-components';
 
 export const activitiesStylesRoot: CSSProperties = {
     display: 'flex',
@@ -46,9 +46,9 @@ export const useChatBoxStyles = makeStyles({
         backgroundColor: tokens.colorBrandBackground2,
         color: tokens.colorNeutralForeground1,
         borderRadius: tokens.borderRadiusXLarge,
-        padding: "0px 16px",
-        maxWidth: "fit-content",
-        display: "inline-block",
+        padding: '0px 16px',
+        maxWidth: 'fit-content',
+        display: 'inline-block',
     },
 });
 
@@ -88,7 +88,7 @@ export const ChatBoxStyles = mergeStyleSets({
         overflowWrap: 'anywhere',
         whiteSpace: 'normal',
         fontSize: '16px',
-        lineHeight: '24px'
+        lineHeight: '24px',
     },
     agentMessage: {
         fontSize: '16px',
@@ -104,20 +104,20 @@ export const ChatBoxStyles = mergeStyleSets({
         zIndex: '1',
         borderRadius: '50% !important',
         opacity: '1',
-        transition: "opacity 0.3s ease",
+        transition: 'opacity 0.3s ease',
         pointerEvents: 'auto',
     },
     hiddenButton: {
         opacity: '0',
         pointerEvents: 'none',
-    }
+    },
 });
 
 export const useChatInputStyles = makeStyles({
     root: {
         flex: '0 0 auto',
         marginTop: '20px',
-        marginBottom: '20px'
+        marginBottom: '20px',
     },
     footer: {
         display: 'flex',
@@ -149,7 +149,7 @@ export const useChatInputTextStyles = () => {
                     opacity: 1, // Firefox adds a lower opacity to the placeholder, so we use opacity: 1 to fix this.,
                 },
             },
-        }
+        },
     };
 };
 
@@ -273,31 +273,31 @@ export const useThreadActionsStyles = makeStyles({
     pendingIcon: {
         backgroundColor: tokens.colorPaletteBlueBorderActive,
         borderRadius: tokens.borderRadiusCircular,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        width: "16px",
-        height: "16px",
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        width: '16px',
+        height: '16px',
     },
     completedIcon: {
         backgroundColor: tokens.colorPaletteLightGreenForeground1,
         borderRadius: tokens.borderRadiusCircular,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '16px',
     },
     errorIcon: {
         backgroundColor: tokens.colorPaletteRedBackground3,
         borderRadius: tokens.borderRadiusCircular,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
         width: '16px',
     },
     iconStatusRow: {
-        display: "flex",
-        alignItems: "center",
-        gap: "4px",
-    }
+        display: 'flex',
+        alignItems: 'center',
+        gap: '4px',
+    },
 });

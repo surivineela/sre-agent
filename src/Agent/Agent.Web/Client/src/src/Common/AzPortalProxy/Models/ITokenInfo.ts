@@ -1,4 +1,4 @@
-export interface ITokenInfo{
-    token: string,
-    type: 'arm' | 'sreagent'
+export interface ITokenInfo {
+    token: string;
+    type: 'arm' | 'sreagent';
 }

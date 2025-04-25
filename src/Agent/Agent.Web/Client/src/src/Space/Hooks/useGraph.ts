@@ -1,25 +1,25 @@
+import { Edge, Node, useEdgesState, useNodesState, useReactFlow } from '@xyflow/react';
 import axios from 'axios';
 import { useCallback, useEffect, useState } from 'react';
-import { Node, Edge, useNodesState, useEdgesState, useReactFlow } from '@xyflow/react';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GraphEdge, GraphNode, Resource, ResourceExtended } from '../Contracts/Graph';
 import { getNewNodesAndEdges, getSubscriptionIdFromNodeId } from '../Graph/Utility';
 import { useGraphLayout } from './useGraphLayout';
-import { getAgentHeaders } from '../../Common/Helpers/headers';
 
 export const getResources = async (subscriptionId: string, resourceId: string): Promise<Resource[]> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups/${resourceId}`, {
-            headers: getAgentHeaders()
+            headers: getAgentHeaders(),
         });
         return data ?? [];
     } catch {
         return [];
     }
-}
+};
 
 export const useGraph = () => {
-    const [graph, setGraph] = useState<Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>>(
-        new Map<string, { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] }>()
+    const [graph, setGraph] = useState<Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>>(
+        new Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>()
     );
     const [isLoading, setIsLoading] = useState(false);
     const [isPanelOpen, setIsPanelOpen] = useState(false);
@@ -43,69 +43,73 @@ export const useGraph = () => {
         setSelectedNode(undefined);
     }, []);
 
-    const hoverNode = useCallback((nodeId: string) => {
-        const nodeIds = [nodeId];
-        const edgeIds = [];
-        for (const edge of edges) {
-            if (edge.source === nodeId) {
-                nodeIds.push(edge.target);
-                edgeIds.push(edge.id);
+    const hoverNode = useCallback(
+        (nodeId: string) => {
+            const nodeIds = [nodeId];
+            const edgeIds = [];
+            for (const edge of edges) {
+                if (edge.source === nodeId) {
+                    nodeIds.push(edge.target);
+                    edgeIds.push(edge.id);
+                }
             }
-        }
 
-        setNodesToHightlight(nodeIds);
-        setEdgesToHightlight(edgeIds);
-
-    }, [edges]);
+            setNodesToHightlight(nodeIds);
+            setEdgesToHightlight(edgeIds);
+        },
+        [edges]
+    );
 
     const unHoverNode = useCallback(() => {
         setNodesToHightlight([]);
         setEdgesToHightlight([]);
     }, []);
 
-    const onAppGroupUpdate = useCallback(async (appGroup?: ResourceExtended) => {
-        closePanel();
+    const onAppGroupUpdate = useCallback(
+        async (appGroup?: ResourceExtended) => {
+            closePanel();
 
-        setIsLoading(true);
+            setIsLoading(true);
 
-        if (appGroup) {
-            if (!graph.has(appGroup.id)) {
-                const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
-                const { nodes, edges } = getNewNodesAndEdges(appGroup, resources);
-                layoutGraph(nodes, edges).then(result => {
-                    setGraph(prev => {
-                        const newGraph = new Map(prev);
-                        newGraph.set(appGroup.id, { ...result });
-                        return newGraph;
+            if (appGroup) {
+                if (!graph.has(appGroup.id)) {
+                    const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
+                    const { nodes, edges } = getNewNodesAndEdges(appGroup, resources);
+                    layoutGraph(nodes, edges).then(result => {
+                        setGraph(prev => {
+                            const newGraph = new Map(prev);
+                            newGraph.set(appGroup.id, { ...result });
+                            return newGraph;
+                        });
+                        setNodes(result.nodes);
+                        setEdges(result.edges);
+                        setIsLoading(prev => {
+                            if (prev) {
+                                return false;
+                            }
+                            return prev;
+                        });
                     });
-                    setNodes(result.nodes);
-                    setEdges(result.edges);
-                    setIsLoading(prev => {
-                        if (prev) {
-                            return false;
-                        }
-                        return prev;
-                    });
-                });
+                } else {
+                    const { nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
+                    setNodes(nodes);
+                    setEdges(edges);
+                    setIsLoading(false);
+                }
             } else {
-                const { nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
-                setNodes(nodes);
-                setEdges(edges);
+                setNodes([]);
+                setEdges([]);
                 setIsLoading(false);
             }
-        } else {
-            setNodes([]);
-            setEdges([]);
-            setIsLoading(false);
-        }
-    }, [graph, closePanel, setNodes, setEdges]);
+        },
+        [graph, closePanel, setNodes, setEdges]
+    );
 
     useEffect(() => {
         if (nodes.length > 0 && !isLoading) {
             fitView();
         }
-
-    }, [nodes.length, isLoading])
+    }, [nodes.length, isLoading]);
 
     return {
         nodes,
@@ -121,6 +125,6 @@ export const useGraph = () => {
         hoverNode,
         unHoverNode,
         nodesToHightlight,
-        edgesToHightlight
+        edgesToHightlight,
     };
 };

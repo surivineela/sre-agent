@@ -1,15 +1,15 @@
-import { FC, memo, useContext, useMemo, useState } from 'react';
-import { IThreadActivitiesProps } from '../Contracts/Activities';
-import { Shimmer } from '@fluentui/react/lib/Shimmer';
-import {  useThreadActionsStyles } from '../Styles/Activities.styles';
-import { ActionsResources, SreAgentResources } from '../../Strings/SREResources.resjson';
-import debounce from 'lodash/debounce';
-import { AgentContext } from './Activities.ReactView';
-import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
-import { Text, Card, CardHeader, CardFooter, SearchBoxChangeEvent, InputOnChangeData, SearchBox } from '@fluentui/react-components';
-import { useActions } from '../Hooks/useActions';
-import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { Card, CardFooter, CardHeader, InputOnChangeData, SearchBox, SearchBoxChangeEvent, Text } from '@fluentui/react-components';
 import { ArrowSync16Filled, CheckmarkCircle16Filled, Dismiss16Filled } from '@fluentui/react-icons';
+import { Shimmer } from '@fluentui/react/lib/Shimmer';
+import debounce from 'lodash/debounce';
+import { FC, memo, useContext, useMemo, useState } from 'react';
+import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
+import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { ActionsResources, SreAgentResources } from '../../Strings/SREResources.resjson';
+import { IThreadActivitiesProps } from '../Contracts/Activities';
+import { useActions } from '../Hooks/useActions';
+import { useThreadActionsStyles } from '../Styles/Activities.styles';
+import { AgentContext } from './Activities.ReactView';
 
 export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
     const { thread } = props;
@@ -27,81 +27,78 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
         }
     }, [searchString, actions]);
 
-  return (
-    <div className={actionsStyles.root}>
-      <Text as="h3" className={actionsStyles.title}>{ActionsResources.actions}</Text>
-      <SearchBox
-        disabled={!threadsInitialized}
-        placeholder={SreAgentResources.search}
-        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
-        className={actionsStyles.searchBox}
-      />
-      <Shimmer isDataLoaded={threadsInitialized || isLoading}>
-            <ActionCardList actions={filteredActions} />
-      </Shimmer>
-    </div>
-  );
+    return (
+        <div className={actionsStyles.root}>
+            <Text as="h3" className={actionsStyles.title}>
+                {ActionsResources.actions}
+            </Text>
+            <SearchBox
+                disabled={!threadsInitialized}
+                placeholder={SreAgentResources.search}
+                onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
+                className={actionsStyles.searchBox}
+            />
+            <Shimmer isDataLoaded={threadsInitialized || isLoading}>
+                <ActionCardList actions={filteredActions} />
+            </Shimmer>
+        </div>
+    );
 };
 
-const ActionCardList = memo(
-  ({
-    actions,
-  }: {
-    actions: Action[];
-  }) => {
+const ActionCardList = memo(({ actions }: { actions: Action[] }) => {
     const actionsStyles = useThreadActionsStyles();
 
     return (
-      <div className={actionsStyles.actionsList}>
-        {actions.map(action => {
-          return <ActionCard key={action.id} action={action} />;
-        })}
-      </div>
+        <div className={actionsStyles.actionsList}>
+            {actions.map(action => {
+                return <ActionCard key={action.id} action={action} />;
+            })}
+        </div>
     );
-  }
-);
+});
 
-const getIcon = (action: Action) => {
+const ActionIcon = ({ action }: { action: Action }) => {
     const actionsStyles = useThreadActionsStyles();
 
-    switch(action?.status) {
+    switch (action?.status) {
         case ActionStatus.InProgress:
         case ActionStatus.Pending:
-            return  <div className={actionsStyles.pendingIcon}>
-                        <ArrowSync16Filled primaryFill="white" />
-                    </div>;
+            return (
+                <div className={actionsStyles.pendingIcon}>
+                    <ArrowSync16Filled primaryFill="white" />
+                </div>
+            );
         case ActionStatus.Failed:
-            return <div className={actionsStyles.errorIcon}>
-                      <Dismiss16Filled primaryFill="white" />
-            </div>;
+            return (
+                <div className={actionsStyles.errorIcon}>
+                    <Dismiss16Filled primaryFill="white" />
+                </div>
+            );
         case ActionStatus.Completed:
-            return <div className={actionsStyles.completedIcon}>
-                      <CheckmarkCircle16Filled primaryFill="white" />
-                </div>;
+            return (
+                <div className={actionsStyles.completedIcon}>
+                    <CheckmarkCircle16Filled primaryFill="white" />
+                </div>
+            );
         default:
             return <></>;
     }
-}
+};
 
-const ActionCard = memo(
-  ({ action }: { action: Action; }) => {
+const ActionCard = memo(({ action }: { action: Action }) => {
     const actionsStyles = useThreadActionsStyles();
 
     return (
         <Card id={action.id} className={actionsStyles.card}>
-            <CardHeader header={action?.title} className={actionsStyles.cardHeader}/>
+            <CardHeader header={action?.title} className={actionsStyles.cardHeader} />
             <div className={actionsStyles.iconStatusRow}>
-                {getIcon(action)}
+                <ActionIcon action={action} />
                 {action?.status}
             </div>
-            <CardFooter>
-                {getSafeDateTime(action.timeStamp).toLocaleString()}
-            </CardFooter>
+            <CardFooter>{getSafeDateTime(action.timeStamp).toLocaleString()}</CardFooter>
         </Card>
-        
     );
-  }
-);
+});
 
 ActionCardList.displayName = 'ActionCardList';
 ActionCard.displayName = 'ActionCard';

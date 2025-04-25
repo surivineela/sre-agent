@@ -1,16 +1,17 @@
-import { memo, useCallback, useMemo, useState } from 'react';
-import { IChatMessageProps } from '../Contracts/Activities';
 import {
     CopilotMessageV2 as CopilotMessage,
     CopilotMessageV2Props as CopilotMessageProps,
     UserMessageV2 as UserMessage,
 } from '@fluentui-copilot/react-copilot-chat';
-import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
-import ReactMarkdown from 'react-markdown';
-import { Activities } from '../../Strings/SREResources.resjson';
-import { sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
 import { Button } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
+import { memo, useCallback, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
+import ReactMarkdown from 'react-markdown';
+import { Activities } from '../../Strings/SREResources.resjson';
+import { IChatMessageProps } from '../Contracts/Activities';
+import { sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
+import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 
 // Helper function to parse and render markdown with images
 const renderMarkdownWithImages = (text: string) => {
@@ -34,7 +35,7 @@ const renderMarkdownWithImages = (text: string) => {
         parts.push({
             type: 'image',
             alt: match[1],
-            src: match[2]
+            src: match[2],
         });
 
         lastIndex = regex.lastIndex;
@@ -50,9 +51,15 @@ const renderMarkdownWithImages = (text: string) => {
 
 const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
+    const intl = useIntl();
     const [showFeedbackPopup, setShowFeedbackPopup] = useState(false); // State to control popup visibility
     const [feedbackText, setFeedbackText] = useState(''); // State to store feedback text
     const [isPositiveFeedback, setIsPositiveFeedback] = useState<boolean | null>(null); // State to store thumbs-up/down info
+
+    const feedbackDialogTitle = intl.formatMessage({
+        defaultMessage: 'Thank you for your feedback!',
+        id: 'Nrc9ba',
+    });
 
     const messageContent = useMemo(() => {
         const content = renderMarkdownWithImages(message.text);
@@ -64,41 +71,101 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
             avatar: (
                 <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <g clip-path="url(#clip0_2107_205494)">
-                        <path d="M44.8924 13.5312L36.2324 17.8659L25.7814 12.6462C24.6554 12.0839 23.3294 12.0839 22.2034 12.6462L11.7724 17.8559L3.10244 13.5312C2.36244 13.1616 2.00244 12.4525 2.00244 11.7433C2.00244 11.0342 2.36244 10.335 3.10244 9.96546L11.7624 5.6307L22.1924 0.426984C23.3224 -0.142328 24.6624 -0.142328 25.8024 0.426984L36.2324 5.64068L44.8924 9.96546C46.3624 10.7046 46.3624 12.802 44.8924 13.5312Z" fill="url(#paint0_linear_2107_205494)" />
-                        <path d="M46.0025 36.2037C46.0025 36.9028 45.6325 37.612 44.8925 37.9815L36.2325 42.3063L25.8125 47.52C24.6725 48.0893 23.3325 48.0893 22.1925 47.52L11.7725 42.3063L3.1025 37.9815C1.6325 37.2424 1.6325 35.1449 3.1025 34.4158L11.7625 30.0811L22.2135 35.3007C23.3395 35.8631 24.6655 35.8631 25.7915 35.3007L36.2225 30.091H36.2325L44.8925 34.4158C45.6325 34.7854 46.0025 35.4945 46.0025 36.2037Z" fill="url(#paint1_linear_2107_205494)" />
-                        <path d="M46.0025 36.2037C46.0025 36.9028 45.6325 37.612 44.8925 37.9815L36.2325 42.3063L25.8125 47.52C24.6725 48.0893 23.3325 48.0893 22.1925 47.52L11.7725 42.3063L3.1025 37.9815C1.6325 37.2424 1.6325 35.1449 3.1025 34.4158L11.7625 30.0811L22.2135 35.3007C23.3395 35.8631 24.6655 35.8631 25.7915 35.3007L36.2225 30.091H36.2325L44.8925 34.4158C45.6325 34.7854 46.0025 35.4945 46.0025 36.2037Z" fill="url(#paint2_radial_2107_205494)" />
-                        <path d="M36.2224 30.091L25.7914 35.3007C24.6654 35.863 23.3394 35.863 22.2134 35.3007L3.10244 25.7562C2.36244 25.3867 2.00244 24.6775 2.00244 23.9684V11.7432C2.00244 12.4523 2.36244 13.1615 3.10244 13.531L11.7724 17.8558L23.9924 23.9684H24.0024L36.2224 30.091Z" fill="url(#paint3_linear_2107_205494)" />
-                        <path d="M46.0025 23.9782V36.2034C46.0025 35.4943 45.6325 34.7851 44.8925 34.4156L36.2325 30.0908H36.2225L24.0025 23.9682H23.9925L11.7725 17.8556L22.2035 12.6459C23.3295 12.0835 24.6555 12.0835 25.7815 12.6459L36.2325 17.8656L44.8925 22.1903C45.6325 22.5599 46.0025 23.269 46.0025 23.9782Z" fill="url(#paint4_linear_2107_205494)" />
-                        <path d="M46.0025 23.9782V36.2034C46.0025 35.4943 45.6325 34.7851 44.8925 34.4156L36.2325 30.0908H36.2225L24.0025 23.9682H23.9925L11.7725 17.8556L22.2035 12.6459C23.3295 12.0835 24.6555 12.0835 25.7815 12.6459L36.2325 17.8656L44.8925 22.1903C45.6325 22.5599 46.0025 23.269 46.0025 23.9782Z" fill="url(#paint5_linear_2107_205494)" />
+                        <path
+                            d="M44.8924 13.5312L36.2324 17.8659L25.7814 12.6462C24.6554 12.0839 23.3294 12.0839 22.2034 12.6462L11.7724 17.8559L3.10244 13.5312C2.36244 13.1616 2.00244 12.4525 2.00244 11.7433C2.00244 11.0342 2.36244 10.335 3.10244 9.96546L11.7624 5.6307L22.1924 0.426984C23.3224 -0.142328 24.6624 -0.142328 25.8024 0.426984L36.2324 5.64068L44.8924 9.96546C46.3624 10.7046 46.3624 12.802 44.8924 13.5312Z"
+                            fill="url(#paint0_linear_2107_205494)"
+                        />
+                        <path
+                            d="M46.0025 36.2037C46.0025 36.9028 45.6325 37.612 44.8925 37.9815L36.2325 42.3063L25.8125 47.52C24.6725 48.0893 23.3325 48.0893 22.1925 47.52L11.7725 42.3063L3.1025 37.9815C1.6325 37.2424 1.6325 35.1449 3.1025 34.4158L11.7625 30.0811L22.2135 35.3007C23.3395 35.8631 24.6655 35.8631 25.7915 35.3007L36.2225 30.091H36.2325L44.8925 34.4158C45.6325 34.7854 46.0025 35.4945 46.0025 36.2037Z"
+                            fill="url(#paint1_linear_2107_205494)"
+                        />
+                        <path
+                            d="M46.0025 36.2037C46.0025 36.9028 45.6325 37.612 44.8925 37.9815L36.2325 42.3063L25.8125 47.52C24.6725 48.0893 23.3325 48.0893 22.1925 47.52L11.7725 42.3063L3.1025 37.9815C1.6325 37.2424 1.6325 35.1449 3.1025 34.4158L11.7625 30.0811L22.2135 35.3007C23.3395 35.8631 24.6655 35.8631 25.7915 35.3007L36.2225 30.091H36.2325L44.8925 34.4158C45.6325 34.7854 46.0025 35.4945 46.0025 36.2037Z"
+                            fill="url(#paint2_radial_2107_205494)"
+                        />
+                        <path
+                            d="M36.2224 30.091L25.7914 35.3007C24.6654 35.863 23.3394 35.863 22.2134 35.3007L3.10244 25.7562C2.36244 25.3867 2.00244 24.6775 2.00244 23.9684V11.7432C2.00244 12.4523 2.36244 13.1615 3.10244 13.531L11.7724 17.8558L23.9924 23.9684H24.0024L36.2224 30.091Z"
+                            fill="url(#paint3_linear_2107_205494)"
+                        />
+                        <path
+                            d="M46.0025 23.9782V36.2034C46.0025 35.4943 45.6325 34.7851 44.8925 34.4156L36.2325 30.0908H36.2225L24.0025 23.9682H23.9925L11.7725 17.8556L22.2035 12.6459C23.3295 12.0835 24.6555 12.0835 25.7815 12.6459L36.2325 17.8656L44.8925 22.1903C45.6325 22.5599 46.0025 23.269 46.0025 23.9782Z"
+                            fill="url(#paint4_linear_2107_205494)"
+                        />
+                        <path
+                            d="M46.0025 23.9782V36.2034C46.0025 35.4943 45.6325 34.7851 44.8925 34.4156L36.2325 30.0908H36.2225L24.0025 23.9682H23.9925L11.7725 17.8556L22.2035 12.6459C23.3295 12.0835 24.6555 12.0835 25.7815 12.6459L36.2325 17.8656L44.8925 22.1903C45.6325 22.5599 46.0025 23.269 46.0025 23.9782Z"
+                            fill="url(#paint5_linear_2107_205494)"
+                        />
                     </g>
                     <defs>
-                        <linearGradient id="paint0_linear_2107_205494" x1="46.0024" y1="11.4337" x2="-4.49756" y2="11.4337" gradientUnits="userSpaceOnUse">
+                        <linearGradient
+                            id="paint0_linear_2107_205494"
+                            x1="46.0024"
+                            y1="11.4337"
+                            x2="-4.49756"
+                            y2="11.4337"
+                            gradientUnits="userSpaceOnUse"
+                        >
                             <stop stop-color="#26CFE8" />
                             <stop offset="0.315306" stop-color="#0094F0" />
                             <stop offset="0.612264" stop-color="#2764E7" />
                             <stop offset="0.862742" stop-color="#163697" />
                         </linearGradient>
-                        <linearGradient id="paint1_linear_2107_205494" x1="21.0025" y1="56.8787" x2="31.979" y2="26.407" gradientUnits="userSpaceOnUse">
+                        <linearGradient
+                            id="paint1_linear_2107_205494"
+                            x1="21.0025"
+                            y1="56.8787"
+                            x2="31.979"
+                            y2="26.407"
+                            gradientUnits="userSpaceOnUse"
+                        >
                             <stop offset="0.185812" stop-color="#EA71EF" />
                             <stop offset="0.507099" stop-color="#8B52F4" />
                             <stop offset="0.796793" stop-color="#5B2AB5" />
                             <stop offset="1" stop-color="#30116E" />
                         </linearGradient>
-                        <radialGradient id="paint2_radial_2107_205494" cx="0" cy="0" r="1" gradientUnits="userSpaceOnUse" gradientTransform="translate(25.0025 31.9088) rotate(-90) scale(7.99034 14.8369)">
+                        <radialGradient
+                            id="paint2_radial_2107_205494"
+                            cx="0"
+                            cy="0"
+                            r="1"
+                            gradientUnits="userSpaceOnUse"
+                            gradientTransform="translate(25.0025 31.9088) rotate(-90) scale(7.99034 14.8369)"
+                        >
                             <stop stop-color="#312A9A" />
                             <stop offset="1" stop-color="#312A9A" stop-opacity="0" />
                         </radialGradient>
-                        <linearGradient id="paint3_linear_2107_205494" x1="2.00244" y1="13.7147" x2="30.4825" y2="31.94" gradientUnits="userSpaceOnUse">
+                        <linearGradient
+                            id="paint3_linear_2107_205494"
+                            x1="2.00244"
+                            y1="13.7147"
+                            x2="30.4825"
+                            y2="31.94"
+                            gradientUnits="userSpaceOnUse"
+                        >
                             <stop stop-color="#6FE8F5" />
                             <stop offset="0.468701" stop-color="#29C3FF" />
                             <stop offset="1" stop-color="#0094F0" />
                         </linearGradient>
-                        <linearGradient id="paint4_linear_2107_205494" x1="12.0025" y1="20.9219" x2="50.5025" y2="20.9219" gradientUnits="userSpaceOnUse">
+                        <linearGradient
+                            id="paint4_linear_2107_205494"
+                            x1="12.0025"
+                            y1="20.9219"
+                            x2="50.5025"
+                            y2="20.9219"
+                            gradientUnits="userSpaceOnUse"
+                        >
                             <stop stop-color="#3D35B1" />
                             <stop offset="0.452813" stop-color="#8B52F4" />
                             <stop offset="0.895822" stop-color="#F08AF4" />
                         </linearGradient>
-                        <linearGradient id="paint5_linear_2107_205494" x1="22.5025" y1="26.4152" x2="29.9913" y2="16.9179" gradientUnits="userSpaceOnUse">
+                        <linearGradient
+                            id="paint5_linear_2107_205494"
+                            x1="22.5025"
+                            y1="26.4152"
+                            x2="29.9913"
+                            y2="16.9179"
+                            gradientUnits="userSpaceOnUse"
+                        >
                             <stop offset="0.0276412" stop-color="#5B2AB5" />
                             <stop offset="0.808566" stop-color="#8B52F4" stop-opacity="0" />
                         </linearGradient>
@@ -153,15 +220,15 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
             <>
                 {messageContent.map((part, index) => {
                     if (typeof part === 'string') {
-                        return <ReactMarkdown key={index} components={{ a: aLinkRenderer }}>{part}</ReactMarkdown>;
+                        return (
+                            <ReactMarkdown key={index} components={{ a: aLinkRenderer }}>
+                                {part}
+                            </ReactMarkdown>
+                        );
                     } else if (part.type === 'image') {
                         return (
                             <div key={index} style={{ margin: '10px 0' }}>
-                                <img
-                                    src={part.src}
-                                    alt={part.alt || 'Embedded image'}
-                                    style={{ maxWidth: '100%', borderRadius: '4px' }}
-                                />
+                                <img src={part.src} alt={part.alt || 'Embedded image'} style={{ maxWidth: '100%', borderRadius: '4px' }} />
                                 {part.alt && <div style={{ textAlign: 'center', fontSize: '12px', color: '#666' }}>{part.alt}</div>}
                             </div>
                         );
@@ -200,22 +267,25 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                     }}
                                     onClick={() => handleFeedbackClick(true)} // Thumbs up
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24"
-                                        fill={isPositiveFeedback === true ? "#0057b8" : "none"}
-                                        stroke={isPositiveFeedback === true ? "black" : "#cccccc"}
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill={isPositiveFeedback === true ? '#0057b8' : 'none'}
+                                        stroke={isPositiveFeedback === true ? 'black' : '#cccccc'}
                                         strokeWidth="2"
-                                        onMouseOver={(e) => {
+                                        onMouseOver={e => {
                                             e.currentTarget.setAttribute('stroke', 'black');
                                         }}
-                                        onMouseOut={(e) => {
+                                        onMouseOut={e => {
                                             if (isPositiveFeedback !== true) {
                                                 e.currentTarget.setAttribute('stroke', '#cccccc');
                                             }
                                         }}
-                                        onMouseDown={(e) => {
+                                        onMouseDown={e => {
                                             e.currentTarget.setAttribute('fill', '#003d8f');
                                         }}
-                                        onMouseUp={(e) => {
+                                        onMouseUp={e => {
                                             e.currentTarget.setAttribute('fill', isPositiveFeedback === true ? '#0057b8' : 'none');
                                         }}
                                     >
@@ -237,22 +307,25 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                     }}
                                     onClick={() => handleFeedbackClick(false)} // Thumbs down
                                 >
-                                    <svg width="16" height="16" viewBox="0 0 24 24"
-                                        fill={isPositiveFeedback === false ? "#c01c28" : "none"}
-                                        stroke={isPositiveFeedback === false ? "black" : "#cccccc"}
+                                    <svg
+                                        width="16"
+                                        height="16"
+                                        viewBox="0 0 24 24"
+                                        fill={isPositiveFeedback === false ? '#c01c28' : 'none'}
+                                        stroke={isPositiveFeedback === false ? 'black' : '#cccccc'}
                                         strokeWidth="2"
-                                        onMouseOver={(e) => {
+                                        onMouseOver={e => {
                                             e.currentTarget.setAttribute('stroke', 'black');
                                         }}
-                                        onMouseOut={(e) => {
+                                        onMouseOut={e => {
                                             if (isPositiveFeedback !== false) {
                                                 e.currentTarget.setAttribute('stroke', '#cccccc');
                                             }
                                         }}
-                                        onMouseDown={(e) => {
+                                        onMouseDown={e => {
                                             e.currentTarget.setAttribute('fill', '#a51419');
                                         }}
-                                        onMouseUp={(e) => {
+                                        onMouseUp={e => {
                                             e.currentTarget.setAttribute('fill', isPositiveFeedback === false ? '#c01c28' : 'none');
                                         }}
                                     >
@@ -277,7 +350,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                     width: '300px',
                                 }}
                             >
-                                <h4>Thank you for your feedback!</h4>
+                                <h4>{feedbackDialogTitle}</h4>
                                 <textarea
                                     style={{
                                         width: '100%',
@@ -289,7 +362,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                     }}
                                     placeholder="Enter your feedback here..."
                                     value={feedbackText}
-                                    onChange={(e) => setFeedbackText(e.target.value)}
+                                    onChange={e => setFeedbackText(e.target.value)}
                                 />
                                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
                                     <button
@@ -323,14 +396,16 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             </div>
                         )}
                     </CopilotMessage>
-                    {isTyping && <Button
-                        icon={<SquareDismissRegular />}
-                        onClick={() => cancelResponse?.()}
-                        appearance="transparent"
-                        style={{ width: '90%' }}
-                    >
-                        {'Cancel'}
-                    </Button>}
+                    {isTyping && (
+                        <Button
+                            icon={<SquareDismissRegular />}
+                            onClick={() => cancelResponse?.()}
+                            appearance="transparent"
+                            style={{ width: '90%' }}
+                        >
+                            {'Cancel'}
+                        </Button>
+                    )}
                 </div>
             );
         default:

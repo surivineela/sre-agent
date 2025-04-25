@@ -10,7 +10,7 @@ name: $(MAJOR).$(MINOR).$(BUILD).$(REVISION)
 
 trigger: none  # https://aka.ms/obpipelines/triggers
 
-# global parameteres are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.
+# global parameters are configured here and show up in AzDO UI in build queue time. Required for MSBuild and .NET.
 # learn more at https://aka.ms/obpipelines/parameters
 parameters:
 - name: 'debug'

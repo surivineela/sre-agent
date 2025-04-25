@@ -1,35 +1,45 @@
-import { memo, useEffect, useState } from "react";
-import { ResourceExtended, Subscription } from "../Contracts/Graph";
-import axios from "axios";
-import { Dropdown, Field, OptionOnSelectData, SelectionEvents, Skeleton, SkeletonItem, Option, Text, Caption1 } from "@fluentui/react-components";
-import { useResourceSelectorStyles } from "../Styles/Graph.styles";
-import { getAgentHeaders } from "../../Common/Helpers/headers";
+import {
+    Caption1,
+    Dropdown,
+    Field,
+    Option,
+    OptionOnSelectData,
+    SelectionEvents,
+    Skeleton,
+    SkeletonItem,
+    Text,
+} from '@fluentui/react-components';
+import axios from 'axios';
+import { memo, useEffect, useState } from 'react';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { ResourceExtended, Subscription } from '../Contracts/Graph';
+import { useResourceSelectorStyles } from '../Styles/Graph.styles';
 
 interface IResourceSelectorProps {
-    onAppGroupUpdate: (appGroup?: ResourceExtended) => void
+    onAppGroupUpdate: (appGroup?: ResourceExtended) => void;
 }
 
 const getSubscriptions = async (): Promise<Subscription[]> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/subscriptions`, {
-            headers: getAgentHeaders()
+            headers: getAgentHeaders(),
         });
         return data ?? [];
     } catch {
         return [];
     }
-}
+};
 
 const getAppGroups = async (subscriptionId: string): Promise<ResourceExtended[]> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/${subscriptionId}/appGroups`, {
-            headers: getAgentHeaders()
+            headers: getAgentHeaders(),
         });
         return data ?? [];
     } catch {
         return [];
     }
-}
+};
 
 const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
@@ -55,7 +65,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
             setSelectedAppGroup(appGroups[0]);
             setIsAppGroupLoading(false);
         }
-    }
+    };
 
     const onSelectAppGroup = (_: SelectionEvents, data: OptionOnSelectData) => {
         const appGroupId = data.optionValue;
@@ -63,7 +73,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
         const selectedAppGroup = appGroups.find(appGroup => appGroup.id === appGroupId);
 
         setSelectedAppGroup(selectedAppGroup);
-    }
+    };
 
     useEffect(() => {
         let isSubscribed = true;
@@ -84,7 +94,6 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                 setSelectedSubscription(selectedSubscription);
             }
 
-
             if (selectedSubscription?.id) {
                 const appGroups = await getAppGroups(subscriptions[0].id);
 
@@ -97,57 +106,70 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
             if (isSubscribed) {
                 setIsAppGroupLoading(false);
             }
-        }
+        };
 
         init();
 
         return () => {
             isSubscribed = false;
-        }
+        };
     }, []);
-
 
     useEffect(() => {
         onAppGroupUpdate(selectedAppGroup);
-    }, [selectedAppGroup])
+    }, [selectedAppGroup]);
 
-    const Shimmer = () => <Skeleton><SkeletonItem /></Skeleton>
+    const Shimmer = () => (
+        <Skeleton>
+            <SkeletonItem />
+        </Skeleton>
+    );
 
     return (
         <div className={root}>
-            <Field label="Subscription" >
-                {isSubscriptionLoading ? <Shimmer />
-                    : <Dropdown
+            <Field label="Subscription">
+                {isSubscriptionLoading ? (
+                    <Shimmer />
+                ) : (
+                    <Dropdown
                         value={selectedSubscription?.name}
                         selectedOptions={selectedSubscription ? [selectedSubscription.id] : []}
                         onOptionSelect={onSelectSubscription}
                     >
                         {subscriptions.map(subscription => {
-                            return <Option key={subscription.id} value={subscription.id}>
-                                {subscription.name}
-                            </Option>
+                            return (
+                                <Option key={subscription.id} value={subscription.id}>
+                                    {subscription.name}
+                                </Option>
+                            );
                         })}
-                    </Dropdown>}
+                    </Dropdown>
+                )}
             </Field>
             <Field label="App Group">
-                {isAppGroupLoading ? <Shimmer />
-                    : <Dropdown
+                {isAppGroupLoading ? (
+                    <Shimmer />
+                ) : (
+                    <Dropdown
                         value={selectedAppGroup?.name}
                         selectedOptions={selectedAppGroup ? [selectedAppGroup.id] : []}
                         onOptionSelect={onSelectAppGroup}
                     >
                         {appGroups.map(appGroup => {
-                            return <Option key={appGroup.id} value={appGroup.id} text={appGroup.name}>
-                                <div className={option}>
-                                    <Text className={optionText}>{appGroup.name}</Text>
-                                    <Caption1 className={optionSubtext}>{appGroup?.type ?? 'subscription'}</Caption1>
-                                </div>
-                            </Option>
+                            return (
+                                <Option key={appGroup.id} value={appGroup.id} text={appGroup.name}>
+                                    <div className={option}>
+                                        <Text className={optionText}>{appGroup.name}</Text>
+                                        <Caption1 className={optionSubtext}>{appGroup?.type ?? 'subscription'}</Caption1>
+                                    </div>
+                                </Option>
+                            );
                         })}
-                    </Dropdown>}
+                    </Dropdown>
+                )}
             </Field>
         </div>
-    )
-}
+    );
+};
 
 export default memo(ResourceSelector);

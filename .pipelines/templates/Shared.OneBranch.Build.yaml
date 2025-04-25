@@ -185,13 +185,26 @@ extends:
             feedsToUse: config
             nugetConfigPath: $(BuildNugetConfigPath)
             ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
+        
+        #
+        # UX - Localization - to be enabled later
+        #
+        #- task: OneLocBuild@2
+        #  displayName: 'UX - Localization'
+        #  env:
+        #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+        #  inputs:
+        #    locProj: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\LocProject.json'
+        #    outDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\extracted' # \loc
+        #    packageSourceAuth: 'patAuth'
+        #    dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OneBranch-Consumption/nuget/v3/index.json'
 
         #
         # UX - Set node version for installing npm packages
         #
         - task: NodeTool@0
           inputs:
-            versionSpec: "20.x"
+            versionSpec: "22.x"
             checkLatest: true
 
         #

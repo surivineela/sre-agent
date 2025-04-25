@@ -1,5 +1,5 @@
-import { makeStyles, tokens } from "@fluentui/react-components";
-import { NodeSize } from "../Contracts/Graph";
+import { makeStyles, tokens } from '@fluentui/react-components';
+import { NodeSize } from '../Contracts/Graph';
 
 export const useGraphStyles = makeStyles({
     root: {
@@ -14,19 +14,19 @@ export const useGraphStyles = makeStyles({
     reactFlow: {
         width: 'calc(100% - 360px)',
         height: '100%',
-        flex: '0 0 auto'
+        flex: '0 0 auto',
     },
     spinner: {
         position: 'fixed',
         left: '60%',
-        top: '50%'
-    }
+        top: '50%',
+    },
 });
 
 export const useGraphNodeStyles = makeStyles({
     handle: {
         opacity: 0,
-        pointerEvents: 'none'
+        pointerEvents: 'none',
     },
     card: {
         width: `${NodeSize.width}px`,
@@ -37,25 +37,25 @@ export const useGraphNodeStyles = makeStyles({
         border: `1px solid`,
     },
     cardHightlight: {
-        backgroundColor: tokens.colorBrandBackground2Hover
+        backgroundColor: tokens.colorBrandBackground2Hover,
     },
     header: {
-        width: `calc(${NodeSize.width}px - 24px)`
+        width: `calc(${NodeSize.width}px - 24px)`,
     },
     headerText: {
         textOverflow: 'ellipsis',
         overflow: 'hidden',
-        width: `calc(${NodeSize.width}px - 76px)`
+        width: `calc(${NodeSize.width}px - 76px)`,
     },
     description: {
-        color: tokens.colorNeutralForeground3
-    }
+        color: tokens.colorNeutralForeground3,
+    },
 });
 
 export const useGraphEdgeStyles = makeStyles({
     hightlightedEdge: {
-        stroke: tokens.colorBrandForegroundLinkHover
-    }
+        stroke: tokens.colorBrandForegroundLinkHover,
+    },
 });
 
 export const useResourceSelectorStyles = makeStyles({
@@ -68,18 +68,18 @@ export const useResourceSelectorStyles = makeStyles({
         height: '100%',
         flex: '0 0 auto',
         backgroundColor: tokens.colorNeutralBackground3,
-        padding: '35px 30px'
+        padding: '35px 30px',
     },
     option: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '2px'
+        gap: '2px',
     },
     optionText: {
-        wordBreak: 'break-word'
+        wordBreak: 'break-word',
     },
     optionSubtext: {
         color: tokens.colorNeutralForeground3,
-        wordBreak: 'break-word'
-    }
+        wordBreak: 'break-word',
+    },
 });

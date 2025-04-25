@@ -1,14 +1,24 @@
-import { Edge, Node } from "@xyflow/react";
-import { CUSTOM_EDGE_TYPE, GRAPH_CARD_TYPE, GraphEdge, GraphNode, HandlePosition, NodeSize, Resource, ResourceExtended, ScoreCardObject } from "../Contracts/Graph";
+import { Edge, Node } from '@xyflow/react';
+import {
+    CUSTOM_EDGE_TYPE,
+    GRAPH_CARD_TYPE,
+    GraphEdge,
+    GraphNode,
+    HandlePosition,
+    NodeSize,
+    Resource,
+    ResourceExtended,
+    ScoreCardObject,
+} from '../Contracts/Graph';
 
 export const getAppHealthInfo = (nodeProperties?: ResourceExtended | Resource): ScoreCardObject | undefined => {
     let appHealthInfoString: string | undefined = undefined;
     if (nodeProperties) {
         if ('properties' in nodeProperties) {
             const resourceExtended: ResourceExtended = nodeProperties as ResourceExtended;
-            appHealthInfoString = resourceExtended.properties?.appHealthInfo?.[0]
+            appHealthInfoString = resourceExtended.properties?.appHealthInfo?.[0];
         } else {
-            appHealthInfoString = nodeProperties.appHealthInfo?.[0]
+            appHealthInfoString = nodeProperties.appHealthInfo?.[0];
         }
     }
 
@@ -22,11 +32,11 @@ export const getAppHealthInfo = (nodeProperties?: ResourceExtended | Resource): 
     }
 
     return undefined;
-}
+};
 
 export const getSubscriptionIdFromNodeId = (nodeId: string): string => {
     return nodeId.split('_')[2] ?? '';
-}
+};
 
 export const createAppGroupNode = (appGroup: ResourceExtended): Node<GraphNode> => {
     const { id, name, type, dashboardUrl, appHealthInfo, properties } = appGroup;
@@ -37,10 +47,10 @@ export const createAppGroupNode = (appGroup: ResourceExtended): Node<GraphNode> 
         dashboardUrl: dashboardUrl || properties?.dashboardUrl?.[0] || '',
         resourceId: id,
         appHealthInfo: appHealthInfo || properties?.appHealthInfo || [],
-    }
+    };
 
     return createNode(resource);
-}
+};
 
 export const createNode = (resource: Resource): Node<GraphNode> => {
     const { name, resourceId } = resource;
@@ -56,13 +66,13 @@ export const createNode = (resource: Resource): Node<GraphNode> => {
             name,
             subscriptionId,
             properties: {
-                ...resource
+                ...resource,
             },
-        }
-    }
+        },
+    };
 
     return node;
-}
+};
 
 export const createGraphEdge = (sourceId: string, targetId: string): Edge<GraphEdge> => {
     const edgeId = getEdgeId(sourceId, targetId);
@@ -76,9 +86,12 @@ export const createGraphEdge = (sourceId: string, targetId: string): Edge<GraphE
     };
 
     return edge;
-}
+};
 
-export const getNewNodesAndEdges = (appGroup: ResourceExtended, resources: Resource[]): { nodes: Node<GraphNode>[], edges: Edge<GraphEdge>[] } => {
+export const getNewNodesAndEdges = (
+    appGroup: ResourceExtended,
+    resources: Resource[]
+): { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] } => {
     const nodes: Node<GraphNode>[] = [];
     const edges: Edge<GraphEdge>[] = [];
 
@@ -97,26 +110,28 @@ export const getNewNodesAndEdges = (appGroup: ResourceExtended, resources: Resou
                 populateResourceNodesAndEdges(node, resource.subItems);
             }
         }
-    }
+    };
 
     populateResourceNodesAndEdges(appGroupNode, resources);
 
     return {
         nodes,
         edges,
-    }
-}
+    };
+};
 
 export const getEdgeId = (parentNodeId: string, childNodeId: string) => {
     return `${parentNodeId}-${childNodeId}`;
-}
+};
 
 export const getHandleId = (position: HandlePosition, isTarget: boolean) => {
     return `${position}-${isTarget ? 'in' : 'out'}`;
-}
+};
 
-export const getSourceAndTargetHandleId = (leftCenterPos: { x: number, y: number }, rightcenterPos: { x: number, y: number }): { sourceHandle: string; targetHandle: string } => {
-
+export const getSourceAndTargetHandleId = (
+    leftCenterPos: { x: number; y: number },
+    rightcenterPos: { x: number; y: number }
+): { sourceHandle: string; targetHandle: string } => {
     const getHandlePosition = (x: number, y: number, position: HandlePosition) => {
         switch (position) {
             case 'T':
@@ -130,16 +145,16 @@ export const getSourceAndTargetHandleId = (leftCenterPos: { x: number, y: number
             default:
                 return { x, y };
         }
-    }
+    };
 
     const getDistance = (x1: number, y1: number, x2: number, y2: number) => {
         return (x2 - x1) ** 2 + (y2 - y1) ** 2;
-    }
+    };
 
     let minDistance = Number.MAX_VALUE;
     let sourceHandle = getHandleId('T', false);
     let targetHandle = getHandleId('B', true);
-    const positions: HandlePosition[] = ['T', 'B', 'L', 'R']
+    const positions: HandlePosition[] = ['T', 'B', 'L', 'R'];
 
     const sourceNodeHandlePos = Array.from({ length: 4 }, (_, index) =>
         getHandlePosition(leftCenterPos.x, leftCenterPos.y, positions[index])
@@ -147,7 +162,7 @@ export const getSourceAndTargetHandleId = (leftCenterPos: { x: number, y: number
 
     const targetNodeHandlePos = Array.from({ length: 4 }, (_, index) =>
         getHandlePosition(rightcenterPos.x, rightcenterPos.y, positions[index])
-    )
+    );
 
     for (let i = 0; i < 4; i++) {
         for (let j = 0; j < 4; j++) {
@@ -166,6 +181,6 @@ export const getSourceAndTargetHandleId = (leftCenterPos: { x: number, y: number
 
     return {
         sourceHandle,
-        targetHandle
-    }
-}
+        targetHandle,
+    };
+};

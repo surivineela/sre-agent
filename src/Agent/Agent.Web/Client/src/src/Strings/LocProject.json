@@ -1,0 +1,18 @@
+{
+  "Projects": [
+    {
+      "LanguageSet": "Azure_LanguagesExt",
+      "LocItems": [
+        {
+          "SourceFile": "src\\Agent\\Agent.Web\\Client\\src\\src\\Strings\\extracted\\strings.json",
+          "CopyOption": "LangIDOnName",
+          "LclFile": "src\\Agent\\Agent.Web\\Client\\src\\src\\Strings\\extracted\\loc\\{Lang}\\strings.json.lcl",
+          "OutputPath": "src\\Agent\\Agent.Web\\Client\\src\\src\\Strings\\extracted\\"
+        }
+      ],
+      "LssFiles": [
+        "src\\Agent\\Agent.Web\\Client\\src\\src\\Strings\\ICUFormatMessage.lss"
+      ]
+    }
+  ]
+}

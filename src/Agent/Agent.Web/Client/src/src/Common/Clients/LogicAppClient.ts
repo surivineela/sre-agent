@@ -1,5 +1,5 @@
-import { ArmObj } from '../Contracts/Azure/ArmObj';
 import { ApiVersions } from '../ApiVersions';
+import { ArmObj } from '../Contracts/Azure/ArmObj';
 import MakeArmCall from './ArmClient';
 
 export default class LogicAppClient {
@@ -8,7 +8,6 @@ export default class LogicAppClient {
         logicApp: ArmObj<any>,
         apiVersion = ApiVersions.logicAppApiVersion20190501
     ) => {
-
         return MakeArmCall<ArmObj<any>>({
             resourceId,
             commandName: 'putPagerDutyLogicApp',
@@ -18,11 +17,7 @@ export default class LogicAppClient {
         });
     };
 
-    public static deleteLogicApp = (
-        resourceId: string,
-        apiVersion = ApiVersions.logicAppApiVersion20190501
-    ) => {
-
+    public static deleteLogicApp = (resourceId: string, apiVersion = ApiVersions.logicAppApiVersion20190501) => {
         return MakeArmCall<void>({
             resourceId,
             commandName: 'deleteLogicApp',
@@ -40,120 +35,118 @@ export const generatePagerDutyLogicAppPayload = (
     pagerDutyApiKey: string,
     managedApiResourceId: string,
     connectionResourceId: string,
-    connectionName: string,
+    connectionName: string
 ) => {
     return {
         id: resourceId,
         name: name,
-        type: "microsoft.logic/workflows",
+        type: 'microsoft.logic/workflows',
         location: location,
         properties: {
             definition: {
-                $schema: "https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#",
-                contentVersion: "1.0.0.0",
+                $schema: 'https://schema.management.azure.com/providers/Microsoft.Logic/schemas/2016-06-01/workflowdefinition.json#',
+                contentVersion: '1.0.0.0',
                 parameters: {
                     pagerDutyApiKey: {
-                        defaultValue: "",
-                        type: "SecureString"
+                        defaultValue: '',
+                        type: 'SecureString',
                     },
                     agentEndpoint: {
-                        defaultValue: "",
-                        type: "String",
+                        defaultValue: '',
+                        type: 'String',
                     },
                     $connections: {
                         defaultValue: {},
-                        type: "Object"
-                    }
+                        type: 'Object',
+                    },
                 },
                 triggers: {
                     When_an_incident_is_created: {
                         recurrence: {
                             interval: 1,
-                            frequency: "Minute"
+                            frequency: 'Minute',
                         },
                         evaluatedRecurrence: {
                             interval: 1,
-                            frequency: "Minute"
+                            frequency: 'Minute',
                         },
                         splitOn: "@triggerBody()?['incidents']",
-                        type: "ApiConnection",
+                        type: 'ApiConnection',
                         inputs: {
                             host: {
                                 connection: {
-                                    name: "@parameters('$connections')['pagerduty']['connectionId']"
-                                }
+                                    name: "@parameters('$connections')['pagerduty']['connectionId']",
+                                },
                             },
-                            method: "get",
-                            path: "/trigger2/incidents",
-                            queries: { "include[]": "first_trigger_log_entries" }
-                        }
-                    }
+                            method: 'get',
+                            path: '/trigger2/incidents',
+                            queries: { 'include[]': 'first_trigger_log_entries' },
+                        },
+                    },
                 },
                 actions: {
                     Send_get_request_to_FirstTriggerLogEntry: {
                         runAfter: {},
-                        type: "Http",
+                        type: 'Http',
                         inputs: {
                             uri: "https://api.pagerduty.com/log_entries/@{triggerBody()?['first_trigger_log_entry']?['id']}",
-                            method: "GET",
+                            method: 'GET',
                             headers: {
-                                Authorization: "Token token=@{parameters('pagerDutyApiKey')}"
+                                Authorization: "Token token=@{parameters('pagerDutyApiKey')}",
                             },
-                            queries: { "include[]": "channels" }
+                            queries: { 'include[]': 'channels' },
                         },
                         runtimeConfiguration: {
                             contentTransfer: {
-                                transferMode: "Chunked"
-                            }
-                        }
+                                transferMode: 'Chunked',
+                            },
+                        },
                     },
                     HTTP: {
                         runAfter: {
-                            Send_get_request_to_FirstTriggerLogEntry: [
-                                "Succeeded"
-                            ]
+                            Send_get_request_to_FirstTriggerLogEntry: ['Succeeded'],
                         },
-                        type: "Http",
+                        type: 'Http',
                         inputs: {
                             uri: "@{parameters('agentEndpoint')}api/v1/threads/incidents",
-                            method: "POST",
+                            method: 'POST',
                             body: {
                                 Title: "@triggerBody()?['summary']",
                                 Description: "@body('Send_get_request_to_FirstTriggerLogEntry')['log_entry']['channel']['details']",
                                 IncidentId: "@triggerBody()?['id']",
                                 Severity: "@triggerBody()?['urgency']",
-                                Source: "PagerDuty"
-                            }
+                                Source: 'PagerDuty',
+                            },
                         },
                         runtimeConfiguration: {
                             contentTransfer: {
-                                transferMode: "Chunked"
-                            }
-                        }
+                                transferMode: 'Chunked',
+                            },
+                        },
                     },
                 },
-                outputs: {}
+                outputs: {},
             },
             parameters: {
                 pagerDutyApiKey: {
-                    type: "SecureString",
-                    value: pagerDutyApiKey
+                    type: 'SecureString',
+                    value: pagerDutyApiKey,
                 },
                 agentEndpoint: {
-                    type: "String",
-                    value: agentEndpoint
+                    type: 'String',
+                    value: agentEndpoint,
                 },
                 $connections: {
-                    type: "Object",
+                    type: 'Object',
                     value: {
                         pagerduty: {
                             id: managedApiResourceId,
                             connectionId: connectionResourceId,
-                            connectionName: connectionName
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+                            connectionName: connectionName,
+                        },
+                    },
+                },
+            },
+        },
+    };
+};

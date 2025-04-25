@@ -1,0 +1,47 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    include:
+      - src/Agent/Agent.Web/Client/src/src/Strings/extracted/**
+
+pr: none
+
+jobs:
+  - job: CompileCommitLoc
+    displayName: UX - Compile and commit translations
+    # Only run when the commit message contains "juno"
+    condition: contains(variables['Build.SourceVersionMessage'], 'juno')
+    steps:
+      - checkout: self
+        persistCredentials: true
+
+      - task: NodeTool@0
+        inputs:
+          versionSpec: "22.x"
+
+      - task: npmAuthenticate@0
+        displayName: NPM auth
+        inputs:
+          workingFile: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\.npmrc'
+
+      - task: Npm@1
+        displayName: NPM install
+        inputs:
+          command: "install"
+          workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+
+      - task: Npm@1
+        displayName: Formatjs - Compile OneLoc translations
+        inputs:
+          command: "custom"
+          workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+          customCommand: "run compile:loc"
+
+      # TODO: This might not work due to perms
+      - script: |
+          git add '$(Build.SourcesDirectory)/src/Agent/Agent.Web/Client/src/src/Strings/compiled'
+          git diff --cached --quiet || git commit -m "UX chore: update compiled translations"
+          git push
+        displayName: Git - commit & push compiled translations

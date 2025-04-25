@@ -1,4 +1,4 @@
-import { KeyValue } from "../KeyValue";
+import { KeyValue } from '../KeyValue';
 
 export interface ManagedConnection {
     api: {
@@ -6,4 +6,4 @@ export interface ManagedConnection {
     };
     parameterValues: KeyValue<string>;
     displayName: string;
-};
+}

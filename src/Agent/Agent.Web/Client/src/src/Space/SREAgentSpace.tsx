@@ -1,21 +1,21 @@
-import { ThemeContext } from "@fluentui/react";
-import { SelectTabData, SelectTabEvent, Tab, TabList } from "@fluentui/react-components";
+import { ThemeContext } from '@fluentui/react';
+import { SelectTabData, SelectTabEvent, Tab, TabList } from '@fluentui/react-components';
 import type { Theme } from '@fluentui/theme';
-import { FC, useCallback, useContext, useState } from "react";
-import AzPortalProxy from "../Common/AzPortalProxy/AzPortalProxy";
-import { SreAgentTabs } from "../Strings/SREResources.resjson";
-import Activities from "./Activities/Activities.ReactView";
-import Graph from "./Graph/Graph";
-import Settings from "./Settings/Settings.ReactView";
+import { FC, useCallback, useContext, useState } from 'react';
+import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
+import { SreAgentTabs } from '../Strings/SREResources.resjson';
+import Activities from './Activities/Activities.ReactView';
+import Graph from './Graph/Graph';
+import Settings from './Settings/Settings.ReactView';
 
-const getTabListStyle = (theme: Theme) =>{
+const getTabListStyle = (theme: Theme) => {
     return {
-        backgroundColor: theme.semanticColors.bodyBackground
-    }
-}
+        backgroundColor: theme.semanticColors.bodyBackground,
+    };
+};
 
 enum TabValues {
-    Activities = "activities",
+    Activities = 'activities',
     Settings = 'settings',
     Graph = 'graph',
 }
@@ -59,6 +59,6 @@ const SREAgentSpace: FC = () => {
             </div>
         </div>
     );
-}
+};
 
 export default SREAgentSpace;

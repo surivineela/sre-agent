@@ -1,16 +1,29 @@
-import { DefaultButton, Dropdown, PrimaryButton, TextField } from "@fluentui/react";
-import { FC, useMemo } from "react";
-import { IncidentManagementPlatformResources, IncidentManagementResources, PagerDutyResources, Settings_Tabs, SreAgentResources } from "../../Strings/SREResources.resjson";
-import { IncidentManagementFormProps, IncidentManagementPlatform } from "../Contracts/IncidentManagement";
-import { incidentManagementDropdownStyles, incidentManagementMaskedTextFieldStyles, useSettingsStyles } from "./Styles/Settings.styles";
+import { DefaultButton, Dropdown, PrimaryButton, TextField } from '@fluentui/react';
+import { FC, useMemo } from 'react';
+import {
+    IncidentManagementPlatformResources,
+    IncidentManagementResources,
+    PagerDutyResources,
+    Settings_Tabs,
+    SreAgentResources,
+} from '../../Strings/SREResources.resjson';
+import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
+import { incidentManagementDropdownStyles, incidentManagementMaskedTextFieldStyles, useSettingsStyles } from './Styles/Settings.styles';
 
-
-const IncidentManagementForm: FC<IncidentManagementFormProps> = ({ formikProps, loading, loadFailure, saving }: IncidentManagementFormProps) => {
+const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
+    formikProps,
+    loading,
+    loadFailure,
+    saving,
+}: IncidentManagementFormProps) => {
     const styles = useSettingsStyles();
     const { setFieldValue, setFieldTouched, submitForm, resetForm, values, dirty, initialValues } = formikProps;
 
     const isDirty = useMemo(() => {
-        if (initialValues.platform === IncidentManagementPlatform.Disconnected && values.platform === IncidentManagementPlatform.Disconnected) {
+        if (
+            initialValues.platform === IncidentManagementPlatform.Disconnected &&
+            values.platform === IncidentManagementPlatform.Disconnected
+        ) {
             return false;
         }
         return dirty;
@@ -32,8 +45,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({ formikProps, 
                     styles={incidentManagementDropdownStyles}
                     selectedKey={values.platform}
                     onChange={(_event, option, _index) => {
-                        setFieldValue("platform", option?.key, true);
-                        setFieldTouched("platform", true, true);
+                        setFieldValue('platform', option?.key, true);
+                        setFieldTouched('platform', true, true);
                     }}
                     disabled={loading || !!loadFailure || saving}
                 />
@@ -51,8 +64,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({ formikProps, 
                             styles={incidentManagementMaskedTextFieldStyles}
                             value={values.connectionKey}
                             onChange={(_event, newValue) => {
-                                setFieldValue("connectionKey", newValue, true);
-                                setFieldTouched("connectionKey", true, true);
+                                setFieldValue('connectionKey', newValue, true);
+                                setFieldTouched('connectionKey', true, true);
                             }}
                             disabled={saving}
                         />
@@ -76,6 +89,6 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({ formikProps, 
             </div>
         </>
     );
-}
+};
 
 export default IncidentManagementForm;

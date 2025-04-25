@@ -1,3 +1,3 @@
 export class LogCategories {
-  public static readonly armHelper = 'ArmHelper';
+    public static readonly armHelper = 'ArmHelper';
 }

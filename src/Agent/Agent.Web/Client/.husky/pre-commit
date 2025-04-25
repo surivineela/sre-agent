@@ -1,0 +1,13 @@
+# Do nothing if the commit doesn’t touch UX stuff
+# (This file will still run for changes elsewhere in the repo)
+if ! git diff --cached --name-only --relative | grep -q "^src/Agent/Agent.Web/Client/"; then
+  exit 0
+fi
+
+cd src/Agent/Agent.Web/Client
+
+npx lint-staged
+
+# Running this here for now to ensure OneLoc translations get compiled until
+# we figure out the ADO pipeline (if ever)
+npm run compile:loc

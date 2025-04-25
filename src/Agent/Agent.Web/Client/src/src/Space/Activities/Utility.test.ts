@@ -1,8 +1,14 @@
-import { describe, it, expect } from 'vitest';
+import { describe, expect, it } from 'vitest';
 import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { getLatestThread, noGapBetweenNewMessagesAndExistingMessages, noGapBetweenNewThreadsAndExistingThreads, processMessages, processThreads } from './Utility';
+import {
+    getLatestThread,
+    noGapBetweenNewMessagesAndExistingMessages,
+    noGapBetweenNewThreadsAndExistingThreads,
+    processMessages,
+    processThreads,
+} from './Utility';
 
 const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
     const title = Guid.newTinyGuid();
@@ -19,7 +25,7 @@ const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
                 userId: 'Web-Client-User',
                 displayName: 'Web Client User',
             },
-            text: 'start message'
+            text: 'start message',
         },
         lastMessage: {
             id: Guid.newGuid(),
@@ -29,10 +35,10 @@ const getDefaultThread = (createdTimestamp: string, id?: string): Thread => {
                 userId: 'SREAgent',
                 displayName: 'SRE Agent',
             },
-            text: 'last message'
-        }
-    }
-}
+            text: 'last message',
+        },
+    };
+};
 
 const areThreadsSame = (lhs: Thread[], rhs: Thread[]) => {
     if (lhs.length !== rhs.length) return false;
@@ -45,7 +51,7 @@ const areThreadsSame = (lhs: Thread[], rhs: Thread[]) => {
     }
 
     return true;
-}
+};
 
 const getDefaultMessage = (timeStamp: string, id?: string): Message => {
     return {
@@ -56,9 +62,9 @@ const getDefaultMessage = (timeStamp: string, id?: string): Message => {
             userId: 'Web-Client-User',
             displayName: 'Web Client User',
         },
-        text: 'start message'
-    }
-}
+        text: 'start message',
+    };
+};
 
 const areMessagesSame = (lhs: Message[], rhs: Message[]) => {
     if (lhs.length !== rhs.length) return false;
@@ -71,11 +77,9 @@ const areMessagesSame = (lhs: Message[], rhs: Message[]) => {
     }
 
     return true;
-}
-
+};
 
 describe('processThreads', () => {
-
     const areThreadsSortedDescByCreatedTimeStamp = (threads: Thread[]) => {
         let isSortedDesc = true;
 
@@ -87,7 +91,7 @@ describe('processThreads', () => {
         }
 
         return isSortedDesc;
-    }
+    };
 
     const areThreadsUnique = (threads: Thread[]) => {
         const threadIds: Set<string> = new Set<string>();
@@ -100,7 +104,7 @@ describe('processThreads', () => {
         }
 
         return true;
-    }
+    };
 
     it('Add old threads', () => {
         const threads: Thread[] = [
@@ -120,7 +124,7 @@ describe('processThreads', () => {
         expect(areThreadsSame(result, [...threads, ...oldThreads])).toBe(true);
         expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
-    })
+    });
 
     it('Add new threads', () => {
         const threads: Thread[] = [
@@ -133,7 +137,6 @@ describe('processThreads', () => {
             getDefaultThread('2023-10-06T00:00:00Z'),
             getDefaultThread('2023-10-05T00:00:00Z'),
             getDefaultThread('2023-10-04T00:00:00Z'),
-
         ];
 
         const result = processThreads(threads, newThreads, true);
@@ -141,10 +144,9 @@ describe('processThreads', () => {
         expect(areThreadsSame(result, [...newThreads, ...threads])).toBe(true);
         expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
-    })
+    });
 
     it('Add duplicated threads', () => {
-
         const threads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
             getDefaultThread('2023-10-02T00:00:00Z', '02'),
@@ -157,18 +159,17 @@ describe('processThreads', () => {
             getDefaultThread('2023-10-04T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
             getDefaultThread('2023-10-02T00:00:00Z', '02'),
-
         ];
 
         const result = processThreads(threads, newThreads, true);
-        const expectedResult = [...newThreads.slice(0, 3), ...threads]
+        const expectedResult = [...newThreads.slice(0, 3), ...threads];
 
         expect(result.length).toBe(6);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
         expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
-    })
-})
+    });
+});
 
 describe('noGapBetweenNewThreadsAndExistingThreads', () => {
     it('No latest thread', () => {
@@ -179,12 +180,12 @@ describe('noGapBetweenNewThreadsAndExistingThreads', () => {
         ];
 
         expect(noGapBetweenNewThreadsAndExistingThreads(threads)).toBe(true);
-    })
+    });
 
     it('No threads', () => {
         const latestThread = getDefaultThread('2023-10-03T00:00:00Z');
         expect(noGapBetweenNewThreadsAndExistingThreads([], latestThread)).toBe(true);
-    })
+    });
 
     it('The latest thread is newer than existing threads', () => {
         const threads: Thread[] = [
@@ -248,14 +249,13 @@ describe('noGapBetweenNewThreadsAndExistingThreads', () => {
 });
 
 describe('getLatestThread', () => {
-
     it('Undefined threads', () => {
         expect(getLatestThread(undefined)).toBeUndefined();
     });
 
     it('Empty threads', () => {
         expect(getLatestThread([])).toBeUndefined();
-    })
+    });
 
     it('Thread are not empty', () => {
         const threads: Thread[] = [
@@ -267,11 +267,10 @@ describe('getLatestThread', () => {
         const latestThread = getLatestThread(threads);
         expect(latestThread).toBeDefined();
         expect(latestThread?.id).toBe('03');
-    })
-})
+    });
+});
 
 describe('processMessages', () => {
-
     const areMessagesSortedAscByTimeStamp = (messages: Message[]) => {
         let isSortedAsc = true;
 
@@ -283,7 +282,7 @@ describe('processMessages', () => {
         }
 
         return isSortedAsc;
-    }
+    };
 
     const areMessagesUnique = (messages: Message[]) => {
         const messageIds: Set<string> = new Set<string>();
@@ -296,7 +295,7 @@ describe('processMessages', () => {
         }
 
         return true;
-    }
+    };
 
     it('Add old messages', () => {
         const messages: Message[] = [
@@ -352,21 +351,19 @@ describe('processMessages', () => {
             getDefaultMessage('2023-10-03T00:00:00Z', '03'),
             getDefaultMessage('2023-10-02T00:00:00Z', '02'),
             getDefaultMessage('2023-10-01T00:00:00Z', '01'),
-
         ];
 
         const result = processMessages(messages, newMessages, false);
-        const expectedResult = [...messages, ...newMessages.reverse().slice(3)]
+        const expectedResult = [...messages, ...newMessages.reverse().slice(3)];
 
         expect(result.length).toBe(6);
         expect(areMessagesSame(result, expectedResult)).toBe(true);
         expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
         expect(areMessagesUnique(result)).toBe(true);
-    })
-})
+    });
+});
 
 describe('noGapBetweenNewMessagesAndExistingMessages', () => {
-
     it('No latest message', () => {
         const messages: Message[] = [
             getDefaultMessage('2023-10-03T00:00:00Z', '03'),
@@ -375,12 +372,12 @@ describe('noGapBetweenNewMessagesAndExistingMessages', () => {
         ];
 
         expect(noGapBetweenNewMessagesAndExistingMessages(messages)).toBe(true);
-    })
+    });
 
     it('No messages', () => {
         const latestMessage = getDefaultMessage('2023-10-03T00:00:00Z');
         expect(noGapBetweenNewMessagesAndExistingMessages([], latestMessage)).toBe(true);
-    })
+    });
 
     it('The latest message is newer than existing messages', () => {
         const messages: Message[] = [

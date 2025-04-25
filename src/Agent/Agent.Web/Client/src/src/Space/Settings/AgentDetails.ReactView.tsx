@@ -1,14 +1,14 @@
-import { FC, useContext, useMemo } from "react";
-import { Settings_Tabs, SreAgentResources } from "../../Strings/SREResources.resjson";
 import { Label } from '@fluentui/react/lib/Label';
-import { useSettingsStyles } from "./Styles/Settings.styles";
-import { EnvironmentContext } from "../../Common/AzPortalProxy/Providers/StartupInfoContext";
-import { useSreAgent } from "./Hooks/useSreAgent";
-import { ArmResourceDescriptor } from "../../Common/Helpers/ResourceDescriptors";
+import { FC, useContext, useMemo } from 'react';
+import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
+import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
+import { Settings_Tabs, SreAgentResources } from '../../Strings/SREResources.resjson';
+import { useSreAgent } from './Hooks/useSreAgent';
+import { useSettingsStyles } from './Styles/Settings.styles';
 
 const AgentDetails: FC = () => {
     const styles = useSettingsStyles();
-    const {resourceId } = useContext(EnvironmentContext);
+    const { resourceId } = useContext(EnvironmentContext);
     const { agent } = useSreAgent(resourceId);
     const region = useMemo(() => agent?.location, [agent?.location]);
 

@@ -6,7 +6,7 @@ export interface Agent {
     knowledgeGraphConfiguration?: KnowledgeGraphConfiguration;
     outboundConnectionConfiguration?: OutboundConnectionConfiguration;
     mcpServers?: string[];
-    logConfiguration?: LogConfiguration
+    logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
 }
 
@@ -29,7 +29,7 @@ export interface OutboundConnectionConfiguration {
 export interface LogAnalyticsConfiguration {
     workspaceId: string;
     sharedKey: string;
-};
+}
 
 export interface LogConfiguration {
     logAnalyticsConfiguration: LogAnalyticsConfiguration;
@@ -43,19 +43,19 @@ export interface IncidentManagementConfiguration {
 }
 
 export enum IncidentManagementType {
-    PagerDuty = "PagerDuty",
+    PagerDuty = 'PagerDuty',
 }
 
 export enum IncidentStatus {
-    error = "error",
-    warning = "warning",
-    success = "success",
+    error = 'error',
+    warning = 'warning',
+    success = 'success',
 }
 
 export enum ThreadSource {
-    conversation = "Conversation",
-    incident = "Incident",
-    Portal = "Portal", // legacy
+    conversation = 'Conversation',
+    incident = 'Incident',
+    Portal = 'Portal', // legacy
 }
 
 export interface Thread {
@@ -77,17 +77,17 @@ export interface Message {
 }
 
 export interface MessageAuthor {
-    role: "SREAgent" | "User";
+    role: 'SREAgent' | 'User';
     userId: string;
     displayName: string;
 }
 
 export enum ActionStatus {
-    Pending = "Pending",
-    InProgress = "InProgress",
-    Completed = "Completed",
-    Failed = "Failed",
-    All = "All",
+    Pending = 'Pending',
+    InProgress = 'InProgress',
+    Completed = 'Completed',
+    Failed = 'Failed',
+    All = 'All',
 }
 
 export interface Action {

@@ -1,48 +1,55 @@
-import axios from "axios";
-import { GraphContext, ResourceExtended } from "../Contracts/Graph";
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
-import { Guid } from "../../Common/Helpers/Guid";
-import { Link, Toast, ToastBody, ToastIntent, ToastTitle, ToastTrigger, useToastController } from "@fluentui/react-components";
-import { getAgentHeaders } from "../../Common/Helpers/headers";
+import { Link, Toast, ToastBody, ToastIntent, ToastTitle, ToastTrigger, useToastController } from '@fluentui/react-components';
+import axios from 'axios';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { Guid } from '../../Common/Helpers/Guid';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { GraphContext, ResourceExtended } from '../Contracts/Graph';
 
 const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
     try {
         const { data } = await axios.get(`../api/v1/graph/resource/${resourceId}`, {
-            headers: getAgentHeaders()
+            headers: getAgentHeaders(),
         });
         return (data ?? [])?.[0];
     } catch {
         return undefined;
     }
-}
+};
 
 const patchResource = async (resourceId: string, remarks: string): Promise<void> => {
-    await axios.patch(`../api/v1/graph/resource/${resourceId}/remarks`, { remarks }, {
-        headers: getAgentHeaders()
-    });
-}
+    await axios.patch(
+        `../api/v1/graph/resource/${resourceId}/remarks`,
+        { remarks },
+        {
+            headers: getAgentHeaders(),
+        }
+    );
+};
 
 export const createThread = async (resourceId: string) => {
     const url = `../api/v1/threads`;
 
-    const response = await axios.post(url, {
-        startMessage: {
-            text: `Resource ${resourceId} is unhealthy could you help diagnose what is wrong?`,
-            userId: 'web-client-user',
-            displayName: 'Web Client User',
+    const response = await axios.post(
+        url,
+        {
+            startMessage: {
+                text: `Resource ${resourceId} is unhealthy could you help diagnose what is wrong?`,
+                userId: 'web-client-user',
+                displayName: 'Web Client User',
+            },
+        },
+        {
+            headers: getAgentHeaders(),
         }
-    }, {
-        headers: getAgentHeaders()
-    });
+    );
     return response?.data;
-}
+};
 
 export const getPropertyValue = (input?: string[]): string => {
     return input?.[0] ?? '';
-}
+};
 
 export const usePanel = () => {
-
     const { selectedNode } = useContext(GraphContext);
 
     const [resource, setResource] = useState<ResourceExtended>();
@@ -59,28 +66,28 @@ export const usePanel = () => {
         if (selectedNode) {
             setIsLoading(true);
             return getResource(selectedNode.id)
-                .then((resource) => {
+                .then(resource => {
                     if (isMounted.current) {
                         setResource(resource);
                         setInitialRemarks(getPropertyValue(resource?.properties?.remarks));
                     }
-                }).finally(() => {
+                })
+                .finally(() => {
                     if (isMounted.current) {
                         setIsLoading(false);
                     }
-                })
+                });
         }
-    }
+    };
 
     const notify = (status: ToastIntent, errorMessage?: string) => {
         const name = selectedNode?.name;
-        const title = "Annotation update";
-        let description =
-            `We are updating annotation for your resource${name ? ` '${name}'` : ""}`;
+        const title = 'Annotation update';
+        let description = `We are updating annotation for your resource${name ? ` '${name}'` : ''}`;
 
         switch (status) {
             case 'success':
-                description = "Your annotation is updated successfully";
+                description = 'Your annotation is updated successfully';
                 break;
             case 'error':
                 description = `Failed to update the annotation with the error: ${errorMessage}`;
@@ -93,7 +100,7 @@ export const usePanel = () => {
                     <ToastTitle
                         action={
                             <ToastTrigger>
-                                <Link>{"Dismiss"}</Link>
+                                <Link>{'Dismiss'}</Link>
                             </ToastTrigger>
                         }
                     >
@@ -104,50 +111,53 @@ export const usePanel = () => {
                 {
                     intent: status,
                     timeout: 7000,
-                    position: "top-end",
+                    position: 'top-end',
                     toastId: toasterId,
-                },
+                }
             );
         } else {
             updateToast({
-                content: <Toast>
-                    <ToastTitle
-                        action={
-                            <ToastTrigger>
-                                <Link>{"Dismiss"}</Link>
-                            </ToastTrigger>
-                        }
-                    >
-                        {title}
-                    </ToastTitle>
-                    <ToastBody>{description}</ToastBody>
-                </Toast>,
+                content: (
+                    <Toast>
+                        <ToastTitle
+                            action={
+                                <ToastTrigger>
+                                    <Link>{'Dismiss'}</Link>
+                                </ToastTrigger>
+                            }
+                        >
+                            {title}
+                        </ToastTitle>
+                        <ToastBody>{description}</ToastBody>
+                    </Toast>
+                ),
                 intent: status,
                 toastId: toasterId,
                 timeout: 7000,
-                position: "top-end",
-            })
+                position: 'top-end',
+            });
         }
-
     };
 
-    const onSubmit = useCallback(async (remarks: string) => {
-        if (selectedNode) {
-            setIsUpdating(true);
-            notify('info');
+    const onSubmit = useCallback(
+        async (remarks: string) => {
+            if (selectedNode) {
+                setIsUpdating(true);
+                notify('info');
 
-            try {
-                await patchResource(selectedNode.id, remarks);
-                notify('success');
-            } catch (e: any) {
-                notify('error', e)
-            } finally {
-                setIsUpdating(false);
-                refresh();
+                try {
+                    await patchResource(selectedNode.id, remarks);
+                    notify('success');
+                } catch (e: any) {
+                    notify('error', e);
+                } finally {
+                    setIsUpdating(false);
+                    refresh();
+                }
             }
-
-        }
-    }, [selectedNode]);
+        },
+        [selectedNode]
+    );
 
     useEffect(() => {
         refresh();
@@ -158,8 +168,8 @@ export const usePanel = () => {
 
         return () => {
             isMounted.current = false;
-        }
-    })
+        };
+    });
 
     return {
         resource,
@@ -167,7 +177,6 @@ export const usePanel = () => {
         isLoading,
         isUpdating,
         onSubmit,
-        toasterId
-    }
-
-}
+        toasterId,
+    };
+};

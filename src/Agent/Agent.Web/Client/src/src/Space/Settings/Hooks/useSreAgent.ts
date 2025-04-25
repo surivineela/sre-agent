@@ -1,7 +1,7 @@
+import { useEffect, useState } from 'react';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Agent } from '../../../Common/Contracts/Azure/SreAgent';
-import { useEffect, useState } from 'react';
 
 export function useSreAgent(resourceId: string) {
     const [agent, setAgent] = useState<ArmObj<Agent>>();
@@ -16,7 +16,7 @@ export function useSreAgent(resourceId: string) {
             setAgentLoaded(false);
             setAgentLoadFailure('');
 
-            SreAgentClient.getAgent(resourceId).then((response) => {
+            SreAgentClient.getAgent(resourceId).then(response => {
                 setAgentLoading(false);
                 if (response?.metadata?.success && response.data) {
                     setAgent(response.data);
