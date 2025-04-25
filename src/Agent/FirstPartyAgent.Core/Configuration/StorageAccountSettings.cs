@@ -8,6 +8,7 @@ namespace FirstPartyAgent.Core.Configuration
     {
         public string AccountUrl { get; set; }
         public string IcmAlertConfigsContainerName { get; set; }
+        public string GenevaActionsContainerName { get; set; }
     }
 }
 

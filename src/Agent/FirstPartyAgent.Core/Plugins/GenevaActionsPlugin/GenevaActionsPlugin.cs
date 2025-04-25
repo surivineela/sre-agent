@@ -24,7 +24,7 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly IStorageService _storageService;
         private readonly ICosmosDBService _cosmosDbService;
         private ISessionMessageService _sessionMessageService;
-        private readonly string storageGenevaActionsContainerName = "genevaactionsconfig";
+        private string storageGenevaActionsContainerName = "genevaactionsconfig";
         private readonly string cosmosGenevaActionsContainerName = "GenevaActionsConfigs";
         private readonly string genevaActionsConfigName = "GenevaActions";
 
@@ -33,6 +33,7 @@ namespace FirstPartyAgent.Core.Plugins
             IKustoPlugin kustoPlugin,
             ILogger<GenevaActionsPlugin> logger,
             ITeamsClient teamsClient,
+            StorageAccountSettings storageAccountSettings,
             IStorageService storageService,
             ICosmosDBService cosmosDBService,
             ISessionMessageService sessionMessageService)
@@ -45,6 +46,10 @@ namespace FirstPartyAgent.Core.Plugins
             _storageService = storageService;
             _cosmosDbService = cosmosDBService;
             _allGenevaActions = new List<GenevaActionConfig>();
+            if (!string.IsNullOrWhiteSpace(storageAccountSettings.GenevaActionsContainerName))
+            {
+                storageGenevaActionsContainerName = storageAccountSettings.GenevaActionsContainerName;
+            }
             InitializeGenevaActionsConfig().GetAwaiter().GetResult();
         }
 
