@@ -60,7 +60,7 @@ namespace Agent.Plugins.Definitions
             string imageReference
             )
         {
-            return await _containerImagePullFailurePlugin.VerifyExternalRegistry(resourceId, imageReference);
+            return await _containerImagePullFailurePlugin.VerifyExternalRegistryAsync(resourceId, imageReference);
         }
 
         [KernelFunction("check_image_pulling")]

@@ -19,13 +19,7 @@ public sealed class ContainerImagePullFailureAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerImagePullFailureAgent);
 
     public ContainerImagePullFailureAgentFactory(
-        IMetricsPlugin metricsPlugin,
-        IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
-        IRemediationPlugin remediationPlugin,
-        IRecordActionsPlugin recordActionsPlugin,
-        IChartPlugin chartPlugin,
-        IContainerAppPlugin containerAppPlugin,
         IContainerImagePullFailurePlugin containerImagePullFailurePlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,

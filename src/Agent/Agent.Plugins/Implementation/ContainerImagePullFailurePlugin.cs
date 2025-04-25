@@ -660,14 +660,9 @@ namespace Agent.Plugins.Implementation
         /// <summary>
         /// Verifies connectivity and authentication to an external registry
         /// </summary>
-        public async Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId, string imageReference)
+        public async Task<ExternalRegistryVerificationResult> VerifyExternalRegistryAsync(string resourceId, string imageReference)
         {
             _logger.LogInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
-            return await VerifyExternalRegistryAsync(imageReference, resourceId);
-        }
-
-        private async Task<ExternalRegistryVerificationResult> VerifyExternalRegistryAsync(string imageReference, string resourceId)
-        {
             var result = new ExternalRegistryVerificationResult
             {
                 ImageReference = imageReference,

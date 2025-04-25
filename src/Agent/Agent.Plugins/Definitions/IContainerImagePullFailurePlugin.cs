@@ -41,7 +41,7 @@ namespace Agent.Plugins.Definitions
         /// <param name="resourceId">The resource ID to verify external registry for</param>
         /// <param name="imageReference">The image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)</param>
         /// <returns>Verification result with detailed status</returns>
-        Task<ExternalRegistryVerificationResult> VerifyExternalRegistry(string resourceId, string imageReference);
+        Task<ExternalRegistryVerificationResult> VerifyExternalRegistryAsync(string resourceId, string imageReference);
 
         /// <summary>
         /// Checks if there are any current or recent image pulling issues
