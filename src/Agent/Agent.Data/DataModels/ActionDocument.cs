@@ -13,8 +13,9 @@ public record ActionDocument(
     string ThreadId,
     string Title,
     string ToolName,
-    DateTime TimeStamp,
-    ActionStatus Status
+    DateTime TimeStamp, // created timestamp
+    ActionStatus Status,
+    ActionSeverity Severity
 ) : ICosmosDocument
 {
     public string DocumentType => "Action";
@@ -30,7 +31,8 @@ public record ActionDocument(
             action.Title,
             action.ToolName,
             action.TimeStamp,
-            action.Status
+            action.Status,
+            action.Severity
     );
 
     public Action ToDomainModel() =>
@@ -39,6 +41,7 @@ public record ActionDocument(
             Title,
             ToolName,
             TimeStamp,
-            Status
+            Status,
+            Severity
         );
 }

@@ -4,6 +4,7 @@
 
 using System;
 using System.Net;
+using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -151,18 +152,18 @@ public class CosmosDbThreadRepository : IThreadRepository
         return threads;
     }
 
-    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptins)
+    public async Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null)
     {
         var threads = new List<Thread>();
 
-        // Query for thread documents
+        // Query for thread documents  
         var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
             .Where(t => t.DocumentType == "Thread")
             .OrderBy(t => t.CreatedTimestamp);
 
-        if (queryOptins is not null)
+        if (queryOptions is not null)
         {
-            query = queryOptins.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadDocument>;
+            query = queryOptions.ApplyTo(query, oDataQuerySettings) as IOrderedQueryable<ThreadDocument>;
         }
 
         using var iterator = query.ToFeedIterator();
@@ -171,14 +172,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             foreach (var threadDoc in await iterator.ReadNextAsync())
             {
-                // Get the start message for each thread
+                // Get the start message for each thread  
                 MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.MessageId,
                     threadDoc.Id
                 );
 
-                // last message may be null if thread was created before we started saving last message id
-                // & a new message has not been added to the thread
+                // last message may be null if thread was created before we started saving last message id  
+                // & a new message has not been added to the thread  
                 Message lastMessageDocDomainModel;
                 if (threadDoc.LastMessageId == null)
                 {
@@ -201,7 +202,40 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
         }
 
-        return threads;
+        // update Actions Status Properties for each thread
+        var threadIdsWithCriticalActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical);
+        var threadIdsWithWarningActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning);
+
+        var updatedThreads = new List<Thread>();
+        foreach (var thread in threads)
+        {
+            // Check if the thread has critical or warning actions
+            bool hasCriticalActions = threadIdsWithCriticalActions.Contains(thread.Id.ToString());
+            bool hasWarningActions = threadIdsWithWarningActions.Contains(thread.Id.ToString());
+
+            // Create a new instance of the thread with updated ActionsStatus
+            var updatedThread = thread with
+            {
+                ActionsStatus = new ActionsStatus(hasCriticalActions, hasWarningActions)
+            };
+
+            updatedThreads.Add(updatedThread);
+        }
+
+        // Filter threads by severity if specified  
+        if (severity is not null)
+        {
+            if (severity == ActionSeverity.Critical)
+            {
+                updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasCriticalActions == true).ToList();
+            }
+            else if (severity == ActionSeverity.Warning)
+            {
+                updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasWarningActions == true).ToList();
+            }
+        }
+
+        return updatedThreads;
     }
 
     public async Task<Thread> CreateThreadAsync(Thread thread)
@@ -754,6 +788,47 @@ public class CosmosDbThreadRepository : IThreadRepository
             throw;
         }
     }
+
+    public async Task<IEnumerable<Action>> GetAllActionsAsync()
+    {
+        var actions = new List<Action>();
+
+        var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
+            .Where(a => a.DocumentType == "Action")
+            .OrderByDescending(a => a.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var actionDoc in await iterator.ReadNextAsync())
+            {
+                actions.Add(actionDoc.ToDomainModel());
+            }
+        }
+        return actions;
+    }
+
+    public async Task<IEnumerable<string>> GetThreadIdsWithActionSeverityAsync(ActionSeverity? severity)
+    {
+        var threadIds = new List<string>();
+
+        var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
+            .Where(a => a.DocumentType == "Action" && a.Severity == severity)
+            .OrderByDescending(a => a.TimeStamp);
+
+        using var iterator = query.ToFeedIterator();
+
+        while (iterator.HasMoreResults)
+        {
+            foreach (var actionDoc in await iterator.ReadNextAsync())
+            {
+                threadIds.Add(actionDoc.ThreadId);
+            }
+        }
+        return threadIds;
+    }
+
 
     #endregion
 

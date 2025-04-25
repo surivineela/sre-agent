@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Microsoft.AspNetCore.OData.Query;
@@ -44,7 +45,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(thread);
         }
 
-        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions)
+        public Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions, ActionSeverity? severity = null)
         {
             IQueryable<Thread> threads = _threads.Values.AsQueryable().OrderBy(t => t.CreatedTimestamp);
 
@@ -53,7 +54,39 @@ namespace Agent.Data.Repositories
                 threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
             }
 
-            return Task.FromResult(threads.AsEnumerable());
+            var criticalActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical).Result;
+            var warningActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning).Result;
+
+            var updatedThreads = new List<Thread>();
+            // update the thread's actions status
+            foreach (var thread in threads)
+            {
+                // Check if the thread has critical or warning actions
+                bool hasCriticalActions = criticalActionThreads.Contains(thread.Id.ToString());
+                bool hasWarningActions = warningActionThreads.Contains(thread.Id.ToString());
+
+                // Create a new instance of the thread with updated ActionsStatus
+                var updatedThread = thread with
+                {
+                    ActionsStatus = new ActionsStatus(hasCriticalActions, hasWarningActions)
+                };
+
+                updatedThreads.Add(updatedThread);
+            }
+
+            if (severity is not null)
+            {
+                if (severity == ActionSeverity.Critical)
+                {
+                    updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasCriticalActions == true).ToList();
+                }
+                else if (severity == ActionSeverity.Warning)
+                {
+                    updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasWarningActions == true).ToList();
+                }
+            }
+
+            return Task.FromResult(updatedThreads.AsEnumerable());
         }
 
         public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null)
@@ -360,6 +393,34 @@ namespace Agent.Data.Repositories
                 _logger.LogError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
                 throw;
             }
+        }
+
+        public Task<IEnumerable<Action>> GetAllActionsAsync()
+        {
+            var actions = _actions
+                .Select(kvp => kvp.Value)
+                .OrderByDescending(a => a.TimeStamp);
+
+            return Task.FromResult(actions.AsEnumerable());
+        }
+
+        public Task<IEnumerable<string>> GetThreadIdsWithActionSeverityAsync(ActionSeverity? severity)
+        {
+            // Get all thread IDs that have actions of the specified severity
+            var threadIds = Enumerable.Empty<string>();
+
+            if (severity is not null)
+            {
+                var threadIdGuids = _actions
+                    .Where(a => a.Value.Severity == severity)
+                    .Select(a => a.Key.ThreadId)
+                    .Distinct();
+
+                // cast threadIds to string
+                threadIds = threadIdGuids.Select(t => t.ToString());
+            }
+
+            return Task.FromResult(threadIds);
         }
         #endregion
 

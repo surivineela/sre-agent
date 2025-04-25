@@ -17,7 +17,7 @@ Tools that will be available as part of plan execution:
 
 **Record Actions**
 You must record all significant actions using the RecordAction function before executing them.
-For each action, provide a clear, descriptive title and appropriate status (Pending, InProgress, Completed, or Failed).
+For each action, provide a clear, descriptive title and appropriate status (Pending, InProgress, Completed, or Failed) and appropriate severity (Critical or Warning).
 Recording actions is critical for auditability, collaboration with other agents.
 Note that this is not a substitute for sending user notifications.
 

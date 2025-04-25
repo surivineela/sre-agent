@@ -12,11 +12,30 @@ public enum ActionStatus
     Failed
 }
 
+public enum ActionSeverity
+{
+    Critical,
+    Warning
+}
+
 public record Action(
     Guid Id,
     string Title,
     string ToolName,
-    DateTime TimeStamp,
-    ActionStatus Status
+    DateTime TimeStamp, // created timestamp
+    ActionStatus Status,
+    ActionSeverity Severity
 );
 
+
+public record actionStatusMetrics(
+    int PendingActionsCount,
+    int InProgressActionsCount,
+    int CompletedActionsCount,
+    int FailedActionsCount
+);
+
+public record actionSeverityMetrics(
+    int CriticalActionsCount,
+    int WarningActionsCount
+);

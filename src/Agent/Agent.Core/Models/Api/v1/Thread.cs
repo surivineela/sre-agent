@@ -26,7 +26,14 @@ namespace Agent.Core.Models.Api.v1
         DateTime ModifiedTimestamp,
         ThreadSource Source = ThreadSource.Conversation,
         string? WaitReason = null,
-        DateTime? WaitUntil = null
+        DateTime? WaitUntil = null,
+        ActionsStatus? ActionsStatus = null
+    );
+
+    public record ActionsStatus
+    (
+        bool hasCriticalActions,
+        bool hasWarningActions 
     );
 
     public record CreateThreadRequest(

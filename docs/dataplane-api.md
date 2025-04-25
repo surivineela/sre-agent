@@ -62,6 +62,82 @@ value:
     createdTimestamp: '2025-03-01' 
     modifiedTimestamp: '2025-03-11'
 ```
+### Get threads with actions based on severity
+
+Get filtered list of threads that have recommendations based on severity level. For example the below call gets all threads that have recommended actions of severity level critical. Note the following action does not list the actual recommended actions, to do that refer to the List Actions Per Thread section.
+
+- `GET /api/v1/threads/threads?severity=critical`
+Response:
+
+```yaml
+value:
+  - id: id
+    title: 'Welcome'
+    startMessage:
+        id: id
+        timestamp: '2025-03-01'
+        author:
+            role: SREAgent
+            userId: 'agent-123'
+            displayName: 'SRE Agent'
+        text: "Hello, I am an SRE agent, blah blah blah"
+    createdTimestamp: '2025-03-01' 
+    modifiedTimestamp: '2025-03-11'
+  - id: id
+    title: 'Updating TLS settings'
+    startMessage:
+        id: id
+        timestamp: '2025-03-01'
+        author:
+            role: SREAgent
+            userId: 'agent-456'
+            displayName: 'SRE Agent'
+        text: "I have detected the following apps have TLS settings set to an older version. Do you want me to fix that?"
+    createdTimestamp: '2025-03-01' 
+    modifiedTimestamp: '2025-03-11'
+```
+
+Response:
+
+```yaml
+value:
+  - id: id
+    title: 'Welcome'
+    startMessage:
+        id: id
+        timestamp: '2025-03-01'
+        author:
+            role: SREAgent
+            userId: 'agent-123'
+            displayName: 'SRE Agent'
+        text: "Hello, I am an SRE agent, blah blah blah"
+    createdTimestamp: '2025-03-01' 
+    modifiedTimestamp: '2025-03-11'
+  - id: id
+    title: 'Updating TLS settings'
+    startMessage:
+        id: id
+        timestamp: '2025-03-01'
+        author:
+            role: SREAgent
+            userId: 'agent-456'
+            displayName: 'SRE Agent'
+        text: "I have detected the following apps have TLS settings set to an older version. Do you want me to fix that?"
+    createdTimestamp: '2025-03-01' 
+    modifiedTimestamp: '2025-03-11'
+  - id: id
+    title: 'Current status update'
+    startMessage:
+        id: id
+        timestamp: '2025-03-11'
+        author:
+            role: User
+            userId: 'user-789'
+            displayName: 'Paul'
+        text: "What is going on with my apps right now?"
+    createdTimestamp: '2025-03-01' 
+    modifiedTimestamp: '2025-03-11'
+```
 
 ### Create a thread
 
@@ -158,6 +234,7 @@ value:
 
 ## Actions
 
+### List Actions Per Thread
 Actions represent the history of what operations an agent has performed in the context of this thread. It is a read-only collection.
 
 - `GET /api/v1/threads/<id>/actions`
@@ -176,8 +253,40 @@ value:
     status: Completed
 ```
 
-## Approvals
+### List Action Status Metrics
+list metrics for all actions and their  status. Executed actions are broken down by pending, succeeded, failed, and overall total. 
 
+- `GET /api/v1/actions/statusMetrics`
+
+Response:
+
+```yaml
+value:
+  completedActionsCount: 8
+  failedActionsCount: 1
+  pendingActionsCount: 1
+```
+
+time filter returns all actions created between the time frame and their status. 
+- `GET /api/v1/actions/statusMetrics?start_time=2025-04-01T00:00:00Z&end_time=2025-04-08T23:59:59Z`
+
+### List Action Severity Metrics
+lists metrics for all uncompleted actions broken by severity. 
+
+- `GET /api/v1/actions/severityMetrics`
+
+Response:
+
+```yaml
+value:
+  criticalActionsCount: 2
+  warningAtionsCount: 8
+```
+
+time filter returns all uncompleted actions that were created in the specified time range
+- `GET /api/v1/actions/severityMetrics?start_time=2025-04-01T00:00:00Z&end_time=2025-04-08T23:59:59Z`
+
+## Approvals
 
 ### List Approvals
 

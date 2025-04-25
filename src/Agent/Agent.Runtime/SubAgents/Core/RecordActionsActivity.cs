@@ -13,7 +13,8 @@ namespace Agent.Runtime.SubAgents.Core
         Guid ThreadId,
         string Title,
         string ToolName = "",
-        ActionStatus Status = ActionStatus.Pending
+        ActionStatus Status = ActionStatus.Pending,
+        ActionSeverity Severity = ActionSeverity.Warning
         );
 
     [DurableTask]
@@ -33,7 +34,8 @@ namespace Agent.Runtime.SubAgents.Core
                 input.ThreadId,
                 input.Title,
                 input.ToolName,
-                input.Status);
+                input.Status,
+                input.Severity);
 
             return action;
         }

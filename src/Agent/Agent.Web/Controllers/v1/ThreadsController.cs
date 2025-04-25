@@ -42,10 +42,13 @@ namespace Agent.Web.Controllers.v1
         // The order by can be overridden by using the `orderby` query option.
         // Example: If one wants 10 latest threads, they can call /api/v1/threads?top=10&orderby=createdTimestamp+desc
         // This pattern applies to all the endpoints that return a PagedResponse
+        // Threads can be filtered by severity using the `severity` query option.
+        // Example: /api/v1/threads?severity=Critical
         [HttpGet]
-        public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions)
+        public async Task<ActionResult<PagedResponse<Thread>>> GetThreads(ODataQueryOptions<ThreadDocument> queryOptions,
+        [FromQuery] ActionSeverity? severity = null)
         {
-            var threads = await repository.GetThreadsAsync(queryOptions);
+            var threads = await repository.GetThreadsAsync(queryOptions, severity);
 
             return Ok(new PagedResponse<Thread>(threads));
         }

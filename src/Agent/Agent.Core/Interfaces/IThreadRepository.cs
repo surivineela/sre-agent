@@ -12,7 +12,7 @@ namespace Agent.Core.Interfaces;
 public interface IThreadRepository
 {
     Task<Thread> GetThreadAsync(Guid threadId);
-    Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null);
+    Task<IEnumerable<Thread>> GetThreadsAsync(ODataQueryOptions? queryOptions = null, ActionSeverity? severity = null);
     Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null);
     Task<Thread> CreateThreadAsync(Thread thread);
     Task<bool> DeleteThreadAsync(Guid threadId);
@@ -33,6 +33,8 @@ public interface IThreadRepository
     Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
     Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);
+    Task<IEnumerable<string>> GetThreadIdsWithActionSeverityAsync(ActionSeverity? severity);
+    Task<IEnumerable<Action>> GetAllActionsAsync();
     Task<Action> GetLatestToolCallAction(Guid threadId, string toolName);
 
     Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);

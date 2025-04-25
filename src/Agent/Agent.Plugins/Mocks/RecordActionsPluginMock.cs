@@ -29,7 +29,7 @@ namespace Agent.Plugins.Mocks
         /// <summary>
         /// Records a new action
         /// </summary>
-        public Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending)
+        public Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning)
         {
             _logger?.LogInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
                 threadId, title, status);
@@ -43,7 +43,8 @@ namespace Agent.Plugins.Mocks
                 Title: title,
                 ToolName: toolName,
                 TimeStamp: _timeProvider.GetUtcNow().DateTime,
-                Status: status
+                Status: status,
+                Severity: severity
             );
 
             // Store in memory
