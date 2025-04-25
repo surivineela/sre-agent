@@ -4,4 +4,5 @@ export class ApiVersions {
   public static readonly microsoftAppApiVersion20250501Preview = '2025-05-01-preview';
   public static readonly managedConnectionApiVersion20180701Preview = '2018-07-01-preview';
   public static readonly logicAppApiVersion20190501 = '2019-05-01';
+  public static readonly providerApiVersion20160901 = '2016-09-01';
 };

@@ -9,6 +9,7 @@ import { IncidentManagementFormValues, IncidentManagementPlatform } from "../../
 import { useSreAgent } from "./useSreAgent";
 import { IncidentManagementNotifications, IncidentManagementSaveErrors } from "../../../Strings/SREResources.resjson";
 import { ArmObj } from "../../../Common/Contracts/Azure/ArmObj";
+import Provider from "../../../Common/Clients/ProviderClient";
 
 const getInitialValues = (agent?: ArmObj<Agent>): IncidentManagementFormValues => {
     const platform = agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty
@@ -92,78 +93,81 @@ export function useIncidentManagement(resourceId: string) {
                 }
             });
         } else {
-            ManagedConnectionClient.putManagedConnection(
-                connectionResourceId,
-                {
-                    id: connectionResourceId,
-                    name: connectionName,
-                    kind: 'V1',
-                    location: location,
-                    properties: {
-                        api: { id: managedApiResourceId },
-                        parameterValues: {
-                            apiKey: formValues.connectionKey!,
-                        },
-                        displayName: 'pagerDuty'
-                    }
-                }
-            ).then(managedConnectionResult => {
-                if (!managedConnectionResult.metadata.success) {
-                    setSaving(false);
-                    setSaveFailure(IncidentManagementSaveErrors.managedConnectionFailure);
-                    azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
-                } else {
-                    const logicAppPayload = generatePagerDutyLogicAppPayload(
-                        logicAppResourceId,
-                        logicAppName,
-                        location,
-                        agent.properties.agentEndpoint,
-                        formValues.connectionKey!,
-                        managedApiResourceId,
+            Provider.registerProvider(subscription, "Microsoft.Logic")
+                .then(() => {
+                    ManagedConnectionClient.putManagedConnection(
                         connectionResourceId,
-                        connectionName
-                    );
-                    LogicAppClient.putPagerDutyLogicApp(
-                        logicAppResourceId,
-                        logicAppPayload
-                    ).then(logicAppResult => {
-                        if (!logicAppResult.metadata.success) {
+                        {
+                            id: connectionResourceId,
+                            name: connectionName,
+                            kind: 'V1',
+                            location: location,
+                            properties: {
+                                api: { id: managedApiResourceId },
+                                parameterValues: {
+                                    apiKey: formValues.connectionKey!,
+                                },
+                                displayName: 'pagerDuty'
+                            }
+                        }
+                    ).then(managedConnectionResult => {
+                        if (!managedConnectionResult.metadata.success) {
                             setSaving(false);
-                            setSaveFailure(IncidentManagementSaveErrors.logicAppCreateFailure);
+                            setSaveFailure(IncidentManagementSaveErrors.managedConnectionFailure);
                             azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
                         } else {
-                            SreAgentClient.patchAgent(
-                                resourceId,
-                                {
-                                    properties: {
-                                        incidentManagementConfiguration: {
-                                            type: IncidentManagementType.PagerDuty,
-                                            connectionName: connectionName,
-                                            connectionUrl: formValues.connectionUrl,
-                                            connectionKey: formValues.connectionKey,
-                                        }
-                                    }
-                                }
-                            ).then(patchResult => {
-                                if (!patchResult.metadata.success) {
+                            const logicAppPayload = generatePagerDutyLogicAppPayload(
+                                logicAppResourceId,
+                                logicAppName,
+                                location,
+                                agent.properties.agentEndpoint,
+                                formValues.connectionKey!,
+                                managedApiResourceId,
+                                connectionResourceId,
+                                connectionName
+                            );
+                            LogicAppClient.putPagerDutyLogicApp(
+                                logicAppResourceId,
+                                logicAppPayload
+                            ).then(logicAppResult => {
+                                if (!logicAppResult.metadata.success) {
                                     setSaving(false);
-                                    setSaveFailure(IncidentManagementSaveErrors.configFailure);
+                                    setSaveFailure(IncidentManagementSaveErrors.logicAppCreateFailure);
                                     azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
                                 } else {
-                                    setSaving(false);
-                                    setSaveFailure(undefined);
-                                    setInitialValues({
-                                        platform: formValues.platform,
-                                        connectionUrl: formValues.connectionUrl,
-                                        connectionKey: formValues.connectionKey,
+                                    SreAgentClient.patchAgent(
+                                        resourceId,
+                                        {
+                                            properties: {
+                                                incidentManagementConfiguration: {
+                                                    type: IncidentManagementType.PagerDuty,
+                                                    connectionName: connectionName,
+                                                    connectionUrl: formValues.connectionUrl,
+                                                    connectionKey: formValues.connectionKey,
+                                                }
+                                            }
+                                        }
+                                    ).then(patchResult => {
+                                        if (!patchResult.metadata.success) {
+                                            setSaving(false);
+                                            setSaveFailure(IncidentManagementSaveErrors.configFailure);
+                                            azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
+                                        } else {
+                                            setSaving(false);
+                                            setSaveFailure(undefined);
+                                            setInitialValues({
+                                                platform: formValues.platform,
+                                                connectionUrl: formValues.connectionUrl,
+                                                connectionKey: formValues.connectionKey,
+                                            });
+                                            azPortalContext.stopNotification(notificationId, true, IncidentManagementNotifications.saveSucceeded);
+                                        }
                                     });
-                                    azPortalContext.stopNotification(notificationId, true, IncidentManagementNotifications.saveSucceeded);
                                 }
                             });
                         }
                     });
-                }
-            });
+                });
         }
 
     }, [subscription, resourceGroup, agent?.name, agent?.location, agent?.properties?.agentEndpoint, azPortalContext.startNotification, azPortalContext.stopNotification]);
