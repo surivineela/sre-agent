@@ -18,6 +18,7 @@ using Agent.Runtime.V2;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models;
 
 
 namespace Agent.Runtime.MetaAgent;
@@ -53,9 +54,13 @@ Don't repeat ask similar questions if information already exists in the context.
 - Never make assumptions about the user's intent or the context of their request when data is missing.
 - ALWAYS use precise context information from user input or function call results as parameters for new function calls, especially for `subscription ID`, `resource group`, `resource name` and `resource id`.
 - Only begin diagnosis or mitigation responses after the corresponding `start<agent_name>agent` function has been called successfully.
-- Only promise user that 'they'll be notified' after the corresponding `start<agent_name>agent` function has been called successfully.
+- When answering user 'underlying workflow has started', always print the corresponding orchestration instance id based on the real `start<agent_name>agent` function call result.
 - When providing conclusions, summarize the factual evidence that supports your findings at the end of your response.
 - Include specific metrics, timestamps, and resource identifiers when referencing data to maintain complete accuracy.
+- Always keep in mind you're sharing the same chat history with the sub-agent you delegated to, the sub-agent don't have the chat history even it's being delegated again.
+  * If follow-up questions asked, delegate to the same sub-agent and always share all the previous context. 
+  * Don't try to answer the questions which was handled by sub-agent, just delegate again.
+  * Never say you don't have access or permission that sub-agent has, just delegate the question again.
 </important>
 
 ## Pre-Operation Checks
@@ -283,8 +288,15 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         var lastMessageAppended = chatHistory.LastOrDefault()?.Text.Equals(lastUserMessage, StringComparison.Ordinal) ?? false;
         if (!lastMessageAppended)
         {
-            chatHistory.Add(new ChatMessage(ChatRole.User, lastUserMessage));
+            chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
         }
+
+        // Always use the latest System Prompt in case we have some urgent fix to patch for the old chat history.
+        if (chatHistory[0].Role == ChatRole.System)
+        {
+            chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, prompt);
+        }
+
 
         try
         {
