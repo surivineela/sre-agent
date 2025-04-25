@@ -2,8 +2,13 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Net.Http.Headers;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using Azure.Core;
+using Azure.Identity;
+using Azure.ResourceManager.AppService;
+using Azure.ResourceManager;
 
 namespace Agent.Plugins
 {
@@ -25,6 +30,13 @@ namespace Agent.Plugins
                 // new Metric { Name = "MemoryWorkingSet", Unit = "", Aggregation = "Average" }
             };
 
+            // to get proper CPU value, you must divide by the number of cores within the VM machines that are running the process
+            // this will give the min CPU utilization (since not all the cores may be running the process)
+            var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
+            var currentSku = await _armHelper.GetCurrentSkuAsync(appServicePlanId);
+            int numCores = ArmHelper.GetNumberOfCoresFromSku(currentSku.Name);
+            int numWorkers = await _armHelper.GetNumberOfWorkers(resourceId);
+
             var metricsData = await _armHelper.FetchMetricsAsync(
                 resourceId.ToString(),
                 metrics);
@@ -33,7 +45,7 @@ namespace Agent.Plugins
                 .Select(m => new CpuTimeSeriesData(
                     TimeStamp: m.Timestamp,
                     // m.Value is cpu time in seconds in a minute
-                    AverageCpuUtilizationPercentage: (m.Value / 60) * 100))
+                    AverageCpuUtilizationPercentage: (m.Value / 60 / numCores / numWorkers) * 100))
                 .ToArray();
         }
 

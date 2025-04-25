@@ -1504,6 +1504,50 @@ public class ArmHelper
 
         return keys;
     }
+
+    public static int GetNumberOfCoresFromSku(string sku)
+    {
+        // Map SKU to tier, e.g., "P1v2" -> "PremiumV2"
+        // You can add more mappings as needed
+        return sku switch
+        {
+            "F1" => 1,
+            "D1" => 1,
+            "B1" => 1,
+            "B2" => 2,
+            "B3" => 4,
+            "S1" => 1,
+            "S2" => 2,
+            "S3" => 4,
+            "P1v2" => 1,
+            "P2v2" => 2,
+            "P3v2" => 4,
+            "P0v3" => 1,
+            "P1v3" => 2,
+            "P2v3" => 4,
+            "P3v3" => 8,
+            "P4mv3" => 16,
+            "P5mv3" => 32,
+            "I1v2" => 2,
+            "I2v2" => 4,
+            "I3v2" => 8,
+            "I4v2" => 16,
+            "I5v2" => 32,
+            "I6v2" => 64,
+            _ => throw new ArgumentException("SKU is invalid", nameof(sku))
+        };
+    }
+
+    public async Task<int> GetNumberOfWorkers(string resourceId)
+    {
+        var credential = _authService.GetArmOperationCredential();
+        var armClient = new ArmClient(credential);
+        ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
+        WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
+        var numWorkers = webApp.Data.SiteConfig.NumberOfWorkers ?? 1;
+        return numWorkers;
+    }
+
     #region Private Methods
 
     private async Task<List<T>> GetResourceSettings<T>(
@@ -1608,6 +1652,7 @@ public class ArmHelper
             _ => throw new ArgumentException("Unknown SKU")
         };
     }
+
 
     private async Task<string[]> GetAppServiceInstanceMachineNamesAsync(string appServiceResource)
     {

@@ -59,45 +59,45 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         string memoryDumpFile = Path.GetTempFileName() + ".dmp";
 
         // Write dump file content to a temp file.
-try
-{
-try
-{
-try
-{
-    using HttpClient client = new();
-    using (var fileStream = new FileStream(memoryDumpFile, FileMode.Create, FileAccess.Write, FileShare.None))
-    {
-        var responseStream = await client.GetAsync(responseString);
-        await responseStream.Content.CopyToAsync(fileStream);
-    }
-}
-catch (HttpRequestException ex)
-{
-    throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
-}
-catch (IOException ex)
-{
-    throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
-}
-}
-catch (HttpRequestException ex)
-{
-    throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
-}
-catch (IOException ex)
-{
-    throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
-}
-}
-catch (HttpRequestException ex)
-{
-    throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
-}
-catch (IOException ex)
-{
-    throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
-}
+        try
+        {
+            try
+            {
+                try
+                {
+                    using HttpClient client = new();
+                    using (var fileStream = new FileStream(memoryDumpFile, FileMode.Create, FileAccess.Write, FileShare.None))
+                    {
+                        var responseStream = await client.GetAsync(responseString);
+                        await responseStream.Content.CopyToAsync(fileStream);
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
+                }
+                catch (IOException ex)
+                {
+                    throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
+                }
+            }
+            catch (HttpRequestException ex)
+            {
+                throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
+            }
+            catch (IOException ex)
+            {
+                throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
+            }
+        }
+        catch (HttpRequestException ex)
+        {
+            throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
+        }
+        catch (IOException ex)
+        {
+            throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
+        }
 
         return $"The memory dump for {resourceId} has been collected:\n{memoryDumpFile}";
     }

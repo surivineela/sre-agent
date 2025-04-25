@@ -113,7 +113,8 @@ public class MetaAgentEvals
         IMetaAgentAppCodeAnalysisPlugin appCodeAnalysisPlugin = null,
         IMetaAgentCPUAnalysisPlugin cpuAnalysisPlugin = null,
         IAppCodeAnalysisPlugin appCodePlugin = null,
-        ICpuAnalysisPlugin cpuPlugin = null)
+        ICpuAnalysisPlugin cpuPlugin = null,
+        IMetricsPlugin metricsPlugin = null)
     {
 
         return new MetaAgent(
@@ -146,6 +147,7 @@ public class MetaAgentEvals
             cpuAnalysisPlugin ?? Mock.Of<IMetaAgentCPUAnalysisPlugin>(),
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
+            metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
             Mock.Of<InstanceManagementSettings>()
         );
     }

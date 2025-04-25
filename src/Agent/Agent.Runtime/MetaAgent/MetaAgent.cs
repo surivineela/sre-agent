@@ -185,6 +185,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IMetaAgentCPUAnalysisPlugin _cpuAnalysisAgentPlugin;
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
     private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
+    private readonly IMetricsPlugin _metricsPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
@@ -220,6 +221,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IMetaAgentCPUAnalysisPlugin cpuAnalysisAgentPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
+        IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings
         )
     {
@@ -255,6 +257,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _cpuAnalysisPlugin = cpuAnalysisPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
+        _metricsPlugin = metricsPlugin;
 
 
         _threadRepository = threadRepository;
@@ -342,6 +345,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _functionAppConnectivityPlugin.ThreadId = threadGuid;
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
         _chartPlugin.ThreadId = threadGuid;
+        //_metricsPlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
 
@@ -350,6 +354,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         var containerAppPluginDefinition = new ContainerAppPluginDefinition(_containerAppPlugin);
 
         var appServicePluginDefinition = new AppServicePluginDefinition(_appServicePlugin);
+
+        var metricsPluginDefinition = new MetricsPluginDefinition(_metricsPlugin);
+
+        var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(_appCodeAnalysisPlugin);
 
         List<AITool> _aiTools =
         [
@@ -402,6 +410,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
             AIFunctionFactory.Create(_webAppDownPlugin.ListWebAppDownWorkflows),
             AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent),
+            AIFunctionFactory.Create(metricsPluginDefinition.GetWebAppCpuMetrics),
+            AIFunctionFactory.Create(appCodeAnalysisPluginDefinition.GetAppConsoleLogs),
             AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent),
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.ListAzureSqlDbQueryPerfInvestigatorAgentWorkflows),
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent),
