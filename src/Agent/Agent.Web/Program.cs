@@ -29,12 +29,14 @@ using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;
 using Agent.Runtime.SubAgents.AppServiceRemediation;
+using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
+using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
@@ -47,6 +49,7 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
+using FirstPartyAgent.Core.FirstPartyAgents;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -61,8 +64,6 @@ using OpenTelemetry;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
-using FirstPartyAgent.Core.FirstPartyAgents;
-using System;
 
 var firstPartySubAgentsFactory = new FirstPartySubAgentsFactory();
 var isFirstAgent = firstPartySubAgentsFactory.IsFirstPartyAgent();
@@ -186,6 +187,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<SourceCodeScanner>()
         .AddSingleton<CVEScanner>()
         .AddSingleton<FeedbackRCAScanner>()
+        .AddSingleton<AzMonitorAlertScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<DailyReportScanner>()
         .AddSingleton<AppServiceScanner>()

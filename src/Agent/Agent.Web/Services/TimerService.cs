@@ -6,25 +6,26 @@ using System.Reflection;
 using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
-using Agent.Graph.Crawler;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Graph.Crawler;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
+using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
+using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
-using Gremlin.Net.Driver;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
-using Agent.Plugins;
-using Agent.Runtime.Communication;
-using Agent.Logging;
 
 namespace Agent.Web.Services;
 
@@ -79,6 +80,7 @@ public class TimerService : IHostedService, IDisposable
     private AppServiceScanner _appServiceScanner;
     private ScoreCardService _scoreCardService;
     private FeedbackRCAScanner _feedbackRCAScanner;
+    private AzMonitorAlertScanner _azMonitorAlertScanner;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -115,6 +117,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _feedbackRCATimerIsRunning = false;
     private TimeSpan _feedbackRCATimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _azMonitorAlertScannerTimer = null;
+    private bool _azMonitorAlertScannerTimerIsRunning = false;
+    private TimeSpan _azMonitorAlertScannerTimerInterval = TimeSpan.FromMinutes(1);
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -142,7 +148,8 @@ public class TimerService : IHostedService, IDisposable
         ChartPlugin chartPlugin,
         ScoreCardService scoreCardService,
         SinkService sinkService,
-        FeedbackRCAScanner feedbackRCAScanner)
+        FeedbackRCAScanner feedbackRCAScanner,
+        AzMonitorAlertScanner azMonitorAlertScanner)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -165,6 +172,7 @@ public class TimerService : IHostedService, IDisposable
         _sinkService = sinkService;
         _feedbackRCAScanner = feedbackRCAScanner;
         _dashboardSettings = dashboardSettings;
+        _azMonitorAlertScanner = azMonitorAlertScanner;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -221,6 +229,10 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
+
+        // Disabling this for now to avoid spamming threads. 
+        //_logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
+        //StartAzMonitorAlertScannerTimer(cancellationToken);
 
         return Task.CompletedTask;
     }
@@ -805,6 +817,31 @@ public class TimerService : IHostedService, IDisposable
                 _feedbackRCATimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _feedbackRCATimerInterval);
+    }
+
+    public void StartAzMonitorAlertScannerTimer(CancellationToken cancellationToken)
+    {
+        _azMonitorAlertScannerTimer = new Timer(async _ =>
+        {
+            if (_azMonitorAlertScannerTimerIsRunning)
+            {
+                _logger.LogInformation("Az Monitor Alert Scanner is already running, Skipping this round.");
+                return;
+            }
+            try
+            {
+                _azMonitorAlertScannerTimerIsRunning = true;
+                await _azMonitorAlertScanner.PollNewAlertsAsync(cancellationToken);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error executing Az Monitor Alert Scanner.");
+            }
+            finally
+            {
+                _azMonitorAlertScannerTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _azMonitorAlertScannerTimerInterval);
     }
 
     public void Dispose()
