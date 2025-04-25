@@ -138,7 +138,7 @@ public class ScoreCardService
         }
     }
 
-    private KubernetesResourceNode CreateKubernetesResourceNodeFromDictionary(Dictionary<string, object> result)
+    private KubernetesNamespacedResourceNode CreateKubernetesResourceNodeFromDictionary(Dictionary<string, object> result)
     {
         try
         {
@@ -155,6 +155,9 @@ public class ScoreCardService
             }
 
             // Extract Kubernetes specific values
+            string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId");
+            string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName");
+            string _namespace = GetFirstPropertyValue(properties, "namespace");
             string clusterResourceId = GetFirstPropertyValue(properties, "clusterResourceId");
             string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
             string group = GetFirstPropertyValue(properties, "group");
@@ -182,9 +185,12 @@ public class ScoreCardService
             }
 
             // Create the KubernetesResourceNode
-            var kubernetesResourceNode = new KubernetesResourceNode(
+            var kubernetesResourceNode = new KubernetesNamespacedResourceNode(
                 k8sObject: null, // ResourceObject is not available during graph query
                 clusterResourceId: clusterResourceId,
+                @namespace: _namespace,
+                subscriptionId: subscriptionId,
+                resourceGroupName: resourceGroupName,
                 resourceName: resourceName,
                 group: group,
                 apiVersion: apiVersion,
@@ -248,17 +254,20 @@ public class ScoreCardService
     }
 
 
-    private async Task<bool> UpdateScoreCardForAKSNode(KubernetesResourceNode node)
+    private async Task<bool> UpdateScoreCardForAKSNode(KubernetesNamespacedResourceNode node)
     {
 
-        // TODO(jianbo): add collector for AKS to update with real metrics
+        var collector = _metricsCollector.OfType<AKSMetricsCollector>().FirstOrDefault();
+
+        if (collector == null)
+        {
+            _logger.LogWarning($"No metrics collector found for resource type {node.Kind.ToLowerInvariant()}, resource name: {node.ResourceName}");
+            return false;
+        }
+
         try
         {
-            var appHealthInfo = new AppHealthInfo
-            {
-                Availability = 1,
-                Health = ScorecardHealthState.Unknown,
-            };
+            var appHealthInfo = await collector.CollectMetricsAsync(node);
             node.AppHealthInfo = appHealthInfo;
             await _graphDatabaseClient.AddOrUpdateNodeAsync(node);
             return true;

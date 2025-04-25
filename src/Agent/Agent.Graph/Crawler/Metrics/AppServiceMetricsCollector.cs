@@ -19,8 +19,13 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         _azureMetricsClient = azureMetricsClient;
     }
 
-    public async Task<AppHealthInfo> CollectMetricsAsync(ArmResourceNode node)
+    public async Task<AppHealthInfo> CollectMetricsAsync(GraphNode gnode)
     {
+        if (gnode is not ArmResourceNode node)
+        {
+            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
+            return new AppHealthInfo { };
+        }
         var resourceId = node.GetNodeId();
 
         if (resourceId == null)
@@ -47,8 +52,8 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
                 AvgCpuUsage = Math.Round(avgCpuUsage, 2),
                 Availability = Math.Round(availability, 2),
                 Costs = Math.Round(cost, 2),
-                Health = availability >= 99.0 ? ScorecardHealthState.Healthy : 
-                        availability >= 95.0 ? ScorecardHealthState.Degraded : 
+                Health = availability >= 99.0 ? ScorecardHealthState.Healthy :
+                        availability >= 95.0 ? ScorecardHealthState.Degraded :
                         ScorecardHealthState.Unhealthy,
             };
 

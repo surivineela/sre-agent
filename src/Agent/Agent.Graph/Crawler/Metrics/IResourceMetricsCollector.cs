@@ -9,5 +9,5 @@ public interface IResourceMetricsCollector
 {
     public string ResourceType { get; }
 
-    Task<AppHealthInfo> CollectMetricsAsync(ArmResourceNode node);
+    Task<AppHealthInfo> CollectMetricsAsync(GraphNode node);
 }

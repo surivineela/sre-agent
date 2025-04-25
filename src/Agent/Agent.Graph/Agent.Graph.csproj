@@ -24,5 +24,6 @@
 
 	<ItemGroup>
 		<ProjectReference Include="..\Agent.Data\Agent.Data.csproj" />
+		<ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
 	</ItemGroup>
 </Project>

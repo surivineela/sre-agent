@@ -19,8 +19,13 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         _azureMetricsClient = azureMetricsClient;
     }
 
-    public async Task<AppHealthInfo> CollectMetricsAsync(ArmResourceNode node)
+    public async Task<AppHealthInfo> CollectMetricsAsync(GraphNode gnode)
     {
+        if (gnode is not ArmResourceNode node)
+        {
+            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
+            return new AppHealthInfo { };
+        }
         var resourceId = node.GetNodeId();
 
         if (resourceId == null)
@@ -39,7 +44,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
             var memoryUsage = await GetMemoryUsageAsync(resourceId);
             var serverLoad = await GetServerLoadAsync(resourceId);
             var cost = await _azureMetricsClient.GetCostAsync(resourceId, now);
-            
+
             // Determine health based on CPU and memory metrics
             var health = DetermineHealthState(cpuUsage, memoryUsage);
 

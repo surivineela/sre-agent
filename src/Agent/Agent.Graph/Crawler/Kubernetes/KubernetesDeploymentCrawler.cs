@@ -113,6 +113,8 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                 pod,
                 deploymentNode.ClusterResourceId,
                 deploymentNode.Namespace,
+                deploymentNode.SubscriptionId,
+                deploymentNode.ResourceGroupName,
                 pod.Name(),
                 Constants.KubernetesCoreGroup,
                 Constants.KubernetesV1Version,

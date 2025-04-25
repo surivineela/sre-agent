@@ -186,7 +186,7 @@ const AppHealthInfo = memo(({
                 }}
                 isSendingReport={isSendingReport} />
         </SummaryField>
-        <SummaryField label={'Number of transactions for the past 30 minutes'} value={appHealthInfo.Transactions.toString()} />
+        <SummaryField label={'Number of transactions for the past 30 minutes'} value={isNullOrUndefined(appHealthInfo.Transactions) ? "0" : appHealthInfo.Transactions.toString()} />
         <SummaryField label={'Average latency'} value={!isNullOrUndefined(appHealthInfo.AvgLatencyInMs) ? `${(appHealthInfo.AvgLatencyInMs ?? 0) / 1000} seconds` : undefined} />
         <SummaryField label={'Average memory usage'} value={!isNullOrUndefined(appHealthInfo.AvgMemoryUsage) ? `${appHealthInfo.AvgMemoryUsage} bytes` : undefined} />
         <SummaryField label={'Average CPU usage'} value={!isNullOrUndefined(appHealthInfo.AvgCpuUsage) ? `${appHealthInfo.AvgCpuUsage}%` : undefined} />

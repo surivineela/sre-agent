@@ -45,6 +45,8 @@ public class KubernetesResourceNode : GraphNode
     public KubernetesResourceNode(
         IKubernetesObject k8sObject,
         string clusterResourceId,
+        string subscriptionId,
+        string resourceGroupName,
         string resourceName,
         string group,
         string apiVersion,
@@ -52,6 +54,8 @@ public class KubernetesResourceNode : GraphNode
         IDictionary<string, string> annotations = null,
         IDictionary<string, string> labels = null)
     {
+        SubscriptionId = subscriptionId.ToLowerInvariant();
+        ResourceGroupName = resourceGroupName.ToLowerInvariant();
         UpdateTs = DateTime.UtcNow.Ticks;
         ResourceObject = k8sObject;
         ClusterResourceId = clusterResourceId.ToLowerInvariant();

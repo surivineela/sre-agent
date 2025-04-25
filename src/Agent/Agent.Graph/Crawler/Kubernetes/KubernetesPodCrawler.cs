@@ -42,7 +42,7 @@ public class KubernetesPodCrawler : IResourceCrawler
         if (!string.IsNullOrEmpty(nodeName))
         {
             _logger.LogDebug($"Connect pod {pod.Name()} to node {nodeName}");
-            var nodeNode = new KubernetesResourceNode(null, podNode.ClusterResourceId, nodeName, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNodeType);
+            var nodeNode = new KubernetesResourceNode(null, podNode.ClusterResourceId, podNode.SubscriptionId, podNode.ResourceGroupName, nodeName, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNodeType);
             var edge = new ArmResourceEdge(podNode.GetNodeId(), nodeNode.GetNodeId(), Constants.Relationships.HostedOn);
             var edge2 = new ArmResourceEdge(nodeNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Hosts);
 

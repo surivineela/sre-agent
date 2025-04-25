@@ -46,7 +46,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         {
             _logger.LogDebug($"Namespace: {ns.Name()} in cluster: {aksNode.GetNodeId()}");
             // TODO: GVK are nulls
-            var nsNode = new KubernetesResourceNode(ns, aksNode.ResourceId, ns.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNamespaceType, ns.Annotations(), ns.Labels());
+            var nsNode = new KubernetesResourceNode(ns, aksNode.ResourceId, aksNode.SubscriptionId, aksNode.ResourceGroupName, ns.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNamespaceType, ns.Annotations(), ns.Labels());
             await _graphDbClient.AddOrUpdateNodeAsync(nsNode);
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), nsNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
@@ -60,7 +60,7 @@ public class AzureKubernetesServiceCrawler : GenericArmResourceCrawler
         foreach (var node in nodes)
         {
             _logger.LogDebug($"Node: {node.Name()} in cluster: {aksNode.GetNodeId()}");
-            var nodeNode = new KubernetesResourceNode(node, aksNode.ResourceId, node.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNodeType, node.Annotations(), node.Labels());
+            var nodeNode = new KubernetesResourceNode(node, aksNode.ResourceId, aksNode.SubscriptionId, aksNode.ResourceGroupName, node.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesNodeType, node.Annotations(), node.Labels());
             await _graphDbClient.AddOrUpdateNodeAsync(nodeNode);
             var edge = new ArmResourceEdge(clusterNode.GetNodeId(), nodeNode.GetNodeId(), Constants.Relationships.Contains);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);

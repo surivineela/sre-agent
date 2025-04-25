@@ -236,7 +236,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IResourceMetricsCollector, ContainerAppMetricsCollector>()
         .AddSingleton<IResourceMetricsCollector, FunctionAppMetricsCollector>()
         .AddSingleton<IResourceMetricsCollector, AppServiceMetricsCollector>()
-        .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>();
+        .AddSingleton<IResourceMetricsCollector, RedisMetricsCollector>()
+        .AddSingleton<IResourceMetricsCollector, AKSMetricsCollector>();
 
     if (isFirstAgent)
     {
@@ -303,7 +304,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     {
         builder.Services.AddHostedService<TimerService>();
     }
-    
+
     // Kick off MCP Server Initializer
     builder.Services.AddSingleton<MCPMetaAgent>();
     builder.Services.AddHostedService<MCPMetaAgentManagementService>();
@@ -320,7 +321,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         b.AddTasks(r =>
         {
             DurableHelper.AddAllGeneratedTasks(r);
-            if(isFirstAgent)
+            if (isFirstAgent)
             {
                 FirstPartyDurableHelper.AddAllGeneratedTasks(r);
             }

@@ -8,7 +8,7 @@ namespace Agent.Core.Interfaces
 {
     public interface IKubernetesClientFactory
     {
-        public Task<IKubernetes?> CreateKubernetesClientForCrawlerAsync(string resourceId);
+        public Task<IKubernetes?> CreateKubernetesClientFromResourceIdAsync(string resourceId);
     }
 }
 

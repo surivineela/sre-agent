@@ -15,12 +15,14 @@ public class KubernetesNamespacedResourceNode : KubernetesResourceNode
         IKubernetesObject? k8sObject,
         string clusterResourceId,
         string @namespace,
+        string subscriptionId,
+        string resourceGroupName,
         string resourceName,
         string group,
         string apiVersion,
         string kind,
         IDictionary<string, string> annotations = null,
-        IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, resourceName, group, apiVersion, kind, annotations, labels)
+        IDictionary<string, string> labels = null) : base(k8sObject, clusterResourceId, subscriptionId, resourceGroupName, resourceName, group, apiVersion, kind, annotations, labels)
     {
         Namespace = @namespace.ToLowerInvariant();
     }

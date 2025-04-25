@@ -116,6 +116,8 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                 pod,
                 daemonSetNode.ClusterResourceId,
                 daemonSetNode.Namespace,
+                daemonSetNode.SubscriptionId,
+                daemonSetNode.ResourceGroupName,
                 pod.Name(),
                 Constants.KubernetesCoreGroup,
                 Constants.KubernetesV1Version,

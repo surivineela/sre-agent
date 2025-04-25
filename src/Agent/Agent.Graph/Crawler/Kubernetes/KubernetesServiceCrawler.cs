@@ -51,7 +51,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
         foreach (var pod in podList.Items ?? new List<V1Pod>())
         {
             _logger.LogDebug($"Pod: {pod.Name()} for service: {serviceNode.GetNodeId()}");
-            var podNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, pod.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPodType);
+            var podNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, pod.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPodType);
             await _graphDbClient.AddOrUpdateNodeAsync(podNode);
             var edge = new ArmResourceEdge(serviceNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.BackedBy);
             edge.AddNetworkIngressEdgeProperties();

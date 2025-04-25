@@ -48,7 +48,6 @@ namespace Agent.Plugins
         private readonly ConcurrentDictionary<string, DateTimeOffset> _cacheTimestamps = new();
 
         public KubePlugin(
-            IConfiguration configuration,
             IAuthenticationService authenticationService,
             IChatClient chatClient,
             IPrometheusQueryService prometheusQueryService,
@@ -66,6 +65,7 @@ namespace Agent.Plugins
             _prometheusQueryEndpoint = _dashboardSettings.PrometheusUrl;
         }
 
+        // TODO(jianbosun): refactor this part to use KubernetesClientFactory but keep the cache feature.
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
         {
             // If no resourceId is provided, use the default client

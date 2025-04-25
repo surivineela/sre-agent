@@ -27,7 +27,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         _configurationCache = new Dictionary<string, CachedK8SConfiguration>();
     }
 
-    public async Task<IKubernetes?> CreateKubernetesClientForCrawlerAsync(string resourceId)
+    public async Task<IKubernetes?> CreateKubernetesClientFromResourceIdAsync(string resourceId)
     {
         var id = new ResourceIdentifier(resourceId);
         var subscription = id.SubscriptionId;
@@ -55,7 +55,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         if (k8sConfig.Configuration == null)
         {
             return null;
-        }   
+        }
 
         var kubeConfig = KubernetesClientConfiguration.BuildConfigFromConfigObject(k8sConfig.Configuration);
         return new Kubernetes(kubeConfig);

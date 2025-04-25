@@ -148,6 +148,11 @@ public class GraphService : IGraphService
             {
                 // Replace direct property access with GetFirstValueAsString method
                 string aksResourceId = GetFirstValueAsString(aksResource["properties"] as IDictionary<string, object>, "resourceId");
+                if (string.IsNullOrWhiteSpace(aksResourceId))
+                {
+                    _logger.LogWarning("AKS resource ID is null or empty, skipping query for deployments and statefulsets.");
+                    continue;
+                }
                 _logger.LogInformation("Querying deployments and statefulsets for AKS clusterResourceId {resourceId}", aksResourceId);
 
                 // Query to get deployments and statefulsets for this AKS cluster
@@ -231,7 +236,6 @@ public class GraphService : IGraphService
 
         // Only apply K8s filter for Azure Kubernetes Service resources
         Func<dynamic, bool> nodeFilter = resource => true; // Default to allow all resources
-        Console.WriteLine($"Graph ResourceId: {resourceId}");
         if (resourceId.Contains("microsoft.containerservice_managedclusters") && !resourceId.Contains("namespaces"))
         {
             nodeFilter = K8sResourceFilter;

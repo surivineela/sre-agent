@@ -118,6 +118,8 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                 pod,
                 statefulSetNode.ClusterResourceId,
                 statefulSetNode.Namespace,
+                statefulSetNode.SubscriptionId,
+                statefulSetNode.ResourceGroupName,
                 pod.Name(),
                 Constants.KubernetesCoreGroup,
                 Constants.KubernetesV1Version,
