@@ -16,7 +16,7 @@ public class KubernetesAgent : GenericAgentOrchestrator<KubernetesAgentInput, st
         var log = context.CreateReplaySafeLogger<KubernetesAgent>();
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "KubernetesAgent", "KubernetesAgent.txt");
         var systemPrompt = File.ReadAllText(path);
-        var monitoringMessage = $"You have been asked to resolve AKS related requests from meta agent with message: {agentInput.Input}";
+        var monitoringMessage = $"META AGENT REQUEST:\n {agentInput.Input}";
 
         List<ChatMessage> chatHistory = [
             new ChatMessage(ChatRole.System, systemPrompt),

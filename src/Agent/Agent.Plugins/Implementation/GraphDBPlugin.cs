@@ -194,6 +194,7 @@ namespace Agent.Plugins
 
                     // First, deserialize the result to a more strongly-typed structure we can work with
                     string tempJson = JsonSerializer.Serialize(result);
+
                     var typedResult = JsonSerializer.Deserialize<List<Dictionary<string, object>>>(tempJson);
 
                     // Filter out pods, services, and nodes from each item
@@ -476,8 +477,8 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 string query = $@"
 g.V().has('id', '{deploymentResourceId}')
 .repeat(out('LINKED', 'CONNECTED', 'OWNED_BY', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'BACKED_BY'))
-.emit()
-.path().by(valueMap('name', 'resourceType'))";
+.emit().dedup()
+.path().by(valueMap('resourceName', 'resourceType'))";
 
                 _logger.LogInformation($"Executing AKS microservice topology query for resource: {resourceId}, namespace: {namespaceName}, deployment: {deploymentName ?? "all"}");
                 return await GraphDbClient.Query(query);
@@ -1245,7 +1246,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
         }
 
-        
+
 
         public async Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId)
         {

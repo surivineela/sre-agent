@@ -31,7 +31,7 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
     }
 
     [KernelFunction("ListKubernetesAgentWorkflow")]
-    [Description("List the information of started workflow for azure kubernetes service")]
+    [Description("List the information of started workflow for Azure Kubernetes Service related requests")]
     public async Task<IReadOnlyList<WorkflowMetadata<string>>> ListKubernetesAgentWorkflow()
     {
         var list = new List<WorkflowMetadata<string>>();
@@ -52,16 +52,16 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
     }
 
     [KernelFunction("StartKubernetesAgentWorkflow")]
-    [Description("Start the workflow to handle any requests related to AKS (Azure Kubernetes Service)")]
+    [Description("Start the workflow to handle any requests related to AKS (Azure Kubernetes Service), e.g. check status of AKS cluster or workloads deployed on it, diagnose AKS workload issues, etc.")]
     public async Task<string> StartKubernetesAgentWorkflow(
-        [Description("The list of complete Kubernetes workloads having the issue and a description of the problem")] string input)
+        [Description("Detailed summarization of the request that wanted to be delegated to the Azure Kubernetes Service SRE Agent to handle, all context information are required especially for subscription ID, resource group and AKS cluster name.")] string input)
     {
         if (ThreadId == null)
         {
             throw new InvalidOperationException("ThreadId must be set before start orchestration.");
         }
         var instanceId = await _kubernetesAgentFactory.StartOrchestration(input, ThreadId.Value);
-        return $"A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: {instanceId}, thread id is: {ThreadId}.";
+        return $"Azure Kubernetes Service SRE Agent is figuring out the request, all following user input will be handled directly until request completed. Orchestration instance id to this request is: {instanceId}, thread id is: {ThreadId}.";
     }
 }
 
