@@ -10,6 +10,6 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent;
 
 
 public sealed record WebAppDownAgentInput(
-    WebAppDownInput Input,
+   string Input,
     IReadOnlyList<string> ToolSignatures,
     Guid ThreadId);

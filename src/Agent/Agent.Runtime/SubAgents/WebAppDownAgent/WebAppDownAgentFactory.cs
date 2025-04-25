@@ -82,7 +82,7 @@ public sealed class WebAppDownAgentFactory
     }
 
     public async Task<string> StartOrchestration(
-        WebAppDownInput input,
+        string resourceId,
         Guid threadId)
     {
         var instanceId = $"{OrchestrationInstanceIdPrefix}-{threadId}-{DateTime.Now:yyyyMMdd-HHmmss}";
@@ -91,13 +91,13 @@ public sealed class WebAppDownAgentFactory
 
         return await _durableTaskClient.ScheduleNewWebAppDownAgentInstanceAsync(
             new WebAppDownAgentInput(
-                Input: input,
+                Input: resourceId,
                 ToolSignatures: _toolSignatures,
                 ThreadId: threadId),
             new StartOrchestrationOptions(InstanceId: $"{instanceId}"));
     }
 
-    public WebAppDownInput DeserializeInput(string serializedOrchestrationInput)
+    public string DeserializeInput(string serializedOrchestrationInput)
     {
         return JsonSerializer.Deserialize<WebAppDownAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
     }

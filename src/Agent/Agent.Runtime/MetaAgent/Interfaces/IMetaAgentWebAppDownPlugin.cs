@@ -17,7 +17,7 @@ namespace Agent.Runtime.MetaAgent
         /// Lists WebApp down workflows
         /// </summary>
         /// <returns>List of WebApp down workflows</returns>
-        Task<IReadOnlyList<WorkflowMetadata<WebAppDownInput>>> ListWebAppDownWorkflows();
+        Task<IReadOnlyList<WorkflowMetadata<string>>> ListWebAppDownWorkflows();
 
         /// <summary>
         /// Starts the WebApp Down Agent
@@ -25,6 +25,6 @@ namespace Agent.Runtime.MetaAgent
         /// <param name="input">The input data for the agent</param>
         /// <param name="context">The thread context</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartWebAppDownAgent(WebAppDownInput input);
+        Task<string> StartWebAppDownAgent(string resourceId);
     }
 }

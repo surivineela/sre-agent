@@ -91,6 +91,9 @@
     <None Update="SubAgents\ContainerImagePullFailureAgent\ContainerImagePullFailureAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SubAgents\WebAppDownAgent\WebAppDownPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="V2\ContainerAppsAgent\ContainerAppsAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
