@@ -41,7 +41,7 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
 
         try
         {
-            var invokeResult = await matchingTool.ExecuteFunction.InvokeAsync(input.FunctionCallContent.Arguments);
+            var invokeResult = await matchingTool.ExecuteFunction.InvokeAsync(new AIFunctionArguments(input.FunctionCallContent.Arguments));
 
             // Success case - return formatted result
             return new ChatMessage(

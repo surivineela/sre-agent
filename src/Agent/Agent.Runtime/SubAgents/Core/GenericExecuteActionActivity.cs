@@ -34,7 +34,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         try
         {
             // Invoke the function
-            var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
+            var invokeResult = await matchingTool.ToolFunction.InvokeAsync(new AIFunctionArguments(input.FunctionCallContent.Arguments));
             var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
 
             // Return successful result

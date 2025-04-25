@@ -1,0 +1,39 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_oHzrqEgkAtynmeqa1Je4YGc7",
+          "name": "StartApprovalFlow",
+          "arguments": {
+            "operationName": "UpdateTls",
+            "description": "Update the minimum TLS version to 1.2 for the specified apps. If any app becomes unhealthy, rollback and stop further updates."
+          }
+        }
+      ],
+      "messageId": "chatcmpl-BQ1Kq9dK682nyMzEKLuVCJXfOqIN5"
+    }
+  ],
+  "responseId": "chatcmpl-BQ1Kq9dK682nyMzEKLuVCJXfOqIN5",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-25T00:36:00+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 3094,
+    "outputTokenCount": 48,
+    "totalTokenCount": 3142,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 2944,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

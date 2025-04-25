@@ -1,0 +1,38 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_0K1qOXBlnmaPZdOvbSVPgf6Q",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "⚠️ Anomaly detected for App2 after updating TLS version to 1.2. Traffic dropped significantly. Initiating rollback to TLS version 1.0."
+          }
+        }
+      ],
+      "messageId": "chatcmpl-BQ1LEwFolj7Dw2iKmD4CORRhwhIwy"
+    }
+  ],
+  "responseId": "chatcmpl-BQ1LEwFolj7Dw2iKmD4CORRhwhIwy",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-25T00:36:24+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5192,
+    "outputTokenCount": 48,
+    "totalTokenCount": 5240,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 4864,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

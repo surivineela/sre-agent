@@ -1,0 +1,38 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_r5v4qfbFb4Sh6O49dYZ8Cjnr",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "✅ Monitoring for **App2** completed. No anomalies detected. Proceeding to update **App3**."
+          }
+        }
+      ],
+      "messageId": "chatcmpl-BQ18MDHIcxyFpZGlzh9NkulnTDKcj"
+    }
+  ],
+  "responseId": "chatcmpl-BQ18MDHIcxyFpZGlzh9NkulnTDKcj",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-25T00:23:06+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5841,
+    "outputTokenCount": 36,
+    "totalTokenCount": 5877,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 4736,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

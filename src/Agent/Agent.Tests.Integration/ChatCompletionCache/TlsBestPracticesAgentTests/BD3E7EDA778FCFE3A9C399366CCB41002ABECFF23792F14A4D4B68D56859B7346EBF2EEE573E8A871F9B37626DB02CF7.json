@@ -1,0 +1,38 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_mId78fzAkchdw8heKQiqBEg6",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "\uD83D\uDD04 Rollback completed for App2. TLS version reverted to 1.0 at 2025-02-24T01:00:00Z. No further updates will be performed due to detected anomaly."
+          }
+        }
+      ],
+      "messageId": "chatcmpl-BQ1LHOyg2cGmS9RnzdWpU86ZSFiCd"
+    }
+  ],
+  "responseId": "chatcmpl-BQ1LHOyg2cGmS9RnzdWpU86ZSFiCd",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-25T00:36:27+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5592,
+    "outputTokenCount": 58,
+    "totalTokenCount": 5650,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 5376,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

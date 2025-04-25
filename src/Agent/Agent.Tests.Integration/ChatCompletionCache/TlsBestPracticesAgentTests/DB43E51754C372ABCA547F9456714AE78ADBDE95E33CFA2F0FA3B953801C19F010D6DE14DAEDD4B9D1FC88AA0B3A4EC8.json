@@ -1,0 +1,40 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_CSK2e49Twth3U9B4BiTbmuSL",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "unit-test-thread",
+            "title": "Update TLS version for App4",
+            "status": "Completed"
+          }
+        }
+      ],
+      "messageId": "chatcmpl-BQ18cvOO9wb3bsFsxgOZ9qRolVnQV"
+    }
+  ],
+  "responseId": "chatcmpl-BQ18cvOO9wb3bsFsxgOZ9qRolVnQV",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-25T00:23:22+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 7449,
+    "outputTokenCount": 31,
+    "totalTokenCount": 7480,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 4480,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}
