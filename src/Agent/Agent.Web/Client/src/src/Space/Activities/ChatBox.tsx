@@ -21,6 +21,8 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
         onClickDownButton,
         isDownButtonVisible,
         intersectionObserverRef,
+        currentThreadId,
+        cancelResponse,
     } = useChatBox(addThread, threadId);
 
     return (
@@ -31,10 +33,12 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
                         <div ref={intersectionObserverRef} />
                         {isLoadingInitialChatHistory && <ChatLoading />}
                         {messages.map((message, index) => (
-                            <ChatMessage key={index} message={message} threadId={threadId || ''} />
+                            <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
                         ))}
-                        {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={threadId || ''} />}
-                        {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={threadId || ''} />}
+                        {temporaryUserMessage && (
+                            <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} cancelResponse={cancelResponse} />
+                        )}
+                        {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={currentThreadId || ''} />}
                     </CopilotChat>
                 </div>
                 <Button

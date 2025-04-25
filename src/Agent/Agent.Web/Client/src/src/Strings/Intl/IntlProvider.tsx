@@ -100,13 +100,13 @@ const loadLocaleData = async (
 };
 
 export interface IntlProviderProps {
-    locale: string;
+    locale: string | undefined;
     children?: React.ReactNode;
     stringOverrides?: Record<string, string>;
 }
 
 export const IntlProvider = (props: IntlProviderProps) => {
-    const { locale, children, stringOverrides } = props;
+    const { locale = 'en', children, stringOverrides } = props;
 
     const [locMessages, setLocMessages] = useState<Record<string, string> | Record<string, MessageFormatElement[]>>({});
 
@@ -121,8 +121,8 @@ export const IntlProvider = (props: IntlProviderProps) => {
 
     return (
         <ReactIntlProvider
-            locale={locale || 'en'}
-            defaultLocale="en"
+            locale={locale}
+            defaultLocale={locale}
             messages={locMessages}
             onError={err => {
                 if (err.code === 'MISSING_TRANSLATION') {
