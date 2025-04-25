@@ -366,6 +366,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),
+            AIFunctionFactory.Create(graphDbPluginDefinition.ListResourceGroups),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResource),
             AIFunctionFactory.Create(graphDbPluginDefinition.SearchResourceByName),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetActivityLogsSummary),

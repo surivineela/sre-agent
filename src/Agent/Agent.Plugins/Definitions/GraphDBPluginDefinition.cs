@@ -182,6 +182,19 @@ namespace Agent.Plugins
             return await _plugin.ListSubscriptionsAsync();
         }
 
+        [KernelFunction("ListResourceGroups")]
+        [Description("Returns a list of all Azure resource groups present in the knowledge graph. " +
+            "This function is useful when you need to: 1) Discover available resource groups, " +
+            "2) Verify resource group visibility to the agent, " +
+            "3) Get resource group names for use with other commands, or " +
+            "4) Perform an inventory of monitored resource groups. " +
+            "The output is a list of resource group names without additional details.")]
+        public async Task<List<Dictionary<string, object>>> ListResourceGroups(
+             [Description("The subscription ID for which to list resource groups. This should be the GUID identifier from the subscription.")] string subscriptionId)
+        {
+            return await _plugin.ListResourceGroupsAsync(subscriptionId);
+        }
+
         [KernelFunction("GetActivityLogsSummary")]
         [Description("Retrieves and analyzes Azure Activity Logs for a resource and its connected components. " +
             "This function is valuable when you need to: 1) Review recent changes made to a resource and its dependencies, " +

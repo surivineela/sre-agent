@@ -1245,6 +1245,47 @@ g.V().has('id', '{deploymentResourceId}')
             }
         }
 
+        
+
+        public async Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId)
+        {
+            try
+            {
+                // Query with the correct lowercase 'resourcegroups' type
+                string query = $@"g.V().has('resourceType', 'resourcegroups')
+                         .has('subscriptionId', '{subscriptionId}')
+                         .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceId', 'location')
+                         .by(coalesce(values('subscriptionId'), constant('')))
+                         .by(coalesce(values('resourceGroupName'), constant('')))
+                         .by(coalesce(values('resourceType'), constant('')))
+                         .by(coalesce(values('resourceId'), constant('')))
+                         .by(coalesce(values('location'), constant('')))";
+
+                var result = await GraphDbClient.Query(query);
+                var resources = new List<Dictionary<string, object>>();
+
+                foreach (var item in result)
+                {
+                    var propertyBag = new Dictionary<string, object>();
+                    propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString();
+                    propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString();
+                    propertyBag["resourceType"] = item["resourceType"]?.ToString();
+                    propertyBag["resourceId"] = item["resourceId"]?.ToString();
+                    propertyBag["location"] = item["location"]?.ToString();
+
+                    resources.Add(propertyBag);
+                }
+
+                _logger.LogInformation("Found {Count} resource groups for subscription '{SubscriptionId}'", resources.Count, subscriptionId);
+                return resources;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error listing resource groups for subscription '{SubscriptionId}'", subscriptionId);
+                throw;
+            }
+        }
+
         /// <summary>
         /// Retrieves and summarizes activity logs for a container app and its dependent resources.
         /// </summary>

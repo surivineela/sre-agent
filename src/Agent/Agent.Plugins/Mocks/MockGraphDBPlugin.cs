@@ -137,6 +137,11 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
+        public Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 30, Guid? threadId = null)
         {
             throw new NotImplementedException();

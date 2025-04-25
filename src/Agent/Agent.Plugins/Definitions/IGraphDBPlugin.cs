@@ -123,6 +123,13 @@ namespace Agent.Plugins
         Task<List<dynamic>> ListSubscriptionsAsync();
 
         /// <summary>
+        /// Returns a list of resource groups for a given subscription ID.
+        /// </summary>
+        /// <param name="subscriptionId">Subscription Id that resource groups belong to.</param>
+        /// <returns></returns>
+        Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId);
+
+        /// <summary>
         /// Retrieves and summarizes activity logs for a container app and its dependent resources.
         /// Analyzes recent operations, changes, and potential issues over a specified time period.
         /// </summary>
