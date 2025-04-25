@@ -99,11 +99,11 @@ namespace Agent.Plugins
         }
 
         [Description("Retrieves the key value pair for given App Setting key")]
-        public async Task<IDictionary<string, string>> FetchAppSetting(
+        public async Task<IDictionary<string, string>> GetAppSetting(
             [Description("Full resource id of an Azure resource")] string resourceId,
             [Description("The App Setting key to look up")] string appSettingKey)
         {
-            return await _armPlugin.FetchAppSetting(resourceId, appSettingKey);
+            return await _armPlugin.GetAppSetting(resourceId, appSettingKey);
         }
 
         [Description("Lists the keys for a given Azure Storage account.")]

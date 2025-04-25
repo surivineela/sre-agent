@@ -132,9 +132,9 @@ namespace Agent.Plugins.Implementation
             return await _armHelper.CheckDnsResolution(resourceId, desinationUrl);
         }
 
-        public async Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey)
+        public async Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey)
         {
-            return await _armHelper.FetchAppSetting(resourceId, appSettingKey);
+            return await _armHelper.GetAppSetting(resourceId, appSettingKey);
         }
 
         public async Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId)

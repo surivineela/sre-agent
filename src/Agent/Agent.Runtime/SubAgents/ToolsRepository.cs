@@ -61,7 +61,7 @@ public class ToolsRepository : IToolsRepository
         Register200<ArmPluginDefinition>(x => x.CheckConnectivityToAzureWebJobsStorage);
         Register200<ArmPluginDefinition>(x => x.CheckTcpConnectivity);
         Register200<ArmPluginDefinition>(x => x.CheckDnsResolution);
-        Register200<ArmPluginDefinition>(x => x.FetchAppSetting);
+        Register200<ArmPluginDefinition>(x => x.GetAppSetting);
         Register200<ArmPluginDefinition>(x => x.ListKeysForStorageAsync);
         Register200<ArmPluginDefinition>(x => x.UpdateAppSettingsAsync);
         

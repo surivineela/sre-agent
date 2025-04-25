@@ -8,9 +8,9 @@ public sealed record GenericArmResourceModel(
     string location,
     object properties,
     IReadOnlyDictionary<string, string> tags,
-    List<GenericIdentityModel> IdentityModels);
+    List<GenericArmResourceIdentityModel> IdentityModels);
 
-public sealed record GenericIdentityModel(IdentityType identityType, Guid principalId);
+public sealed record GenericArmResourceIdentityModel(IdentityType identityType, Guid principalId);
 
 public enum IdentityType
 {

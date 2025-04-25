@@ -19,7 +19,7 @@ namespace Agent.Plugins
         Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId);
         Task<string> CheckTcpConnectivity(string resourceId, string host, int port);
         Task<string> CheckDnsResolution(string resourceId, string destinationUrl);
-        Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey);
+        Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey);
         Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId);
         Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings);
     }

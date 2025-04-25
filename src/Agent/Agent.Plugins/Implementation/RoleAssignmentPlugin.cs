@@ -11,6 +11,7 @@ using Azure.Core;
 using Azure.ResourceManager.Authorization;
 using Azure.ResourceManager.Authorization.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models;
 
 namespace Agent.Plugins.Implementation;
 
@@ -47,7 +48,6 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     /// <returns>JSON string containing details of role assignments</returns>
     public async Task<string> GetRoleAssignmentsAsync(string resourceId, string principalId)
     {
-
         try
         {
             if(string.IsNullOrWhiteSpace(resourceId))
@@ -78,7 +78,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                     {
                         RoleAssignmentId = assignment.Data.Name,
                         RoleDefinitionId = assignment.Data.RoleDefinitionId.ToString(),
-                        RoleName = await GetRoleNameFromDefinitionIdAsync(assignment.Data.RoleDefinitionId.ToString()),
+                        RoleName = await GetRoleNameFromDefinitionIdAsync(assignment.Data.RoleDefinitionId.ToString(), resourceId),
                         PrincipalId = assignment.Data.PrincipalId.ToString(),
                         PrincipalType = assignment.Data.PrincipalType?.ToString() ?? "Unknown",
                         Scope = assignment.Data.Scope
@@ -398,13 +398,13 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     /// <summary>
     /// Gets the role name from a role definition ID.
     /// </summary>
-    private async Task<string> GetRoleNameFromDefinitionIdAsync(string roleDefinitionId)
+    private async Task<string> GetRoleNameFromDefinitionIdAsync(string roleDefinitionId, string resourceId)
     {
+        var armClient = _armClientFactory.GetArmClient();
+        var roleDefResourceId = new ResourceIdentifier(roleDefinitionId);
         try
         {
-            var armClient = _armClientFactory.GetArmClient();
-            var roleDefResourceId = new ResourceIdentifier(roleDefinitionId);
-            var subscription = armClient.GetSubscriptionResource(roleDefResourceId.Parent.Parent);
+            var subscription = armClient.GetSubscriptionResource(roleDefResourceId.Parent);
             var roleDefinition = await subscription.GetAuthorizationRoleDefinitionAsync(roleDefResourceId);
 
             if (string.IsNullOrWhiteSpace(roleDefinition.Value.Data.RoleName))
@@ -416,6 +416,25 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error getting role name from definition ID {RoleDefinitionId}", roleDefinitionId);
+
+            if (!string.IsNullOrWhiteSpace(resourceId))
+            {
+                try
+                {
+                    var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
+                    var resourceLevelRoleDefinition = await resource.GetAuthorizationRoleDefinitionAsync(roleDefResourceId);
+                    if (string.IsNullOrWhiteSpace(resourceLevelRoleDefinition.Value.Data.RoleName))
+                    {
+                        _logger.LogWarning("Role name is empty for role definition ID {resourceLevelRoleDefinition}", resourceLevelRoleDefinition);
+                    }
+                    return resourceLevelRoleDefinition.Value.Data.RoleName ?? "Unknown Role";
+                }
+                catch (Exception innerEx)
+                {
+                    _logger.LogError(innerEx, "Error getting role name from definition ID {RoleDefinitionId} at resource level", roleDefinitionId);
+                }
+            } 
+
             return "Unknown Role";
         }
     }

@@ -974,19 +974,19 @@ public class ArmHelper
         var properties = JsonSerializer.Deserialize<object>(resourceData.Data.Properties.ToString());
 
         var identity = resourceData.Data.Identity;
-        var managedIdentities = new List<GenericIdentityModel>();
+        var managedIdentities = new List<GenericArmResourceIdentityModel>();
         if (identity != null)
         {
             if (identity.PrincipalId != null)
             {
-                managedIdentities.Add(new GenericIdentityModel(IdentityType.SystemAssignedManagedIdentity, identity.PrincipalId.Value));
+                managedIdentities.Add(new GenericArmResourceIdentityModel(IdentityType.SystemAssignedManagedIdentity, identity.PrincipalId.Value));
             }
 
             if (identity.UserAssignedIdentities != null)
             {
                 managedIdentities.AddRange(identity.UserAssignedIdentities.Values
                     .Where(userAssignedIdentity => userAssignedIdentity.PrincipalId != null)
-                    .Select(userAssignedIdentity => new GenericIdentityModel(IdentityType.UserAssignedManagedIdentity, userAssignedIdentity.PrincipalId.Value)));
+                    .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity, userAssignedIdentity.PrincipalId.Value)));
             }
         }
 
@@ -1410,7 +1410,7 @@ public class ArmHelper
         return "Dns Resolution check failed.";
     }
 
-    public async Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appsettingKey)
+    public async Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appsettingKey)
     {
         var appSettingKv = new Dictionary<string, string>();
 

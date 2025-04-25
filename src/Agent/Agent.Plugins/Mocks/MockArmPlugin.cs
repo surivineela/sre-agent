@@ -119,7 +119,7 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult<string>("true");
         }
 
-        public Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey)
+        public Task<IDictionary<string, string>> GetAppSetting(string resourceId, string appSettingKey)
         {
             return Task.FromResult((IDictionary<string, string>)new Dictionary<string, string>());
         }
