@@ -35,10 +35,15 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
                         {messages.map((message, index) => (
                             <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
                         ))}
-                        {temporaryUserMessage && (
-                            <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} cancelResponse={cancelResponse} />
+                        {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} />}
+                        {agentTypingMessage && (
+                            <ChatMessage
+                                message={agentTypingMessage}
+                                isTyping
+                                threadId={currentThreadId || ''}
+                                cancelResponse={cancelResponse}
+                            />
                         )}
-                        {agentTypingMessage && <ChatMessage message={agentTypingMessage} isTyping threadId={currentThreadId || ''} />}
                     </CopilotChat>
                 </div>
                 <Button

@@ -56,8 +56,8 @@ export class MessagePollingInterval {
 }
 
 export class MessagePollingCounts {
-    public static readonly default = 10;
-    public static readonly active = 2;
+    public static readonly default = 20;
+    public static readonly active = 5;
 }
 
 export class MessageLoadingCounts {

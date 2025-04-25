@@ -14,12 +14,7 @@ const user = {
     userId: 'web-client-user',
 };
 
-const getMessages = async (
-    threadId: string,
-    skip: number,
-    top = MessagePollingCounts.default,
-    signal?: AbortSignal
-): Promise<Message[]> => {
+const getMessages = async (threadId: string, skip: number, top: number, signal?: AbortSignal): Promise<Message[]> => {
     try {
         const url = `../api/v1/threads/${threadId}/messages?skip=${skip}&top=${top}&orderby=timestamp+desc`;
         const { data } = await axios.get(url, {
@@ -140,17 +135,17 @@ const composeTemporaryUserMessage = (message: string): Message => {
  * @param interval
  * @returns
  */
-const pollResponses = async (threadId: string, latestMessage?: Message, signal?: AbortSignal) => {
+const pollResponses = async (messageCount: number, threadId: string, latestMessage?: Message, signal?: AbortSignal) => {
     // lateste response sorted in descending order by timestamp
     const responses: Message[] = [];
 
     while (true) {
-        const messages: Message[] = await getMessages(threadId, responses.length, MessagePollingCounts.active, signal);
+        const messages: Message[] = await getMessages(threadId, responses.length, messageCount, signal);
         if (messages.length < 0) {
             break;
         } else {
             responses.push(...messages);
-            if (noGapBetweenNewMessagesAndExistingMessages(responses, latestMessage)) {
+            if (noGapBetweenNewMessagesAndExistingMessages(messages, latestMessage)) {
                 break;
             }
         }
@@ -195,6 +190,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
     const isPreviousChatHistoryLoadingCompleted = useRef(true);
+    // the latest message of either the latest message of chat history or the latest message of the polling that happens every 5 seconds
     const latestMessageRef = useRef<Message>();
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
@@ -216,6 +212,9 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
 
     const sendMessageHandler = useCallback(
         async (message: string) => {
+            if (abortControllerRef.current) {
+                abortControllerRef.current.abort();
+            }
             abortControllerRef.current = new AbortController();
             const { signal } = abortControllerRef.current;
 
@@ -229,26 +228,17 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
             //ToDo: Handle errors of sendMessage, createThread and pollResponses
             if (currentThreadId) {
                 // issue a request to send a message
-                const latestMessage = await sendMessage(currentThreadId, message, signal);
-                if (latestMessage) {
-                    latestMessageRef.current = latestMessage;
-                }
+                await sendMessage(currentThreadId, message, signal);
             } else {
                 // issue a request to create a new thread
                 newThread = await createThread(message, signal);
-                if (newThread) {
-                    latestMessageRef.current = newThread.lastMessage;
-                }
             }
 
             const threadId = currentThreadId || newThread?.id;
 
             if (threadId) {
-                // poll answers
-                answers = await pollResponses(threadId, latestMessageRef.current, signal);
-                if (answers.length > 0) {
-                    latestMessageRef.current = answers[0];
-                }
+                // poll answers by get the latest 5 messages
+                answers = await pollResponses(MessagePollingCounts.active, threadId, undefined, signal);
             }
 
             if (isMounted.current) {
@@ -301,7 +291,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
             ) {
                 isPreviousNewMessagesPollingCompleted.current = false;
 
-                const latestMessages = await pollResponses(currentThreadId, latestMessageRef.current);
+                const latestMessages = await pollResponses(MessagePollingCounts.default, currentThreadId, latestMessageRef.current);
                 if (isSubscribed && latestMessages && latestMessages.length > 0) {
                     setMessages(prev => processMessages(prev, latestMessages, false));
                     latestMessageRef.current = latestMessages[0];
@@ -320,7 +310,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
         };
     }, [currentThreadId, isLoadingInitialChatHistory, waitingForSendMessageResponse]);
 
-    // Load the latest 10 chat message history
+    // Load the latest 20 chat message history
     useEffect(() => {
         let isSubscribed = true;
 
@@ -335,7 +325,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
 
                     // The threshold depends on the number of the messages this query is intended to return.
                     // if the top parameter for calling getMessages, the threshold should be changed accordingly
-                    if (messages.length < MessagePollingCounts.default) {
+                    if (messages.length < MessageLoadingCounts.default) {
                         setNoChatHistoryLeftToLoad(true);
                     }
                 }
