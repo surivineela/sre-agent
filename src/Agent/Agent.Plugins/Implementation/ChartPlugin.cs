@@ -29,7 +29,7 @@ namespace Agent.Plugins
             _outboundService = outboundService;
         }
 
-        public async Task<string> PlotTimeSeriesDataAsync(
+        public async Task<string> PlotTimeSeriesData(
             string title,
             string yAxisLabel,
             string yAxisMin,

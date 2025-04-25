@@ -48,7 +48,7 @@ public sealed class AppCodeAnalysisAgentFactory
 
 
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesDataAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
 
         var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));

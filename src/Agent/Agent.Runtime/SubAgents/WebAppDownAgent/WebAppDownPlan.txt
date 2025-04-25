@@ -5,7 +5,8 @@ After providing the initial plan, the user will prompt you to move to execution 
 
 ** Plan Outline **
 1. Use the GetFunctionAppRequestAvailability to find the availability of the app for the last 1 hour. Use the NotifyUser tool to notify the user of the average availability of the app over the last hour and make sure the availability percentage is BOLDED.
-   Use the GetFunctionAppRequestAvailability tool to get the availability.
+   Use the GetFunctionAppRequestAvailability tool to get the availability for the availability chart data. Then, Present the user with availability chart data of the app facing slowness or downtime.
+   <strong>ALWAYS SHOW THE AVAILABILITY CHART REGARDLESS OF THE AVAILABILITY PERCENTAGE</strong> Present the data in a chart by using the PlotTimeSeriesData tool.
 2. If the availability of the app is >99.9%, then notify the user that the app is healthy. The plan can be completed here unless the user wants to move forward.
    Otherwise, proceed to investigate the cause of the app's slowness or downtime.This is done by running the following tools one by one in separate steps. <strong>ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
    After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Cpu and Memory spikes should only be considered if they are over 50% spiked. 
@@ -35,7 +36,7 @@ After providing the initial plan, the user will prompt you to move to execution 
 5. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
 6. Use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
-    Use the GetFunctionAppRequestAvailability tool to get the average availability of the app.
+    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
 7. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 8. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>
@@ -60,8 +61,8 @@ After providing the initial plan, the user will prompt you to move to execution 
 6. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and CPU usage in 5 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
 7. Use the NotifyUser tool to notify the user of the average availability and CPU of the app over the last 5 minutes and make sure the availability percentage and CPU usage are BOLDED.
-    Then, Present the user with availability of the app. Use the GetFunctionAppRequestAvailability tool to get the availability.
-    Also, present the user with the CPU usage  of the app. Use the GetWebAppCPUMetrics tool to get the CPU usage.
+   Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
+   Also, present the user with the CPU usage chart data of the app. Use the GetWebAppCPUMetrics tool to get the CPU usage for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
 8. If the availability of the app has recovered to 99.9% and the app's CPU usage has recovered to below 90%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 
@@ -77,8 +78,8 @@ After providing the initial plan, the user will prompt you to move to execution 
 6. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and memory usage in 10 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
 7. Use the NotifyUser tool to notify the user of the average availability and memory of the app over the last 5 minutes and make sure the availability percentage and memory usage are BOLDED.
-     Use the GetFunctionAppRequestAvailability tool to get the availability.
-    Also, present the user with the memory usage of the app. Use the GetMemoryMetrics tool to get the memory usage. If the memory is too high vis-a-vis the size of the web app, assume it's a high memory problem. 
+    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
+    Also, present the user with the memory usage chart data of the app. Use the GetMemoryMetrics tool to get the memory usage for the chart. If the memory is too high vis-a-vis the size of the web app, assume it's a high memory problem. Present the data in a chart by using the PlotTimeSeriesData tool.
 8. If the availability of the app has recovered to 99.9% and the app's memory usage has recovered to below 80%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 
@@ -97,6 +98,7 @@ Tools that will be available as part of plan execution:
 - MarkPlanComplete
 - NotifyUser
 - AskUserForInput
+- PlotTimeSeriesData
 - GetCallStackForApp : When showing a call stack trace containing issues, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything
 - GetDeploymentActivity : ALWAYS show the UNSUCCESSFUL swaps or deployments in a nicely formatted TABLE (tabular data format)
 - GetSummaryOfExceptions : ALWAYS SHOW THE FULL EXCEPTIONS AND FULL STACK TRACE. DO NOT TRUNCATE ANYTHING. 

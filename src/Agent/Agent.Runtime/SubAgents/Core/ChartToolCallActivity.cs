@@ -42,7 +42,7 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
         List<AIFunction> aiFunctions =
         [
             AIFunctionFactory.Create(chartDefinition.PlotScatterAsync),
-            AIFunctionFactory.Create(chartDefinition.PlotTimeSeriesDataAsync),
+            AIFunctionFactory.Create(chartDefinition.PlotTimeSeriesData),
             AIFunctionFactory.Create(chartDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartDefinition.PlotBarChartAsync)
         ];

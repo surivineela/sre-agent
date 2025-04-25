@@ -17,8 +17,8 @@ After providing the initial plan, the user will prompt you to move to execution 
 6. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and CPU usage in 5 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
 7. Use the NotifyUser tool to notify the user of the average availability and CPU of the app over the last 5 minutes and make sure the availability percentage and CPU usage are BOLDED.
-    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesDataAsync tool.
-    Also, present the user with the CPU usage chart data of the app. Use the GetWebAppCPUMetrics tool to get the CPU usage for the chart. Present the data in a chart by using the PlotTimeSeriesDataAsync tool.
+    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
+    Also, present the user with the CPU usage chart data of the app. Use the GetWebAppCPUMetrics tool to get the CPU usage for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
 8. If the availability of the app has recovered to 99.9% and the app's CPU usage has recovered to below 50 MB, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 9. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>

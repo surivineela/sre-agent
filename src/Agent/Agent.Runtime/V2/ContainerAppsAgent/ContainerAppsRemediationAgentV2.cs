@@ -37,7 +37,7 @@ public class ContainerAppsRemediationAgentV2(
             toolsRegistry.RegisterTool<NSGRulePluginDefinition>(x => x.RemoveNSGRuleAsync);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.ScaleContainerApp);
             toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.FindAllNetworkConnectedResources);
-            toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesDataAsync);
+            toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesData);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotPieChartAsync);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotBarChartAsync);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotScatterAsync);

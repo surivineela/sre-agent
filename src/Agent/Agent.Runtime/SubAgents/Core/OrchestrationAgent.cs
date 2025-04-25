@@ -7,6 +7,7 @@ using Agent.Plugins;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents.Core.Steps;
+using Kusto.Cloud.Platform.Utils;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -359,12 +360,12 @@ public abstract class OrchestrationAgentStep
         else if (functionCall.Name == nameof(ChartPluginDefinition.PlotBarChartAsync) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotPieChartAsync) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotScatterAsync) ||
-                 functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesDataAsync))
+                 functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesData))
         {
             return new OrchestrationAgentChartStep { FunctionCall = functionCall };
         }
         else
-        {
+        { 
             return new OrchestrationAgentGenericExecuteStep { FunctionCall = functionCall };
         }
     }

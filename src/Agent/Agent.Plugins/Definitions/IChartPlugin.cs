@@ -10,7 +10,7 @@ namespace Agent.Plugins
     {
         public Guid? ThreadId { get; set; }
 
-        Task<string> PlotTimeSeriesDataAsync(
+        Task<string> PlotTimeSeriesData(
             string title,
             string yAxisLabel,
             string yAxisMin,

@@ -361,7 +361,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.StartContainerImagePullAgent),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
-            AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesDataAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesData),
             AIFunctionFactory.Create(chartPluginDefinition.PlotScatterAsync),
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),

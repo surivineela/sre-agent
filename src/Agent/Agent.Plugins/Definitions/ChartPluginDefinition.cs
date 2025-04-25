@@ -33,7 +33,7 @@ dataPoints: semicolon-separated list of data points, each in the format:
 For multiple points, separate each with a semicolon:
 '2024-01-25T10:30:00|75.4|CPU Usage;2024-01-25T10:35:00|82.1|Memory Usage'
 description: text to accompany the chart when posting the image")]
-        public async Task<string> PlotTimeSeriesDataAsync(
+        public async Task<string> PlotTimeSeriesData(
             [Description("Title for the chart, e.g. 'Application Metrics Dashboard'")] string title,
             [Description("Y-Axis label, e.g. 'Usage (%)'")] string yAxisLabel,
             [Description("Minimum value on the Y-axis, e.g. '0'")] string yAxisMin,
@@ -41,7 +41,7 @@ description: text to accompany the chart when posting the image")]
             [Description("Semicolon-separated data points, each 'YYYY-MM-DDTHH:MM:SS|value|seriesName'")] string dataPoints,
             [Description("Short text to describe the chart when posting.")] string description)
         {
-            return await _chartPlugin.PlotTimeSeriesDataAsync(title, yAxisLabel, yAxisMin, yAxisMax, dataPoints, description);
+            return await _chartPlugin.PlotTimeSeriesData(title, yAxisLabel, yAxisMin, yAxisMax, dataPoints, description);
         }
 
         [KernelFunction("plot_pie_chart")]

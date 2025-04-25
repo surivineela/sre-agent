@@ -16,7 +16,7 @@ After providing the initial plan, the user will prompt you to move to execution 
 5. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes.
    Use the WaitInMilliSeconds Tool to wait 5 minutes. 
 6. Use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
-    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesDataAsync tool.
+    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
 7. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 8. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>
@@ -42,7 +42,10 @@ Tools that will be available as part of plan execution:
 - MarkPlanComplete
 - PerformDeploymentSwapForApp
 - GetFunctionAppRequestAvailability
-- PlotTimeSeriesDataAsync
+- PlotTimeSeriesData
+
+
+
 
 ** Anomaly Detection **
 When you evaluate for an anomaly, consider the point in time the properties were updated - you are looking for a difference between the before and after. 
