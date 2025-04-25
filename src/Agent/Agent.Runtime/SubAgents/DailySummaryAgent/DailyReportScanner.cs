@@ -158,9 +158,11 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             didItOnce = true;
 
+            string mainDashboardUrl = await TryToImportDashboards();
             // to do: stacyzeng - remove this in future temporary solution
             // delay the scanner by 15 mins to allow more resources to be crawled & health info populated
             await Task.Delay(TimeSpan.FromMinutes(15));
+            _logger.LogInformation("Wait for a while to allow more resources to be crawled");
 
             // Get the list of resource types from the knowledge graph
             _armResourceNodes = await _graphDbService.GetAllResourceNodes();
@@ -178,21 +180,11 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             // create and publish custom dashboard
             // add try catch, in case of grafana or dashboard failures daily report is still generated
             string dashboardSummary = string.Empty;
-            string dashboardUrl = string.Empty;
             try
             {
-                string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);
-                (dashboardUrl, string dashboardUid) = await CreateAndPublishDashboard(uid);
-
-                // Activate predefined Azure Monitor dashboards
-                await ActivateAzureMonitorDashboards();
-
-                // Activate predefined customized dashboards (except the main dashboard)
-                await ActivateCustomizedDashboards([_mainDashboardFilePath]);
-
-                // NEW: Capture screenshots of all dashboards and get LLM summary before starting orchestration
+                // NEW: Capture screenshots of the main dashboard and get LLM summary before starting orchestration
                 _logger.LogInformation("Capturing dashboard screenshots for LLM analysis");
-                dashboardSummary = await CaptureAndSummarizeDashboardsAsync(dashboardUrl);
+                dashboardSummary = await CaptureAndSummarizeDashboardsAsync(mainDashboardUrl);
             }
             catch
             {
@@ -200,7 +192,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
 
             // pass all generated summaries to create concise summary of dashboard and generate action items
-            var conciseSummary = await GenerateConciseSummaryAsync(dashboardSummary, dashboardUrl, string.Join("\n", healthInfoList), threadSummary);
+            var conciseSummary = await GenerateConciseSummaryAsync(dashboardSummary, mainDashboardUrl, string.Join("\n", healthInfoList), threadSummary);
 
             // Create a thread for the report
             var initialMessage = new StringBuilder();
@@ -226,10 +218,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             initialMessage.AppendLine(threadSummary);
             initialMessage.AppendLine();
 
-            if (string.IsNullOrEmpty(dashboardUrl))
+            if (string.IsNullOrEmpty(mainDashboardUrl))
             {
                 // Add a note about the dashboard
-                initialMessage.AppendLine($"**I created this dashboard for you to give an overview: [SRE Agent Resource Dashboard]({dashboardUrl})**");
+                initialMessage.AppendLine($"**I created this dashboard for you to give an overview: [SRE Agent Resource Dashboard]({mainDashboardUrl})**");
                 initialMessage.AppendLine();
             }
 
@@ -294,6 +286,33 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 _logger.LogError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
             }
             return thread;
+        }
+
+        // Returns main dashboard url
+        private async Task<string> TryToImportDashboards()
+        {
+            try
+            {
+                string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);
+                _logger.LogInformation("data source {uid} already setup", uid);
+                var (dashboardUrl, dashboardUid) = await CreateAndPublishDashboard(uid);
+                _logger.LogInformation("Main dashboard {uid} imported. Url {url}", dashboardUid, dashboardUrl);
+
+                // Activate predefined Azure Monitor dashboards
+                await ActivateAzureMonitorDashboards();
+                _logger.LogInformation("Azure monitor dashboards imported");
+
+                // Activate predefined customized dashboards (except the main dashboard)
+                await ActivateCustomizedDashboards([_mainDashboardFilePath]);
+                _logger.LogInformation("Customized dashboards imported");
+                return dashboardUrl;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Failed to import dashboards");
+            }
+
+            return "";
         }
 
         /// <summary>
