@@ -7,9 +7,10 @@ import Panel from "./Panel";
 import ResourceSelector from "./ResourceSelector";
 import { Spinner } from "@fluentui/react-components";
 import { CustomEdge } from "./CustomEdge";
+import { useGraphStyles } from "../Styles/Graph.styles";
+import { useTheme } from "@fluentui/react";
 
 import '@xyflow/react/dist/style.css';
-import { useGraphStyles } from "../Styles/Graph.styles";
 
 interface IGraphProps {
     transferDataToActivities: (threadId?: string | null) => void
@@ -43,6 +44,8 @@ const GraphContent = (props: IGraphProps) => {
 
     const { root, reactFlow, spinner } = useGraphStyles();
 
+    const theme = useTheme();
+
     return <GraphContext.Provider
         value={{
             openPanel,
@@ -67,7 +70,8 @@ const GraphContent = (props: IGraphProps) => {
                         edges={edges}
                         onNodesChange={onNodesChange}
                         onEdgesChange={onEdgesChange}
-                        proOptions={{ hideAttribution: true }}>
+                        proOptions={{ hideAttribution: true }}
+                        colorMode={theme.isInverted ? 'dark' : 'light'}>
                         <Controls />
                         <MiniMap />
                     </ReactFlow >
