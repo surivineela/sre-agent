@@ -973,6 +973,23 @@ public class ArmHelper
         var resourceData = resourceDataResponse.Value;
         var properties = JsonSerializer.Deserialize<object>(resourceData.Data.Properties.ToString());
 
+        var identity = resourceData.Data.Identity;
+        var managedIdentities = new List<GenericIdentityModel>();
+        if (identity != null)
+        {
+            if (identity.PrincipalId != null)
+            {
+                managedIdentities.Add(new GenericIdentityModel(IdentityType.SystemAssignedManagedIdentity, identity.PrincipalId.Value));
+            }
+
+            if (identity.UserAssignedIdentities != null)
+            {
+                managedIdentities.AddRange(identity.UserAssignedIdentities.Values
+                    .Where(userAssignedIdentity => userAssignedIdentity.PrincipalId != null)
+                    .Select(userAssignedIdentity => new GenericIdentityModel(IdentityType.UserAssignedManagedIdentity, userAssignedIdentity.PrincipalId.Value)));
+            }
+        }
+
         GenericArmResourceModel armRes = new GenericArmResourceModel(
             resourceData.Data.Id,
             resourceData.Data.Name,
@@ -980,7 +997,8 @@ public class ArmHelper
             resourceData.Data.Location,
             resourceData.Data.Kind ?? string.Empty,
             properties,
-            resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>()
+            resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
+            managedIdentities
         );
 
         // Return the formatted JSON
@@ -1283,7 +1301,7 @@ public class ArmHelper
 
 
 
-    public async Task<string> CheckConnectivity(string resourceId)
+    public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
     {
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
@@ -1415,6 +1433,76 @@ public class ArmHelper
         }
 
         return appSettingKv;
+    }
+    public async Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId) || appSettings == null || appSettings.Count == 0)
+            throw new ArgumentException("Resource ID and app settings are required");
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        httpClient.BaseAddress = new Uri("https://management.azure.com");
+
+        // Fetch existing app settings  
+        var existingAppSettingsResponse = await httpClient.PostAsync(resourceId + "/config/appsettings/list?api-version=2024-04-01", null);
+        if (!existingAppSettingsResponse.IsSuccessStatusCode)
+            throw new Exception($"Failed to fetch existing app settings. Status Code: {existingAppSettingsResponse.StatusCode}");
+
+        var existingAppSettingsJson = await existingAppSettingsResponse.Content.ReadAsStringAsync();
+        var existingAppSettings = JsonSerializer.Deserialize<Dictionary<string, string>>(JObject.Parse(existingAppSettingsJson)["properties"]?.ToString() ?? "{}");
+
+        // Merge new app settings with existing ones  
+        foreach (var kvp in appSettings)
+        {
+            existingAppSettings[kvp.Key] = kvp.Value;
+        }
+
+        // Prepare the request body  
+        var requestBody = new
+        {
+            properties = existingAppSettings
+        };
+        string jsonBody = JsonSerializer.Serialize(requestBody);
+
+        // Send the update request  
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, resourceId + "/config/appsettings?api-version=2024-04-01")
+        {
+            Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
+        };
+
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        return response.IsSuccessStatusCode;
+    }
+
+    public async Task<Dictionary<string, string>> ListKeysForStorageAsync(string resourceId)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required");
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        string requestUrl = $"https://management.azure.com{resourceId}/listKeys?api-version=2023-05-01";
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string errorContent = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Failed to retrieve keys. Status Code: {response.StatusCode}, Response: {errorContent}");
+        }
+
+        string responseContent = await response.Content.ReadAsStringAsync();
+        var jsonResponse = JsonDocument.Parse(responseContent);
+
+        var keys = jsonResponse.RootElement.GetProperty("keys")
+            .EnumerateArray()
+            .ToDictionary(
+                key => key.GetProperty("keyName").GetString(),
+                key => key.GetProperty("value").GetString()
+            );
+
+        return keys;
     }
     #region Private Methods
 

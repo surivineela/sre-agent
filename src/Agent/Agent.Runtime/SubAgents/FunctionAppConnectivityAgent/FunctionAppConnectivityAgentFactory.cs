@@ -17,12 +17,12 @@ public sealed class FunctionAppConnectivityAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(FunctionAppConnectivityAgentFactory);
 
     public FunctionAppConnectivityAgentFactory(
-        IToolsRepository toolsRepository,
-        DurableTaskClient durableTaskClient,
-        IArmPlugin armPlugin,
-        IRoleAssignmentPlugin roleAssignmentPlugin,
-        IGraphDBPlugin graphDBPlugin
-        )
+           IToolsRepository toolsRepository,
+           DurableTaskClient durableTaskClient,
+           IArmPlugin armPlugin,
+           IRoleAssignmentPlugin roleAssignmentPlugin,
+           IGraphDBPlugin graphDBPlugin
+           )
     {
         _toolsRepository = toolsRepository;
         var toolSignatures = new List<string>();
@@ -35,10 +35,12 @@ public sealed class FunctionAppConnectivityAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivity));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivityToAzureWebJobsStorage));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.FetchAppSetting));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.ListKeysForStorageAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleAssignments));

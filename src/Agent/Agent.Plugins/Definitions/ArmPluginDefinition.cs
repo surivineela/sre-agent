@@ -75,10 +75,10 @@ namespace Agent.Plugins
         }
 
         [Description("Check if all the associated resources can be reached from an Azure function app")]
-        public async Task<string> CheckConnectivity(
+        public async Task<string> CheckConnectivityToAzureWebJobsStorage(
     [Description("Full resource id of an Azure Function App")] string resourceId)
         {
-            return await _armPlugin.CheckConnectivity(resourceId);
+            return await _armPlugin.CheckConnectivityToAzureWebJobsStorage(resourceId);
         }
 
         [Description("Check if a connection from the given resource to www.microsoft.com can be established.")]
@@ -90,16 +90,33 @@ namespace Agent.Plugins
 
         [Description("Check if DNS resolution from the function app to the storage account's endpoint")]
         public async Task<string> CheckDnsResolution(
-            [Description("Full resource id of an Azure resource and the url of the target storage account's endpoint")] string resourceId, string destinationUrl)
+            [Description("Full resource id of an Azure resource")] string resourceId,
+            [Description("The url of the target storage account's endpoint")] string destinationUrl)
         {
             return await _armPlugin.CheckDnsResolution(resourceId, destinationUrl);
         }
 
         [Description("Retrieves the key value pair for given App Setting key")]
         public async Task<IDictionary<string, string>> FetchAppSetting(
-            [Description("Full resource id of an Azure resource and the App Setting key to look up")] string resourceId, string appSettingKey)
+            [Description("Full resource id of an Azure resource")] string resourceId,
+            [Description("The App Setting key to look up")] string appSettingKey)
         {
             return await _armPlugin.FetchAppSetting(resourceId, appSettingKey);
+        }
+
+        [Description("Lists the keys for a given Azure Storage account.")]
+        public async Task<IDictionary<string, string>> ListKeysForStorageAsync(
+            [Description("Full resource id of an Azure Storage account")] string resourceId)
+        {
+            return await _armPlugin.ListKeysForStorageAsync(resourceId);
+        }
+
+        [Description("Updates the App Settings for a given Azure resource.")]
+        public async Task<bool> UpdateAppSettingsAsync(
+            [Description("Full resource id of an Azure resource")] string resourceId,
+            [Description("Key-value pairs of App Settings to update")] IDictionary<string, string> appSettings)
+        {
+            return await _armPlugin.UpdateAppSettingsAsync(resourceId, appSettings);
         }
     }
 }

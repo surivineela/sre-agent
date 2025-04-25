@@ -104,7 +104,7 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult((IReadOnlyDictionary<string, string>)new Dictionary<string, string>());
         }
 
-        public Task<string> CheckConnectivity(string resourceId)
+        public Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
         {
             return Task.FromResult<string>("true");
         }
@@ -122,6 +122,21 @@ namespace Agent.Plugins.Mocks
         public Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey)
         {
             return Task.FromResult((IDictionary<string, string>)new Dictionary<string, string>());
+        }
+
+        public Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId)
+        {
+            var mockKeys = new Dictionary<string, string>
+           {
+               { "Key1", "MockKeyValue1" },
+               { "Key2", "MockKeyValue2" }
+           };
+            return Task.FromResult((IDictionary<string, string>)mockKeys);
+        }
+
+        public Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)
+        {
+            return Task.FromResult(true);
         }
     }
 }

@@ -7,4 +7,13 @@ public sealed record GenericArmResourceModel(
     string kind,
     string location,
     object properties,
-    IReadOnlyDictionary<string, string> tags);
+    IReadOnlyDictionary<string, string> tags,
+    List<GenericIdentityModel> IdentityModels);
+
+public sealed record GenericIdentityModel(IdentityType identityType, Guid principalId);
+
+public enum IdentityType
+{
+    UserAssignedManagedIdentity,
+    SystemAssignedManagedIdentity
+}

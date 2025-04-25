@@ -47,6 +47,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     /// <returns>JSON string containing details of role assignments</returns>
     public async Task<string> GetRoleAssignmentsAsync(string resourceId, string principalId)
     {
+
         try
         {
             if(string.IsNullOrWhiteSpace(resourceId))

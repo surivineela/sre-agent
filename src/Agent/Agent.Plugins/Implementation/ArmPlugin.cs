@@ -117,9 +117,9 @@ namespace Agent.Plugins.Implementation
             return bootDiagnosticLogs;
         }
 
-        public async Task<string> CheckConnectivity(string resourceId)
+        public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
         {
-            return await _armHelper.CheckConnectivity(resourceId);
+            return await _armHelper.CheckConnectivityToAzureWebJobsStorage(resourceId);
         }
 
         public async Task<string> CheckTcpConnectivity(string resourceId, string host, int port)
@@ -135,6 +135,16 @@ namespace Agent.Plugins.Implementation
         public async Task<IDictionary<string, string>> FetchAppSetting(string resourceId, string appSettingKey)
         {
             return await _armHelper.FetchAppSetting(resourceId, appSettingKey);
+        }
+
+        public async Task<IDictionary<string, string>> ListKeysForStorageAsync(string resourceId)
+        {
+            return await _armHelper.ListKeysForStorageAsync(resourceId);
+        }
+
+        public async Task<bool> UpdateAppSettingsAsync(string resourceId, IDictionary<string, string> appSettings)
+        {
+            return await _armHelper.UpdateAppSettingsAsync(resourceId, appSettings);
         }
     }
 }
