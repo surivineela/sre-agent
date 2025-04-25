@@ -93,21 +93,9 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
             {
                 new CustomField
                 {
-                    CustomFieldId = 12345,
-                    IncidentCustomFieldId = 67890,
-                    TeamId = 111,
-                    TenantId = 222,
-                    ServiceCategoryId = null,
-                    OwnerType = "Team",
-                    Name = "MockField",
-                    Description = "Mock field description",
-                    StringValue = "Mock String Value",
-                    NumberValue = 42,
-                    BooleanValue = true,
-                    EnumValue = "MockEnum",
-                    EnumValueId = 1,
-                    DateTimeOffsetValue = DateTime.UtcNow,
-                    ModifiedTime = DateTime.UtcNow
+                    CustomFieldName = "Mock Field Name",
+                    CustomFieldValue = "Mock Field Value",
+
                 }
             });
         }

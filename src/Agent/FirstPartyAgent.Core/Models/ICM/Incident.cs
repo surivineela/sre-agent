@@ -46,21 +46,8 @@ namespace FirstPartyAgent.Models
 
     public class CustomField
     {
-        public int CustomFieldId { get; set; }
-        public int IncidentCustomFieldId { get; set; }
-        public int? TeamId { get; set; }
-        public int? TenantId { get; set; }
-        public int? ServiceCategoryId { get; set; }
-        public string OwnerType { get; set; }
-        public string Name { get; set; }
-        public string Description { get; set; }
-        public string StringValue { get; set; }
-        public double? NumberValue { get; set; }
-        public bool? BooleanValue { get; set; }
-        public string EnumValue { get; set; }
-        public int? EnumValueId { get; set; }
-        public DateTime? DateTimeOffsetValue { get; set; }
-        public DateTime? ModifiedTime { get; set; }
+        public string CustomFieldName { get; set; }
+        public string CustomFieldValue { get; set; }
     }
 
 
