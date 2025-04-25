@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 
 namespace Agent.Plugins
 {
@@ -24,6 +25,7 @@ namespace Agent.Plugins
             return await _appIdentityUpdatePlugin.MigrateSqlToManagedIdentityAsync(resourceId);
         }
 
+        [RequiresApproval]
         [Description(@"<category>Applicable if helping MI Migration or Identity SFI 1.6.2 or best practices</category>"
             + "Migrates WebApp's SQL Connection String AppSetting to Managed Identity based Connection string\n\n"
             + "<important>Warning: This migration causes application downtime</important>\n"
@@ -43,6 +45,7 @@ namespace Agent.Plugins
             return await _appIdentityUpdatePlugin.MigrateSqlToManagedIdentityAsync(resourceId, sqlServer, database);
         }
 
+        [RequiresApproval]
         [Description("<category>Applicable if helping MI Migration or Identity SFI 1.6.2 or best practices</category>"
             + "Enables Azure AD Entra Admin on the SQL Server if not already enabled. \n"
             + "This function gives the app admin access on the DB and hence Ensures the given identity has write permissions on the database \n"

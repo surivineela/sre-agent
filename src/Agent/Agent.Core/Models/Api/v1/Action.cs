@@ -15,6 +15,7 @@ public enum ActionStatus
 public record Action(
     Guid Id,
     string Title,
+    string ToolName,
     DateTime TimeStamp,
     ActionStatus Status
 );

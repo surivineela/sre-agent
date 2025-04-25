@@ -1,5 +1,7 @@
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
@@ -40,13 +42,13 @@ namespace Agent.Tests.Integration
         private AppReliabilityAgentFactory _agentFactory;
         private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
 
-        private MockApprovalPlugin _mockApprovalPlugin;
         private MockArmPlugin _mockArmPlugin;
         private MockMetricsPlugin _mockMetricsPlugin;
         private MockGithubWorkflowTriggerPlugin _mockGithubPlugin;
         private MockTimePlugin _mockTimePlugin;
         private MockMIConfigurationCheckPlugin _mockMIConfigurationCheckPlugin;
         private MockAppIdentityUpdatePlugin _mockAppIdentityUpdatePlugin;
+        private IThreadRepository _mockThreadRepository;
 
         private List<AppReliability> _testApps = new List<AppReliability>
         {
@@ -107,7 +109,6 @@ namespace Agent.Tests.Integration
                         .UseFunctionInvocation();
 
                     // -- test specific
-                    _mockApprovalPlugin = new MockApprovalPlugin();
                     _mockArmPlugin = new MockArmPlugin(_timeProvider);
                     _mockArmPlugin.ConfigureReliability(_testApps.ToDictionary(x => x.ResourceId));
                     _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
@@ -116,7 +117,6 @@ namespace Agent.Tests.Integration
                     _mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
                     _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
 
-                    services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
                     services.AddSingleton<IArmPlugin>(_mockArmPlugin);
                     services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
                     services.AddSingleton<IGithubWorkflowTriggerPlugin>(_mockGithubPlugin);
@@ -125,6 +125,7 @@ namespace Agent.Tests.Integration
                     services.AddSingleton<IAppIdentityUpdatePlugin>(_mockAppIdentityUpdatePlugin);
                     services.AddSingleton<IToolsRepository, ToolsRepository>();
                     services.AddSingleton<AppReliabilityAgentFactory>();
+                    services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
 
                     services.AddDurableTaskWorker(builder =>
                     {
@@ -145,6 +146,7 @@ namespace Agent.Tests.Integration
 
             _durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
             _agentFactory = _host.Services.GetRequiredService<AppReliabilityAgentFactory>();
+            _mockThreadRepository = _host.Services.GetRequiredService<IThreadRepository>();
         }
 
         public async Task DisposeAsync()
@@ -187,8 +189,8 @@ namespace Agent.Tests.Integration
                 await Task.Delay(TimeSpan.FromSeconds(3));
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    guid,
                     tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
@@ -235,8 +237,8 @@ namespace Agent.Tests.Integration
                 instanceID = await _agentFactory.StartOrchestration(input, guid);
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    guid,
                     tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
@@ -294,8 +296,8 @@ namespace Agent.Tests.Integration
 
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    guid,
                     tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);

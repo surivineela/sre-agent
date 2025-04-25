@@ -20,7 +20,7 @@ public class SinkService
         _logger = logger;
     }
 
-    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false)
+    public async Task<Guid> SinkAgentMessageAsync(Guid threadId, string messageText, bool isImageContent = false, Approval approval = null)
     {
         var messageId = Guid.NewGuid();
         var agentMessage = new Message(
@@ -29,7 +29,8 @@ public class SinkService
             Author: new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
             IsImageContent: isImageContent,
             Text: messageText,
-            Posted: new Posted(false)
+            Posted: new Posted(false),
+            Approval: approval
         );
 
         try

@@ -6,7 +6,9 @@ using System.Collections.ObjectModel;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.Repositories;
+using Azure.Security.KeyVault.Keys.Cryptography;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Encryption;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -20,6 +22,9 @@ public static class AgentDataConfiguration
     public const string InstanceManagementContainerName = "instanceManagement";
     public const string InstanceAssignmentsContainerName = "instanceAssignments";
     public const string LeaseContainerName = "changeFeedLeases";
+    public const string ReasoningLoopContainerName = "reasoningloopdocs";
+    public const string ReasoningLoopEncryptionKeyName = "reansoningloopkey";
+    public const string ReasoningLoopDocumentEncryptedPath = "/encryptedProperties";
 
     public static IServiceCollection AddCosmosClient(this IServiceCollection serviceCollection)
     {
@@ -42,8 +47,10 @@ public static class AgentDataConfiguration
 
             var authService = serviceProvider.GetRequiredService<IAuthenticationService>();
             var tokenCredential = authService.GetDocumentDbCredential();
+            //var keyResolver = new KeyResolver(tokenCredential);
 
             return new CosmosClient(endpoint, tokenCredential, cosmosOptions);
+                        //.WithEncryption(keyResolver, KeyEncryptionKeyResolverName.AzureKeyVault);
         });
 
         // Register the repository
@@ -143,6 +150,20 @@ public static class AgentDataConfiguration
             throughput: 400 // Minimum throughput for now'
         );
 
+        // The encryption key should be created from control plane because agent MI does not have permission
+        //var encryptionPath = new ClientEncryptionIncludedPath
+        //{
+        //    Path = ReasoningLoopDocumentEncryptedPath,
+        //    ClientEncryptionKeyId = ReasoningLoopEncryptionKeyName,
+        //    EncryptionType = EncryptionType.Deterministic,
+        //    EncryptionAlgorithm = DataEncryptionAlgorithm.AeadAes256CbcHmacSha256
+        //};
+
+        //await database.Database.DefineContainer(ReasoningLoopContainerName, "/partitionKey")
+        //    .WithClientEncryptionPolicy()
+        //    .WithIncludedPath(encryptionPath)
+        //    .Attach()
+        //    .CreateIfNotExistsAsync();
         // Commented out the vector index creation for now. Leave it here for future reference.
         // var embeddings = new List<Embedding>
         // {

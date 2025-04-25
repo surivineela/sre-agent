@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
@@ -32,6 +33,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.CalculateScalingCost(resourceId, direction, currentSku, targetSku);
         }
 
+        [RequiresApproval]
         [KernelFunction("collect_memory_dump")]
         [Description("Collect memory dump from an App Service experiencing memory leaks for analysis.")]
         public async Task<RemediationResult> CollectMemoryDump(
@@ -41,6 +43,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.CollectMemoryDump(resourceId);
         }
 
+        [RequiresApproval]
         [KernelFunction("restart_webapp")]
         [Description("Restart a Web App instance to mitigate memory leaks. This is typically used after scaling up " +
                "if memory issues persist. The restart will clear the memory and start fresh.")]
@@ -51,6 +54,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.RestartWebApp(resourceId);
         }
 
+        [RequiresApproval]
         [KernelFunction("scale_app_service_plan_vertically")]
         [Description("Scale up an App Service Plan to a higher tier. SHOULD be always suggested when experiencing memory leaks. Prioritizes Premium v2/v3 tiers for better memory allocation.A scale up operation would incur a cost increase similarly a scale down operation would save costs, customer must be notified.")]
         public async Task<RemediationResult> ScaleAppServicePlanVertically(
@@ -60,6 +64,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.ScaleAppServicePlanVertically(resourceId);
         }
 
+        [RequiresApproval]
         [KernelFunction("storage_account_set_shared_key_state")]
         [Description("Enables or disables the use of shared keys for accessing storage accounts. This controls whether callers are forced to use Managed Identities or Delegated Secure Access Token (SAS).")]
         public async Task<RemediationResult> StorageAccountSetSharedKeySupport(string resourceId, FeatureState featureState)
@@ -67,6 +72,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.StorageAccountSetSharedKeySupport(resourceId, featureState);
         }
 
+        [RequiresApproval]
         [KernelFunction("storage_account_set_public_containers_access")]
         [Description("Enables or disables public access to blob containers in the storage account. This controls a security measure that prevents unauthorized access to blobs.")]
         public async Task<RemediationResult> StorageAccountSetContainerPublicAccess(string resourceId, FeatureState featureState)
@@ -74,6 +80,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.StorageAccountSetContainerPublicAccess(resourceId, featureState);
         }
 
+        [RequiresApproval]
         [KernelFunction("cosmosdb_set_local_auth_support")]
         [Description("Sets the key based local auth setting on cosmosdb accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)

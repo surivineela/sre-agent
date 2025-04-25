@@ -18,7 +18,6 @@ public class FirstPartyToolsRepository : ToolsRepository
     private void RegisterFirstPartyPlugins()
     {
         RegisterPlugin<ControlFlowPluginDefinition>();
-        RegisterPlugin<ApprovalPluginDefinition>();
         RegisterPlugin<TimePluginDefinition>();
         var firstPartySubAgentPlugins = _firstPartySubAgentsFactory.GetRequiredPluginDefinitionTypes();
         foreach (var pluginType in firstPartySubAgentPlugins)

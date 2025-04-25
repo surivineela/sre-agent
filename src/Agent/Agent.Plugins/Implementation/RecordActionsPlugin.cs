@@ -22,7 +22,7 @@ namespace Agent.Plugins
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Action> RecordAction(Guid threadId, string title, ActionStatus status = ActionStatus.Pending)
+        public async Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending)
         {
             // Check if thread exists
             var thread = await _repository.GetThreadAsync(threadId);
@@ -36,6 +36,7 @@ namespace Agent.Plugins
             var action = new Action(
                 Id: Guid.NewGuid(),
                 Title: title,
+                ToolName: toolName,
                 TimeStamp: DateTime.UtcNow,
                 Status: status
             );

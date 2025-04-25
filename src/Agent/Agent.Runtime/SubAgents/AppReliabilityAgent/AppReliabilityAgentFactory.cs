@@ -32,7 +32,6 @@ public sealed class AppReliabilityAgentFactory
     public AppReliabilityAgentFactory(
         IMetricsPlugin metricsPlugin,
         IReliabilityPlugin reliabilityPlugin,
-        IApprovalPlugin approvalPlugin,
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient,
         IArmClientFactory armClientFactory)
@@ -55,9 +54,6 @@ public sealed class AppReliabilityAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        //var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        //toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

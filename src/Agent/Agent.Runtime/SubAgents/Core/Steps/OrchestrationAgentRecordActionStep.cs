@@ -21,6 +21,7 @@ public class OrchestrationAgentRecordActionStep : OrchestrationAgentStep
         Guid threadId = agent.ThreadId;
         string title = string.Empty;
         ActionStatus status = ActionStatus.Pending;
+        string toolName = string.Empty;
 
         if (FunctionCall.Arguments.TryGetValue("title", out var titleObj) && titleObj != null)
         {
@@ -34,13 +35,20 @@ public class OrchestrationAgentRecordActionStep : OrchestrationAgentStep
                 status = parsedStatus;
             }
         }
+
+        if (FunctionCall.Arguments.TryGetValue("toolName", out var toolNameObj) && toolNameObj != null)
+        {
+            toolName = toolNameObj.ToString() ?? string.Empty;
+        }
+
         log.LogInformation("[{ThreadId}] Recording action with title: {Title}, status: {Status}", threadId, title, status);
 
         // Call the record action activity
         var action = await context.CallRecordActionActivityAsync(new RecordActionInput(
             ThreadId: threadId,
             Title: title,
-            Status: status
+            Status: status,
+            ToolName: toolName
         ));
         log.LogInformation("[{ThreadId}] Action recorded: {Action}", threadId, action.ToString());
 

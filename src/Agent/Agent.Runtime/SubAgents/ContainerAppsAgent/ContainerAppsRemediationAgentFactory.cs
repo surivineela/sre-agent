@@ -26,7 +26,6 @@ public sealed class ContainerAppsRemediationAgentFactory
     public ContainerAppsRemediationAgentFactory(
         IContainerAppPlugin containerAppPlugin,
         IArmPlugin armPlugin,
-        IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
@@ -82,9 +81,6 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

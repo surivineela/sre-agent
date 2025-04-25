@@ -1,10 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Runtime;
+using Agent.Core.Models.Api.v1;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 
@@ -13,41 +9,49 @@ public class ApprovalTestHelper
 {
     public static async Task DoApproval(
         DurableTaskClient durableTaskClient,
-        TimeProvider timeProvider,
-        string instanceID,
+        IThreadRepository threadRepository,
+        Guid threadId,
         ILogger? logger,
         CancellationToken cancellationToken)
     {
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
         while (true)
         {
             await Task.Delay(TimeSpan.FromMilliseconds(500), linkedCts.Token);
+            var approvals = await threadRepository.GetApprovalsAsync(threadId);
 
-            await foreach (var orchestrationMetadata in durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
+            if (approvals.Count == 0)
             {
-                Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                InstanceIdPrefix = "approval"
-            }))
+                continue;
+            }
+
+            foreach (var approval in approvals)
             {
-                OrchestrationMetadata? approvalOrchestration = await durableTaskClient.GetInstanceAsync(orchestrationMetadata.InstanceId, true, linkedCts.Token);
-                if (approvalOrchestration.ReadInputAs<ApprovalInput>()?.ParentInstanceId == instanceID)
+                if (approval.Status == ApprovalDecision.Pending)
                 {
-                    var approvalId = approvalOrchestration.InstanceId;
-                    var approvalStatus = new ApprovalStatus(approvalId, timeProvider.GetUtcNow().DateTime, timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null, "description");
-                    await durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
-                    return;
+                    var updated = approval with
+                    {
+                        Status = ApprovalDecision.Approved,
+                        DecisionTimestamp = DateTime.UtcNow,
+                        DecisionUser = new Author(Role.User, "TestUser", "TestUserId")
+                    };
+
+                    await threadRepository.UpdateApprovalAsync(updated);
+
+                    var approvalStatus = new ApprovalStatus(
+                        updated.Id.ToString(),
+                        StartTime: DateTime.UtcNow,
+                        ApprovedTime: DateTime.UtcNow,
+                        DecisionMaker: updated.DecisionUser?.DisplayName,
+                        ProcessedTime: null,
+                        OboToken: updated.OboToken
+                        );
+
+                    await durableTaskClient.RaiseEventAsync(updated.OrchestrationId, "ApprovalEvent", approvalStatus);
                 }
             }
-
-            var parent = await durableTaskClient.GetInstanceAsync(instanceID, true, linkedCts.Token);
-            if (parent.IsCompleted)
-            {
-                var errorMessage = $"Orchestration {instanceID} completed unexpectedly with status {parent.RuntimeStatus}. Details: {parent.FailureDetails} ";
-                throw new InvalidOperationException(errorMessage);
-            }
-
         }
     }
 }

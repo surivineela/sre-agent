@@ -18,6 +18,5 @@ public static class TlsTestHelpers
         services.AddSingleton<ArmPluginDefinition>();
         services.AddSingleton<RecordActionsPluginDefinition>();
         services.AddSingleton<ControlFlowPluginDefinition>();
-        services.AddSingleton<ApprovalPluginDefinition>();
     }
 }

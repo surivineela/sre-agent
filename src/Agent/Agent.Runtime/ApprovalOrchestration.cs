@@ -14,7 +14,7 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 namespace Agent.Runtime
 {
 
-    public record ApprovalInput(string ParentInstanceId, string OperationName, string ThreadId, string ApprovalId);
+    public record ApprovalInput(string ParentInstanceId, string OperationName, string ThreadId, string ApprovalId, string Description);
     
     [DurableTask]
     public class ApprovalOrchestration : TaskOrchestrator<ApprovalInput, ApprovalStatus>
@@ -58,13 +58,11 @@ namespace Agent.Runtime
     {
         private readonly ILogger<HandleApprovalActivity> _logger;
         private readonly DurableTaskClient _durableTaskClient;
-        private readonly IApprovalPlugin _approvalPlugin;
 
-        public HandleApprovalActivity(ILogger<HandleApprovalActivity> logger, DurableTaskClient durableTaskClient, IApprovalPlugin approvalPlugin)
+        public HandleApprovalActivity(ILogger<HandleApprovalActivity> logger, DurableTaskClient durableTaskClient)
         {
             _logger = logger;
             _durableTaskClient = durableTaskClient;
-            _approvalPlugin = approvalPlugin;
         }
 
         public override async Task<string> RunAsync(TaskActivityContext context, Tuple<ApprovalInput, ApprovalStatus> input)

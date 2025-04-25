@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Runtime;
 using Agent.Tests.Common;
@@ -29,12 +30,12 @@ namespace Agent.Tests.Integration.Helpers
 
         public static async Task DoApproval(
             DurableTaskClient durableTaskClient,
-            TimeProvider timeProvider,
-            string instanceID,
+            IThreadRepository threadRepository,
+            Guid threadId,
             CancellationToken cancellationToken,
             ILogger? logger = null)
         {
-            await ApprovalTestHelper.DoApproval(durableTaskClient, timeProvider, instanceID, logger, cancellationToken);
+            await ApprovalTestHelper.DoApproval(durableTaskClient, threadRepository, threadId, logger, cancellationToken);
         }
 
         public static async Task CleanupAllOrchestration<T>(

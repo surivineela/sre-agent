@@ -15,7 +15,6 @@ namespace Agent.Tests.Common.Mocks;
 public class BasicMockSetup
 {
     public TimeProvider TimeProvider { get; set; }
-    public MockApprovalPlugin ApprovalPlugin { get; set; }
     public MockRecordActionsPlugin RecordActionsPlugin { get; set; }
     public MockArmPlugin ArmPlugin { get; set; }
     public MockMetricsPlugin MetricsPlugin { get; set; }
@@ -32,7 +31,6 @@ public class BasicMockSetup
         Logger = logger;
 
         TimeProvider = new FakeTimeProvider(mockedCurrentDateTime);
-        ApprovalPlugin = new MockApprovalPlugin();
         ArmPlugin = new MockArmPlugin(TimeProvider);
 
         MetricsPlugin = new MockMetricsPlugin(TimeProvider);
@@ -51,7 +49,6 @@ public static class ServiceCollectionExtensionsForMocks
     public static void AddMockServices(this IServiceCollection services, BasicMockSetup mocks)
     {
         services.AddSingleton<TimeProvider>(mocks.TimeProvider);
-        services.AddSingleton<IApprovalPlugin>(mocks.ApprovalPlugin);
         services.AddSingleton<IRecordActionsPlugin>(mocks.RecordActionsPlugin);
         services.AddSingleton<IArmPlugin>(mocks.ArmPlugin);
         services.AddSingleton<IMetricsPlugin>(mocks.MetricsPlugin);

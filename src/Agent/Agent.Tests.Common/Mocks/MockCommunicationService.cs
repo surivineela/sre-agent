@@ -20,6 +20,13 @@ namespace Agent.Tests.Common.Mocks
 
         public List<string> Messages { get; } = new List<string>();
 
+        public Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval)
+        {
+            _logger?.LogInformation($"ThreadId: {threadId}, Approval id: {approval.Id}, Approval status: {approval.Status}");
+            Messages.Add(approval.Description);
+            return Task.FromResult(Guid.NewGuid());
+        }
+
         public Task<Guid> AppendAgentImageMessage(Guid threadId, string message)
         {
             throw new NotImplementedException();

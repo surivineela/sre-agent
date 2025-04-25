@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System;
 using System.Net;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -431,7 +432,22 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             foreach (var messageDoc in await iterator.ReadNextAsync())
             {
-                messages.Add(messageDoc.ToDomainModel());
+                var messageDocWithApproval = messageDoc;
+                // Replace the approval with the Approval doc in Cosmos
+                if (messageDoc.Approval != null)
+                {
+                    var approvalDoc = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<Approval>()
+                        .Where(a => a.Id == messageDoc.Approval.Id).FirstOrDefault();
+                    messageDocWithApproval = new MessageDocument(messageDoc.Id,
+                        messageDoc.ThreadId,
+                        messageDoc.TimeStamp,
+                        messageDoc.Author,
+                        messageDoc.Text,
+                        messageDoc.IsImageContent,
+                        messageDoc.Posted,
+                        approvalDoc);
+                }
+                messages.Add(messageDocWithApproval.ToDomainModel());
             }
         }
 
@@ -697,6 +713,44 @@ public class CosmosDbThreadRepository : IThreadRepository
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
+            throw;
+        }
+    }
+
+    public async Task<Action> GetLatestToolCallAction(Guid threadId, string toolName)
+    {
+        string threadIdStr = threadId.ToString();
+
+        try
+        {
+            var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
+                .Where(d => d.DocumentType == "Action" && d.ThreadId == threadIdStr)
+                .OrderByDescending(d => d.TimeStamp)
+                .Take(1);
+
+            using (var iterator = query.ToFeedIterator())
+            {
+                if (!iterator.HasMoreResults)
+                {
+                    return null;
+                }
+
+                var results = await iterator.ReadNextAsync();
+                if (results.Count == 0)
+                {
+                    return null;
+                }
+
+                return results.First().ToDomainModel();
+            }
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error retrieving action with tool call {ToolName} for thread {ThreadId}", toolName, threadId);
             throw;
         }
     }
@@ -1282,6 +1336,110 @@ public class CosmosDbThreadRepository : IThreadRepository
         ApprovalV2Document approvalV2Document = ApprovalV2Document.FromDomainModel(approvalV2);
         await _client.GetContainer<ApprovalV2Document>(_databaseName).UpsertItemAsync(approvalV2Document, new PartitionKey(approvalV2Document.PartitionKey));
         return approvalV2;
+    }
+
+    public async Task<Approval> CreateApprovalAsync(Approval approval)
+    {
+        // Ensure IDs are set
+        if (approval.Id == Guid.Empty)
+        {
+            approval = approval with { Id = Guid.NewGuid() };
+        }
+
+        if (string.IsNullOrEmpty(approval.ThreadId))
+        {
+            return null;
+        }
+
+        ApprovalDocument approvalDocument = ApprovalDocument.FromDomainModel(approval);
+        await _client.GetContainer<ApprovalDocument>(_databaseName).CreateItemAsync(approvalDocument, new PartitionKey(approvalDocument.PartitionKey));
+
+        return approval;
+    }
+
+    public async Task<Approval> GetApprovalAsync(Guid threadId, Guid approvalId)
+    {
+        try
+        {
+            string id = approvalId.ToString();
+            string partitionKey = threadId.ToString();
+
+            ApprovalDocument approvalDocument = await GetDocumentAsync<ApprovalDocument>(id, partitionKey);
+
+            return approvalDocument?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<Approval> GetApprovalAsync(Guid threadId, string title)
+    {
+        try
+        {
+            string partitionKey = threadId.ToString();
+
+            var query = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<ApprovalDocument>()
+                .Where(d => d.Title == title && d.ThreadId == partitionKey)
+                .OrderByDescending(d => d.CreatedTimestamp)
+                .Take(1);
+
+            using (var iterator = query.ToFeedIterator())
+            {
+                if (!iterator.HasMoreResults)
+                {
+                    return null;
+                }
+
+                var results = await iterator.ReadNextAsync();
+                if (results.Count == 0)
+                {
+                    return null;
+                }
+
+                return results.First().ToDomainModel();
+            }
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<Approval> UpdateApprovalAsync(Approval approval)
+    {
+        var approvalDocument = ApprovalDocument.FromDomainModel(approval);
+        await _client.GetContainer<ApprovalDocument>(_databaseName).UpsertItemAsync(approvalDocument, new PartitionKey(approvalDocument.PartitionKey));
+
+        return approval;
+    }
+
+    public async Task<IList<Approval>> GetApprovalsAsync(Guid threadId)
+    {
+        try
+        {
+            string partitionKey = threadId.ToString();
+
+            var query = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<ApprovalDocument>()
+                .Where(d => d.ThreadId == partitionKey && d.DocumentType == ApprovalDocument.DocumentTypeName);
+
+            var approvals = new List<Approval>();
+            using (var iterator = query.ToFeedIterator())
+            {
+                while(iterator.HasMoreResults)
+                {
+                    var results = await iterator.ReadNextAsync();
+                    approvals.AddRange(results.Select(d => d.ToDomainModel()));
+                }
+            }
+
+            return approvals;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
     }
     #endregion
 }

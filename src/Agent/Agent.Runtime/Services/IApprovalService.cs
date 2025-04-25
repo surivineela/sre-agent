@@ -8,7 +8,9 @@ namespace Agent.Runtime.Services
 {
     public interface IApprovalService
     {
-        Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid? threadId, string orchestrationId, string? oboToken = null);
+        Task<IList<Approval>> GetApprovals(Guid threadId);
+        Task<Approval> GetApproval(Guid threadId, string approvalId);
+        Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid threadId, string? oboToken = null);
     }
 }
 

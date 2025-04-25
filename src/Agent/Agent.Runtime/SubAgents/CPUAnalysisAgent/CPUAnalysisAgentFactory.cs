@@ -19,6 +19,7 @@ using Agent.Runtime.MetaAgent;
 using Agent.Core.Helpers;
 using Microsoft.SemanticKernel;
 using System.ComponentModel;
+using Agent.Core.Attributes;
 
 namespace Agent.Runtime.SubAgents.CPUAnalysisAgent;
 
@@ -52,7 +53,6 @@ public sealed class CPUAnalysisAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
 
         var githubPluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => githubPluginDefinition.CreateGithubIssue));

@@ -15,10 +15,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
     // [MENDATORY]
     public class HelloWorldAgentFactory : SimpleResourceSubAgentFactoryBase<HelloWorldAgent, HelloWorldAgentInput, HelloWorldAgentActivity, HelloWorldAgentActivityInput>
     {
-        private readonly IApprovalPlugin _approvalPlugin;
 
         public HelloWorldAgentFactory(
-            IApprovalPlugin approvalPlugin,
             lHelloWorldPlugin helloWorldPlugin,
             IThreadOrchestrationManager mappingManager,
             IToolsRepository toolsRepository,
@@ -26,7 +24,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
             )
             : base(toolsRepository, mappingManager, durableTaskClient)
         {
-            _approvalPlugin = approvalPlugin;
         }
 
         protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
@@ -37,9 +34,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
             yield return () => controlFlowPluginDefinition.MarkPlanComplete;
             yield return () => controlFlowPluginDefinition.NotifyUser;
             yield return () => controlFlowPluginDefinition.AskUserForInput;
-
-            var approvalPluginDefinition = new ApprovalPluginDefinition(_approvalPlugin);
-            yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

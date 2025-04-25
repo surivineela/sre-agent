@@ -12,12 +12,10 @@ namespace Agent.Runtime.SubAgents.EventHubAgent
 {
     public class EventHubAgentFactory : SimpleResourceSubAgentFactoryBase<EventHubAgent, EventHubAgentInput, EventHubAgentActivity, EventHubAgentActivityInput>
     {
-        private readonly IApprovalPlugin approvalPlugin;
         private readonly IRemediationPlugin remediationPlugin;
         private readonly IRecordActionsPlugin recordActionsPlugin;
 
         public EventHubAgentFactory(
-            IApprovalPlugin approvalPlugin,
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
@@ -26,7 +24,6 @@ namespace Agent.Runtime.SubAgents.EventHubAgent
             )
             : base(toolsRepository, mappingManager, durableTaskClient)
         {
-            this.approvalPlugin = approvalPlugin;
             this.remediationPlugin = remediationPlugin;
             this.recordActionsPlugin = recordActionsPlugin;
         }
@@ -45,9 +42,6 @@ namespace Agent.Runtime.SubAgents.EventHubAgent
             yield return () => controlFlowPluginDefinition.MarkPlanComplete;
             yield return () => controlFlowPluginDefinition.NotifyUser;
             yield return () => controlFlowPluginDefinition.AskUserForInput;
-
-            var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-            yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

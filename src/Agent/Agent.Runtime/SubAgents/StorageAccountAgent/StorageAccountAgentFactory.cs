@@ -17,12 +17,10 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
 {
     public class StorageAccountAgentFactory : SimpleResourceSubAgentFactoryBase<StorageAccountAgent, StorageAccountAgentInput, StorageAccountAgentActivity, StorageAccountAgentActivityInput>
     {
-        private readonly IApprovalPlugin approvalPlugin;
         private readonly IRemediationPlugin remediationPlugin;
         private readonly IRecordActionsPlugin recordActionsPlugin;
 
         public StorageAccountAgentFactory(
-            IApprovalPlugin approvalPlugin,
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
@@ -31,7 +29,6 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
             )
             : base(toolsRepository, mappingManager, durableTaskClient)
         {
-            this.approvalPlugin = approvalPlugin;
             this.remediationPlugin = remediationPlugin;
             this.recordActionsPlugin = recordActionsPlugin;
         }
@@ -52,9 +49,6 @@ namespace Agent.Runtime.SubAgents.StorageAccountAgent
             yield return () => controlFlowPluginDefinition.MarkPlanComplete;
             yield return () => controlFlowPluginDefinition.NotifyUser;
             yield return () => controlFlowPluginDefinition.AskUserForInput;
-
-            var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-            yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

@@ -24,7 +24,6 @@ public sealed class DailyReportSummaryAgentFactory
     public DailyReportSummaryAgentFactory(
         IMetricsPlugin metricsPlugin,
         IGrafanaPlugin grafanaPlugin,
-        IApprovalPlugin approvalPlugin,
         IRecordActionsPlugin recordActionsPlugin,
         IGraphDBPlugin graphDBPlugin,
         IToolsRepository toolsRepository,
@@ -54,10 +53,6 @@ public sealed class DailyReportSummaryAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        // Approval plugin for user interactions
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

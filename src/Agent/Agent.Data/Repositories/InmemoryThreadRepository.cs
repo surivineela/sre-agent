@@ -24,7 +24,8 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<(Guid ThreadId, Guid ActionId), Action> _actions = new();
         private readonly Dictionary<(Guid ThreadId, Guid AgentContextId), AgentContext> _agentContexts = new();
         private readonly Dictionary<(Guid AgentContextId, Guid ReasoningMessageId), ReasoningMessage> _reasoningMessages = new();
-        private readonly Dictionary<(Guid AgentContextId, Guid ApprovalV2Id), ApprovalV2> _approvals = new();
+        private readonly Dictionary<(Guid ThreadId, Guid ApprovalId), Approval> _approvals = new();
+        private readonly Dictionary<(Guid AgentContextId, Guid ApprovalV2Id), ApprovalV2> _approvalv2s = new();
         private readonly Dictionary<Guid, AgentChatHistory> _agentChatHistories = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
         private readonly ILogger<InmemoryThreadRepository> _logger;
@@ -504,25 +505,67 @@ namespace Agent.Data.Repositories
         #region ApprovalV2 Operations
         public Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId)
         {
-            _approvals.TryGetValue((agentContextId, approvalIdV2), out var approvalV2);
+            _approvalv2s.TryGetValue((agentContextId, approvalIdV2), out var approvalV2);
             return Task.FromResult(approvalV2);
         }
 
         public Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync()
         {
-            return Task.FromResult(_approvals.Values.AsEnumerable());
+            return Task.FromResult(_approvalv2s.Values.AsEnumerable());
         }
 
         public Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2)
         {
-            _approvals[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
+            _approvalv2s[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
             return Task.FromResult(approvalV2);
         }
 
         public Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2)
         {
-            _approvals[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
+            _approvalv2s[(approvalV2.AgentContextId, approvalV2.Id)] = approvalV2;
             return Task.FromResult(approvalV2);
+        }
+
+        public Task<Approval> CreateApprovalAsync(Approval approval)
+        {
+            _approvals[(Guid.Parse(approval.ThreadId), approval.Id)] = approval;
+            return Task.FromResult(approval);
+        }
+
+        public Task<Approval> GetApprovalAsync(Guid threadId, Guid approvalId)
+        {
+            return Task.FromResult(_approvals.TryGetValue((threadId, approvalId), out var approval) ? approval : null);
+        }
+
+        public Task<Approval> GetApprovalAsync(Guid threadId, string title)
+        {
+            var approval = _approvals.Values.FirstOrDefault(a => a.ThreadId == threadId.ToString() && a.Title == title, null);
+            return Task.FromResult(approval);
+        }
+
+        public Task<Approval> UpdateApprovalAsync(Approval approval)
+        {
+            _approvals[(Guid.Parse(approval.ThreadId), approval.Id)] = approval;
+            return Task.FromResult(approval);
+        }
+
+        public Task<IList<Approval>> GetApprovalsAsync(Guid threadId)
+        {
+            var approvals = _approvals
+                .Where(kvp => kvp.Key.ThreadId == threadId)
+                .Select(kvp => kvp.Value)
+                .ToList();
+            return Task.FromResult((IList<Approval>)approvals);
+        }
+
+        public Task<Action> GetLatestToolCallAction(Guid threadId, string toolName)
+        {
+            var action = _actions
+                .Where(kvp => kvp.Key.ThreadId == threadId && kvp.Value.ToolName == toolName)
+                .Select(kvp => kvp.Value)
+                .OrderByDescending(a => a.TimeStamp)
+                .FirstOrDefault();
+            return Task.FromResult(action);
         }
         #endregion
     }

@@ -11,13 +11,11 @@ namespace Agent.Plugins.Mocks
     public class MockRemediationPlugin : IRemediationPlugin
     {
         private readonly TimeProvider _timeProvider;
-        private readonly MockApprovalPlugin _approvalPlugin;
         private readonly MockArmPlugin _armPlugin;
 
-        public MockRemediationPlugin(TimeProvider timeProvider, IApprovalPlugin approvalPlugin, IArmPlugin armPlugin)
+        public MockRemediationPlugin(TimeProvider timeProvider, IArmPlugin armPlugin)
         {
             _timeProvider = timeProvider;
-            _approvalPlugin = (MockApprovalPlugin)approvalPlugin;
             _armPlugin = (MockArmPlugin)armPlugin;
         }
 

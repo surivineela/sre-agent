@@ -17,12 +17,10 @@ namespace Agent.Runtime.SubAgents.AzureSqlServerAgent
 {
     public class AzureSqlServerAgentFactory : SimpleResourceSubAgentFactoryBase<AzureSqlServerAgent, AzureSqlServerAgentInput, AzureSqlServerActivity, AzureSqlServerAgentActivityInput>
     {
-        private readonly IApprovalPlugin approvalPlugin;
         private readonly IRemediationPlugin remediationPlugin;
         private readonly IRecordActionsPlugin recordActionsPlugin;
 
         public AzureSqlServerAgentFactory(
-            IApprovalPlugin approvalPlugin,
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
@@ -31,7 +29,6 @@ namespace Agent.Runtime.SubAgents.AzureSqlServerAgent
             )
             : base(toolsRepository, mappingManager, durableTaskClient)
         {
-            this.approvalPlugin = approvalPlugin;
             this.remediationPlugin = remediationPlugin;
             this.recordActionsPlugin = recordActionsPlugin;
         }
@@ -50,9 +47,6 @@ namespace Agent.Runtime.SubAgents.AzureSqlServerAgent
             yield return () => controlFlowPluginDefinition.MarkPlanComplete;
             yield return () => controlFlowPluginDefinition.NotifyUser;
             yield return () => controlFlowPluginDefinition.AskUserForInput;
-
-            var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-            yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

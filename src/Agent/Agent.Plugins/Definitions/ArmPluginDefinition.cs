@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Plugins.Models;
 
@@ -33,6 +34,7 @@ namespace Agent.Plugins
             return await _armPlugin.CheckIfResourceExists(appResourceId);
         }
 
+        [RequiresApproval]
         [Description("Sets the minimum TLS version on a site resource")]
         public async Task<string> SetMinimumTlsVersion(
             [Description("The resource ID of the app.")]

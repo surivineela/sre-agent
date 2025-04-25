@@ -7,6 +7,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
@@ -45,7 +46,6 @@ namespace Agent.Tests.Integration
         private TlsBestPracticeAgentFactory _agentFactory;
         private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
 
-        private MockApprovalPlugin _mockApprovalPlugin;
         private MockRecordActionsPlugin _mockRecordActionsPlugin;
         private MockArmPlugin _mockArmPlugin;
         private MockMetricsPlugin _mockMetricsPlugin;
@@ -54,6 +54,7 @@ namespace Agent.Tests.Integration
         private MockMIConfigurationCheckPlugin _mockMIConfigurationCheckPlugin;
         private MockAppIdentityUpdatePlugin _mockAppIdentityUpdatePlugin;
         private MockCommunicationService _mockCommunicationService;
+        private IThreadRepository _mockThreadRepository;
 
         private List<TlsStatus> _testApps = new List<TlsStatus>
         {
@@ -104,7 +105,6 @@ namespace Agent.Tests.Integration
                 .UseDistributedCache(diskCache)
                 .UseFunctionInvocation();
 
-            _mockApprovalPlugin = new MockApprovalPlugin();
             _mockArmPlugin = new MockArmPlugin(_timeProvider);
             _mockArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
             _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
@@ -113,7 +113,6 @@ namespace Agent.Tests.Integration
             _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
 
             services.AddSingleton<TimeProvider>(_timeProvider);
-            services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
             services.AddSingleton<IRecordActionsPlugin>(_mockRecordActionsPlugin);
             services.AddSingleton<IArmPlugin>(_mockArmPlugin);
             services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
@@ -124,10 +123,10 @@ namespace Agent.Tests.Integration
             services.AddSingleton<ArmPluginDefinition>();
             services.AddSingleton<RecordActionsPluginDefinition>();
             services.AddSingleton<ControlFlowPluginDefinition>();
-            services.AddSingleton<ApprovalPluginDefinition>();
 
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
             services.AddSingleton<IToolsRepository, ToolsRepository>();
+            services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
 
             services.AddSingleton<TlsBestPracticeAgentFactory>();
 
@@ -146,12 +145,11 @@ namespace Agent.Tests.Integration
                 durableBuilder.UseDurableTaskScheduler(durableConnectionString);
             });
 
-            var sp = services.BuildServiceProvider();
-
             _host = builder.Build();
 
-            _durableTaskClient = sp.GetRequiredService<DurableTaskClient>();
-            _agentFactory = sp.GetRequiredService<TlsBestPracticeAgentFactory>();
+            _durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
+            _agentFactory = _host.Services.GetRequiredService<TlsBestPracticeAgentFactory>();
+            _mockThreadRepository = _host.Services.GetRequiredService<IThreadRepository>();
         }
 
         public async Task DisposeAsync()
@@ -180,11 +178,12 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
+                var threadId = Guid.NewGuid();
+                instanceID = await _agentFactory.StartOrchestration(input, threadId);
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    threadId,
                     tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
@@ -228,11 +227,12 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
+                var threadId = Guid.NewGuid();
+                instanceID = await _agentFactory.StartOrchestration(input, threadId);
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    threadId,
                     tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
@@ -277,7 +277,8 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
+                var threadId = Guid.NewGuid();
+                instanceID = await _agentFactory.StartOrchestration(input, threadId);
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 (
@@ -287,8 +288,8 @@ namespace Agent.Tests.Integration
 
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    threadId,
                     tokenSource.Token);
 
                 var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
@@ -332,7 +333,8 @@ namespace Agent.Tests.Integration
 
             try
             {
-                instanceID = await _agentFactory.StartOrchestration(input, Guid.NewGuid());
+                var threadId = Guid.NewGuid();
+                instanceID = await _agentFactory.StartOrchestration(input, threadId);
 
                 await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
                 (
@@ -342,8 +344,8 @@ namespace Agent.Tests.Integration
 
                 await Helper.DoApproval(
                     _durableTaskClient,
-                    _timeProvider,
-                    instanceID,
+                    _mockThreadRepository,
+                    threadId,
                     tokenSource.Token);
 
                 OrchestrationMetadata? orchestrationMetadata = null;

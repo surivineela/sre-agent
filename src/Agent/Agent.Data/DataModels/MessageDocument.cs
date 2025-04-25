@@ -14,7 +14,8 @@ public record MessageDocument(
     Author Author,
     string Text,
     bool IsImageContent = false,
-    Posted? Posted = null
+    Posted? Posted = null,
+    Approval? Approval = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -30,16 +31,18 @@ public record MessageDocument(
             new Author(message.Author.Role, message.Author.UserId, message.Author.DisplayName),
             message.Text,
             message.IsImageContent,
-            message.Posted
+            message.Posted,
+            Approval: message.Approval ?? null
         );
 
-    public Message ToDomainModel() =>
+    public Message ToDomainModel(Approval? approval = null) =>
         new Message(
             Guid.Parse(Id),
             TimeStamp,
             Author,
             Text,
             IsImageContent,
-            Posted
+            Posted,
+            Approval
         );
 }

@@ -10,7 +10,8 @@ public record Message(
     Author Author,
     string Text,
     bool IsImageContent = false,
-    Posted? Posted = null
+    Posted? Posted = null,
+    Approval? Approval = null
 );
 
 public record Posted(

@@ -1,6 +1,8 @@
+using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Mocks;
+using Agent.Data.Repositories;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
@@ -11,6 +13,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.AI.Evaluation;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace Agent.Evals;
 
@@ -29,6 +32,7 @@ public class TlsBestPracticesEvals
     private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
     private DurableTaskClient _durableTaskClient;
     private TlsBestPracticeAgentFactory _agentFactory;
+    private IThreadRepository _threadRepository;
 
     private List<TlsStatus> _testApps = new List<TlsStatus>
     {
@@ -55,12 +59,12 @@ public class TlsBestPracticesEvals
         services.AddSingleton<IToolsRepository, ToolsRepository>();
         services.AddSingleton<TlsBestPracticeAgentFactory>();
 
-        var sp = services.BuildServiceProvider();
-        _durableTaskClient = sp.GetRequiredService<DurableTaskClient>();
-        _agentFactory = sp.GetRequiredService<TlsBestPracticeAgentFactory>();
         _host = builder.Build();
 
         IChatClient client = _host.Services.GetRequiredService<IChatClient>();
+        _durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
+        _agentFactory = _host.Services.GetRequiredService<TlsBestPracticeAgentFactory>();
+        _threadRepository = _host.Services.GetRequiredService<IThreadRepository>();
         IEvaluationTokenCounter? tokenCounter = null;
         _chatConfiguration = new ChatConfiguration(client, tokenCounter);
 
@@ -131,12 +135,13 @@ public class TlsBestPracticesEvals
 
         try
         {
-            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+            var threadId = Guid.NewGuid();
+            instanceID = await _agentFactory.StartOrchestration(agentInput, threadId);
 
             await ApprovalTestHelper.DoApproval(
-                _durableTaskClient,
-                _mocks.TimeProvider,
-                instanceID,
+                durableTaskClient: _durableTaskClient,
+                threadRepository: _threadRepository,
+                threadId,
                 logger: null, 
                 tokenSource.Token);
 
@@ -228,7 +233,8 @@ public class TlsBestPracticesEvals
 
         try
         {
-            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+            var threadId = Guid.NewGuid();
+            instanceID = await _agentFactory.StartOrchestration(agentInput, threadId);
 
             await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
             (
@@ -237,9 +243,9 @@ public class TlsBestPracticesEvals
             ));
 
             await ApprovalTestHelper.DoApproval(
-                _durableTaskClient,
-                _mocks.TimeProvider,
-                instanceID,
+                durableTaskClient: _durableTaskClient,
+                threadRepository: _threadRepository,
+                threadId,
                 logger: null,
                 tokenSource.Token);
 
@@ -331,7 +337,8 @@ public class TlsBestPracticesEvals
 
         try
         {
-            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+            var threadId = Guid.NewGuid();
+            instanceID = await _agentFactory.StartOrchestration(agentInput, threadId);
 
             await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
             (
@@ -340,9 +347,9 @@ public class TlsBestPracticesEvals
             ));
 
             await ApprovalTestHelper.DoApproval(
-                _durableTaskClient,
-                _mocks.TimeProvider,
-                instanceID,
+                durableTaskClient: _durableTaskClient,
+                threadRepository: _threadRepository,
+                threadId,
                 logger: null,
                 tokenSource.Token);
 
@@ -434,7 +441,8 @@ public class TlsBestPracticesEvals
 
         try
         {
-            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+            var threadId = Guid.NewGuid();
+            instanceID = await _agentFactory.StartOrchestration(agentInput, threadId);
 
             await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
             (
@@ -443,9 +451,9 @@ public class TlsBestPracticesEvals
             ));
 
             await ApprovalTestHelper.DoApproval(
-                _durableTaskClient,
-                _mocks.TimeProvider,
-                instanceID,
+                durableTaskClient: _durableTaskClient,
+                threadRepository: _threadRepository,
+                threadId,
                 logger: null,
                 tokenSource.Token);
 

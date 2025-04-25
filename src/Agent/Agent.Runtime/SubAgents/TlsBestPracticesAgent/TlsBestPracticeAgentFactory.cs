@@ -33,7 +33,6 @@ public sealed class TlsBestPracticeAgentFactory
         _toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
         _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
         _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
-        _toolsRegistry.RegisterPlugin<ApprovalPluginDefinition>();
 
         _durableTaskClient = durableTaskClient;
         _mappingManager = mappingManager;

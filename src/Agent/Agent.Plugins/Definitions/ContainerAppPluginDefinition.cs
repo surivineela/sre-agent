@@ -61,6 +61,7 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.ListContainerAppsAsync(subscriptionId);
         }
 
+        [RequiresApproval]
         [KernelFunction("restart_containerapp_revision")]
         [Description("Restarts a container app. Use this to restart a container app to resolve transient issues that may be fixed by restarting the instance.")]
         public async Task<string> RestartContainerApp(
@@ -125,6 +126,7 @@ namespace Agent.Plugins.Definitions
 
         #endregion
 
+        [RequiresApproval]
         [KernelFunction("scale_container_app")]
         [Description(
             "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]

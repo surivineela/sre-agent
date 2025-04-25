@@ -74,6 +74,23 @@ export interface Message {
     timeStamp: string;
     author: MessageAuthor;
     text: string;
+    approval?: Approval;
+}
+
+export enum ApprovalDecision {
+    Pending = 'Pending',
+    Approved = 'Approved',
+    Rejected = 'Rejected',
+}
+
+export interface Approval {
+    id: string;
+    title: string;
+    description: string;
+    status: ApprovalDecision;
+    createdTimestamp: string;
+    decisionTimestamp?: string;
+    decisionUser?: MessageAuthor;
 }
 
 export interface MessageAuthor {

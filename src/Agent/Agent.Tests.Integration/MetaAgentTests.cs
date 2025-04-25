@@ -33,6 +33,9 @@ using Newtonsoft.Json;
 using OpenAI.Chat;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using Agent.Runtime.Communication;
+using Agent.Data.Repositories;
+using Agent.Core.Interfaces;
 
 namespace Agent.Tests.Integration;
 
@@ -81,7 +84,6 @@ public class MetaAgentTests : IAsyncLifetime
 
                 // -- test specific
                 var timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
-                var mockApprovalPlugin = new MockApprovalPlugin();
                 var mockArmPlugin = new MockArmPlugin(timeProvider);
                 // mockArmPlugin.ConfigureTlsStatus(testApps.ToDictionary(x => x.ResourceId));
                 var mockMetricsPlugin = new MockMetricsPlugin(timeProvider);
@@ -90,7 +92,6 @@ public class MetaAgentTests : IAsyncLifetime
                 var mockMIConfigurationCheckPlugin = new MockMIConfigurationCheckPlugin();
                 var mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(mockMIConfigurationCheckPlugin);
 
-                services.AddSingleton<IApprovalPlugin>(mockApprovalPlugin);
                 services.AddSingleton<IArmPlugin>(mockArmPlugin);
                 services.AddSingleton<IMetricsPlugin>(mockMetricsPlugin);
                 services.AddSingleton<IGithubWorkflowTriggerPlugin>(mockGithubPlugin);
@@ -109,6 +110,7 @@ public class MetaAgentTests : IAsyncLifetime
                 services.AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>();
                 services.AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>();
                 services.AddSingleton<TimeProvider>(timeProvider);
+                services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
 
                 services.AddDurableTaskWorker(builder =>
                 {
@@ -157,7 +159,7 @@ public class MetaAgentTests : IAsyncLifetime
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
-        var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
+        var threadRepository = _host.Services.GetRequiredService<IThreadRepository>();
         var resp = await metaAgent.ProcessUserMessageAsync(agentContext, agentChatHistory);
 
         var tlsOrche = (await durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
@@ -171,8 +173,8 @@ public class MetaAgentTests : IAsyncLifetime
 
         await Helper.DoApproval(
             durableTaskClient,
-            timeProvider,
-            tlsOrche.InstanceId,
+            threadRepository,
+            Guid.Parse(threadId),
             cancellationToken: default);
 
         var orchestrationMetadata = await durableTaskClient.WaitForInstanceCompletionAsync(
@@ -194,7 +196,7 @@ public class MetaAgentTests : IAsyncLifetime
 
         var metaAgent = _host.Services.GetRequiredService<MetaAgent>();
         var durableTaskClient = _host.Services.GetRequiredService<DurableTaskClient>();
-        var timeProvider = _host.Services.GetRequiredService<TimeProvider>();
+        var threadRepository = _host.Services.GetRequiredService<IThreadRepository>();
 
         var resp = await metaAgent.ProcessUserMessageAsync(agentContext, agentChatHistory);
 
@@ -208,8 +210,8 @@ public class MetaAgentTests : IAsyncLifetime
 
         await Helper.DoApproval(
             durableTaskClient,
-            timeProvider,
-            relOrche.InstanceId,
+            threadRepository,
+            threadId,
             cancellationToken: default);
 
         var orchestrationMetadata = await durableTaskClient.WaitForInstanceCompletionAsync(

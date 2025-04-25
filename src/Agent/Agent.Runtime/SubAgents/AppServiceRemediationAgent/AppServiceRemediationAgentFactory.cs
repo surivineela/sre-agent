@@ -25,7 +25,6 @@ public sealed class AppServiceRemediationAgentFactory
 
     public AppServiceRemediationAgentFactory(
         IMetricsPlugin metricsPlugin,
-        IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
         IRemediationPlugin remediationPlugin,
         IRecordActionsPlugin recordActionsPlugin,
@@ -69,9 +68,6 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

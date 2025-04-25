@@ -26,7 +26,6 @@ public sealed class ManagedIdentityMigrationAgentFactory
     public ManagedIdentityMigrationAgentFactory(
         IMetricsPlugin metricsPlugin,
         IArmPlugin armPlugin,
-        IApprovalPlugin approvalPlugin,
         ITimePlugin timePlugin,
         IMIConfigurationCheckPlugin miMigrationPlugin,
         IAppIdentityUpdatePlugin appIdentityUpdatePlugin,
@@ -63,9 +62,6 @@ public sealed class ManagedIdentityMigrationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
-
-        var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => approvalPluginDefinition.StartApprovalFlow));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

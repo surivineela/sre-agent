@@ -71,7 +71,6 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<RemediationPluginDefinition>();
         RegisterPlugin<AppIdentityUpdatePluginDefinition>();
         RegisterPlugin<ControlFlowPluginDefinition>();
-        RegisterPlugin<ApprovalPluginDefinition>();
         RegisterPlugin<NSGRulePluginDefinition>();
         RegisterPlugin<ContainerAppPluginDefinition>();
         RegisterPlugin<ReliabilityPluginDefinition>();

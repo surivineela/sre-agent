@@ -8,9 +8,10 @@ import { SquareDismissRegular } from '@fluentui/react-icons';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
+import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { Activities } from '../../Strings/SREResources.resjson';
 import { IChatMessageProps } from '../Contracts/Activities';
-import { sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
+import { sendApprovalDecision, sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 
 // Helper function to parse and render markdown with images
@@ -55,6 +56,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     const [showFeedbackPopup, setShowFeedbackPopup] = useState(false); // State to control popup visibility
     const [feedbackText, setFeedbackText] = useState(''); // State to store feedback text
     const [isPositiveFeedback, setIsPositiveFeedback] = useState<boolean | null>(null); // State to store thumbs-up/down info
+    const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
 
     const feedbackDialogTitle = intl.formatMessage({
         defaultMessage: 'Thank you for your feedback!',
@@ -62,6 +64,11 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     });
 
     const messageContent = useMemo(() => {
+        // Make sure we have a text property and it's not empty
+        if (!message.text) {
+            console.log('Message has no text content:', message);
+            return 'No message content to display';
+        }
         const content = renderMarkdownWithImages(message.text);
         return Array.isArray(content) ? content : message.text;
     }, [message.text]);
@@ -70,7 +77,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         const messageProps: CopilotMessageProps = {
             avatar: (
                 <svg width="28" height="28" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <g clip-path="url(#clip0_2107_205494)">
+                    <g clipPath="url(#clip0_2107_205494)">
                         <path
                             d="M44.8924 13.5312L36.2324 17.8659L25.7814 12.6462C24.6554 12.0839 23.3294 12.0839 22.2034 12.6462L11.7724 17.8559L3.10244 13.5312C2.36244 13.1616 2.00244 12.4525 2.00244 11.7433C2.00244 11.0342 2.36244 10.335 3.10244 9.96546L11.7624 5.6307L22.1924 0.426984C23.3224 -0.142328 24.6624 -0.142328 25.8024 0.426984L36.2324 5.64068L44.8924 9.96546C46.3624 10.7046 46.3624 12.802 44.8924 13.5312Z"
                             fill="url(#paint0_linear_2107_205494)"
@@ -105,10 +112,10 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             y2="11.4337"
                             gradientUnits="userSpaceOnUse"
                         >
-                            <stop stop-color="#26CFE8" />
-                            <stop offset="0.315306" stop-color="#0094F0" />
-                            <stop offset="0.612264" stop-color="#2764E7" />
-                            <stop offset="0.862742" stop-color="#163697" />
+                            <stop stopColor="#26CFE8" />
+                            <stop offset="0.315306" stopColor="#0094F0" />
+                            <stop offset="0.612264" stopColor="#2764E7" />
+                            <stop offset="0.862742" stopColor="#163697" />
                         </linearGradient>
                         <linearGradient
                             id="paint1_linear_2107_205494"
@@ -118,10 +125,10 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             y2="26.407"
                             gradientUnits="userSpaceOnUse"
                         >
-                            <stop offset="0.185812" stop-color="#EA71EF" />
-                            <stop offset="0.507099" stop-color="#8B52F4" />
-                            <stop offset="0.796793" stop-color="#5B2AB5" />
-                            <stop offset="1" stop-color="#30116E" />
+                            <stop offset="0.185812" stopColor="#EA71EF" />
+                            <stop offset="0.507099" stopColor="#8B52F4" />
+                            <stop offset="0.796793" stopColor="#5B2AB5" />
+                            <stop offset="1" stopColor="#30116E" />
                         </linearGradient>
                         <radialGradient
                             id="paint2_radial_2107_205494"
@@ -131,8 +138,8 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             gradientUnits="userSpaceOnUse"
                             gradientTransform="translate(25.0025 31.9088) rotate(-90) scale(7.99034 14.8369)"
                         >
-                            <stop stop-color="#312A9A" />
-                            <stop offset="1" stop-color="#312A9A" stop-opacity="0" />
+                            <stop stopColor="#312A9A" />
+                            <stop offset="1" stopColor="#312A9A" stopOpacity="0" />
                         </radialGradient>
                         <linearGradient
                             id="paint3_linear_2107_205494"
@@ -142,9 +149,9 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             y2="31.94"
                             gradientUnits="userSpaceOnUse"
                         >
-                            <stop stop-color="#6FE8F5" />
-                            <stop offset="0.468701" stop-color="#29C3FF" />
-                            <stop offset="1" stop-color="#0094F0" />
+                            <stop stopColor="#6FE8F5" />
+                            <stop offset="0.468701" stopColor="#29C3FF" />
+                            <stop offset="1" stopColor="#0094F0" />
                         </linearGradient>
                         <linearGradient
                             id="paint4_linear_2107_205494"
@@ -154,9 +161,9 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             y2="20.9219"
                             gradientUnits="userSpaceOnUse"
                         >
-                            <stop stop-color="#3D35B1" />
-                            <stop offset="0.452813" stop-color="#8B52F4" />
-                            <stop offset="0.895822" stop-color="#F08AF4" />
+                            <stop stopColor="#3D35B1" />
+                            <stop offset="0.452813" stopColor="#8B52F4" />
+                            <stop offset="0.895822" stopColor="#F08AF4" />
                         </linearGradient>
                         <linearGradient
                             id="paint5_linear_2107_205494"
@@ -166,8 +173,8 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             y2="16.9179"
                             gradientUnits="userSpaceOnUse"
                         >
-                            <stop offset="0.0276412" stop-color="#5B2AB5" />
-                            <stop offset="0.808566" stop-color="#8B52F4" stop-opacity="0" />
+                            <stop offset="0.0276412" stopColor="#5B2AB5" />
+                            <stop offset="0.808566" stopColor="#8B52F4" stopOpacity="0" />
                         </linearGradient>
                         <clipPath id="clip0_2107_205494">
                             <rect width="48" height="48" fill="white" />
@@ -215,7 +222,6 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         if (!Array.isArray(messageContent)) {
             return <ReactMarkdown components={{ a: aLinkRenderer }}>{messageContent}</ReactMarkdown>;
         }
-
         return (
             <>
                 {messageContent.map((part, index) => {
@@ -239,6 +245,133 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         );
     };
 
+    const handleApprovalDecision = async (approved: boolean) => {
+        try {
+            if (message.approval) {
+                await sendApprovalDecision(threadId, message.approval.id, approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected);
+                console.log(`Approval decision sent for message ID: ${message.id}, approved: ${approved}`);
+
+                // Update the UI to reflect the decision
+                setApprovalStatus(approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected);
+            }
+        } catch (error) {
+            console.error(`Failed to send approval decision for message ID: ${message.id}`, error);
+        }
+    };
+
+    const renderApprovalContent = () => {
+        if (!message.approval) return null;
+
+        // Use the local state for status to ensure UI updates immediately after user action
+        const status = approvalStatus || message.approval.status;
+        const { title, description } = message.approval;
+
+        // Log approval information to help with debugging
+        console.log('Rendering approval with status:', status, 'and title:', title);
+
+        if (status === ApprovalDecision.Pending) {
+            return (
+                <div
+                    style={{
+                        border: '1px solid #ececec',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        marginTop: '16px',
+                        backgroundColor: '#f9f9f9',
+                    }}
+                >
+                    <h4 style={{ margin: '0 0 16px 0' }}>{description}</h4>
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                            style={{
+                                backgroundColor: '#0078D4',
+                                color: 'white',
+                                border: 'none',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                            }}
+                            onClick={() => handleApprovalDecision(true)}
+                        >
+                            Approve
+                        </button>
+                        <button
+                            style={{
+                                backgroundColor: '#ffffff',
+                                color: '#333',
+                                border: '1px solid #ccc',
+                                padding: '8px 16px',
+                                borderRadius: '4px',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                            }}
+                            onClick={() => handleApprovalDecision(false)}
+                        >
+                            Deny
+                        </button>
+                    </div>
+                    <p
+                        style={{
+                            fontSize: '11px',
+                            color: '#666',
+                            marginTop: '16px',
+                            marginBottom: '0',
+                        }}
+                    >
+                        Approving this operation will be executed on your behalf using your credentials
+                    </p>
+                </div>
+            );
+        } else {
+            // For Approved or Denied status
+            const statusColor = status === ApprovalDecision.Approved ? '#107C10' : '#A4262C';
+            const statusText = status === ApprovalDecision.Approved ? 'Approved' : 'Denied';
+
+            return (
+                <div
+                    style={{
+                        border: '1px solid #ececec',
+                        borderRadius: '8px',
+                        padding: '16px',
+                        marginTop: '16px',
+                        backgroundColor: '#f9f9f9',
+                    }}
+                >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                        <h4 style={{ margin: '0', fontWeight: '600', maxWidth: '75%' }}>{description}</h4>
+                        <span
+                            style={{
+                                color: statusColor,
+                                fontWeight: 'bold',
+                                padding: '4px 12px',
+                                borderRadius: '4px',
+                                backgroundColor: `${statusColor}15`,
+                                display: 'inline-block',
+                            }}
+                        >
+                            {statusText}
+                        </span>
+                    </div>
+                    <p style={{ margin: '0 0 16px 0' }}>Requested at: {message.approval.createdTimestamp}</p>
+
+                    {message.approval.decisionUser && (
+                        <div style={{ fontSize: '14px', color: '#666' }}>
+                            <p style={{ margin: '4px 0' }}>
+                                <strong>{statusText} by:</strong> {message.approval.decisionUser.displayName}
+                            </p>
+                            {message.approval.decisionTimestamp && (
+                                <p style={{ margin: '4px 0' }}>
+                                    <strong>Date:</strong> {new Date(message.approval.decisionTimestamp).toLocaleString()}
+                                </p>
+                            )}
+                        </div>
+                    )}
+                </div>
+            );
+        }
+    };
+
     switch (message.author.role) {
         case 'SREAgent':
             return (
@@ -249,7 +382,14 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                         style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
                         className={ChatBoxStyles.agentMessage}
                     >
-                        {renderContent()}
+                        {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
+                        {message.approval ? (
+                            <>{renderApprovalContent()}</>
+                        ) : (
+                            /* For regular messages, just render the content */
+                            renderContent()
+                        )}
+
                         {!isTyping && ( // Only show buttons when the agent is not typing
                             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
                                 <button

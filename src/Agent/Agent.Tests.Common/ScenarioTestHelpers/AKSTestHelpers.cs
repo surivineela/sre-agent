@@ -12,7 +12,6 @@ public static class AKSTestHelpers
         services.AddSingleton<ArmPluginDefinition>();
         services.AddSingleton<RecordActionsPluginDefinition>();
         services.AddSingleton<ControlFlowPluginDefinition>();
-        services.AddSingleton<ApprovalPluginDefinition>();
         services.AddSingleton<ChartPluginDefinition>();
         services.AddSingleton<GraphDBPluginDefinition>();
         services.AddSingleton<TimePluginDefinition>();
@@ -25,8 +24,6 @@ public static class AKSTestHelpers
                 .AddSingleton(sp => new Mock<IRemediationPlugin>().Object)
                 .AddSingleton<AppIdentityUpdatePluginDefinition>()
                 .AddSingleton(sp => new Mock<IAppIdentityUpdatePlugin>().Object)
-                .AddSingleton<ApprovalPluginDefinition>()
-                .AddSingleton(sp => new Mock<IApprovalPlugin>().Object)
                 .AddSingleton<ContainerAppPluginDefinition>()
                 .AddSingleton(sp => new Mock<IContainerAppPlugin>().Object)
                 .AddSingleton<ReliabilityPluginDefinition>()

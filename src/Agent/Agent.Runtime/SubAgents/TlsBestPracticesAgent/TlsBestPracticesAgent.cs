@@ -68,7 +68,6 @@ namespace Agent.Runtime.SubAgents.TlsBestPractices
             }
 
             introMessage.AppendLine();
-            introMessage.AppendLine("Would you like me to proceed as planned above? I can trigger an approval flow.");
 
             var newMessage = new ChatMessage(ChatRole.Assistant, introMessage.ToString());
 

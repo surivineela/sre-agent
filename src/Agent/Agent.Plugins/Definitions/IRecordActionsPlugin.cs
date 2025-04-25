@@ -19,7 +19,7 @@ namespace Agent.Plugins.Definitions
         /// <param name="title">Title describing the action being recorded</param>
         /// <param name="status">Current status of the action</param>
         /// <returns>The recorded action</returns>
-        Task<Action> RecordAction(Guid threadId, string title, ActionStatus status = ActionStatus.Pending);
+        Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending);
 
         /// <summary>
         /// Gets details about a specific action

@@ -53,6 +53,17 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         return await _sinkService.SinkAgentMessageAsync(threadId, message, true);
     }
 
+    public async Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval)
+    {
+        if (threadId == Guid.Empty)
+        {
+            throw new ArgumentException("Thread ID cannot be empty.", nameof(threadId));
+        }
+
+        // Use SinkService to add the image message
+        return await _sinkService.SinkAgentMessageAsync(threadId, "Approval Request for Processing Azure SRE Agent Request", true, approval);
+    }
+
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)
     {
         _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);

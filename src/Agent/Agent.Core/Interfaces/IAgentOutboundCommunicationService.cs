@@ -36,5 +36,5 @@ public interface IAgentOutboundCommunicationService
     Task PostActivity(string threadId, Microsoft.Bot.Schema.Activity activity, string messageId = "");
 
     Task<Guid> AppendAgentImageMessage(Guid threadId, string message);
-
+    Task<Guid> AppendAgentApprovalMessage(Guid threadId, Approval approval);
 }

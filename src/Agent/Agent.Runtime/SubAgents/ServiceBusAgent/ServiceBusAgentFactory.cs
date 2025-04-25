@@ -12,12 +12,10 @@ namespace Agent.Runtime.SubAgents.ServiceBusAgent
 {
     public class ServiceBusAgentFactory : SimpleResourceSubAgentFactoryBase<ServiceBusAgent, ServiceBusAgentInput, ServiceBusAgentActivity, ServiceBusAgentActivityInput>
     {
-        private readonly IApprovalPlugin approvalPlugin;
         private readonly IRemediationPlugin remediationPlugin;
         private readonly IRecordActionsPlugin recordActionsPlugin;
 
         public ServiceBusAgentFactory(
-            IApprovalPlugin approvalPlugin,
             IRemediationPlugin remediationPlugin,
             IRecordActionsPlugin recordActionsPlugin,
             IThreadOrchestrationManager mappingManager,
@@ -26,7 +24,6 @@ namespace Agent.Runtime.SubAgents.ServiceBusAgent
             )
             : base(toolsRepository, mappingManager, durableTaskClient)
         {
-            this.approvalPlugin = approvalPlugin;
             this.remediationPlugin = remediationPlugin;
             this.recordActionsPlugin = recordActionsPlugin;
         }
@@ -45,9 +42,6 @@ namespace Agent.Runtime.SubAgents.ServiceBusAgent
             yield return () => controlFlowPluginDefinition.MarkPlanComplete;
             yield return () => controlFlowPluginDefinition.NotifyUser;
             yield return () => controlFlowPluginDefinition.AskUserForInput;
-
-            var approvalPluginDefinition = new ApprovalPluginDefinition(approvalPlugin);
-            yield return () => approvalPluginDefinition.StartApprovalFlow;
         }
     }
 }

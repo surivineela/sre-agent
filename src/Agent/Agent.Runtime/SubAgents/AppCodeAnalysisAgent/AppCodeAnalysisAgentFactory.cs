@@ -12,6 +12,7 @@ using Microsoft.SemanticKernel;
 using System.ComponentModel;
 using Agent.Core.Helpers;
 using OperationalAgentCore;
+using Agent.Core.Attributes;
 
 namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 

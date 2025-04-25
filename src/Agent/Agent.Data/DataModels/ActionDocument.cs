@@ -12,6 +12,7 @@ public record ActionDocument(
     string Id,
     string ThreadId,
     string Title,
+    string ToolName,
     DateTime TimeStamp,
     ActionStatus Status
 ) : ICosmosDocument
@@ -27,6 +28,7 @@ public record ActionDocument(
             action.Id.ToString(),
             threadId,
             action.Title,
+            action.ToolName,
             action.TimeStamp,
             action.Status
     );
@@ -35,6 +37,7 @@ public record ActionDocument(
         new Action(
             Guid.Parse(Id),
             Title,
+            ToolName,
             TimeStamp,
             Status
         );

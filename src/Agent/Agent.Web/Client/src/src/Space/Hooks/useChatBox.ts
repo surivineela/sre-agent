@@ -1,7 +1,7 @@
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { ApprovalDecision, Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { Activities } from '../../Strings/SREResources.resjson';
@@ -31,6 +31,21 @@ const getMessages = async (
         // ToDo: handle error
         return [];
     }
+};
+
+const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
+    const url = `../api/v1/approvals/${threadId}/${approvalId}/decision`;
+    const { userId } = user;
+    await axios.post(
+        url,
+        {
+            Status: decision,
+            User: userId,
+        },
+        {
+            headers: getAgentHeaders(),
+        }
+    );
 };
 
 const sendMessage = async (threadId: string, message: string, signal?: AbortSignal): Promise<Message | undefined> => {
@@ -380,4 +395,4 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     };
 };
 
-export { sendMessageFeedback, useChatBox };
+export { sendApprovalDecision, sendMessageFeedback, useChatBox };

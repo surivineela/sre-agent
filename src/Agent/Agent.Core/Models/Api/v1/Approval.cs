@@ -12,12 +12,16 @@ namespace Agent.Core.Models.Api.v1
     }
 
     public record Approval(
-        string Id,
+        Guid Id,
+        string ThreadId,
+        string OrchestrationId,
         string Title,
+        string Description,
         ApprovalDecision Status,
         DateTime CreatedTimestamp,
         DateTime? DecisionTimestamp,
-        string? decisionUserId
+        string? OboToken,
+        Author? DecisionUser
         )
     {
     }

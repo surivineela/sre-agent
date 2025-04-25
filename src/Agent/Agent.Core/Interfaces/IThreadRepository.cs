@@ -33,6 +33,7 @@ public interface IThreadRepository
     Task<IEnumerable<Action>> GetActionsAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
     Task<Action> GetActionAsync(Guid threadId, Guid actionId);
     Task<Action> AddActionAsync(Guid threadId, Action action);
+    Task<Action> GetLatestToolCallAction(Guid threadId, string toolName);
 
     Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
     Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
@@ -61,6 +62,12 @@ public interface IThreadRepository
     Task<AgentChatHistory> UpdateAgentChatHistoryAsync(AgentChatHistory agentChatHistory);
     Task<AgentChatHistory> AddReasoningMessagesToChatHistoryAsync(AgentChatHistory agentChatHistory, params IEnumerable<ReasoningMessage> reasoningMessages);
     Task<bool> DeleteAgentChatHistoryAsync(Guid agentContextId);
+
+    Task<Approval> CreateApprovalAsync(Approval approval);
+    Task<IList<Approval>> GetApprovalsAsync(Guid threadId);
+    Task<Approval> GetApprovalAsync(Guid threadId, Guid approvalId);
+    Task<Approval> GetApprovalAsync(Guid threadId, string title);
+    Task<Approval> UpdateApprovalAsync(Approval approval);
 
     Task<ApprovalV2> GetApprovalV2Async(Guid approvalIdV2, Guid agentContextId);
     Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync();

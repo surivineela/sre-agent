@@ -121,10 +121,10 @@ export const IntlProvider = (props: IntlProviderProps) => {
 
     return (
         <ReactIntlProvider
-            locale={locale}
-            defaultLocale='en'
+            locale={locale || 'en'}
+            defaultLocale="en"
             messages={locMessages}
-            onError={(err) => {
+            onError={err => {
                 if (err.code === 'MISSING_TRANSLATION') {
                     return;
                 }

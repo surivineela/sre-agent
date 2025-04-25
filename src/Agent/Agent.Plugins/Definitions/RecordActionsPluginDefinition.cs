@@ -20,10 +20,12 @@ namespace Agent.Plugins.Definitions
         [Description("Records an important action or decision made by the agent. ")]
         public async Task<Action> RecordAction(
             [Description("The thread ID this action is associated with")] Guid threadId,
-            [Description("Title describing the action being recorded")] string title,
-            [Description("Status of the action")] ActionStatus status)
+            [Description("Title describing the action being recorded. Do not include status in it.")] string title,
+            [Description("The name of the tool/function if the action is a tool call. Leave it to empty if it's not a tool call")] string toolName,
+            [Description("Status of the action")] ActionStatus status
+            )
         {
-            return await _recordActionsPlugin.RecordAction(threadId, title, status);
+            return await _recordActionsPlugin.RecordAction(threadId, title, toolName, status);
         }
 
         [Description("Retrieves information about a specific action")]

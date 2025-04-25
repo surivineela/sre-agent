@@ -16,39 +16,65 @@ namespace Agent.Runtime.Services
         private readonly DurableTaskClient _durableTaskClient;
         private readonly ILogger<DurableApprovalService> _logger;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+        private readonly IThreadRepository _threadRepository;
 
 
-        public DurableApprovalService(DurableTaskClient durableTaskClient, IAgentOutboundCommunicationService agentOutboundCommunicationService, ILogger<DurableApprovalService> logger)
+        public DurableApprovalService(DurableTaskClient durableTaskClient,
+            IAgentOutboundCommunicationService agentOutboundCommunicationService,
+            ILogger<DurableApprovalService> logger,
+            IThreadRepository threadRepository)
         {
             _durableTaskClient = durableTaskClient;
             _logger = logger;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
+            _threadRepository = threadRepository;
         }
 
-        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid? threadId, string orchestrationId, string? oboToken = null)
+        public async Task<Approval> GetApproval(Guid threadId, string approvalId)
+        {
+            _logger.LogInformation($"Getting approval for thread {threadId} with approval id {approvalId}");
+
+            return await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
+        }
+
+        public async Task<IList<Approval>> GetApprovals(Guid threadId)
+        {
+            _logger.LogInformation($"Getting approvals for thread {threadId}");
+
+            return await _threadRepository.GetApprovalsAsync(threadId);
+        }
+
+        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid threadId, string? oboToken = null)
         {
             _logger.LogInformation($"Processing approval decision for {approvalId} with status {status}");
 
+            var approval = await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
+
+            // TODO: validation
+            //if (approval == null)
+            //{
+            //    return BadRequest(new { error = "Approval not found" });
+            //}
+
+            //if (approval.Status != ApprovalDecision.Pending)
+            //{
+            //    return BadRequest(new { error = "Cannot re-approve" });
+            //}
+
+            //if (string.IsNullOrEmpty(approval.OrchestrationId))
+            //{
+            //    return BadRequest(new { error = "Approval does not have an orchestration ID" });
+            //}
+
             if (status == ApprovalDecision.Approved)
             {
-                //todo - reconcile this approval status type with the new one introduced in core/models/api
-                var approvalStatus = new ApprovalStatus(
-                    approvalId,
-                    StartTime: DateTime.UtcNow,
-                    ApprovedTime: DateTime.UtcNow,
-                    DecisionMaker: user,
-                    ProcessedTime: null,
-                    OboToken: oboToken
-                    );
-
-                await _durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
                 // Approval Message
                 string approvalMessage = $"**✅ Operation Approved**\n\n" +
                                          $"- **Operation ID:** {approvalId}\n" +
                                          $"- **User:** {user}\n" +
                                          $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, approval.OrchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
             }
             else if (status == ApprovalDecision.Rejected)
             {
@@ -57,13 +83,33 @@ namespace Agent.Runtime.Services
                        $"- **User:** {user}\n" +
                        $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
-                throw new NotImplementedException("How do we handle rejections?");
+                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, approval.OrchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
             }
             else
             {
                 throw new ArgumentException($"Invalid approval status: {status} for approvalId: {approvalId}");
             }
+
+            //todo - reconcile this approval status type with the new one introduced in core/models/api
+            var approvalStatus = new ApprovalStatus(
+                approvalId,
+                StartTime: DateTime.UtcNow,
+                ApprovedTime: DateTime.UtcNow,
+                DecisionMaker: user,
+                ProcessedTime: null,
+                OboToken: oboToken
+                );
+
+            await _durableTaskClient.RaiseEventAsync(approval.OrchestrationId, "ApprovalEvent", approvalStatus);
+
+            var newApproval = approval with
+            {
+                DecisionTimestamp = DateTime.UtcNow,
+                DecisionUser = new Author(Role.User, user, user),
+                Status = status
+            };
+
+            await _threadRepository.UpdateApprovalAsync(newApproval);
         }
     }
 }

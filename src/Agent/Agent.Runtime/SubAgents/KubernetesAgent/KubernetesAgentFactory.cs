@@ -31,8 +31,6 @@ public sealed class KubernetesAgentFactory
         _toolsRegistry.RegisterPlugin<ChartPluginDefinition>();
         _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
         _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
-        _toolsRegistry.RegisterPlugin<ApprovalPluginDefinition>();
-        // _toolsRegistry.RegisterPlugin<GitHubIssuePluginDefinition>();
 
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.VisualizeAKSMicroserviceTopology);
         _toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.GetResourceBasicProperties);

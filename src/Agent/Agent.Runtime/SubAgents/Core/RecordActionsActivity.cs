@@ -12,7 +12,9 @@ namespace Agent.Runtime.SubAgents.Core
     public record RecordActionInput(
         Guid ThreadId,
         string Title,
-        ActionStatus Status = ActionStatus.Pending);
+        string ToolName = "",
+        ActionStatus Status = ActionStatus.Pending
+        );
 
     [DurableTask]
     public class RecordActionActivity : TaskActivity<RecordActionInput, Action>
@@ -30,6 +32,7 @@ namespace Agent.Runtime.SubAgents.Core
             var action = await _recordActionsPlugin.RecordAction(
                 input.ThreadId,
                 input.Title,
+                input.ToolName,
                 input.Status);
 
             return action;

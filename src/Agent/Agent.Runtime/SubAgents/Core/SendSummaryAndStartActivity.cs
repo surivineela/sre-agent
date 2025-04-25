@@ -50,7 +50,7 @@ public class SendSummaryAndStartActivity : TaskActivity<GetNextActionInput, List
         // NOTE: Thread ID should be passed explicitly to this activity from the orchestrator
         // This will be done in the orchestrator code that calls this activity
 
-        chatMessages.Add(new ChatMessage(ChatRole.User, "Great, lets start executing - trigger an approval flow so that I can approve it."));
+        chatMessages.Add(new ChatMessage(ChatRole.User, "Great, lets start executing the plan."));
 
         return chatMessages;
     }

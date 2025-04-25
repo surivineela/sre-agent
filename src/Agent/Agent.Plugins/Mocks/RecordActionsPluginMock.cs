@@ -4,6 +4,7 @@
 
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
+using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Extensions.Logging;
 using Action = Agent.Core.Models.Api.v1.Action;
 
@@ -28,7 +29,7 @@ namespace Agent.Plugins.Mocks
         /// <summary>
         /// Records a new action
         /// </summary>
-        public Task<Action> RecordAction(Guid threadId, string title, ActionStatus status = ActionStatus.Pending)
+        public Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending)
         {
             _logger?.LogInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
                 threadId, title, status);
@@ -40,6 +41,7 @@ namespace Agent.Plugins.Mocks
             var action = new Action(
                 Id: new Guid(guidBytes),
                 Title: title,
+                ToolName: toolName,
                 TimeStamp: _timeProvider.GetUtcNow().DateTime,
                 Status: status
             );

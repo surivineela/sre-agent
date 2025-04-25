@@ -36,7 +36,6 @@ namespace Agent.Tests.Integration
         private ManagedIdentityMigrationAgentFactory _agentFactory;
         private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
 
-        private MockApprovalPlugin _mockApprovalPlugin;
         private MockArmPlugin _mockArmPlugin;
         private MockMetricsPlugin _mockMetricsPlugin;
         private MockGithubWorkflowTriggerPlugin _mockGithubPlugin;
@@ -101,7 +100,6 @@ namespace Agent.Tests.Integration
                         .UseFunctionInvocation();
 
                     // -- test specific
-                    _mockApprovalPlugin = new MockApprovalPlugin();
                     _mockArmPlugin = new MockArmPlugin(_timeProvider);
                     _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
                     _mockGithubPlugin = new MockGithubWorkflowTriggerPlugin(_timeProvider);
@@ -110,7 +108,6 @@ namespace Agent.Tests.Integration
                     _mockAppIdentityUpdatePlugin = new MockAppIdentityUpdatePlugin(_mockMIConfigurationCheckPlugin);
                     _mockAppIdentityUpdatePlugin.ConfigureTestApps(_testApps);
 
-                    services.AddSingleton<IApprovalPlugin>(_mockApprovalPlugin);
                     services.AddSingleton<IArmPlugin>(_mockArmPlugin);
                     services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
                     services.AddSingleton<IGithubWorkflowTriggerPlugin>(_mockGithubPlugin);
