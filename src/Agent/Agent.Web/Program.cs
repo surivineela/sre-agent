@@ -520,18 +520,26 @@ void ConfigureLogger()
     }
     else
     {
-        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? throw new ArgumentNullException("AGENT_NAME", "Environment variable AGENT_NAME is not set.");
-
-        builder.Services.AddSingleton<ILoggerProvider>(sp =>
+        if (string.IsNullOrEmpty(internalKustoClusterSettings.ClusterUri) && string.IsNullOrEmpty(externalKustoClusterUri))
         {
-            var authenticationService = sp.GetRequiredService<IAuthenticationService>();
+            builder.Logging.AddConsole();
+        }
+        else
+        {
+            var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? throw new ArgumentNullException("AGENT_NAME", "Environment variable AGENT_NAME is not set.");
 
-            return new AzureDataExplorerLoggerProvider(
-                agentName: agentName,
-                internalKustoClusterConfiguration: internalKustoClusterSettings,
-                externalKustoClusterConfiguration: externalKustoClusterSettings,
-                authenticationService: authenticationService);
-        });
+            builder.Services.AddSingleton<ILoggerProvider>(sp =>
+            {
+                var authenticationService = sp.GetRequiredService<IAuthenticationService>();
+
+                return new AzureDataExplorerLoggerProvider(
+                    agentName: agentName,
+                    internalKustoClusterConfiguration: internalKustoClusterSettings,
+                    externalKustoClusterConfiguration: externalKustoClusterSettings,
+                    authenticationService: authenticationService);
+            });
+        }
+        
     }
 }
 

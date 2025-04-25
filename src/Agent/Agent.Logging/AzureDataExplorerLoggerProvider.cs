@@ -4,6 +4,7 @@ using Agent.Core.Interfaces;
 using Kusto.Data;
 using Kusto.Ingest;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Agent.Logging;
 public class AzureDataExplorerLoggerProvider : ILoggerProvider
@@ -24,12 +25,16 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
         KustoClusterConfiguration internalKustoClusterConfiguration,
         KustoClusterConfiguration? externalKustoClusterConfiguration)
     {
-        var internalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(internalKustoClusterConfiguration.ClusterUri)
-            .WithAadAzureTokenCredentialsAuthentication(authenticationService.GetKustoCredential());
+        if (!string.IsNullOrEmpty(internalKustoClusterConfiguration.ClusterUri))
+        {
+            var internalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(internalKustoClusterConfiguration.ClusterUri)
+                        .WithAadAzureTokenCredentialsAuthentication(authenticationService.GetKustoCredential());
 
-        _internalKustoClient = KustoIngestFactory.CreateDirectIngestClient(internalKustoConnectionStringBuilder);
-        _internalDatabaseName = internalKustoClusterConfiguration.DatabaseName;
-        _internalTableName = internalKustoClusterConfiguration.TableName;
+            _internalKustoClient = KustoIngestFactory.CreateDirectIngestClient(internalKustoConnectionStringBuilder);
+            _internalDatabaseName = internalKustoClusterConfiguration.DatabaseName;
+            _internalTableName = internalKustoClusterConfiguration.TableName;
+
+        }
 
         if (externalKustoClusterConfiguration != null)
         {
