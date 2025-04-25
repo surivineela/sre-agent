@@ -96,20 +96,6 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.ScaleDeploymentAsync(AKSClusterResourceId, _namespace, deploymentName, replicas);
         }
 
-        [KernelFunction("get_kube_pod_events")]
-        [Description(
-@"Get the events of a pod in the specified namespace.
-Used whenever user wants to check the events or history of a specific pod.
-eg: show me the events of the pod 'nginx-pod-xyz' in the 'default' namespace.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubePodEventsAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes pod, e.g. 'backend-947df49ff-l2zb4'")] string pod)
-        {
-            return await _kubePlugin.GetKubePodEventsAsync(AKSClusterResourceId, _namespace, pod);
-        }
-
         [KernelFunction("get_kube_pod_logs")]
         [Description(
 @"Get the logs of a pod in the specified namespace.
@@ -168,19 +154,33 @@ eg: list all VirtualServices in the 'istio-system' namespace.")]
             return await _kubePlugin.ListCustomResourcesAsync(AKSClusterResourceId, _namespace, apiGroup, kind);
         }
 
-        [KernelFunction("get_custom_resource_yaml")]
+        [KernelFunction("GetKubeResourceEvents")]
         [Description(
-@"Get the YAML representation of a custom resource object.
-Used to view detailed configuration of custom resources like Istio VirtualServices or ArgoCD Applications.
-eg: show me the YAML of VirtualService 'my-service' in the 'istio-system' namespace.")]
-        public async Task<string> GetCustomResourceYamlAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-    [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'")] string _namespace,
-    [Description($"API Group of the custom resource, e.g. 'networking.istio.io'")] string apiGroup,
-    [Description($"Kind of the custom resource, e.g. 'VirtualService'")] string kind,
-    [Description($"Name of the custom resource")] string name)
+        @"Get the events of of a Kubernetes Deployment, StatefulSet, DaemonSet, Pod, Service or Custom Resource Object (CRD) in the specified namespace.
+Used whenever user wants to check the events or history of a specific resource object.
+eg: show me the events of the pod 'nginx-pod-xyz' in the 'default' namespace.")]
+        public async Task<string> GetKubeResourceEventsAsync(
+                    [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'")] string _namespace,
+            [Description($"API Group of the Kubernetes resource, e.g. 'apps/v1'")] string apiGroup,
+            [Description($"Kind of the Kubernetes resource, e.g. 'Deployment'")] string kind,
+            [Description($"Name of the Kubernetes resource")] string name)
         {
-            return await _kubePlugin.GetCustomResourceYamlAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
+            return await _kubePlugin.GetKubeResourceEventsAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
+        }
+
+        [KernelFunction("GetKubeResourceSpecStatus")]
+        [Description(
+@"Get the YAML spec and status of a Kubernetes Deployment, StatefulSet, DaemonSet, Pod, Service or Custom Resource Object (CRD) in the specified namespace.
+eg: show me the YAML spec and status of 'my-service' deployment in the 'default' namespace.")]
+        public async Task<string> GetKubeResourceSpecStatusAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description($"Kubernetes namespace, e.g. 'default', 'istio-system'")] string _namespace,
+            [Description($"API Group of the Kubernetes resource, e.g. 'apps/v1'")] string apiGroup,
+            [Description($"Kind of the Kubernetes resource, e.g. 'Deployment'")] string kind,
+            [Description($"Name of the Kubernetes resource")] string name)
+        {
+            return await _kubePlugin.GetKubeResourceSpecStatusAsync(AKSClusterResourceId, _namespace, apiGroup, kind, name);
         }
 
         [KernelFunction("get_recently_updated_workloads")]
@@ -264,6 +264,19 @@ e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' nam
             [Description($"Name of the Kubernetes resource, e.g. 'nginx', 'backend', 'redis'")] string name)
         {
             return await _kubePlugin.DiagnoseAKSAppAsync(AKSClusterResourceId, _namespace, kind, name);
+        }
+
+        [KernelFunction("ApplyKubernetesYaml")]
+        [Description(
+        @"Applies one Kubernetes YAML object to the specified AKS cluster using server-side apply.
+Used whenever user wants to create or update resources in a Kubernetes cluster using YAML.
+eg: please apply this YAML object to my AKS cluster to create a new deployment.
+eg: update my service with this YAML manifest.")]
+        public async Task<string> ApplyKubernetesYamlAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description("The YAML manifest content to apply to the cluster")] string yamlContent)
+        {
+            return await _kubePlugin.ApplyKubernetesYamlAsync(AKSClusterResourceId, yamlContent);
         }
     }
 }

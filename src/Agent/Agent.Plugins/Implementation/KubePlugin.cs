@@ -27,16 +27,18 @@ using Agent.Prometheus.Services;
 using Agent.Core.Configuration;
 using Agent.Prometheus;
 using Agent.Graph.Crawler.Metrics;
+using Agent.Core.Services;
 
 namespace Agent.Plugins
 {
-    public class KubePlugin : IKubePlugin
+    public partial class KubePlugin : IKubePlugin
     {
         private readonly ILogger? _logger;
         private IKubernetes _client;
         private IChatClient _chatClient;
 
         private readonly IAuthenticationService _authService;
+        private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
         private readonly string? _prometheusQueryEndpoint;
         private readonly DashboardSettings _dashboardSettings;
@@ -53,6 +55,7 @@ namespace Agent.Plugins
             IPrometheusQueryService prometheusQueryService,
             IAzureMetricsClient azureMetricsClient,
             DashboardSettings dashboardSettings,
+            IKubernetesClientFactory kubernetesClientFactory,
             ILogger<KubePlugin>? logger)
         {
             _logger = logger;
@@ -61,11 +64,11 @@ namespace Agent.Plugins
             _prometheusQueryService = prometheusQueryService;
             _dashboardSettings = dashboardSettings;
             _azureMetricsClient = azureMetricsClient;
+            _kubernetesClientFactory = kubernetesClientFactory;
 
             _prometheusQueryEndpoint = _dashboardSettings.PrometheusUrl;
         }
 
-        // TODO(jianbosun): refactor this part to use KubernetesClientFactory but keep the cache feature.
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
         {
             // If no resourceId is provided, use the default client
@@ -94,42 +97,16 @@ namespace Agent.Plugins
                 _cacheTimestamps.TryRemove(resourceId, out _);
             }
 
-            // Create ARM client
-            var credential = _authService.GetCrawlerCredential();
-            var armClient = new ArmClient(credential);
-
-            // Get the AKS cluster
-            var resourceIdentifier = new ResourceIdentifier(resourceId);
-            var managedCluster = armClient.GetContainerServiceManagedClusterResource(resourceIdentifier);
-
-            var credentialsResponse = await managedCluster.GetAccessProfileAsync("clusterAdmin");
-
-            // The KubeConfig is returned as a byte array that needs proper decoding
-            byte[] kubeConfigBytes = credentialsResponse.Value.KubeConfig;
-            string kubeConfig = null;
-
-            if (kubeConfigBytes != null && kubeConfigBytes.Length > 0)
+            var client = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdAsync(resourceId);
+            if (client == null)
             {
-                // Properly decode the byte array to a string
-                kubeConfig = System.Text.Encoding.UTF8.GetString(kubeConfigBytes);
+                throw new InvalidOperationException($"Failed to create Kubernetes client for resourceId: {resourceId}");
             }
+            // Cache the client
+            _clientCache[resourceId] = client;
+            _cacheTimestamps[resourceId] = DateTimeOffset.UtcNow;
 
-            var tempFile = Path.GetTempFileName();
-            await File.WriteAllTextAsync(tempFile, kubeConfig);
-            try
-            {
-                var k8sConfig = KubernetesClientConfiguration.BuildConfigFromConfigFile(tempFile);
-                var client = new Kubernetes(k8sConfig);
-                // Cache the client
-                _clientCache[resourceId] = client;
-                _cacheTimestamps[resourceId] = DateTimeOffset.UtcNow;
-
-                return client;
-            }
-            finally
-            {
-                try { File.Delete(tempFile); } catch { /* ignore cleanup errors */ }
-            }
+            return client;
         }
 
         public async Task<string> GetAKSClusterResourceIdAsync(string Subscription, string ResourceGroupName, string AKSClusterName)
@@ -218,10 +195,10 @@ namespace Agent.Plugins
             {
                 _logger.LogInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
                 podResults[pod] = new Dictionary<string, string>();
-                podTasks.Add(GetPodYamlAsync(resourceId, _namespace, pod)
+                podTasks.Add(GetKubePodSpecStatusAsync(resourceId, _namespace, pod)
                     .ContinueWith(task => podResults[pod]["PodYaml"] = task.Result));
 
-                podTasks.Add(GetKubePodEventsAsync(resourceId, _namespace, pod)
+                podTasks.Add(GetKubeResourceEventsAsync(resourceId, _namespace, "", "Pod", pod)
                     .ContinueWith(task => podResults[pod]["Events"] = task.Result));
 
                 podTasks.Add(GetKubePodLogsAsync(resourceId, _namespace, pod)
@@ -307,6 +284,36 @@ namespace Agent.Plugins
 
             // Serialize to YAML
             return YamlHelper.Serialize(deploy);
+        }
+
+        // get spec and status of a DaemonSet in a namespace
+        public async Task<string> GetKubeDaemonsetSpecStatusAsync(string resourceId, string _namespace, string daemonset)
+        {
+            _client = await GetOrCreateClientAsync(resourceId);
+            // get daemonset in namespace
+            var ds = await _client.AppsV1.ReadNamespacedDaemonSetAsync(daemonset, _namespace);
+            if (ds == null)
+            {
+                return "DaemonSet not found";
+            }
+
+            // Serialize to YAML
+            return YamlHelper.Serialize(ds);
+        }
+
+        // get spec and status of a Pod in a namespace
+        public async Task<string> GetKubePodSpecStatusAsync(string resourceId, string _namespace, string pod)
+        {
+            _client = await GetOrCreateClientAsync(resourceId);
+            // get pod in namespace
+            var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
+            if (podObj == null)
+            {
+                return "Pod not found";
+            }
+
+            // Serialize to YAML
+            return YamlHelper.Serialize(podObj);
         }
 
         // show events of a deployment in a namespace
@@ -472,22 +479,7 @@ namespace Agent.Plugins
             }
         }
 
-        // show events of a pod in a namespace
-        public async Task<string> GetKubePodEventsAsync(string resourceId, string _namespace, string pod)
-        {
-            _client = await GetOrCreateClientAsync(resourceId);
-            // get pod in namespace
-            var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
-            if (podObj == null)
-            {
-                return "Pod not found";
-            }
 
-            // get events of this pod
-            var events = await _client.CoreV1.ListNamespacedEventAsync(_namespace, fieldSelector: $"involvedObject.name={pod},involvedObject.uid={podObj.Metadata.Uid}");
-            var eventDescriptions = events.Items.Select(e => e.Message);
-            return string.Join(", ", eventDescriptions);
-        }
 
         // show logs of a pod in a namespace with last several lines, default is 100
         public async Task<string> GetKubePodLogsAsync(string resourceId, string _namespace, string pod, string containerName = "", int lines = 100)
@@ -648,11 +640,220 @@ namespace Agent.Plugins
                 return $"Error listing custom resources: {ex.Message}";
             }
         }
+        // TODO(jianbosun): need to validate and expose to KubePluginDefinition
+        public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string rawDuration, string startTime, string endTime)
+        {
 
-        public async Task<string> GetCustomResourceYamlAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
+            // Convert the provided time range into Prometheus-compatible duration format
+            string duration = ParseTimeRangeToDuration(rawDuration);
+
+            // Build the PromQL query based on the specified metric type
+            string query = BuildPromQuery(metricsType, _namespace, kind, name, duration);
+
+            if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
+            {
+                var errorResponse = $"Failed to build a valid PromQL query for metric type '{metricsType}' in namespace '{_namespace}', workload type '{kind}', and workload name '{name}'";
+                _logger?.LogWarning(
+                   errorResponse,
+                    metricsType, _namespace, kind, name);
+                return errorResponse;
+            }
+
+            _logger?.LogInformation(
+                "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
+                _prometheusQueryEndpoint, query);
+
+            DateTime startDate = ParseDateTime(startTime);
+            DateTime endDate = ParseDateTime(endTime);
+            TimeSpan step = ParseTimeSpan(duration);
+
+            // Query the Prometheus endpoint using the injected service
+            var response = await _prometheusQueryService.QueryRangeAsync(_prometheusQueryEndpoint, query, startDate, endDate, step);
+            return FormatPrometheusResponse(response, metricsType, kind, name);
+        }
+
+        // Helper method to parse date strings into DateTime objects
+        private DateTime ParseDateTime(string timeDate)
+        {
+            // Try to parse the time as an absolute date/time
+            if (DateTime.TryParse(timeDate, CultureInfo.InvariantCulture,
+                DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTime parsedTime))
+            {
+                return parsedTime;
+            }
+
+            // If it's a relative time like "1h ago", "30m ago", etc.
+            if (timeDate.Contains("ago", StringComparison.OrdinalIgnoreCase))
+            {
+                var match = Regex.Match(timeDate, @"(\d+)\s*([smhdwy]|min|hour|day|week|month|year)s?\s*ago",
+                    RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    int value = int.Parse(match.Groups[1].Value);
+                    string unit = match.Groups[2].Value.ToLowerInvariant();
+
+                    return unit switch
+                    {
+                        "s" => DateTime.UtcNow.AddSeconds(-value),
+                        "m" or "min" => DateTime.UtcNow.AddMinutes(-value),
+                        "h" or "hour" => DateTime.UtcNow.AddHours(-value),
+                        "d" or "day" => DateTime.UtcNow.AddDays(-value),
+                        "w" or "week" => DateTime.UtcNow.AddDays(-value * 7),
+                        "y" or "year" => DateTime.UtcNow.AddYears(-value),
+                        _ => DateTime.UtcNow.AddMinutes(-value) // Default to minutes
+                    };
+                }
+            }
+
+            // Default to current time if parsing fails
+            _logger?.LogWarning("Failed to parse time string: {TimeDate}. Using current time.", timeDate);
+            return DateTime.UtcNow;
+        }
+
+        // Helper method to convert duration strings to TimeSpan
+        private TimeSpan ParseTimeSpan(string duration)
+        {
+            var match = Regex.Match(duration, @"^(\d+)([smhdwy])$");
+            if (match.Success)
+            {
+                int value = int.Parse(match.Groups[1].Value);
+                string unit = match.Groups[2].Value;
+
+                return unit switch
+                {
+                    "s" => TimeSpan.FromSeconds(value),
+                    "m" => TimeSpan.FromMinutes(value),
+                    "h" => TimeSpan.FromHours(value),
+                    "d" => TimeSpan.FromDays(value),
+                    "w" => TimeSpan.FromDays(value * 7),
+                    "y" => TimeSpan.FromDays(value * 365), // Approximation
+                    _ => TimeSpan.FromMinutes(1) // Default to 1 minute
+                };
+            }
+
+            // Default to 15 seconds if parsing fails
+            return TimeSpan.FromSeconds(15);
+        }
+
+        public async Task<string> GetKubeResourceEventsAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
         {
             try
             {
+                _client = await GetOrCreateClientAsync(resourceId);
+                string uid;
+
+                switch (kind.ToLowerInvariant())
+                {
+                    case "deployment":
+                        var deployment = await _client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
+                        uid = deployment.Metadata.Uid;
+                        break;
+                    case "statefulset":
+                        var statefulset = await _client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
+                        uid = statefulset.Metadata.Uid;
+                        break;
+                    case "daemonset":
+                        var daemonset = await _client.AppsV1.ReadNamespacedDaemonSetAsync(name, _namespace);
+                        uid = daemonset.Metadata.Uid;
+                        break;
+                    case "service":
+                        var service = await _client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
+                        uid = service.Metadata.Uid;
+                        break;
+                    case "pod":
+                        var pod = await _client.CoreV1.ReadNamespacedPodAsync(name, _namespace);
+                        uid = pod.Metadata.Uid;
+                        break;
+                    default:
+                        // Handle custom resources
+                        try
+                        {
+                            // Get the plural name and version from CRDs
+                            var crds = await _client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+                            var crd = crds.Items.FirstOrDefault(c => c.Spec.Group == apiGroup &&
+                                c.Spec.Names.Kind.Equals(kind, StringComparison.OrdinalIgnoreCase));
+
+                            if (crd == null)
+                            {
+                                return $"Custom Resource Definition for kind '{kind}' in group '{apiGroup}' not found";
+                            }
+
+                            string plural = crd.Spec.Names.Plural;
+                            string version = crd.Spec.Versions.FirstOrDefault(v => v.Served && v.Storage)?.Name
+                                ?? crd.Spec.Versions.First().Name;
+
+                            // Get the custom resource
+                            var response = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
+                                apiGroup, version, _namespace, plural, name);
+
+                            // Extract UID from JSON response
+                            if (response is IDictionary<string, object> resource &&
+                                resource.TryGetValue("metadata", out var metadataObj) &&
+                                metadataObj is IDictionary<string, object> metadata &&
+                                metadata.TryGetValue("uid", out var uidObj))
+                            {
+                                uid = uidObj.ToString();
+                            }
+                            else
+                            {
+                                return $"Could not extract UID from custom resource {kind}/{name}";
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogError(ex, $"Error getting custom resource {kind}/{name} in namespace {_namespace}");
+                            return $"Error getting custom resource events: {ex.Message}";
+                        }
+                        break;
+                }
+
+                // Get events for this resource
+                var events = await _client.CoreV1.ListNamespacedEventAsync(_namespace,
+                    fieldSelector: $"involvedObject.name={name},involvedObject.uid={uid}");
+
+                if (events.Items.Count == 0)
+                {
+                    return $"No events found for {kind} '{name}' in namespace {_namespace}";
+                }
+
+                // Format events with timestamp, type and message
+                var formattedEvents = events.Items.Select(e =>
+                    $"[{e.LastTimestamp:yyyy-MM-dd HH:mm:ss}] {e.Type}: {e.Message}");
+
+                return string.Join("\n", formattedEvents);
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"Error getting events for {kind}, {name}");
+                return $"Error getting events for {kind}, {name}: {ex.Message}";
+            }
+        }
+
+        public async Task<string> GetKubeResourceSpecStatusAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
+        {
+            try
+            {
+                switch (kind.ToLowerInvariant())
+                {
+                    case "deployment":
+                        return await GetKubeDeploymentSpecStatusAsync(resourceId, _namespace, name);
+                    case "statefulset":
+                        return await GetKubeStatefulsetSpecStatusAsync(resourceId, _namespace, name);
+                    case "daemonset":
+                        return await GetKubeDaemonsetSpecStatusAsync(resourceId, _namespace, name);
+                    case "pod":
+                        return await GetKubePodSpecStatusAsync(resourceId, _namespace, name);
+                    case "service":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var service = await _client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
+                        if (service == null)
+                        {
+                            return "Service not found";
+                        }
+                        return YamlHelper.Serialize(service);
+                }
+
                 _client = await GetOrCreateClientAsync(resourceId);
                 // Get the plural name and version from CRDs
                 var crds = await _client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
@@ -669,40 +870,15 @@ namespace Agent.Plugins
                     ?? crd.Spec.Versions.First().Name;
 
                 // Get the custom resource
-                var response = await _client.CustomObjects.GetNamespacedCustomObjectWithHttpMessagesAsync(
+                var response = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
                     apiGroup, version, _namespace, plural, name);
 
-                var expConverter = new ExpandoObjectConverter();
-                dynamic deserializedObject = JsonConvert.DeserializeObject<ExpandoObject>(response.Body.ToString(), expConverter);
-
-                var serializer = new Serializer();
-
-                return serializer.Serialize(deserializedObject);
+                return YamlHelper.Serialize(response);
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error getting custom resource YAML");
+                _logger?.LogError(ex, $"Error getting spec status for {kind}, {name} ");
                 return $"Error getting custom resource YAML: {ex.Message}";
-            }
-        }
-
-        public async Task<string> GetPodYamlAsync(string resourceId, string _namespace, string pod)
-        {
-            try
-            {
-                _client = await GetOrCreateClientAsync(resourceId);
-                var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
-                if (podObj == null)
-                {
-                    return "Pod not found";
-                }
-
-                return YamlHelper.Serialize(podObj);
-            }
-            catch (Exception ex)
-            {
-                _logger?.LogError(ex, "Error getting pod YAML");
-                return $"Error getting pod YAML: {ex.Message}";
             }
         }
 
@@ -742,10 +918,12 @@ namespace Agent.Plugins
 
                 if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
                 {
+
+                    var errorResponse = $"Failed to build a valid PromQL query for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'";
                     _logger?.LogWarning(
-                        "Failed to build a valid PromQL query for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
+                        errorResponse,
                         metricType, _namespace, workloadType, workloadName);
-                    return query;
+                    return errorResponse;
                 }
 
                 _logger?.LogInformation(
@@ -1051,26 +1229,31 @@ namespace Agent.Plugins
         // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
         private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName, string duration)
         {
+            var pod = workloadName;
+            if (!workloadType.Equals("pod", StringComparison.OrdinalIgnoreCase))
+            {
+                pod = $"{workloadName}-.*";
+            }
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
                     return $@"100 * (
                         max_over_time(
-                            container_memory_working_set_bytes{{pod=~""{workloadName}-.*"",namespace=""{_namespace}"",container!=""""}}[{duration}]
+                            container_memory_working_set_bytes{{pod=~""{pod}"",namespace=""{_namespace}"",container!=""""}}[{duration}]
                         )
                         / on (container, pod)
-                        kube_pod_container_resource_limits{{pod=~""{workloadName}-.*"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
+                        kube_pod_container_resource_limits{{pod=~""{pod}"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
                         )";
 
                 case "cpu":
                     return $$"""
                         100 * (
                             sum by (pod) (
-                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{workloadName}}-.*", container!=""}[{{duration}}])
+                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{pod}}", container!=""}[{{duration}}])
                             )
                             /
                             sum by (pod) (
-                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{workloadName}}-.*", resource="cpu", container!=""}
+                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{pod}}", resource="cpu", container!=""}
                             ) > 0
                         )
                         """;
@@ -1209,7 +1392,6 @@ namespace Agent.Plugins
                 return $"Error retrieving etcd metrics: {ex.Message}";
             }
         }
-
 
     }
 }
