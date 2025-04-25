@@ -17,6 +17,7 @@ namespace FirstPartyAgent.Core.Services
     {
         bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
+        Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId);
         Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true);
@@ -178,6 +179,28 @@ namespace FirstPartyAgent.Core.Services
             {
                 throw new Exception($"Failed to retrieve incident. Status code: {response.StatusCode}");
             }
+        }
+
+        public async Task<List<CustomField>> GetCustomFieldsAsync(string incidentId)
+        {
+            var apiPath = $"{IcmAPIPathPrefix}/incidents({incidentId})/GetIncidentDetails?$expand=CustomFields";
+            var response = await SendICMGetRequestAsync(apiPath);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to retrieve custom fields. Status code: {response.StatusCode}");
+            }
+
+            var responseString = await response.Content.ReadAsStringAsync();
+            var obj = JsonConvert.DeserializeObject<JObject>(responseString);
+
+            if (obj == null || !obj.TryGetValue("CustomFields", out var customFieldsToken))
+            {
+                return new List<CustomField>();
+            }
+
+            var customFields = customFieldsToken.ToObject<List<CustomField>>();
+            return customFields ?? new List<CustomField>();
         }
 
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId)

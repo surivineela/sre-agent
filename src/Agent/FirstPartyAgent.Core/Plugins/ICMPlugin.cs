@@ -111,6 +111,22 @@ namespace FirstPartyAgent.Core.Plugins
             return incident;
         }
 
+        [KernelFunction("get_icm_custom_fields")]
+        [Description("Get ICM incident custom fields")]
+        public async Task<List<CustomField>> GetCustomFields(
+            [Description("Incident ID")] string incidentId, Kernel kernel)
+        {
+            var logMessage = $"[get_icm_custom_fields][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+
+            var customFields = _icmApiClient.IsEnabled()
+                ? await _icmApiClient.GetCustomFieldsAsync(incidentId)
+                : await _icmWorkflowClient.GetCustomFieldsAsync(incidentId);
+
+            return customFields;
+        }
+
+
         [KernelFunction("get_alerting_discussion_entry")]
         [Description("Get Azure Alerting discussion entry")]
         public async Task<DiscussionEntry> GetAlertingDiscussionEntry(

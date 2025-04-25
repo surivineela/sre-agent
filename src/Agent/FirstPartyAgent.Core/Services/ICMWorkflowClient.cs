@@ -2,15 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Microsoft.Extensions.Logging;
-using FirstPartyAgent.Models;
-using Microsoft.Extensions.Hosting;
-using Newtonsoft.Json;
 using System.ComponentModel;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
-using FirstPartyAgent.Core.Configuration;
 using Agent.Core.Helpers;
+using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Models;
+using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 
 namespace FirstPartyAgent.Core.Services
 {
@@ -523,6 +524,28 @@ namespace FirstPartyAgent.Core.Services
             {
                 return $"Failed to restart web app for subscriptionId: {subscriptionId}, webappName: {webappName}, webspaceName: {webspaceName}";
             }
+        }
+
+        public async Task<List<CustomField>> GetCustomFieldsAsync(string incidentId)
+        {
+            var payload = JsonConvert.SerializeObject(new { incidentId });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.GetIncidentWorkflowName, payload);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to fetch custom fields for incidentId: {incidentId}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+            var obj = JsonConvert.DeserializeObject<JObject>(content);
+
+            if (obj == null || !obj.TryGetValue("CustomFields", out var customFieldsToken))
+            {
+                return new List<CustomField>();
+            }
+
+            var customFields = customFieldsToken.ToObject<List<CustomField>>();
+            return customFields ?? new List<CustomField>();
         }
 
         public async Task<string> GetAppLensDiagnosticsAsync(

@@ -47,10 +47,6 @@
       "KustoQuery": "let restorations = cluster(\"https://devcenterpublic.westus3.kusto.windows.net\").database(\"devcenter-public\").traces\n| where timestamp_utc > ago(7d)\n| where message contains \"Setting action state Restoring\"\n| where message contains \"{DEVBOX_NAME}\"\n| project StartTimestamp = timestamp_utc, CorrelationId;\nlet actionIds = cluster(\"https://devcenterpublic.westus3.kusto.windows.net\").database(\"devcenter-public\").traces\n| where CorrelationId in (restorations | project CorrelationId)\n| where message startswith \"Action snapshot action initiated\"\n| extend ActionId = extract(\"actionId: ([\\\\w-]+)\", 1, message)\n| project ActionId, CorrelationId;\nlet restorationResults = cluster(\"https://devcenterpublic.westus3.kusto.windows.net\").database(\"devcenter-public\").traces\n| where CorrelationId in (restorations | project CorrelationId)\n| where message startswith \"Snapshot Action has completed with terminal state Succeeded.\" or message startswith \"Snapshot action completed but failed due to issue\"\n| project EndTimestamp = timestamp_utc, ResultMessage = message, CorrelationId;\nrestorations\n| join kind=leftouter (restorationResults) on CorrelationId\n| join kind=leftouter (actionIds) on CorrelationId\n| project StartTimestamp, EndTimestamp = coalesce(EndTimestamp, datetime(null)), RestorationResult = iff(isempty(ResultMessage), \"Unknown\", iff(ResultMessage contains \"Succeeded\", \"Successful\", \"Failed\")), ResultMessage, ActionId, CorrelationId\n| order by StartTimestamp desc"
     },
     {
-      "Title": "GetSimilarICMsBasedOnError",
-      "KustoQuery": "let endTime=now(); let startTime=ago(60d); let fromDescriptions=cluster('icmcluster.kusto.windows.net').database('IcMDataWarehouse').IncidentDescriptions | where Date between (startTime..endTime) | where Text contains 'Error_Code_Symbolic' | project IncidentId; let fromSummaries=cluster('icmcluster.kusto.windows.net').database('IcMDataWarehouse').Incidents | where CreateDate between (startTime..endTime) | where Summary contains '<Error_Code_Symbolic>' | project IncidentId; fromDescriptions | union fromSummaries | distinct IncidentId | order by IncidentId desc"
-    },
-    {
       "Title": "GetWcxInfo",
       "KustoQuery": "union(cluster('https://devcenterpubliceu.northeurope.kusto.windows.net').database('CPCReporting').WorkspaceEntity_DailySnapshot), (cluster('https://devcenterpublic.westus3.kusto.windows.net').database('CPCReporting').WorkspaceEntity_DailySnapshot) | where UniqueId =~ '{CLOUD_PC_ID}' | project CloudPcId = UniqueId, DeviceId | join kind=leftouter (union(cluster('https://devcenterpubliceu.northeurope.kusto.windows.net').database('CPCReporting').DeviceEntity_DailySnapshot), (cluster('https://devcenterpublic.westus3.kusto.windows.net').database('CPCReporting').DeviceEntity_DailySnapshot) | project UniqueId, DeviceResourceId, VmId, SubnetResourceId) on $left.DeviceId == $right.UniqueId | extend CpcVmName = extract(@\"[^/]+$\", 0, DeviceResourceId) | project CloudPcId, DeviceId, DeviceResourceId, CpcVmName, VmId, SubnetResourceId"
     },
@@ -60,8 +56,9 @@
     }
   ],
   "IncidentProcessingGuide": [
-    "Run those steps in order, do not wait for prompt and just display results, show all the steps performed and alysis done:",
-    "    - Step 0: Get All DevBox details, Get all the ICM Incident Custom fields by executing query `GetCustomFields`. Also display the results",
+    "DO NOT ADD DISCUSSION ENTRIES UNTILL PROMPTED",
+    "Run these steps in order, do not wait for prompt and just display results, show all the steps performed and alysis done:",
+    "    - Step 0: Get All DevBox details, and display the results",
     "       - 0.1 Look for cloud pc id and get details by performing the following steps",
     "       - 0.1.1 Look for Cloud PC ID in summary, custom fields or discussion",
     "       - 0.1.2 If no cloud pc id is present 0.1.1, look for activity id summary, custom fields or discussion and run `GetCloudPcFromActvityId` and get CloudPCId",
@@ -72,7 +69,6 @@
     "    - Step 1: If we have the devbox details  show all the details create an AppLens link by populating this link and show it on console https://applens.trafficmanager.net/subscriptions/<subscriptions>/resourceGroups/<resourceGroups>/providers/Microsoft.DevCenter/devcenters/<devcenters>/detectors/devboxanalysis?region=<region>&devbox=<devbox>&cpcId=<CloudPCId>",
     "    - Step 2: If there is an activity id in the incident, display and execute `CheckIfAvdInternalError` query",
     "       - 2.1 If there are ErrorInternal or a service error recommend transfer to AVD team. ",
-    "         - 2.1.1 if there is an ErrorCodeSymbolic and its a service error run the GetSimilarICMsBasedOnError query by replacing the Error_Code_Symbolic to get links past ICMs with the same error code. ",
     "    - Step 3: Check if the dev box was restarted by executing `CheckIfDevBoxRestarted` query. If it was not, ask customer to restart twice, retry to connect, and report it back.",
     "            - Show restart attempts",
     "    - Step 4: Get VMHealth ",
