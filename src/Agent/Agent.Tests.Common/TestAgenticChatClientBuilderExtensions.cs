@@ -54,7 +54,7 @@ namespace Agent.Tests.Common
                   
                 foreach (var chatMessage in chatMessages)
                 {
-                    hash = AIJsonUtilities.HashDataToString([chatMessage], _hashingOptions);
+                    hash = CachingHelpers.GetCacheKey([chatMessage], _hashingOptions);
                     if (_hashes.Contains(hash))
                     {
                         continue;
@@ -103,7 +103,7 @@ namespace Agent.Tests.Common
                         _logger.LogTrace($"{msg.Role}: {msg.Text}");
                     }
 
-                    hash = AIJsonUtilities.HashDataToString([msg], _hashingOptions);
+                    hash = CachingHelpers.GetCacheKey([msg], _hashingOptions);
                     _hashes.Add(hash);
                     _debugTracking[hash] = msg;
                 }

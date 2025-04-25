@@ -18,7 +18,6 @@
 		<PackageReference Include="Markdig" />
 		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
 		<PackageReference Include="System.Linq" />
-    <PackageReference Include="Azure.AI.OpenAI" VersionOverride="2.2.0-beta.4" />
 	</ItemGroup>
 
 	<ItemGroup>

@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_5L6sNqyKSgRHmsMSCbtrzpRj",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "✅ Successfully updated the minimum TLS version for **App1** to **1.2**. Monitoring traffic for anomalies at `2025-02-24T01:00:00Z`."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BOvbuBtBA2CeLPcKROlJIx52DakY7",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-22T00:17:06+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 3429,
+    "outputTokenCount": 54,
+    "totalTokenCount": 3483,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 3200,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

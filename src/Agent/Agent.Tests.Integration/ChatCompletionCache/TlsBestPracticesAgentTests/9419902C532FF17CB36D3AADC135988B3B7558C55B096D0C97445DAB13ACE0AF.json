@@ -1,0 +1,39 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_LsUo5UeDQksERfGOz0ks0wY4",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "UpdateTls",
+            "title": "Rollback TLS Version for App2",
+            "status": "Completed"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BOvaBGhwwHXEoexK8G7HxDtSlojul",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-04-22T00:15:19+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5271,
+    "outputTokenCount": 30,
+    "totalTokenCount": 5301,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 4992,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

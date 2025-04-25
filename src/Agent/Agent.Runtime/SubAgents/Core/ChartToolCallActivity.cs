@@ -52,7 +52,7 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
         try
         {
             // Invoke the function
-            var invokeResult = await matchingTool.InvokeAsync(new AIFunctionArguments(input.FunctionCallContent.Arguments));
+            var invokeResult = await matchingTool.InvokeAsync(input.FunctionCallContent.Arguments);
             var result = new FunctionResultContent(input.FunctionCallContent.CallId, invokeResult);
 
             // Return successful result
