@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -139,6 +139,7 @@ For every Azure SRE request, follow this pattern:
 
 ## Special Notes
 <strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
+<strong>** FOR ANY CONTAINER APP DOWN OR FAILURE ISSUES, IF INITIAL INVESTIGATION SHOWS IT IS RELATED TO CONTAINER IMAGE PULL FAILURES, IMMEDIATELY DELEGATE TO CONTAINER IMAGE PULL FAILURE AGENT BY USING `startContainerImagePullAgent` **</strong>
 <strong>**FOR ANY AKS RELATED REQUESTS, YOU MUST DELEGATE TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 

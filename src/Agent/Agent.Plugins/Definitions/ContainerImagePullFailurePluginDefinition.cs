@@ -63,14 +63,14 @@ namespace Agent.Plugins.Definitions
             return await _containerImagePullFailurePlugin.VerifyExternalRegistryAsync(resourceId, imageReference);
         }
 
-        [KernelFunction("check_image_pulling")]
-        [Description("Checking the status of image pulling for given container resource")]
-        public async Task<ImagePullingResult> CheckImagePulling(
-            [Description("Resource ID of the Container App to check")]
-            string resourceId)
-        {
-            return await _containerImagePullFailurePlugin.CheckImagePulling(resourceId);
-        }
+        // [KernelFunction("check_image_pulling")]
+        // [Description("Checking the status of image pulling for given container resource")]
+        // public async Task<ImagePullingResult> CheckImagePulling(
+        //     [Description("Resource ID of the Container App to check")]
+        //     string resourceId)
+        // {
+        //     return await _containerImagePullFailurePlugin.CheckImagePulling(resourceId);
+        // }
 
         [KernelFunction("is_acr_image_manifest_accessible")]
         [Description("Check if the image in ACR is accessible. Validates ACR connectivity.")]

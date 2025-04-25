@@ -170,7 +170,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
         try
         {
-            var response = await chatClient.GetResponseAsync<List<string>>(messages, options, useJsonSchema: true);
+            var response = await chatClient.GetResponseAsync<List<string>>(messages, options, useNativeJsonSchema: true);
             return response.Result;
         }
         catch (Exception ex)

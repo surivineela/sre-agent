@@ -31,11 +31,11 @@ public sealed class ContainerImagePullFailureAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
         toolSignatures.Add(_toolsRepository.GetSignature(() => timePluginDefinition.GetAppTimeZone));
 
-        // Registry verification tools
+        // Container Image Pull Failure diagnostic tools
         var containerImagePullFailurePluginDefinition = new ContainerImagePullFailurePluginDefinition(containerImagePullFailurePlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckAcrAuthentication));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.VerifyExternalRegistry));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
+        // toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.CheckImagePulling));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetImageReferenceFromResourceId));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.GetNetworkSecurityRulesForResource));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerImagePullFailurePluginDefinition.IsAzureContainerRegistryImageAccessibleAsync));
