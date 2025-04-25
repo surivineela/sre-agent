@@ -53,10 +53,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="Helpers\SupportProductMetadata\2340ae8b-c745-572f-6ea8-661d68c08bd7\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
 	  <None Update="Helpers\SupportProductMetadata\6f16735c-b0ae-b275-ad3a-03479cfa1396\SupportProblemClassification.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Helpers\SupportProductMetadata\95412dd5-f222-a91f-98a6-144a84418c66\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Helpers\SupportProductMetadata\98e5cec8-2650-28c1-92e8-0ecaa232eec0\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Helpers\SupportProductMetadata\cddd3eb5-1830-b494-44fd-782f691479dc\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Helpers\SupportProductMetadata\de8937fc-74cc-daa7-2639-e1fe433dcb87\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Helpers\SupportProductMetadata\e9e31931-21fa-d50a-e6e7-e37d5d784591\SupportProblemClassification.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Helpers\SupportProductMetadata\f66fac5c-01e5-e8db-2ef8-e1a98a88e214\SupportProblemClassification.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Helpers\SupportProductMetadata\SupportProductsFromArm.json">

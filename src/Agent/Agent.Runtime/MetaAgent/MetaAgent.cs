@@ -98,7 +98,7 @@ Before initiating any Azure resource operations:
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 - **Storage Account Remediation**: Help users with making changes storage account settings
-- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
+- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virtual Machine
 - **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
 - **Web App Down Investigation**: Help users mitigate and resolve any issues with Web App Services having downtime.
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account

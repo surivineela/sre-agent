@@ -14,11 +14,11 @@ public class VmRdpInvestigatorAgent: GenericAgentOrchestrator<VmRdpInvestigatorA
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(VmRdpInvestigatorAgent), "VmRdpInvestigatorAgentPlan.txt");
         var systemPrompt = File.ReadAllText(path);
-        var monitoringMessage = $"Thank you for the confirmation, I will now attempt to investigate issues causing RDP failure with {agentInput.VirtualMachineResourceId}";
+        var userMessage = $"Please investigate RDP failure issue with VM {agentInput.VirtualMachineResourceId}";
 
         List<ChatMessage> chatHistory = [
             new ChatMessage(ChatRole.System, systemPrompt),
-            new ChatMessage(ChatRole.System, monitoringMessage)
+            new ChatMessage(ChatRole.User, userMessage)
         ];
 
         // Send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)

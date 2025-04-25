@@ -35,7 +35,6 @@ public sealed class VmRdpInvestigatorAgentFactory
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
