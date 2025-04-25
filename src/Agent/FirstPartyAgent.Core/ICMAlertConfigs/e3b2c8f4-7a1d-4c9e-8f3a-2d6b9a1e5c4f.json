@@ -1,0 +1,94 @@
+{
+  "AlertingId": "e3b2c8f4-7a1d-4c9e-8f3a-2d6b9a1e5c4f",
+  "AgentMode": "ICMAgent",
+  "OwningTeams": [ "AZURELABSERVICESDEVTESTCENTER\\DevBoxRemoteDesktopConnectivity", "AZURELABSERVICESDEVTESTCENTER\\Triage" ],
+  "IncidentTitleContains": "connect",
+  "ActionTimeoutIntervalInMinutes": 15,
+  "DefaultHumanInterventionLoop": "",
+  "KustoQueries": [
+    {
+      "Title": "GetCustomFields",
+      "KustoQuery": "cluster('icmcluster.kusto.windows.net').database('IcMDataWarehouse').IncidentCustomFieldEntries | where IncidentId == '<INCIDENT_ID>' | project Name, Value"
+    },
+    {
+      "Title": "GetCloudPcFromActvityId",
+      "KustoQuery": "union(cluster('wcxpublicsharingbl.eastus.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream), (cluster('wcxpublicsharingdm.centralus.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream), (cluster('wcxpublicsharingmwh.westus2.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream), (cluster('wcxpublicsharingam.westeurope.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream), (cluster('wcxpublicsharingdb.northeurope.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream), (cluster('wcxpublicsharingsy.australiaeast.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream), (cluster('wcxpublicsharingsg.southeastasia.kusto.windows.net').database('Report').WVDConnections_Fidalgo_FastStream) | where ActivityId =~ '<ACTIVITY_ID>' | distinct CloudPcId"
+    },
+    {
+      "Title": "GetDevBoxInfoFromCloudPC",
+      "KustoQuery": "union(cluster('devcenterpreporting.westus3.kusto.windows.net').database('Reporting').ResourceOperation), (cluster('devcenterpreportingeu.northeurope.kusto.windows.net').database('Reporting').ResourceOperation) | where ResourceType contains 'virtualmachine' and Action == 'Creation' and EUAdditionalProperties contains 'CloudPCResourceId' | extend SubscriptionId = tostring(AdditionalProperties['SubscriptionId']), DevCenter = tostring(AdditionalProperties['DevCenter']), UniqueId = tostring(AdditionalProperties['UniqueId']), Project = tostring(AdditionalProperties['Project']), Pool = tostring(AdditionalProperties['Pool']), Region = tostring(AdditionalProperties['Region']) | order by EventTime desc | extend CloudPCId = tostring(EUAdditionalProperties['CloudPCResourceId']), DevBox = extract(@\":([^:]+)$\", 1, ResourceId) | where CloudPCId =~ '<CLOUD_PC_ID>' and isnotempty(CloudPCId) and isnotempty(Pool) | distinct EventTime, Action, SubscriptionId, DevCenter, Project, Pool, DevBox, CloudPCId, Region, UniqueId"
+    },
+    {
+      "Title": "GetDevBoxInfoFromDevBoxName",
+      "KustoQuery": "union(cluster('devcenterpreporting.westus3.kusto.windows.net').database('Reporting').ResourceOperation), (cluster('devcenterpreportingeu.northeurope.kusto.windows.net').database('Reporting').ResourceOperation) | where ResourceType contains 'virtualmachine' and Action == 'Creation' and EUAdditionalProperties contains 'CloudPCResourceId' | extend SubscriptionId = tostring(AdditionalProperties['SubscriptionId']), DevCenter = tostring(AdditionalProperties['DevCenter']), UniqueId = tostring(AdditionalProperties['UniqueId']), Project = tostring(AdditionalProperties['Project']), Pool = tostring(AdditionalProperties['Pool']), Region = tostring(AdditionalProperties['Region']) | order by EventTime desc | extend CloudPCId = tostring(EUAdditionalProperties['CloudPCResourceId']), DevBox = extract(@\":([^:]+)$\", 1, ResourceId) | where DevBox contains '<DEVBOX_NAME>' | distinct EventTime, Action, SubscriptionId, DevCenter, Project, Pool, DevBox, CloudPCId, Region, UniqueId"
+    },
+    {
+      "Title": "CheckIfAvdInternalError",
+      "KustoQuery": "union(cluster('wcxpublicsharingbl.eastus.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream), (cluster('wcxpublicsharingdm.centralus.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream), (cluster('wcxpublicsharingmwh.westus2.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream), (cluster('wcxpublicsharingam.westeurope.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream), (cluster('wcxpublicsharingdb.northeurope.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream), (cluster('wcxpublicsharingsy.australiaeast.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream), (cluster('wcxpublicsharingsg.southeastasia.kusto.windows.net').database('Report').WVDErrors_Fidalgo_FastStream) | where Timestamp > ago(20d) and ActivityId =~ '<ACTIVITY_ID> | project Timestamp, ActivityId, CodeSymbolic, Message, ServiceError"
+    },
+    {
+      "Title": "CheckSsoEnabled",
+      "KustoQuery": "cluster(\"https://cpcdatasharingp.westus3.kusto.windows.net\").database(\"Reporting\").WorkspaceEntity_MV\n| where UniqueId =~ \"<CLOUD_PC_ID>\"\n| extend isSsoEnabled = parse_json(ProvisionRecipe)[\"isSsoEnabled\"]\n| project isSsoEnabled"
+    },
+    {
+      "Title": "CheckIfDevBoxRestarted",
+      "KustoQuery": "cluster(\"https://devcenterpubliceu.northeurope.kusto.windows.net\").database(\"devcenter-public\").requests\n| union (cluster(\"https://devcenterpubliceu.northeurope.kusto.windows.net\").database(\"devcenter-public\").requests)\n| where timestamp_utc > ago(5d)\n| where Name == \"POST /PROJECTS/USERS/DEVBOXES/RESTART/\"\n| where Url contains \"{DEVBOX_NAME}\""
+    },
+    {
+      "Title": "CheckVMHealthStatus",
+      "KustoQuery": "union(cluster('wcxpublicsharingbl.eastus.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingdm.centralus.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingmwh.westus2.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingam.westeurope.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingdb.northeurope.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingsy.australiaeast.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingsg.southeastasia.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingmwh.westus2').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream) | where Timestamp > ago(10d) and CloudPcId =~ '<CLOUD_PC_ID>' | project Timestamp, Status, EndpointState, UpgradeState, UpgradeErrorMsg | order by Timestamp | take 5"
+    },
+    {
+      "Title": "LastHealthyTimestamps",
+      "KustoQuery": "union(cluster('wcxpublicsharingbl.eastus.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingdm.centralus.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingmwh.westus2.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingam.westeurope.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingdb.northeurope.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingsy.australiaeast.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingsg.southeastasia.kusto.windows.net').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream), (cluster('wcxpublicsharingmwh.westus2').database('Report').WVDAgentHealthStatus_Fidalgo_FastStream) | where Timestamp > ago(10d) and CloudPcId =~ '<CLOUD_PC_ID>' and EndpointState == 'Healthy' | project Timestamp, Status, EndpointState, UpgradeState, UpgradeErrorMsg | order by Timestamp | take 5"
+    },
+    {
+      "Title": "GetRestorationsResults",
+      "KustoQuery": "let restorations = cluster(\"https://devcenterpublic.westus3.kusto.windows.net\").database(\"devcenter-public\").traces\n| where timestamp_utc > ago(7d)\n| where message contains \"Setting action state Restoring\"\n| where message contains \"{DEVBOX_NAME}\"\n| project StartTimestamp = timestamp_utc, CorrelationId;\nlet actionIds = cluster(\"https://devcenterpublic.westus3.kusto.windows.net\").database(\"devcenter-public\").traces\n| where CorrelationId in (restorations | project CorrelationId)\n| where message startswith \"Action snapshot action initiated\"\n| extend ActionId = extract(\"actionId: ([\\\\w-]+)\", 1, message)\n| project ActionId, CorrelationId;\nlet restorationResults = cluster(\"https://devcenterpublic.westus3.kusto.windows.net\").database(\"devcenter-public\").traces\n| where CorrelationId in (restorations | project CorrelationId)\n| where message startswith \"Snapshot Action has completed with terminal state Succeeded.\" or message startswith \"Snapshot action completed but failed due to issue\"\n| project EndTimestamp = timestamp_utc, ResultMessage = message, CorrelationId;\nrestorations\n| join kind=leftouter (restorationResults) on CorrelationId\n| join kind=leftouter (actionIds) on CorrelationId\n| project StartTimestamp, EndTimestamp = coalesce(EndTimestamp, datetime(null)), RestorationResult = iff(isempty(ResultMessage), \"Unknown\", iff(ResultMessage contains \"Succeeded\", \"Successful\", \"Failed\")), ResultMessage, ActionId, CorrelationId\n| order by StartTimestamp desc"
+    },
+    {
+      "Title": "GetSimilarICMsBasedOnError",
+      "KustoQuery": "let endTime=now(); let startTime=ago(60d); let fromDescriptions=cluster('icmcluster.kusto.windows.net').database('IcMDataWarehouse').IncidentDescriptions | where Date between (startTime..endTime) | where Text contains 'Error_Code_Symbolic' | project IncidentId; let fromSummaries=cluster('icmcluster.kusto.windows.net').database('IcMDataWarehouse').Incidents | where CreateDate between (startTime..endTime) | where Summary contains '<Error_Code_Symbolic>' | project IncidentId; fromDescriptions | union fromSummaries | distinct IncidentId | order by IncidentId desc"
+    },
+    {
+      "Title": "GetWcxInfo",
+      "KustoQuery": "union(cluster('https://devcenterpubliceu.northeurope.kusto.windows.net').database('CPCReporting').WorkspaceEntity_DailySnapshot), (cluster('https://devcenterpublic.westus3.kusto.windows.net').database('CPCReporting').WorkspaceEntity_DailySnapshot) | where UniqueId =~ '{CLOUD_PC_ID}' | project CloudPcId = UniqueId, DeviceId | join kind=leftouter (union(cluster('https://devcenterpubliceu.northeurope.kusto.windows.net').database('CPCReporting').DeviceEntity_DailySnapshot), (cluster('https://devcenterpublic.westus3.kusto.windows.net').database('CPCReporting').DeviceEntity_DailySnapshot) | project UniqueId, DeviceResourceId, VmId, SubnetResourceId) on $left.DeviceId == $right.UniqueId | extend CpcVmName = extract(@\"[^/]+$\", 0, DeviceResourceId) | project CloudPcId, DeviceId, DeviceResourceId, CpcVmName, VmId, SubnetResourceId"
+    },
+    {
+      "Title": "CheckAllocationFailures",
+      "KustoQuery": "cluster('azcrp').database('crp_allprod').ApiQosEvent\n| where errorDetails contains \"allocation failed\"\n| where resourceName == '{CPC_VM_NAME}'\n| project TIMESTAMP, resourceName, errorDetails"
+    }
+  ],
+  "IncidentProcessingGuide": [
+    "Run those steps in order, do not wait for prompt and just display results, show all the steps performed and alysis done:",
+    "    - Step 0: Get All DevBox details, Get all the ICM Incident Custom fields by executing query `GetCustomFields`. Also display the results",
+    "       - 0.1 Look for cloud pc id and get details by performing the following steps",
+    "       - 0.1.1 Look for Cloud PC ID in summary, custom fields or discussion",
+    "       - 0.1.2 If no cloud pc id is present 0.1.1, look for activity id summary, custom fields or discussion and run `GetCloudPcFromActvityId` and get CloudPCId",
+    "       - 0.1.3 If you found cloud pc id get devbox details from `GetDevBoxInfoFromCloudPC`",
+    "       - 0.2 if 0.1 did not return any devbox information try looking for devbox name summary, custom fields or discussion",
+    "       - 0.2.1  Based on the dev box name (sometimes the name is displayed as `Dev box ID`) get all the dev box information executing query `GetDevBoxInfoFromDevBoxName` and post in the icm replace DEVBOX_NAME with the devbox name. If there are multiple results, try to match the correct one based on other data might provided in the incident, like pool, project or  dev center name. If you can not narrow down to only one, ask customer to provide more info so we can proceed with investigations. If no row is displayed, post in the icm that dev box does not exist and do not proceed with any more steps.",
+    "       - 0.4 if we were not able to get all the details about the devbox like name cloud pc id and devbox name ask customer to provide the missing information",
+    "    - Step 1: If we have the devbox details  show all the details create an AppLens link by populating this link and show it on console https://applens.trafficmanager.net/subscriptions/<subscriptions>/resourceGroups/<resourceGroups>/providers/Microsoft.DevCenter/devcenters/<devcenters>/detectors/devboxanalysis?region=<region>&devbox=<devbox>&cpcId=<CloudPCId>",
+    "    - Step 2: If there is an activity id in the incident, display and execute `CheckIfAvdInternalError` query",
+    "       - 2.1 If there are ErrorInternal or a service error recommend transfer to AVD team. ",
+    "         - 2.1.1 if there is an ErrorCodeSymbolic and its a service error run the GetSimilarICMsBasedOnError query by replacing the Error_Code_Symbolic to get links past ICMs with the same error code. ",
+    "    - Step 3: Check if the dev box was restarted by executing `CheckIfDevBoxRestarted` query. If it was not, ask customer to restart twice, retry to connect, and report it back.",
+    "            - Show restart attempts",
+    "    - Step 4: Get VMHealth ",
+    "        - Run CheckVMHealthStatus query using CloudPcId form step 0",
+    "        - If Status is `Unavailable` together with errors in the DiagnosisCode, or if  together with a `running` PowerStatus or 'AVDStatus' is 'Needs Assistance' the machine is unhealthy. Note AVDStatus `Unavailable` alone doesn't mean machine is unhealthy, always check for DiagnosisCode and `PowerStatus` to evaluate.  If machine is unhealthy:",
+    "        - Confirm that customer has performed 2 restarts by using CheckIfDevBoxRestarted query.",
+    "        - Verify if customer had performed any restoration running GetRestorationsResults query, updating the dev box name based on step 1. Post restoration attempts and results in the icm. Based on the result:",
+    "            - Run LastHealthyTimestamps query",
+    "            - If no restoration attempted, using data from LastHealthyTimestamps query to determine the last consistent timestamp where CloudPC was healthy, and ask customer to self-restore from Dev Box portal. They should access 'https://devbox.microsoft.com', click in the three dots for the affected dev box, then 'Restore',   picking a snapshot earlier than the last health timestamp, got from LastHealthyTimestamps query.",
+    "            - If restoration was attempted but machine is still unhealthy using most recent CheckVMHealthStatus query, ask customer to retry using an earlier time snapshot.",
+    "            - If customers have done 3 restorations but all failed, note down the actionId of all 3 restorations in the IcM and transfer the IcM to CloudPC Service\\Cloud PC NetworkStorageBCDR for review.",
+    "            - If the restoration succeeded but customers still cannot connect to DevBox, ask them to restart and troubleshoot the DevBox.",
+    "            - If the customer has data they cannot afford to lose, start the broken DevBox data recovery process. Inform the customer that this is in the experimental phase and requires their effort to complete. Also, any unforeseen issues that may arise during the process are beyond the scope of the DevBox Team’s responsibilities.",
+    "    - Step 5: Based on CloudPcId got from step 0, look for allocation failures running CheckAllocationFailures query. If the query has results, it means the dev box is facing allocation failures.  Suggest customer to keep restarting the DevBox until successful, or provision a new DevBox in another region manually",
+    "    - Step 6: If customer mentioned they can connect via RDP and Windows App, but they are facing issues connecting via web only,  this might be a web-specific issue, especially if you have traversed all previous steps. In this case, Transfer the IcM to the 'CloudPC Service/Cloud PC Nighthawk & EUX' team for further investigation",
+    "    - Step 7: If customer mentioned they can connect via RDP and web portal, but they are facing issues connecting via Windows App only,  this might be a Windows App-specific issue. Please ask customer to delete and reinstall windows app and try again. If error persist, transfer the IcM to the 'CloudPC Service/Cloud PC Nighthawk & EUX' team for further investigation"
+  ],
+  "Owners": [ "drielene", "aspaankamboj" ]
+}

@@ -42,6 +42,9 @@
 	  <None Include="ICMAlertConfigs\e6f9db3c-80ab-485c-a428-ed3a0b4c24c3.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
+	  <None Include="ICMAlertConfigs\e3b2c8f4-7a1d-4c9e-8f3a-2d6b9a1e5c4f.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
     <None Include="ICMAlertConfigs\0da2f663-321c-47a3-80b7-78dcb9e9a263.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
