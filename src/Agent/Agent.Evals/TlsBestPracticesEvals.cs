@@ -1,5 +1,6 @@
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
@@ -13,6 +14,7 @@ using Microsoft.Extensions.Hosting;
 
 namespace Agent.Evals;
 
+[DoNotParallelize]
 [TestClass]
 public class TlsBestPracticesEvals
 {
@@ -82,7 +84,7 @@ public class TlsBestPracticesEvals
 
     [TestMethod]
     [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
-    public async Task UpdateHealthyApps(string iteration)
+    public async Task Tls_UpdateHealthyApps(string iteration)
     {
         var tokenSource = new CancellationTokenSource();
         tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
@@ -135,7 +137,7 @@ public class TlsBestPracticesEvals
                 _durableTaskClient,
                 _mocks.TimeProvider,
                 instanceID,
-                null, // seriously MSTest, why don't you have an ILogger?
+                logger: null, 
                 tokenSource.Token);
 
             OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
@@ -151,21 +153,361 @@ public class TlsBestPracticesEvals
 
             foreach (var app in _testApps)
             {
-                Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(app.ResourceId), ignoreCase: true, $"App {app.Name} does not have expected TLS setting.");
+                Assert.AreEqual(agentInput.DesiredVersion, _mocks.ArmPlugin.GetTlsStatus(app.ResourceId), ignoreCase: true, $"App {app.Name} does not have expected TLS setting.");
             }
         }
         catch (Grpc.Core.RpcException ex)
         {
             Assert.Fail($"Make sure you have the DTS emulator running (run-durable-emulator.ps1) or your appsettings.development.json has a valid Durable Task Scheduler connection string.{Environment.NewLine} {ex}");
         }
-        catch (TaskCanceledException)
+        finally
         {
             if (!string.IsNullOrEmpty(instanceID))
             {
                 await _durableTaskClient.TerminateInstanceAsync(instanceID, new TerminateInstanceOptions { Output = "test cleanup", Recursive = true });
             }
-            Assert.Fail("Orchestration timed out");
         }
     }
 
+    [TestMethod]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
+    public async Task Tls_RollbackUnhealthyApp(string iteration)
+    {
+        var tokenSource = new CancellationTokenSource();
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+
+        _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
+
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        evalInput.GroundedContext = """
+            ## Ground Truth:
+            1. Recieve the list of applications that need to be updated to the specified TLS version
+            2. Request and wait for an approval
+            3. Perform the updates one by one, monitoring health for 30 seconds before moving to the next app
+            4. App1 should be updated, App2 should be rolled back, the remaining apps should not be updated.
+            5. Acknowledge that the update is complete.
+
+            ## Expected Response Characteristics
+            - The agent should keep the user informed as it performs each step of the update
+            - The responses should make good use of emoji, be brief but informative.
+            - The response should avoid unnecessary information or ambiguity.
+            """;
+
+        evalInput.ExampleResponse = """
+            Here are several examples of good responses for a few different steps of the process:
+
+            ## Example 1
+
+            ✅ TLS version update completed for <appname> at 2025-02-24T01:00:00. No anomalies detected.
+
+            ## Example 2
+
+            ▶️ TLS version update initiated for <appname> at 2025-02-24T01:00:00.0000000Z
+
+            ## Example 3
+
+            ⚠️ Traffic anomaly detected for <appname> after TLS update! Attempting rollback to the previous version immediately (TLS 1.0).
+
+            ## Example 4
+
+            🔄 Rollback completed for **App2**. Resuming execution with **App3**.
+
+            ## Example 5
+
+            - ✅ **App1** successfully updated to TLS 1.2 at `2025-02-24T01:00:00Z`. No anomalies detected.
+            - ⚠️ **App2** updated to TLS 1.2 at `2025-02-24T01:00:00Z`, but traffic anomalies were detected. 🔄 Rollback to TLS 1.0 completed.
+            - ✅ **App3** successfully updated to TLS 1.2 at `2025-02-24T01:00:00Z`. No anomalies detected.
+            - ✅ **App4** successfully updated to TLS 1.2 at `2025-02-24T01:00:00Z`. No anomalies detected.
+            - ✅ **App5** successfully updated to TLS 1.2 at `2025-02-24T01:00:00Z`. No anomalies detected.
+
+            The update was completed successfully without any issues. 🎉
+            """;
+
+        var agentInput = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
+        string? instanceID = "";
+
+        try
+        {
+            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+
+            await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+            (
+                ChatRole.User,
+                "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
+            ));
+
+            await ApprovalTestHelper.DoApproval(
+                _durableTaskClient,
+                _mocks.TimeProvider,
+                instanceID,
+                logger: null,
+                tokenSource.Token);
+
+            OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
+            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
+
+            var fullHistory = orchestrationMetadata.ReadChatHistory();
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+
+            foreach (var app in _testApps)
+            {
+                TestContext.WriteLine($"Test complete. App {app.Name} is now set to TLS {_mocks.ArmPlugin.GetTlsStatus(app.ResourceId)}");
+            }
+
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[0].ResourceId), ignoreCase: true, $"App {_testApps[0].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[1].ResourceId), ignoreCase: true, $"App {_testApps[1].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[2].ResourceId), ignoreCase: true, $"App {_testApps[2].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[3].ResourceId), ignoreCase: true, $"App {_testApps[3].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[4].ResourceId), ignoreCase: true, $"App {_testApps[4].Name} does not have expected TLS setting.");
+        }
+        catch (Grpc.Core.RpcException ex)
+        {
+            Assert.Fail($"Make sure you have the DTS emulator running (run-durable-emulator.ps1) or your appsettings.development.json has a valid Durable Task Scheduler connection string.{Environment.NewLine} {ex}");
+        }
+        finally
+        {
+            if (!string.IsNullOrEmpty(instanceID))
+            {
+                await _durableTaskClient.TerminateInstanceAsync(instanceID, new TerminateInstanceOptions { Output = "test cleanup", Recursive = true });
+            }
+        }
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
+    public async Task Tls_AbortOnUnhealthy(string iteration)
+    {
+        var tokenSource = new CancellationTokenSource();
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        evalInput.GroundedContext = """
+            ## Ground Truth:
+            1. Recieve the list of applications that need to be updated to the specified TLS version
+            2. Request and wait for an approval
+            3. Perform the updates one by one, monitoring health for 30 seconds before moving to the next app
+            4. App1 should be updated, App2 should be rolled back, the remaining apps should not be updated.
+            5. Acknowledge that the update is complete.
+
+            ## Expected Response Characteristics
+            - The agent should keep the user informed as it performs each step of the update
+            - The responses should make good use of emoji, be brief but informative.
+            - The response should avoid unnecessary information or ambiguity.
+            """;
+
+        evalInput.ExampleResponse = """
+            Here are several examples of good responses for a few different steps of the process:
+
+            ## Example 1
+
+            ✅ TLS version update completed for <appname> at 2025-02-24T01:00:00. No anomalies detected.
+
+            ## Example 2
+
+            ▶️ TLS version update initiated for <appname> at 2025-02-24T01:00:00.0000000Z
+
+            ## Example 3
+
+            ⚠️ Traffic anomaly detected for <appname> after TLS update! Attempting rollback to the previous version immediately (TLS 1.0).
+
+            ## Example 4
+
+            🔄 Rollback to TLS 1.0 completed for **App2**. 
+
+            ## Example 5
+
+            - **App1**: ✅ TLS version updated to 1.2 successfully with no anomalies detected.
+            - **App2**: ⚠️ Anomaly detected post-update. Rolled back to TLS 1.0.
+            - **App3**: ⏸ No update made due to App2 rollback.
+            - **App4**: ⏸ No update made due to App2 rollback.
+            - **App5**: ⏸ No update made due to App2 rollback.
+
+            The update was completed successfully without any issues. 🎉
+            """;
+
+        _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
+        var agentInput = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
+        string? instanceID = "";
+
+        try
+        {
+            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+
+            await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+            (
+                ChatRole.User,
+                "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
+            ));
+
+            await ApprovalTestHelper.DoApproval(
+                _durableTaskClient,
+                _mocks.TimeProvider,
+                instanceID,
+                logger: null,
+                tokenSource.Token);
+
+            OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
+            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
+
+            var fullHistory = orchestrationMetadata.ReadChatHistory();
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+
+            foreach (var app in _testApps)
+            {
+                TestContext.WriteLine($"Test complete. App {app.Name} is now set to TLS {_mocks.ArmPlugin.GetTlsStatus(app.ResourceId)}");
+            }
+
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[0].ResourceId), ignoreCase: true, $"App {_testApps[0].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[1].ResourceId), ignoreCase: true, $"App {_testApps[1].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[2].ResourceId), ignoreCase: true, $"App {_testApps[2].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[3].ResourceId), ignoreCase: true, $"App {_testApps[3].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[4].ResourceId), ignoreCase: true, $"App {_testApps[4].Name} does not have expected TLS setting.");
+        }
+        catch (Grpc.Core.RpcException ex)
+        {
+            Assert.Fail($"Make sure you have the DTS emulator running (run-durable-emulator.ps1) or your appsettings.development.json has a valid Durable Task Scheduler connection string.{Environment.NewLine} {ex}");
+        }
+        finally
+        {
+            if (!string.IsNullOrEmpty(instanceID))
+            {
+                await _durableTaskClient.TerminateInstanceAsync(instanceID, new TerminateInstanceOptions { Output = "test cleanup", Recursive = true });
+            }
+        }
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
+    public async Task Tls_AskForConfirmationOnRollback(string iteration)
+    {
+        var tokenSource = new CancellationTokenSource();
+        tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
+
+        EvalInput evalInput = new EvalInput(_chatConfiguration, this.TestContext, _llmDeploymentName);
+        evalInput.GroundedContext = """
+            ## Ground Truth:
+            1. Recieve the list of applications that need to be updated to the specified TLS version
+            2. Request and wait for an approval
+            3. Perform the updates one by one, monitoring health for 30 seconds before moving to the next app
+            4. All five apps should be updated, but when app2 becomes unhealthy, the agent asks the user for input and then follows their instructions.
+            5. Acknowledge that the update is complete.
+
+            ## Expected Response Characteristics
+            - The agent should keep the user informed as it performs each step of the update
+            - The responses should make good use of emoji, be brief but informative.
+            - The response should avoid unnecessary information or ambiguity.
+            """;
+
+        evalInput.ExampleResponse = """
+            Here are several examples of good responses for a few different steps of the process:
+
+            ## Example 1
+
+            ✅ TLS version update completed for <appname> at 2025-02-24T01:00:00. No anomalies detected.
+
+            ## Example 2
+
+            ▶️ TLS version update initiated for <appname> at 2025-02-24T01:00:00.0000000Z
+
+            ## Example 3
+
+            ⚠️ Traffic anomaly detected for <appname> after TLS update! Should I perform a rollback to the previous version (TLS 1.0)? Please confirm.
+
+            ## Example 4
+
+            🔄 Rollback to TLS 1.0 completed for **App2**.
+
+            ## Example 5
+
+            - **App1**: ✅ TLS version updated to 1.2 successfully with no anomalies detected.
+            - **App2**: ⚠️ Updated to TLS 1.2, anomaly detected post-update. But user indicated that no rollback was necessary.
+            - **App3**: ✅ TLS version updated to 1.2 successfully with no anomalies detected.
+            - **App4**: ✅ TLS version updated to 1.2 successfully with no anomalies detected.
+            - **App5**: ✅ TLS version updated to 1.2 successfully with no anomalies detected.
+
+            The update was completed successfully. 🎉
+            """;
+
+        _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
+        var agentInput = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
+        string? instanceID = "";
+
+        try
+        {
+            instanceID = await _agentFactory.StartOrchestration(agentInput, Guid.NewGuid());
+
+            await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+            (
+                ChatRole.User,
+                "If any apps become unhealthy, I want you to ask me for confirmation on whether I want to proceed with the rollback, or leave the app as is. Specifically use the word confirmation when you request it."
+            ));
+
+            await ApprovalTestHelper.DoApproval(
+                _durableTaskClient,
+                _mocks.TimeProvider,
+                instanceID,
+                logger: null,
+                tokenSource.Token);
+
+            OrchestrationMetadata? orchestrationMetadata = null;
+
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(500), tokenSource.Token);
+
+                var last = _mocks.CommunicationService.Messages.Last();
+
+                // Wait for the model to ask us whether it should perform a rollback.
+                if (last != null
+                    && last.Contains("back", StringComparison.InvariantCultureIgnoreCase)
+                    && last.Contains("confirm", StringComparison.InvariantCultureIgnoreCase)
+                    && last.Contains("?"))
+                {
+                    // simulate the user taking a while to respond.
+                    await Task.Delay(TimeSpan.FromSeconds(5));
+
+                    await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+                    (
+                        ChatRole.User,
+                        "I checked the app myself, a rollback is not necessary. You can leave the app as is and proceed."
+                    ));
+                    break;
+                }
+
+                orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, tokenSource.Token);
+                if (orchestrationMetadata.IsCompleted)
+                {
+                    Assert.Fail("Orchestration completed before we could respond to the rollback confirmation.");
+                }
+            }
+
+            orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
+            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
+
+            var fullHistory = orchestrationMetadata.ReadChatHistory();
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+
+            foreach (var app in _testApps)
+            {
+                TestContext.WriteLine($"Test complete. App {app.Name} is now set to TLS {_mocks.ArmPlugin.GetTlsStatus(app.ResourceId)}");
+            }
+
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[0].ResourceId), ignoreCase: true, $"App {_testApps[0].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[1].ResourceId), ignoreCase: true, $"App {_testApps[1].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[2].ResourceId), ignoreCase: true, $"App {_testApps[2].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[3].ResourceId), ignoreCase: true, $"App {_testApps[3].Name} does not have expected TLS setting.");
+            Assert.AreEqual("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[4].ResourceId), ignoreCase: true, $"App {_testApps[4].Name} does not have expected TLS setting.");
+        }
+        catch (Grpc.Core.RpcException ex)
+        {
+            Assert.Fail($"Make sure you have the DTS emulator running (run-durable-emulator.ps1) or your appsettings.development.json has a valid Durable Task Scheduler connection string.{Environment.NewLine} {ex}");
+        }
+        finally
+        {
+            if (!string.IsNullOrEmpty(instanceID))
+            {
+                await _durableTaskClient.TerminateInstanceAsync(instanceID, new TerminateInstanceOptions { Output = "test cleanup", Recursive = true });
+            }
+        }
+    }
 }

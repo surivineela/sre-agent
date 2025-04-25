@@ -20,7 +20,7 @@ public static class EvaluatorExtensions
         };
     }
 
-    public static async Task<EvaluationResults> EvaluateAsync(
+    public static async Task<EvaluationResults?> EvaluateAsync(
         this ChatResponse chatResponse,
         TestContext testContext,
         ChatConfiguration? chatConfiguration,
@@ -36,23 +36,34 @@ public static class EvaluatorExtensions
         IEvaluator wordCoundEvaluator = new WordCountEvaluator();
         IEvaluator compositeEvaluator = new CompositeEvaluator(new[] { wordCoundEvaluator, sreAgentCoherenceEvaluator, sreAgentFluencyEvaluator, equivalenceEvaluator, groundednessEvaluator });
         var result = await compositeEvaluator.EvaluateAsync(messages, chatResponse, chatConfiguration);
-        StringMetric wordCount = result.Get<StringMetric>(WordCountEvaluator.WordCountMetricName);
-        StringMetric coherence = result.Get<StringMetric>(SreAgentCoherenceEvaluator.SreAgentCoherenceMetricName);
-        StringMetric fluency = result.Get<StringMetric>(SreAgentFluencyEvaluator.SreAgentFluencyMetricName);
-        StringMetric equivalence = result.Get<StringMetric>(SreAgentEquivalenceEvaluator.SreAgentEquivalenceMetricName);
-        StringMetric groundedness = result.Get<StringMetric>(SreAgentGroundednessEvaluator.SreAgentGroundednessMetricName);
 
-        var evaluationResults = new EvaluationResults
+        try
         {
-            WordCount = wordCount.GetEvaluationResult(),
-            Coherence = coherence.GetEvaluationResult(),
-            Fluency = fluency.GetEvaluationResult(),
-            Equivalence = equivalence.GetEvaluationResult(),
-            Groundedness = groundedness.GetEvaluationResult(),
-            LLMDeploymentName = llmDeploymentName,
-        };
+            StringMetric wordCount = result.Get<StringMetric>(WordCountEvaluator.WordCountMetricName);
+            StringMetric coherence = result.Get<StringMetric>(SreAgentCoherenceEvaluator.SreAgentCoherenceMetricName);
+            StringMetric fluency = result.Get<StringMetric>(SreAgentFluencyEvaluator.SreAgentFluencyMetricName);
+            StringMetric equivalence = result.Get<StringMetric>(SreAgentEquivalenceEvaluator.SreAgentEquivalenceMetricName);
+            StringMetric groundedness = result.Get<StringMetric>(SreAgentGroundednessEvaluator.SreAgentGroundednessMetricName);
 
-        testContext.WriteLine(JsonConvert.SerializeObject(evaluationResults));
-        return evaluationResults;
+            var evaluationResults = new EvaluationResults
+            {
+                WordCount = wordCount.GetEvaluationResult(),
+                Coherence = coherence.GetEvaluationResult(),
+                Fluency = fluency.GetEvaluationResult(),
+                Equivalence = equivalence.GetEvaluationResult(),
+                Groundedness = groundedness.GetEvaluationResult(),
+                LLMDeploymentName = llmDeploymentName,
+            };
+
+            testContext.WriteLine(JsonConvert.SerializeObject(evaluationResults));
+            return evaluationResults;
+        }
+        catch (Exception ex)
+        {
+            // Do not fail the whole test if we failed to calculate eval scores, just omit the eval result.
+            testContext.WriteLine($"Error calculating eval scores: {ex.Message}");
+            testContext.WriteLine(ex.ToString());
+            return null;
+        }
     }
 }

@@ -47,7 +47,10 @@ public class EvalInput
                     this.ExampleResponse,
                     this.LlmDeploymentName);
 
-                results.Add(result);
+                if (result != null)
+                {
+                    results.Add(result);
+                }
             }
         }
 
