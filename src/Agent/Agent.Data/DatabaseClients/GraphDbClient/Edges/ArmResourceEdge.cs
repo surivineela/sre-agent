@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection.Metadata;
+using Agent.Core;
+
 namespace Agent.Data.DatabaseClients.GraphDbClient
 {
     public interface IArmResourceGraphEdge
@@ -20,6 +23,35 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         public abstract string GetRelationship();
         public abstract string GetSourceNodeId();
         public abstract string GetTargetNodeId();
+    }
+
+    public class RelatedToIncidentEdge : GraphEdge
+    {
+        public string SourceNodeId { get; set; }
+        public string TargetNodeId { get; set; }
+
+        public override IDictionary<string, object> GetEdgeProperties()
+        {
+            return new Dictionary<string, object>()
+            {
+                { "updateTs", UpdateTs },
+            };
+        }
+
+        public override string GetSourceNodeId()
+        {
+            return SourceNodeId;
+        }
+
+        public override string GetTargetNodeId()
+        {
+            return TargetNodeId;
+        }
+
+        public override string GetRelationship()
+        {
+            return "RELATED_TO_INCIDENT";
+        }
     }
 
     public class ArmResourceEdge : GraphEdge

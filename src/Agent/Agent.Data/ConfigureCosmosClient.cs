@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Collections.ObjectModel;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.Repositories;
@@ -115,7 +116,7 @@ public static class AgentDataConfiguration
         await database.Database.CreateContainerIfNotExistsAsync(
             id: ThreadContainerName,
             partitionKeyPath: "/partitionKey",
-            throughput: 400 // Minimum throughput for now
+            throughput: 1000 // Minimum throughput for now
         );
 
         await database.Database.CreateContainerIfNotExistsAsync(
@@ -141,6 +142,60 @@ public static class AgentDataConfiguration
             partitionKeyPath: "/partitionKey",
             throughput: 400 // Minimum throughput for now'
         );
+
+        // Commented out the vector index creation for now. Leave it here for future reference.
+        // var embeddings = new List<Embedding>
+        // {
+        //     new()
+        //     {
+        //         DataType = VectorDataType.Float32,
+        //         Dimensions = 1536, // Set the vector size to 1536 for OpenAI embeddings
+        //         DistanceFunction = DistanceFunction.Cosine,
+        //         Path = "/descriptionVector"
+        //     },
+        //     new()
+        //     {
+        //         DataType = VectorDataType.Float32,
+        //         Dimensions = 1536, // Set the vector size to 1536 for OpenAI embeddings
+        //         DistanceFunction = DistanceFunction.Cosine,
+        //         Path = "/titleVector"
+        //     }
+        // };
+
+        // var collection = new Collection<Embedding>(embeddings);
+        // // see https://learn.microsoft.com/en-us/azure/cosmos-db/nosql/how-to-dotnet-vector-index-query#create-a-vector-index-in-the-indexing-policy
+        // var properties = new ContainerProperties
+        // {
+        //     Id = IncidentContainerName,
+        //     PartitionKeyPath = "/partitionKey",
+        //     DefaultTimeToLive = -1, // Set to -1 to disable TTL
+        //     VectorEmbeddingPolicy = new(collection),
+        //     IndexingPolicy = new IndexingPolicy
+        //     {
+        //         VectorIndexes =
+        //         [
+        //             new VectorIndexPath()
+        //             {
+        //                 Path = "/descriptionVector",
+        //                 Type = VectorIndexType.DiskANN, 
+        //             },
+        //             new VectorIndexPath()
+        //             {
+        //                 Path = "/titleVector",
+        //                 Type = VectorIndexType.QuantizedFlat, // DiskANN index has a limit of 1 per container. Use QuantizedFlat instead
+        //             }
+        //         ]
+        //     }
+        // };
+
+        // properties.IndexingPolicy.IncludedPaths.Add(new IncludedPath { Path = "/*" });
+        // properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/descriptionVector/*" });
+        // properties.IndexingPolicy.ExcludedPaths.Add(new ExcludedPath { Path = "/titleVector/*" });
+        // await database.Database.CreateContainerIfNotExistsAsync(
+        //     properties,
+        //     throughput: 1000 // Minimum throughput for now
+        // );
+        
     }
 }
 

@@ -40,6 +40,7 @@ using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
+using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.SqlDbQueryPerfAgent;
 using Agent.Runtime.SubAgents.TlsBestPractices;
@@ -275,6 +276,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     builder.Services.AddSingleton<IKubernetesClientFactory, KubernetesClientFactory>();
     builder.Services.AddKeyedSingleton<IKubernetesService, CrawlerKubernetesService>("Crawler");
     builder.Services.AddSingleton<IActivityLogService, ActivityLogService>();
+    builder.Services.AddSingleton<IPagerDutyService, PagerDutyService>();
+    builder.Services.AddSingleton<PagerDutyScanner>();
 
     // Register HttpClientService and configure HttpClient with proper BaseAddress
     builder.Services.AddSingleton<HttpClientService>();
@@ -287,7 +290,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     // Configure chat services
     builder.Services.ConfigureIChatCompletionService()
                    .ConfigureAzureOpenAIClient()
-                   .ConfigureIChatClient();
+                   .ConfigureIChatClient()
+                   .ConfigureIEmbeddingGenerator();
 
 
     // Register all SubAgent types

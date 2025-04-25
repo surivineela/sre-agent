@@ -104,6 +104,18 @@ namespace Agent.Runtime
                         .Build();
                 });
         }
+
+        public static IServiceCollection ConfigureIEmbeddingGenerator(this IServiceCollection services)
+        {
+            return services
+                .AddSingleton<IEmbeddingGenerator<string, Embedding<float>>>((Func<IServiceProvider, IEmbeddingGenerator<string, Embedding<float>>>)(sp =>
+                {
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                    var client = sp.GetRequiredService<AzureOpenAIClient>();
+
+                    return client.AsEmbeddingGenerator(openAISettings.EmbeddingGeneratorDeploymentName);
+                }));
+        }
     }
 }
 

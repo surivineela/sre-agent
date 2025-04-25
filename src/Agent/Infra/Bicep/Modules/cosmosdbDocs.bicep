@@ -23,6 +23,7 @@ resource cosmosdbAccount 'Microsoft.DocumentDB/databaseAccounts@2024-11-15' = {
         failoverPriority: 0
       }
     ]
+    capabilities: [ { name: 'EnableNoSQLVectorSearch' } ]
   }
 }
 

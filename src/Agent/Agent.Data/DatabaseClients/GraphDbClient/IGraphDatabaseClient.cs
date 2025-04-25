@@ -58,5 +58,8 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         Task<ResultSet<dynamic>> Query(string query);
 
         Task<ResultSet<T>> Query<T>(string query);
+
+        // returns empty string if not found
+        Task<string> GetNodeId(string resourceId);
     }
 }

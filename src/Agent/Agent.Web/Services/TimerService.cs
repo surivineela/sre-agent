@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -26,6 +26,7 @@ using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
+using Agent.Runtime.SubAgents.PagerDutyAgent;
 
 namespace Agent.Web.Services;
 
@@ -116,6 +117,7 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _feedbackRCATimer = null;
     private bool _feedbackRCATimerIsRunning = false;
     private TimeSpan _feedbackRCATimerInterval = TimeSpan.FromMinutes(1);
+    private PagerDutyScanner _pagerDutyScanner;
 
     private Timer? _azMonitorAlertScannerTimer = null;
     private bool _azMonitorAlertScannerTimerIsRunning = false;
@@ -149,7 +151,8 @@ public class TimerService : IHostedService, IDisposable
         ScoreCardService scoreCardService,
         SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,
-        AzMonitorAlertScanner azMonitorAlertScanner)
+        AzMonitorAlertScanner azMonitorAlertScanner,
+        PagerDutyScanner pagerDutyScanner)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -173,6 +176,7 @@ public class TimerService : IHostedService, IDisposable
         _feedbackRCAScanner = feedbackRCAScanner;
         _dashboardSettings = dashboardSettings;
         _azMonitorAlertScanner = azMonitorAlertScanner;
+        _pagerDutyScanner = pagerDutyScanner;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -233,6 +237,7 @@ public class TimerService : IHostedService, IDisposable
         // Disabling this for now to avoid spamming threads. 
         //_logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
         //StartAzMonitorAlertScannerTimer(cancellationToken);
+        StartPagerDutyScannerTimer(cancellationToken);
 
         return Task.CompletedTask;
     }
@@ -251,6 +256,14 @@ public class TimerService : IHostedService, IDisposable
         }
 
         return Task.CompletedTask;
+    }
+
+    public void StartPagerDutyScannerTimer(CancellationToken cancellationToken)
+    {
+        _ = Task.Run(async () =>
+        {
+            await _pagerDutyScanner.ScanAsync(cancellationToken);
+        }, cancellationToken);
     }
 
     /// <summary>
