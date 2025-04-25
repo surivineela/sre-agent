@@ -31,11 +31,11 @@ public class AppInsightsPlugin : IAppInsightsPlugin
             // get instrumentation Key from web app settings
             var appSettings = await _armHelper.GetAppSettings(resourceId);
             var jsonObject = JObject.Parse(appSettings);
-            var instrumentionKey = GetInstrumentationKey(jsonObject["properties"]?["APPINSIGHTS_INSTRUMENTATIONKEY"]?.ToString()) ?? GetInstrumentationKey(jsonObject["properties"]?["APPLICATIONINSIGHTS_CONNECTION_STRING"]?.ToString());
+            var instrumentationKey = GetInstrumentationKey(jsonObject["properties"]?["APPINSIGHTS_INSTRUMENTATIONKEY"]?.ToString()) ?? GetInstrumentationKey(jsonObject["properties"]?["APPLICATIONINSIGHTS_CONNECTION_STRING"]?.ToString());
             var subId = resourceId.Split('/')[2];
 
             // use instrumentation key to single in on the correct app insights resource
-            var appInsightsAppId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentionKey);
+            var appInsightsAppId = await _armHelper.GetAppInsightsAppIdBySubscription(subId, instrumentationKey);
             // query the correct app insights resource
             var results = await _armHelper.ExecuteAppInsightsQuery(appInsightsAppId, queryString);
             return results;

@@ -27,7 +27,6 @@ namespace Agent.Plugins
             var metrics = new List<Metric>
             {
                 new Metric { Name = "CpuTime", Unit = "Seconds", Aggregation = "Total" },
-                // new Metric { Name = "MemoryWorkingSet", Unit = "", Aggregation = "Average" }
             };
 
             // to get proper CPU value, you must divide by the number of cores within the VM machines that are running the process
@@ -128,7 +127,7 @@ namespace Agent.Plugins
 
             var metrics = new List<Metric>
             {
-                new Metric { Name = "MemoryWorkingSet", Unit = "Bytes", Aggregation = "Average" },
+                new Metric { Name = "PrivateBytes", Unit = "Bytes", Aggregation = "Average" },
             };
 
             var metricsData = await _armHelper.FetchMetricsAsync(
