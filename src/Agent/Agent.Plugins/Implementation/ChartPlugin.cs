@@ -5,13 +5,9 @@
 using System.Globalization;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
-using Microsoft.Bot.Builder;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
-using ScottPlot.AxisLimitManagers;
-using TeamsAttachment = Microsoft.Bot.Schema.Attachment;
 
 namespace Agent.Plugins
 {
@@ -291,7 +287,7 @@ namespace Agent.Plugins
                 {
                     base64Image = $"data:image/png;base64,{base64Image}";
                 }
-                await _outboundService.AppendAgentImageMessage(ThreadId.Value, $"![Chart Graph]({base64Image})\r\n");
+                await _outboundService.AppendAgentImageMessage(ThreadId.Value, $"![Chart Graph]({base64Image})\r");
 
                 return $"Successfully generated the chart, image description: {description}";
             }

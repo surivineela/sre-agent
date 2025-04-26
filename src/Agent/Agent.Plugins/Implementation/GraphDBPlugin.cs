@@ -8,7 +8,6 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
@@ -386,7 +385,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
                     _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r");
 
                     return "Visualization Rendered!";
                 }
@@ -887,7 +886,7 @@ g.V().has('id', '{deploymentResourceId}')
                 if (ThreadId != null)
                 {
                     // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r\n");
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(ThreadId.Value, $"![DailyReport Dashboard](data:image/png;base64,{screenshotResponse.Screenshot})\r");
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);
