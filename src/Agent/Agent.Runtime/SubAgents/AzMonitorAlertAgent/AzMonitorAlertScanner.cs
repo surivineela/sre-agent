@@ -6,10 +6,8 @@ using System.Text;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
-using Azure.Core;
-using Azure.ResourceManager;
+using Agent.Runtime.Services;
 using Azure.ResourceManager.AlertsManagement;
-using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Author = Agent.Core.Models.Api.v1.Author;
@@ -21,15 +19,15 @@ public class AzMonitorAlertScanner
 {
     private readonly ILogger<AzMonitorAlertScanner> _logger;
     private readonly IGraphDBPlugin _graphDBPlugin;
-    private readonly ArmClient _armClient;
     private readonly IAgentInboundCommunicationService _inboundCommunicationService;
     private readonly IThreadRepository _repository;
     private readonly IChatClient _chatClient;
+    private readonly IAzMonitorAlertService _azMonitorAlertService;
 
 
     public AzMonitorAlertScanner(
         IGraphDBPlugin graphDbPlugin,
-        IArmClientFactory armClientFactory,
+        IAzMonitorAlertService azMonitorAlertService,
         IAgentInboundCommunicationService inboundCommunicationService,
         IThreadRepository repository,
         IChatClient chatClient, ILogger<AzMonitorAlertScanner> logger)
@@ -37,8 +35,7 @@ public class AzMonitorAlertScanner
         _graphDBPlugin = graphDbPlugin;
         _logger = logger;
 
-        _armClient = armClientFactory.GetArmClient();
-
+        _azMonitorAlertService = azMonitorAlertService;
         _inboundCommunicationService = inboundCommunicationService;
         _repository = repository;
         _chatClient = chatClient;
@@ -67,38 +64,13 @@ public class AzMonitorAlertScanner
 
             foreach (var subscription in subscriptions)
             {
-                var newAlerts = await PollNewAlertsBySubscriptionId(subscription);
-
-                Console.WriteLine(newAlerts);
+                var newAlerts = await _azMonitorAlertService.PollNewAlertsBySubscriptionId(subscription, 1);
             }
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error polling Azure Monitor alerts");
         }
-    }
-
-    public async Task<IList<ServiceAlertResource>> PollNewAlertsBySubscriptionId(string subscriptionId)
-    {
-        var newAlerts = new List<ServiceAlertResource>();
-
-        var subResource = _armClient.GetSubscriptionResource(new ResourceIdentifier($"/subscriptions/{subscriptionId}"));
-
-        ServiceAlertCollection alertCollection = subResource.GetServiceAlerts();
-
-        await foreach (var alertRes in alertCollection.GetAllAsync())
-        {
-            var data = alertRes.Data;
-
-            var essentials = alertRes.Data.Properties.Essentials;
-
-            if (essentials.MonitorCondition == MonitorCondition.Fired && essentials.StartOn >= DateTime.Now.AddMinutes(-1)) // only get alerts from the last minute
-            {
-                newAlerts.Add(alertRes);
-            }
-        }
-
-        return newAlerts;
     }
 
     private async Task<Thread> CreateIncidentThread(ServiceAlertResource alert)
@@ -163,6 +135,9 @@ public class AzMonitorAlertScanner
             DisplayName: monitorService.ToString() ?? "Azure Monitor",
             Timestamp: DateTime.UtcNow
         ));
+
+        // acknowledge incident
+        await _azMonitorAlertService.AcknowledgeAlert(alertId);
 
         return thread;
     }
