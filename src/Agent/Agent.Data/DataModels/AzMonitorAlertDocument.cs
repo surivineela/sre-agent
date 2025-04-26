@@ -5,9 +5,13 @@
 namespace Agent.Data.DataModels;
 public record AzMonitorAlertDocument(
     string Id,
-    string HtmlUrl,
+    string Name,
+    string Severity,
+    string TargetResourceType,
+    string TargetResourceId,
+    string SubscriptionId,
     string Status,
-    DateTime CreatedAt) : ICosmosDocument
+    DateTimeOffset CreatedAt) : ICosmosDocument
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
 
@@ -15,7 +19,7 @@ public record AzMonitorAlertDocument(
 
     public string PartitionKey => Id;
 
-    public string Title { get; set; }
+    public string Title => Name;
 
     public string Description { get; set; } = string.Empty;
 

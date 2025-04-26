@@ -61,8 +61,8 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             
             var response = await alertResource.ChangeStateAsync(
                 alertState,
-                "Alert closed by Agent.Runtime");
-            
+                $"Alert {alertState} by Agent.Runtime");
+
             _logger.LogInformation($"Alert {alertId} status updated to {alertState} successfully");
             return true;
         }
