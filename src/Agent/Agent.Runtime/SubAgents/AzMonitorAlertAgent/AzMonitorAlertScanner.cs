@@ -13,7 +13,7 @@ using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Plugins;
 using Agent.Runtime.Services;
-using Azure.ResourceManager.AlertsManagement;
+using Azure.Core;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -79,10 +79,15 @@ public class AzMonitorAlertScanner
 
             foreach (var subscription in subscriptions)
             {
+                _logger.LogInformation($"Checking for alerts in subscription: {subscription}");
                 var newAlerts = await _azMonitorAlertService.PollNewAlertsBySubscriptionId(subscription, 1);
+
+                int alertCount = newAlerts.Count();
+                _logger.LogInformation($"Found {alertCount} alerts in subscription {subscription}");
 
                 foreach (var alert in newAlerts)
                 {
+                    _logger.LogInformation($"Processing new alert {alert.Id}...");
                     await ProcessAlertAsync(alert);
                 }
             }
@@ -93,7 +98,7 @@ public class AzMonitorAlertScanner
         }
     }
 
-    public async Task ProcessAlertAsync(ServiceAlertResource alert)
+    public async Task ProcessAlertAsync(AlertItem alert)
     {
         try
         {
@@ -112,7 +117,7 @@ public class AzMonitorAlertScanner
         }
     }
 
-    private async Task<string> SaveAlertToDocumentDb(ServiceAlertResource alert)
+    private async Task<string> SaveAlertToDocumentDb(AlertItem alert)
     {
         var alertDocument = await GetDocumentAsync<AzMonitorAlertDocument>(alert.Id, alert.Id);
 
@@ -120,9 +125,9 @@ public class AzMonitorAlertScanner
         {
             _logger.LogInformation($"Creating new incident document for {alert.Id}.");
 
-            var essentials = alert.Data.Properties.Essentials;
+            var essentials = alert.Properties.Essentials;
 
-            var alertId = alert.Data.Id.Name;
+            var alertId = alert.Id;
             var alertRule = essentials.AlertRule;
             var severity = essentials.Severity.ToString();
             var description = essentials.Description;
@@ -132,12 +137,17 @@ public class AzMonitorAlertScanner
             var name = alertRule;
             string targetResourceType = essentials.TargetResourceType;
             string targetResourceId = targetResource;
-            string subscriptionId = alert.Data.Id.SubscriptionId;
+
+            var resourceIdentifier = new ResourceIdentifier(targetResource);
+
+            string subscriptionId = resourceIdentifier.SubscriptionId;
             string status = essentials.AlertState.ToString();
-            DateTimeOffset createdAt = essentials.StartOn ?? DateTimeOffset.UtcNow;
+            DateTimeOffset createdAt = ParseDateTimeOffset(essentials.StartDateTime);
+
+            var alertResourceId = new ResourceIdentifier(alertId);
 
             var newAlertDocument = new AzMonitorAlertDocument(
-                Id: alert.Id,
+                Id: alertResourceId.Name,
                 Name: name,
                 Severity: severity,
                 TargetResourceType: targetResourceType,
@@ -177,11 +187,27 @@ public class AzMonitorAlertScanner
         return alertDocument.Id;
     }
 
-    private async Task<bool> SaveAlertToGraphDb(ServiceAlertResource alert)
+    private DateTimeOffset ParseDateTimeOffset(string? value)
+    {
+        DateTimeOffset createdAt;
+        if (!string.IsNullOrEmpty(value) && DateTimeOffset.TryParse(value, out var parsedDate))
+        {
+            createdAt = parsedDate;
+        }
+        else
+        {
+            createdAt = DateTimeOffset.UtcNow;
+            _logger.LogWarning($"Could not parse start time {value}, using current time instead");
+        }
+
+        return createdAt;
+    }
+
+    private async Task<bool> SaveAlertToGraphDb(AlertItem alert)
     {
         try
         {
-            var essentials = alert.Data.Properties.Essentials;
+            var essentials = alert.Properties.Essentials;
             var targetResourceId = essentials.TargetResource;
 
             if (string.IsNullOrEmpty(targetResourceId))
@@ -230,20 +256,20 @@ public class AzMonitorAlertScanner
         }
     }
 
-    private async Task<Thread> CreateIncidentThread(ServiceAlertResource alert)
+    private async Task<Thread> CreateIncidentThread(AlertItem alert)
     {
         var messageBuilder = new StringBuilder();
 
-        var essentials = alert.Data.Properties.Essentials;
+        var essentials = alert.Properties.Essentials;
 
-        var alertId = alert.Data.Id.Name;
+        var alertId = alert.Id;
         var alertRule = essentials.AlertRule;
         var severity = essentials.Severity.ToString();
         var description = essentials.Description;
         var targetResource = essentials.TargetResource;
         var monitorCondition = essentials.MonitorCondition.ToString();
         var monitorService = essentials.MonitorService;
-        var startDateTime = essentials.StartOn?.ToString("yyyy-MM-dd HH:mm:ss UTC") ?? "Unknown";
+        var startDateTime = ParseDateTimeOffset(essentials.StartDateTime);
 
         var incidentMessage = $"🚨 **New Azure Monitor Alert Detected**\n\n" +
             $"**Alert ID:** {alertId}\n\n" +
@@ -264,14 +290,17 @@ public class AzMonitorAlertScanner
             incidentMessage += $"**Target Resource:** {targetResource}\n\n";
         }
 
-        if (alert.Data.Properties.Context != null)
+        if (string.IsNullOrEmpty(alert.Properties.Essentials.Description))
         {
             incidentMessage += "**Additional Context:**\n";
-            var contextJson = System.Text.Json.JsonSerializer.Serialize(
-                alert.Data.Properties.Context,
-                new System.Text.Json.JsonSerializerOptions { WriteIndented = true });
-            incidentMessage += $"```json\n{contextJson}\n```\n\n";
+            incidentMessage += $"Description: {description}\n";
         }
+
+        incidentMessage += $"Signal Type: {alert.Properties.Essentials.SignalType}\n";
+        incidentMessage += $"Resource Group: {alert.Properties.Essentials.TargetResourceGroup}\n";
+        incidentMessage += $"Resource Name: {alert.Properties.Essentials.TargetResourceName}\n";
+        incidentMessage += $"Resource Type: {alert.Properties.Essentials.TargetResourceType} \n";
+
 
         (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
             title: $"Alert - {alertRule}",

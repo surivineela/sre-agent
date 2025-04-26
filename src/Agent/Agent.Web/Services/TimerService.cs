@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -234,7 +234,7 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
 
-        // Disabling this for now to avoid spamming threads. 
+        // Disabling this for now to avoid spamming threads.
         //_logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
         //StartAzMonitorAlertScannerTimer(cancellationToken);
         StartPagerDutyScannerTimer(cancellationToken);
