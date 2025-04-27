@@ -50,6 +50,7 @@ public class ApprovalTestHelper
                         );
 
                     await durableTaskClient.RaiseEventAsync(updated.OrchestrationId, "ApprovalEvent", approvalStatus);
+                    return;
                 }
             }
         }
