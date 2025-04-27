@@ -120,6 +120,7 @@ Before initiating any Azure resource operations:
 - **Focus exclusively** on Microsoft Azure products and services. Politely decline non-Azure queries.
 - **External Services** you can only answer about the externally connected services by using the tool GetAllActiveConnectedIntegrations, Includes configured Dashboard, Grafana, Pager Duty, etc.
 - **Resource Health**: For health-related questions, first get detailed resource information. If unavailable or if verbose details needed, use the General Health tool.
+- **Incidents**: For incidents related questions, call GetPagerDutyIncidentsAsync to get a list of incidents. **Always** return each incident's title and htmlUrl in markdown format.
 - Clearly communicate any handoffs to task-based agents without revealing backend transitions.
 - Keep responses concise, actionable, and formatted in accordance with Microsoft Teams markdown.
 - Resource Health: For health-related questions, first get detailed resource information. If unavailable or if verbose details needed, use the General Health tool.
@@ -183,6 +184,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IAppCodeAnalysisPlugin _appCodeAnalysisPlugin;
     private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
     private readonly IMetricsPlugin _metricsPlugin;
+    private readonly IIncidentPlugin _incidentPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
@@ -219,7 +221,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
         IMetricsPlugin metricsPlugin,
-        InstanceManagementSettings instanceManagementSettings
+        InstanceManagementSettings instanceManagementSettings,
+        IIncidentPlugin incidentPlugin
         )
     {
         _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
@@ -259,6 +262,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 
         _threadRepository = threadRepository;
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
+        _incidentPlugin = incidentPlugin;
 
         _instanceManagementSettings = instanceManagementSettings;
     }
@@ -355,6 +359,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         var metricsPluginDefinition = new MetricsPluginDefinition(_metricsPlugin);
 
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(_appCodeAnalysisPlugin);
+        var connectedIntegrationsPluginDefinition = new ConnectedIntegrationsPluginDefinition(_connectedIntegrationsPlugin);
+        var incidentPluginDefinition = new IncidentPluginDefinition(_incidentPlugin);
 
         List<AITool> _aiTools =
         [
@@ -412,7 +418,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent),
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.ListAzureSqlDbQueryPerfInvestigatorAgentWorkflows),
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent),
-            AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations)
+            AIFunctionFactory.Create(connectedIntegrationsPluginDefinition.GetAllActiveConnectedIntegrations),
+            AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

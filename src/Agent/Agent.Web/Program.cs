@@ -51,6 +51,7 @@ using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
+using FirstPartyAgent.Models;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -161,6 +162,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<AppCodeAnalysisPluginDefinition>()
         .AddTransient<DotnetAnalysisPluginDefinition>()
         .AddTransient<RoleAssignmentPluginDefinition>()
+        .AddTransient<IncidentPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -174,6 +176,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<IChartPlugin, ChartPlugin>()
         .AddTransient<ChartPlugin>()
         .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
+        .AddTransient<IIncidentPlugin, IncidentPlugin>()
 
         .AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()

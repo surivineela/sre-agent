@@ -2,6 +2,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.DataModels;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
@@ -114,7 +115,9 @@ public class MetaAgentEvals
         IMetaAgentCPUAnalysisPlugin cpuAnalysisPlugin = null,
         IAppCodeAnalysisPlugin appCodePlugin = null,
         ICpuAnalysisPlugin cpuPlugin = null,
-        IMetricsPlugin metricsPlugin = null)
+        IMetricsPlugin metricsPlugin = null,
+        IIncidentPlugin incidentPlugin = null
+        )
     {
 
         return new MetaAgent(
@@ -148,7 +151,8 @@ public class MetaAgentEvals
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
-            Mock.Of<InstanceManagementSettings>()
+            Mock.Of<InstanceManagementSettings>(),
+            incidentPlugin ?? Mock.Of<IIncidentPlugin>()
         );
     }
 
@@ -568,5 +572,93 @@ public class MetaAgentEvals
         var response = new ChatResponse(agentMsg);
 
         await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
+    }
+
+    [TestMethod]
+    [DynamicData(nameof(TestData_Iterations), DynamicDataSourceType.Method)]
+    public async Task MetaAgent_GeneralQuestions_PagerDutyIncident(string testRunGuid)
+    {
+        string groundedContext = """
+            ## Ground Truth:
+            1. Reply a message with pager duty incidents.
+            2. The response should contain each pager duty incident's title, description and a link to each pager duty incident in Markdown format.
+
+            ## Expected Response Characteristics
+            - The response should avoid unnecessary information or ambiguity.
+            """;
+
+        var exampleResponse = $"""
+            Here is a recent incident for your container app dotnet-dump-test2:
+            Incident: Test incident titled edited
+            Description: /subscriptions/0451dad7-a6c0-4344-bf56-5c52042aa5e2/resourcegroups/tombstone-test-cuseuap-rg/providers/microsoft.app/containerapps/dotnet-dump-test2 is down, not responding to any requests.
+            Status: triggered
+            Created at: 2025-04-21T08:07:05Z
+            You can view more details in PagerDuty: [Test incident titled edited](https://yefutest.pagerduty.com/incidents/Q1GD948W0C9OQN)
+            Let me know if you want to investigate or remediate this issue further.
+            """;
+
+        var userMsg = "Are there any incidents on my container app by resource id /subscriptions/0451dad7-a6c0-4344-bf56-5c52042aa5e2/resourcegroups/tombstone-test-cuseuap-rg/providers/microsoft.app/containerapps/dotnet-dump-test2?";
+        var threadMsgs = new List<Message>
+        {
+            new Message(Guid.Parse(testRunGuid), DateTime.UtcNow, new Author(Role.User, testRunGuid, "testUser"), userMsg),
+        };
+
+        var mockThreadRepository = new Mock<IThreadRepository>();
+        mockThreadRepository.Setup(x => x.GetMessagesAsync(It.IsAny<Guid>(), It.IsAny<ODataQueryOptions>()))
+            .ReturnsAsync(threadMsgs);
+
+        var userChatMessage = new ChatMessage(ChatRole.User, userMsg);
+
+        var agentContext = new AgentContext(Guid.NewGuid(), Guid.Parse(testRunGuid), AgentTypeEnum.Meta, ContextStateEnum.Idle, null, null);
+        var reasoningMessage = new ReasoningMessage(Guid.NewGuid(), agentContext.Id, ReasoningMessageRoleEnum.User, JsonSerializer.Serialize(userChatMessage));
+        var agentChatHistory = new AgentChatHistory(agentContext.Id, new List<Guid> { reasoningMessage.Id });
+
+        mockThreadRepository.Setup(x => x.GetReasoningMessageAsync(reasoningMessage.Id, reasoningMessage.AgentContextId))
+            .ReturnsAsync(reasoningMessage);
+
+        var sinkService = new SinkService(
+            Mock.Of<IThreadRepository>(),
+            Mock.Of<ILogger<SinkService>>());
+
+        var threadService = new ThreadService(
+            Mock.Of<ILogger<ThreadService>>(),
+            mockThreadRepository.Object,
+            Mock.Of<IThreadOrchestrationManager>(),
+            sinkService);
+
+        var resourceId = "/subscriptions/0451dad7-a6c0-4344-bf56-5c52042aa5e2/resourcegroups/tombstone-test-cuseuap-rg/providers/microsoft.app/containerapps/dotnet-dump-test2";
+        var htmlUrl = "https://yefutest.pagerduty.com/incidents/Q1GD948W0C9OQN";
+        var incidentPlugin = new Mock<IIncidentPlugin>();
+        incidentPlugin.Setup(x => x.GetPagerDutyIncidentsAsync(It.IsAny<string>(), It.IsAny<uint>()))
+            .ReturnsAsync(new List<PagerDutyIncidentDocument>
+            {
+                new(
+                    "Q1GD948W0C9OQN",
+                    htmlUrl,
+                    "triggered",
+                    DateTime.UtcNow.AddDays(-1))
+                    {
+                        Title = "Test incident titled edited",
+                        Description = $"{resourceId} is down, not responding to any requests.",
+                        UpdatedAt = DateTime.UtcNow.AddDays(-1)
+                    }
+            });
+        // return all function apps in graph
+        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, threadRepository: mockThreadRepository.Object, incidentPlugin: incidentPlugin.Object);
+
+        var userChatMsg = new List<ChatMessage>
+        {
+            userChatMessage
+        };
+        var result = await agent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
+        Assert.IsNotNull(result);
+        Console.WriteLine($"Agent responds: {result}");
+
+        var agentMsg = new ChatMessage(ChatRole.Assistant, result);
+        var response = new ChatResponse(agentMsg);
+
+        await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
+
+        // Assert.IsTrue(result.Contains(htmlUrl), "The response should contain the incident link.");
     }
 }
