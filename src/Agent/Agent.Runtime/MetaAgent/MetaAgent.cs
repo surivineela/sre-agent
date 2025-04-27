@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -18,7 +18,6 @@ using Agent.Runtime.V2;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph.Models;
 
 
 namespace Agent.Runtime.MetaAgent;
@@ -58,7 +57,7 @@ Don't repeat ask similar questions if information already exists in the context.
 - When providing conclusions, summarize the factual evidence that supports your findings at the end of your response.
 - Include specific metrics, timestamps, and resource identifiers when referencing data to maintain complete accuracy.
 - Always keep in mind you're sharing the same chat history with the sub-agent you delegated to, the sub-agent don't have the chat history even it's being delegated again.
-  * If follow-up questions asked, delegate to the same sub-agent and always share all the previous context. 
+  * If follow-up questions asked, delegate to the same sub-agent and always share all the previous context.
   * Don't try to answer the questions which was handled by sub-agent, just delegate again.
   * Never say you don't have access or permission that sub-agent has, just delegate the question again.
 </important>
@@ -455,15 +454,32 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         {
             try
             {
+                // get the name of the start agent method from the type
+                var propertyName = nameof(ISubAgentDefinition.StartSubAgentMemberName);
+                var startSubAgentMemberNameProperty = type.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Public);
+                if (startSubAgentMemberNameProperty is null)
+                {
+                    _log.LogError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
+                    continue;
+                }
+
+                var startSubAgentMethodName = startSubAgentMemberNameProperty.GetValue(null)?.ToString();
+
+                if (string.IsNullOrEmpty(startSubAgentMethodName))
+                {
+                    _log.LogError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
+                    continue;
+                }
+
                 var instance = Activator.CreateInstance(type, _threadRepository, threadGuid, context);
 
                 if (instance is not null)
                 {
-                    var startSubAgent = type.GetMethod("StartSubAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+                    var startSubAgent = type.GetMethod(startSubAgentMethodName, BindingFlags.Public | BindingFlags.Instance);
 
                     if (startSubAgent is null)
                     {
-                        _log.LogError("Method 'StartSubAgentAsync' does not exist on type {PluginType}", type);
+                        _log.LogError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
                         continue;
                     }
 
@@ -485,15 +501,32 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         {
             try
             {
+                // get the name of the start agent method from the type
+                var propertyName = nameof(ISubAgentDefinition.StartSubAgentMemberName);
+                var startSubAgentMemberNameProperty = type.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Public);
+                if (startSubAgentMemberNameProperty is null)
+                {
+                    _log.LogError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
+                    continue;
+                }
+
+                var startSubAgentMethodName = startSubAgentMemberNameProperty.GetValue(null)?.ToString();
+
+                if (string.IsNullOrEmpty(startSubAgentMethodName))
+                {
+                    _log.LogError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
+                    continue;
+                }
+
                 var instance = Activator.CreateInstance(type, _threadRepository, threadGuid, context);
 
                 if (instance is not null)
                 {
-                    var startSubAgent = type.GetMethod("StartSubAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+                    var startSubAgent = type.GetMethod(startSubAgentMethodName, BindingFlags.Public | BindingFlags.Instance);
 
                     if (startSubAgent is null)
                     {
-                        _log.LogError("Method 'StartSubAgentAsync' does not exist on type {PluginType}", type);
+                        _log.LogError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
                         continue;
                     }
 

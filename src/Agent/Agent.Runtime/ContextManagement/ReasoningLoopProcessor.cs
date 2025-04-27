@@ -62,8 +62,7 @@ internal class ReasoningLoopProcessor(
                 _complete = true;
                 agentContext = agentContext with
                 {
-                    ContextState = ContextStateEnum.Failed,
-                    HandoffState = ContextStateEnum.Failed
+                    ContextState = ContextStateEnum.Failed
                 };
                 await threadRepository.UpdateAgentContextAsync(agentContext);
             }
@@ -76,14 +75,21 @@ internal class ReasoningLoopProcessor(
 
         if (agentContext != null)
         {
-            // reset context type back to the handoff agent type, if necessary
-            agentContext = agentContext with
+            // reset handoff state on the context that called this agent
+            if (agentContext.HandoffFromAgentContextId != null)
             {
-                AgentType = agentContext.HandoffFromAgentType ?? agentContext.AgentType,
-                HandoffFromAgentType = null
-            };
+                var handoffFromContext = await threadRepository.GetAgentContextAsync(agentContext.HandoffFromAgentContextId.Value, Guid.Parse(ThreadId));
 
-            await threadRepository.UpdateAgentContextAsync(agentContext);
+                if (handoffFromContext != null)
+                {
+                    handoffFromContext = handoffFromContext with
+                    {
+                        HandoffToAgentContextId = null
+                    };
+
+                    await threadRepository.UpdateAgentContextAsync(handoffFromContext);
+                }
+            }
         }
 
         await NotifyFinishedAsync(agentContext);
@@ -128,9 +134,7 @@ internal class ReasoningLoopProcessor(
 
             _retryCount = 0;
 
-            if (agentContext.HandoffState == ContextStateEnum.Completed
-                || agentContext.HandoffState == ContextStateEnum.Failed
-                || agentContext.ContextState == ContextStateEnum.Completed
+            if (agentContext.ContextState == ContextStateEnum.Completed
                 || agentContext.ContextState == ContextStateEnum.Failed)
             {
                 _complete = true;
@@ -155,8 +159,7 @@ internal class ReasoningLoopProcessor(
 
                 agentContext = agentContext with
                 {
-                    ContextState = ContextStateEnum.Failed,
-                    HandoffState = ContextStateEnum.Failed
+                    ContextState = ContextStateEnum.Failed
                 };
 
                 await threadRepository.UpdateAgentContextAsync(agentContext);

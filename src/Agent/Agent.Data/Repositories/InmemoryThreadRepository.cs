@@ -471,15 +471,11 @@ namespace Agent.Data.Repositories
                 Task.FromResult(false);
             }
 
-            AgentContext updated = new(
-                agentContext.Id,
-                agentContext.ThreadId,
-                agentContext.AgentType,
-                agentContext.ContextState,
-                agentContext.WaitInformation,
-                agentContext.ApprovalInformation,
-                assignedInstanceId,
-                expiration);
+            AgentContext updated = agentContext with
+            {
+                AssignedInstanceId = assignedInstanceId,
+                AssignmentExpires = expiration
+            };
 
             _agentContexts[(threadId, agentContextId)] = updated;
 

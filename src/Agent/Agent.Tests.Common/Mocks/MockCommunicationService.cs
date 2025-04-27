@@ -41,7 +41,14 @@ namespace Agent.Tests.Common.Mocks
 
         public Task NotifyCompletionAsync(AgentContext context, string subAgentIdentifier, string status, string? summary = null)
         {
-            throw new NotImplementedException();
+            _logger?.LogInformation($"ThreadId: {context.ThreadId}, SubAgentIdentifier: {subAgentIdentifier}, Status: {status}");
+
+            if (summary != null)
+            {
+                Messages.Add(summary);
+            }
+
+            return Task.CompletedTask;
         }
 
         public Task PostActivity(string threadId, Activity activity, string messageId = "")
@@ -59,7 +66,9 @@ namespace Agent.Tests.Common.Mocks
 
         public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
         {
-            throw new NotImplementedException();
+            _logger?.LogInformation($"ThreadId: {context.ThreadId}, Message: {message.Text}");
+            Messages.Add(message.Text);
+            return Task.CompletedTask;
         }
     }
 }

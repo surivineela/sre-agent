@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
@@ -25,6 +26,8 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
     private readonly List<AITool> _tools;
     private readonly IThreadRepository _threadRepository;
     private readonly AgentContext _context;
+    private readonly IToolsRepository _toolsRepository;
+    private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
 
     private ChatOptions ChatOptionsWithTools => new()
     {
@@ -61,6 +64,8 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
 
         _chatClient = chatClient;
         _threadRepository = threadRepository;
+        _toolsRepository = toolsRepository;
+        _outboundCommunicationService = outboundCommunicationService;
     }
 
     public async Task DoWork(
@@ -87,11 +92,16 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
         // add system prompt if needed
         if (chatMessages.Count == 0 || initWithSystemPrompt)
         {
-            chatMessages.Add(new(ChatRole.System, TDefinition.GetSystemPrompt(GetInputData(_context))));
+            var systemPrompt = GetSystemPromptMessage();
+            var systemPromptReasoningMessage = systemPrompt.GetReasoningMessage(_context.Id);
+            await _threadRepository.CreateReasoningMessageAsync(systemPromptReasoningMessage);
+            await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, systemPromptReasoningMessage);
+            chatMessages.Add(systemPrompt);
         }
 
         // get model response
-        var chatResponse = await _chatClient.GetResponseAsync(chatMessages, ChatOptionsWithTools);
+        var messagesToSend = _toolsRepository.GetMCPServerInstructions().Concat(chatMessages);
+        var chatResponse = await _chatClient.GetResponseAsync(messagesToSend, ChatOptionsWithTools);
 
         // persist responses
         var responseMessages = chatResponse.GetReasoningMessages(_context.Id);
@@ -103,17 +113,26 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
 
         // update chat history
         await _threadRepository.AddReasoningMessagesToChatHistoryAsync(agentChatHistory, responseMessages);
+
+        // post last agent message to the thread
+        var lastMessage = chatResponse.Messages.LastOrDefault(m => m.Role == ChatRole.Assistant);
+        var lastMessageText = lastMessage?.Contents.OfType<TextContent>().FirstOrDefault();
+
+        if (lastMessage != null && lastMessageText != null)
+        {
+            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_context, lastMessage);
+        }
     }
 
-    protected virtual TInput? GetInputData(AgentContext agentContext)
+    protected virtual TInput? GetInputData()
     {
         TInput? inputData = default;
 
-        if (!string.IsNullOrEmpty(agentContext.InputDataSerialized))
+        if (!string.IsNullOrEmpty(_context.InputDataSerialized))
         {
             try
             {
-                inputData = JsonSerializer.Deserialize<TInput>(agentContext.InputDataSerialized);
+                inputData = JsonSerializer.Deserialize<TInput>(_context.InputDataSerialized);
             }
             catch
             {
@@ -122,6 +141,24 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
         }
 
         return inputData;
+    }
+
+    private ChatMessage GetSystemPromptMessage()
+    {
+        // Load common prompt stubs
+        var controlFlowPromptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V2", "PromptStubs", "ControlFlowPromptStub.txt");
+        var communicationGuidelines = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V2", "PromptStubs", "CommunicationGuidelinesPromptStub.txt");
+        var controlFlowPrompt = File.ReadAllText(controlFlowPromptPath);
+        var communicationGuidelinesPrompt = File.ReadAllText(communicationGuidelines);
+
+        var systemPrompt = new StringBuilder();
+        systemPrompt.AppendLine(controlFlowPrompt);
+        systemPrompt.AppendLine(communicationGuidelinesPrompt);
+
+        // Add customized system prompt from subagent definition
+        systemPrompt.AppendLine(TDefinition.GetSystemPrompt(GetInputData()));
+
+        return new ChatMessage(ChatRole.System, systemPrompt.ToString());
     }
 }
 
@@ -144,7 +181,7 @@ public class SubAgentV2<TDefinition>(
     outboundCommunicationService,
     loggerFactory) where TDefinition : ISubAgentDefinition
 {
-    protected override object? GetInputData(AgentContext agentContext)
+    protected override object? GetInputData()
     {
         return null;
     }

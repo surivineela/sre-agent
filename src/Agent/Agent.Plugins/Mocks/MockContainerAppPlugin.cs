@@ -5,64 +5,222 @@
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
+using Azure.ResourceManager.Network.Models;
 
 namespace Agent.Plugins.Mocks
 {
-    public class MockContainerAppPlugin : IContainerAppPlugin
+    public class MockContainerAppPlugin(MockNSGRulePlugin nsgRulePlugin) : IContainerAppPlugin
     {
-        public Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        private readonly Dictionary<string, ContainerAppDescriptor> _containerApps = [];
+        private readonly Dictionary<string, IList<string>> _containerAppNsgs = [];
+        private readonly Dictionary<string, IList<RevisionInfo>> _containerAppRevisions = [];
+        private readonly Dictionary<string, double> _cpuMetrics = [];
+        private readonly Dictionary<string, double> _memoryMetrics = [];
+        private readonly Dictionary<string, double> _requestMetrics = [];
+
+        public void ConfigureContainerApp(ContainerAppDescriptor containerAppDescriptor, params IEnumerable<RevisionInfo> revisionInfo)
         {
-            throw new NotImplementedException();
+            _containerApps[containerAppDescriptor.ResourceId] = containerAppDescriptor;
+            _containerAppRevisions[containerAppDescriptor.ResourceId] = [.. revisionInfo];
+            _cpuMetrics[containerAppDescriptor.ResourceId] = 1.0; // default cpu metric (percentage)
+            _memoryMetrics[containerAppDescriptor.ResourceId] = 1.0; // default memory metric (bytes)
+            _requestMetrics[containerAppDescriptor.ResourceId] = 1.0; // default request metric (count)
+        }
+
+        public void ConfigureDefaultApplication(string name, string resourceId)
+        {
+            var defaultApp = new ContainerAppDescriptor(
+                ResourceId: resourceId,
+                Name: name,
+                Location: "centralus",
+                WorkloadProfile: "Consumption",
+                State: "Succeeded",
+                ResourceGroup: "mockResourceGroup",
+                EnvironmentId: "mockEnvironmentId",
+                Containers: [
+                    new Container(
+                        Name: "mockContainerName",
+                        Image: "mcr.microsoft.com/k8se/quickstart:latest",
+                        Cpu: "0.5",
+                        Memory: "1Gi")
+                ],
+                InitContainers: [],
+                Configurations: new ContainerAppConfigurations(
+                    RevisionMode: "single",
+                    Ingress: new IngressConfiguration(
+                        TargetPort: 80,
+                        IsExternal: true,
+                        Transport: "auto",
+                        Hostnames: ["mockHostname"],
+                        Traffic: [
+                            new TrafficConfiguration(
+                                RevisionName: "mockRevisionName",
+                                Weight: 100,
+                                Label: "",
+                                LatestRevision: true)
+                        ]),
+                    Registries: []
+                )
+            );
+
+            var revision = new RevisionInfo(
+                RevisionName: "latest",
+                IsActive: true,
+                TrafficWeight: 100,
+                CreatedOn: DateTime.UtcNow.ToString(),
+                LastActiveOn: null,
+                Fqdn: "myapp.azurecontainerapps.io",
+                Template: null,
+                Replicas: 1,
+                Labels: null,
+                ProvisioningError: null,
+                HealthState: "Healthy",
+                ProvisioningState: "Provisioned",
+                RunningState: "Running"
+            );
+
+            ConfigureContainerApp(defaultApp, revision);
+        }
+
+        public void ConfigureSecurityRules(string resourceId, string containerAppResourceId)
+        {
+
+            if (_containerAppNsgs.TryGetValue(containerAppResourceId, out var value))
+            {
+                value.Add(resourceId);
+            }
+            else
+            {
+                _containerAppNsgs[containerAppResourceId] = [resourceId];
+            }
+        }
+
+        public void ConfigureContainerAppCpu(string resourceId, double cpuPercentage)
+        {
+            _cpuMetrics[resourceId] = cpuPercentage;
+        }
+
+        public void ConfigureContainerAppMemory(string resourceId, double memoryBytes)
+        {
+            _memoryMetrics[resourceId] = memoryBytes;
+        }
+
+        public void ConfigureContainerAppRequestCount(string resourceId, double requestCount)
+        {
+            _requestMetrics[resourceId] = requestCount;
+        }
+
+        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
+        {
+            if (_containerAppNsgs.TryGetValue(resourceId, out var nsgs))
+            {
+                var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+                foreach (var nsg in nsgs)
+                {
+                    var rules = await nsgRulePlugin.GetNSGRulesAsync(nsg);
+
+                    if (rules.TryGetValue("SecurityRules", out var securityRules))
+                    {
+                        result[nsg] = securityRules;
+                    }
+                }
+
+                return result;
+            }
+
+            throw new ArgumentException($"Resource {resourceId} not found");
         }
 
         public Task<IReadOnlyList<CpuUsageTimeSeriesData>> GetContainerAppCpuMetrics(string resourceId)
         {
-            throw new NotImplementedException();
+            var now = DateTime.UtcNow;
+            var cpuMetrics = new List<CpuUsageTimeSeriesData>();
+
+            for (DateTime i = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30)); i < now; i = i.AddMinutes(1))
+            {
+                cpuMetrics.Add(new CpuUsageTimeSeriesData(i, _cpuMetrics[resourceId]));
+            }
+
+            return Task.FromResult<IReadOnlyList<CpuUsageTimeSeriesData>>(cpuMetrics.AsReadOnly());
         }
 
         public Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
         {
-            throw new NotImplementedException();
+            if (_containerApps.TryGetValue(resourceId, out var containerAppDescriptor))
+            {
+                return Task.FromResult(containerAppDescriptor);
+            }
+
+            throw new ArgumentException($"Resource {resourceId} not found");
         }
 
         public Task<IReadOnlyList<MemoryUsageTimeSeriesData>> GetContainerAppMemoryMetrics(string resourceId)
         {
-            throw new NotImplementedException();
+            var now = DateTime.UtcNow;
+            var memoryMetrics = new List<MemoryUsageTimeSeriesData>();
+
+            for (DateTime i = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30)); i < now; i = i.AddMinutes(1))
+            {
+                memoryMetrics.Add(new MemoryUsageTimeSeriesData(i, _memoryMetrics[resourceId]));
+            }
+
+            return Task.FromResult<IReadOnlyList<MemoryUsageTimeSeriesData>>(memoryMetrics.AsReadOnly());
         }
 
         public Task<IReadOnlyList<RequestCountTimeSeriesData>> GetContainerAppRequestMetrics(string resourceId)
         {
-            throw new NotImplementedException();
+            var now = DateTime.UtcNow;
+            var requestMetrics = new List<RequestCountTimeSeriesData>();
+
+            for (DateTime i = DateTime.UtcNow.Subtract(TimeSpan.FromMinutes(30)); i < now; i = i.AddMinutes(1))
+            {
+                requestMetrics.Add(new RequestCountTimeSeriesData(i, _requestMetrics[resourceId]));
+            }
+
+            return Task.FromResult<IReadOnlyList<RequestCountTimeSeriesData>>(requestMetrics.AsReadOnly());
         }
 
         public Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
         {
-            throw new NotImplementedException();
+            if (_containerAppRevisions.TryGetValue(resourceId, out var revisions) && revisions.Count > 0)
+            {
+                return Task.FromResult<RevisionInfo?>(revisions.Last());
+            }
+
+            throw new ArgumentException($"Resource {resourceId} not found");
         }
 
         public Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(Guid subscriptionId)
         {
-            throw new NotImplementedException();
+            var containerApps = _containerApps.Values.ToList();
+            return Task.FromResult<IReadOnlyList<ContainerAppDescriptor>>(containerApps);
         }
 
         public Task<IReadOnlyList<RevisionInfo>> ListContainerAppRevisionsAsync(string resourceId)
         {
-            throw new NotImplementedException();
+            if (_containerAppRevisions.TryGetValue(resourceId, out var revisions))
+            {
+                return Task.FromResult<IReadOnlyList<RevisionInfo>>(revisions.AsReadOnly());
+            }
+
+            throw new ArgumentException($"Resource {resourceId} not found");
         }
 
         public Task<string> RestartContainerApp(string appResourceId, string revisionName)
         {
-            throw new NotImplementedException();
+            return Task.FromResult("RestartSuceeded");
         }
 
         public Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas)
         {
-            throw new NotImplementedException();
+            // TODO: simulate scaling logic with in-memory state
+
+            return Task.FromResult(true);
         }
 
         public Task<string> GetContainerAppLogsAsync(string resourceId, string? revisionName)
         {
-            throw new NotImplementedException();
+            return Task.FromResult("Logs retrieved successfully.");
         }
 
         public Task<bool> UpdateTargetPort(string resourceId, int targetPort)

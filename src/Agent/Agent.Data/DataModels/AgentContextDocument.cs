@@ -17,8 +17,8 @@ public record AgentContextDocument(
     string? AssignedInstanceId = null,
     DateTimeOffset? AssignmentExpires = null,
     string? InputDataSerialized = null,
-    AgentTypeEnum? HandoffFromAgentType = null,
-    ContextStateEnum? HandoffState = null
+    string? HandoffToAgentContextId = null, // agent context this agent is handing off to
+    string? HandoffFromAgentContextId = null // agent context this agent was handed off from
 ) : ICosmosDocument
 {
     public string DocumentType => "AgentContext";
@@ -40,8 +40,8 @@ public record AgentContextDocument(
             AssignedInstanceId: agentContext.AssignedInstanceId,
             AssignmentExpires: agentContext.AssignmentExpires,
             InputDataSerialized: agentContext.InputDataSerialized,
-            HandoffFromAgentType: agentContext.HandoffFromAgentType,
-            HandoffState: agentContext.HandoffState
+            HandoffToAgentContextId: agentContext.HandoffToAgentContextId?.ToString(),
+            HandoffFromAgentContextId: agentContext.HandoffFromAgentContextId?.ToString()
         );
 
     public AgentContext ToDomainModel() =>
@@ -55,7 +55,7 @@ public record AgentContextDocument(
             AssignedInstanceId: AssignedInstanceId,
             AssignmentExpires: AssignmentExpires,
             InputDataSerialized: InputDataSerialized,
-            HandoffFromAgentType: HandoffFromAgentType,
-            HandoffState: HandoffState
+            HandoffToAgentContextId: Guid.TryParse(HandoffToAgentContextId, out var handoffToId) ? handoffToId : null,
+            HandoffFromAgentContextId: Guid.TryParse(HandoffFromAgentContextId, out var handoffFromId) ? handoffFromId : null
         );
 }

@@ -14,6 +14,6 @@ public record AgentContext(
     string? AssignedInstanceId = null,
     DateTimeOffset? AssignmentExpires = null,
     string? InputDataSerialized = null,
-    AgentTypeEnum? HandoffFromAgentType = null,
-    ContextStateEnum? HandoffState = null
+    Guid? HandoffToAgentContextId = null, // agent context this agent is handing off to
+    Guid? HandoffFromAgentContextId = null // agent context this agent was handed off from
 );

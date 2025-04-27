@@ -10,6 +10,7 @@ public interface ISubAgentDefinition<TInput>
 {
     abstract static IReadOnlyList<string> ToolSignatures { get; }
     abstract static AgentTypeEnum AgentType { get; }
+    abstract static string StartSubAgentMemberName { get; }
 
     abstract static string GetSystemPrompt(TInput? input = default);
 }

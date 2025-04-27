@@ -13,7 +13,6 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
-using Agent.Runtime.V2;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -115,10 +114,11 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
             // we don't need to sink user message if the message is the start message
             var thread = await _repository.GetThreadAsync(threadMessage.ThreadId);
+            ReasoningMessage? reasoningMessage = null;
             if (threadMessage?.MessageId != thread?.StartMessage?.Id)
             {
                 await _sinkService.SinkUserMessageAsync(threadMessage);
-                var reasoningMessage = new ReasoningMessage(
+                reasoningMessage = new ReasoningMessage(
                     Id: Guid.NewGuid(),
                     AgentContextId: threadMessage.AgentContextId,
                     Role: ReasoningMessageRoleEnum.User,
@@ -174,10 +174,24 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                         agentResponse = await scannerSubAgent.DoWork(agentContext: agentContext, agentChatHistory: agentChatHistory, threadMessage.Message);
                     }
                 }
-                else if (agentContext != null && SubAgentV2TypeMapping.IsSubAgentV2(agentContext.AgentType))
+                else if (agentContext != null && agentContext.HandoffToAgentContextId != null && reasoningMessage != null)
                 {
-                    // reasoning loop processor handles these agent handoffs
-                    // no work required here, just return
+                    // this context handed off to another context, need to add a reasoning message to that one as well, then the background processor will handle it
+
+                    var handoffToContext = await _repository.GetAgentContextAsync(agentContextId: agentContext.HandoffToAgentContextId.Value, threadId: threadMessage.ThreadId)
+                        ?? throw new InvalidOperationException($"Handoff to agent context {agentContext.HandoffToAgentContextId} not found for thread {threadMessage.ThreadId}.");
+
+                    var handoffToChatHistory = await _repository.GetAgentChatHistoryAsync(handoffToContext.Id);
+
+                    var handoffReasoningMessage = reasoningMessage with
+                    {
+                        Id = Guid.NewGuid(),
+                        AgentContextId = handoffToContext.Id
+                    };
+
+                    await _repository.CreateReasoningMessageAsync(handoffReasoningMessage);
+                    await _repository.AddReasoningMessagesToChatHistoryAsync(handoffToChatHistory, handoffReasoningMessage);
+
                     return new InboundServiceResponse(threadMessage.ThreadId, responseMessageId, orchestrationInstanceId);
                 }
                 else

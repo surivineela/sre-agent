@@ -79,6 +79,7 @@ public static class TestHelpers
     {
         builder.Services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
         builder.Services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+        builder.Services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
         builder.Services.AddSingleton<ThreadService>();
         builder.Services.AddSingleton<SinkService>();
         // NOTE: use mock for teams plugin as we don't rely on teams for Agent Eval.

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
@@ -15,6 +16,8 @@ namespace Agent.Plugins.Mocks
         private Dictionary<string, string> _containerAppsToSourceCodeNodeMapping;
         private List<string> _reposScanned;
         private Dictionary<string, string> _aksDependencyDescriptions;
+
+        private Dictionary<string, IEnumerable<string>> _resourceToNetworkDependentResourcesMapping = [];
 
         public MockGraphDBPlugin()
         {
@@ -30,6 +33,18 @@ namespace Agent.Plugins.Mocks
         }
 
         public Guid? ThreadId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
+        public void AddResourceToNetworkDependentResourcesMapping(string resourceId, IEnumerable<string> dependentResources)
+        {
+            if (_resourceToNetworkDependentResourcesMapping.ContainsKey(resourceId))
+            {
+                _resourceToNetworkDependentResourcesMapping[resourceId] = dependentResources;
+            }
+            else
+            {
+                _resourceToNetworkDependentResourcesMapping.Add(resourceId, dependentResources);
+            }
+        }
 
         public Dictionary<string, string> GetContainerAppsToSourceCodeNodeMapping()
         {
@@ -99,7 +114,10 @@ namespace Agent.Plugins.Mocks
 
         public Task<string> FindAllNetworkConnectedResources(string resourceId = "")
         {
-            throw new NotImplementedException();
+            IEnumerable<string>? dependentResources = [];
+            _resourceToNetworkDependentResourcesMapping.TryGetValue(resourceId, out dependentResources);
+
+            return Task.FromResult(JsonSerializer.Serialize(dependentResources, JsonSerializerOptions.Web));
         }
 
         public Task<List<string>> GetContainerAppsWithNodesWithoutSourceCodeNodesAsync()

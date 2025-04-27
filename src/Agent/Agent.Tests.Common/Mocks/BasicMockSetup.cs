@@ -20,6 +20,8 @@ public class BasicMockSetup
     public MockMetricsPlugin MetricsPlugin { get; set; }
     public MockTimePlugin TimePlugin { get; set; }
     public MockCommunicationService CommunicationService { get; set; }
+    public MockContainerAppPlugin ContainerAppPlugin { get; set; }
+    public MockNSGRulePlugin NSGRulePlugin { get; set; }
 
     public MockGrafanaPlugin GrafanaPlugin { get; set; }
     public MockGraphDBPlugin GraphDBPlugin { get; set; }
@@ -40,6 +42,9 @@ public class BasicMockSetup
 
         GrafanaPlugin = new MockGrafanaPlugin();
         GraphDBPlugin = new MockGraphDBPlugin();
+
+        NSGRulePlugin = new MockNSGRulePlugin();
+        ContainerAppPlugin = new MockContainerAppPlugin(NSGRulePlugin);
     }
 
 }
@@ -59,5 +64,8 @@ public static class ServiceCollectionExtensionsForMocks
 
         services.AddSingleton<IGrafanaPlugin>(mocks.GrafanaPlugin);
         services.AddSingleton<IGraphDBPlugin>(mocks.GraphDBPlugin);
+
+        services.AddSingleton<INSGRulePlugin>(mocks.NSGRulePlugin);
+        services.AddSingleton<IContainerAppPlugin>(mocks.ContainerAppPlugin);
     }
 }

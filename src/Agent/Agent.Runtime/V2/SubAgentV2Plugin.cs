@@ -11,28 +11,11 @@ namespace Agent.Runtime.V2;
 public abstract class SubAgentV2Plugin<TDefinition, TInput>(
     IThreadRepository threadRepository,
     Guid threadId,
-    AgentContext? existingContext)
+    AgentContext existingContext)
     where TDefinition : ISubAgentDefinition<TInput>
 {
-    public virtual async Task StartSubAgentAsync(TInput input)
+    protected async Task<Guid> StartSubAgentAsync(TInput input)
     {
-        if (existingContext != null)
-        {
-            // use existing context when provided
-            existingContext = existingContext with
-            {
-                AgentType = TDefinition.AgentType,
-                ContextState = ContextStateEnum.Idle,
-                InputDataSerialized = JsonSerializer.Serialize(input),
-                HandoffFromAgentType = existingContext.AgentType,
-                HandoffState = ContextStateEnum.Idle
-            };
-
-            await threadRepository.UpdateAgentContextAsync(existingContext);
-
-            return;
-        }
-
         var subAgentContext = new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: threadId,
@@ -40,36 +23,36 @@ public abstract class SubAgentV2Plugin<TDefinition, TInput>(
             ContextState: ContextStateEnum.Idle,
             WaitInformation: null,
             ApprovalInformation: null,
-            InputDataSerialized: JsonSerializer.Serialize(input));
+            InputDataSerialized: JsonSerializer.Serialize(input),
+            HandoffFromAgentContextId: existingContext.Id);
 
         await threadRepository.CreateAgentContextAsync(subAgentContext);
+
+        var subAgentChatHistory = new AgentChatHistory(
+            AgentContextId: subAgentContext.Id,
+            ReasoningMessageIds: []);
+
+        await threadRepository.CreateAgentChatHistoryAsync(subAgentChatHistory);
+
+        existingContext = existingContext with
+        {
+            HandoffToAgentContextId = subAgentContext.Id
+        };
+
+        await threadRepository.UpdateAgentContextAsync(existingContext);
+
+        return subAgentContext.Id;
     }
 }
 
 public abstract class SubAgentV2Plugin<TDefinition>(
     IThreadRepository threadRepository,
     Guid threadId,
-    AgentContext? existingContext)
+    AgentContext existingContext)
     where TDefinition : ISubAgentDefinition
 {
-    public virtual async Task StartSubAgentAsync()
+    protected async Task<Guid> StartSubAgentAsync()
     {
-        if (existingContext != null)
-        {
-            // use existing context when provided
-            existingContext = existingContext with
-            {
-                AgentType = TDefinition.AgentType,
-                ContextState = ContextStateEnum.Idle,
-                HandoffFromAgentType = existingContext.AgentType,
-                HandoffState = ContextStateEnum.Idle
-            };
-
-            await threadRepository.UpdateAgentContextAsync(existingContext);
-
-            return;
-        }
-
         var subAgentContext = new AgentContext(
             Id: Guid.NewGuid(),
             ThreadId: threadId,
@@ -79,5 +62,20 @@ public abstract class SubAgentV2Plugin<TDefinition>(
             ApprovalInformation: null);
 
         await threadRepository.CreateAgentContextAsync(subAgentContext);
+
+        var subAgentChatHistory = new AgentChatHistory(
+            AgentContextId: subAgentContext.Id,
+            ReasoningMessageIds: []);
+
+        await threadRepository.CreateAgentChatHistoryAsync(subAgentChatHistory);
+
+        existingContext = existingContext with
+        {
+            HandoffToAgentContextId = subAgentContext.Id
+        };
+
+        await threadRepository.UpdateAgentContextAsync(existingContext);
+
+        return subAgentContext.Id;
     }
 }

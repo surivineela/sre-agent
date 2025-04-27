@@ -40,14 +40,19 @@ namespace Agent.Core.Extensions
 
             foreach (var message in chatResponse.Messages)
             {
-                reasoningMessages.Add(new ReasoningMessage(
-                    Id: Guid.NewGuid(),
-                    AgentContextId: agentContextId,
-                    Role: GetReasoningMessageRole(message.Role),
-                    SerializedChatMessage: JsonSerializer.Serialize(message)));
+                reasoningMessages.Add(message.GetReasoningMessage(agentContextId));
             }
 
             return reasoningMessages;
+        }
+
+        public static ReasoningMessage GetReasoningMessage(this ChatMessage message, Guid agentContextId)
+        {
+            return new ReasoningMessage(
+                Id: Guid.NewGuid(),
+                AgentContextId: agentContextId,
+                Role: GetReasoningMessageRole(message.Role),
+                SerializedChatMessage: JsonSerializer.Serialize(message));
         }
 
         public static List<ChatMessage> GetChatMessages(this List<ReasoningMessage> reasoningMessages)

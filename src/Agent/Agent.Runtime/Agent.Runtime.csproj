@@ -57,7 +57,7 @@
 	</None>
     <None Update="SubAgents\CVEAgent\CVEPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>	  
+    </None>
     <None Update="SubAgents\TlsBestPracticesAgent\TlsBestPracticesInfo.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -94,8 +94,18 @@
     <None Update="SubAgents\WebAppDownAgent\WebAppDownPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="V2\ContainerAppsAgent\ContainerAppsAgent.txt">
+    <None Update="V2\PromptStubs\ControlFlowPromptStub.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="V2\PromptStubs\CommunicationGuidelinesPromptStub.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Agent.Evals</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
 </Project>

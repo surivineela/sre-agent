@@ -81,27 +81,6 @@ public sealed class AgentContextDispatchService(
     {
         foreach (var agentContext in changes)
         {
-            // if this handoff context was completed, remove the assignment info
-            // do this before validating agent type, because the type will get reset back
-            // to the delegating agent type when the handoff completed
-            if (agentContext.HandoffState == ContextStateEnum.Completed || agentContext.HandoffState == ContextStateEnum.Failed)
-            {
-                // check if we need to delete the assignment doc
-                if (!string.IsNullOrEmpty(agentContext.AssignedInstanceId))
-                {
-                    await instanceManagementRepository.DeleteAgentContextInstanceAssignmentAsync(agentContext.Id, agentContext.AssignedInstanceId);
-
-                    await threadRepository
-                        .UpdateAgentContextAssignmentInfoAsync(
-                            Guid.Parse(agentContext.Id),
-                            Guid.Parse(agentContext.ThreadId),
-                            assignedInstanceId: null,
-                            expiration: null);
-                }
-
-                continue;
-            }
-
             // do not assign meta agents or durable agents for processing
             if (agentContext.AgentType == AgentTypeEnum.Meta
                 || agentContext.AgentType == AgentTypeEnum.DTS)
@@ -115,7 +94,7 @@ public sealed class AgentContextDispatchService(
                 continue;
             }
 
-            // check completion state if this wasn't a handoff
+            // check completion state
             if (agentContext.ContextState == ContextStateEnum.Completed || agentContext.ContextState == ContextStateEnum.Failed)
             {
                 // check if we need to delete the assignment doc

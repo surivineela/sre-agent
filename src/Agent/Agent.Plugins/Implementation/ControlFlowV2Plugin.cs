@@ -76,7 +76,6 @@ namespace Agent.Plugins
             var updatedAgentContext = agentContext with
             {
                 ContextState = ContextStateEnum.Completed,
-                HandoffState = ContextStateEnum.Completed,
                 WaitInformation = null,
                 ApprovalInformation = null
             };
@@ -135,8 +134,6 @@ namespace Agent.Plugins
             _logger.LogInformation(
                 "User input needed, setting wait state for context {AgentContextId} thread {ThreadId} with agent message: {message}",
                 _agentContextId, _threadId, message);
-
-            await _outboundCommunicationService.UpdateThreadWithAgentMessageAsync(_agentContext, new(ChatRole.Assistant, message));
 
             var agentContext = await _repository.GetAgentContextAsync(agentContextId: _agentContextId, threadId: _threadId);
             var updatedAgentContext = agentContext with
