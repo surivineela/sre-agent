@@ -1,3 +1,4 @@
+using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Plugins.Attributes;
 using Azure.ResourceManager.AppService.Models;
@@ -23,6 +24,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("update_alwaysOn")]
         [Description("To modify the AlwaysOn property of the app service")]
+        [RequiresApproval]
         public async Task<string> UpdateAlwaysOn(
             [Description("The resource ID of the app service resource to modify.")]
             string resourceId,
@@ -33,6 +35,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("To modify the AutoHeal properties of the app service")]
+        [RequiresApproval]
         public async Task<string> UpdateAutoHeal(
             [Description("The resource ID of the app service resource to modify.")]
             string resourceId,
@@ -57,6 +60,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("update_number_of_workers")]
         [Description("To change the number of workers that the app service is hosted on")]
+        [RequiresApproval]
         public async Task<string> UpdateHostWorkers(
             [Description("The resource ID of the app service resource to modify.")]
             string resourceId,

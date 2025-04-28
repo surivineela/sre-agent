@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.Network.Models;
@@ -83,6 +84,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("rollback_to_last_working_image")]
         [Description("Rolls back a Container App or Linux Web App to the last known working image. This is useful when a new image deployment causes pull failures or other issues.")]
+        [RequiresApproval]
         public async Task<RollbackImageResult> RollbackToLastWorkingImage(
             [Description("Resource ID of the Container App or Linux Web App to roll back")]
             string resourceId)
@@ -92,6 +94,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("update_container_image")]
         [Description("Updates the container image for a Container App or Linux Web App. This enables changing to a new image version or completely different image.")]
+        [RequiresApproval]
         public async Task<ContainerUpdateResult> UpdateContainerImage(
             [Description("Resource ID of the Container App or Linux Web App")]
             string resourceId,
@@ -107,6 +110,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("retry_image_pull")]
         [Description("Attempts to pull a container image to verify that it's accessible and properly authenticated. This can help troubleshoot image pull failures.")]
+        [RequiresApproval]
         public async Task<ImagePullResult> RetryImagePull(
             [Description("The full image reference to try pulling (e.g. myregistry.azurecr.io/myapp:v2)")]
             string imageReference,

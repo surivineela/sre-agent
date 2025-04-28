@@ -89,6 +89,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("eventhub_set_local_auth_support")]
+        [RequiresApproval]
         [Description("Sets the key based local auth setting on event hub accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> EventHubSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {
@@ -96,6 +97,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("servicebus_set_local_auth_support")]
+        [RequiresApproval]
         [Description("Sets the key based local auth setting on event hub accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> ServiceBusSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {
@@ -103,6 +105,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("azure_sql_server_set_auth_support")]
+        [RequiresApproval]
         [Description("Sets the authentication on azure sql server, disabling or enabling local auth support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> AzureSqlServerSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {

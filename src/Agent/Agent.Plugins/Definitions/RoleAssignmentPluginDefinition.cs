@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 
 namespace Agent.Plugins.Definitions
 {
@@ -34,6 +35,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Adds a role assignment for a user or managed identity on an Azure resource")]
+        [RequiresApproval]
         public async Task<string> AddRoleAssignment(
             [Description("The full ARM resource ID (e.g., /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Storage/storageAccounts/{name})")]
             string resourceId,
@@ -48,6 +50,7 @@ namespace Agent.Plugins.Definitions
         }
 
         [Description("Removes a role assignment for a user or managed identity on an Azure resource")]
+        [RequiresApproval]
         public async Task<string> RemoveRoleAssignment(
             [Description("The full ARM resource ID (e.g., /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.Storage/storageAccounts/{name})")]
             string resourceId,

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Core.Models;
 
 namespace Agent.Plugins
@@ -25,6 +26,7 @@ namespace Agent.Plugins
         }
 
         [Description("Manually trigger a GitHub Actions workflow. Used for triggering Canary and Prod workflows. Workflow name can be found by calling detect_github_workflow_name")]
+        [RequiresApproval]
         public async Task<WorkflowRunResponse> TriggerWorkflow(
             [Description("GitHub repository URL, e.g. https://github.com/owner/repo-name")] string repoUrl,
             [Description("App Azure ResourceId")] string resourceId)

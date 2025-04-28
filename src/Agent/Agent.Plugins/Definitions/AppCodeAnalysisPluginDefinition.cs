@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Azure.ResourceManager.ResourceGraph.Models;
 using Microsoft.SemanticKernel;
@@ -67,6 +68,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("perform_deployment_swap_for_app")]
         [Description("Performs a Deployment Swap for the specified app")]
+        [RequiresApproval]
         public async Task<string> PerformDeploymentSwapForApp(
            [Description("resourceId for app")] string resourceId)
         {

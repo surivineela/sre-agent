@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
@@ -87,6 +88,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to scale a deployment, it can also be used by scale pod if the pod belongs to the deployment.
 eg: scale the 'nginx-deployment' in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [RequiresApproval]
         public async Task<string> ScaleDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -216,6 +218,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to scale a StatefulSet, it can also be used to scale pods that belong to a StatefulSet.
 eg: scale the 'redis' StatefulSet in the 'default' namespace to 3 replicas.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [RequiresApproval]
         public async Task<string> ScaleStatefulSetAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
