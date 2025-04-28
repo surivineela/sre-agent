@@ -222,7 +222,17 @@ extends:
           displayName: 'UX - Install NPM packages'
           inputs:
             command: 'install'
-            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'      
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+        
+        #
+        # UX - Compile extracted/translated strings
+        #
+        - task: Npm@1
+          displayName: Formatjs - Compile extracted/translated strings
+          inputs:
+            command: "custom"
+            workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+            customCommand: "run compile:loc"
 
         #
         # Build Solution
