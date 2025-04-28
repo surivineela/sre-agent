@@ -111,7 +111,8 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         var aksResourceId = node.ClusterResourceId;
         _logger.LogInformation($"Getting availability for AKS {workloadType}: {_namespace}/{workloadName}");
         try
-        {
+        { 
+        
             switch (workloadType)
             {
                 case "deployment":
@@ -122,6 +123,10 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                     var client2 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdAsync(aksResourceId);
                     var status2 = await client2.AppsV1.ReadNamespacedStatefulSetStatusAsync(workloadName, _namespace);
                     return (double)status2.Status.AvailableReplicas / (double)status2.Status.Replicas * 100;
+                case "pod":
+                    var client3 = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdAsync(aksResourceId);
+                    var status3 = await client3.CoreV1.ReadNamespacedPodStatusAsync(workloadName, _namespace);
+                    return (double)status3.Status.ContainerStatuses.Count(s => s.Ready) / (double)status3.Status.ContainerStatuses.Count * 100;
                 default:
                     _logger.LogWarning($"Unsupported availability type for AKS {workloadType}: {_namespace}/{workloadName}");
                     return 100;
@@ -232,26 +237,43 @@ public class AKSMetricsCollector : IResourceMetricsCollector
     // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
     private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName, string duration)
     {
+        string filter = "";
+        switch (workloadType)
+        {
+            case "deployment":
+            case "statefulset":
+                filter = $"pod=~\"{workloadName}\""; // Update filter for deployment and statefulset
+                break;
+            case "pod":
+                filter = $"pod=\"{workloadName}\"";
+                break;
+            default:
+                _logger?.LogWarning(
+                    "Unsupported workload type '{WorkloadType}' for AKS in namespace '{Namespace}' and workload name '{WorkloadName}'.",
+                    workloadType, _namespace, workloadName);
+                return $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'.";
+        }
+
         switch (metricType.ToLowerInvariant())
         {
             case "memory":
                 return $@"100 * (
                         max_over_time(
-                            container_memory_working_set_bytes{{pod=~""{workloadName}-.*"",namespace=""{_namespace}"",container!=""""}}[{duration}]
+                            container_memory_working_set_bytes{{{filter},namespace=""{_namespace}"",container!=""""}}[{duration}]
                         )
                         / on (container, pod)
-                        kube_pod_container_resource_limits{{pod=~""{workloadName}-.*"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
+                        kube_pod_container_resource_limits{{{filter},namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
                         )";
 
             case "cpu":
                 return $$"""
                         100 * (
                             sum by (pod) (
-                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{workloadName}}-.*", container!=""}[{{duration}}])
+                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", {{filter}}, container!=""}[{{duration}}])
                             )
                             /
                             sum by (pod) (
-                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{workloadName}}-.*", resource="cpu", container!=""}
+                                kube_pod_container_resource_limits{namespace="{{_namespace}}", {{filter}}, resource="cpu", container!=""}
                             ) > 0
                         )
                         """;

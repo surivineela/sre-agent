@@ -51,7 +51,8 @@ public class ScoreCardService
                 }
                 var updated = false;
                 if (resourceType.Equals(Constants.AzureKubernetesServiceDeploymentType, StringComparison.OrdinalIgnoreCase) ||
-                    resourceType.Equals(Constants.AzureKubernetesServiceStatefulSetType, StringComparison.OrdinalIgnoreCase))
+                    resourceType.Equals(Constants.AzureKubernetesServiceStatefulSetType, StringComparison.OrdinalIgnoreCase) ||
+                    resourceType.Equals(Constants.AzureKubernetesServicePodType, StringComparison.OrdinalIgnoreCase))
                 {
                     var node = CreateKubernetesResourceNodeFromDictionary(result);
                     if (node == null)
@@ -290,6 +291,7 @@ public class ScoreCardService
                     '{Constants.AzureRedisCacheType.ToLower()}',
                     '{Constants.AzureKubernetesServiceDeploymentType.ToLower()}',
                     '{Constants.AzureKubernetesServiceStatefulSetType.ToLower()}',
+                    '{Constants.AzureKubernetesServicePodType.ToLower()}',
                 ))
                 .project('id', 'name', 'type', 'properties')
                 .by(id())
