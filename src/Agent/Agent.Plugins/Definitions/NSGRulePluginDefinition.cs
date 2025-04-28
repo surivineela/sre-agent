@@ -25,6 +25,7 @@ public class NSGRulePluginDefinition
         return await _nsgRulePlugin.GetNSGRulesAsync(nsgResourceId);
     }
 
+    [RequiresApproval]
     [KernelFunction("create_or_update_nsg_rule")]
     [Description("Creates a new NSG rule or updates an existing one to modify network access permissions. Use this to fix connectivity issues by allowing necessary traffic or blocking unwanted traffic.")]
     [RequiresApproval]
@@ -35,6 +36,7 @@ public class NSGRulePluginDefinition
         return await _nsgRulePlugin.CreateOrUpdateNSGRuleAsync(nsgResourceId, rule);
     }
 
+    [RequiresApproval]
     [KernelFunction("remove_nsg_rule")]
     [Description("Removes an existing NSG rule. Use this to eliminate overly restrictive or unnecessary security rules.")]
     [RequiresApproval]

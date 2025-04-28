@@ -62,6 +62,7 @@ namespace Agent.Plugins
             return await _armPlugin.GetArmResourceAsJson(resourceId);
         }
 
+        [RequiresApproval]
         [Description("Power ON an Azure virtual machine")]
         public async Task<RemediationResult> PowerOnVirtualMachine(
             [Description("Full resource id of an Azure virtual machine resource")] string resourceId)
