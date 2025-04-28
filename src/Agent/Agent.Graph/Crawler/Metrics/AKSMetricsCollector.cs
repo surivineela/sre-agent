@@ -10,6 +10,7 @@ using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
+using Gremlin.Net.Process.Traversal;
 using k8s;
 using Microsoft.Extensions.Logging;
 using Prometheus;
@@ -134,6 +135,13 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
+            // Check if it's a 404 Not Found error (resource doesn't exist)
+            if (ex is k8s.Autorest.HttpOperationException httpEx && 
+                httpEx.Response?.StatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                // Resource not found (404), just return without logging
+                return 100;
+            }
             _logger.LogWarning(ex, $"Failed to get availability for AKS {workloadType}: {_namespace}/{workloadName}, default to 100.");
             return 100;
         }
@@ -152,11 +160,9 @@ public class AKSMetricsCollector : IResourceMetricsCollector
 
         try
         {
-            // Convert the provided time range into Prometheus-compatible duration format
-            string duration = "5m";
 
             // Build the PromQL query based on the specified metric type
-            string query = BuildPromQuery(metricType, _namespace, workloadType, workloadName, duration);
+            string query = BuildPromQuery(metricType, _namespace, workloadType, workloadName);
 
             if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
             {
@@ -166,7 +172,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                 return 0;
             }
 
-            _logger?.LogInformation(
+            _logger?.LogDebug(
                 "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
                 _prometheusQueryEndpoint, query);
 
@@ -235,7 +241,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
     }
 
     // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
-    private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName, string duration)
+    private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName)
     {
         string filter = "";
         switch (workloadType)
@@ -257,26 +263,41 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         switch (metricType.ToLowerInvariant())
         {
             case "memory":
-                return $@"100 * (
-                        max_over_time(
-                            container_memory_working_set_bytes{{{filter},namespace=""{_namespace}"",container!=""""}}[{duration}]
-                        )
-                        / on (container, pod)
-                        kube_pod_container_resource_limits{{{filter},namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
-                        )";
-
-            case "cpu":
-                return $$"""
-                        100 * (
-                            sum by (pod) (
-                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", {{filter}}, container!=""}[{{duration}}])
+                return $@"
+                            100 *  (
+                                sum by (pod) (
+                                    container_memory_working_set_bytes{{{filter},namespace=""{_namespace}"",container!=""""}}
+                                )
+                                / on (pod)
+                                min by (pod) (
+                                    (
+                                        kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{{filter},namespace=""{_namespace}""}}
+                                    )   
+                                    or
+                                    (
+                                        kube_pod_container_resource_limits{{{filter},namespace=""{_namespace}"", resource=""memory""}}
+                                    )
+                                ) 
                             )
-                            /
-                            sum by (pod) (
-                                kube_pod_container_resource_limits{namespace="{{_namespace}}", {{filter}}, resource="cpu", container!=""}
-                            ) > 0
-                        )
-                        """;
+                        ";
+            case "cpu":
+                return $@"
+                            100 *  (
+                                sum by (pod) (
+                                    rate(container_cpu_usage_seconds_total{{{filter},namespace=""{_namespace}"",container!=""""}}[2m])
+                                )
+                                / on (pod)
+                                min by (pod) (
+                                    (
+                                        kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{{filter},namespace=""{_namespace}""}}
+                                    )   
+                                    or
+                                    (
+                                        kube_pod_container_resource_limits{{{filter},namespace=""{_namespace}"", resource=""cpu""}}
+                                    )
+                                ) 
+                            )
+                        ";
 
             // Default case for custom queries or other unhandled metric types
             default:

@@ -1237,26 +1237,42 @@ namespace Agent.Plugins
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
-                    return $@"100 * (
-                        max_over_time(
-                            container_memory_working_set_bytes{{pod=~""{pod}"",namespace=""{_namespace}"",container!=""""}}[{duration}]
-                        )
-                        / on (container, pod)
-                        kube_pod_container_resource_limits{{pod=~""{pod}"",namespace=""{_namespace}"",container!="""",resource=""memory""}} > 0
-                        )";
-
-                case "cpu":
-                    return $$"""
-                        100 * (
-                            sum by (pod) (
-                                rate(container_cpu_usage_seconds_total{namespace="{{_namespace}}", pod=~"{{pod}}", container!=""}[{{duration}}])
+                    return $@"
+                            100 *  (
+                                sum by (pod) (
+                                    container_memory_working_set_bytes{{pod=~""{pod}"",namespace=""{_namespace}"",container!=""""}}
+                                )
+                                / on (pod)
+                                min by (pod) (
+                                    (
+                                        kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{pod}"",namespace=""{_namespace}""}}
+                                    )   
+                                    or
+                                    (
+                                        kube_pod_container_resource_limits{{pod=~""{pod}"",namespace=""{_namespace}"", resource=""memory""}}
+                                    )
+                                ) 
                             )
-                            /
-                            sum by (pod) (
-                                kube_pod_container_resource_limits{namespace="{{_namespace}}", pod=~"{{pod}}", resource="cpu", container!=""}
-                            ) > 0
-                        )
-                        """;
+                        ";
+                case "cpu":
+                    return $@"
+                            100 *  (
+                                sum by (pod) (
+                                    rate(container_cpu_usage_seconds_total{{pod=~""{pod}"",namespace=""{_namespace}"",container!=""""}}[2m])
+                                )
+                                / on (pod)
+                                min by (pod) (
+                                    (
+                                        kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{pod}"",namespace=""{_namespace}""}}
+                                    )   
+                                    or
+                                    (
+                                        kube_pod_container_resource_limits{{pod=~""{pod}"",namespace=""{_namespace}"", resource=""cpu""}}
+                                    )
+                                ) 
+                            )
+                        ";
+
 
                 // Default case for custom queries or other unhandled metric types
                 default:
