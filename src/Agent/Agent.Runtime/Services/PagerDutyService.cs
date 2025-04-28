@@ -2,19 +2,35 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Net.Http.Json;
 using System.Text.Json.Serialization;
 
 namespace Agent.Runtime.Services;
 
-public class PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory) : IPagerDutyService
+public class PagerDutyService : IPagerDutyService
 {
+    private static string PagerDutyApiKey = Environment.GetEnvironmentVariable("PAGERDUTY_API_KEY") ?? "";
+    private readonly ILogger<PagerDutyService> _logger;
+    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly IncidentManagementSettings? _settings;
 
-    private readonly static string PagerDutyApiKey = Environment.GetEnvironmentVariable("PAGERDUTY_API_KEY") ?? "";
+    public PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFactory httpClientFactory, IncidentManagementSettings settings)
+    {
+        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _httpClientFactory = httpClientFactory ?? throw new ArgumentNullException(nameof(httpClientFactory));
+        _settings = settings;
+        if (_settings != null && settings.Type.Equals("pagerduty", StringComparison.OrdinalIgnoreCase))
+        {
+            PagerDutyApiKey = settings.ConnectionKey ?? Environment.GetEnvironmentVariable("PAGERDUTY_API_KEY") ?? "";
+        }
+
+    }
+
     public async Task<PagerDutyIncidentsResponse> GetIncidentsAsync(uint limit, uint offset)
     {
-        logger.LogInformation("Getting PagerDuty incidents with limit: {limit}, offset: {offset}", limit, offset);
+        _logger.LogInformation("Getting PagerDuty incidents with limit: {limit}, offset: {offset}", limit, offset);
         using var client = CreateHttpClient();
         var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents?limit={limit}&offset={offset}");
         var response = await client.SendAsync(request);
@@ -23,18 +39,18 @@ public class PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFacto
             var incidentsResponse = await response.Content.ReadFromJsonAsync<PagerDutyIncidentsResponse>();
             if (incidentsResponse != null)
             {
-                logger.LogInformation("Successfully retrieved {count} PagerDuty incidents.", incidentsResponse.Incidents.Count);
+                _logger.LogInformation("Successfully retrieved {count} PagerDuty incidents.", incidentsResponse.Incidents.Count);
                 return incidentsResponse;
             }
             else
             {
-                logger.LogError("Failed to deserialize PagerDuty incidents response.");
+                _logger.LogError("Failed to deserialize PagerDuty incidents response.");
             }
         }
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            logger.LogError("Failed to get PagerDuty incidents: {errorContent}", errorContent);
+            _logger.LogError("Failed to get PagerDuty incidents: {errorContent}", errorContent);
         }
 
         throw new HttpRequestException($"Failed to get PagerDuty incidents: {response.StatusCode}");
@@ -61,7 +77,7 @@ public class PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFacto
     public async Task<string?> GetLatestIncidentDescription(string incidentId)
     {
         ArgumentException.ThrowIfNullOrEmpty(incidentId, nameof(incidentId));
-        logger.LogInformation("Getting latest incident description for PagerDuty incident ID: {incidentId}", incidentId);
+        _logger.LogInformation("Getting latest incident description for PagerDuty incident ID: {incidentId}", incidentId);
         using var client = CreateHttpClient();
         var request = new HttpRequestMessage(HttpMethod.Get, $"https://api.pagerduty.com/incidents/{incidentId}/log_entries");
 
@@ -74,23 +90,23 @@ public class PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFacto
                 var latestLogEntry = logEntriesResponse.LogEntries.Where(x => x.Type == "description_change_log_entry").OrderByDescending(x => x.CreatedAt).FirstOrDefault();
                 if (latestLogEntry?.Channel.NewDescription != null)
                 {
-                    logger.LogInformation("Successfully retrieved latest incident description: {description}", latestLogEntry.Channel.NewDescription);
+                    _logger.LogInformation("Successfully retrieved latest incident description: {description}", latestLogEntry.Channel.NewDescription);
                     return latestLogEntry.Channel.NewDescription;
                 }
                 else
                 {
-                    logger.LogInformation("No description change log entry found for incident ID: {incidentId}", incidentId);
+                    _logger.LogInformation("No description change log entry found for incident ID: {incidentId}", incidentId);
                 }
             }
             else
             {
-                logger.LogError("Failed to deserialize PagerDuty log entries response.");
+                _logger.LogError("Failed to deserialize PagerDuty log entries response.");
             }
         }
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync();
-            logger.LogError("Failed to get PagerDuty log entries: {errorContent}", errorContent);
+            _logger.LogError("Failed to get PagerDuty log entries: {errorContent}", errorContent);
         }
 
         return null;
@@ -98,7 +114,7 @@ public class PagerDutyService(ILogger<PagerDutyService> logger, IHttpClientFacto
 
     private HttpClient CreateHttpClient()
     {
-        var client = httpClientFactory.CreateClient("PagerDutyClient");
+        var client = _httpClientFactory.CreateClient("PagerDutyClient");
         client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
         client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Token", PagerDutyApiKey);
 
