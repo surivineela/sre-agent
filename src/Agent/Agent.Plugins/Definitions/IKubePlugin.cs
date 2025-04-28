@@ -20,7 +20,7 @@ namespace Agent.Plugins
         Task<string> GetKubeResourceSpecStatusAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind, string name);
         Task<string> GetKubeResourceEventsAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind, string name);
 
-        Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string duration, string startTime, string endTime);
+        Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string step, string startTime, string endTime);
         Task<string> GetRecentlyUpdatedWorkloadsAsync(string AKSClusterResourceId, string _namespace, int minutesAgo);
         Task<string> GetKubeStatefulsetsAsync(string AKSClusterResourceId, string _namespace);
         Task<string> ScaleStatefulSetAsync(string AKSClusterResourceId, string _namespace, string name, int replicas);

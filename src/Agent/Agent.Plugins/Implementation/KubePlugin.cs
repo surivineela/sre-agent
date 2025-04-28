@@ -669,7 +669,7 @@ namespace Agent.Plugins
 
             // Query the Prometheus endpoint using the injected service
             var response = await _prometheusQueryService.QueryRangeAsync(_prometheusQueryEndpoint, query, startDate, endDate, step);
-            return FormatPrometheusResponse(response, metricsType, kind, name);
+            return FormatPrometheusRangeResponse(response, metricsType, kind, name, startTime, endTime, rawDuration);
         }
 
         // Helper method to parse date strings into DateTime objects
@@ -1049,7 +1049,106 @@ namespace Agent.Plugins
                     }
 
                     break;
+                default:
+                    // Handle unknown response types if necessary, although your models cover the main Prometheus ones.
+                    sb.AppendLine($"## Unknown Prometheus Response Type for {metricType} Metrics for workloadType {workloadType} and workloadName {workloadName}.");
+                    sb.AppendLine($"Received type: {response.GetType().Name}");
+                    break;
+            }
 
+            return sb.ToString().TrimEnd(); // Trim trailing whitespace/newlines
+        }
+
+        private static string FormatPrometheusRangeResponse(Response? response, string metricType, string workloadType, string workloadName, string rawDuration, string startTime, string endTime)
+        {
+            if (response == null)
+            {
+                return $"No response received from Prometheus for {metricType} metrics for workloadType {workloadType} and workloadName {workloadName}.";
+            }
+
+            var sb = new StringBuilder();
+            string capitalizedMetricType = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(metricType.ToLowerInvariant()); // e.g., "Cpu", "Memory"
+
+            switch (response)
+            {
+                case ErrorResponse errorResponse:
+                    sb.AppendLine($"## Error Fetching {capitalizedMetricType} Metrics for workloadType {workloadType} and workloadName {workloadName}.");
+                    sb.AppendLine();
+                    sb.AppendLine($"**Error Type**: {errorResponse.ErrorType}");
+                    sb.AppendLine($"**Error Message**: {errorResponse.Error}");
+                    if (errorResponse.Warnings?.Any() ?? false)
+                    {
+                        sb.AppendLine("**Warnings**:");
+                        foreach (var warning in errorResponse.Warnings)
+                        {
+                            sb.AppendLine($"- {warning}");
+                        }
+                    }
+                    break;
+
+                case SuccessMatrixResponse successMatrix:
+                    var matrixData = successMatrix.Data;
+                    if (matrixData?.Result == null || !matrixData.Result.Any())
+                    {
+                        return $"No {metricType} metrics found for workloadType {workloadType} and workloadName {workloadName}.'. Check if the values specified are correct and if metrics are being collected.";
+                    }
+                    sb.AppendLine($"## {capitalizedMetricType} Usage for workloadType {workloadType} and workloadName {workloadName} during timestamp from {startTime} to {endTime}");
+                    sb.AppendLine();
+
+                    foreach (var resultItem in matrixData.Result)
+                    {
+                        // --- Pod Name ---
+                        string podName = "(unknown pod)";
+                        if (resultItem.Metric.TryGetValue("pod", out var podLabel))
+                        {
+                            podName = podLabel;
+                        }
+                        else if (resultItem.Metric.TryGetValue("kubernetes_pod_name", out var k8sPodLabel)) // Alternative label
+                        {
+                            podName = k8sPodLabel;
+                        }
+                        else if (resultItem.Metric.TryGetValue("name", out var nameLabel)) // Another possible label
+                        {
+                            podName = nameLabel;
+                        }
+                        // You might need to add more fallbacks depending on your exact metric labels
+
+                        sb.Append($"**Pod**: `{podName}`");
+
+                        // --- Metric Value ---
+                        foreach (var metricItem in resultItem.Values)
+                        {
+                            double timestamp = metricItem.Item1; // Unix timestamp (seconds)
+                            string rawValue = metricItem.Item2;
+                            DateTimeOffset dateTime = DateTimeOffset.FromUnixTimeSeconds((long)timestamp);
+
+                            if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double numericValue))
+                            {
+                                // Check for NaN or Infinity which Prometheus can return
+                                if (double.IsNaN(numericValue) || double.IsInfinity(numericValue))
+                                {
+                                    sb.AppendLine($"**{capitalizedMetricType} Value**: {rawValue} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                                }
+                                // Specific formatting for CPU/Memory (assuming they represent % usage from your queries)
+                                else if (metricType.Equals("cpu", StringComparison.OrdinalIgnoreCase) || metricType.Equals("memory", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    // Your queries calculate percentage, so multiply by 100
+                                    sb.AppendLine($"**{capitalizedMetricType} Usage**: {numericValue:F2}% of limit (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                                }
+                                else // Generic numeric value
+                                {
+                                    sb.AppendLine($"**Value**: {numericValue:F4} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                                }
+                            }
+                            else // Value wasn't a parsable number
+                            {
+                                sb.AppendLine($"**{capitalizedMetricType} Value**: {rawValue} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                            }
+                        }
+                        sb.AppendLine(); // Add a blank line between pod results
+                    }
+
+                    break;
                 default:
                     // Handle unknown response types if necessary, although your models cover the main Prometheus ones.
                     sb.AppendLine($"## Unknown Prometheus Response Type for {metricType} Metrics for workloadType {workloadType} and workloadName {workloadName}.");
