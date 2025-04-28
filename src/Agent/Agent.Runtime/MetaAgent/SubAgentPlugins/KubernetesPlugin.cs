@@ -35,6 +35,7 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
     public async Task<IReadOnlyList<WorkflowMetadata<string>>> ListKubernetesAgentWorkflow()
     {
         var list = new List<WorkflowMetadata<string>>();
+
         await foreach (var instance in _durableTaskClient.GetAllInstancesAsync(
             new OrchestrationQuery(
                 InstanceIdPrefix: KubernetesAgentFactory.OrchestrationInstanceIdPrefix,

@@ -13,6 +13,7 @@ public record ThreadContextDocument(
     int AgentType,
     List<Message> Messages,
     bool IsThreadActive,
+    OrchestrationState? OrchestrationState = null,
     OutboundConfiguration? OutboundConfiguration = null
 ) : ICosmosDocument
 {
@@ -28,6 +29,7 @@ public record ThreadContextDocument(
             AgentType: (int)threadContext.AgentTypeEnum,
             Messages: threadContext.RecentMessages.ToList(),
             IsThreadActive: threadContext.IsThreadActive,
+            OrchestrationState: threadContext.OrchestrationState,
             OutboundConfiguration: threadContext.OutboundConfiguration
         );
 
@@ -37,6 +39,7 @@ public record ThreadContextDocument(
             (AgentTypeEnum)AgentType,
             IsThreadActive,
             Messages == null ? new Queue<Message>() : new Queue<Message>(Messages),
+            OrchestrationState,
             OutboundConfiguration
         );
 

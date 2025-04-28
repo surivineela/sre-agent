@@ -64,7 +64,7 @@ public class ToolsRepository : IToolsRepository
         Register200<ArmPluginDefinition>(x => x.GetAppSetting);
         Register200<ArmPluginDefinition>(x => x.ListKeysForStorageAsync);
         Register200<ArmPluginDefinition>(x => x.UpdateAppSettingsAsync);
-        
+
         RegisterPlugin<TimePluginDefinition>();
         RegisterPlugin<MIConfigurationCheckPluginDefinition>();
         RegisterPlugin<GithubWorkflowTriggerPluginDefinition>();
@@ -142,7 +142,6 @@ public class ToolsRepository : IToolsRepository
     public string Register202<T>(MethodInfo submitMethodInfo, MethodInfo executeMethodInfo)
     {
         var sig = GetSignature(submitMethodInfo);
-
         _aiFunctions.Add(sig, new DeferredToolFunction202<T>(_serviceProvider, submitMethodInfo, executeMethodInfo));
         return sig;
     }
@@ -156,7 +155,6 @@ public class ToolsRepository : IToolsRepository
     public string Register200<T>(MethodInfo methodInfo)
     {
         var sig = GetSignature(methodInfo);
-
         _aiFunctions.Add(sig, new DeferredToolFunction200<T>(_serviceProvider, methodInfo));
         return sig;
     }

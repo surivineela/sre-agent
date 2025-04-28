@@ -36,6 +36,8 @@ public class ThreadContext
 
     public OutboundConfiguration OutboundConfiguration { get; set; } = new OutboundConfiguration();
 
+    public OrchestrationState? OrchestrationState { get; set; } = new OrchestrationState();
+
     // TODO(jianbo): use ThreadService only to add/read properties, in case we forget to sync in cosmosdb.
     public Dictionary<string, string> Properties { get; set; } = new Dictionary<string, string>();
 
@@ -45,13 +47,14 @@ public class ThreadContext
     /// Initializes a new instance of the ThreadContext class with the specified thread ID and messages.
     /// </summary>
     /// <param name="threadId">The unique identifier for the thread.</param>
-    public ThreadContext(Guid threadId, AgentTypeEnum agentTypeEnum, bool isThreadActive = true, Queue<Message>? recentMessages = null, OutboundConfiguration? outboundConfiguration = null)
+    public ThreadContext(Guid threadId, AgentTypeEnum agentTypeEnum, bool isThreadActive = true, Queue<Message>? recentMessages = null, OrchestrationState? orchestrationState = null, OutboundConfiguration? outboundConfiguration = null)
     {
         ThreadId = threadId;
         AgentTypeEnum = agentTypeEnum;
         RecentMessages = recentMessages ?? new Queue<Message>();
         OutboundConfiguration = outboundConfiguration ?? new OutboundConfiguration();
         IsThreadActive = isThreadActive;
+        OrchestrationState = orchestrationState ?? new OrchestrationState();
     }
 
 
@@ -84,4 +87,27 @@ public class OutboundConfiguration
 public class Teams
 {
     public bool? Enabled = true;
+}
+
+
+public enum ReasoningState
+{
+    Undefined,
+    OrchestrationInitialized,
+    StartingNewStep,
+    Waiting,
+    PlanningNextAction,
+    RunningFunctionCall,
+    OrchestrationCompleted,
+    Error
+}
+
+
+public class OrchestrationState
+{
+    public string OrchestrationInstanceId { get; set; } = string.Empty;
+    public int StepCounter { get; set; }
+    public ReasoningState ReasoningState { get; set; }
+    public string StateMessage { get; set; } = string.Empty;
+    public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
 }

@@ -7,7 +7,6 @@ using Agent.Plugins;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents.Core.Steps;
-using Kusto.Cloud.Platform.Utils;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -26,6 +25,8 @@ public class OrchestrationAgent
     public HashSet<string> PendingApprovals { get; set; } = new();
     public List<Task<ChatMessage>> Pending202Activities { get; set; } = new();
     public Guid ThreadId { get; set; }
+
+    ThreadContext? ThreadContext { get; set; }
 
     public Task<ChatMessage> _newMessageTask;
     public Task<ApprovalStatus> _approvalTask;
@@ -53,13 +54,15 @@ public class OrchestrationAgent
     public async Task RunReasoningLoop<TInput, TResult>(GenericAgentOrchestrator<TInput, TResult> genericAgentOrchestrator)
     {
         log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", this.ThreadId);
-
+        await RecordStateChange(ReasoningState.OrchestrationInitialized, "Reasoning loop started");
         while (!Done)
         {
             StepCount += 1;
+            await RecordStateChange(ReasoningState.StartingNewStep, "Starting new reasoning loop step");
             log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", this.ThreadId, StepCount);
 
             UpdateOrchestrationStatus();
+
             await WaitIfNecessary();
             await Process202Activities();
             await ProcessNewMessages(genericAgentOrchestrator);
@@ -73,6 +76,8 @@ public class OrchestrationAgent
     public async Task DoReasoningStep()
     {
         string threadId = this.ThreadId.ToString();
+        await RecordStateChange(ReasoningState.PlanningNextAction, "Calling LLM for next action planning");
+
 
         // Get the next action from the derived implementation
         var reasoningResult = await _taskOrchestrationContext.CallActivityAsync<AgentReasoningResult>(new TaskName(nameof(AgentReasoningActivity)), new GetNextActionInput
@@ -84,7 +89,10 @@ public class OrchestrationAgent
 
         log.LogInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
 
+
         var functionCalls = reasoningResult.ChatMessages.Last().Contents.OfType<FunctionCallContent>();
+
+
         log.LogInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
         // Extract the function call (assumes a single function call in the message)
         var functionCall = functionCalls.Single();
@@ -96,6 +104,9 @@ public class OrchestrationAgent
             ThreadId = threadId,
             OrchestrationId = _taskOrchestrationContext.InstanceId,
         };
+
+        await RecordStateChange(ReasoningState.RunningFunctionCall, $"Checking approval for function call: {functionCall.Name}");
+
         var approvalResult = await _taskOrchestrationContext.CallCheckApprovalActivityAsync(checkApprovalActivityInput);
         if (approvalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
         {
@@ -113,7 +124,7 @@ public class OrchestrationAgent
 
                 functionCall = null;
             }
-            else if(approvalResult.ApprovalStatus == ToolApprovalStatus.Approved)
+            else if (approvalResult.ApprovalStatus == ToolApprovalStatus.Approved)
             {
                 log.LogInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
                 if (!string.IsNullOrEmpty(approvalResult.ApprovalId))
@@ -146,6 +157,8 @@ public class OrchestrationAgent
             return;
         }
 
+        await RecordStateChange(ReasoningState.RunningFunctionCall, $"Running function call: {functionCall.Name}");
+
         if (!string.IsNullOrEmpty(approvalResult.OboToken))
         {
             if (functionCall.Arguments != null)
@@ -163,6 +176,20 @@ public class OrchestrationAgent
 
         var step = OrchestrationAgentStep.CreateStep(functionCall);
         await step.ExecuteAsync(_taskOrchestrationContext, this);
+    }
+
+    public async Task RecordStateChange(ReasoningState state, string message)
+    {
+        this.ThreadContext = await _taskOrchestrationContext.CallActivityAsync<ThreadContext>(new TaskName(nameof(PersistThreadContextActivity)), new PersistThreadContextInput
+        {
+            OrchestrationInstanceId = _taskOrchestrationContext.InstanceId,
+            ThreadContext = this.ThreadContext,
+            StepCounter = this.StepCount,
+            ThreadId = this.ThreadId,
+            ReasoningState = state,
+            StateMessage = message,
+            TimeStamp = DateTime.UtcNow
+        });
     }
 
     public void UpdateOrchestrationStatus()
@@ -186,6 +213,9 @@ public class OrchestrationAgent
         if (agent.WaitTask is not null || agent.ResponseFromUserIsPending == true || agent.PendingApprovals.Count > 0)
         {
             log.LogInformation("[{ThreadId}] Waiting for task to complete. ResponseFromUserIsPending={ResponseFromUserIsPending}, PendingApprovals={PendingApprovalToolCalls}", threadId, ResponseFromUserIsPending, agent.PendingApprovals.Count);
+            string stateMessage = ResponseFromUserIsPending ? "Waiting for user's response" : (agent.PendingApprovals.Count > 0 ? $"Waiting for {agent.PendingApprovals.Count} user approvals" : "Waiting for task to complete");
+
+            await RecordStateChange(ReasoningState.Waiting, stateMessage);
 
             var tasksToWaitFor = new List<Task>();
             tasksToWaitFor.AddRange(agent.Pending202Activities);
@@ -312,6 +342,9 @@ public class OrchestrationAgent
         string threadId = this.ThreadId.ToString();
 
         log.LogInformation("[{ThreadId}] Reasoning loop completed. Notifying user", threadId);
+
+        await RecordStateChange(ReasoningState.OrchestrationCompleted, "Orchestration completed");
+
         // Notify completion when done - use explicit call to activity
         await _taskOrchestrationContext.CallNotifyCompletionActivityAsync(new NotifyCompletionInput(
             ThreadId: threadId,
@@ -395,7 +428,7 @@ public abstract class OrchestrationAgentStep
             return new OrchestrationAgentChartStep { FunctionCall = functionCall };
         }
         else
-        { 
+        {
             return new OrchestrationAgentGenericExecuteStep { FunctionCall = functionCall };
         }
     }

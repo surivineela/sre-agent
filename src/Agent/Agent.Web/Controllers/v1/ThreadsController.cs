@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.AI;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Microsoft.DurableTask.Client;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -34,6 +35,7 @@ namespace Agent.Web.Controllers.v1
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository,
         IChatClient chatClient,
+        DurableTaskClient durableTaskClient,
         ILogger<ThreadsController> logger) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
@@ -258,6 +260,31 @@ namespace Agent.Web.Controllers.v1
                 new { threadId, messageFeedbackId },
                 messageFeedback
             );
+        }
+
+        [HttpGet("{threadId}/context")]
+        public async Task<ActionResult<ThreadContext>> GetContext(Guid threadId)
+        {
+            var threadContext = await repository.GetThreadContextAsync(threadId);
+
+            if (threadContext == null)
+                return NotFound();
+
+            if (threadContext.OrchestrationState != null &&
+                !string.IsNullOrEmpty(threadContext.OrchestrationState.OrchestrationInstanceId) &&
+                threadContext.OrchestrationState.ReasoningState != ReasoningState.OrchestrationCompleted &&
+                (DateTime.UtcNow - threadContext.OrchestrationState.TimeStamp > TimeSpan.FromMinutes(1)))
+            {
+                var orchestrationState = await durableTaskClient.GetInstanceAsync(threadContext.OrchestrationState.OrchestrationInstanceId);
+                if (orchestrationState?.RuntimeStatus == OrchestrationRuntimeStatus.Failed || orchestrationState?.RuntimeStatus == OrchestrationRuntimeStatus.Terminated)
+                {
+                    threadContext.OrchestrationState.ReasoningState = ReasoningState.Error;
+                    // TODO(jianbosun): need to find way to get detailed DTS error here.
+                    threadContext.OrchestrationState.StateMessage = $"Unexpected orchestration runtime status: {orchestrationState.RuntimeStatus} {(orchestrationState.FailureDetails != null ? orchestrationState.FailureDetails.ToString() : "")}";
+                }
+            }
+
+            return Ok(threadContext);
         }
 
         [HttpGet("{threadId}/actions")]
