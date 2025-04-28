@@ -6,9 +6,10 @@ import {
 import { Button } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import { memo, useCallback, useMemo, useState } from 'react';
-import { useIntl } from 'react-intl';
+import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { Activities } from '../../Strings/SREResources.resjson';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { sendApprovalDecision, sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
@@ -57,11 +58,6 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     const [feedbackText, setFeedbackText] = useState(''); // State to store feedback text
     const [isPositiveFeedback, setIsPositiveFeedback] = useState<boolean | null>(null); // State to store thumbs-up/down info
     const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
-
-    const feedbackDialogTitle = intl.formatMessage({
-        defaultMessage: 'Thank you for your feedback!',
-        id: 'Nrc9ba',
-    });
 
     const messageContent = useMemo(() => {
         // Make sure we have a text property and it's not empty
@@ -342,7 +338,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             }}
                             onClick={() => handleApprovalDecision(true)}
                         >
-                            Approve
+                            <FormattedMessage {...SreAgentResources.approve} />
                         </button>
                         <button
                             style={{
@@ -356,7 +352,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             }}
                             onClick={() => handleApprovalDecision(false)}
                         >
-                            Deny
+                            <FormattedMessage {...SreAgentResources.deny} />
                         </button>
                     </div>
                     <p
@@ -367,14 +363,13 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             marginBottom: '0',
                         }}
                     >
-                        If you approve, this operation will be executed on your behalf using your credentials.
+                        <FormattedMessage {...SreAgentResources.approveUsingCreds} />
                     </p>
                 </div>
             );
         } else {
             // For Approved or Denied status
             const statusColor = status === ApprovalDecision.Approved ? '#107C10' : '#A4262C';
-            const statusText = status === ApprovalDecision.Approved ? 'Approved' : 'Denied';
 
             return (
                 <div
@@ -398,23 +393,39 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                 display: 'inline-block',
                             }}
                         >
-                            {statusText}
+                            {status === ApprovalDecision.Approved ? (
+                                <FormattedMessage {...SreAgentResources.approved} />
+                            ) : (
+                                <FormattedMessage {...SreAgentResources.denied} />
+                            )}
                         </span>
                     </div>
                     <p style={{ margin: '0 0 16px 0' }}>
                         {' '}
-                        Requested at:{' '}
+                        <FormattedMessage {...SreAgentResources.requestedAt} />
+                        {': '}
                         {message.approval.createdTimestamp ? new Date(message.approval.createdTimestamp).toLocaleString() : 'N/A'}
                     </p>
 
                     {message.approval.decisionUser && (
                         <div style={{ fontSize: '14px', color: '#666' }}>
                             <p style={{ margin: '4px 0' }}>
-                                <strong>{statusText} by:</strong> {message.approval.decisionUser.displayName}
+                                <strong>
+                                    {status === ApprovalDecision.Approved ? (
+                                        <FormattedMessage {...SreAgentResources.approvedBy} />
+                                    ) : (
+                                        <FormattedMessage {...SreAgentResources.deniedBy} />
+                                    )}
+                                    :
+                                </strong>{' '}
+                                {message.approval.decisionUser.displayName}
                             </p>
                             {message.approval.decisionTimestamp && (
                                 <p style={{ margin: '4px 0' }}>
-                                    <strong>Decision Time:</strong> {new Date(message.approval.decisionTimestamp).toLocaleString()}
+                                    <strong>
+                                        <FormattedMessage {...SreAgentResources.decisionTime} />:
+                                    </strong>{' '}
+                                    {new Date(message.approval.decisionTimestamp).toLocaleString()}
                                 </p>
                             )}
                         </div>
@@ -429,7 +440,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                 marginBottom: '0',
                             }}
                         >
-                            This operation is being executed using the approver's credentials.
+                            <FormattedMessage {...SreAgentResources.beingExecutedUsingCreds} />
                         </p>
                     )}
                 </div>
@@ -555,7 +566,9 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                     width: '300px',
                                 }}
                             >
-                                <h4>{feedbackDialogTitle}</h4>
+                                <h4>
+                                    <FormattedMessage {...SreAgentResources.feedbackDialogTitle} />
+                                </h4>
                                 <textarea
                                     style={{
                                         width: '100%',
@@ -565,7 +578,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                         borderRadius: '4px',
                                         border: '1px solid #ccc',
                                     }}
-                                    placeholder="Enter your feedback here..."
+                                    placeholder={intl.formatMessage(SreAgentResources.enterFeedbackPlaceholder)}
                                     value={feedbackText}
                                     onChange={e => setFeedbackText(e.target.value)}
                                 />
@@ -582,7 +595,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                         }}
                                         onClick={handleFeedbackSubmit}
                                     >
-                                        Submit
+                                        <FormattedMessage {...SreAgentResources.submit} />
                                     </button>
                                     <button
                                         style={{
@@ -595,7 +608,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                         }}
                                         onClick={() => setShowFeedbackPopup(false)}
                                     >
-                                        Cancel
+                                        <FormattedMessage {...SreAgentResources.cancel} />
                                     </button>
                                 </div>
                             </div>
@@ -608,7 +621,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             appearance="transparent"
                             style={{ width: '90%' }}
                         >
-                            {'Cancel'}
+                            <FormattedMessage {...SreAgentResources.cancel} />
                         </Button>
                     )}
                 </div>

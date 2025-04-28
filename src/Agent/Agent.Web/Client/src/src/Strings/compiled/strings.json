@@ -1,8 +1,86 @@
 {
+  "47FYwb": [
+    {
+      "type": 0,
+      "value": "Cancel"
+    }
+  ],
+  "4Ez7HI": [
+    {
+      "type": 0,
+      "value": "Denied by"
+    }
+  ],
+  "5+bQr/": [
+    {
+      "type": 0,
+      "value": "Approved by"
+    }
+  ],
+  "5kp1Ie": [
+    {
+      "type": 0,
+      "value": "Denied"
+    }
+  ],
+  "6XFO/C": [
+    {
+      "type": 0,
+      "value": "Approved"
+    }
+  ],
+  "9ZIBMx": [
+    {
+      "type": 0,
+      "value": "Requested at"
+    }
+  ],
+  "A3Wps1": [
+    {
+      "type": 0,
+      "value": "If you approve, this operation will be executed on your behalf using your credentials."
+    }
+  ],
   "Nrc9ba": [
     {
       "type": 0,
       "value": "Thank you for your feedback!"
+    }
+  ],
+  "Q/agzh": [
+    {
+      "type": 0,
+      "value": "Decision Time"
+    }
+  ],
+  "SRf69j": [
+    {
+      "type": 0,
+      "value": "This operation is being executed using the approver's credentials."
+    }
+  ],
+  "WCaf5C": [
+    {
+      "type": 0,
+      "value": "Approve"
+    }
+  ],
+  "dDl4Gl": [
+    {
+      "type": 0,
+      "value": "Enter your feedback here..."
+    }
+  ],
+  "htvX+Z": [
+    {
+      "type": 0,
+      "value": "Deny"
+    }
+  ],
+  "wSZR47": [
+    {
+      "type": 0,
+      "value": "Submit"
     }
   ]
 }
