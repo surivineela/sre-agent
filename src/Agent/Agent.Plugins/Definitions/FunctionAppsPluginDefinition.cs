@@ -10,12 +10,10 @@ namespace Agent.Plugins.Definitions;
 public class FunctionAppsPluginDefinition
 {
     private readonly IFunctionAppsPlugin _functionAppPlugin;
-    private readonly ILogger<FunctionAppsPluginDefinition> _logger;
 
-    public FunctionAppsPluginDefinition(IFunctionAppsPlugin functionAppsPlugin, ILogger<FunctionAppsPluginDefinition> logger)
+    public FunctionAppsPluginDefinition(IFunctionAppsPlugin functionAppsPlugin)
     {
         _functionAppPlugin = functionAppsPlugin;
-        _logger = logger;
     }
 
     [Description("PREFERRED METHOD FOR FUNCTION APPS: Lists all Azure Function Apps in the specified subscription. " +

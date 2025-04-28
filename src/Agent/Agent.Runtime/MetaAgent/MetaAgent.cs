@@ -175,6 +175,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IMetaAgentContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
+    private readonly IFunctionAppsPlugin _functionAppsPlugin;
     private readonly IMetaAgentSqlDbQueryPerfPlugin _sqlDbQueryPerfPlugin;
     private readonly IConnectedIntegrationsPlugin _connectedIntegrationsPlugin;
     private readonly IFirstPartySubAgentsFactory _firstPartySubAgentsFactory;
@@ -204,6 +205,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IMetaAgentKubernetesAgentPlugin kubernetesAgentPlugin,
         IAppServicePlugin appServicePlugin,
         IContainerAppPlugin containerAppPlugin,
+        IFunctionAppsPlugin functionAppsPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
         IMetaAgentAppReliabilityPlugin appReliabilityPlugin,
@@ -257,6 +259,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _cpuAnalysisPlugin = cpuAnalysisPlugin;
         _vmRdpInvestigatorPlugin = vmRdpInvestigatorPlugin;
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
+        _functionAppsPlugin = functionAppsPlugin;
         _metricsPlugin = metricsPlugin;
 
 
@@ -362,6 +365,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         var connectedIntegrationsPluginDefinition = new ConnectedIntegrationsPluginDefinition(_connectedIntegrationsPlugin);
         var incidentPluginDefinition = new IncidentPluginDefinition(_incidentPlugin);
 
+        var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
+
         List<AITool> _aiTools =
         [
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.ListManagedIdentityMigrations),
@@ -420,6 +425,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent),
             AIFunctionFactory.Create(connectedIntegrationsPluginDefinition.GetAllActiveConnectedIntegrations),
             AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
+            AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
+            AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)
