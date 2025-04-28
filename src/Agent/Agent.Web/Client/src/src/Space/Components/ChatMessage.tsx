@@ -248,14 +248,62 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     const handleApprovalDecision = async (approved: boolean) => {
         try {
             if (message.approval) {
-                await sendApprovalDecision(threadId, message.approval.id, approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected);
+                // Check if already approved/rejected
+                if (message.approval.status !== ApprovalDecision.Pending) {
+                    console.warn(`Approval ${message.approval.id} is already ${message.approval.status}`);
+                    return; // Exit early if already decided
+                }
+
+                const approvalData = await sendApprovalDecision(
+                    threadId,
+                    message.approval.id,
+                    approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected
+                );
+
                 console.log(`Approval decision sent for message ID: ${message.id}, approved: ${approved}`);
 
-                // Update the UI to reflect the decision
-                setApprovalStatus(approved ? ApprovalDecision.Approved : ApprovalDecision.Rejected);
+                setApprovalStatus(approvalData.status as ApprovalDecision);
+                message.approval = {
+                    ...message.approval,
+                    status: approvalData.status as ApprovalDecision,
+                    decisionUser: {
+                        displayName: approvalData.decisionMakerName || approvalData.decisionMaker || 'Web Client User',
+                        userId: approvalData.decisionMakerId || approvalData.decisionMaker,
+                        role: 'User',
+                    },
+                    decisionTimestamp: approvalData.decisionTimestamp,
+                };
             }
-        } catch (error) {
+        } catch (error: any) {
             console.error(`Failed to send approval decision for message ID: ${message.id}`, error);
+
+            // Handle specific error cases
+            if (error.response?.status === 409) {
+                // Conflict - already approved/rejected
+                const errorData = error.response?.data;
+
+                if (message.approval && errorData) {
+                    message.approval = {
+                        ...message.approval,
+                        status: errorData.status as ApprovalDecision,
+                        decisionUser: {
+                            displayName: errorData.decisionMakerName || 'Unknown User',
+                            userId: errorData.decisionMakerId || '',
+                            role: 'User',
+                        },
+                        decisionTimestamp: errorData.decisionTimestamp,
+                    };
+
+                    setApprovalStatus(errorData.status as ApprovalDecision);
+                }
+
+                const formattedDate = errorData.decisionTimestamp ? new Date(errorData.decisionTimestamp).toLocaleString() : 'unknown date';
+                alert(
+                    `This operation was already ${errorData.status?.toLowerCase()} by ${errorData.decisionMakerName || 'Unknown User'} on ${formattedDate}`
+                );
+            } else {
+                alert('Failed to process approval decision. Please try again.');
+            }
         }
     };
 
@@ -319,7 +367,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             marginBottom: '0',
                         }}
                     >
-                        Approving this operation will be executed on your behalf using your credentials
+                        If you approve, this operation will be executed on your behalf using your credentials.
                     </p>
                 </div>
             );
@@ -353,7 +401,11 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             {statusText}
                         </span>
                     </div>
-                    <p style={{ margin: '0 0 16px 0' }}>Requested at: {message.approval.createdTimestamp}</p>
+                    <p style={{ margin: '0 0 16px 0' }}>
+                        {' '}
+                        Requested at:{' '}
+                        {message.approval.createdTimestamp ? new Date(message.approval.createdTimestamp).toLocaleString() : 'N/A'}
+                    </p>
 
                     {message.approval.decisionUser && (
                         <div style={{ fontSize: '14px', color: '#666' }}>
@@ -362,10 +414,23 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             </p>
                             {message.approval.decisionTimestamp && (
                                 <p style={{ margin: '4px 0' }}>
-                                    <strong>Date:</strong> {new Date(message.approval.decisionTimestamp).toLocaleString()}
+                                    <strong>Decision Time:</strong> {new Date(message.approval.decisionTimestamp).toLocaleString()}
                                 </p>
                             )}
                         </div>
+                    )}
+
+                    {status === ApprovalDecision.Approved && (
+                        <p
+                            style={{
+                                fontSize: '11px',
+                                color: '#666',
+                                marginTop: '16px',
+                                marginBottom: '0',
+                            }}
+                        >
+                            This operation is being executed using the approver's credentials.
+                        </p>
                     )}
                 </div>
             );

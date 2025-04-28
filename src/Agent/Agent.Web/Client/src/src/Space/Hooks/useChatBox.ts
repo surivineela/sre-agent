@@ -31,7 +31,7 @@ const getMessages = async (threadId: string, skip: number, top: number, signal?:
 const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
     const url = `../api/v1/approvals/${threadId}/${approvalId}/decision`;
     const { userId } = user;
-    await axios.post(
+    const response = await axios.post(
         url,
         {
             Status: decision,
@@ -41,6 +41,8 @@ const sendApprovalDecision = async (threadId: string, approvalId: string, decisi
             headers: getAgentHeaders(),
         }
     );
+
+    return response.data;
 };
 
 const sendMessage = async (threadId: string, message: string, signal?: AbortSignal): Promise<Message | undefined> => {

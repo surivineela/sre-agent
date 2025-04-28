@@ -44,27 +44,28 @@ namespace Agent.Runtime.Services
             return await _threadRepository.GetApprovalsAsync(threadId);
         }
 
-        public async Task SubmitApprovalDecision(string approvalId, string user, ApprovalDecision status, Guid threadId, string? oboToken = null)
+        public async Task SubmitApprovalDecision(string approvalId,
+            string user,
+            ApprovalDecision status,
+            Guid threadId,
+            string? oboToken = null)
         {
             _logger.LogInformation($"Processing approval decision for {approvalId} with status {status}");
 
             var approval = await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
 
-            // TODO: validation
-            //if (approval == null)
-            //{
-            //    return BadRequest(new { error = "Approval not found" });
-            //}
+            if (approval == null)
+            {
+                throw new KeyNotFoundException("Approval not found");
+            }
+            if (approval.Status != ApprovalDecision.Pending)
+            {
+                // Create detailed exception with information about the previous approval
+                var errorMessage = $"Cannot re-approve. This operation was already {approval.Status} by {approval.DecisionUser?.DisplayName ?? "unknown"} on {approval.DecisionTimestamp?.ToString("yyyy-MM-dd HH:mm:ss") ?? "unknown date"}";
 
-            //if (approval.Status != ApprovalDecision.Pending)
-            //{
-            //    return BadRequest(new { error = "Cannot re-approve" });
-            //}
-
-            //if (string.IsNullOrEmpty(approval.OrchestrationId))
-            //{
-            //    return BadRequest(new { error = "Approval does not have an orchestration ID" });
-            //}
+                // Create a custom exception or use a specific data structure for the error
+                throw new InvalidOperationException(errorMessage);
+            }
 
             if (status == ApprovalDecision.Approved)
             {

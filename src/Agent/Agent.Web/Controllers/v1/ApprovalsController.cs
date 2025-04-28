@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Agent.Runtime;
 using Agent.Runtime.Services;
+using FirstPartyAgent.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
@@ -23,12 +24,15 @@ namespace Agent.Web.Controllers.v1
     {
         private readonly IApprovalService _approvalService;
         private readonly ILogger<ApprovalsController> _logger;
+        private readonly IThreadRepository _threadRepository;
 
         public ApprovalsController(
-            IApprovalService approvalService, 
+            IApprovalService approvalService,
+            IThreadRepository threadRepository,
             ILogger<ApprovalsController> logger)
         {
             _approvalService = approvalService;
+            _threadRepository = threadRepository;
             _logger = logger;
         }
 
@@ -86,13 +90,100 @@ namespace Agent.Web.Controllers.v1
             // Get header from http request
             var authzHeader = Request.Headers["Authorization"].ToString();
             string? oboToken = null;
+            string? userEmail = null;
+            string? userName = null;
+            string? userId = null;
+            DateTime approvalTimestamp = DateTime.UtcNow;
+            string approver = request.User ?? string.Empty;
+
             if (!string.IsNullOrEmpty(authzHeader) && authzHeader.StartsWith("Bearer "))
             {
                 oboToken = authzHeader.Substring("Bearer ".Length).Trim();
+
+                // Decode the token to get user information
+                try
+                {
+                    var handler = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler();
+                    var jsonToken = handler.ReadToken(oboToken) as System.IdentityModel.Tokens.Jwt.JwtSecurityToken;
+
+                    if (jsonToken != null)
+                    {
+                        // Get user information from token claims
+                        userEmail = jsonToken.Claims.FirstOrDefault(c => c.Type == "upn")?.Value
+                            ?? jsonToken.Claims.FirstOrDefault(c => c.Type == "unique_name")?.Value;
+
+                        userId = jsonToken.Claims.FirstOrDefault(c => c.Type == "oid")?.Value;
+
+                        var givenName = jsonToken.Claims.FirstOrDefault(c => c.Type == "given_name")?.Value;
+                        var familyName = jsonToken.Claims.FirstOrDefault(c => c.Type == "family_name")?.Value;
+
+                        if (!string.IsNullOrEmpty(givenName) && !string.IsNullOrEmpty(familyName))
+                        {
+                            userName = $"{givenName} {familyName}";
+                        }
+                        else
+                        {
+                            userName = jsonToken.Claims.FirstOrDefault(c => c.Type == "name")?.Value;
+                        }
+
+                        // Get the issued at time from the token
+                        var iatClaim = jsonToken.Claims.FirstOrDefault(c => c.Type == "iat")?.Value;
+                        if (long.TryParse(iatClaim, out long iatUnixTimestamp))
+                        {
+                            // Convert Unix timestamp to DateTime
+                            approvalTimestamp = DateTimeOffset.FromUnixTimeSeconds(iatUnixTimestamp).UtcDateTime;
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to decode JWT token");
+                }
             }
 
-            await _approvalService.SubmitApprovalDecision(id, request.User, approvalStatus, Guid.Parse(threadId), oboToken);
-            return Ok();
+            if (!string.IsNullOrEmpty(userEmail) &&
+                !string.IsNullOrEmpty(userName))
+            {
+                approver = $"{userName} <{userEmail}>";
+            }
+
+            try
+            {
+                await _approvalService.SubmitApprovalDecision(id, approver, approvalStatus, Guid.Parse(threadId), oboToken);
+
+                return Ok(new
+                {
+                    decisionMaker = approver,
+                    decisionMakerName = userName,
+                    decisionMakerId = userId,
+                    decisionTimestamp = approvalTimestamp,
+                    status = approvalStatus.ToString()
+                });
+            }
+            catch (InvalidOperationException ex) when (ex.Message.Contains("Cannot re-approve"))
+            {
+                // Get the approval to return additional information
+                var approval = await _threadRepository.GetApprovalAsync(Guid.Parse(threadId), Guid.Parse(id));
+
+                return Conflict(new
+                {
+                    error = ex.Message,
+                    decisionMaker = approval?.DecisionUser?.UserId ?? approval?.DecisionUser?.DisplayName,
+                    decisionMakerName = approval?.DecisionUser?.DisplayName,
+                    decisionMakerId = approval?.DecisionUser?.UserId,
+                    decisionTimestamp = approval?.DecisionTimestamp,
+                    status = approval?.Status.ToString()
+                });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { error = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to process approval decision");
+                return StatusCode(500, new { error = "Internal server error" });
+            }
         }
 
         /// <summary>
