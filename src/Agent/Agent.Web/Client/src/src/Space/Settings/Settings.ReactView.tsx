@@ -1,6 +1,7 @@
 import { INavLinkGroup, initializeIcons, Nav, ThemeContext } from '@fluentui/react';
 import type { Theme } from '@fluentui/theme';
 import { FC, useContext, useEffect, useState } from 'react';
+import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { Settings_Tabs } from '../../Strings/SREResources.resjson';
 import AccessControl from './AccessControl.ReactView';
 import AgentDetails from './AgentDetails.ReactView';
@@ -11,6 +12,7 @@ enum SettingsKeys {
     IncidentManagement = 'incidentManagement',
     AccessControl = 'accessControl',
     AgentDetails = 'agentDetails',
+    GrafanaInsights = 'grafanaInsights',
 }
 
 const navLinkGroups: INavLinkGroup[] = [
@@ -20,6 +22,11 @@ const navLinkGroups: INavLinkGroup[] = [
                 name: Settings_Tabs.incidentManagement,
                 url: '',
                 key: SettingsKeys.IncidentManagement,
+            },
+            {
+                name: Settings_Tabs.grafanaInsights,
+                url: '',
+                key: SettingsKeys.GrafanaInsights,
             },
             {
                 name: Settings_Tabs.accessControl,
@@ -63,6 +70,7 @@ const Settings: FC = () => {
                 />
                 <div style={styles.navPivotContainer}>
                     {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
+                    {selectedKey === SettingsKeys.GrafanaInsights && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.AgentDetails && <AgentDetails />}
                 </div>

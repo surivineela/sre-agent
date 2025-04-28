@@ -3,8 +3,10 @@ import { KeyValue } from './Contracts/KeyValue';
 
 export type MethodTypes = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 export interface ArmRequestObject<T> {
-    resourceId: string;
     commandName: string;
+    resourceId?: string;
+    url?: string;
+    skipPolling?: boolean;
     method?: MethodTypes;
     body?: T;
     skipBatching?: boolean;

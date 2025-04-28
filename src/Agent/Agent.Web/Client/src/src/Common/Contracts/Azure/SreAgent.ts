@@ -8,6 +8,14 @@ export interface Agent {
     mcpServers?: string[];
     logConfiguration?: LogConfiguration;
     incidentManagementConfiguration?: IncidentManagementConfiguration | null;
+    dashboardConfiguration: DashboardConfiguration;
+}
+
+export interface DashboardConfiguration {
+    grafanaUrl?: string;
+    azureMonitorWorkspaceQueryEndpoint?: string;
+    identity?: string;
+    azureMonitorWorkspaceMetricsIngestionEndpoint?: string;
 }
 
 export interface VnetConfiguration {

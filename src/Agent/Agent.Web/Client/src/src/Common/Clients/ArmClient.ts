@@ -15,6 +15,35 @@ import { LogCategories } from '../LogCategories';
 const alwaysSkipBatching = !!Url.getParameterByName(null, 'appsvc.skipbatching');
 const sessionId = Url.getParameterByName(null, 'sessionId');
 
+export interface ARGOptions {
+    $top?: number;
+    $skipToken?: string;
+}
+
+export interface ARGRequestContent {
+    subscriptions?: string[];
+    query: string;
+    options?: ARGOptions;
+}
+
+export interface ARGResponse {
+    count: number;
+    resultTruncated: boolean;
+    data: ARGResponseObjData;
+    totalRecord: number;
+    $skipToken?: string;
+}
+
+export interface ARGResponseObjData {
+    columns: ARGResponseDataColumn[];
+    rows: any[][];
+}
+
+export interface ARGResponseDataColumn {
+    name: string;
+    type: 'string' | 'integer' | 'object';
+}
+
 interface InternalArmRequest {
     method: MethodTypes;
     resourceId: string;
@@ -108,7 +137,10 @@ const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promis
     const env = AzPortalProxy.envInfo;
     const { method, resourceId, body, apiVersion, queryString } = armObj;
     const armEndpoint = env?.armEndpoint;
-    const url = Url.appendQueryString(`${armEndpoint}${resourceId}${queryString || ''}`, `api-version=${apiVersion}`);
+    let url = `${armEndpoint}${resourceId}${queryString || ''}`;
+    if (apiVersion !== null) {
+        url = Url.appendQueryString(url, `api-version=${apiVersion}`);
+    }
     const headers: KeyValue<string> = {
         Authorization: `Bearer ${env?.armToken}`,
         'x-ms-client-request-id': armObj.id,
@@ -143,21 +175,37 @@ const makeArmRequest = async <T>(armObj: InternalArmRequest, _retry = 0): Promis
 };
 
 const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promise<HttpResponseObject<T>> => {
-    const { skipBatching, method, resourceId, body, apiVersion, commandName, queryString, headers } = requestObject;
+    const {
+        skipBatching,
+        method,
+        resourceId = '',
+        body,
+        apiVersion,
+        commandName,
+        queryString,
+        headers,
+        url,
+        skipPolling = false,
+    } = requestObject;
+
+    const useDirectUrl = !!url;
+    const effectiveResourceId = useDirectUrl ? url! : resourceId;
+    const effectiveApiVersion = useDirectUrl ? null : apiVersion !== null ? apiVersion || ApiVersions.antaresApiVersion20181101 : null;
+    const effectiveSkipBatching = skipBatching || useDirectUrl;
 
     const id = Guid.newGuid();
     const armBatchObject: InternalArmRequest = {
-        resourceId,
+        resourceId: effectiveResourceId,
         body,
         commandName,
-        queryString,
+        queryString: useDirectUrl ? '' : queryString,
         id,
         headers: headers || {},
         method: method || 'GET',
-        apiVersion: apiVersion !== null ? apiVersion || ApiVersions.antaresApiVersion20181101 : null,
+        apiVersion: effectiveApiVersion,
     };
 
-    if (!skipBatching && !alwaysSkipBatching) {
+    if (!effectiveSkipBatching && !alwaysSkipBatching) {
         try {
             const fetchFromBatch = new Promise<ArmBatchObject>((resolve, reject) => {
                 armObs$
@@ -181,8 +229,8 @@ const MakeArmCall = async <T, U = T>(requestObject: ArmRequestObject<U>): Promis
             const res = await fetchFromBatch;
             const resSuccess = res.httpStatusCode < 300;
 
-            if (res.httpStatusCode === 201 || res.httpStatusCode === 202) {
-                pollForCompletion(res, requestObject);
+            if ((res.httpStatusCode === 201 || res.httpStatusCode === 202) && !skipPolling) {
+                return pollForCompletion(res, requestObject);
             } else {
                 const ret: HttpResponseObject<T> = {
                     metadata: {
