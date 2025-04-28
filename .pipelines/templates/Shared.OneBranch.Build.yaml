@@ -7,13 +7,13 @@
 # Support:        https://aka.ms/onebranchsupport                               #
 #################################################################################
 
-# Please uncomment and provide values for the placeholdes in the << >> notation:
+# Please uncomment and provide values for the placeholders in the << >> notation:
 # 1. The "dependsOn" in the download stage of the test stage example (if applicable)
 # 2. The "ServiceRootPath" and "RolloutSpecPath" in each of the test stage example
 
 parameters:
 - name: 'isOfficialBuild'
-  displayName: 'Enables or Disables an Official build and its configuration (signing and other build steps'
+  displayName: 'Enables or Disables an Official build and its configuration (signing and other build steps)'
   type: boolean
   default: false
 
@@ -88,7 +88,7 @@ extends:
         displayName: "🔨 Build Agent"
         pool:
           # read more about custom job pool types at https://aka.ms/obpipelines/yaml/jobs
-          type: windows # RosynAnalyzers are not supported on Linux yet
+          type: windows # RoslynAnalyzers are not supported on Linux yet
         variables:
           #
           # Constants (because there is no better way to do it in YAML)
@@ -103,7 +103,7 @@ extends:
           #
           ob_sdl_binskim_enabled: true # you can disable sdl tools in non-official build.
           ob_sdl_binskim_break: true # always break the build on binskim issues. You can disable it by setting to 'false'
-          ob_sdl_binskim_scanOutputDirectoryOnly: ${{ not(parameters.isOfficialBuild) }} # Scan everything if it is an offical build
+          ob_sdl_binskim_scanOutputDirectoryOnly: ${{ not(parameters.isOfficialBuild) }} # Scan everything if it is an official build
           ob_sdl_roslyn_break: true
           ${{ if eq(variables['Build.SourceBranch'], 'refs/heads/main') }}: # conditionally enable symbolsPublishing for main branch only
             ob_symbolsPublishing_enabled: true # https://aka.ms/obpipelines/symbols
@@ -151,8 +151,8 @@ extends:
             
               echo "Contents of projectSrcPath $(projectSrcPath)"
               Get-ChildItem -Recurse  $(projectSrcPath) | Foreach-Object { $_.FullName }
-        # Some of our tools create output directores as they go while some others require them to exist
-        # before they can create their ouput. Let's make sure they are all there anyway
+        # Some of our tools create output directories as they go while some others require them to exist
+        # before they can create their output. Let's make sure they are all there anyway
         - task: PowerShell@2
           displayName: '🔧 Prepare the build environment (make artifact output directories)'
           inputs:
@@ -187,17 +187,17 @@ extends:
             ## verbosityRestore: 'detailed'  # Use this to figure out whether the NuGet restore is hitting public internet.
         
         #
-        # UX - Localization - to be enabled later
+        # UX - Localization
         #
-        #- task: OneLocBuild@2
-        #  displayName: 'UX - Localization'
-        #  env:
-        #    SYSTEM_ACCESSTOKEN: $(System.AccessToken)
-        #  inputs:
-        #    locProj: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\LocProject.json'
-        #    outDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\extracted' # \loc
-        #    packageSourceAuth: 'patAuth'
-        #    dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OneBranch-Consumption/nuget/v3/index.json'
+        - task: OneLocBuild@3
+          displayName: '🔠 UX - Localization'
+          env:
+            SYSTEM_ACCESSTOKEN: $(System.AccessToken)
+          inputs:
+            locProj: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\LocProject.json'
+            outDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\extracted' # \loc
+            packageSourceAuth: 'patAuth'
+            dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OnelocbuildLocToolsFeed/nuget/v3/index.json'
 
         #
         # UX - Set node version for installing npm packages
