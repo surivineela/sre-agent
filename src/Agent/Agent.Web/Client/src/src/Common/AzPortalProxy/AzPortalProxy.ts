@@ -4,6 +4,7 @@ import { AgentSiteToAzPortalVerbs, AzPortalToAgentSiteVerbs } from './AzPortalPr
 import { IEnvironmentInfo } from './Models/IEnvironmentInfo';
 import { IEvent } from './Models/IEvent';
 import { INotificationInfo, INotificationState } from './Models/INotificationInfo';
+import { IBladeClosed, IBladeClosedResult, IOpenBlade, IOpenBladeRequest } from './Models/IOpenBlade';
 import { ITelemetryInfo } from './Models/ITelemetryInfo';
 import { ITokenInfo } from './Models/ITokenInfo';
 
@@ -11,6 +12,7 @@ export default class AzPortalProxy {
     public shellSrc: string = '';
 
     private readonly portalFrameBladeSignature = 'FxFrameBlade';
+    private bladeClosedResolver?: { operationId: string; resolver: (result: IBladeClosed) => void };
 
     private setEnvironmentInfo: React.Dispatch<React.SetStateAction<IEnvironmentInfo>> = {} as React.Dispatch<
         React.SetStateAction<IEnvironmentInfo>
@@ -45,7 +47,7 @@ export default class AzPortalProxy {
 
         this.setEnvironmentInfo = setEnvironmentInfo;
 
-        window.addEventListener(AgentSiteToAzPortalVerbs.message, this.iframeReceivedMsg.bind(this) as any, false);
+        window.addEventListener(AgentSiteToAzPortalVerbs.message, this.messageReceived.bind(this) as any, false);
 
         this.postMessage(AgentSiteToAzPortalVerbs.ready, null);
         this.postMessage(AgentSiteToAzPortalVerbs.readyForData, null);
@@ -80,7 +82,46 @@ export default class AzPortalProxy {
         this.postMessage(AgentSiteToAzPortalVerbs.updateNotification, notification);
     }
 
-    private postMessage(verb: string, data: object | null) {
+    public openBlade(info: IOpenBlade) {
+        const operationId = Guid.newGuid();
+
+        const requestInfo = {
+            ...info,
+            operationId,
+        };
+
+        this.postMessage<IOpenBladeRequest>(AgentSiteToAzPortalVerbs.openBlade, requestInfo);
+
+        const bladeClosedPromise = new Promise<IBladeClosed>(resolve => {
+            this.bladeClosedResolver = {
+                operationId,
+                resolver: resolve,
+            };
+        });
+
+        return bladeClosedPromise;
+    }
+
+    private bladeClosed(result: IBladeClosedResult) {
+        if (!this.bladeClosedResolver || !this.bladeClosedResolver.resolver) {
+            throw Error('bladeClosedResolver not set!');
+        }
+
+        if (this.bladeClosedResolver.operationId !== result.operationId) {
+            throw Error(
+                `bladeClosed operationIds do not match.  Waiting for ${this.bladeClosedResolver.operationId} but received ${result.operationId}`
+            );
+        }
+
+        this.bladeClosedResolver.resolver({
+            reason: result.reason,
+            data: result.data,
+        });
+
+        this.bladeClosedResolver = undefined;
+    }
+
+    private postMessage<T>(verb: string, data: T) {
         console.log(`Request AgentSiteToAzPortal: '${verb}'`);
         if (!AzPortalProxy.inStandaloneMode) {
             window.parent.postMessage(
@@ -94,7 +135,7 @@ export default class AzPortalProxy {
         }
     }
 
-    private iframeReceivedMsg(event: IEvent): void {
+    private messageReceived(event: IEvent): void {
         if (!event || !event.data) {
             return;
         }
@@ -142,6 +183,10 @@ export default class AzPortalProxy {
                     userInfo: data.userInfo,
                 };
                 this.setEnvironmentInfo(AzPortalProxy.envInfo);
+                break;
+
+            case AzPortalToAgentSiteVerbs.bladeClosed:
+                this.bladeClosed(data);
                 break;
 
             default:
