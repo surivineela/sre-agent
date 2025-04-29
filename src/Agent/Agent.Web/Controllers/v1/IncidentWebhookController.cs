@@ -6,6 +6,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Text;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.DataModels;
+using Agent.Data.Repositories;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
@@ -103,7 +105,8 @@ public class IncidentWebhookController : ControllerBase
             title: $"Incident Report - {request.Title}",
             message: incidentMessage,
             agentTypeEnum: AgentTypeEnum.Meta,
-            source: ThreadSource.Incident
+            source: ThreadSource.Incident,
+            incidentId: request.IncidentId ?? string.Empty
         );
 
         var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";

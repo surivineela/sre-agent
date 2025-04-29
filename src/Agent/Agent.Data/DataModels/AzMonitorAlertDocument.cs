@@ -10,7 +10,7 @@ public record AzMonitorAlertDocument(
     string TargetResourceType,
     string TargetResourceId,
     string SubscriptionId,
-    string Status,
+    string Status, // Alert status: New, Acknowledged, Closed
     DateTimeOffset CreatedAt) : ICosmosDocument
 {
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;

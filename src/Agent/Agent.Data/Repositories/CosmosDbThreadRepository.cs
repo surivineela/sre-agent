@@ -88,7 +88,23 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Convert to domain model
-            return threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
+            var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
+
+            if (!string.IsNullOrEmpty(threadDoc.IncidentId))
+            {
+                thread.Status = new Status
+                {
+                    IncidentStatus = new IncidentStatus
+                    {
+                        IncidentId = threadDoc.IncidentId,
+                    }
+                };
+            }
+
+            // add thread status
+            thread.Status = await GetThreadStatus(thread);
+
+            return thread;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
@@ -145,10 +161,29 @@ public class CosmosDbThreadRepository : IThreadRepository
                 }
                 if (startMessageDoc != null)
                 {
-                    threads.Add(threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel));
+                    var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
+
+                    if (!string.IsNullOrEmpty(threadDoc.IncidentId))
+                    {
+                        thread.Status = new Status
+                        {
+                            IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = threadDoc.IncidentId,
+                            }
+                        };
+                    }
+                    threads.Add(thread);
                 }
             }
+
         }
+
+        foreach (var thread in threads)
+        {
+            thread.Status = await GetThreadStatus(thread);
+        }
+
         return threads;
     }
 
@@ -197,29 +232,27 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                 if (startMessageDoc != null)
                 {
-                    threads.Add(threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel));
+                    var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
+
+                    if (!string.IsNullOrEmpty(threadDoc.IncidentId))
+                    {
+                        thread.Status = new Status
+                        {
+                            IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = threadDoc.IncidentId,
+                            }
+                        };
+                    }
+                    threads.Add(thread);
                 }
             }
         }
 
-        // update Actions Status Properties for each thread
-        var threadIdsWithCriticalActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical);
-        var threadIdsWithWarningActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning);
-
-        var updatedThreads = new List<Thread>();
+        // add thread action & incident status info
         foreach (var thread in threads)
         {
-            // Check if the thread has critical or warning actions
-            bool hasCriticalActions = threadIdsWithCriticalActions.Contains(thread.Id.ToString());
-            bool hasWarningActions = threadIdsWithWarningActions.Contains(thread.Id.ToString());
-
-            // Create a new instance of the thread with updated ActionsStatus
-            var updatedThread = thread with
-            {
-                ActionsStatus = new ActionsStatus(hasCriticalActions, hasWarningActions)
-            };
-
-            updatedThreads.Add(updatedThread);
+            thread.Status = await GetThreadStatus(thread);
         }
 
         // Filter threads by severity if specified  
@@ -227,15 +260,15 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             if (severity == ActionSeverity.Critical)
             {
-                updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasCriticalActions == true).ToList();
+                threads = threads.Where(t => t.Status.ActionsStatus?.HasCriticalActions == true).ToList();
             }
             else if (severity == ActionSeverity.Warning)
             {
-                updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasWarningActions == true).ToList();
+                threads = threads.Where(t => t.Status.ActionsStatus?.HasWarningActions == true).ToList();
             }
         }
 
-        return updatedThreads;
+        return threads;
     }
 
     public async Task<Thread> CreateThreadAsync(Thread thread)
@@ -258,6 +291,9 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Then create the thread
         ThreadDocument threadDoc = ThreadDocument.FromDomainModel(thread);
+
+        threadDoc.IncidentId = thread.Status?.IncidentStatus?.IncidentId ?? string.Empty;
+
         await _client.GetContainer<ThreadDocument>(_databaseName).CreateItemAsync(threadDoc, new PartitionKey(threadDoc.PartitionKey));
 
         return thread;
@@ -864,6 +900,63 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             return (default, null);
         }
+    }
+
+    private async Task<Status?> GetThreadStatus(Thread thread)
+    {
+        Status status = null;
+
+        // update Actions Status Properties for each thread
+        var threadIdsWithCriticalActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical);
+        var threadIdsWithWarningActions = await GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning);
+
+        // Check if the thread has critical or warning actions
+        bool hasCriticalActions = threadIdsWithCriticalActions.Contains(thread.Id.ToString());
+        bool hasWarningActions = threadIdsWithWarningActions.Contains(thread.Id.ToString());
+
+        status = new Status
+        {
+            ActionsStatus = new ActionsStatus
+            {
+                HasCriticalActions = hasCriticalActions,
+                HasWarningActions = hasWarningActions
+            }
+        };
+
+        // add incident status
+        if (thread.Source == ThreadSource.Incident)
+        {
+            if (thread.Status?.IncidentStatus?.IncidentId != null && !string.IsNullOrEmpty(thread.Status?.IncidentStatus?.IncidentId))
+            {
+                // check for incident in cosmos and apply status
+                // check pager duty first
+                PagerDutyIncidentDocument pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(thread.Status?.IncidentStatus?.IncidentId, thread.Status?.IncidentStatus?.IncidentId);
+
+                if (pagerDutyIncident != null)
+                {
+                    status.IncidentStatus = new IncidentStatus
+                    {
+                        IncidentId = thread.Status?.IncidentStatus?.IncidentId,
+                        Status = pagerDutyIncident.Status
+                    };
+                }
+                else
+                {
+                    // check azmon incident
+                    AzMonitorAlertDocument azMonIncident = await GetDocumentAsync<AzMonitorAlertDocument>(thread.Status?.IncidentStatus?.IncidentId, thread.Status?.IncidentStatus?.IncidentId);
+                    if (azMonIncident != null)
+                    {
+                        status.IncidentStatus = new IncidentStatus
+                        {
+                            IncidentId = thread.Status?.IncidentStatus?.IncidentId,
+                            Status = azMonIncident.Status
+                        };
+                    }
+                }
+            }
+        }
+
+        return status;
     }
 
     #endregion

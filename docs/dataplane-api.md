@@ -253,10 +253,26 @@ value:
     status: Completed
 ```
 
-### List Action Status Metrics
-list metrics for all actions and their  status. Executed actions are broken down by pending, succeeded, failed, and overall total. 
+## Metrics
 
-- `GET /api/v1/actions/statusMetrics`
+### List Incident Status Metrics
+
+- `GET /api/v1/metrics/incidentStatus`
+
+Response:
+
+```yaml
+value:
+  activeCount: 8
+  mitigatedCount: 1
+  resolvedCount: 1
+```
+
+### List Action Status Metrics
+
+list metrics for all actions and their status. Executed actions are broken down by pending, succeeded, failed, and overall total. 
+
+- `GET /api/v1/metrics/actionStatus`
 
 Response:
 
@@ -273,7 +289,7 @@ time filter returns all actions created between the time frame and their status.
 ### List Action Severity Metrics
 lists metrics for all uncompleted actions broken by severity. 
 
-- `GET /api/v1/actions/severityMetrics`
+- `GET /api/v1/metrics/actionSeverity`
 
 Response:
 

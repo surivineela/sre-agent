@@ -26,15 +26,29 @@ namespace Agent.Core.Models.Api.v1
         DateTime ModifiedTimestamp,
         ThreadSource Source = ThreadSource.Conversation,
         string? WaitReason = null,
-        DateTime? WaitUntil = null,
-        ActionsStatus? ActionsStatus = null
-    );
+        DateTime? WaitUntil = null
+    )
+    {
+        public Status? Status { get; set; } = null;
+    };
 
-    public record ActionsStatus
-    (
-        bool hasCriticalActions,
-        bool hasWarningActions 
-    );
+    public class Status
+    {
+        public ActionsStatus? ActionsStatus { get; set; } = null;
+        public IncidentStatus? IncidentStatus { get; set; } = null;
+    };
+
+    public class ActionsStatus
+    {
+        public bool HasCriticalActions { get; set; } = false;
+        public bool HasWarningActions { get; set; } = false;
+    };
+
+    public class IncidentStatus
+    {
+        public string? IncidentId { get; set; } = null;
+        public string? Status { get; set; } = null;
+    };
 
     public record CreateThreadRequest(
         [Required] CreateMessageRequest StartMessage,

@@ -8,7 +8,7 @@ namespace Agent.Plugins.Definitions;
 public interface IIncidentPlugin
 {
     /// <summary>
-    /// Get PagerDuty incidents realted to a resource
+    /// Get PagerDuty incidents related to a resource
     /// </summary>
     /// <param name="resourceId">Azure resource id</param>
     /// <param name="maxResults">max number of incidents to return</param>

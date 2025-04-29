@@ -64,9 +64,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         string title,
         string message,
         AgentTypeEnum agentTypeEnum,
-        ThreadSource source = ThreadSource.Agent)
+        ThreadSource source = ThreadSource.Agent,
+        string incidentId = "")
     {
-        return await CreateThread(title, message, source, agentTypeEnum);
+        return await CreateThread(title, message, source, agentTypeEnum, null, incidentId);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -258,7 +259,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         string message,
         ThreadSource source,
         AgentTypeEnum agentTypeEnum,
-        OutboundConfiguration? outboundConfiguration = null)
+        OutboundConfiguration? outboundConfiguration = null,
+        string incidentId = "")
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -279,6 +281,17 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             ModifiedTimestamp: now,
             Source: source
         );
+
+        if (incidentId != string.Empty)
+        {
+            thread.Status = new Status
+            {
+                IncidentStatus = new IncidentStatus
+                {
+                    IncidentId = incidentId,
+                }
+            };
+        }
 
         var agentContext = new AgentContext(
             Id: Guid.NewGuid(),

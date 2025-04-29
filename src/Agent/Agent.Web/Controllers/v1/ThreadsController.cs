@@ -391,7 +391,8 @@ namespace Agent.Web.Controllers.v1
                 title: $"Incident Report - {request.Title}",
                 message: incidentMessage,
                 agentTypeEnum: AgentTypeEnum.Meta,
-                source: ThreadSource.Incident
+                source: ThreadSource.Incident,
+                incidentId: request.IncidentId ?? string.Empty
             );
 
             var agentMessage = $"**Acknowledging the incident**. I'm starting to investigate and see how I can help.";

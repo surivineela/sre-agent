@@ -306,7 +306,8 @@ public class AzMonitorAlertScanner
             title: $"Alert - {alertRule}",
             message: incidentMessage,
             agentTypeEnum: AgentTypeEnum.Meta,
-            source: ThreadSource.Incident
+            source: ThreadSource.Incident,
+            incidentId: alertId
         );
 
         var agentMessage = $"**Acknowledging the alert**. I'm starting to investigate and see how I can help.";

@@ -5,10 +5,13 @@
 using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Data.DataModels;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.Logging;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using PagerDutyIncident = Agent.Core.Models.Api.v1.PagerDutyIncident;
+using AzMonitorAlert = Agent.Core.Models.Api.v1.AzMonitorAlert;
 
 namespace Agent.Data.Repositories
 {
@@ -29,6 +32,8 @@ namespace Agent.Data.Repositories
         private readonly Dictionary<(Guid AgentContextId, Guid ApprovalV2Id), ApprovalV2> _approvalv2s = new();
         private readonly Dictionary<Guid, AgentChatHistory> _agentChatHistories = new();
         private readonly Dictionary<string, object> _threadTeamsMappings = new();
+        private readonly Dictionary<Guid, PagerDutyIncident> _pagerDutyIncidents = new();
+        private readonly Dictionary<Guid, AzMonitorAlert> _azMonitorAlerts = new();
         private readonly ILogger<InmemoryThreadRepository> _logger;
 
         public InmemoryThreadRepository(ILogger<InmemoryThreadRepository> logger)
@@ -42,6 +47,9 @@ namespace Agent.Data.Repositories
         {
             _logger.LogInformation("Trying to get thread: {Id}", threadId);
             _threads.TryGetValue(threadId, out var thread);
+
+            thread.Status = GetThreadStatusAsync(thread).Result;
+
             return Task.FromResult(thread);
         }
 
@@ -54,39 +62,24 @@ namespace Agent.Data.Repositories
                 threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
             }
 
-            var criticalActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical).Result;
-            var warningActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning).Result;
-
-            var updatedThreads = new List<Thread>();
-            // update the thread's actions status
             foreach (var thread in threads)
             {
-                // Check if the thread has critical or warning actions
-                bool hasCriticalActions = criticalActionThreads.Contains(thread.Id.ToString());
-                bool hasWarningActions = warningActionThreads.Contains(thread.Id.ToString());
-
-                // Create a new instance of the thread with updated ActionsStatus
-                var updatedThread = thread with
-                {
-                    ActionsStatus = new ActionsStatus(hasCriticalActions, hasWarningActions)
-                };
-
-                updatedThreads.Add(updatedThread);
+                thread.Status = GetThreadStatusAsync(thread).Result;
             }
 
             if (severity is not null)
             {
                 if (severity == ActionSeverity.Critical)
                 {
-                    updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasCriticalActions == true).ToList();
+                    threads = threads.Where(t => t.Status != null && t.Status.ActionsStatus != null && t.Status.ActionsStatus.HasCriticalActions == true);
                 }
                 else if (severity == ActionSeverity.Warning)
                 {
-                    updatedThreads = updatedThreads.Where(t => t.ActionsStatus?.hasWarningActions == true).ToList();
+                    threads = threads.Where(t => t.Status != null && t.Status.ActionsStatus != null && t.Status.ActionsStatus.HasWarningActions == true);
                 }
             }
 
-            return Task.FromResult(updatedThreads.AsEnumerable());
+            return Task.FromResult(threads.AsEnumerable());
         }
 
         public Task<IEnumerable<Thread>> GetThreadsBySourceAsync(ODataQueryOptions? queryOptions = null, ThreadSource? source = null)
@@ -101,6 +94,11 @@ namespace Agent.Data.Repositories
             if (queryOptions is not null)
             {
                 threads = queryOptions.ApplyTo(threads) as IQueryable<Thread>;
+            }
+
+            foreach (var thread in threads)
+            {
+                thread.Status = GetThreadStatusAsync(thread).Result;
             }
 
             return Task.FromResult(threads.AsEnumerable());
@@ -189,6 +187,64 @@ namespace Agent.Data.Repositories
             return Task.FromResult(updatedThread);
         }
 
+        #endregion
+
+        #region Helper Functions
+        private Task<Status?> GetThreadStatusAsync(Thread thread)
+        {
+            Status status = null;
+
+            var criticalActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Critical).Result;
+            var warningActionThreads = GetThreadIdsWithActionSeverityAsync(ActionSeverity.Warning).Result;
+
+            bool hasCriticalActions = criticalActionThreads.Contains(thread.Id.ToString());
+            bool hasWarningActions = warningActionThreads.Contains(thread.Id.ToString());
+
+            status = new Status {
+                ActionsStatus = new ActionsStatus
+                {
+                    HasCriticalActions = hasCriticalActions,
+                    HasWarningActions = hasWarningActions
+                }
+            };
+
+            if (thread.Source == ThreadSource.Incident)
+            {
+                if (!string.IsNullOrEmpty(thread.Status?.IncidentStatus?.IncidentId))
+                {
+                    var incidentId = thread.Status.IncidentStatus.IncidentId;
+
+                    // Check PagerDuty incidents
+                    var pagerDutyIncident = _pagerDutyIncidents.Values
+                        .FirstOrDefault(t => t.Id == incidentId);
+
+                    if (pagerDutyIncident != null)
+                    {
+                        status.IncidentStatus = new IncidentStatus
+                        {
+                            IncidentId = incidentId,
+                            Status = pagerDutyIncident.Status
+                        };
+                    }
+                    else
+                    {
+                        // Check Azure Monitor incidents
+                        var azMonIncident = _azMonitorAlerts.Values
+                            .FirstOrDefault(t => t.Id == incidentId);
+                        if (azMonIncident != null)
+                        {
+                            status.IncidentStatus = new IncidentStatus
+                            {
+                                IncidentId = incidentId,
+                                Status = azMonIncident.Status
+                            };
+                        }
+                    }
+                }
+            }
+
+            return Task.FromResult(status);
+        }
         #endregion
 
         #region Message Operations

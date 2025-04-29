@@ -21,6 +21,7 @@ public record ThreadDocument(
     public string DocumentType => "Thread";
     public string PartitionKey => Id; // Use Thread Id as partition key
     public static string ContainerName => AgentDataConfiguration.ThreadContainerName;
+    public string IncidentId { get; set; } = string.Empty; // Incident Id associated with the thread if the source of the thread is incident
 
     // Conversion to/from domain model
     public static ThreadDocument FromDomainModel(Thread thread) =>

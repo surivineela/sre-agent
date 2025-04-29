@@ -21,7 +21,8 @@ public interface IAgentInboundCommunicationService
         string title, 
         string message, 
         AgentTypeEnum agentTypeEnum,
-        ThreadSource source = ThreadSource.Conversation);
+        ThreadSource source = ThreadSource.Conversation,
+        string incidentId = "");
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,

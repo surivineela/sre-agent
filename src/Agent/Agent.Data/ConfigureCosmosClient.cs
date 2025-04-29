@@ -105,6 +105,17 @@ public static class AgentDataConfiguration
             );
         });
 
+        // Register the Incident repository
+        serviceCollection.AddSingleton<IIncidentRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbIncidentRepository>>();
+            return new CosmosDbIncidentRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         return serviceCollection;
     }
 
