@@ -20,7 +20,7 @@ namespace Agent.Plugins
         [KernelFunction("plot_time_series_data")]
         [ThreadSpecific]
         [Description(
-@"Generates a base64-encoded chart from time-series data and posts it to Teams.
+@"Generates a base64-encoded chart from time-series data.
 Used whenever giving a comparison to user. eg: how many of my total monitored apps basic auth enabled
 
 Arguments:

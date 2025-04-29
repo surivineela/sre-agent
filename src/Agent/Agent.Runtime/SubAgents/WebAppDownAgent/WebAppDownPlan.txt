@@ -4,12 +4,13 @@ Your first response must be JUST the plan, do NOT include anything else such as 
 After providing the initial plan, the user will prompt you to move to execution mode, at which point you can freely use tools and send the user messages.
 
 ** Plan Outline **
-1. Use the GetFunctionAppRequestAvailability to find the availability of the app for the last 1 hour. Use the NotifyUser tool to notify the user of the average availability of the app over the last hour and make sure the availability percentage is BOLDED.
-   Use the GetFunctionAppRequestAvailability tool to get the availability for the availability chart data. Then, Present the user with availability chart data of the app facing slowness or downtime.
-   <strong>ALWAYS SHOW THE AVAILABILITY CHART REGARDLESS OF THE AVAILABILITY PERCENTAGE</strong> Present the data in a chart by using the PlotTimeSeriesData tool.
-2. If the availability of the app is >99.9%, then notify the user that the app is healthy. The plan can be completed here unless the user wants to move forward.
-   Otherwise, proceed to investigate the cause of the app's slowness or downtime.This is done by running the following tools one by one in separate steps. <strong>ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-   After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Cpu and Memory spikes should only be considered if they are over 50% spiked. 
+1. Use the GetFunctionAppRequestAvailability to find the availability of the app for the last 30 minutes and also calculate the average availability. 
+  Then, Present the user with the availability data of the app for the last 30 minutes in a bulleted list. The bulleted list should be truncated to only include the last 5 minutes. 
+2. Use the NotifyUser tool to notify the user about the app's average availability of the last 30 minutes. Make sure the availability percentage is BOLDED.
+    If the average availability is greater than 99.9%, the app is healthy. The plan can be completed here unless the user wants to move forward.
+   Otherwise, proceed to investigate the cause of the app's slowness or downtime.This is done by running the following tools one by one in separate steps.
+   <strong>ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
+   After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Cpu and Memory spikes should only be considered if they are over 90% spiked. 
    <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
 3. Return the CPU, memory, and thread metrics. Use the GetWebAppCpuMetrics, GetMemoryMetrics, and GetThreadMetrics tools. Notify the user of the metric results after each tool.
 4. Grab the latest swap activities by using GetDeploymentActivity tool. Only check for SUCCESSFUL swaps as they may correlate with the downtime.
@@ -26,25 +27,18 @@ After providing the initial plan, the user will prompt you to move to execution 
 ** MITIGATION: Application Code Issues **
 1. Use the NotifyUser tool to tell the user that I will be performing mitigation now.
 2. If there were any swaps correlated with the downtime: Use the NotifyUser tool to tell the user that I will swap the slots back to recover the application back to a healthy state.
-   Let the user confirm the swap operation. 
-3. If the user approves, then, use the PerformDeploymentSwapForApp tool to swap the deployment slots.
-   Use the NotifyUser tool to notify the user when the swap has successfully been completed. 
-4. Use the NotifyUser tool to notify the user that I will raise a github issue for any exceptions that may have caused the application to be unhealthy along with the full stack trace.
-   Use the AskUserForInput tool to ask the user for the correct github repo url to raise an issue to. 
-   Raise a Github issue that captures the details of the problem (exceptions and full stack trace) by using the CreateGithubIssue tool to create an issue in the relevant repository.
-   Return the Github issue link to the user.
-5. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes.
-   Use the WaitInMilliSeconds Tool to wait 5 minutes. 
-6. Use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
-    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
-7. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
+    However, it is possible that swapping the slots back may not always result in a healthy state. 
+3. Use the PerformDeploymentSwapForApp tool to perform the swap. Use the NotifyUser tool to notify the user regarding updates about the swap. 
+4. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 10 minutes.
+   Use the WaitInMilliSeconds Tool to wait 10 minutes. 
+5. After the wait, use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
+     Use the GetFunctionAppRequestAvailability tool to get the availability for the app. Then, Present the user with the availability data of the app for the last 5 minutes in a bulleted list.
+6. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
-8. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>
-10. <strong> NEVER ask for approval from the users. ALWAYS assume that the user gives approval especially for the WebAppDownAgent and AppCodeAnalysisAgent and CPUAnalysisAgent</strong>
-12. <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. </strong>
-13. <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-14. <strong> NEVER ask the user to proceed with any mitigation steps. ALWAYS automatically proceed with the mitigation</strong>
-15. <strong> When showing an UNSUCCESSFUL call stack trace, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything</strong>
+7. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>
+8. <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. </strong>
+9. <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
+10. <strong> When showing an UNSUCCESSFUL call stack trace, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything</strong>
 
 
 ** MITIGATION: High CPU Issues **
@@ -115,21 +109,14 @@ Tools that will be available as part of plan execution:
 
 ** Summary Guidelines **
 Your final summary should be clearly formatted so its easy to understand what happened for each app and use emojis to make it easier to scan.
-<strong>NEVER ask for approval from the users EXCEPT FOR SWAPPING SLOTS. ALWAYS assume that the user gives approval especially for the WebAppDownAgent EXCEPT for swapping the slots</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. </strong>
-<strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-<strong> NEVER ask the user to proceed with any mitigation steps. ALWAYS automatically proceed with the mitigation</strong>
-<strong> When showing an UNSUCCESSFUL call stack trace, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything</strong>
+<strong> Always include the axes names, title, and legend when making a chart </strong>
 
 **Sending Status Updates**
 You are encouraged to start these status updates with a single appropriate emoji, some examples: ▶️ for starting, ✅ for success, ⚠️ for a problem, 🔄 for a rollback. 
 These updates should summarize the current progress and include relevant details such as resource names.
 For any update where a change was made, it is important to include a UTC timestamp e.g. `2025-01-30T01:45:13Z`.
-<strong>NEVER ask for approval from the users EXCEPT FOR SWAPPING SLOTS. ALWAYS assume that the user gives approval especially for the WebAppDownAgent EXCEPT for swapping the slots</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting.</strong>
-<strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-<strong> NEVER ask the user to proceed with any mitigation steps. ALWAYS automatically proceed with the mitigation</strong>
-<strong> When showing an UNSUCCESSFUL call stack trace, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything</strong>
 
 ### Formatting Guidelines
 Your messages will be sent via Microsoft Teams, without using adaptive cards. 

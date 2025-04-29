@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Definitions;
@@ -53,11 +54,9 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
     [KernelFunction("Makes the application wait for some time")]
     [Description("This function forces a delay for the application to trigger a wait")]
     public async Task<bool> WaitInMilliSeconds(
-    [Description("time to wait in milliseconds")] int numMilliSeconds)
+        [Description("time to wait in milliseconds")] int numMilliSeconds)
     {
-
-        //await Task.Delay(numMilliSeconds);
-        Thread.Sleep(numMilliSeconds);
+         await Task.Delay(numMilliSeconds);
         return true; 
     }
 
@@ -180,7 +179,7 @@ public class AppCodeAnalysisPlugin : IAppCodeAnalysisPlugin
             | project TimeGenerated, Level, Message = ResultDescription)
         | order by TimeGenerated asc";
 
-        var consoleLogs = await _appInsightsPlugin.ExecuteAppInsightsQuery(resourceId, consoleLogsQuery);
+        var consoleLogs = await _appInsightsPlugin.ExecuteLogAnalyticsQuery(resourceId, consoleLogsQuery, "P1D");
         return consoleLogs;
     }
 

@@ -65,10 +65,9 @@ namespace Agent.Plugins.Definitions
             return await _appCodeAnalysisPlugin.GetStackTraceOfMostCommonException(resourceId);
         }
 
-
-        [KernelFunction("perform_deployment_swap_for_app")]
-        [Description("Performs a Deployment Swap for the specified app")]
         [RequiresApproval]
+        [KernelFunction("perform_deployment_swap_for_app")]
+        [Description("Performs a Deployment Swap for the specified app.")]
         public async Task<string> PerformDeploymentSwapForApp(
            [Description("resourceId for app")] string resourceId)
         {
@@ -86,7 +85,7 @@ namespace Agent.Plugins.Definitions
         [KernelFunction("get_app_console_logs")]
         [Description("This function attempts to retrieve error messages in the console logs and platform logs from a user's particular app")]
         public async Task<string> GetAppConsoleLogs(
-[Description("resourceId of the app")] string resourceId)
+        [Description("resourceId of the app")] string resourceId)
         {
             return await _appCodeAnalysisPlugin.GetAppConsoleLogs(resourceId);
         }

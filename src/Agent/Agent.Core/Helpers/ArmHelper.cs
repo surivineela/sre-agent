@@ -339,13 +339,14 @@ public class ArmHelper
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         // Send the GET request
         HttpResponseMessage response = await httpClient.SendAsync(request);
-        if (!response.IsSuccessStatusCode)
-        {
-            throw new Exception($"Failed to fetch metrics: {response.ReasonPhrase}");
-        }
-
         // Read the response content
         string content = await response.Content.ReadAsStringAsync();
+
+        if (!response.IsSuccessStatusCode)
+        {
+            throw new Exception($"Failed to fetch metrics: {content}");
+        }
+
         JObject metricsJson = JObject.Parse(content);
 
         // Extract time series data
@@ -1117,12 +1118,73 @@ public class ArmHelper
         }
     }
 
-    public async Task<string> ExecuteAppInsightsQuery(string appInsightsAppId, string queryString)
+    public async Task<string> ExecuteLogAnalyticsQuery(string resourceId, string queryString, string timeSpan)
     {
         try
         {
-            var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
+            var requestUrl = $"https://management.azure.com{resourceId}/providers/microsoft.insights/diagnosticSettings?api-version=2021-05-01-preview";
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+            HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
+
+            if (!responseMessage.IsSuccessStatusCode)
+            {
+                // Handle unsuccessful response
+                var errorContent = await responseMessage.Content.ReadAsStringAsync();
+                throw new InvalidOperationException($"Failed to get App Insights resource ID. Response: {errorContent}");
+            }
+            var content = await responseMessage.Content.ReadAsStringAsync();
+            var jsonDoc = JsonDocument.Parse(content);
+            var root = jsonDoc.RootElement;
+
+            foreach (var component in root.GetProperty("value").EnumerateArray())
+            {
+                if (component.TryGetProperty("properties", out var properties) &&
+                    properties.TryGetProperty("workspaceId", out var workSpaceId) &&
+                    properties.TryGetProperty("logs", out var logsArray))
+                {
+                    foreach(var logsEntry in logsArray.EnumerateArray())
+                    {
+                        if (logsEntry.TryGetProperty("category", out var categoryElement))
+                        {
+                            var category = categoryElement.GetString();
+
+                            if (category == "AppServiceHTTPLogs" ||
+                                category == "AppServiceConsoleLogs" ||
+                                category == "AppServicePlatformLogs")
+                            {
+                                var endpoint = "https://api.loganalytics.io/v1" + workSpaceId.GetString()! + "/query?timespan=" + timeSpan;
+
+                                return await ExecuteAppInsightsQueryInternal(endpoint, queryString);
+                            }
+                        }
+                    }
+                }
+            }
+
+            return string.Empty; // Return empty if no match found
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while getting the App Insights resource ID.", ex);
+        }
+    }
+
+    public async Task<string> ExecuteAppInsightsQuery(string appInsightsAppId, string queryString)
+    {
+        var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
+
+        return await ExecuteAppInsightsQueryInternal(endpoint, queryString);
+    }
+
+    private async Task<string> ExecuteAppInsightsQueryInternal(string url, string queryString)
+    {
+        try
+        {
             var httpClient = _httpClientFactory.CreateClient();
             var cred = _authService.GetArmOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
@@ -1130,7 +1192,7 @@ public class ArmHelper
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
             // Send the query
-            var response = await httpClient.PostAsJsonAsync(endpoint, new { query = queryString });
+            var response = await httpClient.PostAsJsonAsync(url, new { query = queryString });
 
             // Read and display the result
             if (response.IsSuccessStatusCode)
@@ -1140,7 +1202,8 @@ public class ArmHelper
             }
             else
             {
-                return string.Empty;
+                var message = await response.Content.ReadAsStringAsync();
+                return $"FAILED! Querying App Insights Failed: Status {response.StatusCode}, Message: {message}";
             }
         }
         catch (Exception)

@@ -28,7 +28,7 @@ using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
 using Agent.Runtime.SubAgents.AppReliabilityAgent;
-using Agent.Runtime.SubAgents.AppServiceRemediation;
+//using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
@@ -172,13 +172,13 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<IMetaAgentCPUAnalysisPlugin, CPUAnalysisAgentPlugin>()
         .AddTransient<IMetaAgentAppCodeAnalysisPlugin, AppCodeAnalysisAgentPlugin>()
         .AddTransient<IKubePlugin, KubePlugin>()
-        .AddTransient<IMetaAgentAppServiceRemediationPlugin, AppServiceRemediationPlugin>()
+        //.AddTransient<IMetaAgentAppServiceRemediationPlugin, AppServiceRemediationPlugin>()
         .AddTransient<IChartPlugin, ChartPlugin>()
         .AddTransient<ChartPlugin>()
         .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
         .AddTransient<IIncidentPlugin, IncidentPlugin>()
 
-        .AddSingleton<AppServiceRemediationAgentFactory>()
+        //.AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()
         .AddSingleton<ManagedIdentityMigrationAgentFactory>()
         .AddSingleton<TlsBestPracticeAgentFactory>()

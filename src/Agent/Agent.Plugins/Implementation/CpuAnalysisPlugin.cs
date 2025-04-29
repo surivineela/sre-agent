@@ -191,7 +191,7 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
         var appData = webApp.Data;
         string scmHostName = appData.EnabledHostNames.FirstOrDefault(h => h.Contains(".scm."));
-        if (appData?.IsScmSiteAlsoStopped == false)
+        if (appData?.IsScmSiteAlsoStopped == true)
         {
             throw new ArgumentException("The Kudu site is not running. Please start the Kudu site to collect the profile.");
         }

@@ -97,7 +97,7 @@ Before initiating any Azure resource operations:
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 - **Storage Account Remediation**: Help users with making changes storage account settings
-- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virtual Machine
+- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
 - **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
 - **Web App Down Investigation**: Help users mitigate and resolve any issues with Web App Services having downtime.
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
@@ -160,7 +160,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 
     private readonly IMetaAgentManagedIdentityMigrationPlugin _managedIdentityMigrationPlugin;
     private readonly IMetaAgentTlsBestPracticesPlugin _tlsBestPracticesPlugin;
-    private readonly IMetaAgentAppServiceRemediationPlugin _appServiceRemediationPlugin;
+    //private readonly IMetaAgentAppServiceRemediationPlugin _appServiceRemediationPlugin;
     private readonly IAppServicePlugin _appServicePlugin;
     private readonly IMetaAgentContainerAppsRemediationPlugin _containerAppsRemediationPlugin;
     private readonly IMetaAgentKubernetesAgentPlugin _kubernetesAgentPlugin;
@@ -199,7 +199,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IChartPlugin chartPlugin,
         IMetaAgentManagedIdentityMigrationPlugin managedIdentityMigrationPlugin,
         IMetaAgentTlsBestPracticesPlugin tlsBestPracticesPlugin,
-        IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
+        //IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
         IMetaAgentContainerAppsRemediationPlugin containerAppsRemediationPlugin,
         IMetaAgentStorageAccountPlugin storageAccountPlugin,
         IMetaAgentKubernetesAgentPlugin kubernetesAgentPlugin,
@@ -208,7 +208,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IFunctionAppsPlugin functionAppsPlugin,
         IGithubIssuePlugin githubIssuePlugin,
         IGraphDBPlugin graphDBPlugin,
-        IMetaAgentAppReliabilityPlugin appReliabilityPlugin,
+        //IMetaAgentAppReliabilityPlugin appReliabilityPlugin,
         IMetaAgentWebAppDownPlugin webAppDownPlugin,
         IServiceProvider serviceProvider,
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
@@ -236,7 +236,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 
         _tlsBestPracticesPlugin = tlsBestPracticesPlugin;
         _managedIdentityMigrationPlugin = managedIdentityMigrationPlugin;
-        _appServiceRemediationPlugin = appServiceRemediationPlugin;
+        //_appServiceRemediationPlugin = appServiceRemediationPlugin;
         _appServicePlugin = appServicePlugin;
         _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
         _storageAccountPlugin = storageAccountPlugin;
@@ -251,7 +251,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
 
         _graphDbPlugin = graphDBPlugin;
-        _appReliabilityPlugin = appReliabilityPlugin;
+        //_appReliabilityPlugin = appReliabilityPlugin;
         _webAppDownPlugin = webAppDownPlugin;
         _cpuAnalysisAgentPlugin = cpuAnalysisAgentPlugin;
         _appCodeAgentPlugin = appCodeAgentPlugin;
@@ -261,7 +261,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
         _functionAppsPlugin = functionAppsPlugin;
         _metricsPlugin = metricsPlugin;
-
 
         _threadRepository = threadRepository;
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
@@ -338,18 +337,17 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _storageAccountPlugin.ThreadId = threadGuid;
         _tlsBestPracticesPlugin.ThreadId = threadGuid;
         _managedIdentityMigrationPlugin.ThreadId = threadGuid;
-        _appServiceRemediationPlugin.ThreadId = threadGuid;
+        //_appServiceRemediationPlugin.ThreadId = threadGuid;
         _containerAppsRemediationPlugin.ThreadId = threadGuid;
         _kubernetesAgentPlugin.ThreadId = threadGuid;
         _graphDbPlugin.ThreadId = threadGuid;
-        _appReliabilityPlugin.ThreadId = threadGuid;
+        //_appReliabilityPlugin.ThreadId = threadGuid;
         _webAppDownPlugin.ThreadId = threadGuid;
         _vmRdpInvestigatorPlugin.ThreadId = threadGuid;
         _containerImageTroubleshooterPlugin.ThreadId = threadGuid;
         _functionAppConnectivityPlugin.ThreadId = threadGuid;
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
         _chartPlugin.ThreadId = threadGuid;
-        //_metricsPlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
 
@@ -373,10 +371,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.StartManagedIdentityMigrationAgent),
             AIFunctionFactory.Create(_tlsBestPracticesPlugin.ListTlsBestPracticeWorkflows),
             AIFunctionFactory.Create(_tlsBestPracticesPlugin.StartTlsBestPracticeAgent),
-            AIFunctionFactory.Create(_appReliabilityPlugin.ListAppReliabilityWorkflows),
-            AIFunctionFactory.Create(_appReliabilityPlugin.StartAppReliabilityAgent),
-            AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
-            AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
+            //AIFunctionFactory.Create(_appReliabilityPlugin.ListAppReliabilityWorkflows),
+            //AIFunctionFactory.Create(_appReliabilityPlugin.StartAppReliabilityAgent),
+            //AIFunctionFactory.Create(_appServiceRemediationPlugin.ListAppServiceRemediationWorkflows),
+            //AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
             //AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
             //AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgentWorkflow),

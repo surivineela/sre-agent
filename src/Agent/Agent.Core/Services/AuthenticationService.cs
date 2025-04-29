@@ -150,6 +150,15 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
+    public TokenCredential GetAppInsightsCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
     public TokenCredential GetLogAnalyticsCredential()
     {
         if (_hostEnvironment.IsDevelopment())

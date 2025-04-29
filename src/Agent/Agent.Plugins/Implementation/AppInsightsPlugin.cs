@@ -45,6 +45,24 @@ public class AppInsightsPlugin : IAppInsightsPlugin
         }
     }
 
+    [KernelFunction("query_log_analytics_workspace")]
+    [Description("Queries Log Analytics Workspace")]
+    public async Task<string> ExecuteLogAnalyticsQuery(
+    [Description("resourceId of app service")] string resourceId,
+    [Description("query for Log Analytics Workspace API call")] string queryString,
+    [Description("Time span string (e.g. P1D, PT30m)")] string timeSpan)
+    {
+        try
+        {
+            var results = await _armHelper.ExecuteLogAnalyticsQuery(resourceId, queryString, timeSpan);
+            return results;
+        }
+        catch (Exception ex)
+        {
+            return $"The Application Insights query {queryString} failed due to the exception {ex.Message}.";
+        }
+    }
+
     private string? GetInstrumentationKey(string? connectionString)
     {
         if (connectionString != null) {

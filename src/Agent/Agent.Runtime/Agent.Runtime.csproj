@@ -71,7 +71,7 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\AppServiceRemediationAgent\AppServiceAgent.txt">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\ContainerAppsAgent\ContainerAppsAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

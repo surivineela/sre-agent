@@ -23,10 +23,9 @@ public interface IAppCodeAnalysisPlugin
 
     Task<string> GetDeploymentActivity(string resourceId);
 
-    Task<bool> WaitInMilliSeconds(int numMilliSeconds);
 
     Task<string> GetAppConsoleLogs(string resourceId);
-
+    Task<bool> WaitInMilliSeconds([Description("time to wait in milliseconds")] int numMilliSeconds);
 }
 
 

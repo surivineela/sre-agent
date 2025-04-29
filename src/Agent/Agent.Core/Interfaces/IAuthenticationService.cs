@@ -59,6 +59,12 @@ public interface IAuthenticationService
     public TokenCredential GetAzureOpenAICredential();
 
     /// <summary>
+    /// Get the credential to access Application Insights
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetAppInsightsCredential();
+
+    /// <summary>
     /// Get the credential to access Log Analytics workspace
     /// </summary>
     /// <returns></returns>
