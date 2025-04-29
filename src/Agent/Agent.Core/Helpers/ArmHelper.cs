@@ -742,6 +742,71 @@ public class ArmHelper
         return jsonResponse;
     }
 
+    /// <summary>
+    /// Gets the detector response for a resource with specified start time, enforcing a maximum time range of 3 days.
+    /// The end time is always set to current time minus 15 minutes.
+    /// </summary>
+    /// <param name="resourceId">The Azure resource ID for which to get detector data</param>
+    /// <param name="detectorId">The ID of the detector to query</param>
+    /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified)</param>
+    /// <param name="endTime">Optional end time parameter (ignored - always uses current time minus 15 minutes)</param>
+    /// <returns>The detector response as a JSON string</returns>
+    /// <exception cref="ArgumentException">Thrown when the time range exceeds 3 days</exception>
+    public async Task<string> GetDetectorResponseWithTime(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
+    {
+        // Set default time range to the last hour if not specified
+        startTime ??= DateTime.UtcNow.AddHours(-1);
+
+        // Always set end time to current time minus 15 minutes, ignoring any provided endTime
+        endTime = DateTime.UtcNow.AddMinutes(-15);
+
+        // Ensure start time is before end time
+        if (startTime > endTime)
+        {
+            throw new ArgumentException("Start time must be before end time");
+        }
+
+        // Enforce maximum query duration of 3 days
+        TimeSpan maxDuration = TimeSpan.FromDays(3);
+        TimeSpan actualDuration = endTime.Value - startTime.Value;
+
+        if (actualDuration > maxDuration)
+        {
+            throw new ArgumentException($"Time range cannot exceed 3 days. Requested: {actualDuration.TotalDays:F1} days");
+        }
+
+        // Format dates in the required format (yyyy-MM-dd HH:mm)
+        string formattedStartTime = startTime.Value.ToString("yyyy-MM-dd HH:mm");
+        string formattedEndTime = endTime.Value.ToString("yyyy-MM-dd HH:mm");
+
+        // Construct the request URL to get the Detector URL with time parameters
+        var requestUrl = new Uri(new Uri("https://management.azure.com"),
+            $"{resourceId}/detectors/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
+
+        var cred = _authService.GetArmOperationCredential();
+        var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+        // Prepare the HTTP request
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+        // Attach the token to the request  
+        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        // Send the request
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string responseBody = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Failed to retrieve detector details. Status Code: {response.StatusCode}, Response: {responseBody}");
+        }
+
+        // Return the JSON response
+        string jsonResponse = await response.Content.ReadAsStringAsync();
+        return jsonResponse;
+    }
+
     public async Task<bool> UpdateAutoHeal(string resourceId, bool autoHealEnabled, AutoHealRules autoHealRules)
     {
         if (string.IsNullOrWhiteSpace(resourceId))
@@ -770,7 +835,6 @@ public class ArmHelper
 
         return response.IsSuccessStatusCode;
     }
-
 
     public async Task<bool> UpdateNumberOfWorkersAppService(string resourceId, int numberOfWorkers)
     {
@@ -1361,8 +1425,72 @@ public class ArmHelper
         return operationDetails;
     }
 
+    public async Task<List<OperationDetail>> GetCriticalErrorActivityLogs(string subId, string rg, string resourceId, string st = null, string et = null)
+    {
+        try
+        {
+            // Set default values for start time and end time if not provided
+            if (string.IsNullOrEmpty(st))
+            {
+                st = DateTime.UtcNow.AddHours(-3).ToString("yyyy-MM-ddTHH:mm:ssZ"); // 3 hours ago
+            }
 
+            if (string.IsNullOrEmpty(et))
+            {
+                et = DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ"); // Current time
+            }
 
+            // Filter for critical, error, and warning levels
+            string filter = $"$filter=eventTimestamp ge '{st}' and eventTimestamp le '{et}' and eventChannels eq 'Admin, Operation' and resourceGroupName eq '{rg}' and resourceId eq '{resourceId}' and levels eq 'Critical,Error,Warning'";
+            string requestUrl = $"https://management.azure.com/subscriptions/{subId}/providers/microsoft.insights/eventtypes/management/values?api-version=2017-03-01-preview&{filter}";
+
+            HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            HttpResponseMessage response = await httpClient.SendAsync(request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                throw new Exception($"Failed to retrieve activity logs: {response.StatusCode}, {await response.Content.ReadAsStringAsync()}");
+            }
+
+            var content = await response.Content.ReadAsStringAsync();
+
+            // Parse the response
+            JObject jsonResponse = JObject.Parse(content);
+            var events = jsonResponse["value"]?.Children<JObject>();
+
+            // Extract error details
+            var errorDetails = new List<OperationDetail>();
+
+            foreach (var evt in events)
+            {
+                var operationName = evt["operationName"]?["value"]?.ToString();
+                var status = evt["properties"]?["statusCode"]?.ToString() ?? string.Empty;
+                var message = evt["properties"]?["message"]?.ToString() ?? string.Empty;
+                var isSuccessful = status.Contains("Succeeded", StringComparison.OrdinalIgnoreCase);
+
+                var detail = new OperationDetail
+                {
+                    OperationName = operationName ?? string.Empty,
+                    Status = status,
+                    Timestamp = DateTime.TryParse(evt["eventTimestamp"]?.ToString(), out var timestamp) ? (DateTime?)timestamp : null,
+                    ResourceId = evt["resourceId"]?.ToString() ?? string.Empty,
+                    Caller = evt["caller"]?.ToString() ?? string.Empty,
+                    ErrorMessage = message,
+                    IsSuccessful = isSuccessful
+                };
+
+                errorDetails.Add(detail);
+            }
+
+            return errorDetails;
+        }
+        catch (Exception ex)
+        {
+            throw new ApplicationException("An error occurred during the activity logs retrieval", ex);
+        }
+    }
 
     public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
     {
@@ -1715,7 +1843,6 @@ public class ArmHelper
             _ => throw new ArgumentException("Unknown SKU")
         };
     }
-
 
     private async Task<string[]> GetAppServiceInstanceMachineNamesAsync(string appServiceResource)
     {

@@ -37,6 +37,7 @@ using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
+using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
@@ -127,6 +128,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<AppInsightsSettings>()
         .AddSingleton<FunctionAppConnectivityAgentFactory>()
         .AddSingleton<IMetaAgentFunctionAppConnectivityPlugin, FunctionAppConnectivityPlugin>()
+        .AddSingleton<FunctionAppExecutionFailuresAgentFactory>()
+        .AddSingleton<IMetaAgentFunctionAppExecutionFailuresAgentPlugin, FunctionAppExecutionFailuresAgentPlugin>()
         .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
         .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
 
@@ -158,6 +161,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<DotnetAnalysisPluginDefinition>()
         .AddTransient<RoleAssignmentPluginDefinition>()
         .AddTransient<IncidentPluginDefinition>()
+        .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -172,6 +176,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<ChartPlugin>()
         .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
         .AddTransient<IIncidentPlugin, IncidentPlugin>()
+        .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
 
         //.AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()

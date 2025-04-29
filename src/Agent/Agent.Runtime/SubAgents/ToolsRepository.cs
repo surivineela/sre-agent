@@ -79,6 +79,8 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<CpuAnalysisPluginDefinition>();
         RegisterPlugin<DotnetAnalysisPluginDefinition>();
         RegisterPlugin<RoleAssignmentPluginDefinition>();
+        RegisterPlugin<FunctionAppsPluginDefinition>();
+        RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);

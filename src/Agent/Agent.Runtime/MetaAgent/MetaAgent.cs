@@ -182,6 +182,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly ICpuAnalysisPlugin _cpuAnalysisPlugin;
     private readonly IMetricsPlugin _metricsPlugin;
     private readonly IIncidentPlugin _incidentPlugin;
+    private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
@@ -219,7 +220,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         ICpuAnalysisPlugin cpuAnalysisPlugin,
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
-        IIncidentPlugin incidentPlugin
+        IIncidentPlugin incidentPlugin,
+        IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin
         )
     {
         _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
@@ -253,6 +255,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _functionAppConnectivityPlugin = functionAppConnectivityPlugin;
         _functionAppsPlugin = functionAppsPlugin;
         _metricsPlugin = metricsPlugin;
+        _functionAppExecutionFailuresAgentPlugin = functionAppExecutionFailuresAgentPlugin;
 
         _threadRepository = threadRepository;
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
@@ -339,6 +342,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _functionAppConnectivityPlugin.ThreadId = threadGuid;
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
         _chartPlugin.ThreadId = threadGuid;
+        _functionAppExecutionFailuresAgentPlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
 
@@ -418,6 +422,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
+            AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations),
+            AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent)
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)
