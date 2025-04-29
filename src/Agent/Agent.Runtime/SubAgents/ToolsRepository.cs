@@ -86,7 +86,6 @@ public class ToolsRepository : IToolsRepository
         Register200<GitHubIssuePluginDefinition>(x => x.CreateGithubIssueComment);
 
         RegisterPlugin<AzureSupportCenterPluginDefinition>();
-        RegisterPlugin<ContainerImagePullFailurePluginDefinition>();
     }
 
     /// <summary>

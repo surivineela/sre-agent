@@ -36,5 +36,13 @@ namespace Agent.Plugins.Definitions
         IReadOnlyList<string> ListAvailableScalers();
 
         Task<string> GetScalerDetails(string scalerName);
+
+        Task<string> GetImageReferenceFromResourceId(string resourceId);
+
+        Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference);
+
+        Task<bool> RollbackToLastWorkingImage(string resourceId);
+
+        Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null);
     }
 }

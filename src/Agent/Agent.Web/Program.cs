@@ -31,7 +31,6 @@ using Agent.Runtime.SubAgents.AppReliabilityAgent;
 //using Agent.Runtime.SubAgents.AppServiceRemediation;
 using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
-using Agent.Runtime.SubAgents.ContainerImagePullFailureAgent;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
@@ -113,15 +112,12 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<ArmHelper>()
         .AddSingleton<ArmResourceCrawlerFactory>()
         .AddSingleton<ICrawlerService, ResourceGraphCrawlerService>()
-        .AddSingleton<IContainerImagePullFailurePlugin, ContainerImagePullFailurePlugin>()
-        .AddSingleton<IMetaAgentContainerImageTroubleshooterPlugin, ContainerImageTroubleshooterPlugin>()
         .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
         .AddSingleton<IMetaAgentAppReliabilityPlugin, AppReliabilityPlugin>()
         .AddSingleton<AppReliabilityAgentFactory>()
         .AddSingleton<AppCodeAnalysisAgentFactory>()
         .AddSingleton<INSGRulePlugin, NSGRulePlugin>()
         .AddSingleton<ContainerAppsRemediationAgentFactory>()
-        .AddSingleton<ContainerImagePullFailureAgentFactory>()
         .AddSingleton<IContainerAppPlugin, ContainerAppPlugin>()
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<AzureSupportCenterHelper>()
@@ -157,7 +153,6 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<KubePluginDefinition>()
         .AddTransient<GitHubIssuePluginDefinition>()
         .AddTransient<AzureSupportCenterPluginDefinition>()
-        .AddTransient<ContainerImagePullFailurePluginDefinition>()
         .AddTransient<CpuAnalysisPluginDefinition>()
         .AddTransient<AppCodeAnalysisPluginDefinition>()
         .AddTransient<DotnetAnalysisPluginDefinition>()

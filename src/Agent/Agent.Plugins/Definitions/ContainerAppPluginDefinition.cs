@@ -192,5 +192,52 @@ namespace Agent.Plugins.Definitions
         {
             return await _containerAppPlugin.GetScalerDetails(scalerName);
         }
+    
+        [KernelFunction("get_image_reference")]
+        [Description("Gets the container image reference from a resource ID")]
+        public async Task<string> GetImageReferenceFromResourceId(
+            [Description("The resource ID of a Container App or Linux Web App")]
+            string resourceId)
+        {
+            return await _containerAppPlugin.GetImageReferenceFromResourceId(resourceId);
+        }
+
+        [KernelFunction("verify_external_registry")]
+        [Description("Verify connectivity and authentication to an external container registry. Checks for rate limits, availability issues, or authentication failures.")]
+        public async Task<bool> VerifyExternalRegistry(
+            [Description("Resource ID of the Container App to check")]
+            string resourceId,
+            [Description("Image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string imageReference
+            )
+        {
+            return await _containerAppPlugin.VerifyExternalRegistryAsync(resourceId, imageReference);
+        }
+
+        [KernelFunction("rollback_to_last_working_image")]
+        [RequiresApproval]
+        [Description("Rolls back a Container App or Linux Web App to the last known working image. This is useful when a new image deployment causes pull failures or other issues.")]
+        public async Task<bool> RollbackToLastWorkingImage(
+            [Description("Resource ID of the Container App or Linux Web App to roll back")]
+            string resourceId)
+        {
+            return await _containerAppPlugin.RollbackToLastWorkingImage(resourceId);
+        }
+
+        [KernelFunction("update_container_image")]
+        [RequiresApproval]
+        [Description("Updates the container image for a Container App or Linux Web App. This enables changing to a new image version or completely different image.")]
+        public async Task<bool> UpdateContainerImage(
+            [Description("Resource ID of the Container App or Linux Web App")]
+            string resourceId,
+            
+            [Description("New image reference to use (e.g. myregistry.azurecr.io/myapp:v2)")]
+            string newImageReference,
+            
+            [Description("Optional container name for multi-container apps. If not specified, the first container will be updated.")]
+            string containerName = null)
+        {
+            return await _containerAppPlugin.UpdateContainerImage(resourceId, newImageReference, containerName);
+        }
     }
 }

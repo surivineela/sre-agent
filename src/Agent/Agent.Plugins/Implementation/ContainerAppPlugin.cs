@@ -3,6 +3,9 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Net;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -600,6 +603,468 @@ namespace Agent.Plugins.Implementation
             return await File.ReadAllTextAsync(filePath);
         }
 
+        public async Task<string> GetImageReferenceFromResourceId(string resourceId)
+        {
+            _logger.LogInformation($"Getting image reference for resource: {resourceId}");
+            var resourceIdentifier = new ResourceIdentifier(resourceId);
+
+            try
+            {
+                return await GetContainerAppImageReference(resourceIdentifier);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error getting image reference for resource {resourceId}");
+                return null;
+            }
+        }
+
+        public async Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference)
+        {
+            _logger.LogInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
+            
+            try
+            {
+                if (imageReference.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase) ||
+                    imageReference.Contains(".acr.io", StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+
+                var registryType = DetermineRegistryType(imageReference);
+
+                var registryHostname = ExtractRegistryHostname(imageReference);
+                if (string.IsNullOrEmpty(registryHostname))
+                {
+                    return false;
+                }
+
+                // Check basic connectivity first
+                var connectivityResult = await TestExternalRegistryConnectivity(registryHostname);
+                if (!connectivityResult)
+                {
+                    return false;
+                }
+
+                // Check for registry-specific issues
+                switch (registryType)
+                {
+                    case RegistryType.DockerHub:
+                        return await VerifyDockerHubRegistry(imageReference, resourceId);
+
+                    case RegistryType.MicrosoftContainerRegistry:
+                        return await VerifyMicrosoftContainerRegistry(imageReference, resourceId);
+
+                    case RegistryType.GoogleContainerRegistry:
+                        return await VerifyGoogleContainerRegistry(imageReference, resourceId);
+
+                    case RegistryType.KubernetesRegistry:
+                        // Kubernetes registry is generally public and doesn't require authentication
+                        return true;
+
+                    case RegistryType.PrivateRegistry:
+                        return await VerifyPrivateRegistry(imageReference, resourceId);
+
+                    default:
+                        return false;
+                }
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
+        }
+
+        public async Task<bool> RollbackToLastWorkingImage(string resourceId)
+        {
+            _logger.LogInformation($"Rolling back to last known working image for resource: {resourceId}");
+
+            try
+            {
+                return await RollbackContainerApp(resourceId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error rolling back resource {resourceId} to last working image");
+                return false;
+            }
+        }
+
+        public async Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
+        {
+            _logger.LogInformation($"Updating container image for resource: {resourceId} to {newImageReference}");
+
+            try
+            {
+                return await UpdateContainerAppImage(resourceId, newImageReference, containerName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating container image for resource {resourceId}");
+                return false;
+            }
+        }
+
+        private async Task<bool> UpdateContainerAppImage(string resourceId, string newImageReference, string containerName = null)
+        {
+            try
+            {
+                // Get the Container App resource
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+
+                // Create a data object for the update
+                ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
+                {
+                    Template = containerApp.Value.Data.Template
+                };
+
+                // Check if we have containers in the template
+                if (updateData.Template?.Containers == null || updateData.Template.Containers.Count == 0)
+                {
+                    return false;
+                }
+
+                // Update specific container by name if provided, otherwise update the first container
+                var containerToUpdate = string.IsNullOrEmpty(containerName)
+                    ? updateData.Template.Containers[0]
+                    : updateData.Template.Containers.FirstOrDefault(c => c.Name == containerName);
+
+                if (containerToUpdate == null)
+                {
+                    return false;
+                }
+
+                // Update the image reference
+                containerToUpdate.Image = newImageReference;
+
+                // Update the Container App with the new template
+                _logger.LogInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
+                var updateOperation = await containerAppResource.UpdateAsync(
+                    WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
+                    updateData,          // The ContainerAppData object to update
+                    CancellationToken.None // Provide a CancellationToken (use CancellationToken.None if no cancellation is needed)
+                );
+                var updatedApp = updateOperation.Value;
+
+                _logger.LogInformation($"Successfully updated Container App {resourceId} to image: {newImageReference}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error updating Container App {resourceId}");
+                return false;
+            }
+        }
+
+        private async Task<bool> RollbackContainerApp(string resourceId)
+        {
+            try
+            {
+                // Get the Container App resource
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+
+                // Get all revisions for this Container App
+                var revisions = await containerAppResource.GetContainerAppRevisions().ToListAsync();
+
+                // Sort revisions by created time in descending order (newest first)
+                revisions = revisions
+                    .OrderByDescending(r => r.Data.CreatedOn)
+                    .ToList();
+
+                // We need at least 2 revisions to perform a rollback
+                if (revisions.Count < 2)
+                {
+                    return false;
+                }
+
+                // Get current active revision name
+                string currentRevisionName = containerApp.Value.Data.LatestRevisionName;
+
+                // Find the most recent inactive revision that is not the current one and is in a "Ready" state
+                var targetRevision = revisions
+                    .Where(r => r.Data.Name != currentRevisionName)
+                    .Where(r => r.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned)
+                    .FirstOrDefault();
+
+                if (targetRevision == null)
+                {
+                    return false;
+                }
+
+                // Find the image reference in the target revision
+                string? targetImageReference = null;
+                if (targetRevision.Data.Template?.Containers != null && targetRevision.Data.Template.Containers.Count > 0)
+                {
+                    targetImageReference = targetRevision.Data.Template.Containers[0].Image;
+                }
+
+                if (string.IsNullOrEmpty(targetImageReference))
+                {
+                    return false;
+                }
+
+                // Create a data object for the update
+                ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
+                {
+                    Template = containerApp.Value.Data.Template
+                };
+
+                // Update image in the template containers
+                if (updateData.Template?.Containers != null && updateData.Template.Containers.Count > 0)
+                {
+                    updateData.Template.Containers[0].Image = targetImageReference;
+                }
+                else
+                {
+                    return false;
+                }
+
+                // Update the Container App with the new template
+                _logger.LogInformation($"Updating Container App {resourceId} with previous working image: {targetImageReference}");
+                var updateOperation = await containerAppResource.UpdateAsync(
+                   WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
+                   updateData,          // The ContainerAppData object to update
+                   CancellationToken.None // Provide a CancellationToken (use CancellationToken.None if no cancellation is needed)
+                );
+                var updatedApp = updateOperation.Value;
+
+                _logger.LogInformation($"Successfully rolled back Container App {resourceId} to image: {targetImageReference}");
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error rolling back Container App {resourceId}");
+                return false;
+            }
+        }
+
+        private RegistryType DetermineRegistryType(string imageReference)
+        {
+            if (string.IsNullOrEmpty(imageReference))
+            {
+                throw new ArgumentException("Image reference cannot be null or empty.", nameof(imageReference));
+            }
+           
+            if (imageReference.Contains("docker.io", StringComparison.OrdinalIgnoreCase))
+            {
+                return RegistryType.DockerHub;
+            }
+            else if (imageReference.Contains("gcr.io", StringComparison.OrdinalIgnoreCase))
+            {
+                return RegistryType.GoogleContainerRegistry;
+            }
+            else if (imageReference.Contains("mcr.microsoft.com", StringComparison.OrdinalIgnoreCase))
+            {
+                return RegistryType.MicrosoftContainerRegistry;
+            }
+            else if (imageReference.Contains("k8s.gcr.io", StringComparison.OrdinalIgnoreCase))
+            {
+                return RegistryType.KubernetesRegistry;
+            }
+            else
+            {
+                return RegistryType.Other;
+            }
+        }
+
+        private async Task<bool> VerifyDockerHubRegistry(string imageReference, string resourceId)
+        {
+            try
+            {
+                // Verify the image exists
+                var (repo, tag) = ExtractDockerHubRepositoryAndTag(imageReference);
+                if (string.IsNullOrEmpty(repo))
+                {
+                    return false;
+                }
+
+                // Check if we can access the image manifest
+                var token = await GetDockerOAuthTokenAsync(repo);
+                var manifestUrl = $"https://registry-1.docker.io/v2/{repo}/manifests/{tag}";
+                var request = new HttpRequestMessage(HttpMethod.Get, manifestUrl);
+                request.Headers.Add("Authorization", $"Bearer {token}");
+                request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.StatusCode == HttpStatusCode.TooManyRequests)
+                {
+                    if (response.Headers.Contains("X-RateLimit-Remaining"))
+                    {
+                        var rateLimitRemaining = response.Headers.GetValues("X-RateLimit-Remaining").FirstOrDefault();
+                        var rateLimitLimit = response.Headers.GetValues("X-RateLimit-Limit").FirstOrDefault();
+                        var rateLimitReset = response.Headers.GetValues("X-RateLimit-Reset").FirstOrDefault();
+
+                        _logger.LogInformation($"Rate Limit Remaining: {rateLimitRemaining}/{rateLimitLimit}, Reset Time: {rateLimitReset}");
+
+                        // If remaining requests are 0, handle rate limiting
+                        if (int.TryParse(rateLimitRemaining, out int remaining) && remaining == 0)
+                        {
+                            _logger.LogWarning("Rate limit exceeded. Please wait until the limit resets.");
+                            return false;
+                        }
+                    }
+
+                    // Fallback to Retry-After logic if needed
+                    if (response.Headers.TryGetValues("Retry-After", out var values))
+                    {
+                        var retryAfter = values.FirstOrDefault();
+                        if (retryAfter != null && int.TryParse(retryAfter, out int seconds))
+                        {
+                            _logger.LogWarning($"Rate limit exceeded. Retry after {seconds} seconds.");
+                            return false;
+                        }
+                    }
+                }
+
+                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    return true;
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    return false;
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error verifying Docker Hub registry for {imageReference}");
+                return false;
+            }
+        }
+
+        private (string Repository, string Tag) ExtractDockerHubRepositoryAndTag(string imageReference)
+        {
+            if (string.IsNullOrWhiteSpace(imageReference))
+            {
+                throw new ArgumentException("Image reference cannot be null or empty.", nameof(imageReference));
+            }
+
+            // Normalize the input by removing any double slashes
+            imageReference = imageReference.Replace("//", "/");
+
+            var dockerImageRegex = new Regex(
+                @"^(?:(?<registry>[^/]+(?:\.[^/]+)+(?:[:]\d+)?)/)?(?<repository>[^:]+)(?::(?<tag>[\w.-]+))?$",
+                RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+            var match = dockerImageRegex.Match(imageReference);
+
+            if (!match.Success)
+            {
+                throw new ArgumentException("Invalid Docker image reference format.", nameof(imageReference));
+            }
+
+            string repository = match.Groups["repository"].Value;
+            string tag = match.Groups["tag"].Success ? match.Groups["tag"].Value : "latest"; // Default tag is 'latest'
+
+            return (repository, tag);
+        }
+
+        private async Task<bool> VerifyMicrosoftContainerRegistry(string imageReference, string resourceId)
+        {
+            try
+            {
+                // Extract registry details
+                var registryHostname = ExtractRegistryHostname(imageReference);
+                if (string.IsNullOrEmpty(registryHostname))
+                {
+                    return false;
+                }
+
+                // Check basic connectivity
+                var isAccessible = await TestExternalRegistryConnectivity(registryHostname);
+                if (!isAccessible)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error verifying Microsoft Container Registry for {imageReference}");
+                return false;
+            }
+        }
+
+        private async Task<bool> VerifyGoogleContainerRegistry(string imageReference, string resourceId)
+        {
+            try
+            {
+                // Extract registry details
+                var registryHostname = ExtractRegistryHostname(imageReference);
+                if (string.IsNullOrEmpty(registryHostname))
+                {
+                    return false;
+                }
+
+                // Check basic connectivity
+                var isAccessible = await TestExternalRegistryConnectivity(registryHostname);
+                if (!isAccessible)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error verifying Google Container Registry for {imageReference}");
+                return false;
+            }
+        }
+
+        private async Task<string> GetDockerOAuthTokenAsync(string repo)
+        {
+            var authUrl = "https://auth.docker.io/token";
+            var authRequest = new HttpRequestMessage(HttpMethod.Get, $"{authUrl}?service=registry.docker.io&scope=repository:{repo}:pull");
+
+            var authResponse = await _httpClient.SendAsync(authRequest);
+
+            if (authResponse.IsSuccessStatusCode)
+            {
+                var authResponseBody = await authResponse.Content.ReadAsStringAsync();
+                var token = JsonSerializer.Deserialize<JsonElement>(authResponseBody).GetProperty("token").GetString();
+                return token;
+            }
+
+            return null;
+        }
+
+        private async Task<bool> VerifyPrivateRegistry(string imageReference, string resourceId)
+        {
+            try
+            {
+                // Extract registry details
+                var registryHostname = ExtractRegistryHostname(imageReference);
+                if (string.IsNullOrEmpty(registryHostname))
+                {
+                    return false;
+                }
+
+                // Check basic connectivity
+                var isAccessible = await TestExternalRegistryConnectivity(registryHostname);
+                if (!isAccessible)
+                {
+                   return false;
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error verifying private registry for {imageReference}");
+                return false;
+            }
+        }
+
         enum LogType
         {
             System,
@@ -843,6 +1308,104 @@ namespace Agent.Plugins.Implementation
             }
 
             return result;
+        }
+
+
+        private string ExtractRegistryHostname(string imageReference)
+        {
+            if (string.IsNullOrEmpty(imageReference))
+                return string.Empty;
+
+            try
+            {
+                // Split on first slash to get potential hostname
+                var slashIndex = imageReference.IndexOf('/');
+                if (slashIndex > 0)
+                {
+                    var possibleHostname = imageReference.Substring(0, slashIndex);
+
+                    // If it contains a dot, it's likely a hostname
+                    if (possibleHostname.Contains('.'))
+                    {
+                        return possibleHostname;
+                    }
+                }
+
+                return string.Empty;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error extracting registry hostname from {imageReference}");
+                return string.Empty;
+            }
+        }
+
+        private async Task<bool> TestExternalRegistryConnectivity(string hostname)
+        {
+            try
+            {
+                // Try HTTPS first
+                var httpsUrl = $"https://{hostname}/v2/";
+                var request = new HttpRequestMessage(HttpMethod.Head, httpsUrl);
+
+                try
+                {
+                    var httpResponse = await _httpClient.SendAsync(request);
+                    if (httpResponse.IsSuccessStatusCode || httpResponse.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        _logger.LogInformation($"Successfully connected to registry {hostname} via HTTPS");
+                        return true;
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogWarning(ex, $"HTTPS connection failed to {hostname}");
+                }
+
+                return false;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error testing connectivity to external registry: {hostname}");
+                return false;
+            }
+        }
+
+        private async Task<string> GetContainerAppImageReference(ResourceIdentifier resourceId)
+        {
+            var containerAppResource = _armClient.GetContainerAppResource(resourceId);
+            var containerApp = await containerAppResource.GetAsync();
+            string latestRevisionName = containerApp.Value.Data.LatestRevisionName;
+
+            // If we have a latest revision name, get that revision specifically
+            if (!string.IsNullOrEmpty(latestRevisionName))
+            {
+                string revisionResourceId = $"{resourceId}/revisions/{latestRevisionName}";
+                try
+                {
+                    var revisionResource = _armClient.GetContainerAppRevisionResource(new ResourceIdentifier(revisionResourceId));
+                    var revision = await revisionResource.GetAsync();
+
+                    // Get the container image from the revision
+                    if (revision.Value.Data.Template?.Containers != null &&
+                        revision.Value.Data.Template.Containers.Count > 0)
+                    {
+                        return revision.Value.Data.Template.Containers[0].Image;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, $"Could not retrieve latest revision {latestRevisionName} for app {resourceId}, falling back to template");
+                }
+            }
+            // Fall back to the template if available
+            if (containerApp.Value.Data.Template?.Containers != null &&
+                        containerApp.Value.Data.Template.Containers.Count > 0)
+            {
+                return containerApp.Value.Data.Template.Containers[0].Image;
+            }
+
+            return null;
         }
     }
 }

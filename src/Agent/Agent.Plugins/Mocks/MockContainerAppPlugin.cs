@@ -17,6 +17,9 @@ namespace Agent.Plugins.Mocks
         private readonly Dictionary<string, double> _cpuMetrics = [];
         private readonly Dictionary<string, double> _memoryMetrics = [];
         private readonly Dictionary<string, double> _requestMetrics = [];
+        private readonly Dictionary<string, string> _containerImageReferences = [];
+        private readonly Dictionary<string, string> _previousImageReferences = [];
+        private readonly Dictionary<string, bool> _registryAccessibility = [];
 
         public void ConfigureContainerApp(ContainerAppDescriptor containerAppDescriptor, params IEnumerable<RevisionInfo> revisionInfo)
         {
@@ -236,6 +239,76 @@ namespace Agent.Plugins.Mocks
         public Task<string> GetScalerDetails(string scalerName)
         {
             throw new NotImplementedException();
+        }
+
+        public Task<bool> RollbackToLastWorkingImage(string resourceId)
+        {
+            if (!_containerApps.ContainsKey(resourceId))
+            {
+                return Task.FromResult(false);
+            }
+
+            if (!_previousImageReferences.TryGetValue(resourceId, out var previousImage) || string.IsNullOrEmpty(previousImage))
+            {
+                return Task.FromResult(false);
+            }
+
+            // Set the current image to the previous one
+            _containerImageReferences[resourceId] = previousImage;
+
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
+        {
+            if (_containerApps.TryGetValue(resourceId, out var containerApp))
+            {
+                if (_containerImageReferences.TryGetValue(resourceId, out var currentImage))
+                {
+                    _previousImageReferences[resourceId] = currentImage;
+                }
+                
+                _containerImageReferences[resourceId] = newImageReference;
+                
+                return Task.FromResult(true);
+            }
+            
+            return Task.FromResult(false);
+        }
+
+        public Task<string> GetImageReferenceFromResourceId(string resourceId)
+        {
+            if (_containerImageReferences.TryGetValue(resourceId, out var imageReference))
+            {
+                return Task.FromResult(imageReference);
+            }
+            
+            if (_containerApps.TryGetValue(resourceId, out var containerApp) && 
+                containerApp.Containers != null && 
+                containerApp.Containers.Any())
+            {
+                return Task.FromResult(containerApp.Containers.First().Image);
+            }
+            
+            return Task.FromResult<string>(null);
+        }
+
+        public Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference)
+        {
+            bool isAccessible = _registryAccessibility.TryGetValue(resourceId, out var accessible) && accessible;
+
+            // For testing purposes, consider ACR (azure container registry) always accessible since we are only verifyting non-ACR registries
+            if (imageReference?.Contains("azurecr.io") == true)
+            {
+                isAccessible = true;
+            }
+            
+            if (!isAccessible)
+            {
+                return Task.FromResult(false);
+            }
+            
+            return Task.FromResult(true);
         }
     }
 }

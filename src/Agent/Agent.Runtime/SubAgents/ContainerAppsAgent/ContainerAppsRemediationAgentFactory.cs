@@ -58,6 +58,10 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.UpdateTargetPort));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListAvailableScalers));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetScalerDetails));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.VerifyExternalRegistry));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetImageReferenceFromResourceId));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.RollbackToLastWorkingImage));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.UpdateContainerImage));
 
         var nsgRulePluginDefinition = new NSGRulePluginDefinition(nSGRulePlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));

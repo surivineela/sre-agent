@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -97,8 +97,7 @@ Before initiating any Azure resource operations:
 - **TLS Best Practices**: Guide users in implementing TLS best practices for Azure resources
 - **Source Code Scanning**: Help users link repo urls to their Azure Container Apps
 - **Storage Account Remediation**: Help users with making changes storage account settings
-- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virual Machine
-- **Container Image Pull Failure Investigation**: Help users diagnose and fix container image pull failures in Linux Web Apps and Container Apps
+- **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virtual Machine
 - **Web App Down Investigation**: Help users mitigate and resolve any issues with Web App Services having downtime.
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
 
@@ -110,7 +109,6 @@ Before initiating any Azure resource operations:
    - `startContainerAppsRemediationAgent` for Azure Container Apps questions like logs, metrics, configuration, scale and any container app issues. Prefer this over the generic agents for container apps specific operations.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
    - `StartKubernetesAgentWorkflow` for starting AKS agent to resolve any AKS (Azure Kubernetes Service) related requests including basic Q&A, issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
-   - `startContainerImageFailureAgent` for container image pull failures in Linux Web Apps and Container Apps.
    - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summarize your plan or ask for list of tools when delegating to this agent.
    - `StartWebAppDownAgent' for investigating Azure Web App Services' downtime and mitigating and resolving the issue
    - Other registered agents as applicable.
@@ -136,7 +134,6 @@ For every Azure SRE request, follow this pattern:
 
 ## Special Notes
 <strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
-<strong>** FOR ANY CONTAINER APP DOWN OR FAILURE ISSUES, IF INITIAL INVESTIGATION SHOWS IT IS RELATED TO CONTAINER IMAGE PULL FAILURES, IMMEDIATELY DELEGATE TO CONTAINER IMAGE PULL FAILURE AGENT BY USING `startContainerImagePullAgent` **</strong>
 <strong>**FOR ANY AKS RELATED REQUESTS, YOU MUST DELEGATE TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 
@@ -172,7 +169,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IMetaAgentStorageAccountPlugin _storageAccountPlugin;
     private readonly IMetaAgentAppReliabilityPlugin _appReliabilityPlugin;
     private readonly IMetaAgentVmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
-    private readonly IMetaAgentContainerImageTroubleshooterPlugin _containerImageTroubleshooterPlugin;
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
     private readonly IMetaAgentFunctionAppConnectivityPlugin _functionAppConnectivityPlugin;
     private readonly IFunctionAppsPlugin _functionAppsPlugin;
@@ -212,7 +208,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IMetaAgentWebAppDownPlugin webAppDownPlugin,
         IServiceProvider serviceProvider,
         IMetaAgentVmRdpInvestigatorPlugin vmRdpInvestigatorPlugin,
-        IMetaAgentContainerImageTroubleshooterPlugin containerImageTroubleshooterPlugin,
         IMetaAgentFunctionAppConnectivityPlugin functionAppConnectivityPlugin,
         IFirstPartySubAgentsFactory firstPartySubAgentsFactory,
         IThreadRepository threadRepository,
@@ -245,10 +240,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _chartPlugin = chartPlugin;
         _githubIssuePlugin = githubIssuePlugin;
         _serviceProvider = serviceProvider;
-        _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
         _connectedIntegrationsPlugin = connectedIntegrationsPlugin;
-
-        _containerImageTroubleshooterPlugin = containerImageTroubleshooterPlugin;
 
         _graphDbPlugin = graphDBPlugin;
         //_appReliabilityPlugin = appReliabilityPlugin;
@@ -344,7 +336,6 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         //_appReliabilityPlugin.ThreadId = threadGuid;
         _webAppDownPlugin.ThreadId = threadGuid;
         _vmRdpInvestigatorPlugin.ThreadId = threadGuid;
-        _containerImageTroubleshooterPlugin.ThreadId = threadGuid;
         _functionAppConnectivityPlugin.ThreadId = threadGuid;
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
         _chartPlugin.ThreadId = threadGuid;
@@ -392,8 +383,10 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(containerAppPluginDefinition.UpdateTargetPort),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetScalerDetails),
             AIFunctionFactory.Create(containerAppPluginDefinition.ListAvailableScalers),
-            AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.ListContainerImagePullWorkflows),
-            AIFunctionFactory.Create(_containerImageTroubleshooterPlugin.StartContainerImagePullAgent),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetImageReferenceFromResourceId),
+            AIFunctionFactory.Create(containerAppPluginDefinition.VerifyExternalRegistry),
+            AIFunctionFactory.Create(containerAppPluginDefinition.RollbackToLastWorkingImage),
+            AIFunctionFactory.Create(containerAppPluginDefinition.UpdateContainerImage),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesData),
