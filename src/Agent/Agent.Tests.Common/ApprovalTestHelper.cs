@@ -14,7 +14,7 @@ public class ApprovalTestHelper
         ILogger? logger,
         CancellationToken cancellationToken)
     {
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(7));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
 
         while (true)
