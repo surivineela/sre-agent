@@ -14,19 +14,26 @@
 
 ## Localization
 
-### Standard / in-component
+Define messages in `SREAgentResources.ts`, with a `description` if warranted. `eslint` will scream at you about missing the `id` prop, which is a hash of the message content - either hover over it and quick-fix -> formatjs/enforce-id (or Fix all auto-fixable) or commit it (pre-commit will run eslint to auto-fix it)...or manually calculate the hash in your head if that's your jam.
+
+### Standard / in-component usage
 
 ```typescript
 const intl = useIntl();
 
-// `id` will be auto-populated by eslint in pre-commit
-const myMessage = intl.formatMessage({
-    defaultMessage: 'My message default value',
-    // Optionally, `description` if warranted
-});
+// If formatting strings ("placeholders"), pass second arg as an object with the values
+// to replace in the string (Ex: { numThings: 5 } for message "You have {numThings} things")
+const myMessage = intl.formatMessage(SreAgentResources.myMessage);
 ```
 
-### Utils
+OR
+
+```typescript
+// Provide formatted values (if any) to the `values` prop
+<FormattedMessage {...SreAgentResources.myMessage} />
+```
+
+### Utils usage
 
 Swap the `useIntl` hook for `getIntl()`, then use the same way. This is how utils tap into what the hook consumes
 

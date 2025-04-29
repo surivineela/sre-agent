@@ -1,4 +1,70 @@
 {
+  "+5BJJL": [
+    {
+      "type": 0,
+      "value": "Delete thread?"
+    }
+  ],
+  "+7umUn": [
+    {
+      "type": 0,
+      "value": "Step 4: Copy the API key and paste it here"
+    }
+  ],
+  "+uAdUZ": [
+    {
+      "type": 0,
+      "value": "Resource group"
+    }
+  ],
+  "0wJ7N+": [
+    {
+      "type": 0,
+      "value": "Task"
+    }
+  ],
+  "19YPdI": [
+    {
+      "type": 0,
+      "value": "Step 1: Open Cloud Shell"
+    }
+  ],
+  "1dOMiz": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard URL"
+    }
+  ],
+  "1uDzPU": [
+    {
+      "type": 0,
+      "value": "This will permanently delete the chat and all actions in this thread."
+    }
+  ],
+  "2WxP2i": [
+    {
+      "type": 0,
+      "value": "Delete thread"
+    }
+  ],
+  "2zwwXY": [
+    {
+      "type": 0,
+      "value": "Grafana"
+    }
+  ],
+  "35UE1s": [
+    {
+      "type": 0,
+      "value": "Save incident management configuration"
+    }
+  ],
+  "40YXE1": [
+    {
+      "type": 0,
+      "value": "Linking Grafana dashboard to SRE Agent in progress"
+    }
+  ],
   "47FYwb": [
     {
       "type": 0,
@@ -11,10 +77,46 @@
       "value": "Denied by"
     }
   ],
+  "4LfXyy": [
+    {
+      "type": 0,
+      "value": "Failed to delete thread with title "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " with error: "
+    },
+    {
+      "type": 1,
+      "value": "1"
+    }
+  ],
+  "4dZi3Y": [
+    {
+      "type": 0,
+      "value": "API Key"
+    }
+  ],
   "5+bQr/": [
     {
       "type": 0,
       "value": "Approved by"
+    }
+  ],
+  "59YCbl": [
+    {
+      "type": 0,
+      "value": "- Click on the \"Cloud Shell\" button in the top right corner of the Azure portal."
+    }
+  ],
+  "5QYdPU": [
+    {
+      "type": 0,
+      "value": "Start Time"
     }
   ],
   "5kp1Ie": [
@@ -23,10 +125,98 @@
       "value": "Denied"
     }
   ],
+  "6ENgmY": [
+    {
+      "type": 0,
+      "value": "Failed to create managed connection"
+    }
+  ],
+  "6IIC+D": [
+    {
+      "type": 0,
+      "value": "Create Grafana dashboard in the same resource group"
+    }
+  ],
+  "6UKn1p": [
+    {
+      "type": 0,
+      "value": "- Run \"az account set --subscription "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": "\""
+    }
+  ],
+  "6UyZlH": [
+    {
+      "type": 0,
+      "value": "PagerDuty"
+    }
+  ],
   "6XFO/C": [
     {
       "type": 0,
       "value": "Approved"
+    }
+  ],
+  "6YuyUQ": [
+    {
+      "type": 0,
+      "value": "Automate incident response with AI-powered monitoring and resolution.."
+    }
+  ],
+  "6dWeUs": [
+    {
+      "type": 0,
+      "value": "Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources."
+    }
+  ],
+  "724aBQ": [
+    {
+      "type": 0,
+      "value": "Thread with title "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " deleted successfully"
+    }
+  ],
+  "7cS956": [
+    {
+      "type": 0,
+      "value": "Connected to Teams"
+    }
+  ],
+  "7gMEKc": [
+    {
+      "type": 0,
+      "value": "Project details"
+    }
+  ],
+  "8Wiwkg": [
+    {
+      "type": 0,
+      "value": "Building knowledge graph"
+    }
+  ],
+  "95stPq": [
+    {
+      "type": 0,
+      "value": "Completed"
+    }
+  ],
+  "9Gaw/4": [
+    {
+      "type": 0,
+      "value": "Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention."
     }
   ],
   "9ZIBMx": [
@@ -35,10 +225,160 @@
       "value": "Requested at"
     }
   ],
+  "9uOFF3": [
+    {
+      "type": 0,
+      "value": "Overview"
+    }
+  ],
   "A3Wps1": [
     {
       "type": 0,
       "value": "If you approve, this operation will be executed on your behalf using your credentials."
+    }
+  ],
+  "CaBlp1": [
+    {
+      "type": 0,
+      "value": "Central US EUAP"
+    }
+  ],
+  "CfGC/2": [
+    {
+      "type": 0,
+      "value": "Select resource groups to monitor"
+    }
+  ],
+  "D3idYv": [
+    {
+      "type": 0,
+      "value": "Settings"
+    }
+  ],
+  "DpMYPV": [
+    {
+      "type": 0,
+      "value": "Failed to delete logic app"
+    }
+  ],
+  "EWw/tK": [
+    {
+      "type": 0,
+      "value": "Apply"
+    }
+  ],
+  "EZBG/A": [
+    {
+      "type": 0,
+      "value": "Incident platform"
+    }
+  ],
+  "Erci0g": [
+    {
+      "type": 0,
+      "value": "Azure SRE Agent"
+    }
+  ],
+  "Ez5ZJg": [
+    {
+      "type": 0,
+      "value": "Open Access control"
+    }
+  ],
+  "FDJdmL": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard linked successfully"
+    }
+  ],
+  "FZeQlc": [
+    {
+      "type": 0,
+      "value": "Disconnected"
+    }
+  ],
+  "Fh8hZp": [
+    {
+      "type": 0,
+      "value": "Provisioning of your Grafana role assignment is in progress."
+    }
+  ],
+  "GBnvl1": [
+    {
+      "type": 0,
+      "value": "Agents"
+    }
+  ],
+  "GCVHNV": [
+    {
+      "type": 0,
+      "value": "- in progress"
+    }
+  ],
+  "HAlOn1": [
+    {
+      "type": 0,
+      "value": "Name"
+    }
+  ],
+  "HbTFJf": [
+    {
+      "type": 0,
+      "value": "Pending approvals"
+    }
+  ],
+  "I03XmI": [
+    {
+      "type": 0,
+      "value": "- completed"
+    }
+  ],
+  "IS+F5v": [
+    {
+      "type": 0,
+      "value": "Provisioning Grafana role assignment"
+    }
+  ],
+  "ITYqY7": [
+    {
+      "type": 0,
+      "value": "New thread"
+    }
+  ],
+  "JVZyFs": [
+    {
+      "type": 0,
+      "value": "Generate API key"
+    }
+  ],
+  "JX0502": [
+    {
+      "type": 0,
+      "value": "Client"
+    }
+  ],
+  "K3r6DQ": [
+    {
+      "type": 0,
+      "value": "Delete"
+    }
+  ],
+  "NEY2T1": [
+    {
+      "type": 0,
+      "value": "After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:"
+    }
+  ],
+  "Nf40QB": [
+    {
+      "type": 0,
+      "value": "Grafana insights"
+    }
+  ],
+  "NrGEOo": [
+    {
+      "type": 0,
+      "value": "Successfully saved incident management configuration"
     }
   ],
   "Nrc9ba": [
@@ -47,10 +387,64 @@
       "value": "Thank you for your feedback!"
     }
   ],
+  "OJ2u8k": [
+    {
+      "type": 0,
+      "value": "Enter name"
+    }
+  ],
+  "PxLzzW": [
+    {
+      "type": 0,
+      "value": "I want to..."
+    }
+  ],
+  "PzGaVI": [
+    {
+      "type": 0,
+      "value": "Provisioning Grafana dashboard"
+    }
+  ],
   "Q/agzh": [
     {
       "type": 0,
       "value": "Decision Time"
+    }
+  ],
+  "QGVI63": [
+    {
+      "type": 0,
+      "value": "Agent"
+    }
+  ],
+  "QlsDcr": [
+    {
+      "type": 0,
+      "value": "Action"
+    }
+  ],
+  "R/6nsx": [
+    {
+      "type": 0,
+      "value": "Subscription"
+    }
+  ],
+  "RrCui3": [
+    {
+      "type": 0,
+      "value": "Summary"
+    }
+  ],
+  "S1VBUm": [
+    {
+      "type": 0,
+      "value": "Failed to link Grafana dashboard"
+    }
+  ],
+  "SDXmEJ": [
+    {
+      "type": 0,
+      "value": "All threads"
     }
   ],
   "SRf69j": [
@@ -59,10 +453,140 @@
       "value": "This operation is being executed using the approver's credentials."
     }
   ],
+  "T7WpWs": [
+    {
+      "type": 0,
+      "value": "Incident management"
+    }
+  ],
+  "TB6bkn": [
+    {
+      "type": 0,
+      "value": "Get more info"
+    }
+  ],
+  "TKmub+": [
+    {
+      "type": 0,
+      "value": "This field is required"
+    }
+  ],
+  "TkWiD5": [
+    {
+      "type": 0,
+      "value": "New chat thread"
+    }
+  ],
+  "TyvDrC": [
+    {
+      "type": 0,
+      "value": "Saving incident management configuration"
+    }
+  ],
+  "UmEsZF": [
+    {
+      "type": 0,
+      "value": "Activities"
+    }
+  ],
+  "UrGI9K": [
+    {
+      "type": 0,
+      "value": "Create agent"
+    }
+  ],
+  "VxQUh/": [
+    {
+      "type": 0,
+      "value": "Deleting thread with title "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    }
+  ],
+  "VzzYJk": [
+    {
+      "type": 0,
+      "value": "Create"
+    }
+  ],
   "WCaf5C": [
     {
       "type": 0,
       "value": "Approve"
+    }
+  ],
+  "WRFrUO": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard creation succeeded"
+    }
+  ],
+  "WTrOy3": [
+    {
+      "type": 0,
+      "value": "Chat"
+    }
+  ],
+  "Wf6bDe": [
+    {
+      "type": 0,
+      "value": "Agent details"
+    }
+  ],
+  "XIjgrI": [
+    {
+      "type": 0,
+      "value": "Step 2: Generate API key"
+    }
+  ],
+  "YCSntJ": [
+    {
+      "type": 0,
+      "value": "- Run: \"az grafana api-key create --key "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    },
+    {
+      "type": 0,
+      "value": " --name "
+    },
+    {
+      "type": 1,
+      "value": "1"
+    },
+    {
+      "type": 0,
+      "value": " --resource-group "
+    },
+    {
+      "type": 1,
+      "value": "2"
+    },
+    {
+      "type": 0,
+      "value": " --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)"
+    }
+  ],
+  "ZUXvHE": [
+    {
+      "type": 0,
+      "value": "Failed to create logic app"
+    }
+  ],
+  "a5msuh": [
+    {
+      "type": 0,
+      "value": "Yes"
+    }
+  ],
+  "ca43CS": [
+    {
+      "type": 0,
+      "value": "Grafana resource name must be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit."
     }
   ],
   "dDl4Gl": [
@@ -71,16 +595,300 @@
       "value": "Enter your feedback here..."
     }
   ],
+  "dqHwfQ": [
+    {
+      "type": 0,
+      "value": "Link Grafana dashboard"
+    }
+  ],
+  "eFKqV0": [
+    {
+      "type": 0,
+      "value": "Create Grafana dashboard"
+    }
+  ],
+  "eKEL/g": [
+    {
+      "type": 0,
+      "value": "Pending"
+    }
+  ],
+  "f0Y4Zr": [
+    {
+      "type": 0,
+      "value": "Logic App name"
+    }
+  ],
+  "fSinmO": [
+    {
+      "type": 0,
+      "value": "PagerDuty API Key"
+    }
+  ],
+  "ftfFhS": [
+    {
+      "type": 0,
+      "value": "Select resource groups"
+    }
+  ],
+  "ftzwIR": [
+    {
+      "type": 0,
+      "value": "First, a Grafana resource needs to be created."
+    }
+  ],
+  "fvK8Qi": [
+    {
+      "type": 0,
+      "value": "All statuses"
+    }
+  ],
+  "hX7X4n": [
+    {
+      "type": 0,
+      "value": "Failed to save incident management configuration"
+    }
+  ],
+  "hmrm7i": [
+    {
+      "type": 0,
+      "value": "Grafana resource"
+    }
+  ],
   "htvX+Z": [
     {
       "type": 0,
       "value": "Deny"
     }
   ],
+  "iv1ryQ": [
+    {
+      "type": 0,
+      "value": "SRE Agent Space"
+    }
+  ],
+  "jTQZpk": [
+    {
+      "type": 0,
+      "value": "Grafana resource must be unique within the resource group."
+    }
+  ],
+  "jUwYmA": [
+    {
+      "type": 0,
+      "value": "Set up a custom Grafana dashboard to get visual insights into your infrastructure, with daily reports and resource-specific health metrics."
+    }
+  ],
+  "jvo0vs": [
+    {
+      "type": 0,
+      "value": "Save"
+    }
+  ],
+  "kWs94j": [
+    {
+      "type": 0,
+      "value": "Provisioning of your Grafana dashboard is in progress."
+    }
+  ],
+  "ljmS5P": [
+    {
+      "type": 0,
+      "value": "Endpoint"
+    }
+  ],
+  "lnaWo/": [
+    {
+      "type": 0,
+      "value": "Region"
+    }
+  ],
+  "mifzje": [
+    {
+      "type": 0,
+      "value": "Failed to create the Grafana role assignment with the error: "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    }
+  ],
+  "mtr3R4": [
+    {
+      "type": 0,
+      "value": "Incidents"
+    }
+  ],
+  "nmpevl": [
+    {
+      "type": 0,
+      "value": "Discard"
+    }
+  ],
+  "nso3Mj": [
+    {
+      "type": 0,
+      "value": "Scope"
+    }
+  ],
+  "oUWADl": [
+    {
+      "type": 0,
+      "value": "No"
+    }
+  ],
+  "ol51Ez": [
+    {
+      "type": 0,
+      "value": "Manage access to the SRE Agent resource by clicking on the link below."
+    }
+  ],
+  "pCPZnU": [
+    {
+      "type": 0,
+      "value": "Managed resources"
+    }
+  ],
+  "pLoacI": [
+    {
+      "type": 0,
+      "value": "Failed to create the Grafana dashboard with the error: "
+    },
+    {
+      "type": 1,
+      "value": "0"
+    }
+  ],
+  "q/uwLT": [
+    {
+      "type": 0,
+      "value": "Stop"
+    }
+  ],
+  "q1WWIr": [
+    {
+      "type": 0,
+      "value": "In progress"
+    }
+  ],
+  "qw8pxr": [
+    {
+      "type": 0,
+      "value": "Grafana role assignment creation succeeded"
+    }
+  ],
+  "rELDbB": [
+    {
+      "type": 0,
+      "value": "Refresh"
+    }
+  ],
+  "rFlkvY": [
+    {
+      "type": 0,
+      "value": "Active threads"
+    }
+  ],
+  "rpG/Bn": [
+    {
+      "type": 0,
+      "value": "Access control"
+    }
+  ],
+  "rvirM2": [
+    {
+      "type": 0,
+      "value": "Location"
+    }
+  ],
+  "tshYzs": [
+    {
+      "type": 0,
+      "value": "Select region"
+    }
+  ],
+  "tzMNF3": [
+    {
+      "type": 0,
+      "value": "Status"
+    }
+  ],
+  "u64mw7": [
+    {
+      "type": 0,
+      "value": "Showing the first 1000 results. Filter to narrow down the list."
+    }
+  ],
+  "ug01Mk": [
+    {
+      "type": 0,
+      "value": "Time"
+    }
+  ],
+  "vXCeIi": [
+    {
+      "type": 0,
+      "value": "Failed"
+    }
+  ],
+  "wL7VAE": [
+    {
+      "type": 0,
+      "value": "Actions"
+    }
+  ],
   "wSZR47": [
     {
       "type": 0,
       "value": "Submit"
+    }
+  ],
+  "xL9nak": [
+    {
+      "type": 0,
+      "value": "Step 3: Generate an API key"
+    }
+  ],
+  "xVPoso": [
+    {
+      "type": 0,
+      "value": "Resource group name"
+    }
+  ],
+  "xmcVZ0": [
+    {
+      "type": 0,
+      "value": "Search"
+    }
+  ],
+  "xrKHS6": [
+    {
+      "type": 0,
+      "value": "Success"
+    }
+  ],
+  "yYK6LR": [
+    {
+      "type": 0,
+      "value": "Thread count"
+    }
+  ],
+  "yhU1et": [
+    {
+      "type": 0,
+      "value": "Tasks"
+    }
+  ],
+  "yilQrD": [
+    {
+      "type": 0,
+      "value": "Managed resource groups"
+    }
+  ],
+  "zN87hN": [
+    {
+      "type": 0,
+      "value": "Total threads"
     }
   ]
 }

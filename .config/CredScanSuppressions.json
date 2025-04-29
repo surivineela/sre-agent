@@ -1,0 +1,13 @@
+{
+  "tool": "Credential Scanner",
+  "suppressions": [
+    {
+      "placeholder": "API key",
+      "_justification": "False positive - just a string"
+    },
+    {
+      "placeholder": "API Key",
+      "_justification": "False positive - just a string"
+    }
+  ]
+}
