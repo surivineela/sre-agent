@@ -233,6 +233,27 @@ extends:
             command: "custom"
             workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
             customCommand: "run compile:loc"
+        
+        #
+        # UX - Unit tests
+        #
+        - task: Npm@1
+          displayName: '🧪 UX unit tests'
+          inputs:
+              command: 'custom'
+              workingDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client'
+              customCommand: 'run test'
+        
+        #
+        # UX - Publish unit test results
+        #
+        - task: PublishTestResults@2
+          displayName: '📢 Publish UX unit test results'
+          inputs:
+            testResultsFormat: JUnit
+            testResultsFiles: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\junit-report.xml'
+            failTaskOnFailedTests: true
+            testRunTitle: 'UX_UnitTests'
 
         #
         # Build Solution
