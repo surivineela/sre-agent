@@ -400,12 +400,6 @@ public class MockKubePlugin : IKubePlugin
 
     // --- Other IKubePlugin Methods (Implement as needed or leave as NotImplemented) ---
 
-    public Task<string> ExecCommandInPodAsync(string resourceId, string _namespace, string pod, string? container, string command)
-    {
-        Console.WriteLine($"WARN: MockKubePlugin: ExecCommandInPodAsync NOT IMPLEMENTED");
-        throw new NotImplementedException();
-    }
-
     public Task<string> ListCRDsAsync(string resourceId)
     {
         Console.WriteLine($"WARN: MockKubePlugin: ListCRDsAsync NOT IMPLEMENTED");

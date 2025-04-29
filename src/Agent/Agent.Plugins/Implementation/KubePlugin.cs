@@ -540,42 +540,6 @@ namespace Agent.Plugins
             }
         }
 
-        // exec a command in a pod and get the output, container is optional, choose the first one if not specified
-        public async Task<string> ExecCommandInPodAsync(string resourceId, string _namespace, string pod, string? container, string command)
-        {
-            _client = await GetOrCreateClientAsync(resourceId);
-            // get pod in namespace
-            var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
-            if (podObj == null)
-            {
-                return "Pod not found";
-            }
-            if (string.IsNullOrEmpty(container))
-            {
-                container = podObj.Spec.Containers.FirstOrDefault()?.Name;
-            }
-            if (string.IsNullOrEmpty(container))
-            {
-                return "Container not found in pod " + pod;
-            }
-
-            var webSocket = await _client.WebSocketNamespacedPodExecAsync(
-                pod,
-                _namespace,
-                command: ["sh", "-c", command],
-                container: container);
-
-            var memoryStream = new MemoryStream();
-            var streamDemultiplexer = new StreamDemuxer(webSocket);
-            streamDemultiplexer.Start();
-
-            var stdoutStream = streamDemultiplexer.GetStream(1, 1);
-            await stdoutStream.CopyToAsync(memoryStream);
-
-            var output = System.Text.Encoding.UTF8.GetString(memoryStream.ToArray());
-            return output;
-        }
-
         // list all CRD in cluster
         public async Task<string> ListCRDsAsync(string resourceId)
         {

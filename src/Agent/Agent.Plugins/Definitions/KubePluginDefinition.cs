@@ -115,23 +115,6 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
             return await _kubePlugin.GetKubePodLogsAsync(AKSClusterResourceId, _namespace, pod, container, lines);
         }
 
-        [KernelFunction("exec_command_in_pod")]
-        [Description(
-@"Execute a command in a pod in the specified namespace.
-Used whenever user wants to run a command inside a specific pod.
-eg: run 'ls -l' in pod 'nginx-pod-xyz' in the 'default' namespace.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        [RequiresApproval]
-        public async Task<string> ExecCommandInPodAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-                   [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
-             [Description($"Name of the Kubernetes pod, e.g. 'backend-947df49ff-l2zb4'")] string pod,
-             [Description($"Container Name inside the Kubernetes pod, e.g. 'main'. The value can be optional or empty")] string? container,
-             [Description($"Command to be executed inside a pod, e.g. 'ls -l', 'top'")] string command)
-        {
-            return await _kubePlugin.ExecCommandInPodAsync(AKSClusterResourceId, _namespace, pod, container, command);
-        }
-
         [KernelFunction("list_crds")]
         [Description(
 @"List all Custom Resource Definitions (CRDs) in the cluster.
