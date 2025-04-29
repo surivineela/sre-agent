@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Core;
+using Agent.Core.Interfaces;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;

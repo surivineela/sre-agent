@@ -74,6 +74,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to restart or rollout restart a deployment, it can also be used by restart pod if the pod belongs to the deployment.
 eg: restart the 'nginx-deployment' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [RequiresApproval]
         public async Task<string> RolloutRestartDeploymentAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
               [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -120,6 +121,7 @@ If user didn't specify namespace in the context, try to use 'default' namespace"
 Used whenever user wants to run a command inside a specific pod.
 eg: run 'ls -l' in pod 'nginx-pod-xyz' in the 'default' namespace.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
+        [RequiresApproval]
         public async Task<string> ExecCommandInPodAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
                    [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -275,6 +277,7 @@ e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' nam
 Used whenever user wants to create or update resources in a Kubernetes cluster using YAML.
 eg: please apply this YAML object to my AKS cluster to create a new deployment.
 eg: update my service with this YAML manifest.")]
+        [RequiresApproval]
         public async Task<string> ApplyKubernetesYamlAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description("The YAML manifest content to apply to the cluster")] string yamlContent)

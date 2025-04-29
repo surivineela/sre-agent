@@ -9,6 +9,8 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using System.Text.Json.Nodes;
+using System.Text.Json;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -51,7 +53,7 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
             StateMessage = input.StateMessage,
             TimeStamp = input.TimeStamp
         };
-        _logger.LogInformation("Persisting thread context, threadId: {ThreadId}, state: {OrchestrationState}", input.ThreadId, threadContext.OrchestrationState);
+        _logger.LogInformation("Persisting thread context, threadId: {ThreadId}, state: {OrchestrationState}", input.ThreadId, JsonSerializer.Serialize(threadContext.OrchestrationState));
         try
         {
             threadContext = await _repository.UpdateThreadContextAsync(threadContext);
@@ -61,7 +63,6 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
             _logger.LogError(ex, "Failed to update thread context, threadId: {ThreadId}", input.ThreadId);
             throw;
         }
-        _logger.LogInformation("Thread context persisted successfully, threadId: {threadContext}", threadContext.ToString());
         return threadContext;
     }
 }

@@ -92,9 +92,8 @@ public class Teams
 
 public enum ReasoningState
 {
-    Undefined,
+    NotStarted, // this is not expected to be seen by customer
     OrchestrationInitialized,
-    StartingNewStep,
     Waiting,
     PlanningNextAction,
     RunningFunctionCall,

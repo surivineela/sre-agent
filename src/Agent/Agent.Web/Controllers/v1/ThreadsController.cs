@@ -270,10 +270,13 @@ namespace Agent.Web.Controllers.v1
             if (threadContext == null)
                 return NotFound();
 
+            logger.LogInformation($"Get context for thread {threadId}: {JsonSerializer.Serialize(threadContext.OrchestrationState)}");
+
             if (threadContext.OrchestrationState != null &&
                 !string.IsNullOrEmpty(threadContext.OrchestrationState.OrchestrationInstanceId) &&
                 threadContext.OrchestrationState.ReasoningState != ReasoningState.OrchestrationCompleted &&
-                (DateTime.UtcNow - threadContext.OrchestrationState.TimeStamp > TimeSpan.FromMinutes(1)))
+                threadContext.OrchestrationState.ReasoningState != ReasoningState.Error &&
+                (DateTime.UtcNow - threadContext.OrchestrationState.TimeStamp > TimeSpan.FromSeconds(30)))
             {
                 var orchestrationState = await durableTaskClient.GetInstanceAsync(threadContext.OrchestrationState.OrchestrationInstanceId);
                 if (orchestrationState?.RuntimeStatus == OrchestrationRuntimeStatus.Failed || orchestrationState?.RuntimeStatus == OrchestrationRuntimeStatus.Terminated)
@@ -281,7 +284,14 @@ namespace Agent.Web.Controllers.v1
                     threadContext.OrchestrationState.ReasoningState = ReasoningState.Error;
                     // TODO(jianbosun): need to find way to get detailed DTS error here.
                     threadContext.OrchestrationState.StateMessage = $"Unexpected orchestration runtime status: {orchestrationState.RuntimeStatus} {(orchestrationState.FailureDetails != null ? orchestrationState.FailureDetails.ToString() : "")}";
+                    threadContext.OrchestrationState.TimeStamp = DateTime.UtcNow;
+                    await repository.UpdateThreadContextAsync(threadContext);
                 }
+            }
+            if (threadContext.OrchestrationState != null)
+            {
+                // mask the StateMessage to avoid leak details
+                threadContext.OrchestrationState.StateMessage = "";
             }
 
             return Ok(threadContext);

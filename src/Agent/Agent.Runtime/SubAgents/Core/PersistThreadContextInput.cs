@@ -13,7 +13,7 @@ public class PersistThreadContextInput
     public string OrchestrationInstanceId { get; set; } = string.Empty;
     public int StepCounter { get; set; } = 0;
     public Guid ThreadId { get; set; }
-    public ReasoningState ReasoningState { get; set; } = ReasoningState.Undefined;
+    public ReasoningState ReasoningState { get; set; } = ReasoningState.NotStarted;
     public string StateMessage { get; set; } = string.Empty;
     public DateTime TimeStamp { get; set; } = DateTime.UtcNow;
 }

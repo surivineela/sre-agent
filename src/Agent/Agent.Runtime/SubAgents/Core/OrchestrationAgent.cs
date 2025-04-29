@@ -54,11 +54,9 @@ public class OrchestrationAgent
     public async Task RunReasoningLoop<TInput, TResult>(GenericAgentOrchestrator<TInput, TResult> genericAgentOrchestrator)
     {
         log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", this.ThreadId);
-        await RecordStateChange(ReasoningState.OrchestrationInitialized, "Reasoning loop started");
         while (!Done)
         {
             StepCount += 1;
-            await RecordStateChange(ReasoningState.StartingNewStep, "Starting new reasoning loop step");
             log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", this.ThreadId, StepCount);
 
             UpdateOrchestrationStatus();

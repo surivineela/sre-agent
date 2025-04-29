@@ -2,6 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
 using Microsoft.Extensions.Logging;
@@ -11,13 +13,16 @@ namespace Agent.Runtime.Communication;
 public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
 {
     private readonly IThreadOrchestrationMappingRepository _repository;
+    private readonly IThreadRepository _threadRepository;
     private readonly ILogger<CosmosThreadOrchestrationManager> _logger;
 
     public CosmosThreadOrchestrationManager(
             IThreadOrchestrationMappingRepository repository,
+            IThreadRepository threadRepository,
             ILogger<CosmosThreadOrchestrationManager> logger)
     {
         _repository = repository;
+        _threadRepository = threadRepository;
         _logger = logger;
     }
 
@@ -44,6 +49,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
 
         try
         {
+            await UpdateThreadContextAsync(mapping.ThreadId, mapping.OrchestrationInstanceId);
             await _repository.AddThreadMappingAsync(mapping);
         }
         catch (Exception ex)
@@ -69,6 +75,51 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
                ModifiedTimestamp: DateTime.UtcNow
                )
            );
+    }
+
+    private async Task UpdateThreadContextAsync(string threadIdStr, string orchestrationInstanceId)
+    {
+        if (!Guid.TryParse(threadIdStr, out var threadId))
+        {
+            _logger.LogError($"Fail to parse threadID {threadIdStr} to valid Guid");
+            return;
+        }
+
+        ThreadContext threadContext;
+        try
+        {
+            threadContext = await _threadRepository.GetThreadContextAsync(threadId);
+            // If the thread context is not found, create a new one with Meta agent type as default.
+            threadContext ??= await _threadRepository.AddThreadContextAsync(new ThreadContext(threadId, AgentTypeEnum.Meta, true));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to get or create thread context, threadId: {ThreadId}", threadIdStr);
+            throw;
+        }
+
+        threadContext.OrchestrationState = new OrchestrationState
+        {
+            OrchestrationInstanceId = orchestrationInstanceId,
+            StepCounter = 0,
+            ReasoningState = ReasoningState.OrchestrationInitialized,
+            StateMessage = "Orchestration initialized by agent",
+            TimeStamp = DateTime.UtcNow
+        };
+
+        var serializedState = JsonSerializer.Serialize(threadContext.OrchestrationState);
+        _logger.LogInformation("Persisting thread context, threadId: {ThreadId}, state: {SerializedState}", threadIdStr, serializedState);
+
+        try
+        {
+            threadContext = await _threadRepository.UpdateThreadContextAsync(threadContext);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to update thread context, threadId: {ThreadId}", threadIdStr);
+            throw;
+        }
+        return;
     }
 
     public async Task RemoveMappingAsync(string threadId)
