@@ -1,7 +1,9 @@
 using System.ComponentModel;
+using Agent.Plugins;
 using Agent.Runtime.SubAgents;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using FirstPartyAgent.Plugins.Definitions;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
 {
@@ -16,7 +18,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
         }
         public override string GetPlanText()
         {
-            throw new NotImplementedException();
+            var resourceBullets = Resources.Select(r => $"{r.ResourceId}");
+            return $"""
+                I will update the Icm to process the quota request: 
+                  {string.Join(Environment.NewLine, resourceBullets)}
+                """;
         }
 
     }
@@ -27,13 +33,25 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
         public ContainerAppsQuotaAgentActivity(IChatClient chatClient) : base(chatClient)
         {
         }
-        public override string ResourceTypeName => throw new NotImplementedException();
+        public override string ResourceTypeName { get; } = "ContainerAppsQuotaRequest";
 
-        public override string[] ToolNames => throw new NotImplementedException();
+        public override string[] ToolNames { get; } = [
+            nameof(ContainerAppsPluginDefinition.ValidateQuotaRequest),
+            nameof(ContainerAppsPluginDefinition.SetSubscriptionQuota),
+            nameof(ContainerAppsPluginDefinition.GetSubscriptionDetail),
+            nameof(ContainerAppsPluginDefinition.GetSubscriptionUsage),
+            nameof(IcmPluginDefinition.GetIncidentInfo),
+            nameof(IcmPluginDefinition.AddDiscussionEntry),
+            nameof(IcmPluginDefinition.ResolveIncident),
+            nameof(ControlFlowPluginDefinition.Wait),
+            nameof(ControlFlowPluginDefinition.MarkPlanComplete),
+            nameof(ControlFlowPluginDefinition.NotifyUser),
+            nameof(ControlFlowPluginDefinition.AskUserForInput),
+        ];
 
         public override string ActionToTake(ContainerAppsQuotaAgentActivityInput input)
         {
-            throw new NotImplementedException();
+            return $"Extract quota request information from the Incident, and process it.";
         }
 
         public override string GetPromptText(ContainerAppsQuotaAgentActivityInput input)

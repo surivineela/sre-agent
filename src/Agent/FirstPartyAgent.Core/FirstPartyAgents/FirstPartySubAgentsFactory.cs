@@ -17,7 +17,8 @@ public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
     {
         _agentNames = new List<string>
         {
-            "RCAAgent"
+            "RCAAgent",
+            "IncidentAgent"
         };
     }
 
@@ -63,14 +64,12 @@ public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
     {
         var agentName = GetAgentName();
         string? systemPrompt = null;
-        if (string.Equals(agentName, "RCAAgent", StringComparison.InvariantCultureIgnoreCase))
-        {
-            var path = Path.Combine("..", "FirstPartyAgent.Core", nameof(FirstPartyAgents), "ACA", "RCAAgentSystemPrompt.txt");
-            systemPrompt = File.ReadAllText(path);
-        }
+        string promptFileName = agentName+ "SystemPrompt.txt";
+        var path = Path.Combine("..", "FirstPartyAgent.Core", nameof(FirstPartyAgents), "ACA", promptFileName);
+        systemPrompt = File.ReadAllText(path);
         if(string.IsNullOrEmpty(systemPrompt))
         {
-            throw new InvalidOperationException("System prompt not found for the agent");
+            throw new InvalidOperationException($"System prompt {promptFileName} not found for the agent {agentName}");
         }
         return systemPrompt;
     }

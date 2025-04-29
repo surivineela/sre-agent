@@ -26,7 +26,8 @@ This operation will get the detailed information of the given Azure subscription
 Input parameters:
 - subscriptionId: The Id of the Azure subscription
 
-The return value includes the detailed information of the given subscription id.
+Output:
+The return value includes the detailed information of the given subscription id with the following information: SubscriptionId,BillingType, OfferType, OfferName, TPId, BillableAcctId, CloudCustomerGuid, ClassifiedTypeV2, QuotaId, OrganizationName 
 ")]
         public async Task<SubscriptionDetail?> GetSubscriptionDetail(
             [Description("Subscription ID")] string subscriptionId)
@@ -34,22 +35,33 @@ The return value includes the detailed information of the given subscription id.
             return await _plugin.GetSubscriptionDetail(subscriptionId);
         }
 
-        //[KernelFunction(KernelFunctionNames.ACA.SetSubscriptionQuota)]
-        //[Description(@"Call GenevaAction SetSubscriptionQuota
-        //The GenevaAction is a name of DevOps tool, it contains a series of operation call be invoke for different purpose.
-        //This operation 'SetSubscriptionQuota' triggers the GenevaAction workflow to set the quota for a subscription.
+        [KernelFunction(KernelFunctionNames.ACA.GetSubscriptionUsage)]
+        [Description(@"Get the subscription usage information in Container Apps Service.
+Input parameters:
+- subscriptionId: The Id of the Azure subscription
 
-        //Input parameters:
-        //- subscriptionId: The subscription Id
-        //- region: The region of the quota need to be set.
-        //- quotaType: The quota type. Allowed value are:
-        //    SubscriptionNCA100Gpus - The NCA100 GPU quota for dedicated workload
-        //    SubscriptionConsumptionNCA100Gpus - The NCA100 GPU quota for consumption workload
-        //    SubscriptionConsumptionT4Gpus - The T4 GPU quota for consumption workload
+Output:
+The return value includes the subscription usage information in Container Apps Service of the given subscription id.
+- SubscriptionId: The Id of the Azure subscription
+- NumberOfEnvironments: The number of environments created in the given subscription id.
+- NumberOfContainerApps: The number of container apps created in the given subscription id.
+- NumberOfJobs: The number of jobs created in the given subscription id.
+- TrustLevel: The trust level of the subscription
+")]
+        public async Task<AcaSubscriptionUsage?> GetSubscriptionUsage(
+            [Description("Subscription ID")] string subscriptionId)
+        {
+            return await _plugin.GetSubscriptionUsage(subscriptionId);
+        }
 
-        //The operation will update the given quota type for given subscription in the given region.
-        //The return value is a boolean value for indicating if the operation is successful.
-        //")]
+        [KernelFunction(KernelFunctionNames.ACA.SetSubscriptionQuota)]
+        [Description(@"Set Subscription Quota limit.
+        Input parameters:
+        - subscriptionId: The subscription Id.
+        - region: The region of the quota need to be set.
+        - quotaType: The quota type. 
+        The return value is a boolean value for indicating if the operation is successful.
+        ")]
         public async Task<string> SetSubscriptionQuota(
             [Description("The subscription Id")] string subscriptionId,
             [Description("The region")] string region,

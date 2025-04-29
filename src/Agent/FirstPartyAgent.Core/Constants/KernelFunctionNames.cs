@@ -9,6 +9,7 @@ namespace FirstPartyAgent.Constants
         public static class ACA
         {
             public const string GetSubscriptionDetail = "get_subscription_detail";
+            public const string GetSubscriptionUsage = "get_subscription_usage";
             public const string SetSubscriptionQuota = "set_subscription_quota";
             public const string ValidateQuotaRequest = "validate_quota_request";
         }

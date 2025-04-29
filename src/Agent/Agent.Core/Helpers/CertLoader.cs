@@ -3,6 +3,9 @@
 // ------------------------------------------------------------
 
 using System.Security.Cryptography.X509Certificates;
+using Azure.Identity;
+using Azure.Security.KeyVault.Certificates;
+using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Helpers
@@ -81,6 +84,30 @@ namespace Agent.Core.Helpers
             catch (Exception ex)
             {
                 log?.LogError(ex, "Error: {} occurred while trying to load cert from file {}", ex.Message, certFilePath);
+                throw;
+            }
+        }
+
+        public static X509Certificate2 LoadCertFromKeyVault(string keyVaultUrl, string certificateName, string? certPassword = null, ILogger? log = null)
+        {
+            try
+            {
+                var client = new CertificateClient(new Uri(keyVaultUrl), new DefaultAzureCredential());
+                KeyVaultCertificateWithPolicy certificateWithPolicy = client.GetCertificate(certificateName);
+
+                KeyVaultSecret secret = new SecretClient(new Uri(keyVaultUrl), new DefaultAzureCredential()).GetSecret(certificateWithPolicy.Name);
+
+                byte[] privateKeyBytes = Convert.FromBase64String(secret.Value);
+
+                // Create an X509Certificate2 object from the byte array
+                X509Certificate2 certificate = new X509Certificate2(privateKeyBytes, certPassword);
+
+                log?.LogInformation($"Successfully loaded Cert from Key Vault, Certificate Subject: {certificate.Subject}");
+                return certificate;
+            }
+            catch (Exception ex)
+            {
+                log?.LogError(ex, "Error: {} occurred while trying to load cert from Key Vault {}", ex.Message, keyVaultUrl);
                 throw;
             }
         }

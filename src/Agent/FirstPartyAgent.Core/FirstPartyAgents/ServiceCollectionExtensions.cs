@@ -37,8 +37,8 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton(new HelloWorldSettings());
 
         builder.Services.AddOptionsWithValidateOnStart<ICMWorkflowSettings>()
-                .BindConfiguration("AppSettings:FirstPartyAgent:ICMWorkflowSettings")
-                .ValidateDataAnnotations();
+            .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
+            .ValidateDataAnnotations();
 
         builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ICMWorkflowSettings>>().Value);
     }

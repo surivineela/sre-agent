@@ -36,9 +36,14 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
         {
             var containerAppPluginDefinition = new ContainerAppsPluginDefinition(containerAppsPlugin);
             yield return () => containerAppPluginDefinition.ValidateQuotaRequest;
+            yield return () => containerAppPluginDefinition.SetSubscriptionQuota;
+            yield return () => containerAppPluginDefinition.GetSubscriptionDetail;
+            yield return () => containerAppPluginDefinition.GetSubscriptionUsage;
 
             var icmPluginDefinition = new IcmPluginDefinition(icmPlugin);
             yield return () => icmPluginDefinition.GetIncidentInfo;
+            yield return () => icmPluginDefinition.AddDiscussionEntry;
+            yield return () => icmPluginDefinition.ResolveIncident;
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             yield return () => controlFlowPluginDefinition.Wait;

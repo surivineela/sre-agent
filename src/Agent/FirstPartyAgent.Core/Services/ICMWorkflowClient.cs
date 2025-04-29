@@ -49,13 +49,13 @@ namespace FirstPartyAgent.Core.Services
                 {
                     throw new Exception("The environment variable 'ICMWorkflows:WorkflowsEndpoint' is not set.");
                 }
-                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
+                if (!IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri))
                 {
-                    throw new Exception("You need to set at least one of the two environment variables - 'ICMWorkflows:CertificateSubjectName' or 'ICMWorkflows:CertificateFilePath'.");
+                    throw new Exception("You need to set at least one of the three environment variables - 'ICMWorkflows:CertificateSubjectName', 'ICMWorkflows:CertificateFilePath' or 'ICMWorkflows:CertificateKeyVaultUri'.");
                 }
-                if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
+                if (IsDevelopment && string.IsNullOrWhiteSpace(_icmWorkflowSettings.UserToken) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateSubjectName) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath) && string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri))
                 {
-                    throw new Exception("You need to set at least one of the two environment variables - 'ICMWorkflows:CertificateSubjectName' or 'ICMWorkflows:UserToken'.");
+                    throw new Exception("You need to set at least one of the three environment variables - 'ICMWorkflows:CertificateSubjectName', 'ICMWorkflows:UserToken' or 'ICMWorkflows:CertificateKeyVaultUri'.");
                 }
             }
 
@@ -81,6 +81,16 @@ namespace FirstPartyAgent.Core.Services
                         Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                     };
                     _httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {_icmWorkflowSettings.UserToken}");
+                }
+                else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateKeyVaultUri) && !string.IsNullOrEmpty(_icmWorkflowSettings.CertificateKeyVaultSecretName))
+                {
+                    var handler = new HttpClientHandler();
+                    var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, null, _logger);
+                    _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
+                    _httpClient = new HttpClient(handler)
+                    {
+                        Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                    };
                 }
                 else if (!string.IsNullOrWhiteSpace(_icmWorkflowSettings.CertificateFilePath))
                 {
@@ -250,7 +260,7 @@ namespace FirstPartyAgent.Core.Services
 
             var response = await SendICMWorkflowRequest(workflowName, JsonConvert.SerializeObject(body));
             if (response.IsSuccessStatusCode) { return await response.Content.ReadAsStringAsync(); }
-            return null;
+            return "Failed to set subscription quota";
         }
 
         public async Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null)

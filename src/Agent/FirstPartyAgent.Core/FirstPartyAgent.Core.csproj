@@ -73,6 +73,9 @@
     <None Update="FirstPartyAgents\ACA\RCAAgentSystemPrompt.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="FirstPartyAgents\ACA\IncidentAgentSystemPrompt.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <!-- Add sub-agents plan files -->
