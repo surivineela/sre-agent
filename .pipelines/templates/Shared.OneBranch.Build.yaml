@@ -302,16 +302,6 @@ extends:
             arguments: '--no-build --output $(BuildSolutionOutputPath) -c $(BuildConfiguration) --blame --logger trx --collect "Code coverage" --results-directory $(Build.SourcesDirectory)\TestResults\ --filter FullyQualifiedName~Agent.Tests.Unit' 
             publishTestResults: false
 
-        - script: dotnet test src/Agent/Agent.Evals/Agent.Evals.csproj --no-restore --logger trx --results-directory $(Build.SourcesDirectory)/TestResults/Evals/ || true
-          env:
-            OpenAIEndpoint: 'https://westus.api.cognitive.microsoft.com/'
-            OpenAIKey: $(EvalsOpenAIKey)
-            OpenAIModel: 'sre3ppipe-gpt-4o'
-            IterationCount: 1
-          timeoutInMinutes: 30
-          displayName: 'Running evals'
-          continueOnError: true
-
         #
         # Run integration tests
         #
@@ -333,14 +323,6 @@ extends:
             testResultsFiles: '$(Build.SourcesDirectory)\TestResults\*.trx'
             failTaskOnFailedTests: true
         
-        - script: dotnet run --project src/Agent/Agent.Evals.Cmd/Agent.Evals.Cmd.csproj
-          condition: always()
-          env:
-            SRE_AGENT_TESTING_TEST_RESULTS_LOCATION: '$(Build.SourcesDirectory)/TestResults/Evals/'
-            SRE_AGENT_EVENT_HUB_CONNECTION_STRING: $(TestResultEventHubConnectionStr)
-          timeoutInMinutes: 30
-          displayName: 'Uploading evals tests results to event hub'
-
         # - task: PowerShell@2
         #   displayName: 'Copy dockerfile to output directory'
         #   inputs:

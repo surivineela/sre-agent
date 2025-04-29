@@ -11,6 +11,7 @@ using Azure.Security.KeyVault.Secrets;
 using Azure.Messaging.EventHubs;
 using Agent.Evals.Common;
 using System.Collections;
+using System.Text.RegularExpressions;
 
 namespace Agent.Evals.Cmd;
 
@@ -161,6 +162,31 @@ public class Program
                 {
                     var stdOut = childNode.ChildNodes[0].InnerText;
 
+                    // Parse AdditionalInfo in kusto with parse-kv:
+                    // | parse-kv AdditionalInfo as (TestRunId:string, Branch:string) with (pair_delimiter=",", kv_delimiter=":")
+                    var additionInfoBuilder = new StringBuilder();
+                    additionInfoBuilder.Append($"TestRunId:{testRunId},");
+                    additionInfoBuilder.Append($"Branch:{buildBranch},");
+
+                    // If the test fails before any eval data was emitted, we still need a test result with HasPassed = false
+                    var topLevelResult = new TestResult
+                    {
+                        TestId = $"{testId}__{Guid.NewGuid()}",
+                        TestMethod = testName,
+                        ClassName = className,
+                        BuildId = buildId,
+                        BuildNumber = buildNumber,
+                        StartTime = testResult.Attributes?.GetNamedItem("startTime")?.Value,
+                        EndTime = testResult.Attributes?.GetNamedItem("endTime")?.Value,
+                        HasPassed = hasPassed,
+                        AdditionalInfo = additionInfoBuilder.ToString(),
+                    };
+
+                    var modelNamePattern = "\"LLMDeploymentName\":\"(.*?)\"";
+                    var match = Regex.Match(stdOut, modelNamePattern);
+                    topLevelResult.LLMDeploymentName = match.Success ? match.Groups[1].Value : "Unknown";
+                    testResults[topLevelResult.TestId] = topLevelResult;
+
                     foreach (var line in stdOut.Split('\n'))
                     {
                         if (!line.Contains("{\"WordCount"))
@@ -202,12 +228,6 @@ public class Program
                         result.GroundednessReasoning = evaluationResults.Groundedness?.Reason;
                         result.HasPassed = hasPassed;
                         result.LLMDeploymentName = evaluationResults.LLMDeploymentName;
-
-                        // Parse AdditionalInfo in kusto with parse-kv:
-                        // | parse-kv AdditionalInfo as (TestRunId:string, Branch:string) with (pair_delimiter=",", kv_delimiter=":")
-                        var additionInfoBuilder = new StringBuilder();
-                        additionInfoBuilder.Append($"TestRunId:{testRunId},");
-                        additionInfoBuilder.Append($"Branch:{buildBranch},");
                         result.AdditionalInfo = additionInfoBuilder.ToString();
 
                         testResults[result.TestId] = result;

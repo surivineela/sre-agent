@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+    <RunConfiguration>
+        <!-- 25 minute timeout for evals -->
+        <TestSessionTimeout>1500000</TestSessionTimeout>
+    </RunConfiguration>
+</RunSettings>
