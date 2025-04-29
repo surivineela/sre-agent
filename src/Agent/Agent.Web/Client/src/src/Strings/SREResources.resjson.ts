@@ -61,6 +61,7 @@ export enum SreAgentTabs {
     activities = 'Activities',
     settings = 'Settings',
     managedResources = 'Managed resources',
+    logs = 'Logs',
 }
 
 export enum ActionsResources {
