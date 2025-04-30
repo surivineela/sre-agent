@@ -109,6 +109,7 @@ export const SreAgentResources = defineMessages({
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
     totalThreads: { defaultMessage: 'Total threads', id: 'zN87hN' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
     task: { defaultMessage: 'Task', id: '0wJ7N+' },
@@ -116,6 +117,7 @@ export const SreAgentResources = defineMessages({
     logicAppName: { defaultMessage: 'Logic App name', id: 'f0Y4Zr' },
     yes: { defaultMessage: 'Yes', id: 'a5msuh' },
     no: { defaultMessage: 'No', id: 'oUWADl' },
+    managedIdentity: { defaultMessage: 'Managed Identity', id: 'UZMdQH' },
 });
 
 export const SreAgentTabResources = defineMessages({

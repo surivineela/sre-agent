@@ -269,6 +269,12 @@
       "value": "Grafana dashboard linked successfully"
     }
   ],
+  "FUQvS0": [
+    {
+      "type": 0,
+      "value": "Subscription ID"
+    }
+  ],
   "FZeQlc": [
     {
       "type": 0,
@@ -495,6 +501,12 @@
     {
       "type": 0,
       "value": "Saving incident management configuration"
+    }
+  ],
+  "UZMdQH": [
+    {
+      "type": 0,
+      "value": "Managed Identity"
     }
   ],
   "UmEsZF": [
