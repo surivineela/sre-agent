@@ -155,9 +155,12 @@ export const ActivitiesResources = defineMessages({
 
 export const ActivitiesThreadHeaderResources = defineMessages({
     deleteThreadTitle: { defaultMessage: 'Delete thread', id: '2WxP2i' },
-    deleteThreadInProgressDescription: { defaultMessage: 'Deleting thread with title {0}', id: 'VxQUh/' },
-    deleteThreadSuccessDescription: { defaultMessage: 'Thread with title {0} deleted successfully', id: '724aBQ' },
-    deleteThreadFailureDescription: { defaultMessage: 'Failed to delete thread with title {0} with error: {1}', id: '4LfXyy' },
+    deleteThreadInProgressDescription: { defaultMessage: 'Deleting thread with title {title}', id: 'axE+Jt' },
+    deleteThreadSuccessDescription: { defaultMessage: 'Thread with title {title} deleted successfully', id: 'K5yM40' },
+    deleteThreadFailureDescription: {
+        defaultMessage: 'Failed to delete thread with title {title} with error: {errorMessage}',
+        id: 'bi05ZL',
+    },
     deleteThreadDialogTitle: { defaultMessage: 'Delete thread?', id: '+5BJJL' },
     deleteThreadDialogDescription: {
         defaultMessage: 'This will permanently delete the chat and all actions in this thread.',
@@ -196,7 +199,7 @@ export const IncidentManagementNotificationResources = defineMessages({
     saveTitle: { defaultMessage: 'Save incident management configuration', id: '35UE1s' },
     saveStarted: { defaultMessage: 'Saving incident management configuration', id: 'TyvDrC' },
     saveSucceeded: { defaultMessage: 'Successfully saved incident management configuration', id: 'NrGEOo' },
-    saveFailed: { defaultMessage: 'Failed to save incident management configuration', id: 'hX7X4n' },
+    saveFailed: { defaultMessage: 'Failed to save incident management configuration. Error: {errorMessage}', id: 'slxYbm' },
 });
 
 export const IncidentManagementSaveErrorResources = defineMessages({
@@ -204,6 +207,12 @@ export const IncidentManagementSaveErrorResources = defineMessages({
     logicAppCreateFailure: { defaultMessage: 'Failed to create logic app', id: 'ZUXvHE' },
     logicAppDeleteFailure: { defaultMessage: 'Failed to delete logic app', id: 'DpMYPV' },
     configFailure: { defaultMessage: 'Failed to save incident management configuration', id: 'hX7X4n' },
+});
+
+export const IncidentManagementValidationResources = defineMessages({
+    apiKeyInvalid: { defaultMessage: 'API key is not valid', id: 'AXAtAX' },
+    apiKeyRequired: { defaultMessage: 'API Key is required', id: 'S7xtEr' },
+    apiKeyFailedToValidate: { defaultMessage: 'Failed to validate API Key', id: 'hMGoYE' },
 });
 
 export const PagerDutyResources = defineMessages({
@@ -232,8 +241,8 @@ export const GrafanaDashboardResources = defineMessages({
     grafanaCreationInProgress: { defaultMessage: 'Provisioning of your Grafana dashboard is in progress.', id: 'kWs94j' },
     grafanaCreationSuccess: { defaultMessage: 'Grafana dashboard creation succeeded', id: 'WRFrUO' },
     grafanaCreationFailed: {
-        defaultMessage: 'Failed to create the Grafana dashboard with the error: {0}',
-        id: 'pLoacI',
+        defaultMessage: 'Failed to create the Grafana dashboard with the error: {errorMessage}',
+        id: 'ACfSSZ',
     },
     grafanaRoleAssignmentTitle: { defaultMessage: 'Provisioning Grafana role assignment', id: 'IS+F5v' },
     grafanaRoleAssignmentInProgress: {
@@ -242,8 +251,8 @@ export const GrafanaDashboardResources = defineMessages({
     },
     grafanaRoleAssignmentSuccess: { defaultMessage: 'Grafana role assignment creation succeeded', id: 'qw8pxr' },
     grafanaRoleAssignmentFailed: {
-        defaultMessage: 'Failed to create the Grafana role assignment with the error: {0}',
-        id: 'mifzje',
+        defaultMessage: 'Failed to create the Grafana role assignment with the error: {errorMessage}',
+        id: 'O0WH/+',
     },
     postCreationInstructions: {
         defaultMessage: `After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:`,

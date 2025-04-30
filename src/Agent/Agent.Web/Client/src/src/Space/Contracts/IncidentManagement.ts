@@ -7,7 +7,6 @@ export enum IncidentManagementPlatform {
 
 export interface IncidentManagementFormValues {
     platform?: IncidentManagementPlatform;
-    connectionUrl?: string;
     connectionKey?: string;
 }
 

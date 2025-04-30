@@ -128,11 +128,13 @@ export const navStyles = {
 };
 
 export const incidentManagementTextFieldStyles = {
+    root: {
+        marginTop: 20,
+        marginBottom: 20,
+    },
     wrapper: {
         width: 700,
         display: 'flex',
-        marginTop: 20,
-        marginBottom: 20,
     },
     subComponentStyles: {
         label: {

@@ -77,24 +77,6 @@
       "value": "Denied by"
     }
   ],
-  "4LfXyy": [
-    {
-      "type": 0,
-      "value": "Failed to delete thread with title "
-    },
-    {
-      "type": 1,
-      "value": "0"
-    },
-    {
-      "type": 0,
-      "value": " with error: "
-    },
-    {
-      "type": 1,
-      "value": "1"
-    }
-  ],
   "4dZi3Y": [
     {
       "type": 0,
@@ -175,20 +157,6 @@
       "value": "Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources."
     }
   ],
-  "724aBQ": [
-    {
-      "type": 0,
-      "value": "Thread with title "
-    },
-    {
-      "type": 1,
-      "value": "0"
-    },
-    {
-      "type": 0,
-      "value": " deleted successfully"
-    }
-  ],
   "7cS956": [
     {
       "type": 0,
@@ -235,6 +203,22 @@
     {
       "type": 0,
       "value": "If you approve, this operation will be executed on your behalf using your credentials."
+    }
+  ],
+  "ACfSSZ": [
+    {
+      "type": 0,
+      "value": "Failed to create the Grafana dashboard with the error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
+  "AXAtAX": [
+    {
+      "type": 0,
+      "value": "API key is not valid"
     }
   ],
   "CfGC/2": [
@@ -357,6 +341,20 @@
       "value": "Delete"
     }
   ],
+  "K5yM40": [
+    {
+      "type": 0,
+      "value": "Thread with title "
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": " deleted successfully"
+    }
+  ],
   "NEY2T1": [
     {
       "type": 0,
@@ -379,6 +377,16 @@
     {
       "type": 0,
       "value": "Thank you for your feedback!"
+    }
+  ],
+  "O0WH/+": [
+    {
+      "type": 0,
+      "value": "Failed to create the Grafana role assignment with the error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "OJ2u8k": [
@@ -433,6 +441,12 @@
     {
       "type": 0,
       "value": "Failed to link Grafana dashboard"
+    }
+  ],
+  "S7xtEr": [
+    {
+      "type": 0,
+      "value": "API Key is required"
     }
   ],
   "SDXmEJ": [
@@ -493,16 +507,6 @@
     {
       "type": 0,
       "value": "Create agent"
-    }
-  ],
-  "VxQUh/": [
-    {
-      "type": 0,
-      "value": "Deleting thread with title "
-    },
-    {
-      "type": 1,
-      "value": "0"
     }
   ],
   "VzzYJk": [
@@ -583,6 +587,34 @@
       "value": "Yes"
     }
   ],
+  "axE+Jt": [
+    {
+      "type": 0,
+      "value": "Deleting thread with title "
+    },
+    {
+      "type": 1,
+      "value": "title"
+    }
+  ],
+  "bi05ZL": [
+    {
+      "type": 0,
+      "value": "Failed to delete thread with title "
+    },
+    {
+      "type": 1,
+      "value": "title"
+    },
+    {
+      "type": 0,
+      "value": " with error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
+    }
+  ],
   "ca43CS": [
     {
       "type": 0,
@@ -641,6 +673,12 @@
     {
       "type": 0,
       "value": "All statuses"
+    }
+  ],
+  "hMGoYE": [
+    {
+      "type": 0,
+      "value": "Failed to validate API Key"
     }
   ],
   "hX7X4n": [
@@ -703,16 +741,6 @@
       "value": "Region"
     }
   ],
-  "mifzje": [
-    {
-      "type": 0,
-      "value": "Failed to create the Grafana role assignment with the error: "
-    },
-    {
-      "type": 1,
-      "value": "0"
-    }
-  ],
   "mtr3R4": [
     {
       "type": 0,
@@ -747,16 +775,6 @@
     {
       "type": 0,
       "value": "Managed resources"
-    }
-  ],
-  "pLoacI": [
-    {
-      "type": 0,
-      "value": "Failed to create the Grafana dashboard with the error: "
-    },
-    {
-      "type": 1,
-      "value": "0"
     }
   ],
   "q/uwLT": [
@@ -799,6 +817,16 @@
     {
       "type": 0,
       "value": "Location"
+    }
+  ],
+  "slxYbm": [
+    {
+      "type": 0,
+      "value": "Failed to save incident management configuration. Error: "
+    },
+    {
+      "type": 1,
+      "value": "errorMessage"
     }
   ],
   "tshYzs": [

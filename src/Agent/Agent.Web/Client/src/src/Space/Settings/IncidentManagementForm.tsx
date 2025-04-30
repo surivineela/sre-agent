@@ -1,4 +1,5 @@
 import { DefaultButton, Dropdown, PrimaryButton, TextField } from '@fluentui/react';
+import { Spinner } from '@fluentui/react-components';
 import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import {
@@ -18,7 +19,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     saving,
 }: IncidentManagementFormProps) => {
     const styles = useSettingsStyles();
-    const { setFieldValue, setFieldTouched, submitForm, resetForm, values, dirty, initialValues } = formikProps;
+    const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValidating, isSubmitting, dirty, initialValues } = formikProps;
     const intl = useIntl();
 
     const incidentPlatformDropdownOptions = useMemo(
@@ -54,8 +55,11 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                     styles={incidentManagementDropdownStyles}
                     selectedKey={values.platform}
                     onChange={(_event, option, _index) => {
-                        setFieldValue('platform', option?.key, true);
-                        setFieldTouched('platform', true, true);
+                        setFieldValue('platform', option?.key);
+                        setFieldTouched('platform', true);
+                        if (option?.key !== IncidentManagementPlatform.PagerDuty) {
+                            setFieldValue('connectionKey', undefined, false);
+                        }
                     }}
                     disabled={loading || !!loadFailure || saving}
                 />
@@ -74,11 +78,15 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             required={true}
                             styles={incidentManagementMaskedTextFieldStyles}
                             value={values.connectionKey}
-                            onChange={(_event, newValue) => {
-                                setFieldValue('connectionKey', newValue, true);
-                                setFieldTouched('connectionKey', true, true);
+                            onChange={(_, value) => {
+                                setFieldValue('connectionKey', value);
+                                setFieldTouched('connectionKey', true, false);
                             }}
                             disabled={saving}
+                            errorMessage={formikProps.touched.connectionKey && !isValidating ? formikProps.errors.connectionKey : undefined}
+                            type="password"
+                            canRevealPassword={true}
+                            onRenderSuffix={isValidating && !isSubmitting ? () => <Spinner size={'tiny'} /> : undefined}
                         />
                     </>
                 )}
@@ -88,7 +96,13 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                         style={{ borderRadius: 5 }}
                         onClick={() => submitForm()}
                         text={SreAgentResources.save}
-                        disabled={!isDirty || saving || (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey)}
+                        disabled={
+                            !isDirty ||
+                            saving ||
+                            isValidating ||
+                            (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey)
+                            // TODO (andimarc): Add "isValid" check after confirming that the API key validation works on the actual agent site
+                        }
                     />
                     <DefaultButton
                         style={{ borderRadius: 5, marginLeft: 10 }}

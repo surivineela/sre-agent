@@ -4,6 +4,7 @@ import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/Startup
 import { IncidentManagementFormValues } from '../Contracts/IncidentManagement';
 import { useIncidentManagement } from './Hooks/useIncidentManagement';
 import IncidentManagementForm from './IncidentManagementForm';
+import { validateIncidentManagement } from './ValidationHelper';
 
 const IncidentManagement: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
@@ -11,7 +12,12 @@ const IncidentManagement: FC = () => {
     const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save } = useIncidentManagement(environmentContext.resourceId);
 
     return (
-        <Formik<IncidentManagementFormValues> initialValues={initialValues} enableReinitialize={true} onSubmit={save}>
+        <Formik<IncidentManagementFormValues>
+            initialValues={initialValues}
+            enableReinitialize={true}
+            onSubmit={save}
+            validate={validateIncidentManagement}
+        >
             {formikProps => {
                 return (
                     <IncidentManagementForm
