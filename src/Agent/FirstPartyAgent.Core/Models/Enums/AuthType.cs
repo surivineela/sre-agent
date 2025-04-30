@@ -9,6 +9,7 @@ namespace FirstPartyAgent.Models
         None,
         UserToken,
         Certificate,
+        ManagedIdentity
     }
 }
 

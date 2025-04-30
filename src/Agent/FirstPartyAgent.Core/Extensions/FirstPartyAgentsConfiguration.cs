@@ -12,6 +12,7 @@ using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Plugins;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Core.Services.TokenService;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -157,7 +158,13 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureAlerting);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureSearch);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.GitHub);
-            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMAPI);
+            services.AddSingleton(sp =>
+            {
+                var icmApiSettings = sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMAPI;
+                var logger = sp.GetRequiredService<ILogger<ICMAPITokenService>>();
+                ICMAPITokenService.Instance.Initialize(icmApiSettings, logger);
+                return icmApiSettings;
+            });
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.ICMWorkflows);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Kusto);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Observer);

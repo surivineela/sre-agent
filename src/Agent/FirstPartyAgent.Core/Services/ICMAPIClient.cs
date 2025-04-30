@@ -2,7 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Services.TokenService;
 using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Hosting;
@@ -37,9 +39,11 @@ namespace FirstPartyAgent.Core.Services
         private readonly int TimeoutInSeconds = 60;
         private readonly string IcmAPIPathPrefix;
         private readonly AuthType _authType;
+        private readonly ILogger<ICMAPIClient> _logger;
 
-        public ICMAPIClient(IHostEnvironment environment, ICMAPISettings icmApiSettings)
+        public ICMAPIClient(IHostEnvironment environment, ICMAPISettings icmApiSettings, ILogger<ICMAPIClient> logger)
         {
+            _logger = logger;
             _icmApiSettings = icmApiSettings;
             IsDevelopment = environment.IsDevelopment();
             if (!icmApiSettings.Enabled)
@@ -52,7 +56,12 @@ namespace FirstPartyAgent.Core.Services
             }
 
             _authType = AuthType.None;
-            if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName))
+            if (_icmApiSettings.ManagedIdentityEnabled && !string.IsNullOrWhiteSpace(_icmApiSettings.ManagedIdentityClientId))
+            {
+                _authType = AuthType.ManagedIdentity;
+                IcmAPIPathPrefix = "/api2/user/incidentapi";
+            }
+            else if (!string.IsNullOrWhiteSpace(_icmApiSettings.CertificateSubjectName))
             {
                 _authType = AuthType.Certificate;
                 IcmAPIPathPrefix = "/api/cert";
@@ -110,6 +119,13 @@ namespace FirstPartyAgent.Core.Services
                     Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
                 };
             }
+            else if (_authType == AuthType.ManagedIdentity)
+            {
+                _httpClient = new HttpClient()
+                {
+                    Timeout = TimeSpan.FromSeconds(TimeoutInSeconds)
+                };
+            }
             else
             {
                 throw new Exception("Could not initialize http client for ICM APIs as no auth was set.");
@@ -124,8 +140,13 @@ namespace FirstPartyAgent.Core.Services
             }
 
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
-            var response = await _httpClient.GetAsync(requestUri);
-
+            var requestMessage = new HttpRequestMessage(HttpMethod.Get, requestUri);
+            if (_authType == AuthType.ManagedIdentity)
+            {
+                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            }
+            var response = await _httpClient.SendAsync(requestMessage);
             return response;
         }
 
@@ -140,9 +161,14 @@ namespace FirstPartyAgent.Core.Services
                 throw new ArgumentException("content must be provided.", nameof(content));
             }
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
-            var httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PostAsync(requestUri, httpContent);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Post, requestUri);
+            requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+            if (_authType == AuthType.ManagedIdentity)
+            {
+                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            }
+            var response = await _httpClient.SendAsync(requestMessage);
             return response;
         }
 
@@ -158,9 +184,14 @@ namespace FirstPartyAgent.Core.Services
             }
 
             var requestUri = $"{_icmApiSettings.APIEndpoint}{apiPath}";
-            var httpContent = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
-
-            var response = await _httpClient.PatchAsync(requestUri, httpContent);
+            var requestMessage = new HttpRequestMessage(HttpMethod.Patch, requestUri);
+            requestMessage.Content = new StringContent(JsonConvert.SerializeObject(content), Encoding.UTF8, "application/json");
+            if (_authType == AuthType.ManagedIdentity)
+            {
+                string authToken = await ICMAPITokenService.Instance.GetAuthorizationTokenAsync();
+                requestMessage.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", authToken);
+            }
+            var response = await _httpClient.SendAsync(requestMessage);
             return response;
         }
 
@@ -220,6 +251,10 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId)
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 TransferParameters = new
@@ -246,6 +281,10 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true)
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 Severity = severity,
@@ -268,6 +307,10 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting=false, bool isNoise=false, string howFixed="", string mitigateContactAlias="antagent-1p")
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 MitigateParameters = new
@@ -292,6 +335,10 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting=false, bool isNoise=false, string resolveContactAlias= "antagent-1p")
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 ResolveParameters = new
@@ -319,6 +366,10 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry, bool htmlRendering=true)
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 NewDescriptionEntry = new
@@ -340,6 +391,10 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> SetIncidentTags(string incidentId, List<string> tags)
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 Tags = tags,
@@ -357,12 +412,20 @@ namespace FirstPartyAgent.Core.Services
 
         public async Task<string> AddTagToIncident(string incidentId, string tag)
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var incident = await GetIncidentAsync(incidentId);
             return await SetIncidentTags(incidentId, incident.Tags.Append(tag).ToList());
         }
 
         public async Task<string> AcknowledgeIncidentAsync(string incidentId, string acknowledgeContactAlias = "antagent-1p")
         {
+            if (_icmApiSettings.ReadOnly)
+            {
+                return ("Success. ICM API is in read-only mode.");
+            }
             var content = new
             {
                 AcknowledgementParameters = new
