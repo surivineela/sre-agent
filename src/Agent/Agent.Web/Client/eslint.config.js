@@ -45,6 +45,7 @@ export default tseslint.config(
                     limit: 4,
                 },
             ],
+            'formatjs/no-invalid-icu': ['error'],
         },
     }
 );

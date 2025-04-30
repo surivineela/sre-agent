@@ -311,12 +311,12 @@ export const GrafanaDashboardResources = defineMessages({
         id: '59YCbl',
     },
     stepTwoTitle: { defaultMessage: 'Step 2: Generate API key', id: 'XIjgrI' },
-    stepTwoInstructions: { defaultMessage: '- Run "az account set --subscription {0}"', id: '6UKn1p' },
+    stepTwoInstructions: { defaultMessage: '- Run "az account set --subscription \'{0}\'"', id: '9bulHK' },
     stepThreeTitle: { defaultMessage: 'Step 3: Generate an API key', id: 'xL9nak' },
     stepThreeInstructions: {
         defaultMessage:
-            '- Run: "az grafana api-key create --key {0} --name {1} --resource-group {2} --role admin --time-to-live 365d" (Note: If the CLI asks you to install an extension to support Grafana commands, type "Y" and hit enter)',
-        id: 'YCSntJ',
+            "- Run: \"az grafana api-key create --key '{0}' --name '{1}' --resource-group '{2}' --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)",
+        id: '41eAX2',
     },
     stepFourTitle: { defaultMessage: 'Step 4: Copy the API key and paste it here', id: '+7umUn' },
     apiKey: { defaultMessage: 'API Key', id: '4dZi3Y' },

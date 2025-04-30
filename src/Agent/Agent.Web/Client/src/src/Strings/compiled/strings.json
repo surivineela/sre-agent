@@ -71,6 +71,12 @@
       "value": "Linking Grafana dashboard to SRE Agent in progress"
     }
   ],
+  "41eAX2": [
+    {
+      "type": 0,
+      "value": "- Run: \"az grafana api-key create --key {0} --name {1} --resource-group {2} --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)"
+    }
+  ],
   "47FYwb": [
     {
       "type": 0,
@@ -143,20 +149,6 @@
     {
       "type": 0,
       "value": "Create Grafana dashboard in the same resource group"
-    }
-  ],
-  "6UKn1p": [
-    {
-      "type": 0,
-      "value": "- Run \"az account set --subscription "
-    },
-    {
-      "type": 1,
-      "value": "0"
-    },
-    {
-      "type": 0,
-      "value": "\""
     }
   ],
   "6UyZlH": [
@@ -253,6 +245,12 @@
     {
       "type": 0,
       "value": "Requested at"
+    }
+  ],
+  "9bulHK": [
+    {
+      "type": 0,
+      "value": "- Run \"az account set --subscription {0}\""
     }
   ],
   "9uOFF3": [
@@ -667,36 +665,6 @@
     {
       "type": 0,
       "value": "Step 2: Generate API key"
-    }
-  ],
-  "YCSntJ": [
-    {
-      "type": 0,
-      "value": "- Run: \"az grafana api-key create --key "
-    },
-    {
-      "type": 1,
-      "value": "0"
-    },
-    {
-      "type": 0,
-      "value": " --name "
-    },
-    {
-      "type": 1,
-      "value": "1"
-    },
-    {
-      "type": 0,
-      "value": " --resource-group "
-    },
-    {
-      "type": 1,
-      "value": "2"
-    },
-    {
-      "type": 0,
-      "value": " --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)"
     }
   ],
   "Z26C+l": [
