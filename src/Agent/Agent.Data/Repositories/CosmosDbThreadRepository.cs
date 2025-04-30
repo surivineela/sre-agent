@@ -191,7 +191,7 @@ public class CosmosDbThreadRepository : IThreadRepository
     {
         var threads = new List<Thread>();
 
-        // Query for thread documents  
+        // Query for thread documents
         var query = _client.GetContainer<ThreadDocument>(_databaseName).GetItemLinqQueryable<ThreadDocument>()
             .Where(t => t.DocumentType == "Thread")
             .OrderBy(t => t.CreatedTimestamp);
@@ -207,14 +207,14 @@ public class CosmosDbThreadRepository : IThreadRepository
         {
             foreach (var threadDoc in await iterator.ReadNextAsync())
             {
-                // Get the start message for each thread  
+                // Get the start message for each thread
                 MessageDocument startMessageDoc = await GetDocumentAsync<MessageDocument>(
                     threadDoc.MessageId,
                     threadDoc.Id
                 );
 
-                // last message may be null if thread was created before we started saving last message id  
-                // & a new message has not been added to the thread  
+                // last message may be null if thread was created before we started saving last message id
+                // & a new message has not been added to the thread
                 Message lastMessageDocDomainModel;
                 if (threadDoc.LastMessageId == null)
                 {
@@ -255,7 +255,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             thread.Status = await GetThreadStatus(thread);
         }
 
-        // Filter threads by severity if specified  
+        // Filter threads by severity if specified
         if (severity is not null)
         {
             if (severity == ActionSeverity.Critical)
@@ -506,8 +506,8 @@ public class CosmosDbThreadRepository : IThreadRepository
                 // Replace the approval with the Approval doc in Cosmos
                 if (messageDoc.Approval != null)
                 {
-                    var approvalDoc = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<Approval>()
-                        .Where(a => a.Id == messageDoc.Approval.Id).FirstOrDefault();
+                    var approvalDoc = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<ApprovalDocument>()
+                        .Where(a => a.Id == messageDoc.Approval.Id.ToString()).FirstOrDefault();
                     messageDocWithApproval = new MessageDocument(messageDoc.Id,
                         messageDoc.ThreadId,
                         messageDoc.TimeStamp,
@@ -515,7 +515,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                         messageDoc.Text,
                         messageDoc.IsImageContent,
                         messageDoc.Posted,
-                        approvalDoc);
+                        approvalDoc?.ToDomainModel());
                 }
                 messages.Add(messageDocWithApproval.ToDomainModel());
             }

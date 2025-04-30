@@ -43,7 +43,8 @@
     <PackageVersion Include="Markdig" Version="0.14.9" />
     <PackageVersion Include="MartinCostello.Logging.XUnit" Version="0.5.1" />
     <PackageVersion Include="Microsoft.AspNetCore.StaticFiles" Version="2.3.0" />
-    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.47.2" />
+    <!-- Microsoft.Azure.Cosmos.Encryption 2.0.4 only supports Microsoft.Azure.Cosmos (>= 3.35.4 && <= 3.37.0) -->
+    <PackageVersion Include="Microsoft.Azure.Cosmos" Version="3.37.0" />
     <PackageVersion Include="Microsoft.Azure.Cosmos.Encryption" Version="2.0.4" />
     <PackageVersion Include="Microsoft.Azure.KeyVault" Version="3.0.5" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Ingest" Version="13.0.2" />
@@ -93,6 +94,7 @@
     <PackageVersion Include="ModelContextProtocol" Version="0.1.0-preview.1.25171.12" />
     <PackageVersion Include="prometheus-net" Version="8.2.1" />
     <PackageVersion Include="prometheus-net.AspNetCore" Version="8.2.1" />
+    <!-- DO NOT upgrade Moq > 4.20. Ref: https://github.com/devlooped/moq/issues/1372 -->
     <PackageVersion Include="Moq" Version="4.18.4" />
     <PackageVersion Include="MSTest" Version="3.6.4" />
     <PackageVersion Include="NCrontab" Version="3.3.1" />

@@ -14,6 +14,7 @@ public interface ILogAnalyticsService
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         string? revisionName = null,
+        string? aggregateOver = null,
         CancellationToken cancellationToken = default);
 
     public Task<IReadOnlyCollection<ContainerAppLogAnalyticsLog>> GetContainerAppApplicationLogsAsync(
@@ -22,6 +23,7 @@ public interface ILogAnalyticsService
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         string? revisionName = null,
+        string? aggregateOver = null,
         CancellationToken cancellationToken = default);
 
     public Task<string> GetLatestImagePullingLogAsync(

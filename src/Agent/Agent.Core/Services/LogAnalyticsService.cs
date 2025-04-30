@@ -25,20 +25,23 @@ public class LogAnalyticsService : ILogAnalyticsService
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         string? revisionName = null,
+        string? aggregateOver = "1h",
         CancellationToken cancellationToken = default)
     {
+        if (!string.IsNullOrEmpty(aggregateOver) && !IsValidAggregateOver(aggregateOver))
+        {
+            throw new ArgumentException($"Invalid aggregateOver value: {aggregateOver}. Only '1h' is supported.");
+        }
+
         var query = new StringBuilder();
         query.AppendLine($"""
                           ContainerAppSystemLogs_CL
                           | where ContainerAppName_s == '{containerAppName}'
-                          """);
-        if (!string.IsNullOrEmpty(revisionName))
-        {
-            query.AppendLine($" | where RevisionName_s == '{revisionName}' ");
-        }
-        query.AppendLine($"""
+                          {(!string.IsNullOrEmpty(revisionName) ? $" | where RevisionName_s == '{revisionName}'" : string.Empty)}
                           | project TimeGenerated, Type = Type_s, Log = Log_s
+                          {(!string.IsNullOrEmpty(aggregateOver) ? $"| summarize count() by bin(TimeGenerated, {aggregateOver}), Type, Log" : string.Empty)}
                           | order by TimeGenerated desc
+                          | take 500
                           """);
 
         var response = await _client.QueryWorkspaceAsync<ContainerAppLogAnalyticsLog>(
@@ -56,20 +59,23 @@ public class LogAnalyticsService : ILogAnalyticsService
         DateTimeOffset startTime,
         DateTimeOffset endTime,
         string? revisionName = null,
+        string? aggregateOver = "1h",
         CancellationToken cancellationToken = default)
     {
+        if (!string.IsNullOrEmpty(aggregateOver) && !IsValidAggregateOver(aggregateOver))
+        {
+            throw new ArgumentException($"Invalid aggregateOver value: {aggregateOver}. Only '1h' is supported.");
+        }
+
         var query = new StringBuilder();
         query.AppendLine($"""
                           ContainerAppConsoleLogs_CL
                           | where ContainerAppName_s == '{containerAppName}'
-                          """);
-        if (!string.IsNullOrEmpty(revisionName))
-        {
-            query.AppendLine($"| where RevisionName_s == '{revisionName}'");
-        }
-        query.AppendLine($"""
+                          {( !string.IsNullOrEmpty(revisionName) ? $"| where RevisionName_s == '{revisionName}'" : string.Empty )}
                           | project TimeGenerated, Log = Log_s
+                          {(!string.IsNullOrEmpty(aggregateOver) ? $"| summarize count() by bin(TimeGenerated, {aggregateOver}), Type, Log" : string.Empty)}
                           | order by TimeGenerated desc
+                          | take 500
                           """);
 
         var response = await _client.QueryWorkspaceAsync<ContainerAppLogAnalyticsLog>(
@@ -81,6 +87,14 @@ public class LogAnalyticsService : ILogAnalyticsService
         return response.Value ?? [];
     }
 
+    /// <summary>
+    /// Validates the aggregateOver parameter for a KQL query.
+    /// It only accepts "1h" as a valid value atm.
+    /// </summary>
+    private static bool IsValidAggregateOver(string? aggregateOver)
+    {
+        return aggregateOver == "1h";
+    }
 
     public async Task<string> GetLatestImagePullingLogAsync(
         string workspaceId,

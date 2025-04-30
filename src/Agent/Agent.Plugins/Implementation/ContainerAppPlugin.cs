@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using System.Net;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
@@ -22,6 +23,7 @@ using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using static Agent.Core.Extensions.TaskExtensions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace Agent.Plugins.Implementation
 {
@@ -454,15 +456,21 @@ namespace Agent.Plugins.Implementation
                     return string.Empty;
                 }
 
-                var logs = await new[]
+                var logs = new
+                {
+                    system = (await new[]
                     {
                         GetStreamedSystemLogsAsync(containerApp, streamToken),
-                        GetHistoricalLogsAsync(containerApp, revisionName, LogType.System),
+                        GetHistoricalLogsAsync(containerApp, revisionName, LogType.System)
+                    }.IgnoreAndFilterFailures(_logger)).SelectMany(i => i),
+                    console = (await new[]
+                    {
                         GetStreamedConsoleLogsAsync(containerApp, streamToken, revisionName),
                         GetHistoricalLogsAsync(containerApp, revisionName, LogType.Application)
-                    }
-                    .IgnoreAndFilterFailures(_logger);
-                return await SummarizeLogs(logs.SelectMany(l => l));
+                    }.IgnoreAndFilterFailures(_logger)).SelectMany(i => i)
+                };
+
+                return await SummarizeLogs(JsonSerializer.Serialize(logs, new JsonSerializerOptions { WriteIndented = true }));
             }
             catch (Exception ex)
             {
@@ -471,17 +479,21 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private async Task<string> SummarizeLogs(IEnumerable<string> logs)
+        private async Task<string> SummarizeLogs(string logs)
         {
             _logger.LogInformation("Summarizing logs");
             const string prompt = $"Please summarize these application logs. " +
                                   $"This summary will be used to determine if there any potential issues with the application. " +
-                                  $"Make sure it's complete, detailed, and references any particular numbers, error messages, error codes verbatim in case they are relevant for debugging";
+                                  $"Make sure it's complete, detailed, and references any particular numbers, error messages, error codes verbatim in case they are relevant for debugging" +
+                                  $"Some Logs insights: \n" +
+                                  $"A startup probe is just a check that the application is able to start successfully. Liveliness and readiness probes are checks that the application is running and able to serve traffic. " +
+                                  $"Sometimes probes are misconfigured, but usually a probe failing means look elsewhere for the problem. " +
+                                  $"Some problems include: Image pull errors, port mismatch, application startup errors/exceptions, timeouts, etc.";
 
             var messages = new []
             {
                 new ChatMessage(ChatRole.System, prompt),
-                new ChatMessage(ChatRole.User, string.Join("\n", logs))
+                new ChatMessage(ChatRole.User, logs)
             };
 
             var options = new ChatOptions
@@ -622,7 +634,7 @@ namespace Agent.Plugins.Implementation
         public async Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference)
         {
             _logger.LogInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
-            
+
             try
             {
                 if (imageReference.Contains(".azurecr.io", StringComparison.OrdinalIgnoreCase) ||
@@ -850,7 +862,7 @@ namespace Agent.Plugins.Implementation
             {
                 throw new ArgumentException("Image reference cannot be null or empty.", nameof(imageReference));
             }
-           
+
             if (imageReference.Contains("docker.io", StringComparison.OrdinalIgnoreCase))
             {
                 return RegistryType.DockerHub;
@@ -1058,25 +1070,25 @@ namespace Agent.Plugins.Implementation
                     _logger.LogWarning($"Could not extract registry hostname from {imageReference}");
                     return false;
                 }
-                
+
                 var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
-                
+
                 bool hasRegistryCredentials = false;
                 if (containerApp.Value.Data.Configuration?.Registries != null)
                 {
                     hasRegistryCredentials = containerApp.Value.Data.Configuration.Registries
-                        .Any(r => !string.IsNullOrEmpty(r.Server) && 
+                        .Any(r => !string.IsNullOrEmpty(r.Server) &&
                                  r.Server.Equals(registryHostname, StringComparison.OrdinalIgnoreCase));
                 }
-                                    
+
                 try
                 {
                     var manifestUrl = $"https://{registryHostname}/v2/";
                     var request = new HttpRequestMessage(HttpMethod.Get, manifestUrl);
-                    
+
                     var response = await _httpClient.SendAsync(request);
-                    
+
                     // 200 OK means the registry is accessible and doesn't require auth for basic API access
                     // 401 Unauthorized is also acceptable as it confirms the registry exists but needs auth
                     if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
@@ -1084,7 +1096,7 @@ namespace Agent.Plugins.Implementation
                         _logger.LogInformation($"Successfully verified registry API accessibility for: {registryHostname}");
                         return true;
                     }
-                    
+
                     if (response.StatusCode == HttpStatusCode.NotFound)
                     {
                         _logger.LogWarning($"Registry API endpoint not found at {manifestUrl}. The registry may not implement the Docker Registry HTTP API V2.");
@@ -1094,7 +1106,7 @@ namespace Agent.Plugins.Implementation
                 {
                     _logger.LogWarning(ex, $"Error connecting to registry API for {registryHostname}. This may be due to network restrictions or registry configuration.");
                 }
-                
+
                 // If container app has registry credentials, assume the registry is accessible
                 // Even if the API check failed, the credentials configuration suggests intentional use
                 return hasRegistryCredentials;
@@ -1123,7 +1135,7 @@ namespace Agent.Plugins.Implementation
             return null;
         }
 
-        
+
         private (string Repository, string Tag) ExtractRepositoryAndTag(string imageReference)
         {
             if (string.IsNullOrWhiteSpace(imageReference))
@@ -1157,14 +1169,14 @@ namespace Agent.Plugins.Implementation
             Application,
         }
 
-        private async Task<IReadOnlyCollection<string>> GetStreamedSystemLogsAsync(
+        private async Task<IEnumerable<string>> GetStreamedSystemLogsAsync(
             ContainerAppResource containerApp,
             Response<ContainerAppAuthToken> streamToken)
         {
             var eventsStreamUrl = containerApp.Data.EventStreamEndpoint;
             try
             {
-                return await this.GetLogsAsync(eventsStreamUrl.ToString(), streamToken);
+                return await this.GetLogsAsync(eventsStreamUrl.ToString(), streamToken, StreamEndpointType.EventStream);
             }
             catch (Exception e)
             {
@@ -1173,7 +1185,7 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private async Task<IReadOnlyCollection<string>> GetStreamedConsoleLogsAsync(
+        private async Task<IEnumerable<string>> GetStreamedConsoleLogsAsync(
             ContainerAppResource containerApp,
             ContainerAppAuthToken streamToken,
             string revisionName)
@@ -1192,26 +1204,56 @@ namespace Agent.Plugins.Implementation
             var logs = await replicas
                 .Select(r => r?.Properties?.InitContainers?.Concat(r?.Properties?.Containers ?? []) ?? [])
                 .SelectMany(c => c)
-                .Select(c => this.GetLogsAsync(c.LogStreamEndpoint, streamToken))
+                .Select(c => this.GetLogsAsync(c.LogStreamEndpoint, streamToken, StreamEndpointType.LogStream))
                 .IgnoreAndFilterFailures(_logger) ?? [];
 
             return logs.SelectMany(l => l).ToList();
         }
 
-        private async Task<string[]> GetLogsAsync(string? argLogStreamEndpoint, ContainerAppAuthToken streamToken)
+        private enum StreamEndpointType
+        {
+            LogStream,
+            EventStream
+        }
+
+        private async Task<IEnumerable<string>> GetLogsAsync(string? argLogStreamEndpoint, ContainerAppAuthToken streamToken, StreamEndpointType streamType = StreamEndpointType.LogStream)
         {
             if (string.IsNullOrEmpty(argLogStreamEndpoint))
             {
                 return [];
             }
 
-            var logStreamEndpoint = new Uri($"{argLogStreamEndpoint}?follow=false&output=text&tailLines=25");
+            var logStreamEndpoint = streamType == StreamEndpointType.EventStream
+                    ? new Uri($"{argLogStreamEndpoint}?follow=false&output=json&tailLines=50")
+                    : new Uri($"{argLogStreamEndpoint}?follow=false&output=text&tailLines=50");
+
             var request = new HttpRequestMessage(HttpMethod.Get, logStreamEndpoint);
             request.Headers.Add("Authorization", $"Bearer {streamToken.Token}");
 
             var response = await _httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
+                if (streamType == StreamEndpointType.EventStream)
+                {
+                    try
+                    {
+                        await using var stream = await response.Content.ReadAsStreamAsync();
+                        var logNodes =
+                            JsonSerializer.DeserializeAsyncEnumerable<JsonNode>(stream, topLevelValues: true);
+
+                        return await logNodes
+                            .Select(n => n?["Msg"]?.ToString() ?? "")
+                            .Where(m => !string.IsNullOrEmpty(m))
+                            .Distinct()
+                            .ToListAsync();
+                    }
+                    catch (JsonException e)
+                    {
+                        _logger.LogError(e, "Failed to deserialize JSON from {logStreamEndpoint}", logStreamEndpoint);
+                        return [];
+                    }
+                }
+
                 var content = await response.Content.ReadAsStringAsync();
                 return content.Split("\n");
             }
@@ -1222,19 +1264,11 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private async Task<IReadOnlyCollection<string>> GetHistoricalLogsAsync(
+        private async Task<IEnumerable<string>> GetHistoricalLogsAsync(
             ContainerAppResource containerApp,
             string revisionName,
             LogType logType)
         {
-            // 1. Get stream token
-            var streamToken = await containerApp.GetAuthTokenAsync();
-            if (!streamToken.HasValue)
-            {
-                _logger.LogWarning("No auth token found for Container App {containerAppName}", containerApp.Data.Name);
-                return [];
-            }
-
             var workspaceId = await GetContainerAppWorkspaceIdAsync(containerApp);
             if (string.IsNullOrEmpty(workspaceId))
             {
@@ -1268,7 +1302,7 @@ namespace Agent.Plugins.Implementation
             }
 
             return logAnalyticsLogs
-                .Select(log => log.Log)
+                .Select(log => $"[{log.TimeGenerated}] {log.Log}")
                 .ToList();
         }
 
