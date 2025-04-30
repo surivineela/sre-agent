@@ -1,12 +1,15 @@
 import { Button, Field, Input, Link, Spinner } from '@fluentui/react-components';
 import { FC, useContext } from 'react';
+import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { SreAgentFwLinks } from '../Common/Constants/FwLinks';
-import { GrafanaDashboardResources, SreAgentResources } from '../Strings/SREResources.resjson';
+import { SreAgentResources } from '../Strings/SREAgentResources';
+import { GrafanaDashboardResources } from '../Strings/SREResources.resjson';
 import { useGrafanaDashboard } from './Hooks/useGrafanaDashboard';
 import { useGrafanaDashboardStyles } from './Styles/GrafanaDashboardStyles';
 
 const GrafanaDashboard: FC = () => {
+    const intl = useIntl();
     const styles = useGrafanaDashboardStyles();
 
     const environmentContext = useContext(EnvironmentContext);
@@ -25,15 +28,15 @@ const GrafanaDashboard: FC = () => {
         <div className={styles.container}>
             <div className={styles.grafanaLogo}>
                 <img src="./Grafana.svg" alt="Grafana" style={{ height: 20 }} />
-                <div className={styles.titleText}>{SreAgentResources.grafana}</div>
+                <div className={styles.titleText}>{intl.formatMessage(SreAgentResources.grafana)}</div>
             </div>
             <div className={styles.rowCenterAlign}>
                 {GrafanaDashboardResources.instructions}
                 <Link href={SreAgentFwLinks.grafanaDashboardLearnMore} target="_blank">
-                    {SreAgentResources.getMoreInfo}
+                    {intl.formatMessage(SreAgentResources.getMoreInfo)}
                 </Link>
             </div>
-            {!!grafanaEndpoint ? (
+            {grafanaEndpoint ? (
                 <div className={styles.grafanaUrlContainer}>
                     <Field label={GrafanaDashboardResources.grafanaDashboardUrl} orientation="horizontal" className={styles.fieldLabel}>
                         <Link href={grafanaEndpoint} target="_blank">
@@ -49,7 +52,7 @@ const GrafanaDashboard: FC = () => {
                         <>
                             <div className={styles.apiKeyRow}>
                                 <Field
-                                    label={SreAgentResources.name}
+                                    label={intl.formatMessage(SreAgentResources.name)}
                                     orientation="horizontal"
                                     validationState={newGrafanaResourceNameErrorMessage ? 'error' : 'success'}
                                     validationMessage={newGrafanaResourceNameErrorMessage}
@@ -70,13 +73,13 @@ const GrafanaDashboard: FC = () => {
                                     onClick={onCreateGrafanaDashboard}
                                     appearance="primary"
                                 >
-                                    {SreAgentResources.apply}
+                                    {intl.formatMessage(SreAgentResources.apply)}
                                 </Button>
                                 <Button
                                     disabled={!agentLoaded || isUpdating || !grafanaResourceName}
                                     onClick={() => setGrafanaResourceName(undefined)}
                                 >
-                                    {SreAgentResources.cancel}
+                                    {intl.formatMessage(SreAgentResources.cancel)}
                                 </Button>
                             </div>
                         </>

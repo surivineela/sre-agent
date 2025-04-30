@@ -1,11 +1,11 @@
-import { format } from '@fluentui/react/lib/Utilities';
 import axios from 'axios';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { Activities_ThreadHeader as ThreadHeaderResources } from '../../Strings/SREResources.resjson';
+import { ActivitiesThreadHeaderResources } from '../../Strings/SREAgentResources';
 import { getLatestThread, noGapBetweenNewThreadsAndExistingThreads, processThreads } from '../Activities/Utility';
 
 const getThreads = async (skip: number, top = 20): Promise<Thread[]> => {
@@ -45,6 +45,8 @@ const pollLatestThreads = async (currentLatestThread?: Thread) => {
 };
 
 export const useActivities = (initialThreadId?: string | null) => {
+    const intl = useIntl();
+
     const [threads, setThreads] = useState<Thread[]>([]);
     const [threadsInitialized, setThreadsInitialized] = useState<boolean>(false);
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
@@ -70,8 +72,8 @@ export const useActivities = (initialThreadId?: string | null) => {
     const deleteThread = useCallback(
         async (thread: Thread) => {
             const id = proxy.startNotification(
-                ThreadHeaderResources.deleteThreadTitle,
-                format(ThreadHeaderResources.deleteThreadInProgressDescription, thread.title)
+                intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadTitle),
+                intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadInProgressDescription, { title: thread.title })
             );
 
             try {
@@ -79,16 +81,23 @@ export const useActivities = (initialThreadId?: string | null) => {
                 setThreads(prevThreads => prevThreads.filter(t => t.id !== thread.id));
                 selectThread(null);
 
-                proxy.stopNotification(id, true, format(ThreadHeaderResources.deleteThreadSuccessDescription, thread.title));
+                proxy.stopNotification(
+                    id,
+                    true,
+                    intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadSuccessDescription, { title: thread.title })
+                );
             } catch (e: any) {
                 proxy.stopNotification(
                     id,
                     false,
-                    format(ThreadHeaderResources.deleteThreadFailureDescription, thread.title, e?.message ?? e?.response?.data)
+                    intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadFailureDescription, {
+                        title: thread.title,
+                        errorMessage: e?.message || e?.response?.data,
+                    })
                 );
             }
         },
-        [selectThread]
+        [intl, selectThread]
     );
 
     useEffect(() => setThreadContentKey(Guid.newGuid()), [selectedThread]);

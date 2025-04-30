@@ -1,10 +1,11 @@
 import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { ApprovalDecision, Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { Activities } from '../../Strings/SREResources.resjson';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
@@ -156,20 +157,9 @@ const pollResponses = async (messageCount: number, threadId: string, latestMessa
     return [...responses];
 };
 
-const composeAgentTypingMessage = (): Message => {
-    return {
-        id: Guid.newGuid(),
-        timeStamp: new Date().toISOString(),
-        author: {
-            role: 'SREAgent',
-            userId: Guid.newGuid(),
-            displayName: Activities.sreAgentDisplayName,
-        },
-        text: '',
-    };
-};
-
 const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
+    const intl = useIntl();
+
     const [messages, setMessages] = useState<Message[]>([]);
     const [currentThreadId, setCurrentThreadId] = useState<string | null>(threadId || null);
 
@@ -211,6 +201,19 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     const cancelResponse = useCallback(() => {
         abortControllerRef.current?.abort();
     }, []);
+
+    const composeAgentTypingMessage = useCallback((): Message => {
+        return {
+            id: Guid.newGuid(),
+            timeStamp: new Date().toISOString(),
+            author: {
+                role: 'SREAgent',
+                userId: Guid.newGuid(),
+                displayName: intl.formatMessage(ActivitiesResources.sreAgentDisplayName),
+            },
+            text: '',
+        };
+    }, [intl]);
 
     const sendMessageHandler = useCallback(
         async (message: string) => {

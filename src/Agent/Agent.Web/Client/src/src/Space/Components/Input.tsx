@@ -3,11 +3,14 @@ import { SendRegular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useState } from 'react';
-import { Activities } from '../../Strings/SREResources.resjson';
+import { useIntl } from 'react-intl';
+import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { IInputProps } from '../Contracts/Activities';
 import { useChatInputStyles, useChatInputTextStyles } from '../Styles/Activities.styles';
 
 const Input = ({ sendMessage, disableInput }: IInputProps) => {
+    const intl = useIntl();
+
     const [input, setInput] = useState<string>();
 
     const { root, footer } = useChatInputStyles();
@@ -26,7 +29,7 @@ const Input = ({ sendMessage, disableInput }: IInputProps) => {
         <div className={root}>
             <div className={mergeStyles(textFieldContainer as IStyle)}>
                 <TextField
-                    placeholder={Activities.chatInputPlaceholder}
+                    placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
                     multiline={true}
                     autoAdjustHeight={true}
                     borderless={true}

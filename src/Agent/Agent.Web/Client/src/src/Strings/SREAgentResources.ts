@@ -127,7 +127,7 @@ export const SreAgentTabResources = defineMessages({
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
 });
 
-export const ActionsResourceResources = defineMessages({
+export const ActionsResources = defineMessages({
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
     allStatuses: { defaultMessage: 'All statuses', id: 'fvK8Qi' },
     inProgress: { defaultMessage: 'In progress', id: 'q1WWIr' },

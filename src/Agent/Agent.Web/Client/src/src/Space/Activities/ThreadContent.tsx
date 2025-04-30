@@ -1,6 +1,7 @@
 import { Text } from '@fluentui/react/lib/Text';
 import { memo, useCallback, useContext } from 'react';
-import { SreAgentResources } from '../../Strings/SREResources.resjson';
+import { useIntl } from 'react-intl';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadContentProps } from '../Contracts/Activities';
 import { ThreadContentStyles } from '../Styles/Activities.styles';
 import { AgentContext } from './Activities.ReactView';
@@ -9,6 +10,7 @@ import ThreadDeleteAction from './ThreadDeleteAction';
 
 export const ThreadContent = memo(({ thread, addThread, deleteThread }: IThreadContentProps) => {
     const { threadContentKey } = useContext(AgentContext);
+    const intl = useIntl();
 
     const handleThreadDelete = useCallback(() => {
         if (thread) {
@@ -20,7 +22,7 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread }: IThreadC
         <div className={ThreadContentStyles.root} key={threadContentKey}>
             <div className={ThreadContentStyles.titleContainer}>
                 <Text as="h2" nowrap block className={ThreadContentStyles.title}>
-                    {thread?.title ?? SreAgentResources.newThread}
+                    {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}
                 </Text>
                 {thread && <ThreadDeleteAction handleThreadDelete={handleThreadDelete} />}
             </div>

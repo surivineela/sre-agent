@@ -17,7 +17,8 @@ import {
 } from '@fluentui/react-components';
 import { DeleteRegular, MoreHorizontal20Regular } from '@fluentui/react-icons';
 import { memo } from 'react';
-import { SreAgentResources, Activities_ThreadHeader as ThreadHeaderResources } from '../../Strings/SREResources.resjson';
+import { useIntl } from 'react-intl';
+import { ActivitiesThreadHeaderResources, SreAgentResources } from '../../Strings/SREAgentResources';
 
 const useStyles = makeStyles({
     dangerButton: {
@@ -34,6 +35,7 @@ const useStyles = makeStyles({
 
 const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => void }) => {
     const { dangerButton } = useStyles();
+    const intl = useIntl();
 
     return (
         <Dialog modalType="alert">
@@ -57,16 +59,16 @@ const ThreadDeleteAction = ({ handleThreadDelete }: { handleThreadDelete: () => 
 
             <DialogSurface>
                 <DialogBody>
-                    <DialogTitle>{ThreadHeaderResources.deleteThreadDialogTitle}</DialogTitle>
-                    <DialogContent>{ThreadHeaderResources.deleteThreadDialogDescription}</DialogContent>
+                    <DialogTitle>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogTitle)}</DialogTitle>
+                    <DialogContent>{intl.formatMessage(ActivitiesThreadHeaderResources.deleteThreadDialogDescription)}</DialogContent>
                     <DialogActions>
                         <DialogTrigger>
                             <Button className={dangerButton} onClick={() => handleThreadDelete()}>
-                                {SreAgentResources.yes}
+                                {intl.formatMessage(SreAgentResources.yes)}
                             </Button>
                         </DialogTrigger>
                         <DialogTrigger disableButtonEnhancement>
-                            <Button appearance="secondary">{SreAgentResources.no}</Button>
+                            <Button appearance="secondary">{intl.formatMessage(SreAgentResources.no)}</Button>
                         </DialogTrigger>
                     </DialogActions>
                 </DialogBody>

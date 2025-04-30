@@ -23,6 +23,12 @@
       "value": "Task"
     }
   ],
+  "12V/0W": [
+    {
+      "type": 0,
+      "value": "Managed resource group(s) added successfully"
+    }
+  ],
   "19YPdI": [
     {
       "type": 0,
@@ -83,6 +89,12 @@
       "value": "API Key"
     }
   ],
+  "4i2wiN": [
+    {
+      "type": 0,
+      "value": "Delete managed resource group(s)"
+    }
+  ],
   "5+bQr/": [
     {
       "type": 0,
@@ -105,6 +117,20 @@
     {
       "type": 0,
       "value": "Denied"
+    }
+  ],
+  "5pQrWI": [
+    {
+      "type": 1,
+      "value": "numOfResults"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "results"
     }
   ],
   "6ENgmY": [
@@ -175,6 +201,24 @@
       "value": "Building knowledge graph"
     }
   ],
+  "8quEg9": [
+    {
+      "type": 0,
+      "value": "results"
+    }
+  ],
+  "8yyU6n": [
+    {
+      "type": 0,
+      "value": "All subscriptions"
+    }
+  ],
+  "94Fg25": [
+    {
+      "type": 0,
+      "value": "Select all"
+    }
+  ],
   "95stPq": [
     {
       "type": 0,
@@ -185,6 +229,24 @@
     {
       "type": 0,
       "value": "Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention."
+    }
+  ],
+  "9RgE6Y": [
+    {
+      "type": 0,
+      "value": "Failed to add "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource group(s) with error(s): "
+    },
+    {
+      "type": 1,
+      "value": "error"
     }
   ],
   "9ZIBMx": [
@@ -239,6 +301,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "EKfWmx": [
+    {
+      "type": 0,
+      "value": "Failed to load subscriptions."
+    }
+  ],
   "EWw/tK": [
     {
       "type": 0,
@@ -261,6 +329,18 @@
     {
       "type": 0,
       "value": "Open Access control"
+    }
+  ],
+  "F5p93e": [
+    {
+      "type": 0,
+      "value": "Deleting managed resource group(s)"
+    }
+  ],
+  "F9LrJA": [
+    {
+      "type": 0,
+      "value": "Filter items"
     }
   ],
   "FDJdmL": [
@@ -305,6 +385,12 @@
       "value": "Name"
     }
   ],
+  "HWMrXF": [
+    {
+      "type": 0,
+      "value": "Add resource group"
+    }
+  ],
   "HbTFJf": [
     {
       "type": 0,
@@ -327,6 +413,12 @@
     {
       "type": 0,
       "value": "New thread"
+    }
+  ],
+  "IwfDuC": [
+    {
+      "type": 0,
+      "value": "Deleting managed resource group(s) in progress"
     }
   ],
   "JVZyFs": [
@@ -491,6 +583,20 @@
       "value": "This field is required"
     }
   ],
+  "TXP5xs": [
+    {
+      "type": 0,
+      "value": "Adding "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource group(s)"
+    }
+  ],
   "TkWiD5": [
     {
       "type": 0,
@@ -551,6 +657,12 @@
       "value": "Agent details"
     }
   ],
+  "WzYUl+": [
+    {
+      "type": 0,
+      "value": "Adding managed resource group(s) in progress"
+    }
+  ],
   "XIjgrI": [
     {
       "type": 0,
@@ -587,6 +699,18 @@
       "value": " --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)"
     }
   ],
+  "Z26C+l": [
+    {
+      "type": 0,
+      "value": "Managed resource group(s) deleted successfully"
+    }
+  ],
+  "Z2evcR": [
+    {
+      "type": 0,
+      "value": "Failed to delete managed resource group(s)"
+    }
+  ],
   "ZUXvHE": [
     {
       "type": 0,
@@ -597,6 +721,12 @@
     {
       "type": 0,
       "value": "Yes"
+    }
+  ],
+  "anSi7M": [
+    {
+      "type": 0,
+      "value": "Failed to load resource groups."
     }
   ],
   "axE+Jt": [
@@ -625,6 +755,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "bxnWhY": [
+    {
+      "type": 0,
+      "value": "result"
     }
   ],
   "ca43CS": [
@@ -687,10 +823,22 @@
       "value": "All statuses"
     }
   ],
+  "gjBiyj": [
+    {
+      "type": 0,
+      "value": "Loading..."
+    }
+  ],
   "hMGoYE": [
     {
       "type": 0,
       "value": "Failed to validate API Key"
+    }
+  ],
+  "hX5PAb": [
+    {
+      "type": 0,
+      "value": "No results found"
     }
   ],
   "hX7X4n": [
@@ -717,6 +865,12 @@
       "value": "SRE Agent Space"
     }
   ],
+  "jHJmjf": [
+    {
+      "type": 0,
+      "value": "No results"
+    }
+  ],
   "jTQZpk": [
     {
       "type": 0,
@@ -739,6 +893,12 @@
     {
       "type": 0,
       "value": "Provisioning of your Grafana dashboard is in progress."
+    }
+  ],
+  "l9oNaQ": [
+    {
+      "type": 0,
+      "value": "Are you sure you would like to unregister the selected resource group(s) from being managed by your agent?"
     }
   ],
   "ljmS5P": [
@@ -799,6 +959,20 @@
     {
       "type": 0,
       "value": "In progress"
+    }
+  ],
+  "qeVm12": [
+    {
+      "type": 0,
+      "value": "Failed to add "
+    },
+    {
+      "type": 1,
+      "value": "number"
+    },
+    {
+      "type": 0,
+      "value": " managed resource group(s) to your SRE Agent"
     }
   ],
   "qw8pxr": [
@@ -871,6 +1045,12 @@
       "value": "Failed"
     }
   ],
+  "w+XRP2": [
+    {
+      "type": 0,
+      "value": "All Regions"
+    }
+  ],
   "wL7VAE": [
     {
       "type": 0,
@@ -889,10 +1069,42 @@
       "value": "Step 3: Generate an API key"
     }
   ],
+  "xUgb9H": [
+    {
+      "type": 0,
+      "value": "No results found for "
+    },
+    {
+      "type": 1,
+      "value": "searchString"
+    }
+  ],
   "xVPoso": [
     {
       "type": 0,
       "value": "Resource group name"
+    }
+  ],
+  "xbKhzp": [
+    {
+      "type": 1,
+      "value": "numOfResults"
+    },
+    {
+      "type": 0,
+      "value": " "
+    },
+    {
+      "type": 1,
+      "value": "results"
+    },
+    {
+      "type": 0,
+      "value": " for "
+    },
+    {
+      "type": 1,
+      "value": "searchString"
     }
   ],
   "xmcVZ0": [

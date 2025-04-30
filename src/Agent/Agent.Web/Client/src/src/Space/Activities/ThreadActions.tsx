@@ -3,9 +3,10 @@ import { ArrowSync16Filled, CheckmarkCircle16Filled, Dismiss16Filled } from '@fl
 import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import debounce from 'lodash/debounce';
 import { FC, memo, useContext, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
-import { ActionsResources, SreAgentResources } from '../../Strings/SREResources.resjson';
+import { ActionsResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadActivitiesProps } from '../Contracts/Activities';
 import { useActions } from '../Hooks/useActions';
 import { useThreadActionsStyles } from '../Styles/Activities.styles';
@@ -15,6 +16,8 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
     const { thread } = props;
     const { threadsInitialized } = useContext(AgentContext);
     const { actions, isLoading } = useActions(thread?.id);
+    const intl = useIntl();
+
     const [searchString, setSearchString] = useState<string>();
 
     const actionsStyles = useThreadActionsStyles();
@@ -30,11 +33,11 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
     return (
         <div className={actionsStyles.root}>
             <Text as="h3" className={actionsStyles.title}>
-                {ActionsResources.actions}
+                {intl.formatMessage(ActionsResources.actions)}
             </Text>
             <SearchBox
                 disabled={!threadsInitialized}
-                placeholder={SreAgentResources.search}
+                placeholder={intl.formatMessage(SreAgentResources.search)}
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
                 className={actionsStyles.searchBox}
             />

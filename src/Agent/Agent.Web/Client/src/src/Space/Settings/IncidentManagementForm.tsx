@@ -7,8 +7,8 @@ import {
     IncidentManagementResources,
     PagerDutyResources,
     SettingsTabResources,
+    SreAgentResources,
 } from '../../Strings/SREAgentResources';
-import { SreAgentResources } from '../../Strings/SREResources.resjson';
 import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 import { incidentManagementDropdownStyles, incidentManagementMaskedTextFieldStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -95,7 +95,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                     <PrimaryButton
                         style={{ borderRadius: 5 }}
                         onClick={() => submitForm()}
-                        text={SreAgentResources.save}
+                        text={intl.formatMessage(SreAgentResources.save)}
                         disabled={
                             !isDirty ||
                             saving ||
@@ -107,7 +107,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                     <DefaultButton
                         style={{ borderRadius: 5, marginLeft: 10 }}
                         onClick={() => resetForm()}
-                        text={SreAgentResources.discard}
+                        text={intl.formatMessage(SreAgentResources.discard)}
                         disabled={!isDirty || saving}
                     />
                 </div>

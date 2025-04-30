@@ -9,8 +9,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
-import { Activities } from '../../Strings/SREResources.resjson';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatMessageProps } from '../Contracts/Activities';
 import { sendApprovalDecision, sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
@@ -180,12 +179,12 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
             ),
             loadingState: isTyping ? 'loading' : 'none',
             mode: 'canvas',
-            name: Activities.sreAgentDisplayName,
+            name: intl.formatMessage(ActivitiesResources.sreAgentDisplayName),
             disclaimer: null,
         };
 
         return messageProps;
-    }, [isTyping]);
+    }, [intl, isTyping]);
 
     const aLinkRenderer = useCallback((props: any) => {
         return (

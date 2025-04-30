@@ -5,8 +5,9 @@ import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { Text } from '@fluentui/react/lib/Text';
 import debounce from 'lodash/debounce';
 import { FC, memo, useContext, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
-import { Activities, SreAgentResources } from '../../Strings/SREResources.resjson';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadsMenuProps } from '../Contracts/Activities';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useIncidentStatusBarStyles } from '../Styles/Incident.styles';
@@ -25,6 +26,7 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
     const [selectedTime, setSelectedTime] = useState<string>(SelectedTimes.OneDay);
     const [threadMode, setThreadMode] = useState<ThreadMode>(ThreadMode.threads);
     const ThreadMenuStyles = useThreadMenuStyle();
+    const intl = useIntl();
 
     const filteredThreads = useMemo(() => {
         let newThreads = threads;
@@ -72,8 +74,8 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                 layout="horizontal"
                 disabled={!threadsInitialized}
             >
-                <Radio value={ThreadMode.threads} label={SreAgentResources.allThreads} />
-                <Radio value={ThreadMode.incidents} label={SreAgentResources.incidents} />
+                <Radio value={ThreadMode.threads} label={intl.formatMessage(SreAgentResources.allThreads)} />
+                <Radio value={ThreadMode.incidents} label={intl.formatMessage(SreAgentResources.incidents)} />
             </RadioGroup>
             {threadMode === ThreadMode.incidents && (
                 <ThreadStatusBar selectedTime={selectedTime} setSelectedTime={setSelectedTime} threads={filteredThreads} />
@@ -90,11 +92,11 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                 disabled={!threadsInitialized}
                 onClick={() => selectThread(null)}
             >
-                {Activities.createThreadButtonText}
+                {intl.formatMessage(ActivitiesResources.createThreadButtonText)}
             </Button>
             <SearchBox
                 disabled={!threadsInitialized}
-                placeholder={SreAgentResources.search}
+                placeholder={intl.formatMessage(SreAgentResources.search)}
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
                 className={ThreadMenuStyles.searchBox}
             />
