@@ -344,4 +344,5 @@ export const GrafanaDashboardResources = defineMessages({
             'Grafana resource name must be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit.',
         id: 'ca43CS',
     },
+    grafanaResourceName: { defaultMessage: 'Grafana resource name', id: 'a2+0+5' },
 });

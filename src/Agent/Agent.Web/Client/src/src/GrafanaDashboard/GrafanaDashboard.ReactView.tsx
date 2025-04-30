@@ -3,8 +3,7 @@ import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { SreAgentFwLinks } from '../Common/Constants/FwLinks';
-import { SreAgentResources } from '../Strings/SREAgentResources';
-import { GrafanaDashboardResources } from '../Strings/SREResources.resjson';
+import { GrafanaDashboardResources, SreAgentResources } from '../Strings/SREAgentResources';
 import { useGrafanaDashboard } from './Hooks/useGrafanaDashboard';
 import { useGrafanaDashboardStyles } from './Styles/GrafanaDashboardStyles';
 
@@ -32,7 +31,7 @@ const GrafanaDashboard: FC = () => {
                 <div className={styles.titleText}>{intl.formatMessage(SreAgentResources.grafana)}</div>
             </div>
             <div className={styles.rowCenterAlign}>
-                {GrafanaDashboardResources.instructions}
+                {intl.formatMessage(GrafanaDashboardResources.instructions)}
                 <Link href={SreAgentFwLinks.grafanaDashboardLearnMore} target="_blank">
                     {intl.formatMessage(SreAgentResources.getMoreInfo)}
                 </Link>
@@ -40,7 +39,7 @@ const GrafanaDashboard: FC = () => {
             {grafanaEndpoint ? (
                 <div className={styles.grafanaUrlContainer}>
                     <Field
-                        label={GrafanaDashboardResources.grafanaDashboardUrl}
+                        label={intl.formatMessage(GrafanaDashboardResources.grafanaDashboardUrl)}
                         orientation="horizontal"
                         className={styles.displayFieldLabel}
                     >
@@ -70,7 +69,7 @@ const GrafanaDashboard: FC = () => {
                                             setGrafanaResourceName(input.value);
                                         }}
                                         value={grafanaResourceName}
-                                        placeholder={GrafanaDashboardResources.grafanaResourceName}
+                                        placeholder={intl.formatMessage(GrafanaDashboardResources.grafanaResourceName)}
                                         disabled={isUpdating}
                                         className={styles.inputTextField}
                                     />

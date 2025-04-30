@@ -1,5 +1,5 @@
-import { format } from '@fluentui/react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { ArmTemplateBuilder } from '../../Common/ArmTemplateBuilder/ArmTemplateBuilder';
 import {
     ArmServiceType,
@@ -27,7 +27,7 @@ import { Guid } from '../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { equals } from '../../Common/Helpers/Strings';
 import { useSreAgent } from '../../Space/Settings/Hooks/useSreAgent';
-import { GrafanaDashboardResources } from '../../Strings/SREResources.resjson';
+import { GrafanaDashboardResources } from '../../Strings/SREAgentResources';
 
 const grafanaRoleDefinition = '/providers/Microsoft.Authorization/roleDefinitions/22926164-76b3-42b3-bc55-97df8dab3e41';
 const monitoringReaderRoleDefinition = '/providers/Microsoft.Authorization/roleDefinitions/43d0d8ad-25c7-4714-9337-8ba259a9fe05';
@@ -36,6 +36,7 @@ const monitoringMetricsPublisherRole = '/providers/Microsoft.Authorization/roleD
 
 export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string) {
     const azPortalContext = useContext(AzPortalContext);
+    const intl = useIntl();
 
     const { agent, agentLoaded, refresh } = useSreAgent(resourceId);
 
@@ -84,19 +85,19 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     const newGrafanaResourceNameErrorMessage = useMemo(() => {
         if (isDirty) {
             if (existingGrafanaResourceNames.includes(grafanaResourceName ?? '')) {
-                return GrafanaDashboardResources.uniqueGrafanaResourceNameError;
+                return intl.formatMessage(GrafanaDashboardResources.uniqueGrafanaResourceNameError);
             }
 
             const name = grafanaResourceName ?? '';
             const isValid = name.length >= 2 && name.length <= 23 && /^[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9]$/.test(name);
 
             if (!isValid) {
-                return GrafanaDashboardResources.invalidGrafanaResourceNameError;
+                return intl.formatMessage(GrafanaDashboardResources.invalidGrafanaResourceNameError);
             }
         }
 
         return undefined;
-    }, [existingGrafanaResourceNames, grafanaResourceName]);
+    }, [intl, existingGrafanaResourceNames, grafanaResourceName]);
 
     const fetchDataCollectionRuleResource = useCallback(async () => {
         const response = await DataCollectionRuleClient.getDataCollectionRule(dataCollectionRuleResourceId);
@@ -369,26 +370,33 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         return builder.getTemplate();
     }, []);
 
-    const handleFailedDeployment = useCallback((notificationId: string, deploymentName: string, error?: any) => {
-        setProgress(false);
+    const handleFailedDeployment = useCallback(
+        (notificationId: string, deploymentName: string, error?: any) => {
+            setProgress(false);
 
-        const errorMessage = getErrorMessage(error);
+            const errorMessage = getErrorMessage(error);
 
-        azPortalContext.log({
-            action: 'CreateGrafanaDashboard',
-            actionModifier: 'failed',
-            resourceId: deploymentId,
-            logLevel: 'error',
-            data: {
-                error: errorMessage,
-                deploymentName,
-            },
-        });
+            azPortalContext.log({
+                action: 'CreateGrafanaDashboard',
+                actionModifier: 'failed',
+                resourceId: deploymentId,
+                logLevel: 'error',
+                data: {
+                    error: errorMessage,
+                    deploymentName,
+                },
+            });
 
-        azPortalContext.stopNotification(notificationId, false, format(GrafanaDashboardResources.grafanaCreationFailed, errorMessage));
+            azPortalContext.stopNotification(
+                notificationId,
+                false,
+                intl.formatMessage(GrafanaDashboardResources.grafanaCreationFailed, { errorMessage: errorMessage })
+            );
 
-        setIsUpdating(false);
-    }, []);
+            setIsUpdating(false);
+        },
+        [intl]
+    );
 
     const deployTemplate = useCallback(
         async (
@@ -430,7 +438,11 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             const response = await SreAgentClient.patchAgent(resourceId, updatedAgentInfo);
 
             if (response.metadata.success) {
-                azPortalContext.stopNotification(notificationId, true, GrafanaDashboardResources.grafanaCreationSuccess);
+                azPortalContext.stopNotification(
+                    notificationId,
+                    true,
+                    intl.formatMessage(GrafanaDashboardResources.grafanaCreationSuccess)
+                );
                 refresh();
                 setIsUpdating(false);
             } else {
@@ -450,8 +462,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         setIsUpdating(true);
 
         const notificationId = azPortalContext.startNotification(
-            GrafanaDashboardResources.grafanaCreationTitle,
-            GrafanaDashboardResources.grafanaCreationInProgress
+            intl.formatMessage(GrafanaDashboardResources.grafanaCreationTitle),
+            intl.formatMessage(GrafanaDashboardResources.grafanaCreationInProgress)
         );
 
         const deploymentName = `Grafana-Dashboard-${new Date().getTime()}`;
@@ -534,7 +546,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             if (!response?.length) {
                 return;
             }
-            let grafanaResourceNames: string[] = [];
+            const grafanaResourceNames: string[] = [];
             response.map(grafanaResource => {
                 if (grafanaResource?.name && grafanaResource?.resourceGroupName === resourceGroup) {
                     grafanaResourceNames.push(grafanaResource.name);
