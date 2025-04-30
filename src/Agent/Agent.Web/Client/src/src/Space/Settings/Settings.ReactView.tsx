@@ -7,6 +7,7 @@ import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import AgentDetails from './AgentDetails.ReactView';
 import IncidentManagement from './IncidentManagement.ReactView';
+import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 
 enum SettingsKeys {
@@ -14,6 +15,7 @@ enum SettingsKeys {
     AccessControl = 'accessControl',
     AgentDetails = 'agentDetails',
     GrafanaInsights = 'grafanaInsights',
+    managedResources = 'managedResourcesGroups',
 }
 
 const Settings: FC = () => {
@@ -48,6 +50,11 @@ const Settings: FC = () => {
                         url: '',
                         key: SettingsKeys.AgentDetails,
                     },
+                    {
+                        name: intl.formatMessage(SettingsTabResources.managedResources),
+                        url: '',
+                        key: SettingsKeys.managedResources,
+                    },
                 ],
             },
         ],
@@ -77,6 +84,7 @@ const Settings: FC = () => {
                     {selectedKey === SettingsKeys.GrafanaInsights && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
                     {selectedKey === SettingsKeys.AgentDetails && <AgentDetails />}
+                    {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                 </div>
             </div>
         )

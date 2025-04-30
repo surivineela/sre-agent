@@ -24,6 +24,12 @@ export interface ArmArray<T> {
     id?: string;
 }
 
+export interface ResponseArray<T> {
+    value: T[];
+    nextLink?: string | null;
+    id?: string;
+}
+
 export interface ArmSku {
     name: string;
     tier: string;

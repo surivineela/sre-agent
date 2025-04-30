@@ -210,6 +210,50 @@ export const IncidentManagementSaveErrorResources = defineMessages({
     logicAppDeleteFailure: { defaultMessage: 'Failed to delete logic app', id: 'DpMYPV' },
     configFailure: { defaultMessage: 'Failed to save incident management configuration', id: 'hX7X4n' },
 });
+export const ManagedResourcesStringResources = defineMessages({
+    allRegions: { defaultMessage: 'All Regions', id: 'w+XRP2' },
+    managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },
+    addResourceGroup: { defaultMessage: 'Add resource group', id: 'HWMrXF' },
+    deleteTitle: { defaultMessage: 'Delete managed resource group(s)', id: '4i2wiN' },
+    confirmDelete: {
+        defaultMessage: 'Are you sure you would like to unregister the selected resource group(s) from being managed by your agent?',
+        id: 'l9oNaQ',
+    },
+    deleteNotificationTitle: { defaultMessage: 'Deleting managed resource group(s)', id: 'F5p93e' },
+    deleteNotificationDescription: { defaultMessage: 'Deleting managed resource group(s) in progress', id: 'IwfDuC' },
+    deleteNotificationSuccess: { defaultMessage: 'Managed resource group(s) deleted successfully', id: 'Z26C+l' },
+    deleteNotificationError: { defaultMessage: 'Failed to delete managed resource group(s)', id: 'Z2evcR' },
+    addNotificationTitle: { defaultMessage: 'Adding {number} managed resource group(s)', id: 'TXP5xs' },
+    addNotificationDescription: { defaultMessage: 'Adding managed resource group(s) in progress', id: 'WzYUl+' },
+    addNotificationSuccess: { defaultMessage: 'Managed resource group(s) added successfully', id: '12V/0W' },
+    addNotificationAgentError: { defaultMessage: 'Failed to add {number} managed resource group(s) to your SRE Agent', id: 'qeVm12' },
+    addNotificationError: { defaultMessage: 'Failed to add {number} managed resource group(s) with error(s): {error}', id: '9RgE6Y' },
+    resourceGroupsLoadFailure: { defaultMessage: 'Failed to load resource groups.', id: 'anSi7M' },
+    selectAll: { defaultMessage: 'Select all', id: '94Fg25' },
+    selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
+    cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
+    save: { defaultMessage: 'Save', id: 'jvo0vs' },
+    search: { defaultMessage: 'Search', id: 'xmcVZ0' },
+    resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
+    location: { defaultMessage: 'Location', id: 'rvirM2' },
+    allSubscriptions: { defaultMessage: 'All subscriptions', id: '8yyU6n' },
+    subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    noResults: { defaultMessage: 'No results', id: 'jHJmjf' },
+    filterItems: { defaultMessage: 'Filter items', id: 'F9LrJA' },
+    loading: { defaultMessage: 'Loading...', id: 'gjBiyj' },
+    subscriptionsLoadFailure: { defaultMessage: 'Failed to load subscriptions.', id: 'EKfWmx' },
+});
+
+export const ComponentResources = defineMessages({
+    gridItemsCountAriaLabel: { defaultMessage: '{numOfResults} {results} for {searchString}', id: 'xbKhzp' },
+    gridItemsCountAriaLabelNoFilter: { defaultMessage: '{numOfResults} {results}', id: '5pQrWI' },
+    loading: { defaultMessage: 'Loading...', id: 'gjBiyj' },
+    noResultsFound: { defaultMessage: 'No results found', id: 'hX5PAb' },
+    noResultsFoundFor: { defaultMessage: 'No results found for {searchString}', id: 'xUgb9H' },
+    result: { defaultMessage: 'result', id: 'bxnWhY' },
+    results: { defaultMessage: 'results', id: '8quEg9' },
+    search: { defaultMessage: 'Search', id: 'xmcVZ0' },
+});
 
 export const IncidentManagementValidationResources = defineMessages({
     apiKeyInvalid: { defaultMessage: 'API key is not valid', id: 'AXAtAX' },
@@ -231,6 +275,7 @@ export const SettingsTabResources = defineMessages({
     accessControl: { defaultMessage: 'Access control', id: 'rpG/Bn' },
     agentDetails: { defaultMessage: 'Agent details', id: 'Wf6bDe' },
     grafanaInsights: { defaultMessage: 'Grafana insights', id: 'Nf40QB' },
+    managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },
 });
 
 export const GrafanaDashboardResources = defineMessages({
