@@ -50,7 +50,7 @@ export const useActivities = (initialThreadId?: string | null) => {
     const [threads, setThreads] = useState<Thread[]>([]);
     const [threadsInitialized, setThreadsInitialized] = useState<boolean>(false);
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
-    const [threadContentKey, setThreadContentKey] = useState<string>(Guid.newGuid());
+    const [threadContentAndActionKey, setThreadContentAndActionKey] = useState<string>(Guid.newGuid());
     const [activeThreadId, setActiveThreadId] = useState<string>('');
 
     const canPollThread = useRef<boolean>(true);
@@ -65,7 +65,7 @@ export const useActivities = (initialThreadId?: string | null) => {
 
     const selectThread = useCallback((thread: Thread | null) => {
         setSelectedThread(thread);
-        setThreadContentKey(Guid.newGuid());
+        setThreadContentAndActionKey(Guid.newGuid());
         setActiveThreadId(thread?.id || '');
     }, []);
 
@@ -100,7 +100,7 @@ export const useActivities = (initialThreadId?: string | null) => {
         [intl, selectThread]
     );
 
-    useEffect(() => setThreadContentKey(Guid.newGuid()), [selectedThread]);
+    useEffect(() => setThreadContentAndActionKey(Guid.newGuid()), [selectedThread]);
 
     useEffect(() => {
         latestThread.current = getLatestThread(threads);
@@ -169,7 +169,7 @@ export const useActivities = (initialThreadId?: string | null) => {
         addThread,
         deleteThread,
         selectThread,
-        threadContentKey,
+        threadContentAndActionKey,
         activeThreadId,
     };
 };

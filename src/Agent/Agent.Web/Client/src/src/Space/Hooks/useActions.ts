@@ -4,7 +4,7 @@ import { Action } from '../../Common/Contracts/Azure/SreAgent';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { AgentContext } from '../Activities/Activities.ReactView';
 
-const getActions = async (threadId: string) => {
+const getActions = async (threadId: string): Promise<Action[]> => {
     const { data } = await axios.get(`../api/v1/threads/${threadId}/actions`, {
         headers: getAgentHeaders(),
     });
@@ -44,7 +44,7 @@ export const useActions = (threadId?: string | null) => {
         let isSubscribed = true;
 
         const getInitialActions = async () => {
-            if (currentThreadId && !isInitialized) {
+            if (currentThreadId) {
                 setIsLoading(true);
                 const actions = await getActions(currentThreadId);
 
@@ -61,7 +61,7 @@ export const useActions = (threadId?: string | null) => {
         return () => {
             isSubscribed = false;
         };
-    }, [currentThreadId, isInitialized]);
+    }, [currentThreadId]);
 
     return { actions, isLoading };
 };

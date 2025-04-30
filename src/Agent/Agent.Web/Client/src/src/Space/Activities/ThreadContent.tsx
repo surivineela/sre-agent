@@ -9,7 +9,7 @@ import ChatBox from './ChatBox';
 import ThreadDeleteAction from './ThreadDeleteAction';
 
 export const ThreadContent = memo(({ thread, addThread, deleteThread }: IThreadContentProps) => {
-    const { threadContentKey } = useContext(AgentContext);
+    const { threadContentAndActionKey } = useContext(AgentContext);
     const intl = useIntl();
 
     const handleThreadDelete = useCallback(() => {
@@ -19,7 +19,7 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread }: IThreadC
     }, [thread, deleteThread]);
 
     return (
-        <div className={ThreadContentStyles.root} key={threadContentKey}>
+        <div className={ThreadContentStyles.root} key={threadContentAndActionKey}>
             <div className={ThreadContentStyles.titleContainer}>
                 <Text as="h2" nowrap block className={ThreadContentStyles.title}>
                     {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}

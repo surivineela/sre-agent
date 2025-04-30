@@ -13,6 +13,18 @@ import { useThreadActionsStyles } from '../Styles/Activities.styles';
 import { AgentContext } from './Activities.ReactView';
 
 export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
+    const { threadContentAndActionKey } = useContext(AgentContext);
+
+    const { root } = useThreadActionsStyles();
+
+    return (
+        <div key={threadContentAndActionKey} className={root}>
+            <ThreadActionsContent {...props} />
+        </div>
+    );
+};
+
+const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
     const { thread } = props;
     const { threadsInitialized } = useContext(AgentContext);
     const { actions, isLoading } = useActions(thread?.id);
@@ -31,7 +43,7 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
     }, [searchString, actions]);
 
     return (
-        <div className={actionsStyles.root}>
+        <div className={actionsStyles.content}>
             <Text as="h3" className={actionsStyles.title}>
                 {intl.formatMessage(ActionsResources.actions)}
             </Text>
@@ -41,7 +53,7 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
                 className={actionsStyles.searchBox}
             />
-            <Shimmer isDataLoaded={threadsInitialized || isLoading}>
+            <Shimmer isDataLoaded={threadsInitialized && !isLoading}>
                 <ActionCardList actions={filteredActions} />
             </Shimmer>
         </div>

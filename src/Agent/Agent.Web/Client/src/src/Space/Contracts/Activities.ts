@@ -5,7 +5,7 @@ export interface IActivitiesProps {
 }
 
 export interface AgentContextProps {
-    threadContentKey: string;
+    threadContentAndActionKey: string;
     threadsInitialized: boolean;
     activeThreadId: string;
 }

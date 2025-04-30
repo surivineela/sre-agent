@@ -230,6 +230,9 @@ export const useCommandButtonStyles = (): IButtonStyles => {
 
 export const useThreadActionsStyles = makeStyles({
     root: {
+        maxWidth: '300px',
+    },
+    content: {
         flex: '0 0 20%',
         display: 'flex',
         flexDirection: 'column',
@@ -240,23 +243,17 @@ export const useThreadActionsStyles = makeStyles({
         paddingTop: '42px',
         paddingLeft: '5px',
         paddingRight: '10px',
-        maxWidth: '300px',
     },
     actionsList: {
         maxWidth: '500px',
         height: 'calc(100vh - 220px)',
         overflowX: 'hidden',
         overflowY: 'auto',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '10px',
     },
     searchBox: {
         margin: '0px 10px',
         borderRadius: tokens.borderRadiusLarge,
-        width: '100%',
-        marginLeft: '-2px',
-        minWidth: '275px',
+        minWidth: '265px',
     },
     title: {
         lineHeight: '22px',
@@ -265,10 +262,12 @@ export const useThreadActionsStyles = makeStyles({
         fontWeight: 600,
     },
     card: {
-        minWidth: '275px',
+        minWidth: '265px',
+        margin: '10px 5px',
     },
     cardHeader: {
         fontWeight: '550px',
+        wordBreak: 'break-word',
     },
     pendingIcon: {
         backgroundColor: tokens.colorPaletteBlueBorderActive,
@@ -297,6 +296,8 @@ export const useThreadActionsStyles = makeStyles({
     },
     iconStatusRow: {
         display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
         alignItems: 'center',
         gap: '4px',
     },
