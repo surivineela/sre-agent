@@ -83,7 +83,9 @@ public class OrchestrationAgent
             ChatMessages = this.ChatHistory,
             StepCounter = this.StepCount,
             ToolSignatures = this.ToolSignatures,
-        });
+        },
+        // There's potential throttling for OpenAI calls, use retry policy to avoid.
+        new TaskOptions(new TaskRetryOptions(new RetryPolicy(10, TimeSpan.FromSeconds(1), backoffCoefficient: 1.5f, maxRetryInterval: TimeSpan.FromSeconds(10)))));
 
         log.LogInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
 
