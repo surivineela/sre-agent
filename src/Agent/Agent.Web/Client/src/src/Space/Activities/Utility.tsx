@@ -3,11 +3,13 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 
 export const processThreads = (prevThreads: Thread[], threads: Thread[], reverse: boolean) => {
     const threadsToAdd: Thread[] = [];
+    const uniqueThreadIds = new Set<string>();
 
     for (let i = 0; i < threads.length; i++) {
         const thread = threads[i];
-        if (!prevThreads.some((t: Thread) => t.id === thread.id)) {
+        if (!prevThreads.some((t: Thread) => t.id === thread.id) && !uniqueThreadIds.has(thread.id)) {
             threadsToAdd.push(thread);
+            uniqueThreadIds.add(thread.id);
         }
     }
 
@@ -43,9 +45,11 @@ export const getLatestThread = (threads?: Thread[]) => {
  */
 export const processMessages = (prevMessages: Message[], currentMessages: Message[], reverse: boolean) => {
     const messagesToAdd: Message[] = [];
-    for (let i = currentMessages.length - 1; i >= 0; i--) {
-        if (!prevMessages.some((message: Message) => message.id === currentMessages[i].id)) {
-            messagesToAdd.push(currentMessages[i]);
+    const uniqueThreadIds = new Set<string>();
+    for (let i = 0; i < currentMessages.length; i++) {
+        if (!prevMessages.some((message: Message) => message.id === currentMessages[i].id) && !uniqueThreadIds.has(currentMessages[i].id)) {
+            messagesToAdd.unshift(currentMessages[i]);
+            uniqueThreadIds.add(currentMessages[i].id);
         }
     }
 

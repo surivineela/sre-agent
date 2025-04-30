@@ -47,28 +47,23 @@ const sendApprovalDecision = async (threadId: string, approvalId: string, decisi
 };
 
 const sendMessage = async (threadId: string, message: string, signal?: AbortSignal): Promise<Message | undefined> => {
-    try {
-        const { userId, displayName } = user;
-        const url = `../api/v1/threads/${threadId}/messages`;
-        const response = await axios.post(
-            url,
-            {
-                text: message,
-                role: 'User',
-                displayName: displayName,
-                userId: userId,
-            },
-            {
-                headers: getAgentHeaders(),
-                signal,
-            }
-        );
+    const { userId, displayName } = user;
+    const url = `../api/v1/threads/${threadId}/messages`;
+    const response = await axios.post(
+        url,
+        {
+            text: message,
+            role: 'User',
+            displayName: displayName,
+            userId: userId,
+        },
+        {
+            headers: getAgentHeaders(),
+            signal,
+        }
+    );
 
-        return response?.data;
-    } catch {
-        // ToDo: handle error
-        return undefined;
-    }
+    return response?.data;
 };
 
 const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
@@ -91,29 +86,24 @@ const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedba
 };
 
 const createThread = async (message: string, signal?: AbortSignal) => {
-    try {
-        const { userId, displayName } = user;
-        const url = `../api/v1/threads`;
+    const { userId, displayName } = user;
+    const url = `../api/v1/threads`;
 
-        const response = await axios.post(
-            url,
-            {
-                startMessage: {
-                    text: message,
-                    userId: userId,
-                    displayName: displayName,
-                },
+    const response = await axios.post(
+        url,
+        {
+            startMessage: {
+                text: message,
+                userId: userId,
+                displayName: displayName,
             },
-            {
-                headers: getAgentHeaders(),
-                signal,
-            }
-        );
-        return response?.data;
-    } catch {
-        // ToDo: handle error
-        return undefined;
-    }
+        },
+        {
+            headers: getAgentHeaders(),
+            signal,
+        }
+    );
+    return response?.data;
 };
 
 const composeTemporaryUserMessage = (message: string): Message => {
@@ -230,20 +220,24 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
             let newThread: Thread | undefined = undefined;
             let answers: Message[] = [];
 
-            //ToDo: Handle errors of sendMessage, createThread and pollResponses
-            if (currentThreadId) {
-                // issue a request to send a message
-                await sendMessage(currentThreadId, message, signal);
-            } else {
-                // issue a request to create a new thread
-                newThread = await createThread(message, signal);
-            }
+            try {
+                //ToDo: Handle errors of sendMessage, createThread and pollResponses
+                if (currentThreadId) {
+                    // issue a request to send a message
+                    await sendMessage(currentThreadId, message, signal);
+                } else {
+                    // issue a request to create a new thread
+                    newThread = await createThread(message, signal);
+                }
 
-            const threadId = currentThreadId || newThread?.id;
+                const threadId = currentThreadId || newThread?.id;
 
-            if (threadId) {
-                // poll answers by get the latest 5 messages
-                answers = await pollResponses(MessagePollingCounts.active, threadId, undefined, signal);
+                if (threadId) {
+                    // poll answers by get the latest 5 messages
+                    answers = await pollResponses(MessagePollingCounts.active, threadId, undefined, signal);
+                }
+            } catch {
+                //Handle error if it is not abort error
             }
 
             if (isMounted.current) {

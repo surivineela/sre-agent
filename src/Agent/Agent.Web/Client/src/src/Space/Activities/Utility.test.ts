@@ -116,11 +116,13 @@ describe('processThreads', () => {
         const oldThreads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z'),
             getDefaultThread('2023-10-02T00:00:00Z'),
-            getDefaultThread('2023-10-01T00:00:00Z'),
+            getDefaultThread('2023-10-01T00:00:00Z', '01'),
+            getDefaultThread('2023-10-01T00:00:00Z', '01'),
         ];
 
         const result = processThreads(threads, oldThreads, false);
 
+        oldThreads.splice(3, 1);
         expect(areThreadsSame(result, [...threads, ...oldThreads])).toBe(true);
         expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -136,11 +138,13 @@ describe('processThreads', () => {
         const newThreads: Thread[] = [
             getDefaultThread('2023-10-06T00:00:00Z'),
             getDefaultThread('2023-10-05T00:00:00Z'),
-            getDefaultThread('2023-10-04T00:00:00Z'),
+            getDefaultThread('2023-10-04T00:00:00Z', '01'),
+            getDefaultThread('2023-10-04T00:00:00Z', '01'),
         ];
 
         const result = processThreads(threads, newThreads, true);
 
+        newThreads.splice(3, 1);
         expect(areThreadsSame(result, [...newThreads, ...threads])).toBe(true);
         expect(areThreadsSortedDescByCreatedTimeStamp(result)).toBe(true);
         expect(areThreadsUnique(result)).toBe(true);
@@ -149,7 +153,7 @@ describe('processThreads', () => {
     it('Add duplicated threads', () => {
         const threads: Thread[] = [
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
+            getDefaultThread('2023-10-02T00:00:00Z'),
             getDefaultThread('2023-10-01T00:00:00Z'),
         ];
 
@@ -158,11 +162,11 @@ describe('processThreads', () => {
             getDefaultThread('2023-10-05T00:00:00Z'),
             getDefaultThread('2023-10-04T00:00:00Z'),
             getDefaultThread('2023-10-03T00:00:00Z', '03'),
-            getDefaultThread('2023-10-02T00:00:00Z', '02'),
         ];
 
         const result = processThreads(threads, newThreads, true);
-        const expectedResult = [...newThreads.slice(0, 3), ...threads];
+        newThreads.splice(3, 1);
+        const expectedResult = [...newThreads, ...threads];
 
         expect(result.length).toBe(6);
         expect(areThreadsSame(result, expectedResult)).toBe(true);
@@ -307,11 +311,13 @@ describe('processMessages', () => {
         const oldMessages: Message[] = [
             getDefaultMessage('2023-10-03T00:00:00Z'),
             getDefaultMessage('2023-10-02T00:00:00Z'),
-            getDefaultMessage('2023-10-01T00:00:00Z'),
+            getDefaultMessage('2023-10-01T00:00:00Z', '01'),
+            getDefaultMessage('2023-10-01T00:00:00Z', '01'),
         ];
 
         const result = processMessages(messages, oldMessages, true);
 
+        oldMessages.splice(3, 1);
         expect(areMessagesSame(result, [...oldMessages.reverse(), ...messages])).toBe(true);
         expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
         expect(areMessagesUnique(result)).toBe(true);
@@ -326,12 +332,14 @@ describe('processMessages', () => {
 
         const newMessages: Message[] = [
             getDefaultMessage('2023-10-06T00:00:00Z'),
-            getDefaultMessage('2023-10-05T00:00:00Z'),
+            getDefaultMessage('2023-10-05T00:00:00Z', '01'),
+            getDefaultMessage('2023-10-05T00:00:00Z', '01'),
             getDefaultMessage('2023-10-04T00:00:00Z'),
         ];
 
         const result = processMessages(messages, newMessages, false);
 
+        newMessages.splice(2, 1);
         expect(areMessagesSame(result, [...messages, ...newMessages.reverse()])).toBe(true);
         expect(areMessagesSortedAscByTimeStamp(result)).toBe(true);
         expect(areMessagesUnique(result)).toBe(true);
