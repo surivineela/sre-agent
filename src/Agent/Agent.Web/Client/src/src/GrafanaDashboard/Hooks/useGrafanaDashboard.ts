@@ -39,12 +39,13 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
     const { agent, agentLoaded, refresh } = useSreAgent(resourceId);
 
-    const [grafanaResourceName, setGrafanaResourceName] = useState<string>();
+    const [grafanaResourceName, setGrafanaResourceName] = useState<string>('');
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [progress, setProgress] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>();
     const [existingGrafanaResourceNames, setExistingGrafanaResourceNames] = useState<string[]>([]);
+    const [isDirty, setIsDirty] = useState(false);
 
     const grafanaEndpoint = useMemo(
         () => agent?.properties?.dashboardConfiguration?.grafanaUrl,
@@ -81,15 +82,17 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     }, [agent?.location, subscription, grafanaResourceName]);
 
     const newGrafanaResourceNameErrorMessage = useMemo(() => {
-        if (existingGrafanaResourceNames.includes(grafanaResourceName ?? '')) {
-            return GrafanaDashboardResources.uniqueGrafanaResourceNameError;
-        }
+        if (isDirty) {
+            if (existingGrafanaResourceNames.includes(grafanaResourceName ?? '')) {
+                return GrafanaDashboardResources.uniqueGrafanaResourceNameError;
+            }
 
-        const name = grafanaResourceName ?? '';
-        const isValid = name.length >= 2 && name.length <= 23 && /^[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9]$/.test(name);
+            const name = grafanaResourceName ?? '';
+            const isValid = name.length >= 2 && name.length <= 23 && /^[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9]$/.test(name);
 
-        if (!isValid) {
-            return GrafanaDashboardResources.invalidGrafanaResourceNameError;
+            if (!isValid) {
+                return GrafanaDashboardResources.invalidGrafanaResourceNameError;
+            }
         }
 
         return undefined;
@@ -550,6 +553,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         isUpdating,
         newGrafanaResourceNameErrorMessage,
         agentLoaded,
+        setIsDirty,
         onCreateGrafanaDashboard,
         setGrafanaResourceName,
     };

@@ -46,9 +46,12 @@ const apiKeyRow: CSSProperties = {
     flexDirection: 'row',
     gap: '50px',
     maxWidth: '500px',
+    height: '50px',
 };
 
-const fieldLabel: CSSProperties = { columnGap: '50px' };
+const inputFieldLabel: CSSProperties = { columnGap: '50px' };
+
+const displayFieldLabel: CSSProperties = { marginRight: '100px' };
 
 const inputTextField: CSSProperties = {
     width: '400px',
@@ -88,7 +91,7 @@ const gridStyle: React.CSSProperties = {
 };
 
 const grafanaUrlContainer: CSSProperties = {
-    maxWidth: '750px',
+    maxWidth: '1000px',
 };
 
 export const useGrafanaDashboardStyles = () =>
@@ -106,7 +109,8 @@ export const useGrafanaDashboardStyles = () =>
         grafanaLogo,
         createContainer,
         gridStyle,
-        fieldLabel,
+        inputFieldLabel,
+        displayFieldLabel,
         inputTextField,
         grafanaUrlContainer,
     });

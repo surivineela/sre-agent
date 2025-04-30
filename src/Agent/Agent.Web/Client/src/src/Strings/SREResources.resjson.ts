@@ -31,4 +31,5 @@ export enum GrafanaDashboardResources {
     firstStepInstructions = 'First, a Grafana resource needs to be created.',
     uniqueGrafanaResourceNameError = 'Grafana resource must be unique within the resource group.',
     invalidGrafanaResourceNameError = 'Grafana resource name must be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit.',
+    grafanaResourceName = 'Grafana resource name',
 }

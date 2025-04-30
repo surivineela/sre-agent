@@ -20,6 +20,7 @@ const GrafanaDashboard: FC = () => {
         isUpdating,
         newGrafanaResourceNameErrorMessage,
         agentLoaded,
+        setIsDirty,
         onCreateGrafanaDashboard,
         setGrafanaResourceName,
     } = useGrafanaDashboard(environmentContext.resourceId, environmentContext.userInfo?.objectId);
@@ -38,7 +39,11 @@ const GrafanaDashboard: FC = () => {
             </div>
             {grafanaEndpoint ? (
                 <div className={styles.grafanaUrlContainer}>
-                    <Field label={GrafanaDashboardResources.grafanaDashboardUrl} orientation="horizontal" className={styles.fieldLabel}>
+                    <Field
+                        label={GrafanaDashboardResources.grafanaDashboardUrl}
+                        orientation="horizontal"
+                        className={styles.displayFieldLabel}
+                    >
                         <Link href={grafanaEndpoint} target="_blank">
                             {grafanaEndpoint}
                         </Link>
@@ -57,11 +62,15 @@ const GrafanaDashboard: FC = () => {
                                     validationState={newGrafanaResourceNameErrorMessage ? 'error' : 'success'}
                                     validationMessage={newGrafanaResourceNameErrorMessage}
                                     required
-                                    className={styles.fieldLabel}
+                                    className={styles.inputFieldLabel}
                                 >
                                     <Input
-                                        onChange={(_, input) => setGrafanaResourceName(input.value)}
-                                        placeholder="Grafana resource name"
+                                        onChange={(_, input) => {
+                                            setIsDirty(true);
+                                            setGrafanaResourceName(input.value);
+                                        }}
+                                        value={grafanaResourceName}
+                                        placeholder={GrafanaDashboardResources.grafanaResourceName}
                                         disabled={isUpdating}
                                         className={styles.inputTextField}
                                     />
@@ -77,9 +86,9 @@ const GrafanaDashboard: FC = () => {
                                 </Button>
                                 <Button
                                     disabled={!agentLoaded || isUpdating || !grafanaResourceName}
-                                    onClick={() => setGrafanaResourceName(undefined)}
+                                    onClick={() => setGrafanaResourceName('')}
                                 >
-                                    {intl.formatMessage(SreAgentResources.cancel)}
+                                    {intl.formatMessage(SreAgentResources.discard)}
                                 </Button>
                             </div>
                         </>
