@@ -1,8 +1,9 @@
 import { INavLinkGroup, initializeIcons, Nav, ThemeContext } from '@fluentui/react';
 import type { Theme } from '@fluentui/theme';
-import { FC, useContext, useEffect, useState } from 'react';
+import { FC, useContext, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
-import { Settings_Tabs } from '../../Strings/SREResources.resjson';
+import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
 import AgentDetails from './AgentDetails.ReactView';
 import IncidentManagement from './IncidentManagement.ReactView';
@@ -15,45 +16,48 @@ enum SettingsKeys {
     GrafanaInsights = 'grafanaInsights',
 }
 
-const navLinkGroups: INavLinkGroup[] = [
-    {
-        links: [
+const Settings: FC = () => {
+    const styles = useSettingsStyles();
+    const theme = useContext(ThemeContext);
+    const intl = useIntl();
+
+    const [iconsInitialized, setIconsInitialized] = useState(false);
+    const [selectedKey, setSelectedKey] = useState<SettingsKeys>(SettingsKeys.IncidentManagement);
+
+    const navLinkGroups = useMemo<INavLinkGroup[]>(
+        () => [
             {
-                name: Settings_Tabs.incidentManagement,
-                url: '',
-                key: SettingsKeys.IncidentManagement,
-            },
-            {
-                name: Settings_Tabs.grafanaInsights,
-                url: '',
-                key: SettingsKeys.GrafanaInsights,
-            },
-            {
-                name: Settings_Tabs.accessControl,
-                url: '',
-                key: SettingsKeys.AccessControl,
-            },
-            {
-                name: Settings_Tabs.agentDetails,
-                url: '',
-                key: SettingsKeys.AgentDetails,
+                links: [
+                    {
+                        name: intl.formatMessage(SettingsTabResources.incidentManagement),
+                        url: '',
+                        key: SettingsKeys.IncidentManagement,
+                    },
+                    {
+                        name: intl.formatMessage(SettingsTabResources.grafanaInsights),
+                        url: '',
+                        key: SettingsKeys.GrafanaInsights,
+                    },
+                    {
+                        name: intl.formatMessage(SettingsTabResources.accessControl),
+                        url: '',
+                        key: SettingsKeys.AccessControl,
+                    },
+                    {
+                        name: intl.formatMessage(SettingsTabResources.agentDetails),
+                        url: '',
+                        key: SettingsKeys.AgentDetails,
+                    },
+                ],
             },
         ],
-    },
-];
-
-const Settings: FC = () => {
-    const [iconsInitialized, setIconsInitialized] = useState(false);
+        [intl]
+    );
 
     useEffect(() => {
         initializeIcons();
         setIconsInitialized(true);
     }, []);
-
-    const styles = useSettingsStyles();
-    const theme = useContext(ThemeContext);
-
-    const [selectedKey, setSelectedKey] = useState<SettingsKeys>(SettingsKeys.IncidentManagement);
 
     return (
         iconsInitialized && (

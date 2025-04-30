@@ -57,13 +57,6 @@ export enum SreAgentResources {
     no = 'No',
 }
 
-export enum SreAgentTabs {
-    activities = 'Activities',
-    settings = 'Settings',
-    managedResources = 'Managed resources',
-    logs = 'Logs',
-}
-
 export enum ActionsResources {
     actions = 'Actions',
     allStatuses = 'All statuses',
@@ -73,16 +66,6 @@ export enum ActionsResources {
     completed = 'Completed',
     failed = 'Failed',
     pending = 'Pending',
-}
-
-export enum Locations {
-    centraluseuap = 'Central US EUAP',
-}
-
-export enum AccessControlResources {
-    accessControl = 'Access control',
-    accessControlDescription = 'Manage access to the SRE Agent resource by clicking on the link below.',
-    openAccessControl = 'Open Access control',
 }
 
 export enum Activities {
@@ -112,43 +95,6 @@ export enum Actions_Status {
     completed = 'Completed',
     inProgress = 'In progress',
     pending = 'Pending',
-}
-
-export enum IncidentManagementResources {
-    incidentManagement = 'Incident management',
-    incidentManagementDescription = 'Automate incident response with AI-powered monitoring and resolution..',
-    incidentPlatform = 'Incident platform',
-}
-
-export enum IncidentManagementPlatformResources {
-    disconnected = 'Disconnected',
-    pagerDuty = 'PagerDuty',
-}
-
-export enum IncidentManagementNotifications {
-    saveTitle = 'Save incident management configuration',
-    saveStarted = 'Saving incident management configuration',
-    saveSucceeded = 'Successfully saved incident management configuration',
-    saveFailed = 'Failed to save incident management configuration',
-}
-
-export enum IncidentManagementSaveErrors {
-    managedConnectionFailure = 'Failed to create managed connection',
-    logicAppCreateFailure = 'Failed to create logic app',
-    logicAppDeleteFailure = 'Failed to delete logic app',
-    configFailure = 'Failed to save incident management configuration',
-}
-
-export enum PagerDutyResources {
-    pagerDutyDescription = 'Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.',
-    pagerDutyApiKey = 'PagerDuty API Key',
-}
-
-export enum Settings_Tabs {
-    incidentManagement = 'Incident management',
-    accessControl = 'Access control',
-    agentDetails = 'Agent details',
-    grafanaInsights = 'Grafana insights',
 }
 
 export enum GrafanaDashboardResources {

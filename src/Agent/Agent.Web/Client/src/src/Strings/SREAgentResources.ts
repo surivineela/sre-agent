@@ -122,6 +122,7 @@ export const SreAgentTabResources = defineMessages({
     activities: { defaultMessage: 'Activities', id: 'UmEsZF' },
     settings: { defaultMessage: 'Settings', id: 'D3idYv' },
     managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },
+    logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
 });
 
 export const ActionsResourceResources = defineMessages({
@@ -133,10 +134,6 @@ export const ActionsResourceResources = defineMessages({
     completed: { defaultMessage: 'Completed', id: '95stPq' },
     failed: { defaultMessage: 'Failed', id: 'vXCeIi' },
     pending: { defaultMessage: 'Pending', id: 'eKEL/g' },
-});
-
-export const LocationResources = defineMessages({
-    centraluseuap: { defaultMessage: 'Central US EUAP', id: 'CaBlp1' },
 });
 
 export const AccessControlResources = defineMessages({

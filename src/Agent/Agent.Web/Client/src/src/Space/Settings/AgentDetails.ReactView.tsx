@@ -1,10 +1,12 @@
 import { Link } from '@fluentui/react';
 import { Label } from '@fluentui/react/lib/Label';
 import { FC, useCallback, useContext, useMemo } from 'react';
+import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
-import { Settings_Tabs, SreAgentResources } from '../../Strings/SREResources.resjson';
+import { SettingsTabResources } from '../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../Strings/SREResources.resjson';
 import { useSreAgent } from './Hooks/useSreAgent';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
@@ -13,6 +15,8 @@ const AgentDetails: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
     const az = useContext(AzPortalContext);
     const { agent } = useSreAgent(resourceId);
+    const intl = useIntl();
+
     const region = useMemo(() => agent?.location, [agent?.location]);
 
     const { resourceGroup, subscription, resourceName } = useMemo(() => new ArmResourceDescriptor(resourceId), [resourceId]);
@@ -35,7 +39,7 @@ const AgentDetails: FC = () => {
 
     return (
         <>
-            <div style={styles.generalSettingsHeader}>{Settings_Tabs.agentDetails}</div>
+            <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.agentDetails)}</div>
             <div style={styles.gridStyle}>
                 <Label>{SreAgentResources.name}</Label>
                 {resourceName}

@@ -3,8 +3,9 @@ import { Tab, TabList } from '@fluentui/react-components';
 import { LineHorizontal120Regular, Open16Regular } from '@fluentui/react-icons';
 import type { Theme } from '@fluentui/theme';
 import { FC, useContext } from 'react';
+import { useIntl } from 'react-intl';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
-import { SreAgentTabs } from '../Strings/SREResources.resjson';
+import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
 import Graph from './Graph/Graph';
 import { getTabListStyle, inStandaloneMode, TabValues, useSreAgentSpace } from './Hooks/useSreAgentSpace';
@@ -14,6 +15,7 @@ import { useSreAgentSpaceStyles } from './Settings/Styles/SreAgentSpaceStyles';
 const SREAgentSpace: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
     const theme = useContext(ThemeContext);
+    const intl = useIntl();
 
     const styles = useSreAgentSpaceStyles();
 
@@ -25,21 +27,21 @@ const SREAgentSpace: FC = () => {
         <div>
             <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
                 <Tab id="Activities" value={TabValues.Activities}>
-                    {SreAgentTabs.activities}
+                    {intl.formatMessage(SreAgentTabResources.activities)}
                 </Tab>
                 <Tab id="Knowledge" value={TabValues.Graph}>
-                    {SreAgentTabs.managedResources}
+                    {intl.formatMessage(SreAgentTabResources.managedResources)}
                 </Tab>
                 {!inStandaloneMode && (
                     <Tab id="Settings" value={TabValues.Settings}>
-                        {SreAgentTabs.settings}
+                        {intl.formatMessage(SreAgentTabResources.settings)}
                     </Tab>
                 )}
                 <LineHorizontal120Regular className={styles.lineIconStyle} />
                 <Tab id="Logs" value={TabValues.Logs} disabled={isLogsItemDisabled}>
                     <div className={styles.logsMenuItemContainer}>
                         <Open16Regular />
-                        {SreAgentTabs.logs}
+                        {intl.formatMessage(SreAgentTabResources.logs)}
                     </div>
                 </Tab>
             </TabList>

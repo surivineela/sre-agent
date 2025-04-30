@@ -1,12 +1,13 @@
 import { DefaultButton, Dropdown, PrimaryButton, TextField } from '@fluentui/react';
 import { FC, useMemo } from 'react';
+import { useIntl } from 'react-intl';
 import {
     IncidentManagementPlatformResources,
     IncidentManagementResources,
     PagerDutyResources,
-    Settings_Tabs,
-    SreAgentResources,
-} from '../../Strings/SREResources.resjson';
+    SettingsTabResources,
+} from '../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../Strings/SREResources.resjson';
 import { IncidentManagementFormProps, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 import { incidentManagementDropdownStyles, incidentManagementMaskedTextFieldStyles, useSettingsStyles } from './Styles/Settings.styles';
 
@@ -18,6 +19,15 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 }: IncidentManagementFormProps) => {
     const styles = useSettingsStyles();
     const { setFieldValue, setFieldTouched, submitForm, resetForm, values, dirty, initialValues } = formikProps;
+    const intl = useIntl();
+
+    const incidentPlatformDropdownOptions = useMemo(
+        () => [
+            { key: IncidentManagementPlatform.Disconnected, text: intl.formatMessage(IncidentManagementPlatformResources.disconnected) },
+            { key: IncidentManagementPlatform.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
+        ],
+        [intl]
+    );
 
     const isDirty = useMemo(() => {
         if (
@@ -31,16 +41,15 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
 
     return (
         <>
-            <div style={styles.generalSettingsHeader}>{Settings_Tabs.incidentManagement}</div>
+            <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.incidentManagement)}</div>
             <div>
-                <div style={styles.incidentManagementDescriptionStyle}>{IncidentManagementResources.incidentManagementDescription}</div>
+                <div style={styles.incidentManagementDescriptionStyle}>
+                    {intl.formatMessage(IncidentManagementResources.incidentManagementDescription)}
+                </div>
                 <Dropdown
                     id="platform"
-                    options={[
-                        { key: IncidentManagementPlatform.Disconnected, text: IncidentManagementPlatformResources.disconnected },
-                        { key: IncidentManagementPlatform.PagerDuty, text: IncidentManagementPlatformResources.pagerDuty },
-                    ]}
-                    label={IncidentManagementResources.incidentPlatform}
+                    options={incidentPlatformDropdownOptions}
+                    label={intl.formatMessage(IncidentManagementResources.incidentPlatform)}
                     required={true}
                     styles={incidentManagementDropdownStyles}
                     selectedKey={values.platform}
@@ -56,10 +65,12 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                         <div>
                             <img src="./PagerDuty.svg" alt="PagerDuty" style={styles.pagerDutyLogoStyle} />
                         </div>
-                        <div style={styles.incidentManagementDescriptionStyle}>{PagerDutyResources.pagerDutyDescription}</div>
+                        <div style={styles.incidentManagementDescriptionStyle}>
+                            {intl.formatMessage(PagerDutyResources.pagerDutyDescription)}
+                        </div>
                         <TextField
                             id="connectionKey"
-                            label={PagerDutyResources.pagerDutyApiKey}
+                            label={intl.formatMessage(PagerDutyResources.pagerDutyApiKey)}
                             required={true}
                             styles={incidentManagementMaskedTextFieldStyles}
                             value={values.connectionKey}

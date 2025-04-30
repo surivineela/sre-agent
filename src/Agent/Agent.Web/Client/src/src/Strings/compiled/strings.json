@@ -237,12 +237,6 @@
       "value": "If you approve, this operation will be executed on your behalf using your credentials."
     }
   ],
-  "CaBlp1": [
-    {
-      "type": 0,
-      "value": "Central US EUAP"
-    }
-  ],
   "CfGC/2": [
     {
       "type": 0,
@@ -445,6 +439,12 @@
     {
       "type": 0,
       "value": "All threads"
+    }
+  ],
+  "SNuQo7": [
+    {
+      "type": 0,
+      "value": "Logs"
     }
   ],
   "SRf69j": [

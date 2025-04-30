@@ -1,4 +1,5 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import LogicAppClient, { generatePagerDutyLogicAppPayload } from '../../../Common/Clients/LogicAppClient';
 import ManagedConnectionClient from '../../../Common/Clients/ManagedConnectionClient';
@@ -7,7 +8,7 @@ import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Agent, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
-import { IncidentManagementNotifications, IncidentManagementSaveErrors } from '../../../Strings/SREResources.resjson';
+import { IncidentManagementNotificationResources, IncidentManagementSaveErrorResources } from '../../../Strings/SREAgentResources';
 import { IncidentManagementFormValues, IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
 import { useSreAgent } from './useSreAgent';
 
@@ -25,6 +26,7 @@ const getInitialValues = (agent?: ArmObj<Agent>): IncidentManagementFormValues =
 
 export function useIncidentManagement(resourceId: string) {
     const azPortalContext = useContext(AzPortalContext);
+    const intl = useIntl();
 
     const { agent, agentLoading, agentLoaded, agentLoadFailure } = useSreAgent(resourceId);
     const { subscription, resourceGroup } = useMemo(() => new ArmResourceDescriptor(resourceId), [resourceId]);
@@ -58,8 +60,8 @@ export function useIncidentManagement(resourceId: string) {
             const logicAppResourceId = `/subscriptions/${subscription}/resourceGroups/${resourceGroup}/providers/Microsoft.Logic/workflows/${logicAppName}`;
 
             const notificationId = azPortalContext.startNotification(
-                IncidentManagementNotifications.saveTitle,
-                IncidentManagementNotifications.saveStarted
+                intl.formatMessage(IncidentManagementNotificationResources.saveTitle),
+                intl.formatMessage(IncidentManagementNotificationResources.saveStarted)
             );
 
             setSaving(true);
@@ -69,8 +71,12 @@ export function useIncidentManagement(resourceId: string) {
                 LogicAppClient.deleteLogicApp(logicAppResourceId).then(logicAppResult => {
                     if (!logicAppResult.metadata.success) {
                         setSaving(false);
-                        setSaveFailure(IncidentManagementSaveErrors.logicAppDeleteFailure);
-                        azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
+                        setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.logicAppDeleteFailure));
+                        azPortalContext.stopNotification(
+                            notificationId,
+                            false,
+                            intl.formatMessage(IncidentManagementNotificationResources.saveFailed)
+                        );
                     } else {
                         SreAgentClient.patchAgent(resourceId, {
                             properties: {
@@ -79,8 +85,12 @@ export function useIncidentManagement(resourceId: string) {
                         }).then(patchResult => {
                             if (!patchResult.metadata.success) {
                                 setSaving(false);
-                                setSaveFailure(IncidentManagementSaveErrors.configFailure);
-                                azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
+                                setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.configFailure));
+                                azPortalContext.stopNotification(
+                                    notificationId,
+                                    false,
+                                    intl.formatMessage(IncidentManagementNotificationResources.saveFailed)
+                                );
                             } else {
                                 setSaving(false);
                                 setSaveFailure(undefined);
@@ -89,7 +99,11 @@ export function useIncidentManagement(resourceId: string) {
                                     connectionUrl: formValues.connectionUrl,
                                     connectionKey: formValues.connectionKey,
                                 });
-                                azPortalContext.stopNotification(notificationId, true, IncidentManagementNotifications.saveSucceeded);
+                                azPortalContext.stopNotification(
+                                    notificationId,
+                                    true,
+                                    intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
+                                );
                             }
                         });
                     }
@@ -111,8 +125,12 @@ export function useIncidentManagement(resourceId: string) {
                     }).then(managedConnectionResult => {
                         if (!managedConnectionResult.metadata.success) {
                             setSaving(false);
-                            setSaveFailure(IncidentManagementSaveErrors.managedConnectionFailure);
-                            azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
+                            setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.managedConnectionFailure));
+                            azPortalContext.stopNotification(
+                                notificationId,
+                                false,
+                                intl.formatMessage(IncidentManagementNotificationResources.saveFailed)
+                            );
                         } else {
                             const logicAppPayload = generatePagerDutyLogicAppPayload(
                                 logicAppResourceId,
@@ -127,8 +145,12 @@ export function useIncidentManagement(resourceId: string) {
                             LogicAppClient.putPagerDutyLogicApp(logicAppResourceId, logicAppPayload).then(logicAppResult => {
                                 if (!logicAppResult.metadata.success) {
                                     setSaving(false);
-                                    setSaveFailure(IncidentManagementSaveErrors.logicAppCreateFailure);
-                                    azPortalContext.stopNotification(notificationId, false, IncidentManagementNotifications.saveFailed);
+                                    setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.logicAppCreateFailure));
+                                    azPortalContext.stopNotification(
+                                        notificationId,
+                                        false,
+                                        intl.formatMessage(IncidentManagementNotificationResources.saveFailed)
+                                    );
                                 } else {
                                     SreAgentClient.patchAgent(resourceId, {
                                         properties: {
@@ -142,11 +164,11 @@ export function useIncidentManagement(resourceId: string) {
                                     }).then(patchResult => {
                                         if (!patchResult.metadata.success) {
                                             setSaving(false);
-                                            setSaveFailure(IncidentManagementSaveErrors.configFailure);
+                                            setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.configFailure));
                                             azPortalContext.stopNotification(
                                                 notificationId,
                                                 false,
-                                                IncidentManagementNotifications.saveFailed
+                                                intl.formatMessage(IncidentManagementNotificationResources.saveFailed)
                                             );
                                         } else {
                                             setSaving(false);
@@ -159,7 +181,7 @@ export function useIncidentManagement(resourceId: string) {
                                             azPortalContext.stopNotification(
                                                 notificationId,
                                                 true,
-                                                IncidentManagementNotifications.saveSucceeded
+                                                intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
                                             );
                                         }
                                     });
@@ -171,6 +193,7 @@ export function useIncidentManagement(resourceId: string) {
             }
         },
         [
+            intl,
             subscription,
             resourceGroup,
             agent?.name,
