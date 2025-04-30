@@ -236,112 +236,125 @@ public class ChatProcessingService : IChatService
 
     public async Task<ChatMessage> ProcessMessageAsync(MessageRequestBody message)
     {
-        _logger.LogInformation($"ChatProcessingService:ProcessMessageAsync - {JsonConvert.SerializeObject(message)}");
-        
-        if (message == null) {
-            throw new ArgumentNullException(nameof(message), "MessageRequestBody cannot be null");
-        }
-        if (string.IsNullOrEmpty(message.Message))
-        {
-            throw new ArgumentException("Message cannot be empty", nameof(message));
-        }
-        if (string.IsNullOrEmpty(message.AgentMode))
-        {
-            throw new ArgumentException("AgentMode cannot be empty", nameof(message));
-        }
-        if (string.IsNullOrEmpty(message.Sender))
-        {
-            throw new ArgumentException("Sender cannot be empty", nameof(message));
-        }
-        if (string.IsNullOrEmpty(message.SessionId))
-        {
-            throw new ArgumentException("SessionId cannot be empty", nameof(message));
-        }
-
-        if (!_sessionCollection.ContainsKey(message.SessionId))
-        {
-            var foundAgent = AgentModeExists(message.AgentMode);
-            if (!foundAgent)
-            {
-                throw new ArgumentException($"Agent {message.AgentMode} not found", nameof(message));
-            }
-            _sessionCollection[message.SessionId] = new SessionInformation(message.SessionId, message.AgentMode);
-        }
-
-        var sessionInfo = _sessionCollection[message.SessionId];
-        sessionInfo.Data = message.Data;
-
-        if ((message.Message == "clear state" || message.Message == "<p>clear state</p>"))
-        {
-            _logger.LogInformation("Clearing state");
-            await ResetSessionChatHistory(sessionInfo.SessionId);
-            return new ChatMessage()
-            {
-                Message = "State cleared",
-                Timestamp = DateTime.Now
-            };
-        }
-
-        if (sessionInfo.AgentLoopRunning)
-        {
-            //var agentStatusSummary = await GetAgentStatusSummary(sessionInfo);
-            return new ChatMessage()
-            {
-                Message = $"Agent is currently busy with processing an earlier request in this session.",
-                Timestamp = DateTime.Now
-            };
-        }
-
-        sessionInfo.AgentLoopRunning = true;
         try
         {
-            //Add custom instructions and alert details to the system message if they are present
-            if (sessionInfo.ChatHistory.Count == 1 && message.PromptReplacements != null && message.PromptReplacements.Keys.Count() > 0)
+            _logger.LogInformation($"ChatProcessingService:ProcessMessageAsync - {JsonConvert.SerializeObject(message)}");
+
+            if (message == null)
             {
-                var systemMessage = sessionInfo.ChatHistory.First().Content;
-                foreach (var promptKey in message.PromptReplacements.Keys)
+                throw new ArgumentNullException(nameof(message), "MessageRequestBody cannot be null");
+            }
+            if (string.IsNullOrEmpty(message.Message))
+            {
+                throw new ArgumentException("Message cannot be empty", nameof(message));
+            }
+            if (string.IsNullOrEmpty(message.AgentMode))
+            {
+                throw new ArgumentException("AgentMode cannot be empty", nameof(message));
+            }
+            if (string.IsNullOrEmpty(message.Sender))
+            {
+                throw new ArgumentException("Sender cannot be empty", nameof(message));
+            }
+            if (string.IsNullOrEmpty(message.SessionId))
+            {
+                throw new ArgumentException("SessionId cannot be empty", nameof(message));
+            }
+
+            if (!_sessionCollection.ContainsKey(message.SessionId))
+            {
+                var foundAgent = AgentModeExists(message.AgentMode);
+                if (!foundAgent)
                 {
-                    systemMessage = systemMessage.Replace(promptKey, message.PromptReplacements[promptKey]);
+                    throw new ArgumentException($"Agent {message.AgentMode} not found", nameof(message));
                 }
-                sessionInfo.ChatHistory.Clear();
-                sessionInfo.ChatHistory.AddSystemMessage(systemMessage);
+                _sessionCollection[message.SessionId] = new SessionInformation(message.SessionId, message.AgentMode);
             }
 
-            sessionInfo.ChatHistory.AddUserMessage($"User({message.Sender}) > " + message.Message);
+            var sessionInfo = _sessionCollection[message.SessionId];
+            sessionInfo.Data = message.Data;
 
-            _logger.LogInformation($"User({message.Sender}) > " + message.Message);
-
-            var result = await RunAgentLoop(sessionInfo);
-
-            _logger.LogInformation("Assistant > " + result);
-            sessionInfo.ChatHistory.AddMessage(result.Role, result.Content ?? string.Empty);
-
-            string content = result.Content ?? string.Empty;
-            var htmlContent = Markdown.ToHtml(content, _markdownPipeline);
-
-            if (_teamsClient.IsEnabled())
+            if ((message.Message == "clear state" || message.Message == "<p>clear state</p>"))
             {
-                _logger.LogInformation($"Posting message to Teams: {htmlContent}");
-                await _teamsClient.PostMessageOnTeams(htmlContent, message.AgentMode);
+                _logger.LogInformation("Clearing state");
+                await ResetSessionChatHistory(sessionInfo.SessionId);
+                return new ChatMessage()
+                {
+                    Message = "State cleared",
+                    Timestamp = DateTime.Now
+                };
             }
 
-            await _sessionMessageService.GetPublisher(sessionInfo.SessionId).Invoke(content);
-            _sessionMessageService.DeleteSession(sessionInfo.SessionId);
-
-            sessionInfo.AgentLoopRunning = false;
-
-            return new ChatMessage()
+            if (sessionInfo.AgentLoopRunning)
             {
-                Message = htmlContent,  // Raw markdown
-                Timestamp = DateTime.Now
-            };
+                //var agentStatusSummary = await GetAgentStatusSummary(sessionInfo);
+                return new ChatMessage()
+                {
+                    Message = $"Agent is currently busy with processing an earlier request in this session.",
+                    Timestamp = DateTime.Now
+                };
+            }
 
+            sessionInfo.AgentLoopRunning = true;
+            try
+            {
+                //Add custom instructions and alert details to the system message if they are present
+                if (sessionInfo.ChatHistory.Count == 1 && message.PromptReplacements != null && message.PromptReplacements.Keys.Count() > 0)
+                {
+                    var systemMessage = sessionInfo.ChatHistory.First().Content;
+                    foreach (var promptKey in message.PromptReplacements.Keys)
+                    {
+                        systemMessage = systemMessage.Replace(promptKey, message.PromptReplacements[promptKey]);
+                    }
+                    sessionInfo.ChatHistory.Clear();
+                    sessionInfo.ChatHistory.AddSystemMessage(systemMessage);
+                }
+
+                sessionInfo.ChatHistory.AddUserMessage($"User({message.Sender}) > " + message.Message);
+
+                _logger.LogInformation($"User({message.Sender}) > " + message.Message);
+
+                var result = await RunAgentLoop(sessionInfo);
+
+                _logger.LogInformation("Assistant > " + result);
+                sessionInfo.ChatHistory.AddMessage(result.Role, result.Content ?? string.Empty);
+
+                string content = result.Content ?? string.Empty;
+                var htmlContent = Markdown.ToHtml(content, _markdownPipeline);
+
+                if (_teamsClient.IsEnabled())
+                {
+                    _logger.LogInformation($"Posting message to Teams: {htmlContent}");
+                    await _teamsClient.PostMessageOnTeams(htmlContent, message.AgentMode);
+                }
+
+                await _sessionMessageService.GetPublisher(sessionInfo.SessionId).Invoke(content);
+                _sessionMessageService.DeleteSession(sessionInfo.SessionId);
+
+                sessionInfo.AgentLoopRunning = false;
+
+                return new ChatMessage()
+                {
+                    Message = htmlContent,  // Raw markdown
+                    Timestamp = DateTime.Now
+                };
+
+            }
+            catch (Exception ex)
+            {
+                sessionInfo.AgentLoopRunning = false;
+                _logger.LogError(ex, "Error running the chat service");
+                throw;
+            }
         }
         catch (Exception ex)
         {
-            sessionInfo.AgentLoopRunning = false;
-            _logger.LogError(ex, "Error running the chat service");
-            throw;
+            _logger.LogError(ex, "Error processing message");
+            return new ChatMessage()
+            {
+                Message = $"Error processing message: {ex.Message}",
+                Timestamp = DateTime.Now
+            };
         }
     }
 }

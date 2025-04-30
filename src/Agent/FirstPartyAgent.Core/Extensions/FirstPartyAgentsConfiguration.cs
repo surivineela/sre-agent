@@ -2,21 +2,23 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Configuration;
+using Agent.Core.Helpers;
+using Agent.Plugins;
+using Agent.Plugins.Models;
+using Azure.Identity;
+using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Helpers;
+using FirstPartyAgent.Core.Plugins;
+using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.SemanticKernel;
-using Agent.Core.Configuration;
-using Agent.Plugins;
-using FirstPartyAgent.Core.Helpers;
-using FirstPartyAgent.Core.Plugins;
-using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Core.Plugins.Definitions;
-using FirstPartyAgent.Core.Configuration;
-using Agent.Core.Helpers;
-using Agent.Plugins.Models;
 
 namespace FirstPartyAgent.Core.Extensions
 {
@@ -100,12 +102,34 @@ namespace FirstPartyAgent.Core.Extensions
                 var openAISettings = azureSettings.Value.OpenAI;
 
                 var kernelBuilder = Kernel.CreateBuilder();
-                kernelBuilder.AddAzureOpenAIChatCompletion(
-                   deploymentName: openAISettings.LLMDeploymentName,
-                   endpoint: openAISettings.Endpoint,
-                   apiKey: openAISettings.ApiKey);
-
-
+                var _federationSettings = azureSettings.Value.Federation;
+                if (!string.IsNullOrWhiteSpace(_federationSettings?.ClientId))
+                {
+                    kernelBuilder.AddAzureOpenAIChatCompletion(
+                        deploymentName: openAISettings.LLMDeploymentName,
+                        endpoint: openAISettings.Endpoint,
+                        new WorkloadIdentityCredential(new WorkloadIdentityCredentialOptions()
+                        {
+                            ClientId = _federationSettings.ClientId,
+                            TenantId = _federationSettings.TenantId,
+                            AuthorityHost = new Uri(_federationSettings.AuthorityHost),
+                        }));
+                }
+                else if (!string.IsNullOrWhiteSpace(openAISettings.ApiKey))
+                {
+                    kernelBuilder.AddAzureOpenAIChatCompletion(
+                        deploymentName: openAISettings.LLMDeploymentName,
+                        endpoint: openAISettings.Endpoint,
+                        apiKey: openAISettings.ApiKey);
+                }
+                else
+                {
+                    kernelBuilder.AddAzureOpenAIChatCompletion(
+                        deploymentName: openAISettings.LLMDeploymentName,
+                        endpoint: openAISettings.Endpoint,
+                        new DefaultAzureCredential());
+                }
+                
                 kernelBuilder.Services.AddLogging(builder =>
                 {
                     // Use configuration for logging levels

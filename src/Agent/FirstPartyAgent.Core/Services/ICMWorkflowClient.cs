@@ -27,6 +27,10 @@ namespace FirstPartyAgent.Core.Services
 
         public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
+            if (!icmWorkflowSettings.Enabled)
+            {
+                return;
+            }
             _icmWorkflowSettings = icmWorkflowSettings;
             ProcessImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();

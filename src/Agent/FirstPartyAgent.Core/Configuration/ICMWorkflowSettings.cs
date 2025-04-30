@@ -58,6 +58,7 @@ namespace FirstPartyAgent.Core.Configuration
         public bool ReadOnly { get; set; } = false;
         public bool ProcessImages { get; set; } = true;
         public bool ICMBacktestingModeEnabled { get; set; } = false;
+        public bool Enabled { get; set; } = false;
     }
 }
 

@@ -10,6 +10,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.SemanticKernel;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using Azure.Identity;
 
 namespace FirstPartyAgent.Core.Services
 {
@@ -76,11 +77,35 @@ namespace FirstPartyAgent.Core.Services
 
             var kernelBuilder = Kernel.CreateBuilder();
             kernelBuilder.Services.AddSingleton<HttpClient>(_httpClient);
-            kernelBuilder.AddAzureOpenAIChatCompletion(
-               deploymentName: azureSettings.OpenAI.LLMDeploymentName,
-               endpoint: azureSettings.OpenAI.Endpoint,
-               apiKey: azureSettings.OpenAI.ApiKey);
+            var openAISettings = azureSettings.OpenAI;
 
+            var _federationSettings = azureSettings.Federation;
+            if (!string.IsNullOrWhiteSpace(_federationSettings?.ClientId))
+            {
+                kernelBuilder.AddAzureOpenAIChatCompletion(
+                    deploymentName: openAISettings.LLMDeploymentName,
+                    endpoint: openAISettings.Endpoint,
+                    new WorkloadIdentityCredential(new WorkloadIdentityCredentialOptions()
+                    {
+                        ClientId = _federationSettings.ClientId,
+                        TenantId = _federationSettings.TenantId,
+                        AuthorityHost = new Uri(_federationSettings.AuthorityHost),
+                    }));
+            }
+            else if (!string.IsNullOrWhiteSpace(openAISettings.ApiKey))
+            {
+                kernelBuilder.AddAzureOpenAIChatCompletion(
+                    deploymentName: openAISettings.LLMDeploymentName,
+                    endpoint: openAISettings.Endpoint,
+                    apiKey: openAISettings.ApiKey);
+            }
+            else
+            {
+                kernelBuilder.AddAzureOpenAIChatCompletion(
+                    deploymentName: openAISettings.LLMDeploymentName,
+                    endpoint: openAISettings.Endpoint,
+                    new DefaultAzureCredential());
+            }
 
             kernelBuilder.Services.AddLogging(builder =>
             {

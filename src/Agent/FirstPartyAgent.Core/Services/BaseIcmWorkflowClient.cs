@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -25,6 +25,10 @@ namespace FirstPartyAgent.Core.Services
 
         public BaseIcmWorkflowClient(IHostEnvironment environment, ILogger<BaseIcmWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
+            if (!icmWorkflowSettings.Enabled)
+            {
+                return;
+            }
             _icmWorkflowSettings = JsonConvert.DeserializeObject<BaseIcmWorkflowSettings>(JsonConvert.SerializeObject(icmWorkflowSettings));
             ReadOnly = _icmWorkflowSettings.ReadOnly;
             IsDevelopment = environment.IsDevelopment();
