@@ -203,11 +203,11 @@ namespace Agent.Plugins.Definitions
         }
 
         [KernelFunction("verify_external_registry")]
-        [Description("Verify connectivity and authentication to an external container registry. Checks for rate limits, availability issues, or authentication failures.")]
+        [Description("Verify connectivity to an external container registry. This is useful for checking if the Container App can pull images from the specified registry.")]
         public async Task<bool> VerifyExternalRegistry(
             [Description("Resource ID of the Container App to check")]
             string resourceId,
-            [Description("Image reference to check authentication for (e.g. myregistry.azurecr.io/myapp:v2)")]
+            [Description("Image reference whose registry is being verified (e.g. myregistry.azurecr.io/myapp:v2)")]
             string imageReference
             )
         {

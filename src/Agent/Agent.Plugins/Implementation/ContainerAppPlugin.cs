@@ -643,6 +643,7 @@ namespace Agent.Plugins.Implementation
                 var connectivityResult = await TestExternalRegistryConnectivity(registryHostname);
                 if (!connectivityResult)
                 {
+                    _logger.LogWarning($"Basic connectivity test to registry {registryHostname} failed");
                     return false;
                 }
 
@@ -662,8 +663,8 @@ namespace Agent.Plugins.Implementation
                         // Kubernetes registry is generally public and doesn't require authentication
                         return true;
 
-                    case RegistryType.PrivateRegistry:
-                        return await VerifyPrivateRegistry(imageReference, resourceId);
+                    case RegistryType.Other:
+                        return await VerifyOtherRegistry(imageReference, resourceId);
 
                     default:
                         return false;
@@ -671,6 +672,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
+                _logger.LogError(ex, $"Error verifying external registry for image {imageReference}");
                 return false;
             }
         }
@@ -971,21 +973,31 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                // Extract registry details
-                var registryHostname = ExtractRegistryHostname(imageReference);
-                if (string.IsNullOrEmpty(registryHostname))
+                var (repo, tag) = ExtractRepositoryAndTag(imageReference);
+                if (string.IsNullOrEmpty(repo))
                 {
                     return false;
                 }
 
-                // Check basic connectivity
-                var isAccessible = await TestExternalRegistryConnectivity(registryHostname);
-                if (!isAccessible)
+                var manifestUrl = $"https://mcr.microsoft.com/v2/{repo}/manifests/{tag}";
+                var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
+                request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
                 {
+                    _logger.LogInformation($"Successfully verified MCR image: {imageReference}");
+                    return true;
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning($"Image {imageReference} not found in Microsoft Container Registry");
                     return false;
                 }
 
-                return true;
+                return false;
             }
             catch (Exception ex)
             {
@@ -998,25 +1010,98 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                // Extract registry details
-                var registryHostname = ExtractRegistryHostname(imageReference);
-                if (string.IsNullOrEmpty(registryHostname))
+                var (repo, tag) = ExtractRepositoryAndTag(imageReference);
+                if (string.IsNullOrEmpty(repo))
                 {
                     return false;
                 }
 
-                // Check basic connectivity
-                var isAccessible = await TestExternalRegistryConnectivity(registryHostname);
-                if (!isAccessible)
+                if (repo.StartsWith("gcr.io/", StringComparison.OrdinalIgnoreCase))
                 {
+                    repo = repo.Substring("gcr.io/".Length);
+                }
+
+                var manifestUrl = $"https://gcr.io/v2/{repo}/manifests/{tag}";
+                var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
+                request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
+
+                var response = await _httpClient.SendAsync(request);
+
+                if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
+                {
+                    _logger.LogInformation($"Successfully verified GCR image: {imageReference}");
+                    return true;
+                }
+
+                if (response.StatusCode == HttpStatusCode.NotFound)
+                {
+                    _logger.LogWarning($"Image {imageReference} not found in Google Container Registry");
                     return false;
                 }
 
-                return true;
+                return false;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error verifying Google Container Registry for {imageReference}");
+                return false;
+            }
+        }
+
+        private async Task<bool> VerifyOtherRegistry(string imageReference, string resourceId)
+        {
+            try
+            {
+                var registryHostname = ExtractRegistryHostname(imageReference);
+                if (string.IsNullOrEmpty(registryHostname))
+                {
+                    _logger.LogWarning($"Could not extract registry hostname from {imageReference}");
+                    return false;
+                }
+                
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+                
+                bool hasRegistryCredentials = false;
+                if (containerApp.Value.Data.Configuration?.Registries != null)
+                {
+                    hasRegistryCredentials = containerApp.Value.Data.Configuration.Registries
+                        .Any(r => !string.IsNullOrEmpty(r.Server) && 
+                                 r.Server.Equals(registryHostname, StringComparison.OrdinalIgnoreCase));
+                }
+                                    
+                try
+                {
+                    var manifestUrl = $"https://{registryHostname}/v2/";
+                    var request = new HttpRequestMessage(HttpMethod.Get, manifestUrl);
+                    
+                    var response = await _httpClient.SendAsync(request);
+                    
+                    // 200 OK means the registry is accessible and doesn't require auth for basic API access
+                    // 401 Unauthorized is also acceptable as it confirms the registry exists but needs auth
+                    if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
+                    {
+                        _logger.LogInformation($"Successfully verified registry API accessibility for: {registryHostname}");
+                        return true;
+                    }
+                    
+                    if (response.StatusCode == HttpStatusCode.NotFound)
+                    {
+                        _logger.LogWarning($"Registry API endpoint not found at {manifestUrl}. The registry may not implement the Docker Registry HTTP API V2.");
+                    }
+                }
+                catch (HttpRequestException ex)
+                {
+                    _logger.LogWarning(ex, $"Error connecting to registry API for {registryHostname}. This may be due to network restrictions or registry configuration.");
+                }
+                
+                // If container app has registry credentials, assume the registry is accessible
+                // Even if the API check failed, the credentials configuration suggests intentional use
+                return hasRegistryCredentials;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error verifying private registry for {imageReference}");
                 return false;
             }
         }
@@ -1038,31 +1123,32 @@ namespace Agent.Plugins.Implementation
             return null;
         }
 
-        private async Task<bool> VerifyPrivateRegistry(string imageReference, string resourceId)
+        
+        private (string Repository, string Tag) ExtractRepositoryAndTag(string imageReference)
         {
-            try
+            if (string.IsNullOrWhiteSpace(imageReference))
             {
-                // Extract registry details
-                var registryHostname = ExtractRegistryHostname(imageReference);
-                if (string.IsNullOrEmpty(registryHostname))
-                {
-                    return false;
-                }
-
-                // Check basic connectivity
-                var isAccessible = await TestExternalRegistryConnectivity(registryHostname);
-                if (!isAccessible)
-                {
-                   return false;
-                }
-
-                return true;
+                throw new ArgumentException("Image reference cannot be null or empty.", nameof(imageReference));
             }
-            catch (Exception ex)
+
+            // Normalize the input by removing any double slashes
+            imageReference = imageReference.Replace("//", "/");
+
+            var dockerImageRegex = new Regex(
+                @"^(?:(?<registry>[^/]+(?:\.[^/]+)+(?:[:]\d+)?)/)?(?<repository>[^:]+)(?::(?<tag>[\w.-]+))?$",
+                RegexOptions.Compiled | RegexOptions.CultureInvariant);
+
+            var match = dockerImageRegex.Match(imageReference);
+
+            if (!match.Success)
             {
-                _logger.LogError(ex, $"Error verifying private registry for {imageReference}");
-                return false;
+                throw new ArgumentException("Invalid Docker image reference format.", nameof(imageReference));
             }
+
+            string repository = match.Groups["repository"].Value;
+            string tag = match.Groups["tag"].Success ? match.Groups["tag"].Value : "latest"; // Default tag is 'latest'
+
+            return (repository, tag);
         }
 
         enum LogType
