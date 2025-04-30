@@ -91,7 +91,7 @@ export const createGraphEdge = (sourceId: string, targetId: string): Edge<GraphE
 export const getNewNodesAndEdges = (
     appGroup: ResourceExtended,
     resources: Resource[]
-): { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] } => {
+): { appGroupNode: Node<GraphNode>; nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] } => {
     const nodes: Node<GraphNode>[] = [];
     const edges: Edge<GraphEdge>[] = [];
 
@@ -115,6 +115,7 @@ export const getNewNodesAndEdges = (
     populateResourceNodesAndEdges(appGroupNode, resources);
 
     return {
+        appGroupNode,
         nodes,
         edges,
     };

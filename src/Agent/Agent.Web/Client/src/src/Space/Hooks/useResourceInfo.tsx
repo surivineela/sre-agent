@@ -1,9 +1,9 @@
 import { Link, Toast, ToastBody, ToastIntent, ToastTitle, ToastTrigger, useToastController } from '@fluentui/react-components';
 import axios from 'axios';
-import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { GraphContext, ResourceExtended } from '../Contracts/Graph';
+import { GraphNode, ResourceExtended } from '../Contracts/Graph';
 
 const getResource = async (resourceId: string): Promise<ResourceExtended | undefined> => {
     try {
@@ -49,9 +49,7 @@ export const getPropertyValue = (input?: string[]): string => {
     return input?.[0] ?? '';
 };
 
-export const usePanel = () => {
-    const { selectedNode } = useContext(GraphContext);
-
+export const useResourceInfo = (selectedNode?: GraphNode) => {
     const [resource, setResource] = useState<ResourceExtended>();
     const [initialRemarks, setInitialRemarks] = useState<string>('');
     const [isLoading, setIsLoading] = useState<boolean>(false);
@@ -59,26 +57,6 @@ export const usePanel = () => {
 
     const toasterId = useMemo(() => Guid.newGuid(), []);
     const { dispatchToast, updateToast } = useToastController(toasterId);
-
-    const isMounted = useRef(true);
-
-    const refresh = () => {
-        if (selectedNode) {
-            setIsLoading(true);
-            return getResource(selectedNode.id)
-                .then(resource => {
-                    if (isMounted.current) {
-                        setResource(resource);
-                        setInitialRemarks(getPropertyValue(resource?.properties?.remarks));
-                    }
-                })
-                .finally(() => {
-                    if (isMounted.current) {
-                        setIsLoading(false);
-                    }
-                });
-        }
-    };
 
     const notify = (status: ToastIntent, errorMessage?: string) => {
         const name = selectedNode?.name;
@@ -152,7 +130,7 @@ export const usePanel = () => {
                     notify('error', e);
                 } finally {
                     setIsUpdating(false);
-                    refresh();
+                    setInitialRemarks(remarks);
                 }
             }
         },
@@ -160,16 +138,27 @@ export const usePanel = () => {
     );
 
     useEffect(() => {
-        refresh();
-    }, [selectedNode]);
-
-    useEffect(() => {
-        isMounted.current = true;
+        let isSubscribed = true;
+        if (selectedNode) {
+            setIsLoading(true);
+            getResource(selectedNode.id)
+                .then(resource => {
+                    if (isSubscribed) {
+                        setResource(resource);
+                        setInitialRemarks(getPropertyValue(resource?.properties?.remarks));
+                    }
+                })
+                .finally(() => {
+                    if (isSubscribed) {
+                        setIsLoading(false);
+                    }
+                });
+        }
 
         return () => {
-            isMounted.current = false;
+            isSubscribed = false;
         };
-    });
+    }, [selectedNode]);
 
     return {
         resource,

@@ -18,11 +18,10 @@ export const getResources = async (subscriptionId: string, resourceId: string): 
 };
 
 export const useGraph = () => {
-    const [graph, setGraph] = useState<Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>>(
+    const [graph, setGraph] = useState<Map<string, { appGroupNode?: Node<GraphNode>; nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>>(
         new Map<string, { nodes: Node<GraphNode>[]; edges: Edge<GraphEdge>[] }>()
     );
     const [isLoading, setIsLoading] = useState(false);
-    const [isPanelOpen, setIsPanelOpen] = useState(false);
     const [selectedNode, setSelectedNode] = useState<GraphNode>();
     const [nodes, setNodes, onNodesChange] = useNodesState<Node<GraphNode>>([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<GraphEdge>>([]);
@@ -32,16 +31,6 @@ export const useGraph = () => {
     const layoutGraph = useGraphLayout();
 
     const { fitView } = useReactFlow();
-
-    const openPanel = useCallback((node: GraphNode) => {
-        setSelectedNode(node);
-        setIsPanelOpen(true);
-    }, []);
-
-    const closePanel = useCallback(() => {
-        setIsPanelOpen(false);
-        setSelectedNode(undefined);
-    }, []);
 
     const hoverNode = useCallback(
         (nodeId: string) => {
@@ -67,18 +56,16 @@ export const useGraph = () => {
 
     const onAppGroupUpdate = useCallback(
         async (appGroup?: ResourceExtended) => {
-            closePanel();
-
             setIsLoading(true);
 
             if (appGroup) {
                 if (!graph.has(appGroup.id)) {
                     const resources = await getResources(getSubscriptionIdFromNodeId(appGroup.id), appGroup.id);
-                    const { nodes, edges } = getNewNodesAndEdges(appGroup, resources);
+                    const { appGroupNode, nodes, edges } = getNewNodesAndEdges(appGroup, resources);
                     layoutGraph(nodes, edges).then(result => {
                         setGraph(prev => {
                             const newGraph = new Map(prev);
-                            newGraph.set(appGroup.id, { ...result });
+                            newGraph.set(appGroup.id, { appGroupNode, ...result });
                             return newGraph;
                         });
                         setNodes(result.nodes);
@@ -90,19 +77,22 @@ export const useGraph = () => {
                             return prev;
                         });
                     });
+                    setSelectedNode(appGroupNode.data);
                 } else {
-                    const { nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
+                    const { appGroupNode, nodes, edges } = graph.get(appGroup.id) ?? { nodes: [], edges: [] };
                     setNodes(nodes);
                     setEdges(edges);
                     setIsLoading(false);
+                    setSelectedNode(appGroupNode?.data);
                 }
             } else {
                 setNodes([]);
                 setEdges([]);
                 setIsLoading(false);
+                setSelectedNode(undefined);
             }
         },
-        [graph, closePanel, setNodes, setEdges]
+        [graph, setNodes, setEdges]
     );
 
     useEffect(() => {
@@ -117,10 +107,8 @@ export const useGraph = () => {
         onNodesChange,
         onEdgesChange,
         isLoading,
-        openPanel,
-        closePanel,
-        isPanelOpen,
         selectedNode,
+        setSelectedNode,
         onAppGroupUpdate,
         hoverNode,
         unHoverNode,

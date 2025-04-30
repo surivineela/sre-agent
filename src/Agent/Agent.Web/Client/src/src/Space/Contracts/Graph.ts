@@ -58,10 +58,8 @@ export type GraphEdge = {
 };
 
 interface GraphContextProps {
-    openPanel: (node: GraphNode) => void;
-    closePanel: () => void;
-    isPanelOpen: boolean;
     selectedNode?: GraphNode;
+    setSelectedNode: (_?: GraphNode) => void;
     hoverNode: (nodeId: string) => void;
     unHoverNode: () => void;
     nodesToHightlight: string[];
@@ -69,9 +67,7 @@ interface GraphContextProps {
 }
 
 export const GraphContext = createContext<GraphContextProps>({
-    openPanel: () => {},
-    closePanel: () => {},
-    isPanelOpen: false,
+    setSelectedNode: (_?: GraphNode) => {},
     hoverNode: () => {},
     unHoverNode: () => {},
     nodesToHightlight: [],

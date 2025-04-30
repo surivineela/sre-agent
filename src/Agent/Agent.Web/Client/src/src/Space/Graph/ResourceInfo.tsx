@@ -1,33 +1,35 @@
 import {
     Button,
     Caption1,
-    DrawerBody,
-    DrawerFooter,
-    DrawerHeader,
-    DrawerHeaderTitle,
+    Dialog,
+    DialogActions,
+    DialogBody,
+    DialogContent,
+    DialogSurface,
+    DialogTitle,
+    DialogTrigger,
     Field,
     Image,
     Label,
     Link,
     makeStyles,
     mergeClasses,
-    OverlayDrawer,
     Spinner,
     Text,
     Textarea,
     TextareaOnChangeData,
     Toaster,
+    tokens,
 } from '@fluentui/react-components';
-import { Dismiss24Regular } from '@fluentui/react-icons';
-import { memo, useContext, useEffect, useState } from 'react';
+import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
-import { GraphContext, ResourceExtended } from '../Contracts/Graph';
-import { createThread, getPropertyValue, usePanel } from '../Hooks/usePanel';
+import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
+import { createThread, getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
 
-export interface IPanelProps {
+export interface IResourceInfoProps {
     transferDataToActivities: (threadId?: string | null) => void;
 }
 
@@ -36,13 +38,30 @@ const isNullOrUndefined = (input?: unknown): boolean => {
 };
 
 const useStyles = makeStyles({
+    root: {
+        maxWidth: '300px',
+        minWidth: '150px',
+        padding: '20px',
+        height: 'calc(100% - 8px)',
+        backgroundColor: tokens.colorNeutralBackground3,
+        flex: '1 1 auto',
+        overflowY: 'auto',
+        position: 'relative',
+    },
+    infoContent: {
+        width: '100%',
+        height: '100%',
+    },
+    title: {
+        lineHeight: '20px',
+    },
+    content: {
+        margin: '20px 0px',
+    },
     spinner: {
-        position: 'fixed',
+        position: 'absolute',
         top: '50%',
         left: '50%',
-    },
-    root: {
-        margin: '20px 0px',
     },
     textarea: {
         display: 'block',
@@ -81,50 +100,38 @@ const useStyles = makeStyles({
     },
 });
 
-const Panel = ({ transferDataToActivities }: IPanelProps) => {
-    const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = usePanel();
+const ResourceInfo = ({ transferDataToActivities }: IResourceInfoProps) => {
+    const { selectedNode } = useContext(GraphContext);
+
+    const componentKey = useMemo(() => Guid.newGuid(), [selectedNode]);
+
+    const { root } = useStyles();
+
+    return (
+        <div key={componentKey} className={root}>
+            <ResourceInfoContent transferDataToActivities={transferDataToActivities} selectedNode={selectedNode} />
+        </div>
+    );
+};
+
+const ResourceInfoContent = ({ transferDataToActivities, selectedNode }: IResourceInfoProps & { selectedNode?: GraphNode }) => {
+    const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
 
     const properties = resource?.properties;
 
-    const [remarks, setRemarks] = useState<string>('');
+    const { infoContent, title, spinner, content, dashboard } = useStyles();
 
-    const { isPanelOpen, closePanel, selectedNode } = useContext(GraphContext);
+    return selectedNode ? (
+        <div className={infoContent}>
+            <Text as="h2" size={600} weight={'semibold'} className={title}>
+                {selectedNode?.name ?? ''}
+            </Text>
 
-    const { spinner, textarea, textareaInner, root, dashboard } = useStyles();
-
-    useEffect(() => {
-        setRemarks(initialRemarks);
-    }, [initialRemarks]);
-
-    return (
-        <OverlayDrawer modalType="non-modal" open={isPanelOpen} position="end" size={'medium'}>
-            <DrawerHeader>
-                <DrawerHeaderTitle
-                    action={<Button appearance="subtle" aria-label="Close" icon={<Dismiss24Regular />} onClick={() => closePanel()} />}
-                >
-                    {selectedNode?.name ?? ''}
-                </DrawerHeaderTitle>
-            </DrawerHeader>
-
-            <DrawerBody>
+            <div>
                 {isLoading ? (
                     <Spinner size={'large'} className={spinner} />
                 ) : (
-                    <div className={root}>
-                        <Section title={'Annotation'}>
-                            <Textarea
-                                textarea={{
-                                    className: textareaInner,
-                                }}
-                                disabled={isUpdating}
-                                className={textarea}
-                                placeholder="Add annotations to your resource"
-                                value={remarks}
-                                onChange={(_, data: TextareaOnChangeData) => {
-                                    setRemarks(data.value);
-                                }}
-                            />
-                        </Section>
+                    <div className={content}>
                         <Section title={'Resource details'}>
                             <SummaryField label={'Name'} value={getPropertyValue(properties?.resourceName)} />
                             <SummaryField label={'Type'} value={getPropertyValue(properties?.resourceType)} />
@@ -141,29 +148,28 @@ const Panel = ({ transferDataToActivities }: IPanelProps) => {
                                     </div>
                                 ) : null}
                             </SummaryField>
+                            <SummaryField label={'Annotation'}>
+                                {initialRemarks ? <div>{initialRemarks}</div> : null}
+                                <Dialog>
+                                    <DialogTrigger disableButtonEnhancement>
+                                        <Link>{initialRemarks ? 'Edit annotation' : 'Add annotation'}</Link>
+                                    </DialogTrigger>
+                                    <AnnotationDialogSurface
+                                        initialRemarks={initialRemarks}
+                                        isUpdating={isUpdating}
+                                        onSubmit={async (remarks: string) => {
+                                            await onSubmit(remarks);
+                                        }}
+                                    />
+                                </Dialog>
+                            </SummaryField>
                         </Section>
                     </div>
                 )}
-            </DrawerBody>
-
-            <DrawerFooter>
-                <Button
-                    appearance="primary"
-                    disabled={remarks === initialRemarks || isUpdating}
-                    onClick={async () => {
-                        onSubmit(remarks);
-                    }}
-                >
-                    {'Save'}
-                </Button>
-                <Button appearance="secondary" onClick={() => closePanel()}>
-                    {'Cancel'}
-                </Button>
-            </DrawerFooter>
-
+            </div>
             <Toaster toasterId={toasterId} />
-        </OverlayDrawer>
-    );
+        </div>
+    ) : null;
 };
 
 const AppHealthInfo = memo(
@@ -240,6 +246,64 @@ const AppHealthInfo = memo(
     }
 );
 
+const AnnotationDialogSurface = memo(
+    ({
+        initialRemarks,
+        isUpdating,
+        onSubmit,
+    }: {
+        initialRemarks: string;
+        isUpdating: boolean;
+        onSubmit: (remarks: string) => Promise<void>;
+    }) => {
+        const [remarks, setRemarks] = useState<string>('');
+
+        const { textarea, textareaInner } = useStyles();
+
+        useEffect(() => {
+            setRemarks(initialRemarks);
+        }, [initialRemarks]);
+
+        return (
+            <DialogSurface>
+                <DialogBody>
+                    <DialogTitle>{'Annotation'}</DialogTitle>
+                    <DialogContent>
+                        <Textarea
+                            textarea={{
+                                className: textareaInner,
+                            }}
+                            disabled={isUpdating}
+                            className={textarea}
+                            placeholder="Add annotations to your resource"
+                            value={remarks}
+                            onChange={(_, data: TextareaOnChangeData) => {
+                                setRemarks(data.value);
+                            }}
+                        />
+                    </DialogContent>
+                    <DialogActions>
+                        <DialogTrigger>
+                            <Button
+                                appearance="primary"
+                                disabled={remarks === initialRemarks || isUpdating}
+                                onClick={async () => {
+                                    onSubmit(remarks);
+                                }}
+                            >
+                                {'Save'}
+                            </Button>
+                        </DialogTrigger>
+                        <DialogTrigger disableButtonEnhancement>
+                            <Button appearance="secondary">{'Cancel'}</Button>
+                        </DialogTrigger>
+                    </DialogActions>
+                </DialogBody>
+            </DialogSurface>
+        );
+    }
+);
+
 const Section = memo(({ title, children }: { title: string; children: JSX.Element | JSX.Element[] }) => {
     const { section, sectionTitle } = useStyles();
 
@@ -253,7 +317,7 @@ const Section = memo(({ title, children }: { title: string; children: JSX.Elemen
     );
 });
 
-const SummaryField = memo(({ label, value, children }: { label: string; value?: string; children?: JSX.Element | null }) => {
+const SummaryField = memo(({ label, value, children }: { label: string; value?: string; children?: ReactNode }) => {
     const { sectionField, sectionFieldText, sectionFieldValueText } = useStyles();
 
     return (
@@ -276,7 +340,8 @@ const SummaryField = memo(({ label, value, children }: { label: string; value?: 
 });
 
 AppHealthInfo.displayName = 'AppHealthInfo';
+AnnotationDialogSurface.displayName = 'AnnotationDialogSurface';
 Section.displayName = 'Section';
 SummaryField.displayName = 'SummaryField';
 
-export default memo(Panel);
+export default ResourceInfo;

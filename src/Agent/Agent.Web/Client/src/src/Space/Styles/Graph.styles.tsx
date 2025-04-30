@@ -12,9 +12,10 @@ export const useGraphStyles = makeStyles({
         borderTop: '1px solid rgba(204,204,204,.8)',
     },
     reactFlow: {
-        width: 'calc(100% - 360px)',
+        maxWidth: 'calc(100% - 280px)',
+        minWidth: '400px',
         height: '100%',
-        flex: '0 0 auto',
+        flex: '1 1 auto',
     },
     spinner: {
         position: 'fixed',
@@ -64,11 +65,12 @@ export const useResourceSelectorStyles = makeStyles({
         flexDirection: 'column',
         gap: '20px',
         alignItems: 'flex-start',
-        width: '300px',
+        maxWidth: '300px',
+        minWidth: '100px',
         height: '100%',
-        flex: '0 0 auto',
+        flex: '1 1 auto',
         backgroundColor: tokens.colorNeutralBackground3,
-        padding: '35px 30px',
+        padding: '35px 20px',
     },
     option: {
         display: 'flex',

@@ -7,7 +7,7 @@ import { useGraph } from '../Hooks/useGraph';
 import { useGraphStyles } from '../Styles/Graph.styles';
 import { CustomEdge } from './CustomEdge';
 import { GraphCard } from './GraphCard';
-import Panel from './Panel';
+import ResourceInfo from './ResourceInfo';
 import ResourceSelector from './ResourceSelector';
 
 import '@xyflow/react/dist/style.css';
@@ -31,15 +31,13 @@ const GraphContent = (props: IGraphProps) => {
         isLoading,
         onNodesChange,
         onEdgesChange,
-        openPanel,
-        closePanel,
-        isPanelOpen,
         selectedNode,
         onAppGroupUpdate,
         hoverNode,
         unHoverNode,
         nodesToHightlight,
         edgesToHightlight,
+        setSelectedNode,
     } = useGraph();
 
     const { root, reactFlow, spinner } = useGraphStyles();
@@ -49,10 +47,8 @@ const GraphContent = (props: IGraphProps) => {
     return (
         <GraphContext.Provider
             value={{
-                openPanel,
-                closePanel,
-                isPanelOpen,
                 selectedNode,
+                setSelectedNode,
                 hoverNode,
                 unHoverNode,
                 nodesToHightlight,
@@ -81,7 +77,7 @@ const GraphContent = (props: IGraphProps) => {
                         </ReactFlow>
                     )}
                 </div>
-                <Panel {...props} />
+                <ResourceInfo {...props} />
             </div>
         </GraphContext.Provider>
     );

@@ -106,7 +106,7 @@ const getFriendlyName = (azureType?: string): string => {
 // ────────────────────────────────────────────────────────────────────────────────
 export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
     const { id, data } = props;
-    const { openPanel, hoverNode, unHoverNode, nodesToHightlight } = useContext(GraphContext);
+    const { hoverNode, unHoverNode, nodesToHightlight, setSelectedNode } = useContext(GraphContext);
 
     const { card, cardHightlight, header, headerText, description } = useGraphNodeStyles();
 
@@ -126,7 +126,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
                 className={headerText}
                 onClick={e => {
                     e.stopPropagation();
-                    openPanel(data);
+                    setSelectedNode(data);
                 }}
             >
                 <Text wrap={false} block={false} size={600}>
@@ -147,7 +147,7 @@ export const GraphCard = (props: NodeProps<Node<GraphNode>>) => {
             <Handles />
             <Card
                 onClick={() => {
-                    openPanel(data);
+                    setSelectedNode(data);
                 }}
                 className={mergeClasses(card, nodesToHightlight.includes(id) ? cardHightlight : undefined)}
             >
