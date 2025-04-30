@@ -9,6 +9,7 @@ using Azure.Core;
 using Azure.Identity;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager;
+using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins
 {
@@ -125,14 +126,26 @@ namespace Agent.Plugins
         {
             Console.WriteLine($"[get_webapp_and_functionapp_memory_metrics] Invoked with resourceId: {resourceId}");
 
+            List<TimeSeriesData> metricsData = new();
             var metrics = new List<Metric>
             {
                 new Metric { Name = "PrivateBytes", Unit = "Bytes", Aggregation = "Average" },
             };
 
-            var metricsData = await _armHelper.FetchMetricsAsync(
-                resourceId.ToString(),
-                metrics);
+            try
+            {
+                metricsData = await _armHelper.FetchMetricsAsync(
+                    resourceId.ToString(),
+                    metrics);
+            }
+            catch (Exception ex)
+            {
+                metrics[0].Name = "AverageMemoryWorkingSet";
+
+                metricsData = await _armHelper.FetchMetricsAsync(
+                    resourceId.ToString(),
+                    metrics);
+            }
 
             return metricsData
                 .Select(m => new MemoryTimeSeriesData(
