@@ -73,7 +73,6 @@ public class TimerService : IHostedService, IDisposable
     private TimerSettings _timerSettings;
     private IncidentManagementSettings _incidentManagementSettings;
     private DashboardSettings _dashboardSettings;
-    private BestPracticeScannerAgent _bestPracticeScannerAgent;
     private TlsBestPracticesScanner _tlsBestPracticesScanner;
     private DailyReportScanner _dailyReportScanner;
     private SourceCodeScanner _sourceCodeScanner;
@@ -86,10 +85,6 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
     private bool _crawlerFinishedOnce = false;
-
-    private Timer? _bestPracticeTimer = null;
-    private bool _bestPracticeTimerIsRunning = false;
-    private int _bestPracticeTimerIntervalInMinutes = 24 * 60;
 
     private Timer? _tlsTimer = null;
     private bool _tlsTimerIsRunning = false;
@@ -135,7 +130,6 @@ public class TimerService : IHostedService, IDisposable
         TimerSettings timerSettings,
         DashboardSettings dashboardSettings,
         IncidentManagementSettings incidentManagementSettings,
-        BestPracticeScannerAgent bestPracticeScannerAgent,
         IPostToTeamsPlugin teamsPlugin,
         TlsBestPracticesScanner tlsBestPracticesScanner,
         DailyReportScanner dailyReportScanner,
@@ -163,7 +157,6 @@ public class TimerService : IHostedService, IDisposable
         _chartPlugin = chartPlugin;
         _timerSettings = timerSettings;
         _incidentManagementSettings = incidentManagementSettings;
-        _bestPracticeScannerAgent = bestPracticeScannerAgent;
         _teamsPlugin = teamsPlugin;
         _tlsBestPracticesScanner = tlsBestPracticesScanner;
         _dailyReportScanner = dailyReportScanner;
@@ -171,7 +164,6 @@ public class TimerService : IHostedService, IDisposable
         _appServiceScanner = appServiceScanner;
         _cveScanner = cveScanner;
         _scoreCardService = scoreCardService;
-        _bestPracticeTimerIntervalInMinutes = timerSettings.BestPracticeScanIntervalInMinutes;
         _sinkService = sinkService;
         _feedbackRCAScanner = feedbackRCAScanner;
         _dashboardSettings = dashboardSettings;
@@ -202,10 +194,7 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting background services...");
 
         StartCrawlerTimer(cancellationToken);
-
-        _logger.LogInformation($"Starting best practice timer...");
-        StartBestPracticeTimer(cancellationToken);
-
+        
         _logger.LogInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
 
@@ -247,7 +236,6 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation("Stopping background services...");
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
-        _bestPracticeTimer?.Change(Timeout.Infinite, 0); // Stop the best practice timer
 
         // Stop all generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
@@ -428,65 +416,6 @@ public class TimerService : IHostedService, IDisposable
                 }
             }, null, TimeSpan.Zero, scanner.Interval);
         }
-    }
-
-    /// <summary>
-    /// Kicks off the best practice scanner and posts issues to Teams
-    /// </summary>
-    public void StartBestPracticeTimer(CancellationToken cancellationToken)
-    {
-        _bestPracticeTimer = new Timer(async _ =>
-        {
-            if (!_crawlerFinishedOnce)
-            {
-                _logger.LogInformation("StartBestPracticeTimer: Resource crawler still in progress, wait for one round of scan to complete..");
-                return; // Wait for the first crawl to finish
-            }
-
-            if (_bestPracticeTimerIsRunning) return; // Prevent overlapping executions
-
-            try
-            {
-                _bestPracticeTimerIsRunning = true;
-                string? issues = await _bestPracticeScannerAgent.Scan([], cancellationToken);
-
-                _logger.LogInformation("Best practice issues detected: {Issues}", issues);
-                // If issues were found, post them to Teams
-                if (!string.IsNullOrEmpty(issues))
-                {
-                    string messageToPost = $"⚠️ Best Practice Issues Detected ⚠️\n\n{issues}";
-                    var succeed = await _teamsPlugin.CreateTeamsThread("", messageToPost);
-                    if (succeed)
-                    {
-                        _bestPracticeTimerIntervalInMinutes = 60 * 24; // Set to 1 day
-                        _bestPracticeTimer?.Change(
-                            TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes),
-                            TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes));
-                        _logger.LogInformation("Best practice issues posted to Teams, will set the interval to 1 day");
-                    }
-                    else
-                    {
-                        _logger.LogError("Failed to post best practice issues to Teams");
-                    }
-                }
-                else
-                {
-                    _logger.LogInformation("No best practice issues detected");
-                    await _teamsPlugin.CreateTeamsThread("", "All best practices are met! 🎉");
-                }
-
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error executing best practice timer.");
-            }
-            finally
-            {
-                _bestPracticeTimerIsRunning = false; // Ensure flag resets even if scan fails
-            }
-        }, null,
-        TimeSpan.FromMinutes(0), // Initial delay before first execution
-        TimeSpan.FromMinutes(_bestPracticeTimerIntervalInMinutes)); // Interval between subsequent executions
     }
 
     public void StartDailyReportTimer(CancellationToken cancellationToken)
@@ -862,7 +791,6 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
-        _bestPracticeTimer?.Dispose();
 
         // Dispose generic timers
         foreach (var scanner in GenericSubAgentScannerTimers)
