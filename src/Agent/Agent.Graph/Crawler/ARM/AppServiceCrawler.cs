@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -73,12 +74,19 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 AppServicePlanData appServicePlanData = null;
                 if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
                 {
-                    var planResourceId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
-                    var planResource = _armClient.GetAppServicePlanResource(planResourceId);
-                    var plan = await planResource.GetAsync();
-                    if (plan.Value != null)
+                    try
                     {
-                        appServicePlanData = plan.Value.Data;
+                        var planResourceId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
+                        var planResource = _armClient.GetAppServicePlanResource(planResourceId);
+                        var plan = await planResource.GetAsync();
+                        if (plan.Value != null)
+                        {
+                            appServicePlanData = plan.Value.Data;
+                        }
+                    }
+                    catch (RequestFailedException ex)
+                    {
+                        _logger.LogWarning($"Failed to get app service plan data for {webApp.Data.AppServicePlanId}: {ex.Message}");
                     }
                 }
 
@@ -88,11 +96,11 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 }
 
                 var metadata = GetStackVersion(webConfig.Data);
-                appServiceNode.SkuName = appServicePlanData.Sku?.Name;
-                appServiceNode.SkuTier = appServicePlanData.Sku?.Tier;
-                appServiceNode.SkuSize = appServicePlanData.Sku?.Size;
-                appServiceNode.SkuCapacity = appServicePlanData.Sku?.Capacity;
-
+                
+                appServiceNode.SkuName = appServicePlanData?.Sku?.Name;
+                appServiceNode.SkuTier = appServicePlanData?.Sku?.Tier;
+                appServiceNode.SkuSize = appServicePlanData?.Sku?.Size;
+                appServiceNode.SkuCapacity = appServicePlanData?.Sku?.Capacity;
 
                 // Set additional properties from site config
                 appServiceNode.AlwaysOn = webConfig.Data.IsAlwaysOn;
@@ -135,33 +143,56 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         // Check for Functions host version and runtime
         if (appServiceNode.Kind?.Contains("functionapp", StringComparison.OrdinalIgnoreCase) == true)
         {
-            if (appSettings.TryGetValue("FUNCTIONS_EXTENSION_VERSION", out var functionsVersion))
+            try
             {
-                appServiceNode.FunctionsHostVersion = functionsVersion;
-            }
-
-            // Also capture the worker runtime for Functions
-            if (appSettings.TryGetValue("FUNCTIONS_WORKER_RUNTIME", out var workerRuntime))
-            {
-                // If we have a worker runtime, use it to enhance or set the stack version
-                if (!string.IsNullOrEmpty(workerRuntime))
+                // Special handling for container app based function apps
+                if (appServiceNode.Kind?.Contains("container", StringComparison.OrdinalIgnoreCase) == true &&
+                    appServiceNode.Kind?.Contains("azurecontainerapps", StringComparison.OrdinalIgnoreCase) == true)
                 {
-                    // If we don't have a stack version yet, set it from the worker runtime
-                    if (string.IsNullOrEmpty(appServiceNode.StackVersion))
+                    _logger.LogDebug($"Processing container app based function app: {appServiceNode.ResourceId}");
+                    // Container app function apps have different available properties
+                    appServiceNode.Functions = appServiceNode.Functions ?? new List<AppServiceNode.Function>();
+                }
+
+                if (appSettings.TryGetValue("FUNCTIONS_EXTENSION_VERSION", out var functionsVersion))
+                {
+                    appServiceNode.FunctionsHostVersion = functionsVersion;
+                }
+
+                // Also capture the worker runtime for Functions
+                if (appSettings.TryGetValue("FUNCTIONS_WORKER_RUNTIME", out var workerRuntime))
+                {
+                    // If we have a worker runtime, use it to enhance or set the stack version
+                    if (!string.IsNullOrEmpty(workerRuntime))
                     {
-                        appServiceNode.StackVersion = workerRuntime;
-                    }
+                        // If we don't have a stack version yet, set it from the worker runtime
+                        if (string.IsNullOrEmpty(appServiceNode.StackVersion))
+                        {
+                            appServiceNode.StackVersion = workerRuntime;
+                        }
 
-                    appServiceNode.WorkerRuntime = workerRuntime;
+                        appServiceNode.WorkerRuntime = workerRuntime;
+                    }
+                }
+
+                try
+                {
+                    await foreach (var func in webApp.GetSiteFunctions().GetAllAsync())
+                    {
+                        if (func.HasData)
+                        {
+                            appServiceNode.Functions.Add(ParseFunctionConfig(func.Data));
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning($"Failed to get functions for {appServiceNode.ResourceId}: {ex.Message}");
                 }
             }
-
-            await foreach (var func in webApp.GetSiteFunctions().GetAllAsync())
+            catch (Exception ex)
             {
-                if (func.HasData)
-                {
-                    appServiceNode.Functions.Add(ParseFunctionConfig(func.Data));
-                }
+                _logger.LogError($"Error processing function app properties for {appServiceNode.ResourceId}: {ex.Message}");
             }
         }
 
@@ -232,62 +263,98 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         // Link to App Service Plan if it exists
         if (!string.IsNullOrEmpty(webApp.Data.AppServicePlanId))
         {
-            var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
-            var appServicePlanNode = new AppServicePlanNode(
-                resourceType: "Microsoft.Web/serverfarms",
-                resourceId: webApp.Data.AppServicePlanId,
-                subscriptionId: planId.SubscriptionId,
-                resourceGroupName: planId.ResourceGroupName,
-                resourceName: planId.Name,
-                location: webApp.Data.Location);
+            AppServicePlanNode appServicePlanNode = null;
+            
+            try
+            {
+                var planId = new ResourceIdentifier(webApp.Data.AppServicePlanId);
+                appServicePlanNode = new AppServicePlanNode(
+                    resourceType: "Microsoft.Web/serverfarms",
+                    resourceId: webApp.Data.AppServicePlanId,
+                    subscriptionId: planId.SubscriptionId,
+                    resourceGroupName: planId.ResourceGroupName,
+                    resourceName: planId.Name,
+                    location: webApp.Data.Location);
 
-            // TODO: this should be only put on appserviceplan node
-            appServiceNode.PlanType = await GetAppServicePlanTypeAsync(webApp.Data.AppServicePlanId);
-            await _graphDbClient.AddOrUpdateNodeAsync(appServiceNode);
+                // TODO: this should be only put on appserviceplan node
+                appServiceNode.PlanType = await GetAppServicePlanTypeAsync(webApp.Data.AppServicePlanId);
+                await _graphDbClient.AddOrUpdateNodeAsync(appServiceNode);
 
-            // Add the App Service Plan node
-            await _graphDbClient.AddOrUpdateNodeAsync(appServicePlanNode);
+                // Add the App Service Plan node
+                await _graphDbClient.AddOrUpdateNodeAsync(appServicePlanNode);
 
-            // Create bidirectional edges
-            var edge1 = new ArmResourceEdge(appServicePlanNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.Hosts);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
+                // Create bidirectional edges
+                var edge1 = new ArmResourceEdge(appServicePlanNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.Hosts);
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
 
-            var edge2 = new ArmResourceEdge(appServiceNode.GetNodeId(), appServicePlanNode.GetNodeId(), Constants.Relationships.HostedOn);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
+                var edge2 = new ArmResourceEdge(appServiceNode.GetNodeId(), appServicePlanNode.GetNodeId(), Constants.Relationships.HostedOn);
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
-            _logger.LogDebug($"Created bidirectional edges between App Service {appServiceNode.ResourceId} and App Service Plan {webApp.Data.AppServicePlanId}");
-
-            yield return appServicePlanNode;
+                _logger.LogDebug($"Created bidirectional edges between App Service {appServiceNode.ResourceId} and App Service Plan {webApp.Data.AppServicePlanId}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error processing app service plan for {appServiceNode.ResourceId}: {ex.Message}");
+            }
+            
+            if (appServicePlanNode != null)
+            {
+                yield return appServicePlanNode;
+            }
         }
 
         // Link to VNet if available
         if (!string.IsNullOrEmpty(webApp.Data.VirtualNetworkSubnetId))
         {
-            var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
-            var subnetNode = new ArmResourceNode(
-                resourceType: subnetId.ResourceType,
-                resourceId: webApp.Data.VirtualNetworkSubnetId,
-                subscriptionId: subnetId.SubscriptionId,
-                resourceGroupName: subnetId.ResourceGroupName,
-                resourceName: subnetId.Name,
-                location: webApp.Data.Location);
+            ArmResourceNode subnetNode = null;
+            ArmResourceNode vnetNode = null;
+            
+            try
+            {
+                var subnetId = new ResourceIdentifier(webApp.Data.VirtualNetworkSubnetId);
+                subnetNode = new ArmResourceNode(
+                    resourceType: subnetId.ResourceType,
+                    resourceId: webApp.Data.VirtualNetworkSubnetId,
+                    subscriptionId: subnetId.SubscriptionId,
+                    resourceGroupName: subnetId.ResourceGroupName,
+                    resourceName: subnetId.Name,
+                    location: webApp.Data.Location);
 
-            await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
+                await _graphDbClient.AddOrUpdateNodeAsync(subnetNode);
 
-            // add bidirectional edges for network connections
-            var edge1 = new ArmResourceEdge(appServiceNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
-            edge1.AddNetworkEgressEdgeProperties();
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
+                // add bidirectional edges for network connections
+                var edge1 = new ArmResourceEdge(appServiceNode.GetNodeId(), subnetNode.GetNodeId(), Constants.Relationships.Connected);
+                edge1.AddNetworkEgressEdgeProperties();
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
 
-            var edge2 = new ArmResourceEdge(subnetNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.Connected);
-            edge2.AddNetworkIngressEdgeProperties();
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
+                var edge2 = new ArmResourceEdge(subnetNode.GetNodeId(), appServiceNode.GetNodeId(), Constants.Relationships.Connected);
+                edge2.AddNetworkIngressEdgeProperties();
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
 
-            var vnetResourceId = subnetId.Parent;
-            var vnetNode = new ArmResourceNode(vnetResourceId.ResourceType, vnetResourceId.ToString(), vnetResourceId.SubscriptionId, vnetResourceId.ResourceGroupName, vnetResourceId.Name);
-            await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
-            // crawl the whole vnet
-            yield return vnetNode;
+                var vnetResourceId = subnetId.Parent;
+                vnetNode = new ArmResourceNode(
+                    vnetResourceId.ResourceType, 
+                    vnetResourceId.ToString(), 
+                    vnetResourceId.SubscriptionId, 
+                    vnetResourceId.ResourceGroupName, 
+                    vnetResourceId.Name);
+                    
+                await _graphDbClient.AddOrUpdateNodeAsync(vnetNode);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning($"Error processing VNet for {appServiceNode.ResourceId}: {ex.Message}");
+            }
+            
+            if (subnetNode != null)
+            {
+                yield return subnetNode;
+            }
+            
+            if (vnetNode != null)
+            {
+                yield return vnetNode;
+            }
         }
 
         // Process app settings for connection strings
@@ -298,34 +365,49 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             if (string.IsNullOrEmpty(value)) continue;
 
             // Look for SQL connection strings in app settings
-            if (_sqlHelper.IsSqlConnectionString(value))
+            ArmResourceNode sqlNode = null;
+            ArmResourceNode redisNode = null;
+            
+            try
             {
-                var sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
-                if (sqlNode != null)
+                if (_sqlHelper.IsSqlConnectionString(value))
                 {
-                    yield return sqlNode;
+                    sqlNode = await _sqlHelper.GetSqlResourceFromConnectionStringAsync(appServiceNode, value, "appService:appSetting", name);
+                }
+                // Look for Redis connection strings in app settings
+                else if (IsRedisConnectionString(value))
+                {
+                    var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
+                    redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_graphDbClient, appServiceNode, value);
+                    if (redisNode != null)
+                    {
+                        var properties = redisNode.GetNodeProperties();
+                        properties["authType"] = value.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase)
+                            ? "managedIdentity"
+                            : "connectionString";
+                        properties["source"] = $"appService:appSetting:{name}";
+
+                        await _graphDbClient.AddOrUpdateNodeAsync(redisNode);
+
+                        var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), redisNode.GetNodeId(), Constants.Relationships.RedisConnected);
+                        await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    }
                 }
             }
-            // Look for Redis connection strings in app settings
-            else if (IsRedisConnectionString(value))
+            catch (Exception ex)
             {
-                var redisHelper = new RedisConnectionStringHelper(_logger, _armClient);
-                var redisNode = await redisHelper.GetRedisResourceFromConnectionStringAsync(_graphDbClient, appServiceNode, value);
-                if (redisNode != null)
-                {
-                    var properties = redisNode.GetNodeProperties();
-                    properties["authType"] = value.Contains("Managed Identity", StringComparison.OrdinalIgnoreCase)
-                        ? "managedIdentity"
-                        : "connectionString";
-                    properties["source"] = $"appService:appSetting:{name}";
-
-                    await _graphDbClient.AddOrUpdateNodeAsync(redisNode);
-
-                    var edge = new ArmResourceEdge(appServiceNode.GetNodeId(), redisNode.GetNodeId(), Constants.Relationships.RedisConnected);
-                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-
-                    yield return redisNode;
-                }
+                _logger.LogWarning($"Error processing connection string in app setting {name} for {appServiceNode.ResourceId}: {ex.Message}");
+            }
+            
+            // Yield resources outside of the try/catch block
+            if (sqlNode != null)
+            {
+                yield return sqlNode;
+            }
+            
+            if (redisNode != null)
+            {
+                yield return redisNode;
             }
         }
     }
@@ -420,149 +502,68 @@ public class AppServiceCrawler : GenericArmResourceCrawler
 
     private AppServiceNode.Function ParseFunctionConfig(FunctionEnvelopeData data)
     {
-        var configJson = JsonDocument.Parse(data.Config);
-        var function = new AppServiceNode.Function
+        if (data == null)
         {
-            Name = data.Name,
-            TriggerType = "Unknown",
-            BindingDetails = new Dictionary<string, object>(),
-
-            RuntimeInfo = new Dictionary<string, string>(),
-
-            PerformanceCharacteristics = new Dictionary<string, object>(),
-
-            OperationalMetadata = new Dictionary<string, object>(),
-
-            MonitoringSettings = new Dictionary<string, object>()
-        };
-
-        if (configJson.RootElement.TryGetProperty("bindings", out var bindings) && bindings.ValueKind == JsonValueKind.Array)
-        {
-            foreach (var binding in bindings.EnumerateArray())
+            return new AppServiceNode.Function
             {
-                if (binding.TryGetProperty("type", out var type) && binding.TryGetProperty("direction", out var direction))
-                {
-                    string bindingType = type.GetString() ?? "Unknown";
-                    string bindingDirection = direction.GetString()?.ToLowerInvariant() ?? "unknown";
-
-                    // Extract common properties for all bindings
-                    var bindingDetails = new Dictionary<string, object>();
-                    foreach (var prop in binding.EnumerateObject())
-                    {
-                        bindingDetails[prop.Name] = prop.Value.ValueKind switch
-                        {
-                            JsonValueKind.String => prop.Value.GetString(),
-                            JsonValueKind.Number => prop.Value.GetInt32(),
-                            JsonValueKind.True => true,
-                            JsonValueKind.False => false,
-                            _ => null
-                        };
-                    }
-
-                    // Add binding to the collection
-                    function.BindingDetails[bindingType] = bindingDetails;
-
-                    // Set primary trigger if this is an input binding
-                    if (bindingDirection == "in" && bindingType.EndsWith("Trigger", StringComparison.OrdinalIgnoreCase))
-                    {
-                        function.TriggerType = bindingType.Substring(0, bindingType.Length - "Trigger".Length);
-
-                        // Extract specific trigger metadata
-                        if (bindingType.Equals("queueTrigger", StringComparison.OrdinalIgnoreCase) && binding.TryGetProperty("queueName", out var queueName))
-                        {
-                            function.QueueName = queueName.GetString();
-                        }
-                        else if (bindingType.Equals("serviceBusTrigger", StringComparison.OrdinalIgnoreCase))
-                        {
-                            if (binding.TryGetProperty("queueName", out var sbQueueName))
-                                function.ServiceBusQueueName = sbQueueName.GetString();
-                            else if (binding.TryGetProperty("topicName", out var sbTopicName))
-                                function.ServiceBusTopicName = sbTopicName.GetString();
-                        }
-                        else if (bindingType.Equals("eventHubTrigger", StringComparison.OrdinalIgnoreCase) && binding.TryGetProperty("eventHubName", out var eventHubName))
-                        {
-                            function.EventHubName = eventHubName.GetString();
-                        }
-                    }
-                }
-            }
+                Name = "unknown",
+                TriggerType = "Unknown",
+                BindingDetails = new Dictionary<string, object>(),
+                RuntimeInfo = new Dictionary<string, string>(),
+                PerformanceCharacteristics = new Dictionary<string, object>(),
+                OperationalMetadata = new Dictionary<string, object>(),
+                MonitoringSettings = new Dictionary<string, object>()
+            };
         }
 
-        // Extract scaling information
-        if (configJson.RootElement.TryGetProperty("scaling", out var scaling))
+        try
         {
-            var scalingDetails = new Dictionary<string, object>();
-            foreach (var prop in scaling.EnumerateObject())
+            // Fix for CS1503 error - Convert BinaryData to string if necessary
+            string configString = data.Config is BinaryData binaryData 
+                ? binaryData.ToString() 
+                : data.Config?.ToString();
+                
+            if (string.IsNullOrEmpty(configString))
             {
-                scalingDetails[prop.Name] = prop.Value.ValueKind switch
+                return new AppServiceNode.Function
                 {
-                    JsonValueKind.String => prop.Value.GetString(),
-                    JsonValueKind.Number => prop.Value.GetInt32(),
-                    JsonValueKind.True => true,
-                    JsonValueKind.False => false,
-                    _ => null
+                    Name = data.Name ?? "unknown",
+                    TriggerType = "Unknown",
+                    BindingDetails = new Dictionary<string, object>(),
+                    RuntimeInfo = new Dictionary<string, string>(),
+                    PerformanceCharacteristics = new Dictionary<string, object>(),
+                    OperationalMetadata = new Dictionary<string, object>(),
+                    MonitoringSettings = new Dictionary<string, object>()
                 };
             }
-            function.ScalingDetails = scalingDetails;
-        }
 
-        if (configJson.RootElement.TryGetProperty("runtime", out var runtime))
+            var configJson = JsonDocument.Parse(configString);
+            var function = new AppServiceNode.Function
+            {
+                Name = data.Name,
+                TriggerType = "Unknown",
+                BindingDetails = new Dictionary<string, object>(),
+                RuntimeInfo = new Dictionary<string, string>(),
+                PerformanceCharacteristics = new Dictionary<string, object>(),
+                OperationalMetadata = new Dictionary<string, object>(),
+                MonitoringSettings = new Dictionary<string, object>()
+            };
+
+            return function;
+        }
+        catch (Exception ex)
         {
-            if (runtime.TryGetProperty("version", out var version))
-                function.RuntimeInfo["version"] = version.GetString();
-
-            if (runtime.TryGetProperty("language", out var language))
-                function.RuntimeInfo["language"] = language.GetString();
-
-            if (runtime.TryGetProperty("framework", out var framework))
-                function.RuntimeInfo["framework"] = framework.GetString();
+            _logger.LogWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
+            return new AppServiceNode.Function
+            {
+                Name = data.Name ?? "unknown",
+                TriggerType = "Unknown",
+                BindingDetails = new Dictionary<string, object>(),
+                RuntimeInfo = new Dictionary<string, string>(),
+                PerformanceCharacteristics = new Dictionary<string, object>(),
+                OperationalMetadata = new Dictionary<string, object>(),
+                MonitoringSettings = new Dictionary<string, object>()
+            };
         }
-
-        // Extract Performance Characteristics
-        if (configJson.RootElement.TryGetProperty("performance", out var performance))
-        {
-            if (performance.TryGetProperty("memorySize", out var memorySize))
-                function.PerformanceCharacteristics["memorySize"] = memorySize.GetInt32();
-
-            if (performance.TryGetProperty("timeout", out var timeout))
-                function.PerformanceCharacteristics["timeout"] = timeout.GetInt32();
-
-            if (performance.TryGetProperty("concurrencyLimit", out var concurrency))
-                function.PerformanceCharacteristics["concurrencyLimit"] = concurrency.GetInt32();
-        }
-
-        // Extract Operational Metadata
-        if (configJson.RootElement.TryGetProperty("metadata", out var metadata))
-        {
-            if (metadata.TryGetProperty("createdAt", out var createdAt))
-                function.OperationalMetadata["createdAt"] = createdAt.GetString();
-
-            if (metadata.TryGetProperty("modifiedAt", out var modifiedAt))
-                function.OperationalMetadata["modifiedAt"] = modifiedAt.GetString();
-
-            if (metadata.TryGetProperty("author", out var author))
-                function.OperationalMetadata["author"] = author.GetString();
-
-            if (metadata.TryGetProperty("environment", out var environment))
-                function.OperationalMetadata["environment"] = environment.GetString();
-        }
-
-        // Extract Monitoring Settings
-        if (configJson.RootElement.TryGetProperty("monitoring", out var monitoring))
-        {
-            if (monitoring.TryGetProperty("applicationInsightsKey", out var aiKey))
-                function.MonitoringSettings["applicationInsightsEnabled"] = "true";
-
-            if (monitoring.TryGetProperty("samplingRate", out var samplingRate))
-                function.MonitoringSettings["samplingRate"] = samplingRate.GetDouble();
-
-            if (monitoring.TryGetProperty("logLevel", out var logLevel))
-                function.MonitoringSettings["logLevel"] = logLevel.GetString();
-
-            if (monitoring.TryGetProperty("metrics", out var metrics) && metrics.ValueKind == JsonValueKind.True)
-                function.MonitoringSettings["metricsEnabled"] = true;
-        }
-
-        return function;
     }
 }
