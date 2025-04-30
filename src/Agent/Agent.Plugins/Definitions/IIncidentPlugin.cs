@@ -14,4 +14,5 @@ public interface IIncidentPlugin
     /// <param name="maxResults">max number of incidents to return</param>
     /// <returns>a list of pager duty incidents</returns>
     Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5);
+    Task ResolvePagerDutyIncidentAsync(string incidentId);
 }

@@ -2,10 +2,17 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Helpers;
 using Agent.Core.Models.Api.v1;
 
 namespace Agent.Core.Interfaces;
+
+public record IncidentDiscussion(
+    string Id,
+    string Message,
+    string UserId,
+    string UserDisplayName,
+    DateTime CreatedTimestamp
+);
 
 /// <summary>
 /// Interface for processing messages from users to agents/orchestrations
@@ -18,21 +25,37 @@ public interface IAgentInboundCommunicationService
     /// <param name="title"></param>
     /// <returns></returns>
     Task<(Models.Api.v1.Thread, AgentContext)> CreateAgentThread(
-        string title, 
-        string message, 
+        string title,
+        string message,
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Conversation,
-        string incidentId = "");
+        string incidentId = "",
+        IncidentSource? incidentSource = null);
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,
     /// and trigger teams to notify the engineer as well
     /// </summary>
     Task<Models.Api.v1.Thread> CreateAlertThreadWithTeams(
-        string title, 
-        string message, 
+        string title,
+        string message,
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Alert);
+
+
+    /// <summary>
+    /// Used for starting a thread on an incident
+    /// </summary>
+    Task<Models.Api.v1.Thread> CreateAndProcessIncidentThread(
+        string title,
+        string message,
+        IncidentSource incidentSource,
+        List<IncidentDiscussion> discussions);
+
+    Task AddNewDiscussionsToIncidentThread(
+        Guid incidentThreadId,
+        List<IncidentDiscussion> discussions);
+
 
     /// <summary>
     /// Processes a thread that has been created for an alert, and starts the orchestration

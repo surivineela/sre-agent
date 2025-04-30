@@ -637,6 +637,8 @@ public class MetaAgentEvals
                     "Q1GD948W0C9OQN",
                     htmlUrl,
                     "triggered",
+                    "P1",
+                    "high",
                     DateTime.UtcNow.AddDays(-1))
                     {
                         Title = "Test incident titled edited",

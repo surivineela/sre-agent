@@ -16,5 +16,11 @@ namespace Agent.Plugins.Definitions
         {
             return await incidentPlugin.GetPagerDutyIncidentsAsync(resourceId, maxResults);
         }
+
+        [Description("Resolves a PagerDuty incident")]
+        public async Task ResolvePagerDutyIncidentAsync([Description("PagerDuty incident id")] string incidentId)
+        {
+            await incidentPlugin.ResolvePagerDutyIncidentAsync(incidentId);
+        }
     }
 }

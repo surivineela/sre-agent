@@ -9,6 +9,8 @@ public record PagerDutyIncidentDocument(
     string Id, // Incident ID
     string HtmlUrl,
     string Status, // // Incident status: triggered, acknowledged, resolved
+    string Priority, // e.g. P1, P2, P3 or not set
+    string Urgency, // e.g. high, low
     DateTime CreatedAt
 ) : ICosmosDocument
 {
@@ -21,6 +23,18 @@ public record PagerDutyIncidentDocument(
     public string Title { get; set; } = string.Empty;
     public string Description { get; set; } = string.Empty;
     public DateTime UpdatedAt { get; set; }
-
+    public List<PagerDutyIncidentNote> Notes { get; set; } = []; // Notes of the incident sorted by CreatedAt in decending order.
 }
 
+public record PagerDutyAgent(
+    string Id, // e.g. PYPV3MY
+    string Name, // Agent name. e.g. Yefu Wang
+    string HtmlUrl // e.g. https://yefutest.pagerduty.com/users/PYPV3MY
+);
+// Notes are like discussions in PagerDuty. 
+public record PagerDutyIncidentNote(
+    string Id, // ID of the note
+    string Content,
+    DateTime CreatedAt,
+    PagerDutyAgent? CreatedBy // for notify_log_entry, there's no created_by field.
+);

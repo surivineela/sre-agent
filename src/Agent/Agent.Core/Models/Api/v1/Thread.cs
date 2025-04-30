@@ -17,6 +17,14 @@ namespace Agent.Core.Models.Api.v1
         WelcomeMessage,
     }
 
+    public enum IncidentType
+    {
+        PagerDuty,
+        Icm,
+    }
+
+    public record IncidentSource(IncidentType IncidentType, string IncidentId);
+
     public record Thread(
         Guid Id,
         string Title,
@@ -26,7 +34,8 @@ namespace Agent.Core.Models.Api.v1
         DateTime ModifiedTimestamp,
         ThreadSource Source = ThreadSource.Conversation,
         string? WaitReason = null,
-        DateTime? WaitUntil = null
+        DateTime? WaitUntil = null,
+        IncidentSource? IncidentSource = null
     )
     {
         public Status? Status { get; set; } = null;

@@ -1,4 +1,4 @@
-// ------------------------------------------------------------
+﻿// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -81,6 +81,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<RoleAssignmentPluginDefinition>();
         RegisterPlugin<FunctionAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
+        RegisterPlugin<IncidentPluginDefinition>();
 
         // Not all tools were registered, so registering individually
         Register200<GitHubIssuePluginDefinition>(x => x.FetchGithubSecurityDependabotAlerts);

@@ -42,7 +42,8 @@ public class ConnectedIntegrationsPlugin : IConnectedIntegrationsPlugin
         });
 
         // Incident Management (e.g. PagerDuty)
-        var incidentConfigured = !string.IsNullOrWhiteSpace(_incident.Type);
+        var incidentConfigured = _incident.Type is not null &&
+            !string.IsNullOrWhiteSpace(_incident.ConnectionKey);
         integrations.Add(new IntegrationInfo
         {
             Name = "IncidentManagement",

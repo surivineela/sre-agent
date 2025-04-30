@@ -3,18 +3,33 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
+using System.Runtime.Serialization;
+using System.Text.Json.Serialization;
 
 namespace Agent.Core.Configuration
 {
+
+    [JsonConverter(typeof(JsonStringEnumConverter))]
+    public enum IncidentManagementType
+    {
+        PagerDuty,
+        Icm
+    }
+
     public class IncidentManagementSettings
     {
+
         [Required]
-        public string Type { get; set; }
+        public IncidentManagementType? Type { get; set; }
 
         public string? ConnectionName  { get; set; }
 
         public string? ConnectionUrl { get; set; }
 
         public string? ConnectionKey { get; set; }
+
+        // Write actions taken by this agent will be on behalf of this user. 
+        // For PagerDuty, this is the email address of a valid user.
+        public string? OboUser { get; set; }
     }
 }

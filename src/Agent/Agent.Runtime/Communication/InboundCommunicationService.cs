@@ -16,6 +16,7 @@ using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
 
 namespace Agent.Runtime.Communication;
 
@@ -65,9 +66,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         string message,
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Agent,
-        string incidentId = "")
+        string incidentId = "",
+        IncidentSource? incidentSource = null)
     {
-        return await CreateThread(title, message, source, agentTypeEnum, null, incidentId);
+        return await CreateThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -260,7 +262,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         ThreadSource source,
         AgentTypeEnum agentTypeEnum,
         OutboundConfiguration? outboundConfiguration = null,
-        string incidentId = "")
+        string incidentId = "",
+        IncidentSource? incidentSource = null)
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -279,14 +282,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             LastMessage: startMessage,
             CreatedTimestamp: now,
             ModifiedTimestamp: now,
-            Source: source
+            Source: source,
+            IncidentSource: incidentSource
         );
 
         if (incidentId != string.Empty)
         {
             thread.Status = new Status
             {
-                IncidentStatus = new IncidentStatus
+                IncidentStatus = new Core.Models.Api.v1.IncidentStatus
                 {
                     IncidentId = incidentId,
                 }
@@ -319,5 +323,47 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         await _repository.CreateReasoningMessageAsync(startReasoningMessage);
 
         return (thread, agentContext);
+    }
+
+    public async Task<Core.Models.Api.v1.Thread> CreateAndProcessIncidentThread(string title, string message, IncidentSource incidentSource, List<IncidentDiscussion> discussions)
+    {
+        (var thread, var agentContext) = await CreateAgentThread(
+            title: title,
+            message: message,
+            agentTypeEnum: AgentTypeEnum.Meta,
+            source: ThreadSource.Incident,
+            incidentSource: incidentSource
+        );
+
+        await AddNewDiscussionsToIncidentThread(thread.Id, discussions);
+
+        var agentMessage = $"**Detected the incident**. I'm starting to investigate and see how I can help.";
+        await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
+
+        await ProcessAlertMessageAsync(new ThreadMessage(
+            ThreadId: thread.Id,
+            AgentContextId: agentContext.Id,
+            MessageId: thread.StartMessage.Id,
+            Message: "",
+            UserId: "incident-system",
+            DisplayName: incidentSource.IncidentType.ToString(),
+            Timestamp: DateTime.UtcNow
+        ));
+
+        return thread;
+    }
+
+    public async Task AddNewDiscussionsToIncidentThread(Guid incidentThreadId, List<IncidentDiscussion> discussions)
+    {
+        foreach (var discussion in discussions)
+        {
+            var discussionMessage = new Message(
+                Id: Guid.NewGuid(),
+                TimeStamp: DateTime.UtcNow,
+                Author: new Author(Role.SREAgent, discussion.UserId, discussion.UserDisplayName),
+                Text: $"{discussion.UserDisplayName} commented at {discussion.CreatedTimestamp}: {discussion.Message}",
+                IncidentDiscussionId: discussion.Id);
+            await _repository.AddMessageAsync(incidentThreadId, discussionMessage);
+        }
     }
 }

@@ -3,14 +3,17 @@
 // ------------------------------------------------------------
 
 using System.Net;
-using System.Text.Json;
+using System.Text;
 using Agent.Core.Configuration;
+using Agent.Core.Interfaces;
+using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
-using Agent.Runtime.Services;
+using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 
@@ -22,16 +25,25 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                               CosmosClient cosmosClient,
                               CosmosDBSettings cosmosDbSettings,
                               IChatClient chatClient,
-                              IGraphDatabaseClient graphDbClient)
+                              IGraphDatabaseClient graphDbClient,
+                              IncidentManagementSettings incidentManagementSettings,
+                              IAgentInboundCommunicationService agentInboundCommunicationService)
 {
     private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
     private const uint PageSize = 10;
+    private readonly static TimeSpan ScanInterval = TimeSpan.FromMinutes(1);
 
     public async Task ScanAsync(CancellationToken cancellationToken)
     {
-        if (string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PAGERDUTY_API_KEY")))
+        if (incidentManagementSettings is null || incidentManagementSettings.Type != IncidentManagementType.PagerDuty)
         {
-            logger.LogInformation("PagerDuty API KEY not found, skipping scan.");
+            logger.LogInformation("PagerDuty is not configured. Skipping scanning.");
+            return;
+        }
+
+        if (string.IsNullOrEmpty(incidentManagementSettings.ConnectionKey))
+        {
+            logger.LogWarning("PagerDuty API key is not configured. Skipping scanning.");
             return;
         }
 
@@ -39,7 +51,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         {
             await ScannAllIncidentsAsync(cancellationToken);
 
-            await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
+            await Task.Delay(ScanInterval, cancellationToken);
         }
     }
 
@@ -67,77 +79,12 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 foreach (var incident in response.Incidents)
                 {
                     var incidentDocument = await GetDocumentAsync<PagerDutyIncidentDocument>(incident.IncidentId, incident.IncidentId);
-                    var latestDescription = await pagerDutyService.GetLatestIncidentDescription(incident.IncidentId);
-                    // TODO: check latest title
-                    if (incidentDocument is null)
-                    {
-                        logger.LogInformation("Creating new incident document for {incidentId}", incident.IncidentId);
-                        incidentDocument = new PagerDutyIncidentDocument(Id: incident.IncidentId, HtmlUrl: incident.HtmlUrl, CreatedAt: incident.CreatedAt, Status: incident.Status)
-                        {
-                            Title = incident.Title,
-                            Description = incident.Description,
-                            UpdatedAt = DateTime.UtcNow
-                        };
 
-                        if (!string.IsNullOrEmpty(latestDescription) && incident.Description != latestDescription)
-                        {
-                            incidentDocument.Description = latestDescription;
-                        }
+                    incidentDocument = await UpsertIncidentDocumentIfNeededAsync(incidentDocument, incident, cancellationToken);
 
-                        // var titleEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Title, cancellationToken: cancellationToken);
-                        // TODO: try to avoid this copy
-                        // incidentDocument.TitleVector = titleEmbedding.Vector.ToArray();
-                        // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
-                        // incidentDocument.DescriptionVector = descriptionEmbedding.Vector.ToArray();
-                    }
-                    else
-                    {
-                        logger.LogInformation("Updating existing incident document for {incidentId}", incident.IncidentId);
-                        if (!string.IsNullOrEmpty(latestDescription) && incidentDocument.Description != latestDescription)
-                        {
-                            incidentDocument.Description = latestDescription;
-                            incidentDocument.UpdatedAt = DateTime.UtcNow;
-                            // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
-                            // TODO: try to avoid this copy
-                            // incidentDocument.DescriptionVector = descriptionEmbedding.Vector.ToArray();
-                        }
-                        // TODO: check latest title and update titleVector if needed
-                    }
+                    var realtedResourceIds = await UpdateResourceGraph(incidentDocument, incident);
 
-                    await container.UpsertItemAsync(incidentDocument, new PartitionKey(incident.IncidentId), cancellationToken: cancellationToken);
-                    logger.LogInformation("Upserted incident document for {incidentId}", incident.IncidentId);
-
-                    var incidentNode = new PagerDutyIncidentNode
-                    {
-                        IncidentId = incident.IncidentId
-                    };
-                    var result = await graphDbClient.AddOrUpdateNodeAsync(incidentNode);
-                    logger.LogInformation("Upserted incident node for {incidentId}", incident.IncidentId);
-                    
-                    var relatedResourceIds = await GetRelatedResourceIdsAsync(incidentDocument.Description);
-                    logger.LogInformation("Related resource ids to incident {incidentId}: {relatedResourceIds}", incident.IncidentId,string.Join(", ", relatedResourceIds));
-
-                    foreach (var resourceId in relatedResourceIds)
-                    {
-                        if (string.IsNullOrEmpty(resourceId))
-                        {
-                            logger.LogWarning("Related resource id is null or empty for incident {incidentId}", incident.IncidentId);
-                            continue;
-                        }
-                        var nodeId = await graphDbClient.GetNodeId(resourceId);
-                        if (string.IsNullOrEmpty(nodeId))
-                        {
-                            logger.LogWarning("{resourceId} related to incident {incidentId} doesn't exist in knowledge graph", resourceId, incident.IncidentId);
-                            continue;
-                        }
-                        var edge = new RelatedToIncidentEdge
-                        {
-                            SourceNodeId = nodeId,
-                            TargetNodeId = incidentNode.GetNodeId(),
-                        };
-                        await graphDbClient.AddOrUpdateEdgeAsync(edge);
-                        logger.LogInformation("Added RelatedToIncidentEdge from {resourceId} to {incidentId}", resourceId, incident.IncidentId);
-                    }
+                    await NotifyUserAsync(incidentDocument, realtedResourceIds);
                 }
             }
             catch (Exception ex)
@@ -147,6 +94,258 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
             page++;
         }
+    }
+
+    private async Task NotifyUserAsync(PagerDutyIncidentDocument incidentDocument, List<string> relatedResourceIds)
+    {
+        try
+        {
+            if (incidentDocument is null)
+            {
+                logger.LogWarning("Incident document is null, skipping notification.");
+                return;
+            }
+
+            if (incidentDocument.Status == "resolved")
+            {
+                logger.LogInformation("Incident {incidentId} is resolved, skipping notification.", incidentDocument.Id);
+                return;
+            }
+
+            var threadDocument = await GetIncidentThread(incidentDocument.Id);
+            if (threadDocument is null)
+            {
+                logger.LogInformation("Thread doesn't exist for incident {incidentId}, creating a new one", incidentDocument.Id);
+                var title = $"New PagerDuty incident reported: {incidentDocument.Title}";
+                var sb = new StringBuilder();
+                sb.AppendLine($"**Incident ID:** {incidentDocument.Id}\n");
+                sb.AppendLine($"**Title:** {incidentDocument.Title}\n");
+                sb.AppendLine($"**Description:** {incidentDocument.Description}\n");
+                sb.AppendLine($"**Created At:** {incidentDocument.CreatedAt}\n");
+                sb.AppendLine($"**Status:** {incidentDocument.Status}\n");
+                sb.AppendLine($"**Priority:** {incidentDocument.Priority}\n");
+                sb.AppendLine($"**Urgency:** {incidentDocument.Urgency}\n");
+                sb.AppendLine($"**Click [here]({incidentDocument.HtmlUrl}) for details**\n");
+                if (relatedResourceIds.Count > 0)
+                {
+                    sb.AppendLine($"**The incident might be related to resources:** {string.Join(", ", relatedResourceIds)}\n");
+                }
+
+                var message = sb.ToString();
+                var notes = incidentDocument.Notes.OrderBy(note => note.CreatedAt).Select(note => new IncidentDiscussion(note.Id, note.Content, note.CreatedBy?.Id ?? "Unknown", note.CreatedBy?.Name ?? "Unknown", note.CreatedAt)).ToList();
+                var thread = await agentInboundCommunicationService.CreateAndProcessIncidentThread(title, message, new IncidentSource(IncidentType.PagerDuty, incidentDocument.Id), notes);
+            }
+            else
+            {
+                logger.LogInformation("Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
+                // todo
+                var iterator = container.GetItemLinqQueryable<MessageDocument>()
+                    .Where(doc => doc.DocumentType == "Message" && doc.ThreadId == threadDocument.Id)
+                    .Where(doc => doc.IncidentDiscussionId != null)
+                    .Select(doc => doc.IncidentDiscussionId!)
+                    .ToFeedIterator();
+                    // .ToHashSet();
+                var existingNotesIds = new HashSet<string>();
+                while (iterator.HasMoreResults)
+                {
+                    var response = await iterator.ReadNextAsync();
+                    foreach (var item in response)
+                    {
+                        existingNotesIds.Add(item);
+                    }
+                }
+                logger.LogInformation("Found {existingNotesCount} existing notes for incident {incidentId}", existingNotesIds.Count, incidentDocument.Id);
+
+                var newNotes = incidentDocument.Notes
+                    .Where(note => !existingNotesIds.Contains(note.Id))
+                    .OrderBy(note => note.CreatedAt)
+                    .Select(note => new IncidentDiscussion(note.Id, note.Content, note.CreatedBy?.Id ?? "Unknown", note.CreatedBy?.Name ?? "Unknown", note.CreatedAt))
+                    .ToList();
+
+                if (newNotes.Count > 0)
+                {
+                    logger.LogInformation("Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
+                    await agentInboundCommunicationService.AddNewDiscussionsToIncidentThread(Guid.Parse(threadDocument.Id), newNotes);
+                    logger.LogInformation("Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
+                }
+                else
+                {
+                    logger.LogInformation("No new notes found for incident {incidentId}", incidentDocument.Id);
+                }
+
+            }
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error notifying user about incident {incidentId}", incidentDocument.Id);
+        }
+
+    }
+
+    private async Task<ThreadDocument?> GetIncidentThread(string incidentId)
+    {
+        var threads = container.GetItemLinqQueryable<ThreadDocument>()
+            .Where(doc => doc.DocumentType == "Thread" && doc.Source == ThreadSource.Incident)
+            .Where(doc => doc.IncidentSource != null && doc.IncidentSource.IncidentType == IncidentType.PagerDuty && doc.IncidentSource.IncidentId == incidentId)
+            .OrderBy(doc => doc.CreatedTimestamp)
+            .ToFeedIterator();
+
+        if (threads.HasMoreResults)
+        {
+            var response = await threads.ReadNextAsync();
+            if (response.Count == 1)
+            {
+                return response.FirstOrDefault();
+            }
+            else if (response.Count > 1)
+            {
+                logger.LogWarning("Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
+                return response.FirstOrDefault();
+            }
+        }
+        return null;
+    }
+
+    private async Task<PagerDutyIncidentDocument> UpsertIncidentDocumentIfNeededAsync(PagerDutyIncidentDocument incidentDocument, Graph.Interfaces.PagerDutyIncident incident, CancellationToken cancellationToken = default)
+    {
+        try
+        {
+            var latestDetails = await pagerDutyService.GetLatestIncidentDetails(incident.IncidentId);
+            bool needsUpsert = false;
+            // TODO: check latest title
+            if (incidentDocument is null)
+            {
+                needsUpsert = true;
+                logger.LogInformation("Creating new incident document by id {incidentId}", incident.IncidentId);
+                incidentDocument = new PagerDutyIncidentDocument(Id: incident.IncidentId, HtmlUrl: incident.HtmlUrl, CreatedAt: incident.CreatedAt, Status: incident.Status, Priority: incident.Priority?.Summary ?? "Not set", Urgency: incident.Urgency ?? "Not set")
+                {
+                    Title = incident.Title,
+                    // Well done PagerDuty. Took me hours to figure out where to find the real description.
+                    Description = incident.FirstTriggerLogEntry.Channel?.Details ?? incident.Description,
+                    UpdatedAt = DateTime.UtcNow
+                };
+
+                if (latestDetails is not null)
+                {
+                    incidentDocument.Notes = latestDetails.Notes;
+
+                    if (!string.IsNullOrEmpty(latestDetails.LatestDescription) && incidentDocument.Description != latestDetails.LatestDescription)
+                    {
+                        incidentDocument.Description = latestDetails.LatestDescription;
+                    }
+
+                    if (!string.IsNullOrEmpty(latestDetails.LatestTitle) && incidentDocument.Title != latestDetails.LatestTitle)
+                    {
+                        incidentDocument.Title = latestDetails.LatestTitle;
+                    }
+                }
+
+                // var titleEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Title, cancellationToken: cancellationToken);
+                // TODO: try to avoid this copy
+                // incidentDocument.TitleVector = titleEmbedding.Vector.ToArray();
+                // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
+                // incidentDocument.DescriptionVector = descriptionEmbedding.Vector.ToArray();
+            }
+            else
+            {
+                logger.LogInformation("Updating existing incident document by id {incidentId}", incident.IncidentId);
+                if (latestDetails is not null)
+                {
+                    if (!string.IsNullOrEmpty(latestDetails.LatestDescription) && incidentDocument.Description != latestDetails.LatestDescription)
+                    {
+                        incidentDocument.Description = latestDetails.LatestDescription;
+                        needsUpsert = true;
+                    }
+
+                    if (!string.IsNullOrEmpty(latestDetails.LatestTitle) && incidentDocument.Title != latestDetails.LatestTitle)
+                    {
+                        incidentDocument.Title = latestDetails.LatestTitle;
+                        needsUpsert = true;
+                    }
+                    if (incidentDocument.Notes.Count < latestDetails.Notes.Count)
+                    {
+                        incidentDocument.Notes = latestDetails.Notes;
+                        needsUpsert = true;
+                    }
+
+                }
+                // var descriptionEmbedding = await embeddingGenerator.GenerateEmbeddingAsync(incident.Description, cancellationToken: cancellationToken);
+                // TODO: try to avoid this copy
+                // incidentDocument.DescriptionVector = descriptionEmbedding.Vector.ToArray();
+            }
+
+            // todo: maybe use patch instead of upsert for updating existing incidents.
+            if (needsUpsert)
+            {
+                await container.UpsertItemAsync(incidentDocument, new PartitionKey(incident.IncidentId), cancellationToken: cancellationToken);
+                logger.LogInformation("Upserted incident document for PagerDuty incident {incidentId}", incident.IncidentId);
+            }
+            else
+            {
+                logger.LogInformation("No changes detected for PagerDuty incident {incidentId}", incident.IncidentId);
+            }
+            return incidentDocument;
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error upserting incident document for PagerDuty incident {incidentId}", incident.IncidentId);
+        }
+        return incidentDocument;
+    }
+
+    private async Task<List<string>> UpdateResourceGraph(PagerDutyIncidentDocument incidentDocument, Graph.Interfaces.PagerDutyIncident incident)
+    {
+        if (incidentDocument is null)
+        {
+            logger.LogWarning("Incident document is null, skipping resource graph update.");
+            return [];
+        }
+
+        try
+        {
+            var incidentNode = new PagerDutyIncidentNode
+            {
+                IncidentId = incident.IncidentId
+            };
+            var result = await graphDbClient.AddOrUpdateNodeAsync(incidentNode);
+            logger.LogInformation("Upserted incident node for {incidentId}", incident.IncidentId);
+
+            if (!string.IsNullOrEmpty(incidentDocument.Description))
+            {
+                var relatedResourceIds = await GetRelatedResourceIdsAsync(incidentDocument.Description);
+                logger.LogInformation("Related resource ids to incident {incidentId}: {relatedResourceIds}", incident.IncidentId, string.Join(", ", relatedResourceIds));
+
+                foreach (var resourceId in relatedResourceIds)
+                {
+                    if (string.IsNullOrEmpty(resourceId))
+                    {
+                        logger.LogWarning("Related resource id is null or empty for incident {incidentId}", incident.IncidentId);
+                        continue;
+                    }
+                    var nodeId = await graphDbClient.GetNodeId(resourceId);
+                    if (string.IsNullOrEmpty(nodeId))
+                    {
+                        logger.LogWarning("{resourceId} related to incident {incidentId} doesn't exist in knowledge graph", resourceId, incident.IncidentId);
+                        continue;
+                    }
+                    var edge = new RelatedToIncidentEdge
+                    {
+                        SourceNodeId = nodeId,
+                        TargetNodeId = incidentNode.GetNodeId(),
+                    };
+                    await graphDbClient.AddOrUpdateEdgeAsync(edge);
+                    logger.LogInformation("Added RelatedToIncidentEdge from {resourceId} to {incidentId}", resourceId, incident.IncidentId);
+                }
+                return relatedResourceIds;
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error updating resource graph for incident {incidentId}", incident.IncidentId);
+        }
+        return [];
     }
 
     private async Task<List<string>> GetRelatedResourceIdsAsync(string incidentDescription)

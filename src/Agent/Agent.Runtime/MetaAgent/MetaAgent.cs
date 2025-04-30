@@ -287,7 +287,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         var chatHistoryReasoningMessages = await agentChatHistory.GetReasoningMessagesAsync(_threadRepository);
         var chatHistory = chatHistoryReasoningMessages.GetChatMessages();
         var lastMessageAppended = chatHistory.LastOrDefault()?.Text.Equals(lastUserMessage, StringComparison.Ordinal) ?? false;
-        if (!lastMessageAppended)
+        if (!lastMessageAppended && !string.IsNullOrEmpty(lastUserMessage))
         {
             chatHistory.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, lastUserMessage));
         }
@@ -420,6 +420,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.StartAzureSqlDbQueryPerfInvestigatorAgent),
             AIFunctionFactory.Create(connectedIntegrationsPluginDefinition.GetAllActiveConnectedIntegrations),
             AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
+            // AIFunctionFactory.Create(incidentPluginDefinition.ResolvePagerDutyIncidentAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
             AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations),

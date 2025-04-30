@@ -15,7 +15,10 @@ public record MessageDocument(
     string Text,
     bool IsImageContent = false,
     Posted? Posted = null,
-    Approval? Approval = null
+    Approval? Approval = null,
+    // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty), 
+    // it is the PagerDuty note id. PagerDuty note id is is not a guid
+    string? IncidentDiscussionId = null 
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -32,7 +35,8 @@ public record MessageDocument(
             message.Text,
             message.IsImageContent,
             message.Posted,
-            Approval: message.Approval ?? null
+            Approval: message.Approval ?? null,
+            IncidentDiscussionId: message.IncidentDiscussionId
         );
 
     public Message ToDomainModel(Approval? approval = null) =>
@@ -43,6 +47,7 @@ public record MessageDocument(
             Text,
             IsImageContent,
             Posted,
-            Approval
+            Approval,
+            IncidentDiscussionId: IncidentDiscussionId
         );
 }

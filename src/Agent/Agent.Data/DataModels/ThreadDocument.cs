@@ -15,7 +15,8 @@ public record ThreadDocument(
     string LastMessageId, // Reference to the last message
     DateTime CreatedTimestamp,
     DateTime ModifiedTimestamp,
-    ThreadSource Source = ThreadSource.Conversation
+    ThreadSource Source = ThreadSource.Conversation,
+    IncidentSource? IncidentSource = null
 ) : ICosmosDocument
 {
     public string DocumentType => "Thread";
@@ -32,7 +33,8 @@ public record ThreadDocument(
             thread.LastMessage?.Id.ToString(),
             thread.CreatedTimestamp,
             thread.ModifiedTimestamp,
-            thread.Source
+            thread.Source,
+            IncidentSource: thread.IncidentSource
         );
 
     public Thread ToDomainModel(Message startMessage, Message? lastMessage) =>
@@ -43,6 +45,7 @@ public record ThreadDocument(
             lastMessage,
             CreatedTimestamp,
             ModifiedTimestamp,
-            Source
+            Source,
+            IncidentSource: IncidentSource
         );
 }
