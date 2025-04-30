@@ -1,0 +1,17 @@
+let startTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let cappSubscription = "##subscriptionId##";
+let cappResourceGroup = "##resourceGroupName##";
+let cappName = "##containerAppName##";
+let clusterName = toscalar (ContainerAppDBState
+| where TIMESTAMP between (startTime .. endTime)
+| where subscription == cappSubscription
+| where resourceGroup == cappResourceGroup
+| where containerAppName == cappName
+| summarize  max(TIMESTAMP) by managedClusterName);
+EnvoyFrontEndLogsTable
+| where TIMESTAMP between (startTime .. endTime)
+| where EnvironmentName == clusterName
+| project StartTime, Authority, Method, Path, Protocol, Status, ResponseFlags, ResponseCodeDetails, GrpcStatus, GrpcStatusNumber, RequestDuration, UpstreamHost, UpstreamCluster, UpstreamRequestAttemptCount, BytesRecieved, BytesSent, RevisionName, UserAgent, Role
+| order by StartTime asc
+| limit 200

@@ -26,6 +26,10 @@ namespace FirstPartyAgent.Constants
             public const string ListKustoFunctions = "list_kusto_functions";
             public const string GetHttpScalerEventsForContainerApp = "get_http_scaler_events_for_conatinerapp";
             public const string GetKedaOperatorEventsForContainerApp = "get_keda_operator_events_for_conatinerapp";
+            public const string GetSwiftNetworkingEvents = "get_swift_networking_events";
+            public const string GetEnvoyAbnormalLogs = "get_envoy_abnormal_logs";
+            public const string GetEnvoyControllerLogs = "get_envoy_controller_logs";
+            public const string GetEnvoyAccessLogs = "get_envoy_access_logs";
 
         }
 

@@ -33,7 +33,8 @@ public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
             typeof(ContainerAppsPluginDefinition),
             typeof(IcmPluginDefinition),    
             typeof(ContainerAppRevisionPluginDefinition),
-            typeof(KustoPluginDefinition)
+            typeof(KustoPluginDefinition),
+            typeof(ContainerAppEnvoyPluginDefinition)
         };
         return types;
     }

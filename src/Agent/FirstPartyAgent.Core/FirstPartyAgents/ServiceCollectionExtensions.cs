@@ -66,6 +66,8 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<lHelloWorldPlugin, HelloWorldPlugin>();
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<ContainerAppRevisionPluginDefinition>();
+        services.AddSingleton<IContainerAppEnvoyPlugin, ContainerAppEnvoyPlugin>();
+        services.AddSingleton<ContainerAppEnvoyPluginDefinition>();
         services.AddSingleton<KustoPluginDefinition>();
         services.AddSingleton<HelloWorldPluginDefinition>();
         services.AddSingleton<IcmPluginDefinition>();

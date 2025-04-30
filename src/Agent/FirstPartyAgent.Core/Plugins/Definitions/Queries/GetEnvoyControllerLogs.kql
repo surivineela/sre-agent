@@ -1,0 +1,16 @@
+let startTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let cappSubscription = "##subscriptionId##";
+let cappResourceGroup = "##resourceGroupName##";
+let cappName = "##containerAppName##";
+let clusterName = toscalar (ContainerAppDBState
+| where TIMESTAMP between (startTime .. endTime)
+| where subscription == cappSubscription
+| where resourceGroup == cappResourceGroup
+| where containerAppName == cappName
+| summarize  max(TIMESTAMP) by managedClusterName);
+EnvoyControllerEvents
+| where PreciseTimeStamp between (startTime .. endTime)
+| where EnvironmentName == clusterName
+| where isnotempty(Log) or isnotempty( error )
+| project PreciseTimeStamp, Log, msg, error, Role, _ContainerGroupId, _ContainerGroupName, _ContainerId, _ContainerImage, caller

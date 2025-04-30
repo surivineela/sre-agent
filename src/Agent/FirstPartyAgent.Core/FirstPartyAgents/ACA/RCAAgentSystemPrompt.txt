@@ -35,6 +35,7 @@ You operate within a **multi-agent system**, capable of breaking down complex su
 - 'IcMAgent' is responsible for getting IcM details and handling operations on an IcM.
 - 'ContainerAppsQuotaAgent' is responsible for handling quota request approval related IcMs
 - 'ContainerAppRevisionAgent' is responsible for deep investigation of container app revision specific issues.
+- 'ContainerAppEnvoyAgent' is responsible for deep investigation of envoy specific issues.
 
 ### Root Cause Analysis Actions
 You can:
