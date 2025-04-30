@@ -2,6 +2,9 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
+using System.Text;
+using System.Text.RegularExpressions;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using FirstPartyAgent.Core.Extensions;
@@ -9,8 +12,6 @@ using FirstPartyAgent.Core.Services;
 using Kusto.Cloud.Platform.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using System.ComponentModel;
-using System.Text.RegularExpressions;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -31,17 +32,17 @@ namespace FirstPartyAgent.Plugins
         }
 
         [KernelFunction("execute_kusto_query")]
-        [Description("[DEPRECATED] - Execute a query on the regional kusto cluster and returns JSON response")]
+        [Description("Executes a Kusto query on a regional cluster and returns the result as a JSON string.")]
         public async Task<string> ExecuteKustoQuery(
-            [Description("The region of the target kusto")] string region,
-            [Description("The query to execute")] string query)
+            [Description("The region of the target Kusto cluster.")] string region,
+            [Description("The Kusto query to execute.")] string query)
         {
             try
             {
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
-            var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
-            var reader = await _kustoClientService.PerformQueryAsync(query, region);
-            var writer = new StringWriter();
+                var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
+                var reader = await _kustoClientService.PerformQueryAsync(query, region);
+                var writer = new StringWriter();
 
                 reader.WriteAsJson(writer, 1024 * 1024, out var size);
 
@@ -56,15 +57,14 @@ namespace FirstPartyAgent.Plugins
         }
 
         [KernelFunction("execute_kusto_query_on_cluster")]
-        [Description("Executes a fully qualified Kusto query on a cluster and returns JSON response")]
+        [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
         public async Task<string> ExecuteClusterKustoQuery(
-            [Description("The name (only) of the Kusto cluster")] string cluster,
-            [Description("The name of the Kusto database")] string database,
-            [Description("The full kusto query to execute")] string fullQuery,
+            [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
+            [Description("The name of the target Kusto database.")] string database,
+            [Description("The full Kusto query to execute.")] string fullQuery,
             DateTime? NowOverride,
             Kernel kernel)
         {
-            //Ensure cleanup of cluster name
             cluster = cluster.Replace(".kusto.windows.net", "");
             cluster = cluster.Replace("https://", "");
 
@@ -73,12 +73,12 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 var config = new KustoCluster
-            {
-                ClusterUri = $"https://{cluster}.kusto.windows.net",
-                Database = database,
-            };
-            var reader = await _kustoClientService.PerformQueryAsync(config, fullQuery);
-            var writer = new StringWriter();
+                {
+                    ClusterUri = $"https://{cluster}.kusto.windows.net",
+                    Database = database,
+                };
+                var reader = await _kustoClientService.PerformQueryAsync(config, fullQuery);
+                var writer = new StringWriter();
 
                 reader.WriteAsJson(writer, 1024 * 1024, out var size);
                 if (size > 1024 * 1024)
@@ -88,20 +88,64 @@ namespace FirstPartyAgent.Plugins
                 var result = writer.ToString();
                 _logger.LogInformation($"Kusto Output: {result}");
 
-                if (!string.IsNullOrWhiteSpace(result))
-                {
-                    return result;
-                }
-                else
-                {
-                    return "ZERO_ROWS_RETURNED";
-                }
+                return !string.IsNullOrWhiteSpace(result) ? result : "ZERO_ROWS_RETURNED";
             }
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
                 return $"An error occurred while executing Kusto Query: {ex.Message}";
             }
+        }
+
+        [KernelFunction("list_kusto_functions")]
+        [Description("Lists all available user-defined functions from the Kusto cluster for a given region, including metadata like name, folder, and description.")]
+        public async Task<List<KustoFunction>> ListFunctionsAsync(
+            [Description("The region of the Kusto cluster to query.")] string region)
+        {
+            var query = ".show functions | project Name, Folder, DocString, Parameters";
+            var result = new List<KustoFunction>();
+
+            using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+            while (reader.Read())
+            {
+                result.Add(new KustoFunction
+                {
+                    Name = reader["Name"].ToString(),
+                    Folder = reader["Folder"]?.ToString(),
+                    DocString = reader["DocString"]?.ToString(),
+                    Parameters = reader["Parameters"]?.ToString()
+                });
+            }
+
+            return result;
+        }
+
+        [KernelFunction("execute_kusto_function")]
+        [Description("Executes a user-defined Kusto function with named arguments on the regional Kusto cluster and returns the results.")]
+        public async Task<string> ExecuteFunctionAsync(
+            [Description("The name of the Kusto function to invoke.")] string functionName,
+            [Description("The region of the Kusto cluster.")] string region,
+            Dictionary<string, string>? args = null)
+        {
+            string argList = args != null && args.Count > 0
+                ? string.Join(", ", args.Select(kvp => $"{kvp.Key}={QuoteIfNeeded(kvp.Value)}"))
+                : "";
+
+            var query = string.IsNullOrEmpty(argList) ? $"{functionName}()" : $"{functionName}({argList})";
+            using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+
+            var output = new StringBuilder();
+            while (reader.Read())
+            {
+                output.AppendLine(reader[0].ToString());
+            }
+
+            return output.ToString();
+        }
+
+        private static string QuoteIfNeeded(string value)
+        {
+            return  $"\"{value}\"" ;
         }
     }
 }

@@ -1,3 +1,4 @@
+using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
@@ -6,8 +7,9 @@ using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Core.Services;
-using FirstPartyAgent.Plugins.Definitions;
 using FirstPartyAgent.Plugins;
+using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
@@ -23,6 +25,7 @@ public static class ServiceCollectionExtensions
         builder.Services.RegisterFirstPartyPluginDependencies();
         builder.Services.RegisterFirstPartySubAgentPluginImplementationDependencies();
         builder.RegisterFirstPartySubAgents();
+        builder.Configuration.AddJsonFile("aca-kusto.json", optional: false, reloadOnChange: true); //load base settings
     }
 
     private static void ValidateAndRegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
@@ -35,12 +38,24 @@ public static class ServiceCollectionExtensions
 
         // ADD hard coded settings for now with keeping default in context of ACA for easy local testing and deployment.
         builder.Services.AddSingleton(new HelloWorldSettings());
+        builder.Services.AddSingleton(new RevisionSettings());
+
+        builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
+        builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
+        builder.Services.AddSingleton<KustoClientService>();
+        builder.Services.AddSingleton<TeamsClientSettings>();
 
         builder.Services.AddOptionsWithValidateOnStart<ICMWorkflowSettings>()
             .BindConfiguration("AppSettings:Core:External:ICMWorkflows")
             .ValidateDataAnnotations();
 
+        //.BindConfiguration("AppSettings:FirstPartyAgent:ICMWorkflowSettings")
+        //.ValidateDataAnnotations();
+        builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
+                .BindConfiguration("AppSettings:External:Kusto")
+                .ValidateDataAnnotations();
         builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ICMWorkflowSettings>>().Value);
+        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoSettings>>().Value);
     }
 
     private static void RegisterFirstPartyPluginDependencies(this IServiceCollection services)
@@ -49,6 +64,10 @@ public static class ServiceCollectionExtensions
         // one should add new fundamental plugin dependencies here
         // Note: Don't add sub-agent plugin like 'HelloWorldAgentPlugin' which is automatically loaded.
         services.AddSingleton<lHelloWorldPlugin, HelloWorldPlugin>();
+        services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
+        services.AddSingleton<ContainerAppRevisionPluginDefinition>();
+        services.AddSingleton<KustoPluginDefinition>();
+        services.AddSingleton<HelloWorldPluginDefinition>();
         services.AddSingleton<IcmPluginDefinition>();
         services.AddSingleton<IIcmPlugin, IcmPlugin>();
         services.AddSingleton<ContainerAppsPluginDefinition>();
@@ -60,6 +79,7 @@ public static class ServiceCollectionExtensions
         // TODO: automatically inject these DI in next iteration
         // one should add new sub agents specific dependencies here
         services.AddSingleton<IHelloWorldService, HelloWorldService>();
+        services.AddSingleton<IRevisionService, RevisionService>();
         services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
     }
 

@@ -1,0 +1,16 @@
+let containerAppName = "##containerAppName##";
+let resourceGroupName = "##resourceGroupName##";
+let subscriptionId = "##subscriptionId##";
+let fromDate = datetime("##fromDate##");
+let toDate = datetime("##toDate##");
+let revisionName = "##revisionName##";
+let managedClusterName =toscalar (GetManagedClusterName(containerAppNameParam=containerAppName,resourceGroupParam=resourceGroupName,subscriptionParam=subscriptionId));
+All("EnvoyFrontEndLogsTable")
+| where PreciseTimeStamp between (fromDate .. toDate)
+| where RevisionName == RevisionName
+| where EnvironmentName == managedClusterName
+| make-series RequestsCount = count() default = 0 
+    on PreciseTimeStamp in range (fromDate, toDate, 5m) 
+    by Status_string
+| mv-expand RequestsCount, PreciseTimeStamp
+| project todatetime(PreciseTimeStamp), requests = toint(RequestsCount), Status_string

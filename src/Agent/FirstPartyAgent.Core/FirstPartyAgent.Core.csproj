@@ -7,6 +7,14 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+	  <Content Include="aca-kusto.json">
+	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
 		<PackageReference Include="Azure.Search.Documents" />
 		<PackageReference Include="Azure.Storage.Blobs" />
 		<PackageReference Include="Microsoft.Extensions.Logging" />
@@ -54,6 +62,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <None Update="FirstPartySubAgents\ACA\ContainerAppRevisionAgent\ContainerAppRevisionAgentPlan.txt">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
 	  <None Update="ICMAlertConfigs\5a77158c-8385-49f8-8f96-019a641df17b.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
@@ -61,6 +72,9 @@
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="ICMAlertConfigs\f9110571-1b04-484b-b10f-ee3d130b1447.json">
+	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </None>
+	  <None Update="Plugins\Definitions\Queries\*.kql">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
 	  <None Update="Plugins\GenevaActionsPlugin\GenevaActions.json">

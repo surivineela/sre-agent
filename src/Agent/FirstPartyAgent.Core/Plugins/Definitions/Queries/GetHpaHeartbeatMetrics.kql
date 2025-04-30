@@ -1,0 +1,37 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let capp_name = "##containerAppName##";
+let capp_rg = "##resourceGroupName##";
+let capp_sub = "##subscriptionId##";
+let capp_revision = "##revisionName##";
+let managedCluster = toscalar(GetManagedClusterName(capp_name, capp_rg, capp_sub));
+let currentMetrics = 
+    All("ContainerAppControllerEvents")
+    | where TIMESTAMP between (queryFrom .. queryTo)
+    | where Tenant == managedCluster
+    | where msg == "HPA Heartbeat"
+    | where RevisionName == capp_revision
+    | extend metrics = parse_json(Details).metrics
+    | mv-expand metric = metrics
+    | extend metricName = tostring(metric.name)
+    | extend rawValue = todouble(replace("m", "", tostring(metric.currentValue)))
+    | extend value = iif(metric.currentValue endswith "m", rawValue / 1000, rawValue)
+    | extend legend = strcat(metricName, ":current")
+    | project TIMESTAMP, legend, value;
+let targetMetrics = 
+    All("ContainerAppControllerEvents")
+    | where TIMESTAMP between (queryFrom .. queryTo)
+    | where Tenant == managedCluster
+    | where msg == "HPA Heartbeat"
+    | where RevisionName == capp_revision
+    | extend metrics = parse_json(Details).metrics
+    | mv-expand metric = metrics
+    | extend metricName = tostring(metric.name)
+    | extend rawValue = todouble(replace("m", "", tostring(metric.targetValue)))
+    | extend value = iif(metric.targetValue endswith "m", rawValue / 1000, rawValue)
+    | extend legend = strcat(metricName, ":target")
+    | project TIMESTAMP, legend, value;    
+currentMetrics
+| union targetMetrics
+| summarize avg(value) by bin(TIMESTAMP, 1m), legend
+| order by TIMESTAMP asc

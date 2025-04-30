@@ -20,8 +20,7 @@ namespace Agent.Runtime
         {
             builder.Configuration.SetBasePath(AppContext.BaseDirectory)
                 .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true); // load base settings
-
-            if (isDevelopment)
+               if (isDevelopment)
             {
                 builder.Configuration.AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true); // load local dev settings one more time to override Azure App Configuration
             }
@@ -87,7 +86,6 @@ namespace Agent.Runtime
             builder.Services.AddSingleton(sp =>
             {
                 return sp.GetRequiredService<IOptions<TAppSettings>>().Value;
-
             });
             builder.Services.RegisterInnerAppSettings<TAppSettings>(builder.Configuration);
         }
@@ -159,4 +157,3 @@ Otherwise, there may be required settings which are not auto-populated by the pr
         }
     }
 }
-

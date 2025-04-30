@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -10,5 +10,7 @@ namespace FirstPartyAgent.Plugins
     {
         public Task<string> ExecuteKustoQuery(string region, string query);
         public Task<string> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, DateTime? NowOverride, Kernel kernel);
+        public Task<string> ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args = null);
+        public  Task<List<KustoFunction>> ListFunctionsAsync(string region);
     }
 }

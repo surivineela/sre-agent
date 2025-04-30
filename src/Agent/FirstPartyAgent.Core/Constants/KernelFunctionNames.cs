@@ -12,11 +12,28 @@ namespace FirstPartyAgent.Constants
             public const string GetSubscriptionUsage = "get_subscription_usage";
             public const string SetSubscriptionQuota = "set_subscription_quota";
             public const string ValidateQuotaRequest = "validate_quota_request";
+            public const string CallKustoQuery = "call_kusto_function";
+            public const string ListRevisions = "list_revisions";
+            public const string GetRevisionTrafficWithReplicaCount = "get_revision_traffic_with_replica_count";
+            public const string GetActiveRevisionSessions = "get_active_revision_sessions";
+            public const string GetHpaHeartbeatMetrics = "get_hpa_heartbeat_metrics";
+            public const string GetRevisionSpecChanges = "get_revision_spec_changes";
+            public const string GetEventProcessorEventsWithoutReplica = "get_event_processor_events_without_replica";
+            public const string GetPodHeartbeatStatus = "get_pod_heartbeat_status";
+            public const string GetInternalEventProcessorEventsForPod = "get_internal_event_processor_events_for_pod";
+            public const string GetReplicaCount = "get_replica_count";
+            public const string ContainerAppRevisionStatus = "get_container_app_revision_status";
+            public const string ListKustoFunctions = "list_kusto_functions";
+            public const string GetHttpScalerEventsForContainerApp = "get_http_scaler_events_for_conatinerapp";
+            public const string GetKedaOperatorEventsForContainerApp = "get_keda_operator_events_for_conatinerapp";
+
         }
 
         public static class Kusto
         {
             public const string ExecuteKustoQuery = "execute_kusto_query";
+            public const string ExecuteFunction = "execute_kusto_user_defined_function";
+            public const string ListKustoFunctions = "list_kusto_user_defined_functions";
         }
 
         public static class Icm

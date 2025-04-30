@@ -3,12 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using Agent.Plugins;
 using Agent.Runtime.MetaAgent.Interfaces;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Plugins.Definitions;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
+
 public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
 {
     private readonly List<string> _agentNames;
@@ -31,7 +31,9 @@ public class FirstPartySubAgentsFactory : IFirstPartySubAgentsFactory
             //Plugins requires by quota agent.
             //TODO: going to make it read from env variable
             typeof(ContainerAppsPluginDefinition),
-            typeof(IcmPluginDefinition)
+            typeof(IcmPluginDefinition),    
+            typeof(ContainerAppRevisionPluginDefinition),
+            typeof(KustoPluginDefinition)
         };
         return types;
     }
