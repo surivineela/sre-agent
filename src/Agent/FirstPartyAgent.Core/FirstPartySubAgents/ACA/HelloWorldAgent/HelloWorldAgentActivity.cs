@@ -39,10 +39,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
             throw new NotImplementedException();
         }
 
-        public override string GetPromptText(HelloWorldAgentActivityInput input)
+        public override async Task<string> GetPromptTextAsync(HelloWorldAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(HelloWorldAgent), "HelloWorldAgentPlan.txt");
-            var systemPrompt = File.ReadAllText(path);
+            var systemPrompt = await File.ReadAllTextAsync(path);
             return systemPrompt;
         }
     }

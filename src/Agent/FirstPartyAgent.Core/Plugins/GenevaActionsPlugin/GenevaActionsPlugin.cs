@@ -57,7 +57,7 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"Initializing Geneva Actions Config";
             _logger.LogInformation(logMessage);
-            
+
             if (_cosmosDbService != null && _cosmosDbService.IsEnabled)
             {
                 try
@@ -76,7 +76,7 @@ namespace FirstPartyAgent.Core.Plugins
                     _logger.LogError($"Error reading alert details from CosmosDB: {ex.Message}");
                 }
             }
-            
+
 
             if (_storageService.IsEnabled)
             {
@@ -102,7 +102,7 @@ namespace FirstPartyAgent.Core.Plugins
             _logger.LogInformation(logMessage);
 
             try {
-                var genevaActionsConfigFileContent = File.ReadAllText(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins/GenevaActionsPlugin/GenevaActions.json"));
+                var genevaActionsConfigFileContent = await File.ReadAllTextAsync(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins/GenevaActionsPlugin/GenevaActions.json"));
 
                 if (string.IsNullOrWhiteSpace(genevaActionsConfigFileContent))
                 {

@@ -25,7 +25,7 @@ namespace Agent.Runtime.SubAgents.AppReliabilityAgent
             var existingAppsDetails = string.Join(Environment.NewLine,
                 input.AppsInViolation.Select(x => $"{x.ResourceId} has a current reliability of {JsonConvert.SerializeObject(new Tuple<int, bool, bool, bool>(x.NumberOfWorkers, x.AlwaysOnEnabled, x.AutoHealEnabled, x.HealthCheckEnabled ))}"));
             var path = Path.Combine("..", "Agent.Runtime", "SubAgents", "AppReliabilityAgent", "AppReliabilityPlan.txt");
-            var systemPrompt = File.ReadAllText(path).Replace("{{desiredReliability}}", JsonConvert.SerializeObject(new Tuple<int, bool, bool, bool>(3, true, true, true)));
+            var systemPrompt = (await File.ReadAllTextAsync(path)).Replace("{{desiredReliability}}", JsonConvert.SerializeObject(new Tuple<int, bool, bool, bool>(3, true, true, true)));
             var userMessage = $"Here are the apps that need updating: {existingAppsDetails}";
             List<ChatMessage> messages = [
                 new ChatMessage(ChatRole.System, systemPrompt),
@@ -35,5 +35,5 @@ namespace Agent.Runtime.SubAgents.AppReliabilityAgent
             messages.Add(response.GetMessage());
             return messages;
         }
-    } 
+    }
 }

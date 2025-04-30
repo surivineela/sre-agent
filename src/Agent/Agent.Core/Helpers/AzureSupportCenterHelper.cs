@@ -23,7 +23,7 @@ public class AzureSupportCenterHelper
     {
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(Helpers), "SupportProductMetadata", SUPPORT_PRODUCTS_FILE_NAME);
 
-        var supportProductFromArmResponse = File.ReadAllText(path);
+        var supportProductFromArmResponse = await File.ReadAllTextAsync(path);
         var matchingSupportProducts = new List<SupportProductFromArmModel>();
         try
         {
@@ -68,7 +68,7 @@ public class AzureSupportCenterHelper
             throw new FileNotFoundException($"Support problem classification for {productId} missing. Please update.");
         }
 
-        var supportClassificationResponse = File.ReadAllText(path);
+        var supportClassificationResponse = await File.ReadAllTextAsync(path);
         var supportProblemClassification = new List<SupportProblemClassificationModel>();
         try
         {
@@ -135,7 +135,7 @@ public class AzureSupportCenterHelper
 
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
-        
+
         bool isDiagnosticRunning = false;
         int pollingAttempts = 0;
         AzureSupportCenterApolloResponsePayload apolloDiagnosticResult = null;

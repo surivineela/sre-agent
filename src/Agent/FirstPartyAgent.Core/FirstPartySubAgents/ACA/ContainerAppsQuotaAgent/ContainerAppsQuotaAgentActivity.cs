@@ -20,7 +20,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
         {
             var resourceBullets = Resources.Select(r => $"{r.ResourceId}");
             return $"""
-                I will update the Icm to process the quota request: 
+                I will update the Icm to process the quota request:
                   {string.Join(Environment.NewLine, resourceBullets)}
                 """;
         }
@@ -54,11 +54,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
             return $"Extract quota request information from the Incident, and process it.";
         }
 
-        public override string GetPromptText(ContainerAppsQuotaAgentActivityInput input)
+        public override async Task<string> GetPromptTextAsync(ContainerAppsQuotaAgentActivityInput input)
         {
             // Read the system prompt from a file
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppsQuotaAgent), "ContainerAppsQuotaAgent.txt");
-            var systemPrompt = File.ReadAllText(path);
+            var systemPrompt = await File.ReadAllTextAsync(path);
             return systemPrompt;
         }
     }

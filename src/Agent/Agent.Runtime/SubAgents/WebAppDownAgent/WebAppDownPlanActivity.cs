@@ -24,9 +24,9 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
         {
             //var existingAppsDetails = string.Join(Environment.NewLine,
             //    input.Apps.Select(x => $"The app {x.ResourceId} is down!"));
-            var existingAppDetails = $"The app {resourceId} is down!"; 
+            var existingAppDetails = $"The app {resourceId} is down!";
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(WebAppDownAgent), "WebAppDownPlan.txt");
-            var systemPrompt = File.ReadAllText(path);
+            var systemPrompt = await File.ReadAllTextAsync(path);
             var userMessage = $"Here are the apps that need to be fixed: {existingAppDetails}";
             List<ChatMessage> messages = [
                 new ChatMessage(ChatRole.System, systemPrompt),
@@ -36,5 +36,5 @@ namespace Agent.Runtime.SubAgents.WebAppDownAgent
             messages.Add(response.GetMessage());
             return messages;
         }
-    } 
+    }
 }

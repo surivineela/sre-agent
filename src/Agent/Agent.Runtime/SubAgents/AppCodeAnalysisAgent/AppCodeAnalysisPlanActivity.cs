@@ -27,7 +27,7 @@ namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent
             var existingAppsDetails = string.Join(Environment.NewLine,
                 input.Apps.Select(x => $"The app {x.ResourceId} is down!"));
             var path = Path.Combine("..", "Agent.Runtime", "SubAgents", "AppCodeAnalysisAgent", "AppCodeAnalysisPlan.txt");
-            var systemPrompt = File.ReadAllText(path);
+            var systemPrompt = await File.ReadAllTextAsync(path);
             var userMessage = $"Here are the apps that need to be fixed: {existingAppsDetails}";
             List<ChatMessage> messages = [
                 new ChatMessage(ChatRole.System, systemPrompt),
@@ -38,5 +38,5 @@ namespace Agent.Runtime.SubAgents.AppCodeAnalysisAgent
             messages.Add(response.GetMessage());
             return messages;
         }
-    } 
+    }
 }

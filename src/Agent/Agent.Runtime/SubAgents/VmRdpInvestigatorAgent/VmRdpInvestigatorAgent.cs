@@ -13,7 +13,7 @@ public class VmRdpInvestigatorAgent: GenericAgentOrchestrator<VmRdpInvestigatorA
         var log = context.CreateReplaySafeLogger<VmRdpInvestigatorAgent>();
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(VmRdpInvestigatorAgent), "VmRdpInvestigatorAgentPlan.txt");
-        var systemPrompt = File.ReadAllText(path);
+        var systemPrompt = await File.ReadAllTextAsync(path);
         var userMessage = $"Please investigate RDP failure issue with VM {agentInput.VirtualMachineResourceId}";
 
         List<ChatMessage> chatHistory = [

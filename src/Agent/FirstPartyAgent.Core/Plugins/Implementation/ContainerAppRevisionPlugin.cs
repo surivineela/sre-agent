@@ -23,13 +23,13 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
         _kustoPlugin = kustoPlugin;
     }
 
-    private Task<string> Execute(string functionName, string region, Dictionary<string, string> args)
+    private async Task<string> Execute(string functionName, string region, Dictionary<string, string> args)
     {
         var fileName = Path.Combine(AppContext.BaseDirectory,"Plugins", "Definitions", "Queries", $"{functionName}.kql");
-        
+
         if (File.Exists(fileName))
         {
-            var formatted = File.ReadAllText(fileName);
+            var formatted = await File.ReadAllTextAsync(fileName);
             // replace ##placeholder## with value
             foreach (var arg in args)
             {
@@ -42,11 +42,11 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
                 throw new Exception($"Not all placeholders were replaced in the query, {formatted}");
             }
 
-            return _kustoPlugin.ExecuteKustoQuery(region, formatted);
+            return await _kustoPlugin.ExecuteKustoQuery(region, formatted);
         }
         else
         {
-            return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
+            return await _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
         }
     }
 
@@ -216,7 +216,7 @@ let spans = bins | where duration >= span | top 1 by span desc;
 let bucket = coalesce(toscalar(spans | project bucket), 1d);
 let mdm_bucket = coalesce(toscalar(spans | project mdm_bucket), '1d');
 let mdmData = evaluate geneva_metrics_request(
-	genevaAccountName, 
+	genevaAccountName,
 	strcat(
 		@""metricNamespace('k4apps-metrics')""
 		@"".metric('Replicas')""
@@ -232,7 +232,7 @@ union theSchema, mdmData
 | project Timestamp = TimestampUtc, Revision = revisionName, Max, appArmId
 | where Revision == cappRevisionName
 | order by Timestamp asc, Revision asc;
-";        
+";
         return _kustoPlugin.ExecuteKustoQuery(region, query);
     }
 }

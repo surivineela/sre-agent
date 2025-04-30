@@ -24,7 +24,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             //    input.ResourceTypesToInclude.Select(r => $"'{r}'"));
 
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "DailySummaryAgent", "DailySummaryPlan.txt");
-            var systemPrompt = File.ReadAllText(path)
+            var systemPrompt = (await File.ReadAllTextAsync(path))
                 .Replace("{{reportType}}", input.ReportType)
                 .Replace("{{timespan}}", input.Timespan);
 

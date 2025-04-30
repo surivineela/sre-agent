@@ -83,7 +83,7 @@ public class AlertHandlerService
                 var filePath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Plugins", "AzureAlertDetails.json");
                 if (File.Exists(filePath))
                 {
-                    var fileContent = File.ReadAllText(filePath);
+                    var fileContent = await File.ReadAllTextAsync(filePath);
                     var alertDetails = JsonConvert.DeserializeObject<List<AlertDetailsBase>>(fileContent);
                     return alertDetails.Where(a => a.Id.ToString() == azureAlertingId).FirstOrDefault();
                 }

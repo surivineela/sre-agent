@@ -16,7 +16,7 @@ public class ContainerAppsRemediationAgent : GenericAgentOrchestrator<ContainerA
     {
         var log = context.CreateReplaySafeLogger<ContainerAppsRemediationAgent>();
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ContainerAppsAgent", "ContainerAppsAgent.txt");
-        var systemPrompt = File.ReadAllText(path);
+        var systemPrompt = await File.ReadAllTextAsync(path);
         var monitoringMessage = $"I was delegated to resolve container apps issue from another agent with message: {agentInput.Input}";
 
         List<ChatMessage> chatHistory = [

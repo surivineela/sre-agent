@@ -40,10 +40,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
             throw new NotImplementedException();
         }
 
-        public override string GetPromptText(ContainerAppEnvoyAgentActivityInput input)
+        public override async Task<string> GetPromptTextAsync(ContainerAppEnvoyAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppEnvoyAgent), "ContainerAppEnvoyAgentPlan.txt");
-            var systemPrompt = File.ReadAllText(path);
+            var systemPrompt = await File.ReadAllTextAsync(path);
             return systemPrompt;
         }
     }
