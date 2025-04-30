@@ -27,13 +27,16 @@ public class EvalInput
         LlmDeploymentName = llmDeploymentName;
     }
 
-    public async Task<List<EvaluationResults>> EvaluateAgentResponsesAsync(IEnumerable<ChatMessage> chatMessages)
+    public async Task<List<EvaluationResults>> EvaluateAgentResponsesAsync(IEnumerable<ChatMessage> chatMessages, CancellationToken cancellationToken = default)
     {
         var results = new List<EvaluationResults>();
         var messagesSoFar = new List<ChatMessage>();
 
         foreach (var msg in chatMessages)
         {
+            if (cancellationToken.IsCancellationRequested)
+                break;
+
             messagesSoFar.Add(msg);
             var response = msg.GetChatResponseForUser();
 

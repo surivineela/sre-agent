@@ -229,7 +229,7 @@ public sealed class AKSAgentEvals
             Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
 
             var fullHistory = orchestrationMetadata.ReadChatHistory();
-            var results = await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            var results = await evalInput.EvaluateAgentResponsesAsync(fullHistory, tokenSource.Token);
             bool hasHighMatch = false;
             for (int i = 0; i < results.Count; i++)
             {
@@ -516,7 +516,7 @@ public sealed class AKSAgentEvals
             Assert.IsTrue(fullHistory.Length > 5, "Chat history seems too short."); // Basic sanity check
 
             Console.WriteLine("Evaluating agent responses...");
-            var results = await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            var results = await evalInput.EvaluateAgentResponsesAsync(fullHistory, tokenSource.Token);
             Console.WriteLine($"Evaluation completed. {results.Count} responses evaluated.");
 
             bool hasHighMatch = results.Any(r => r.Equivalence.Value >= 4);

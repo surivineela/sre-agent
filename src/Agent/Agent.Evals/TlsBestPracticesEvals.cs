@@ -138,18 +138,16 @@ public class TlsBestPracticesEvals
             var threadId = Guid.NewGuid();
             instanceID = await _agentFactory.StartOrchestration(agentInput, threadId);
 
-            await ApprovalTestHelper.DoApproval(
+            var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                 durableTaskClient: _durableTaskClient,
+                instanceID,
                 threadRepository: _threadRepository,
                 threadId,
-                logger: null, 
+                logger: null,
                 tokenSource.Token);
 
-            OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
-            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-
             var fullHistory = orchestrationMetadata.ReadChatHistory();
-            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory, tokenSource.Token);
 
             foreach (var app in _testApps)
             {
@@ -189,7 +187,7 @@ public class TlsBestPracticesEvals
             1. Recieve the list of applications that need to be updated to the specified TLS version
             2. Request and wait for an approval
             3. Perform the updates one by one, monitoring health for 30 seconds before moving to the next app
-            4. App1 should be updated, App2 should be rolled back, the remaining apps should not be updated.
+            4. App1 should be updated, App2 should be rolled back, the remaining apps should be updated.
             5. Acknowledge that the update is complete.
 
             ## Expected Response Characteristics
@@ -236,24 +234,16 @@ public class TlsBestPracticesEvals
             var threadId = Guid.NewGuid();
             instanceID = await _agentFactory.StartOrchestration(agentInput, threadId);
 
-            await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
-            (
-                ChatRole.User,
-                "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
-            ));
-
-            await ApprovalTestHelper.DoApproval(
+            var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                 durableTaskClient: _durableTaskClient,
+                instanceID,
                 threadRepository: _threadRepository,
                 threadId,
                 logger: null,
                 tokenSource.Token);
 
-            OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
-            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-
             var fullHistory = orchestrationMetadata.ReadChatHistory();
-            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory, tokenSource.Token);
 
             foreach (var app in _testApps)
             {
@@ -346,18 +336,16 @@ public class TlsBestPracticesEvals
                 "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
             ));
 
-            await ApprovalTestHelper.DoApproval(
+            var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                 durableTaskClient: _durableTaskClient,
+                instanceID,
                 threadRepository: _threadRepository,
                 threadId,
                 logger: null,
                 tokenSource.Token);
 
-            OrchestrationMetadata orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
-            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-
             var fullHistory = orchestrationMetadata.ReadChatHistory();
-            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory, tokenSource.Token);
 
             foreach (var app in _testApps)
             {
@@ -450,50 +438,39 @@ public class TlsBestPracticesEvals
                 "If any apps become unhealthy, I want you to ask me for confirmation on whether I want to proceed with the rollback, or leave the app as is. Specifically use the word confirmation when you request it."
             ));
 
-            await ApprovalTestHelper.DoApproval(
+            bool shouldCheckForRollbackMessage = true;
+            var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                 durableTaskClient: _durableTaskClient,
+                instanceID,
                 threadRepository: _threadRepository,
                 threadId,
                 logger: null,
-                tokenSource.Token);
-
-            OrchestrationMetadata? orchestrationMetadata = null;
-
-            while (true)
-            {
-                await Task.Delay(TimeSpan.FromMilliseconds(500), tokenSource.Token);
-
-                var last = _mocks.CommunicationService.Messages.Last();
-
-                // Wait for the model to ask us whether it should perform a rollback.
-                if (last != null
-                    && last.Contains("back", StringComparison.InvariantCultureIgnoreCase)
-                    && last.Contains("confirm", StringComparison.InvariantCultureIgnoreCase)
-                    && last.Contains("?"))
+                tokenSource.Token,
+                customAction: async () =>
                 {
-                    // simulate the user taking a while to respond.
-                    await Task.Delay(TimeSpan.FromSeconds(5));
+                    var last = _mocks.CommunicationService.Messages.LastOrDefault();
 
-                    await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
-                    (
-                        ChatRole.User,
-                        "I checked the app myself, a rollback is not necessary. You can leave the app as is and proceed."
-                    ));
-                    break;
-                }
+                    // Wait for the model to ask us whether it should perform a rollback.
+                    if (shouldCheckForRollbackMessage
+                        && last != null
+                        && last.Contains("back", StringComparison.InvariantCultureIgnoreCase)
+                        && last.Contains("confirm", StringComparison.InvariantCultureIgnoreCase)
+                        && last.Contains("?"))
+                    {
+                        // simulate the user taking a while to respond.
+                        await Task.Delay(TimeSpan.FromSeconds(5));
 
-                orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, tokenSource.Token);
-                if (orchestrationMetadata.IsCompleted)
-                {
-                    Assert.Fail("Orchestration completed before we could respond to the rollback confirmation.");
-                }
-            }
-
-            orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionWithRetryAsync(instanceID, tokenSource.Token);
-            Assert.IsTrue(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
+                        await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+                        (
+                            ChatRole.User,
+                            "I checked the app myself, a rollback is not necessary. You can leave the app as is and proceed."
+                        ));
+                        shouldCheckForRollbackMessage = false;
+                    }
+                });
 
             var fullHistory = orchestrationMetadata.ReadChatHistory();
-            await evalInput.EvaluateAgentResponsesAsync(fullHistory);
+            await evalInput.EvaluateAgentResponsesAsync(fullHistory, tokenSource.Token);
 
             foreach (var app in _testApps)
             {
