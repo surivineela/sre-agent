@@ -195,7 +195,7 @@ extends:
             SYSTEM_ACCESSTOKEN: $(System.AccessToken)
           inputs:
             locProj: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\LocProject.json'
-            outDir: '$(Build.SourcesDirectory)\src\Agent\Agent.Web\Client\src\src\Strings\extracted' # \loc
+            outDir: '$(ob_outputDirectory)' # \loc
             packageSourceAuth: 'patAuth'
             dependencyPackageSource: 'https://msazure.pkgs.visualstudio.com/One/_packaging/OnelocbuildLocToolsFeed/nuget/v3/index.json'
 
