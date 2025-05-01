@@ -29,10 +29,10 @@ using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
 using OpenTelemetry.Resources;
-using Octokit;
 using static System.Net.WebRequestMethods;
 using Azure.ResourceManager.AppService;
 using JsonSerializer = System.Text.Json.JsonSerializer;
+using System.Text.Json.Nodes;
 
 namespace Agent.Core.Helpers;
 
@@ -1740,7 +1740,200 @@ public class ArmHelper
         return numWorkers;
     }
 
+    public async Task<WebSiteResource> GetWebAppInfoAsync(string resourceId)
+    {
+        try
+        {
+            // Get ResourceIdentifier from the provided resourceId
+            ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
+            var armClient = _armClientFactory.GetArmClient();
+            WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
+            return webApp;
+        }
+
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException($"Failed to retrieve Web App details. {ex}", ex);
+        }
+    }
+
+    public async Task<string> GetKuduHostNameAsync(string resourceId)
+    {
+        try
+        {
+            // Retrieve Web App using the provided resourceId
+            var site = await GetWebAppInfoAsync(resourceId);
+            // Kudu host URL (this will be used for profiling purposes)
+            return site.Data.EnabledHostNames.FirstOrDefault(h => h.Contains(".scm."));
+        }
+
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve Kudu host information.", ex);
+        }
+    }
+
+    public async Task<string> GetOperatingSystemAsync(string resourceId)
+    {
+        try
+        {
+            // Retrieve the Web App and determine its OS
+            var site = await GetWebAppInfoAsync(resourceId);
+            return site.Data.Kind.Contains("linux", StringComparison.OrdinalIgnoreCase) ? "Linux" : "Windows";
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to determine the operating system type.", ex);
+        }
+    }
+
+    public async Task<int> GetDefaultProcessIdForWebAppAsync(string resourceId, string os, string hostName)
+    {
+        string url = $"https://{hostName}/api/processes";
+        using HttpClient httpClient = await GetAuthenticatedHttpClient();
+
+        if (os == "Linux")
+        {
+            var response = await httpClient.GetAsync(url);
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var processes = JsonSerializer.Deserialize<JsonArray>(jsonResponse);
+
+            if (processes is null)
+                throw new InvalidOperationException("No processes returned.");
+
+            foreach (var processElement in processes)
+            {
+                if (processElement is JsonObject processObj)
+                {
+                    bool isDefault = false;
+                    int processId = 0;
+
+                    if (processObj.TryGetPropertyValue("isDefault", out var isDefaultNode)
+                        && isDefaultNode is JsonValue isDefaultValue
+                        && isDefaultValue.TryGetValue<bool>(out var defaultBool)
+                        && defaultBool)
+                    {
+                        isDefault = true;
+                    }
+
+                    if (processObj.TryGetPropertyValue("id", out var idNode)
+                        && idNode is JsonValue idValue
+                        && idValue.TryGetValue<int>(out var pid))
+                    {
+                        processId = pid;
+                    }
+
+                    if (isDefault)
+                        return processId;
+                }
+            }
+
+            throw new InvalidOperationException("Default process not found.");
+        }
+
+        else if (os == "Windows")
+        {
+            var processesUrl = $"https://{hostName}/api/processes";
+
+            var response = await httpClient.GetAsync(processesUrl);
+            response.EnsureSuccessStatusCode();
+
+            var jsonResponse = await response.Content.ReadAsStringAsync();
+            var processes = JsonSerializer.Deserialize<JsonArray>(jsonResponse);
+
+            if (processes is null)
+                throw new InvalidOperationException("No processes returned.");
+
+            foreach (var processElement in processes)
+            {
+                if (processElement is JsonObject processObj)
+                {
+                    int processId = -1;
+
+                    if (processObj.TryGetPropertyValue("id", out var idNode)
+                        && idNode is JsonValue idValue
+                        && idValue.TryGetValue<int>(out var pid))
+                    {
+                        processId = pid;
+                        var processUrl = $"https://{hostName}/api/processes/{pid}";
+                        var processResponse = await httpClient.GetAsync(processUrl);
+                        processResponse.EnsureSuccessStatusCode();
+                        var processInfo = JsonSerializer.Deserialize<JsonObject>(await processResponse.Content.ReadAsStringAsync());
+                        if (processInfo is not null && processInfo.TryGetPropertyValue("name", out var node))
+                        {
+                            if (node.GetValue<string>().Contains("w3wp") && !processInfo.TryGetPropertyValue("is_scm_site", out var _))
+                            {
+                                return processId;
+                            }
+                        }
+                    }
+                }
+            }
+
+            throw new InvalidOperationException("Default process not found.");
+        }
+
+        else
+        {
+            throw new InvalidOperationException("Unsupported OS type.");
+        }
+    }
+
+    public async Task<string> ExecuteKuduCommandAsync(string hostName, string command, string workingDirectory)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(command))
+                throw new ArgumentException("Command cannot be null or empty.", nameof(command));
+
+            using HttpClient httpClient = await GetAuthenticatedHttpClient();
+            var url = $"https://{hostName}/api/command";
+            var commandDetails = "{\"command\": \"" + command + "\", \"dir\": \"" + workingDirectory + "\"}";
+            var commandPayload = new StringContent(commandDetails, Encoding.UTF8, "application/json");
+            var postResponse = await httpClient.PostAsync(url, commandPayload);
+            postResponse.EnsureSuccessStatusCode();
+
+            var output = await postResponse.Content.ReadAsStringAsync();
+            Console.WriteLine("[KuduManager] Command Output:\n" + output);
+            return output;
+        }
+
+        catch (HttpRequestException ex)
+        {
+            Console.Error.WriteLine($"[KuduManager] HTTP request failed during command execution: {ex.Message}");
+            throw new InvalidOperationException("Failed to execute command on Kudu.", ex);
+        }
+
+        catch (Exception ex)
+        {
+            Console.Error.WriteLine($"[KuduManager] Unexpected error during command execution: {ex.Message}");
+            throw;
+        }
+    }
+
     #region Private Methods
+
+    internal async Task<HttpClient> GetAuthenticatedHttpClient()
+    {
+        try
+        {
+            // Retrieve authentication token using DefaultAzureCredential
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            // Add the token to the HttpClient's Authorization header
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            return httpClient;
+        }
+
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to obtain a Bearer token.", ex);
+        }
+    }
 
     private async Task<List<T>> GetResourceSettings<T>(
     List<string> resourceIds,

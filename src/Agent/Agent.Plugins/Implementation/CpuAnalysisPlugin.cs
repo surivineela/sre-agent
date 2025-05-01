@@ -12,6 +12,9 @@ using Azure.Core;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager;
 using System.Net.Http.Headers;
+using YamlDotNet.Core.Tokens;
+using System.Text;
+using IdentityModel.Client;
 
 namespace Agent.Plugins;
 
@@ -20,12 +23,10 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
     private readonly ArmHelper _armHelper;
     public Guid? ThreadId { get; set; }
 
-
     public CpuAnalysisPlugin(ArmHelper armHelper)
     {
         _armHelper = armHelper;
     }
-
 
     [KernelFunction("scale_up_app_service_plan_by_sku")]
     [Description("Scale up the app service plan by sku")]
@@ -48,57 +49,18 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
     public async Task<string> CollectMemoryDumpForApp(
     [Description("resourceId of the app")] string resourceId)
     {
-        // call arm helper
-        var responseString = await _armHelper.TakeMemoryDumpAsync(resourceId);
-
-        if (String.IsNullOrEmpty(responseString))
+        // Placeholder for the memory dump file name.
+        string memoryDumpFile = Path.GetFileName(Path.GetTempFileName() + ".dmp");
+        KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
+        if (kuduManager.OS == "Linux")
         {
-            throw new Exception($"There was an issue collecting the memory dump for {resourceId}");
+            throw new NotImplementedException("Currently this behavior isn't implemented for Linux");
         }
 
-        string memoryDumpFile = Path.GetTempFileName() + ".dmp";
-
-        // Write dump file content to a temp file.
-        try
-        {
-            try
-            {
-                try
-                {
-                    using HttpClient client = new();
-                    using (var fileStream = new FileStream(memoryDumpFile, FileMode.Create, FileAccess.Write, FileShare.None))
-                    {
-                        var responseStream = await client.GetAsync(responseString);
-                        await responseStream.Content.CopyToAsync(fileStream);
-                    }
-                }
-                catch (HttpRequestException ex)
-                {
-                    throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
-                }
-                catch (IOException ex)
-                {
-                    throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
-                }
-            }
-            catch (HttpRequestException ex)
-            {
-                throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
-            }
-            catch (IOException ex)
-            {
-                throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
-            }
-        }
-        catch (HttpRequestException ex)
-        {
-            throw new Exception($"Failed to download memory dump for {resourceId}: {ex.Message}");
-        }
-        catch (IOException ex)
-        {
-            throw new Exception($"Failed to write memory dump to file for {resourceId}: {ex.Message}");
-        }
-
+        // Curl command on the machine to collect the dump.
+        int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
+        string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://local//temp//{memoryDumpFile}";
+        string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://local//temp");
         return $"The memory dump for {resourceId} has been collected:\n{memoryDumpFile}";
     }
 
@@ -178,59 +140,8 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
     [Description("Collect a profile or trace for an App Service to assess CPU activity.")] 
     public async Task<string> CollectProfileForApp(string resourceId, int durationOfTraceInSeconds = 20)
     {
-        // TODO: Use the HttpClient factory?
-        using HttpClient client = new();
-
-        // Get the Kudu URL.
-        var credential = new DefaultAzureCredential();
-        var tokenRequestContext = new TokenRequestContext(new[] { "https://management.azure.com/.default" });
-        var token = await credential!.GetTokenAsync(tokenRequestContext, default);
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
-        var armClient = new ArmClient(credential);
-        ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
-        WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
-        var appData = webApp.Data;
-        string scmHostName = appData.EnabledHostNames.FirstOrDefault(h => h.Contains(".scm."));
-        if (appData?.IsScmSiteAlsoStopped == true)
-        {
-            throw new ArgumentException("The Kudu site is not running. Please start the Kudu site to collect the profile.");
-        }
-
-        string kuduUrl = $"https://{scmHostName}/api";
-
-        // Get the processes and for Linux find the default process running the app.
-        string processesUrl = $"{kuduUrl}/processes";
-        var processesResponse = await client.GetAsync(processesUrl);
-        string response = await processesResponse.Content.ReadAsStringAsync();
-        List<Dictionary<string, object>> processes = System.Text.Json.JsonSerializer.Deserialize<List<Dictionary<string, object>>>(response);
-        Dictionary<string, object> defaultProcess = processes?.FirstOrDefault(p => p["isDefault"]?.ToString()?.ToLower() == "true");
-
-        // TODO: Adjust this for the Windows .diagsession.
-        string profileLink = $"{kuduUrl}/processes/0/profile/start?durationSeconds={durationOfTraceInSeconds}";
-        if (defaultProcess is not null)
-        {
-            profileLink = $"{kuduUrl}/processes/{defaultProcess["pid"]}/profile/start?durationSeconds={durationOfTraceInSeconds}";
-        }
-
-        // Starts a request to the Kudu API to take a profile of the default process based on the pid.
-        // TODO: Figure out the path for the Windows call.
-try
-{
-    var profileResponse = await client.GetAsync(profileLink);
-    string tempFilePath = Path.GetTempFileName() + ".nettrace";
-
-    using (var fileStream = new FileStream(tempFilePath, FileMode.Create, FileAccess.Write, FileShare.None))
-    {
-        var responseStream = await profileResponse.Content.ReadAsStreamAsync();
-        await responseStream.CopyToAsync(fileStream);
-    }
-
-    return $"The profile for {resourceId} has been collected and saved to: {tempFilePath}";
-}
-catch (HttpRequestException ex)
-{
-    return $"An error occurred while collecting the profile: {ex.Message}";
-}
+        // TODO: Implement this akin to the Memory Dump Tool.
+        throw new NotImplementedException();
     }
 }
 

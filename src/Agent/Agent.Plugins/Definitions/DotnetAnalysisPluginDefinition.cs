@@ -18,22 +18,23 @@ public sealed class DotnetAnalysisPluginDefinition
 
     [KernelFunction("get_cpu_analysis")]
     [Description("Gets the CPU analysis for a given profile path")]
-    public async Task<string> GetCPUAnalysis(string profilePath)
+    public async Task<string> GetCPUAnalysis([Description("Path to the profile")] string profilePath,
+                                             [Description("Process Id of the process")] int pid)
     {
-        return await _dotnetAnalysisPlugin.GetCPUAnalysis(profilePath);
+        return await _dotnetAnalysisPlugin.GetCPUAnalysis(profilePath, pid);
     }
 
     [KernelFunction("get_gc_cpu_analysis")]
     [Description("Gets the GC CPU analysis for a given profile path")]
-    public async Task<string> GetGCCPUAnalysis(string profilePath)
+    public async Task<string> GetGCCPUAnalysis(string profilePath, int pid)
     {
-        return await _dotnetAnalysisPlugin.GetGCCPUAnalysis(profilePath);
+        return await _dotnetAnalysisPlugin.GetGCCPUAnalysis(profilePath, pid);
     }
 
     [KernelFunction("get_memory_analysis")]
     [Description("Gets the memory analysis for the given dump file")] 
-    public async Task<string> GetMemoryAnalysis(string dumpPath)
+    public async Task<string> GetMemoryAnalysis(string resourceId, string dumpPath)
     {
-        return await _dotnetAnalysisPlugin.GetMemoryAnalysis(dumpPath);
+        return await _dotnetAnalysisPlugin.GetMemoryAnalysis(resourceId, dumpPath);
     }
 }

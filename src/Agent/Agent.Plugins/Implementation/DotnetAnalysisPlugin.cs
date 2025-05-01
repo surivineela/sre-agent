@@ -6,32 +6,176 @@ using System.Text.RegularExpressions;
 using System.Text;
 using Agent.Plugins.Definitions;
 using Microsoft.Diagnostics.Runtime;
-using Etlx = Microsoft.Diagnostics.Tracing.Etlx;
-using System.Diagnostics;
-using Microsoft.Diagnostics.Tracing.Analysis;
 using Microsoft.Diagnostics.Tracing.Etlx;
+using System.Diagnostics;
 using Microsoft.Diagnostics.Tracing.Parsers.Clr;
+using System.IO.Compression;
+using Etlx = Microsoft.Diagnostics.Tracing.Etlx;
+using Microsoft.Diagnostics.Tracing.Analysis;
+using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
+using Microsoft.Diagnostics.Tracing.Stacks;
+using Microsoft.Diagnostics.Symbols;
+using Agent.Core.Helpers;
 
 namespace Agent.Plugins.Implementation;
 
 public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
 {
-    public async Task<string> GetCPUAnalysis(string profilePath)
+    private ArmHelper _armHelper;
+
+    public DotnetAnalysisPlugin(ArmHelper armHelper)
     {
-        // Precondition: path is a nettrace file.
-        var etlxFile = Etlx.TraceLog.CreateFromEventPipeDataFile(profilePath);
-        var traceLog = Etlx.TraceLog.OpenOrConvert(etlxFile);
+        _armHelper = armHelper;
+    }
 
+    public async Task<string> GetCPUAnalysis(string profilePath, int pid)
+    {
         StringBuilder output = new();
-        output.AppendLine(await GetGCCPUAnalysis(profilePath));
+        string extension = Path.GetExtension(profilePath);
 
-        int topN = 10;
-        var topNExclusive = await GetTopNMethods(profilePath, 10, false, default);
-        var topNInclusive = await GetTopNMethods(profilePath, 10, true, default);
-        string highestCpu = $"Results from '{profilePath}'\n" +
-               $"Highest CPU methods (exclusive):\n{topNExclusive}\n" +
-               $"Highest CPU methods (inclusive):\n{topNInclusive}\n";
-        output.AppendLine(highestCpu);
+        Etlx.TraceLog traceLog = null;
+        int topN = 10; // Maybe parameterize?
+
+        if (extension.Contains("nettrace"))
+        {
+            var etlxFile = Etlx.TraceLog.CreateFromEventPipeDataFile(profilePath);
+            traceLog = Etlx.TraceLog.OpenOrConvert(etlxFile);
+
+            //output.AppendLine(await GetGCCPUAnalysis(profilePath, pid));
+            await EnsureDotnetTraceInstalledAsync();
+
+            // Give the top 10 exclusive and inclusive count.
+            var topNExclusive = await GetTopNMethods(profilePath, 10, false, default);
+            var topNInclusive = await GetTopNMethods(profilePath, 10, true, default);
+            string highestCpu = $"Results from '{profilePath}'\n" +
+                   $"Highest CPU methods (exclusive):\n{topNExclusive}\n" +
+                   $"Highest CPU methods (inclusive):\n{topNInclusive}\n";
+            output.AppendLine(highestCpu);
+            return output.ToString();
+        }
+
+        else if (extension.Contains("diagsession"))
+        {
+            string fileName = $"test_{Guid.NewGuid()}";
+            string zipDirectory = Path.Combine(Path.GetTempPath(), fileName);
+            Directory.CreateDirectory(zipDirectory);
+            ZipFile.ExtractToDirectory(profilePath, zipDirectory, true);
+            var etlFilePath = Directory.GetFiles(zipDirectory, "*.etl", SearchOption.AllDirectories);
+
+            if (!etlFilePath.Any())
+            {
+                throw new ArgumentException("No ETL file found in the extracted directory.");
+            }
+
+            // Merge the ETL files?
+            traceLog = Etlx.TraceLog.OpenOrConvert(etlFilePath.First());
+        }
+
+        else if (extension.Contains("etl"))
+        {
+            traceLog = Etlx.TraceLog.OpenOrConvert(profilePath);
+        }
+
+        using var symbolReader = new SymbolReader(TextWriter.Null)
+        {
+            // Configure symbol path: local cache + Microsoft public symbol server
+            SymbolPath = SymbolPath.MicrosoftSymbolServerPath, // Or use SRV*C:\symbols*https://msdl.microsoft.com/download/symbols
+        };
+
+        List<string> unwantedMethodNames = new() { "ROOT", "Process" };
+
+        //Create an extension function to help
+        static List<CallTreeNodeBase> ByIDSortedInclusiveMetric(CallTree callTree)
+        {
+            List<CallTreeNodeBase> ret = new(callTree.ByID);
+            ret.Sort((x, y) => Math.Abs(y.InclusiveMetric).CompareTo(Math.Abs(x.InclusiveMetric)));
+            return ret;
+        }
+
+        var codeAddresses = traceLog.CodeAddresses;
+        foreach (var module in traceLog.ModuleFiles)
+        {
+            try
+            {
+                traceLog.CodeAddresses.LookupSymbolsForModule(symbolReader, module);
+            }
+
+            catch
+            {
+               // Swallow.
+            }
+        }
+
+        var kernelEvents = traceLog.Events.Filter(e => e is SampledProfileTraceData && e.ProcessID == pid);
+
+        var inclusiveSamples = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+        var exclusiveSamples = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase);
+
+        var stackSource = new MutableTraceEventStackSource(traceLog);
+
+        foreach (SampledProfileTraceData ev in kernelEvents)
+        {
+            if (ev.CallStackIndex() != CallStackIndex.Invalid)
+            {
+                var sample = new StackSourceSample(stackSource)
+                {
+                    TimeRelativeMSec = ev.TimeStampRelativeMSec,
+                    Metric = 1, // Increment by 1 for each sample
+                    StackIndex = (StackSourceCallStackIndex)ev.CallStackIndex()
+                };
+                stackSource.AddSample(sample);
+            }
+        }
+        stackSource.DoneAddingSamples();
+        stackSource.LookupWarmSymbols(100, symbolReader);
+
+        stackSource.ForEach(sample =>
+        {
+            string topFrame = string.Empty;
+            var stackIndex = sample.StackIndex;
+
+            while (stackIndex != StackSourceCallStackIndex.Invalid)
+            {
+                var frameIndex = stackSource.GetFrameIndex(stackIndex);
+                var method = stackSource.GetFrameName(frameIndex, true);
+                var methodLower = method.ToLowerInvariant();
+
+                // Filter out BCL constructs and unmanaged methods
+                if (methodLower.Contains("clr!") || methodLower.Contains("coreclr!")
+                || methodLower.Contains("kernelbase!") || methodLower.Contains("mscorlib") || methodLower.Contains("ntdll!")
+                || methodLower.Contains("kernel32!") || methodLower.Contains("system") || methodLower.Contains("thread ("))
+                {
+                    stackIndex = stackSource.GetCallerIndex(stackIndex);
+                    continue;
+                }
+
+                if (!inclusiveSamples.TryAdd(method, 1))
+                    inclusiveSamples[method]++;
+
+                if (topFrame == null)
+                    topFrame = method;
+
+                stackIndex = stackSource.GetCallerIndex(stackIndex);
+            }
+
+            if (topFrame != null)
+            {
+                if (!exclusiveSamples.TryAdd(topFrame, 1))
+                    exclusiveSamples[topFrame]++;
+            }
+        });
+
+        output.AppendLine($"Top {topN} Inclusive Methods by CPU:");
+        foreach (var entry in inclusiveSamples.OrderByDescending(e => e.Value).Take(topN))
+        {
+            output.AppendLine($"{entry.Key}: {entry.Value} samples");
+        }
+
+        output.AppendLine($"\nTop {topN} Exclusive Methods by CPU:");
+        foreach (var entry in exclusiveSamples.OrderByDescending(e => e.Value).Take(topN))
+        {
+            output.AppendLine($"{entry.Key}: {entry.Value} samples");
+        }
 
         return output.ToString(); 
     }
@@ -41,6 +185,7 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
     {
         try
         {
+            await EnsureDotnetTraceInstalledAsync();
             var process = new Process
             {
                 StartInfo = new ProcessStartInfo
@@ -73,20 +218,22 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
 
-await process.WaitForExitAsync(cancellationToken);
-if (process.ExitCode != 0)
-{
-    return $"Error executing dotnet trace report: {errorBuilder.ToString()}";
-}
-return outputBuilder.ToString();
+            await process.WaitForExitAsync(cancellationToken);
+            if (process.ExitCode != 0)
+            {
+                return $"Error executing dotnet trace report: {errorBuilder.ToString()}";
+            }
+
+            return outputBuilder.ToString();
         }
+
         catch (Exception ex)
         {
             return $"An unexpected error occurred: {ex.Message}";
         }
     }
 
-    public async Task<string> GetMemoryAnalysis(string dumpPath)
+    public async Task<string> GetMemoryAnalysis(string resourceId, string dumpPath)
     {
         // Precondition Checks.
         if (string.IsNullOrEmpty(dumpPath))
@@ -94,332 +241,48 @@ return outputBuilder.ToString();
             throw new ArgumentException("The dumpPath is empty");
         }
 
-        StringBuilder outputStringBuilder = new();
-
-        using (DataTarget dataTarget = DataTarget.LoadDump(dumpPath))
+        if (string.IsNullOrEmpty(resourceId))
         {
-            Dictionary<ulong, (int Count, ulong Size, string Name)> stats = new Dictionary<ulong, (int Count, ulong Size, string Name)>();
-            Dictionary<string, List<ClrObject>> objectInfo = new();
-
-            ClrRuntime runtime = dataTarget.ClrVersions.FirstOrDefault()?.CreateRuntime();
-
-            if (runtime == null)
-            {
-                return "No Valid runtimes found!";
-            }
-
-            ClrHeap heap = runtime.Heap;
-
-            // Traverse the heap once and get statistics on each type.
-            foreach (ClrObject obj in heap.EnumerateObjects())
-            {
-                if (obj.Type == null || obj.Type?.MethodTable == null)
-                {
-                    continue;
-                }
-
-                if (!stats.TryGetValue(obj.Type.MethodTable, out (int Count, ulong Size, string Name) item))
-                    item = (0, 0, obj.Type.Name);
-
-                stats[obj.Type.MethodTable] = (item.Count + 1, item.Size + obj.Size, item.Name);
-
-                if (!objectInfo.TryGetValue(item.Name, out var val))
-                {
-                    objectInfo[item.Name] = val = new List<ClrObject>();
-                }
-
-                val.Add(obj);
-            }
-
-            // dumpheap -stat 
-            var sorted = from i in stats
-                         orderby i.Value.Size descending
-                         select new
-                         {
-                             i.Key,
-                             i.Value.Name,
-                             i.Value.Size,
-                             i.Value.Count
-                         };
-
-            // dumpheap -mt <Address>
-            var worstHitter = sorted.First();
-            var mtAddress = worstHitter.Key;
-
-            // Add a random sampling algorithm that samples the first few items from objectInfo[worstHitter.Name].
-            Random random = new Random();
-            int sampleSize = Math.Min(40, objectInfo[worstHitter.Name].Count);
-            var sampledObjects = objectInfo[worstHitter.Name]
-                .OrderBy(_ => random.Next())
-                .Take(sampleSize)
-                .ToList();
-
-            outputStringBuilder.AppendLine($"Type that occupies the most space on the heap: {worstHitter.Name}");
-            outputStringBuilder.AppendLine(@"Root references analysis for this type are as follows -
-this analysis is important has it highlights why and how the objects are rooted
-that is an important consideration when it comes to detecting memory leaks:\");
-
-            Dictionary<string, int> talliedGCRoots = new();
-
-            foreach (var s in sampledObjects)
-            {
-                // target is the object address.
-                GCRoot gcroot = new GCRoot(heap, (d) => d.Address == s.Address);
-                StringBuilder sbRoot = new();
-                foreach (var rootPath in gcroot.EnumerateRootPaths())
-                {
-                    sbRoot.AppendLine($"{rootPath.Root} -> ");
-                    sbRoot.AppendLine(PrintPath(rootPath.Root, rootPath.Path, heap));
-                }
-
-                string sbRootString = string.Join("\n", StandardizeCallStacks(sbRoot.ToString()));
-                if (!talliedGCRoots.ContainsKey(sbRootString))
-                {
-                    talliedGCRoots[sbRootString] = 0;
-                }
-                talliedGCRoots[sbRootString]++;
-
-                static List<string> StandardizeCallStacks(string input)
-                {
-                    // Split the input into individual call stacks
-                    var callStacks = input.Split(new[] { "Microsoft.Diagnostics.Runtime.ClrStackRoot" }, StringSplitOptions.RemoveEmptyEntries);
-
-                    // Regex to strip out memory addresses
-                    var addressRegex = new Regex(@"0x[0-9a-fA-F]+|7[a-fA-F0-9]{12}");
-
-                    var standardizedStacks = new List<string>();
-
-                    foreach (var stack in callStacks)
-                    {
-                        // Remove memory addresses
-                        var standardizedStack = addressRegex.Replace(stack, "");
-
-                        // Normalize whitespace and trim
-                        standardizedStack = string.Join(Environment.NewLine, standardizedStack.Split(new[] { '\n', '\r' }, StringSplitOptions.RemoveEmptyEntries)
-                            .Select(line => line.Trim()));
-
-                        if (!string.IsNullOrWhiteSpace(standardizedStack))
-                        {
-                            standardizedStacks.Add(standardizedStack);
-                        }
-                    }
-
-                    return standardizedStacks;
-                }
-            }
-
-            outputStringBuilder.AppendLine("Root references analysis tabulated are as follows: ");
-            outputStringBuilder.AppendLine("Root Reference\tCount");
-            outputStringBuilder.AppendLine("--------------------------------------------------");
-            foreach (var kvp in talliedGCRoots)
-            {
-                outputStringBuilder.AppendLine($"{kvp.Key}\t{kvp.Value}");
-            }
-
-            outputStringBuilder.AppendLine("For this analysis: ensure that the root references for user code are highlighted and underscored more than the ASP.NET or system ones.");
-
-            return outputStringBuilder.ToString();
-        }
-    }
-
-    internal static string PrintPath(ClrRoot root, GCRoot.ChainLink link, ClrHeap heap)
-    {
-        StringBuilder sb = new();
-        sb.AppendLine(PrintRoot(root, root));
-        sb.AppendLine(PrintPath(heap, link));
-        return sb.ToString();
-    }
-
-    internal static string PrintPath(ClrHeap heap, GCRoot.ChainLink link)
-    {
-        StringBuilder sb = new();
-        bool first = true;
-        ClrObject firstObj = default;
-
-        ulong prevObj = 0;
-        while (link != null)
-        {
-            ClrObject obj = heap.GetObject(link.Object);
-            if (first)
-            {
-                firstObj = obj;
-                first = false;
-            }
-
-            sb.AppendLine($"-> {obj} {obj.Type}");
-            prevObj = link.Object;
-            link = link?.Next;
+            throw new ArgumentException("The resourceId is empty");
         }
 
-        return sb.ToString();
-    }
+        // If the DotnetAnalyzer isn't uploaded - do so.
+        KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
 
-    internal static string PrintRoot(ClrRoot root, ClrRoot lastRoot)
-    {
-        StringBuilder sb = new();
-        if (root is ClrStackRoot stackRoot)
+        // Download the dotnet analyzer via blob storage. 
+        if (kuduManager.OS == "Windows")
         {
-            ClrStackRoot lastStackRoot = lastRoot as ClrStackRoot;
-
-            ClrThread currThread = stackRoot.StackFrame?.Thread;
-            if (currThread is not null && lastStackRoot?.StackFrame?.Thread != currThread)
+            if (kuduManager.Is32Bit)
             {
-                sb.AppendLine($"Thread {currThread.OSThreadId:x}:");
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//temp");
             }
 
-            ClrStackFrame currFrame = stackRoot.StackFrame;
-            if (currFrame is not null && lastStackRoot?.StackFrame != currFrame)
-            {
-                sb.AppendLine(GetFrameOutput(currFrame));
-            }
-
-            sb.AppendLine(GetRegisterOutput(stackRoot));
-        }
-        else if (root.RootKind == ClrRootKind.FinalizerQueue)
-        {
-            if (lastRoot is null || lastRoot.RootKind != ClrRootKind.FinalizerQueue)
-            {
-                sb.AppendLine("Finalizer Queue:");
-            }
-
-            sb.AppendLine($"    {root.Address:x16} (finalizer root)");
-        }
-        else if (root is ClrHandle handle)
-        {
-            if (lastRoot is null or not ClrHandle)
-            {
-                sb.AppendLine("HandleTable:");
-            }
-        }
-        else
-        {
-            // There are no other options, but futureproofing in case we add something new
-            if (lastRoot is null || lastRoot.RootKind != root.RootKind)
-            {
-                sb.AppendLine($"{root.RootKind}:");
-            }
-
-            sb.AppendLine($"    {root.Address:x16}");
-        }
-
-        lastRoot = root;
-        return sb.ToString();
-    }
-
-    internal static string NameForHandle(ClrHandleKind handleKind)
-    {
-        return handleKind switch
-        {
-            ClrHandleKind.WeakShort => "weak short handle",
-            ClrHandleKind.WeakLong => "weak long handle",
-            ClrHandleKind.Strong => "strong handle",
-            ClrHandleKind.Pinned => "pinned handle",
-            ClrHandleKind.RefCounted => "ref counted handle",
-            ClrHandleKind.Dependent => "dependent handle",
-            ClrHandleKind.AsyncPinned => "async pinned handle",
-            ClrHandleKind.SizedRef => "sized ref handle",
-            ClrHandleKind.WeakWinRT => "weak WinRT handle",
-            _ => handleKind.ToString()
-        };
-    }
-
-    private static string GetFrameOutput(ClrStackFrame currFrame)
-    {
-        StringBuilder sb = new();
-        sb.Clear();
-        sb.Append("    ");
-
-        sb.Append(currFrame.StackPointer.ToString("x"));
-
-        // InstructionPointer is 0 for coreclr!Frame objects.
-        if (currFrame.InstructionPointer != 0)
-        {
-            sb.Append(' ');
-            sb.Append(currFrame.InstructionPointer.ToString("x"));
-        }
-
-        if (currFrame.FrameName is not null)
-        {
-            sb.Append(' ');
-            sb.Append('[');
-            sb.Append(currFrame.FrameName);
-            sb.Append("] ");
-        }
-
-        if (currFrame.Method is not null)
-        {
-            sb.Append(' ');
-
-            if (currFrame.FrameName is not null)
-            {
-                sb.Append('(');
-            }
-
-            if (currFrame.Method.Signature is not null)
-            {
-                sb.Append(currFrame.Method.Signature);
-            }
             else
             {
-                if (currFrame.Method.Type?.Name is not null)
-                {
-                    sb.Append(currFrame.Method.Type.Name);
-                    sb.Append('.');
-                }
-                else
-                {
-                    sb.Append("UnknownType.");
-                }
-
-                if (currFrame.Method.Name is not null)
-                {
-                    sb.Append(currFrame.Method.Name);
-                    sb.Append("(...)");
-                }
-                else
-                {
-                    sb.Append("UnknownMethod(...)");
-                }
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//temp");
             }
 
-            if (currFrame.FrameName is not null)
+            // Run the dotnet analyzer on the dump file with the appropriate commands. 
+            var result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//{dumpPath}", "C://local//temp");
+
+            // Delete dump after analysis to save space.
+            try
             {
-                sb.Append(')');
+                string _ = await kuduManager.ExecuteCommandAsync($"del C://local//temp//{dumpPath}", "C://local//temp");
             }
+
+            catch (Exception)
+            {
+                Console.WriteLine($"[DotnetAnalysisPlugin] Failed to delete dump: {dumpPath}");
+            }
+
+            return result;
         }
 
-        return sb.ToString();
-    }
-
-    private static string GetRegisterOutput(ClrStackRoot stackRoot)
-    {
-        StringBuilder sb = new();
-        sb.Clear();
-        sb.Append("        ");
-        if (stackRoot.RegisterName is not null || stackRoot.RegisterOffset != 0)
+        else
         {
-            sb.Append(stackRoot.RegisterName ?? "???");
-            if (stackRoot.RegisterOffset > 0)
-            {
-                sb.Append('+');
-                sb.Append(stackRoot.RegisterOffset.ToString("x"));
-            }
-            else if (stackRoot.RegisterOffset < 0)
-            {
-                sb.Append('-');
-                sb.Append(Math.Abs(stackRoot.RegisterOffset).ToString("x"));
-            }
-
-            sb.Append(':');
+            throw new NotImplementedException("Not implemented for Linux yet.");
         }
-
-        if (stackRoot.Address != 0)
-        {
-            sb.Append(' ');
-            sb.Append(stackRoot.Address.ToString("x16"));
-        }
-
-        return sb.ToString();
     }
 
     private class CallStackComparer : IEqualityComparer<TraceCallStack>
@@ -464,13 +327,12 @@ that is an important consideration when it comes to detecting memory leaks:\");
         return traceLog;
     }
 
-    internal async Task<string> GetGCCPUAnalysis(Etlx.TraceLog traceLog)
+    internal async Task<string> GetGCCPUAnalysis(Etlx.TraceLog traceLog, int pid)
     {
         StringBuilder output = new();
 
         // Check the GC % and see if the high percentage is due to inducing GCs.
         var traceSource = traceLog.Events.GetSource();
-        traceSource.NeedLoadedDotNetRuntimes();
 
         List<GCStartTraceData> inducedGcEvents = new List<GCStartTraceData>();
         traceSource.Clr.GCStart += (gcEvent) =>
@@ -482,8 +344,12 @@ that is an important consideration when it comes to detecting memory leaks:\");
         };
         traceSource.Process();
 
-        // Nettrace only has 1 process.
-        var process = traceSource.Processes().Single();
+        var process = traceSource.Processes().FirstOrDefault(p => p.ProcessID == pid);
+        if (process == null)
+        {
+            throw new ArgumentException($"No process found with PID {pid} in the trace.");
+        }
+
         var mang = process.LoadedDotNetRuntime();
         if (mang.GC.Stats().Count == 0)
         {
@@ -532,15 +398,10 @@ that is an important consideration when it comes to detecting memory leaks:\");
         }
     }
 
-    public async Task<string> GetGCCPUAnalysis(string profilePath)
+    public async Task<string> GetGCCPUAnalysis(string profilePath, int pid)
     {
         Etlx.TraceLog traceLog = GetTraceLogFromProfilePath(profilePath);
-        string gcCPUAnalysis = await GetGCCPUAnalysis(traceLog);
-
-        // TODO: Top N Methods.
-        // Write code to ensure dotnet-trace is installed on the machine and if not, install it.
-        //await EnsureDotnetTraceInstalledAsync();
-
+        string gcCPUAnalysis = await GetGCCPUAnalysis(traceLog, pid);
         return gcCPUAnalysis;
     }
 
@@ -619,7 +480,7 @@ that is an important consideration when it comes to detecting memory leaks:\");
         throw new NotImplementedException(); 
     }
 
-    public Task<string> GetThreadpoolStarvationAnalysis(string profilePath)
+    public Task<string> GetThreadpoolStarvationAnalysis(string profilePath, int pid)
     {
         // TODO: Implement
         throw new NotImplementedException();
