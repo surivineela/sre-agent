@@ -38,7 +38,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         {
             _logger.LogInformation($"Getting token for Azure ARM operations for subscription {subscriptionId}");
             // Get the access token for ARM operations
-            var credential = _authService.GetArmOperationCredential();
+            var credential = _authService.GetArmReadOperationCredential();
             var token = await credential.GetTokenAsync(
                 new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
                 CancellationToken.None);
@@ -122,7 +122,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     {
         try
         {
-            var credential = _authService.GetArmOperationCredential();
+            var credential = _authService.GetArmReadOperationCredential();
             var token = await credential.GetTokenAsync(
                 new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
                 CancellationToken.None);

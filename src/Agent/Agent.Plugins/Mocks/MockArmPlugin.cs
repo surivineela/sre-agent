@@ -36,7 +36,7 @@ namespace Agent.Plugins.Mocks
             return status.MinimumTlsVersion;
         }
 
-        public Task<string> SetMinimumTlsVersion(string appResourceId, string minimumTlsVersion)
+        public Task<string> SetMinimumTlsVersion(Guid threadId, Guid approvalId, string appResourceId, string minimumTlsVersion)
         {
             if (!_tlsStatuses.ContainsKey(appResourceId))
             {

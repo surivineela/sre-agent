@@ -1,27 +1,41 @@
+using System.IdentityModel.Tokens.Jwt;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Azure.Core;
 using Azure.Identity;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
 
 public class AuthenticationService : IAuthenticationService
 {
+    private readonly ILogger<AuthenticationService> _logger;
     private readonly CrawlerSettings _crawlerSettings;
     private readonly FederationSettings _federationSettings;
     private readonly IHostEnvironment _hostEnvironment;
     private readonly DashboardSettings _dashboardSettings;
+    private readonly Lazy<IThreadRepository> _threadRepository;
+    private readonly IServiceProvider _serviceProvider;
 
-    public AuthenticationService(CrawlerSettings crawlerSettings,
+    public AuthenticationService(ILogger<AuthenticationService> logger,
+        CrawlerSettings crawlerSettings,
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
-        IHostEnvironment hostEnvironment)
+        IHostEnvironment hostEnvironment,
+        IServiceProvider serviceProvider)
     {
+        _logger = logger;
         _crawlerSettings = crawlerSettings;
         _federationSettings = federationSettings;
         _hostEnvironment = hostEnvironment;
         _dashboardSettings = dashboardSettings;
+        _serviceProvider = serviceProvider;
+
+        // To avoid cyclic dependency between cosmos client
+        _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
     }
 
     public TokenCredential GetCrawlerCredential()
@@ -62,6 +76,17 @@ public class AuthenticationService : IAuthenticationService
         }
 
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
+    public TokenCredential GetArmReadOperationCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        // will change to OBO in the future
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
     public TokenCredential GetArmOperationCredential()
@@ -136,7 +161,7 @@ public class AuthenticationService : IAuthenticationService
 
         var cred = GetDashboardCredential();
         // https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-api-calls?tabs=post#get-an-access-token
-        var token = await cred.GetTokenAsync(new TokenRequestContext([ "ce34e7e5-485f-4d76-964f-b3d2b16d1e4f/.default" ]), CancellationToken.None);
+        var token = await cred.GetTokenAsync(new TokenRequestContext(["ce34e7e5-485f-4d76-964f-b3d2b16d1e4f/.default"]), CancellationToken.None);
         return token.Token;
     }
 
@@ -169,5 +194,37 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
-    
+    public async Task<TokenCredential?> GetArmWriteOperationCredential(ApprovalContext approvalContext)
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        var approval = await _threadRepository.Value.GetApprovalAsync(approvalContext.ThreadId, approvalContext.ApprovalId);
+        if (approval == null || string.IsNullOrEmpty(approval.OboToken))
+        {
+            return null;
+        }
+
+        return GetOboTokenCredential(approval.OboToken);
+    }
+
+    private TokenCredential GetOboTokenCredential(string token)
+    {
+        AccessToken accessToken;
+        try
+        {
+            var jwt = new JwtSecurityTokenHandler().ReadJwtToken(token);
+            accessToken = new AccessToken(token, jwt.ValidTo);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to parse access token.");
+            // blindly set expiration to 1 hour later
+            accessToken = new AccessToken(token, DateTimeOffset.UtcNow.AddHours(1));
+        }
+
+        return DelegatedTokenCredential.Create((_, _) => accessToken);
+    }
 }

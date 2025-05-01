@@ -40,7 +40,8 @@ type FilterProps<T> = T extends string ? Partial<FuncFilterProps<T>> : FieldFilt
 
 export type IDropdownWithFilterProps<T> = CommonFilterProps<T> & FilterProps<T>;
 
-export const DropdownWithFilter = <T extends {} | string = string>(props: IDropdownWithFilterProps<T>) => { // eslint-disable-line @typescript-eslint/no-empty-object-type
+export const DropdownWithFilter = <T extends {} | string = string>(props: IDropdownWithFilterProps<T>) => {
+    // eslint-disable-line @typescript-eslint/no-empty-object-type
     const {
         onRenderItem: onRenderItemFromProps,
         options: optionsFromProps,

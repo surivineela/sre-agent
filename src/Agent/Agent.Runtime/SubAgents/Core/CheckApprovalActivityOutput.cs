@@ -9,7 +9,6 @@ using Microsoft.Extensions.AI;
 namespace Agent.Runtime.SubAgents.Core;
 public class CheckApprovalActivityOutput
 {
-    public string ApprovalId { get; set; } = string.Empty;
+    public Guid? ApprovalId { get; set; }
     public ToolApprovalStatus ApprovalStatus { get; set; } = ToolApprovalStatus.Pending;
-    public string? OboToken { get; set; }
 }

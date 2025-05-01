@@ -1542,6 +1542,8 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
+    // there might be multiple approvals with same title due to oboToken expiration
+    // always get the approval with latest created timestamp
     public async Task<Approval> GetApprovalAsync(Guid threadId, string title)
     {
         try

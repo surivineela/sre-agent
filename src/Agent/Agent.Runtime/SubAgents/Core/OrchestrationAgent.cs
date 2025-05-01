@@ -117,9 +117,9 @@ public class OrchestrationAgent
             log.LogInformation("[{ThreadId}] Approval status is: {ApprovalStatus}", threadId, approvalResult.ApprovalStatus);
             if (approvalResult.ApprovalStatus == ToolApprovalStatus.Pending)
             {
-                if (!string.IsNullOrEmpty(approvalResult.ApprovalId))
+                if (approvalResult.ApprovalId != null)
                 {
-                    PendingApprovals.Add(approvalResult.ApprovalId);
+                    PendingApprovals.Add(approvalResult.ApprovalId!.ToString());
                 }
 
                 functionCall = null;
@@ -127,9 +127,9 @@ public class OrchestrationAgent
             else if (approvalResult.ApprovalStatus == ToolApprovalStatus.Approved)
             {
                 log.LogInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
-                if (!string.IsNullOrEmpty(approvalResult.ApprovalId))
+                if (approvalResult.ApprovalId != null)
                 {
-                    PendingApprovals.Remove(approvalResult.ApprovalId);
+                    PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
                 }
 
                 this.ChatHistory.AddRange(reasoningResult.ChatMessages);
@@ -137,9 +137,9 @@ public class OrchestrationAgent
             else
             {
                 log.LogInformation("[{ThreadId}] function call to {FunctionCall} is rejected", threadId, functionCall.Name);
-                if (!string.IsNullOrEmpty(approvalResult.ApprovalId))
+                if (approvalResult.ApprovalId != null)
                 {
-                    PendingApprovals.Remove(approvalResult.ApprovalId);
+                    PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
                 }
 
                 this.ChatHistory.Add(new ChatMessage(ChatRole.Assistant, [functionCall]));
@@ -159,22 +159,7 @@ public class OrchestrationAgent
 
         await RecordStateChange(ReasoningState.RunningFunctionCall, $"Running function call: {functionCall.Name}");
 
-        if (!string.IsNullOrEmpty(approvalResult.OboToken))
-        {
-            if (functionCall.Arguments != null)
-            {
-                functionCall.Arguments["oboToken"] = approvalResult.OboToken;
-            }
-        }
-
-        // For thread specific functions, set the accurate threadId in case of LLM hallucination
-        bool isThreadSpecific = IsThreadSpecificFunction(functionCall.Name, this.ToolSignatures);
-        if (isThreadSpecific && functionCall.Arguments != null)
-        {
-            functionCall.Arguments["threadId"] = threadId;
-        }
-
-        var step = OrchestrationAgentStep.CreateStep(functionCall);
+        var step = OrchestrationAgentStep.CreateStep(functionCall, approvalResult.ApprovalId);
         await step.ExecuteAsync(_taskOrchestrationContext, this);
     }
 
@@ -317,6 +302,10 @@ public class OrchestrationAgent
         {
             // TODO: error handling
             var approvalEvent = await _approvalTask;
+            if (!string.IsNullOrEmpty(approvalEvent.OperationId))
+            {
+                PendingApprovals.Remove(approvalEvent.OperationId);
+            }
 
             if (approvalEvent.IsApproved)
             {
@@ -354,27 +343,6 @@ public class OrchestrationAgent
         ));
         log.LogInformation("[{ThreadId}] Completion notification sent", threadId);
     }
-
-    // Helper method to check if a function has the ThreadSpecific attribute
-    private bool IsThreadSpecificFunction(string functionName, IReadOnlyList<string> toolSignatures)
-    {
-        // This is a simplified implementation. In a ideal scenario, you would need to:
-        // 1. Parse tool signatures to identify the class and method, so that we don't need to specify the class type below
-        // 2. Use reflection to check if the method has the ThreadSpecific attribute
-
-        Type chartPluginType = typeof(ChartPluginDefinition);
-        var methodInfo = chartPluginType.GetMethods()
-            .FirstOrDefault(m =>
-                m.Name.Contains(functionName, StringComparison.OrdinalIgnoreCase) ||
-                m.GetCustomAttribute<Microsoft.SemanticKernel.KernelFunctionAttribute>()?.Name == functionName);
-
-        if (methodInfo != null)
-        {
-            return methodInfo.GetCustomAttribute<ThreadSpecificAttribute>() != null;
-        }
-
-        return false;
-    }
 }
 
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
@@ -390,7 +358,7 @@ public abstract class OrchestrationAgentStep
 {
     public abstract Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent state);
 
-    public static OrchestrationAgentStep CreateStep(FunctionCallContent functionCall)
+    public static OrchestrationAgentStep CreateStep(FunctionCallContent functionCall, Guid? approvalId)
     {
         if (functionCall.Name == nameof(ControlFlowPluginDefinition.MarkPlanComplete))
         {
@@ -429,7 +397,7 @@ public abstract class OrchestrationAgentStep
         }
         else
         {
-            return new OrchestrationAgentGenericExecuteStep { FunctionCall = functionCall };
+            return new OrchestrationAgentGenericExecuteStep { FunctionCall = functionCall, ApprovalId = approvalId };
         }
     }
 }

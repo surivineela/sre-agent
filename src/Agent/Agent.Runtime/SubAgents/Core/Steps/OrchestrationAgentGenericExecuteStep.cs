@@ -11,6 +11,7 @@ namespace Agent.Runtime.SubAgents.Core.Steps;
 public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
 {
     public FunctionCallContent FunctionCall { get; set; }
+    public Guid? ApprovalId { get; set; }
 
     public override async Task ExecuteAsync(TaskOrchestrationContext context, OrchestrationAgent agent)
     {
@@ -33,6 +34,8 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
 
         // For any other function call, defer to the derived implementation
         var execInput = new ExecuteActionInput(
+            ThreadId: threadId,
+            ApprovalId: ApprovalId,
             FunctionCallContent: updatedFunctionCall,
             ToolSignatures: agent.ToolSignatures);
         var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);

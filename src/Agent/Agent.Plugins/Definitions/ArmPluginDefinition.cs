@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
+using Agent.Plugins.Attributes;
 using Agent.Plugins.Models;
 
 namespace Agent.Plugins
@@ -35,14 +36,17 @@ namespace Agent.Plugins
         }
 
         [RequiresApproval]
+        [ThreadSpecific]
         [Description("Sets the minimum TLS version on a site resource")]
         public async Task<string> SetMinimumTlsVersion(
+            Guid threadId,
+            Guid approvalId,
             [Description("The resource ID of the app.")]
             string appResourceId,
             [Description("The minimum TLS version to set. Valid values: 1.2, 1.3")]
             string minimumTlsVersion)
         {
-            return await _armPlugin.SetMinimumTlsVersion(appResourceId, minimumTlsVersion);
+            return await _armPlugin.SetMinimumTlsVersion(threadId, approvalId, appResourceId, minimumTlsVersion);
         }
 
         [Description("Restart an AppService app")]

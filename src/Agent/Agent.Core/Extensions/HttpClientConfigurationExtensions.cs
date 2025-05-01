@@ -18,7 +18,7 @@ namespace Agent.Core.Extensions
             services.AddHttpClient(nameof(ArmHelper)).AddHttpMessageHandler(sp =>
             {
                 var authSvc = sp.GetRequiredService<IAuthenticationService>();
-                var cred = authSvc.GetArmOperationCredential();
+                var cred = authSvc.GetArmReadOperationCredential();
 
                 return new ArmHelperAccessTokenHandler(cred);
             });

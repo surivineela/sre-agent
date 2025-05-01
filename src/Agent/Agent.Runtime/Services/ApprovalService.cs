@@ -132,7 +132,7 @@ namespace Agent.Runtime.Services
                     ApprovedTime: DateTime.UtcNow,
                     DecisionMaker: user,
                     ProcessedTime: null,
-                    OboToken: oboToken
+                    OboToken: status == ApprovalDecision.Approved ? oboToken : null
                     );
 
                 await _durableTaskClient.RaiseEventAsync(orchestrationId, "ApprovalEvent", approvalStatus);
@@ -142,7 +142,8 @@ namespace Agent.Runtime.Services
             {
                 DecisionTimestamp = DateTime.UtcNow,
                 DecisionUser = new Author(Role.User, user, user),
-                Status = status
+                Status = status,
+                OboToken = oboToken,
             };
 
             await _threadRepository.UpdateApprovalAsync(newApproval);

@@ -21,6 +21,8 @@ namespace Agent.Plugins.Implementation
         }
 
         public async Task<string> SetMinimumTlsVersion(
+            Guid threadId,
+            Guid approvalId,
             string appResourceId,
             string minimumTlsVersion)
         {
@@ -38,7 +40,8 @@ namespace Agent.Plugins.Implementation
                     return msg;
                 }
 
-                var response = await _armHelper.UpdateMinimumTlsVersion(status, minimumTlsVersion);
+                var approvalContext = new ApprovalContext(threadId, approvalId);
+                var response = await _armHelper.UpdateMinimumTlsVersion(approvalContext, status, minimumTlsVersion);
                 success = response.Item1;
                 reason = response.Item2;
             }

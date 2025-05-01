@@ -611,7 +611,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<(bool, string)> UpdateMinimumTlsVersion(TlsStatus tlsStatus, string desiredTlsVersion)
+    public async Task<(bool, string)> UpdateMinimumTlsVersion(ApprovalContext approval, TlsStatus tlsStatus, string desiredTlsVersion)
     {
         if (tlsStatus == null || string.IsNullOrWhiteSpace(tlsStatus.ResourceId))
             throw new ArgumentException("Resource ID is required");
@@ -635,7 +635,16 @@ public class ArmHelper
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, tlsUpdateUrl);
         request.Content = content;
 
-        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var httpClient = _httpClientFactory.CreateClient();
+        var cred = await _authService.GetArmWriteOperationCredential(approval);
+        if (cred == null)
+        {
+            throw new InvalidOperationException("The action is not approved");
+        }
+
+        var token = await cred.GetTokenAsync(new TokenRequestContext(), CancellationToken.None);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
         var response = await httpClient.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
@@ -778,7 +787,7 @@ public class ArmHelper
         var requestUrl = new Uri(new Uri("https://management.azure.com"),
             $"{resourceId}/detectors/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
 
-        var cred = _authService.GetArmOperationCredential();
+        var cred = _authService.GetArmReadOperationCredential();
         var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
         // Prepare the HTTP request
@@ -1119,7 +1128,7 @@ public class ArmHelper
     {
         var requestUrl = $"https://management.azure.com{resourceId}/config/appSettings/list?api-version=2022-03-01";
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-        var cred = _authService.GetArmOperationCredential();
+        var cred = _authService.GetArmReadOperationCredential();
         var token = await cred.GetTokenAsync(new TokenRequestContext(["https://management.azure.com/.default"]), CancellationToken.None);
 
         httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
@@ -1139,7 +1148,7 @@ public class ArmHelper
         {
             var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-            var cred = _authService.GetArmOperationCredential();
+            var cred = _authService.GetArmReadOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
@@ -1184,7 +1193,7 @@ public class ArmHelper
         {
             var requestUrl = $"https://management.azure.com{resourceId}/providers/microsoft.insights/diagnosticSettings?api-version=2021-05-01-preview";
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-            var cred = _authService.GetArmOperationCredential();
+            var cred = _authService.GetArmReadOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
             httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
@@ -1246,7 +1255,7 @@ public class ArmHelper
         try
         {
             var httpClient = _httpClientFactory.CreateClient();
-            var cred = _authService.GetArmOperationCredential();
+            var cred = _authService.GetArmReadOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
@@ -1276,7 +1285,7 @@ public class ArmHelper
     {
         try
         {
-            var credential = _authService.GetArmOperationCredential();
+            var credential = _authService.GetArmReadOperationCredential();
             var armClient = new ArmClient(credential);
             ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
             WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
@@ -1309,7 +1318,7 @@ public class ArmHelper
             string jsonBody = JsonSerializer.Serialize(requestBody);
 
 
-            var cred = _authService.GetArmOperationCredential();
+            var cred = _authService.GetArmReadOperationCredential();
 
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
@@ -1727,7 +1736,7 @@ public class ArmHelper
 
     public async Task<int> GetNumberOfWorkers(string resourceId)
     {
-        var credential = _authService.GetArmOperationCredential();
+        var credential = _authService.GetArmReadOperationCredential();
         var armClient = new ArmClient(credential);
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
         WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();

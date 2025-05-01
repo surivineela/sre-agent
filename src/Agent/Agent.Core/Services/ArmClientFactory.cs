@@ -19,7 +19,7 @@ public class ArmClientFactory : IArmClientFactory
     {
         _authService = authService;
 
-        _armClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetArmOperationCredential()));
+        _armClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetArmReadOperationCredential()));
         _crawlerClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetCrawlerCredential()));
     }
 

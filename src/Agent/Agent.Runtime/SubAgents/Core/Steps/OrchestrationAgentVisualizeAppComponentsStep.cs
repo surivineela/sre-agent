@@ -48,6 +48,8 @@ public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentSt
 
         // Execute the function with the updated arguments
         var execInput = new ExecuteActionInput(
+            ThreadId: threadId,
+            ApprovalId: null,
             FunctionCallContent: updatedFunctionCall,
             ToolSignatures: agent.ToolSignatures);
 
