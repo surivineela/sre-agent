@@ -55,11 +55,11 @@ public class IcmController : Controller
         }
     }
 
-    [HttpGet("getLoopAlertConfigs/{loopId}")]
-    [HttpOptions("getLoopAlertConfigs/{loopId}")]
-    public async Task<IActionResult> GetLoopAlertConfigs(int loopId)
+    [HttpGet("getLoopAlertConfigs/{loopId?}")]
+    [HttpOptions("getLoopAlertConfigs/{loopId?}")]
+    public async Task<IActionResult> GetLoopAlertConfigs(int? loopId)
     {
-        if(loopId <= 0)
+        if(loopId  != null && loopId <= 0)
         {
             return BadRequest("ID must be greater than 0");
         }

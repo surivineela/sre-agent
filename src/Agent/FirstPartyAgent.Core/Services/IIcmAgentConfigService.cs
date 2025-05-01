@@ -5,7 +5,7 @@ public interface IIcmAgentConfigService
 {
     bool IsEnabled();
     Task<List<TeamConfig>> GetOnboardedLoops();
-    Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int loopId);
+    Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int? loopId);
     Task<List<AlertDetails>> GetLoopAlerts(int loopId);
     Task<List<IcmTeam>> GetIcmTeams();
     Task<AgentFactoryConfigCosmos<T>> GetAgentFactoryConfig<T>(string id);

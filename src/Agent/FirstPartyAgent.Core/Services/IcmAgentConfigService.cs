@@ -49,7 +49,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         }
     }
 
-    public async Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int loopId)
+    public async Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int? loopId)
     {
         if (!IsEnabled())
         {
@@ -58,10 +58,19 @@ public class IcmAgentConfigService : IIcmAgentConfigService
 
         try
         {
-            var queryableResult = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName)
-                .Where(c => c.TeamId.Equals(loopId.ToString()))
+            if (loopId == null)
+            {
+                var queryableResult = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName)
                 .ToList();
-            return queryableResult;
+                return queryableResult;
+            }
+            else
+            {
+                var queryableResult = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName)
+                .Where(c => c.TeamId == loopId)
+                .ToList();
+                return queryableResult;
+            }
         }
         catch (Exception ex)
         {
@@ -79,7 +88,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         try
         {
             var queryableResult = _cosmosDbService.GetQueryableContainer<AlertDetails>(_cosmosDbService.IcmAgentDatabaseName, _alertDetailsContainerName)
-                .Where(c => c.TeamId.Equals(loopId.ToString()))
+                .Where(c => c.TeamId == loopId)
                 .ToList();
 
             return queryableResult;
@@ -210,7 +219,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         try
         {
             var queryableResult = _cosmosDbService.GetQueryableContainer<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName)
-                .Where(c => c.AlertingId.Equals(alertId))
+                .Where(c => c.AlertingId == alertId)
                 .ToList();
 
             if (queryableResult == null || !queryableResult.Any())
@@ -365,7 +374,7 @@ Incidents
         try
         {
             var queryableResult = _cosmosDbService.GetQueryableContainer<AgentDeployment>(_cosmosDbService.IcmAgentDatabaseName, _agentDeploymentsContainerName)
-                            .Where(c => c.TeamId.Equals(loopId.ToString()))
+                            .Where(c => c.TeamId == loopId)
                             .ToList();
             if (queryableResult == null || !queryableResult.Any())
             {
@@ -389,7 +398,7 @@ Incidents
         try
         {
             var queryableResult = _cosmosDbService.GetQueryableContainer<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, _genevaActionsContainerName)
-                .Where(c => c.TeamId.Equals(teamId.ToString()))
+                .Where(c => c.TeamId == teamId)
                 .ToList();
             if (queryableResult == null || !queryableResult.Any())
             {
@@ -494,7 +503,7 @@ public class IcmAgentConfigServiceDisabled : IIcmAgentConfigService
         throw new NotImplementedException();
     }
 
-    public Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int loopId)
+    public Task<List<ICMAlertConfig>> GetLoopAlertConfigs(int? loopId)
     {
         throw new NotImplementedException();
     }
