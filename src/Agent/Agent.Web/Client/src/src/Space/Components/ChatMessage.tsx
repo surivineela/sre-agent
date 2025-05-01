@@ -3,15 +3,18 @@ import {
     CopilotMessageV2Props as CopilotMessageProps,
     UserMessageV2 as UserMessage,
 } from '@fluentui-copilot/react-copilot-chat';
-import { Button } from '@fluentui/react-components';
+import { Button, Text, tokens } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
+import axios from 'axios';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
+import { getSafeDateTime } from '../../Common/Helpers/Date';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatMessageProps } from '../Contracts/Activities';
-import { sendApprovalDecision, sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
+import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentChart from './Charts';
 
@@ -51,6 +54,25 @@ const renderMarkdownWithImages = (text: string) => {
     return parts;
 };
 
+const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
+    try {
+        const url = `../api/v1/threads/${threadId}/feedbacks`;
+        await axios.post(
+            url,
+            {
+                isPositive: isPositive,
+                feedbackText: feedbackText,
+            },
+            {
+                headers: getAgentHeaders(),
+            }
+        );
+    } catch {
+        // ToDo: handle error
+        return undefined;
+    }
+};
+
 const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
@@ -59,15 +81,16 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     const [isPositiveFeedback, setIsPositiveFeedback] = useState<boolean | null>(null); // State to store thumbs-up/down info
     const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
 
+    const { userIdAndDisplayName } = useAuthenticatedUserInfo();
+
     const messageContent = useMemo(() => {
         // Make sure we have a text property and it's not empty
-        if (!message.text) {
-            console.log('Message has no text content:', message);
+        if (!message.text && !isTyping) {
             return 'No message content to display';
         }
         const content = renderMarkdownWithImages(message.text);
         return Array.isArray(content) ? content : message.text;
-    }, [message]);
+    }, [message.text, isTyping]);
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
@@ -247,6 +270,23 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                 })}
             </>
         );
+    };
+
+    const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
+        const url = `../api/v1/approvals/${threadId}/${approvalId}/decision`;
+
+        const response = await axios.post(
+            url,
+            {
+                Status: decision,
+                User: userIdAndDisplayName.userId,
+            },
+            {
+                headers: getAgentHeaders(),
+            }
+        );
+
+        return response.data;
     };
 
     const handleApprovalDecision = async (approved: boolean) => {
@@ -466,6 +506,11 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                         style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
                         className={ChatBoxStyles.agentMessage}
                     >
+                        {!isTyping && (
+                            <Text block={true} size={200} color={tokens.colorNeutralForeground3}>
+                                {getSafeDateTime(message.timeStamp).toLocaleString()}
+                            </Text>
+                        )}
                         {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
                         {message.approval ? (
                             <>{renderApprovalContent()}</>
@@ -637,7 +682,15 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         default:
             return (
                 <div className={ChatBoxStyles.userMessage} key={message.id}>
-                    <UserMessage className={chatStyles.userBubble} key={message.id}>
+                    <Text block={true} weight={'semibold'} className={chatStyles.userName}>
+                        {message.author.displayName}
+                    </Text>
+                    <UserMessage
+                        className={chatStyles.userBubble}
+                        message={{ className: chatStyles.userBubbleMessage }}
+                        key={message.id}
+                        timestamp={getSafeDateTime(message.timeStamp).toLocaleString()}
+                    >
                         {renderContent()}
                     </UserMessage>
                 </div>

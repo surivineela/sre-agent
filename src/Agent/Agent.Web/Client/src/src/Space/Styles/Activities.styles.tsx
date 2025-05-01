@@ -50,6 +50,12 @@ export const useChatBoxStyles = makeStyles({
         maxWidth: 'fit-content',
         display: 'inline-block',
     },
+    userName: {
+        margin: '3px 0px 3px 3px',
+    },
+    userBubbleMessage: {
+        padding: '0px 16px 0px 0px',
+    },
 });
 
 export const ChatBoxStyles = mergeStyleSets({

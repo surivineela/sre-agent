@@ -2,18 +2,14 @@ import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ApprovalDecision, Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
-
-const user = {
-    displayName: 'Web Client User',
-    userId: 'web-client-user',
-};
+import { useAuthenticatedUserInfo } from './useAuthenticatedUserInfo';
 
 const getMessages = async (threadId: string, skip: number, top: number, signal?: AbortSignal): Promise<Message[]> => {
     try {
@@ -29,32 +25,20 @@ const getMessages = async (threadId: string, skip: number, top: number, signal?:
     }
 };
 
-const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
-    const url = `../api/v1/approvals/${threadId}/${approvalId}/decision`;
-    const { userId } = user;
-    const response = await axios.post(
-        url,
-        {
-            Status: decision,
-            User: userId,
-        },
-        {
-            headers: getAgentHeaders(),
-        }
-    );
-
-    return response.data;
-};
-
-const sendMessage = async (threadId: string, message: string, signal?: AbortSignal): Promise<Message | undefined> => {
-    const { userId, displayName } = user;
+const sendMessage = async (
+    userId: string,
+    userDisplayName: string,
+    threadId: string,
+    message: string,
+    signal?: AbortSignal
+): Promise<Message | undefined> => {
     const url = `../api/v1/threads/${threadId}/messages`;
     const response = await axios.post(
         url,
         {
             text: message,
             role: 'User',
-            displayName: displayName,
+            displayName: userDisplayName,
             userId: userId,
         },
         {
@@ -66,27 +50,7 @@ const sendMessage = async (threadId: string, message: string, signal?: AbortSign
     return response?.data;
 };
 
-const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
-    try {
-        const url = `../api/v1/threads/${threadId}/feedbacks`;
-        await axios.post(
-            url,
-            {
-                isPositive: isPositive,
-                feedbackText: feedbackText,
-            },
-            {
-                headers: getAgentHeaders(),
-            }
-        );
-    } catch {
-        // ToDo: handle error
-        return undefined;
-    }
-};
-
-const createThread = async (message: string, signal?: AbortSignal) => {
-    const { userId, displayName } = user;
+const createThread = async (userId: string, userDisplayName: string, message: string, signal?: AbortSignal) => {
     const url = `../api/v1/threads`;
 
     const response = await axios.post(
@@ -95,7 +59,7 @@ const createThread = async (message: string, signal?: AbortSignal) => {
             startMessage: {
                 text: message,
                 userId: userId,
-                displayName: displayName,
+                displayName: userDisplayName,
             },
         },
         {
@@ -106,15 +70,14 @@ const createThread = async (message: string, signal?: AbortSignal) => {
     return response?.data;
 };
 
-const composeTemporaryUserMessage = (message: string): Message => {
+const composeTemporaryUserMessage = (userId: string, userDisplayName: string, message: string): Message => {
     return {
         id: Guid.newGuid(),
         timeStamp: new Date().toISOString(),
         author: {
             role: 'User',
-            userId: Guid.newGuid(),
-            // Currently we are not displaying the user name in the chat box, so we can ignore it for now.
-            displayName: '',
+            userId: userId,
+            displayName: userDisplayName,
         },
         text: message,
     };
@@ -147,7 +110,7 @@ const pollResponses = async (messageCount: number, threadId: string, latestMessa
     return [...responses];
 };
 
-const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
+export const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
     const intl = useIntl();
 
     const [messages, setMessages] = useState<Message[]>([]);
@@ -163,6 +126,10 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
     const [enableIntersectObserver, setEnableIntersectObserver] = useState<boolean>(false);
 
     const { threadsInitialized } = useContext(AgentContext);
+
+    const {
+        userIdAndDisplayName: { userId, displayName },
+    } = useAuthenticatedUserInfo();
 
     const disableInput = useMemo(
         () => !!agentTypingMessage || isLoadingInitialChatHistory || !threadsInitialized,
@@ -214,7 +181,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
             const { signal } = abortControllerRef.current;
 
             setWaitingForSendMessageResponse(true);
-            setTemporaryUserMessage(composeTemporaryUserMessage(message));
+            setTemporaryUserMessage(composeTemporaryUserMessage(userId, displayName, message));
             setAgentTypingMessage(composeAgentTypingMessage());
 
             let newThread: Thread | undefined = undefined;
@@ -224,10 +191,10 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
                 //ToDo: Handle errors of sendMessage, createThread and pollResponses
                 if (currentThreadId) {
                     // issue a request to send a message
-                    await sendMessage(currentThreadId, message, signal);
+                    await sendMessage(userId, displayName, currentThreadId, message, signal);
                 } else {
                     // issue a request to create a new thread
-                    newThread = await createThread(message, signal);
+                    newThread = await createThread(userId, displayName, message, signal);
                 }
 
                 const threadId = currentThreadId || newThread?.id;
@@ -252,7 +219,7 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
                 }
             }
         },
-        [currentThreadId, addThread]
+        [currentThreadId, addThread, userId, displayName]
     );
 
     const onIntersect = debounce(async (entries: IntersectionObserverEntry[]) => {
@@ -383,5 +350,3 @@ const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | nul
         cancelResponse,
     };
 };
-
-export { sendApprovalDecision, sendMessageFeedback, useChatBox };
