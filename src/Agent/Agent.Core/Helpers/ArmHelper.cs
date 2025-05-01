@@ -6,6 +6,7 @@ using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
@@ -13,26 +14,22 @@ using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
-using Azure.Identity;
+using Azure.ResourceManager;
+using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
 using Azure.ResourceManager.Compute;
 using Azure.ResourceManager.CosmosDB;
 using Azure.ResourceManager.CosmosDB.Models;
-using Azure.ResourceManager;
 using Azure.ResourceManager.EventHubs;
+using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.ServiceBus;
 using Azure.ResourceManager.ServiceBus.Models;
-using Azure.ResourceManager.Resources;
 using Azure.ResourceManager.Sql;
 using Azure.ResourceManager.Sql.Models;
 using Azure.ResourceManager.Storage;
 using Azure.ResourceManager.Storage.Models;
 using Newtonsoft.Json.Linq;
-using OpenTelemetry.Resources;
-using static System.Net.WebRequestMethods;
-using Azure.ResourceManager.AppService;
 using JsonSerializer = System.Text.Json.JsonSerializer;
-using System.Text.Json.Nodes;
 
 namespace Agent.Core.Helpers;
 
@@ -52,7 +49,6 @@ public class ArmHelper
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
-    private readonly AzureSettings _azureSettings;
 
     // Crawler MI is used for production environment as current solution
     public ArmHelper(IHttpClientFactory httpClientFactory, IArmClientFactory armClientFactory, IAuthenticationService authService, AzureSettings azureSettings)
@@ -60,7 +56,6 @@ public class ArmHelper
         _httpClientFactory = httpClientFactory;
         _armClientFactory = armClientFactory;
         _authService = authService;
-        _azureSettings = azureSettings;
     }
 
     public async Task<List<AzureSubscription>> GetSubscriptionsAsync()
@@ -1157,14 +1152,14 @@ public class ArmHelper
                 var jsonDoc = JsonDocument.Parse(content);
                 var root = jsonDoc.RootElement;
 
-                 foreach (var component in root.GetProperty("value").EnumerateArray())
+                foreach (var component in root.GetProperty("value").EnumerateArray())
                 {
                     if (component.TryGetProperty("properties", out var properties) &&
                         properties.TryGetProperty("InstrumentationKey", out var key) &&
                         key.GetString() == instrumentationKey)
                     {
                         var appIdFound = properties.TryGetProperty("AppId", out var appId);
-                        return appIdFound ? appId.GetString()! : string.Empty ;
+                        return appIdFound ? appId.GetString()! : string.Empty;
                     }
                 }
 
@@ -1212,7 +1207,7 @@ public class ArmHelper
                     properties.TryGetProperty("workspaceId", out var workSpaceId) &&
                     properties.TryGetProperty("logs", out var logsArray))
                 {
-                    foreach(var logsEntry in logsArray.EnumerateArray())
+                    foreach (var logsEntry in logsArray.EnumerateArray())
                     {
                         if (logsEntry.TryGetProperty("category", out var categoryElement))
                         {

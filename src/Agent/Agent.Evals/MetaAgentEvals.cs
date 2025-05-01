@@ -5,7 +5,6 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
-using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -86,8 +85,8 @@ public class MetaAgentEvals
         }
     }
 
-    public static ThirdPartAgentsFactory GetMockedThirdPartAgentsFactory(
-        ILogger<ThirdPartAgentsFactory>? logger = null,
+    public static ThirdPartyAgentsFactory GetMockedThirdPartAgentsFactory(
+        ILogger<ThirdPartyAgentsFactory>? logger = null,
         McpToolsRepository? mcpToolsRepository = null,
         IServiceProvider? serviceProvider = null,
 
@@ -106,7 +105,7 @@ public class MetaAgentEvals
         IGraphDBPlugin? graphDBPlugin = null,
         //IMetaAgentAppReliabilityPlugin? appReliabilityPlugin = null,
         IMetaAgentWebAppDownPlugin? webAppDownPlugin = null,
-        
+
         IMetaAgentVmRdpInvestigatorPlugin? vmRdpInvestigatorPlugin = null,
         IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null,
@@ -117,12 +116,12 @@ public class MetaAgentEvals
         IMetricsPlugin metricsPlugin = null,
         IIncidentPlugin incidentPlugin = null,
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin? functionAppExecutionFailuresAgentPlugin = null,
-        InstanceManagementSettings instanceManagementSettings = null
-        )
+        InstanceManagementSettings instanceManagementSettings = null,
+        IAzureMonitorMetricsPlugin? azureMonitorMetricsPlugin = null)
     {
 
-        return new ThirdPartAgentsFactory(
-            logger ?? Mock.Of<ILogger<ThirdPartAgentsFactory>>(),
+        return new ThirdPartyAgentsFactory(
+            logger ?? Mock.Of<ILogger<ThirdPartyAgentsFactory>>(),
             mcpToolsRepository ?? Mock.Of<McpToolsRepository>(),
             serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
 
@@ -151,7 +150,8 @@ public class MetaAgentEvals
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
             instanceManagementSettings ?? Mock.Of<InstanceManagementSettings>(),
             incidentPlugin ?? Mock.Of<IIncidentPlugin>(),
-            functionAppExecutionFailuresAgentPlugin ?? Mock.Of<IMetaAgentFunctionAppExecutionFailuresAgentPlugin>()
+            functionAppExecutionFailuresAgentPlugin ?? Mock.Of<IMetaAgentFunctionAppExecutionFailuresAgentPlugin>(),
+            azureMonitorMetricsPlugin ?? Mock.Of<IAzureMonitorMetricsPlugin>()
         );
     }
 

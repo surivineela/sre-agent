@@ -1,20 +1,20 @@
-using Agent.Plugins.Definitions;
-using Agent.Plugins;
-using Agent.Runtime.MetaAgent.Interfaces;
-using Microsoft.Extensions.AI;
-using Agent.Core.Helpers;
+using System.Reflection;
 using Agent.Core.Configuration;
+using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Runtime.V2;
-using System.Reflection;
-using Microsoft.Extensions.Logging;
+using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.SubAgents;
+using Agent.Runtime.V2;
+using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.MetaAgent;
-public class ThirdPartAgentsFactory : IAgentsFactory
+public class ThirdPartyAgentsFactory : IAgentsFactory
 {
-    public const string SystemPrompt = @"# Azure SRE Agent
+    public readonly string SystemPrompt = @"# Azure SRE Agent
 
 You are a specialized Azure SRE Agent supporting users with Microsoft Azure products, services, and the GitHub repositories behind the apps—including direct security reviews of those repositories.
 
@@ -46,6 +46,7 @@ Don't repeat ask similar questions if information already exists in the context.
 - When answering user 'underlying workflow has started', always print the corresponding orchestration instance id based on the real `start<agent_name>agent` function call result.
 - When providing conclusions, summarize the factual evidence that supports your findings at the end of your response.
 - Include specific metrics, timestamps, and resource identifiers when referencing data to maintain complete accuracy.
+- Generate or render chart visuals when possible from metric records, and include them in the response.
 - Always keep in mind you're sharing the same chat history with the sub-agent you delegated to, the sub-agent don't have the chat history even it's being delegated again.
   * If follow-up questions asked, delegate to the same sub-agent and always share all the previous context.
   * Don't try to answer the questions which was handled by sub-agent, just delegate again.
@@ -76,6 +77,7 @@ Before initiating any Azure resource operations:
 4. When using knowledge graph for generic questions (e.g., 'List all function apps that use python runtime'), you may preferably use 'ListResourcesByType' tool with filter to directly get the result. If you get an empty result, you MUST do double check: firstly use tool 'ListResourcesByType' without filter to get all target type apps, and then use 'GetResourceDetailedProperties' to check against the properties of each resource to surface user's ask.
 5. When using knowledge graph for specific resources (e.g., 'Get the function app abc'), user may have typos in the provided resource name. If you get an empty result, you are encouraged to do double check: firstly use tool 'ListResourcesByType' without filter to get all target type apps, you SHOULD ask for resource type if user does not provide it. Then try to find resources whose name are VERY similar to user provided name. You can present resources to users for confirmation. You MUST ONLY provide resources whose name is VERY VERY VERY similar. You can AT MOST present 3 resources. If there's no such resources, you MUST inform the user that no results were found.
 6. If you need to construct azure resource id from subscription id, resource group name and resource name. You MUST ALWAYS get them from context, or directly ask from users if necessary. You MUST NOT make up or make any changes to subscription id, resource group or resource name on your own.
+7. Set today's date as the default date for any time-related queries. If the user specifies a different date, use that date instead.
 
 ## Primary Capabilities
 - **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
@@ -90,6 +92,7 @@ Before initiating any Azure resource operations:
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virtual Machine
 - **Web App Down Investigation**: Help users mitigate and resolve any issues with Web App Services having downtime.
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
+- **Metric Explorer** Explore metric namespaces and definitions for azure resources, run metrics queries, analyze time series trends, and highlight potential anomalies. Use chart plugin to render visual where possible
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.
@@ -126,6 +129,7 @@ For every Azure SRE request, follow this pattern:
 <strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
 <strong>**FOR ANY AKS RELATED REQUESTS, YOU MUST DELEGATE TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
+<strong>** For GetMetricTimeSeriesElementsForAzureResource use today's date as the default date. If the user specifies a different date, use that date instead.**</strong>
 
 ## Formatting Guidelines
 - Use **bold** for emphasis and key points.
@@ -136,10 +140,14 @@ For every Azure SRE request, follow this pattern:
 - Avoid tables, HTML tags, and unsupported formats.
 
 DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
-DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES";
+DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES
+
+" +
+$@"## Facts
+- Current DateTime is {DateTime.UtcNow:yyyy-MM-dd HH:mm}";
 
 
-    private readonly ILogger<ThirdPartAgentsFactory> _log;
+    private readonly ILogger<ThirdPartyAgentsFactory> _log;
     private readonly McpToolsRepository _mcpToolsRepository;
     private readonly IServiceProvider _serviceProvider;
 
@@ -169,13 +177,14 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
     private readonly IMetricsPlugin _metricsPlugin;
     private readonly IIncidentPlugin _incidentPlugin;
     private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
+    private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
 
 
-    public ThirdPartAgentsFactory(
-        ILogger<ThirdPartAgentsFactory> logger,
+    public ThirdPartyAgentsFactory(
+        ILogger<ThirdPartyAgentsFactory> logger,
         McpToolsRepository mcpToolsRepository,
         IServiceProvider serviceProvider,
 
@@ -204,7 +213,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         IMetricsPlugin metricsPlugin,
         InstanceManagementSettings instanceManagementSettings,
         IIncidentPlugin incidentPlugin,
-        IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin
+        IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
+        IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -236,6 +246,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
         _functionAppsPlugin = functionAppsPlugin;
         _metricsPlugin = metricsPlugin;
         _functionAppExecutionFailuresAgentPlugin = functionAppExecutionFailuresAgentPlugin;
+        _azureMonitorMetricsPlugin = azureMonitorMetricsPlugin;
 
         _sqlDbQueryPerfPlugin = sqlDbQueryPerfPlugin;
         _incidentPlugin = incidentPlugin;
@@ -276,6 +287,8 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
 
         var functionAppPluginDefinition = new FunctionAppsPluginDefinition(_functionAppsPlugin);
 
+        var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(_azureMonitorMetricsPlugin);
+
         List<AITool> _aiTools =
         [
             AIFunctionFactory.Create(_managedIdentityMigrationPlugin.ListManagedIdentityMigrations),
@@ -297,7 +310,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(containerAppPluginDefinition.ListRevisionsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppInfoAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.RestartContainerApp),
-            AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppCpuMetrics),
+            //AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppCpuMetrics),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetRevisionLogsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetContainerAppLogsAsync),
             AIFunctionFactory.Create(containerAppPluginDefinition.UpdateTargetPort),
@@ -329,7 +342,7 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(_vmRdpInvestigatorPlugin.StartVMRdpInvestigatorAgent),
             AIFunctionFactory.Create(_webAppDownPlugin.ListWebAppDownWorkflows),
             AIFunctionFactory.Create(_webAppDownPlugin.StartWebAppDownAgent),
-            AIFunctionFactory.Create(metricsPluginDefinition.GetWebAppCpuMetrics),
+            //AIFunctionFactory.Create(metricsPluginDefinition.GetWebAppCpuMetrics),
             AIFunctionFactory.Create(appCodeAnalysisPluginDefinition.GetAppConsoleLogs),
             AIFunctionFactory.Create(_functionAppConnectivityPlugin.StartFunctionAppConnectivityAgent),
             AIFunctionFactory.Create(_sqlDbQueryPerfPlugin.ListAzureSqlDbQueryPerfInvestigatorAgentWorkflows),
@@ -340,7 +353,9 @@ DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE
             AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
             AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations),
-            AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent)
+            AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent),
+            AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.ListAvailableMetrics),
+            AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

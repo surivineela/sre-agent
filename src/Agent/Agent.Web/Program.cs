@@ -114,6 +114,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IRemediationPlugin, RemediationPlugin>()
         .AddSingleton<AzureResourceGraphClient>()
         .AddSingleton<ArmHelper>()
+        .AddSingleton<AzureMonitorMetricsHelper>()
         .AddSingleton<ArmResourceCrawlerFactory>()
         .AddSingleton<ICrawlerService, ResourceGraphCrawlerService>()
         .AddSingleton<IReliabilityPlugin, ReliabilityPlugin>()
@@ -178,6 +179,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<IGraphDBPlugin, GraphDBPlugin>()
         .AddTransient<IIncidentPlugin, IncidentPlugin>()
         .AddTransient<IFunctionAppExecutionFailuresPlugin, FunctionAppExecutionFailuresPlugin>()
+        .AddTransient<IAzureMonitorMetricsPlugin, AzureMonitorMetricsPlugin>()
 
         //.AddSingleton<AppServiceRemediationAgentFactory>()
         .AddSingleton<KubernetesAgentFactory>()
@@ -253,7 +255,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
     }
     else
     {
-        builder.Services.AddSingleton<IAgentsFactory, ThirdPartAgentsFactory>();
+        builder.Services.AddSingleton<IAgentsFactory, ThirdPartyAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
     }
 
@@ -548,7 +550,7 @@ void ConfigureLogger()
                     authenticationService: authenticationService);
             });
         }
-        
+
     }
 }
 
