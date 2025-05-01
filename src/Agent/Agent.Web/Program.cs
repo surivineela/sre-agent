@@ -214,7 +214,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<ThreadService>()
         .AddSingleton<IAgentInboundCommunicationService, InboundCommunicationService>()
         .AddSingleton<IAgentOutboundCommunicationService, OutboundCommunicationService>()
-        .AddSingleton<IApprovalService, DurableApprovalService>()
+        .AddSingleton<IApprovalService, ApprovalService>()
         .AddSingleton<IRemoteWriteService, RemoteWriteService>()
         .AddSingleton<IMetricsRegistry, MetricsRegistry>()
         .AddSingleton<IGremlinMetricsService, GremlinMetricsService>()

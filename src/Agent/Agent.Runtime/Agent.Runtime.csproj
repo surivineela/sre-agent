@@ -103,6 +103,9 @@
     <None Update="SubAgents\FunctionAppConnectivityAgent\FunctionAppConnectivityAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="V2\PromptStubs\ApprovalsPromptStub.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

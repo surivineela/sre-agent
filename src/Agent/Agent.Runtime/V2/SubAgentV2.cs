@@ -2,8 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Attributes;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -28,6 +30,7 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
     private readonly AgentContext _context;
     private readonly IToolsRepository _toolsRepository;
     private readonly IAgentOutboundCommunicationService _outboundCommunicationService;
+    private readonly ILoggerFactory _loggerFactory;
 
     private ChatOptions ChatOptionsWithTools => new()
     {
@@ -43,6 +46,11 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
         ILoggerFactory loggerFactory)
     {
         _context = agentContext;
+        _chatClient = chatClient;
+        _threadRepository = threadRepository;
+        _toolsRepository = toolsRepository;
+        _outboundCommunicationService = outboundCommunicationService;
+        _loggerFactory = loggerFactory;
 
         var controlFlowPlugin = new ControlFlowV2Plugin(
             threadRepository,
@@ -60,12 +68,44 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
             AIFunctionFactory.Create(controlFlowPluginDef.NotifyUser)
         ];
 
-        _tools.AddRange(toolsRepository.ResolveTools(TDefinition.ToolSignatures));
+        _tools.AddRange(ResolveSubAgentTools());
+    }
 
-        _chatClient = chatClient;
-        _threadRepository = threadRepository;
-        _toolsRepository = toolsRepository;
-        _outboundCommunicationService = outboundCommunicationService;
+    private List<AITool> ResolveSubAgentTools()
+    {
+        List<AITool> tools = [];
+
+        var aiFunctions = _toolsRepository.GetAllTools(TDefinition.ToolSignatures).Select(_toolsRepository.FindAiFunction);
+
+        foreach (var aiFunction in aiFunctions)
+        {
+            var underlyingMethod = aiFunction.ToolFunction.UnderlyingMethod;
+
+            if (underlyingMethod == null)
+            {
+                continue;
+            }
+
+            var attribute = underlyingMethod.GetCustomAttribute<RequiresApprovalAttribute>();
+            if (attribute != null)
+            {
+                // the interceptor wraps the AI function call to check for approval
+                var approvalInterceptor = new ApprovalInterceptor(
+                    _context,
+                    aiFunction.ToolFunction,
+                    _threadRepository,
+                    _outboundCommunicationService,
+                    _loggerFactory.CreateLogger<ApprovalInterceptor>());
+
+                tools.Add(approvalInterceptor);
+            }
+            else
+            {
+                tools.Add(aiFunction.ToolFunction);
+            }
+        }
+
+        return tools;
     }
 
     public async Task DoWork(
@@ -147,13 +187,16 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
     {
         // Load common prompt stubs
         var controlFlowPromptPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V2", "PromptStubs", "ControlFlowPromptStub.txt");
-        var communicationGuidelines = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V2", "PromptStubs", "CommunicationGuidelinesPromptStub.txt");
         var controlFlowPrompt = File.ReadAllText(controlFlowPromptPath);
+        var communicationGuidelines = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V2", "PromptStubs", "CommunicationGuidelinesPromptStub.txt");
         var communicationGuidelinesPrompt = File.ReadAllText(communicationGuidelines);
+        var approvalGuidelines = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "V2", "PromptStubs", "ApprovalsPromptStub.txt");
+        var approvalGuidelinesPrompt = File.ReadAllText(approvalGuidelines);
 
         var systemPrompt = new StringBuilder();
         systemPrompt.AppendLine(controlFlowPrompt);
         systemPrompt.AppendLine(communicationGuidelinesPrompt);
+        systemPrompt.AppendLine(approvalGuidelinesPrompt);
 
         // Add customized system prompt from subagent definition
         systemPrompt.AppendLine(TDefinition.GetSystemPrompt(GetInputData()));

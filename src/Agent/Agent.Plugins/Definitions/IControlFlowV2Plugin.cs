@@ -35,17 +35,6 @@ namespace Agent.Plugins.Definitions
         Task Complete();
 
         /// <summary>
-        /// Starts the approval flow by providing the user with an approval link for them to approve or reject the operation with.
-        /// </summary>
-        Task<ApprovalInformation> StartApprovalFlow(string title);
-
-        /// <summary>
-        /// Gets the approval state
-        /// </summary>
-        /// <returns>string representation of approval state</returns>
-        Task<string> GetApprovalState();
-
-        /// <summary>
         /// Start waiting until user input is provided
         /// </summary>
         /// <param name="message">The agent message</param>

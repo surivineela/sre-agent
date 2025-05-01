@@ -84,7 +84,7 @@ namespace Agent.Runtime
                 {
                     var client = sp.GetRequiredService<AzureOpenAIClient>();
                     var openAISettings = sp.GetRequiredService<OpenAISettings>();
-                    var loggerFactory= sp.GetRequiredService<ILoggerFactory>();
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
 
                     return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
                         .UseLogging(loggerFactory)
@@ -101,6 +101,22 @@ namespace Agent.Runtime
                         .UseFunctionInvocation(loggerFactory, x =>
                         {
                             x.IncludeDetailedErrors = true;
+                        })
+                        .Build();
+                })
+                .AddKeyedSingleton<IChatClient>("subagentv2-reasoning", (sp, _) =>
+                {
+                    var client = sp.GetRequiredService<AzureOpenAIClient>();
+                    var openAISettings = sp.GetRequiredService<OpenAISettings>();
+                    var loggerFactory = sp.GetRequiredService<ILoggerFactory>();
+                    var settings = sp.GetRequiredService<InstanceManagementSettings>();
+
+                    return new ChatClientBuilder(client.AsChatClient(openAISettings.LLMDeploymentName))
+                        .UseLogging(loggerFactory)
+                        .UseFunctionInvocation(loggerFactory, x =>
+                        {
+                            x.IncludeDetailedErrors = true;
+                            x.MaximumIterationsPerRequest = settings.ReasoningChatClientMaximumIterations;
                         })
                         .Build();
                 });

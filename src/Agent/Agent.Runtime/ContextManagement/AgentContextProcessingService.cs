@@ -19,7 +19,7 @@ public sealed class AgentContextProcessingService(
     IInstanceManagementRepository instanceManagementRepository,
     IThreadRepository threadRepository,
     InstanceManagementSettings instanceManagementSettings,
-    [FromKeyedServices("function-invocation-enabled")] IChatClient chatClient,
+    [FromKeyedServices("subagentv2-reasoning")] IChatClient chatClient,
     IServiceProvider serviceProvider,
     IAgentOutboundCommunicationService outboundCommunicationService
 )

@@ -83,52 +83,6 @@ namespace Agent.Plugins
             await _repository.UpdateAgentContextAsync(updatedAgentContext);
         }
 
-        public async Task<ApprovalInformation> StartApprovalFlow(string title)
-        {
-            var approvalV2 = new ApprovalV2(
-                Id: Guid.NewGuid(),
-                AgentContextId: _agentContextId,
-                ThreadId: _threadId,
-                Title: title,
-                Status: ApprovalDecision.Pending,
-                CreatedTimestamp: DateTime.UtcNow,
-                DecisionTimestamp: null,
-                DecisionUserId: null);
-
-            var approvalUrl = $"https://dummyapprovalurl.net?id={approvalV2.Id.ToString()}&agentContextId={approvalV2.AgentContextId.ToString()}";
-            await _repository.CreateApprovalV2Async(approvalV2);
-            var agentContext = await _repository.GetAgentContextAsync(agentContextId: _agentContextId, threadId: _threadId);
-            var updatedAgentContext = agentContext with
-            {
-                ContextState = ContextStateEnum.PendingApproval,
-                WaitInformation = null,
-                ApprovalInformation = new ApprovalInformation(approvalUrl, approvalV2.Id)
-            };
-
-            await _repository.UpdateAgentContextAsync(updatedAgentContext);
-
-            return updatedAgentContext.ApprovalInformation;
-        }
-
-        public async Task<string> GetApprovalState()
-        {
-            var approvalInfo = _agentContext.ApprovalInformation;
-
-            if (approvalInfo == null)
-            {
-                return string.Empty;
-            }
-
-            var approvalObj = await _repository.GetApprovalV2Async(approvalInfo.ApprovalId, _agentContextId);
-
-            if (approvalObj == null)
-            {
-                return string.Empty;
-            }
-
-            return approvalObj.Status.ToString();
-        }
-
         public async Task AskForUserInput(string message)
         {
             _logger.LogInformation(

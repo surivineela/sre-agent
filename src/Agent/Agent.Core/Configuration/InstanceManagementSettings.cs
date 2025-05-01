@@ -28,5 +28,8 @@ public class InstanceManagementSettings
 
     [Required]
     public bool ProcessingEnabled { get; set; }
+
+    [Required]
+    public int ReasoningChatClientMaximumIterations { get; set; }
 }
 

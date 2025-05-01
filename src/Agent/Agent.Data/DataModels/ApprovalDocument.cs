@@ -14,13 +14,14 @@ public record ApprovalDocumentEncryptedProperties(
 public record ApprovalDocument(
     string Id,
     string ThreadId,
-    string OrchestrationId,
     string Title,
     string Description,
     ToolApprovalStatus Status,
     DateTime CreatedTimestamp,
     DateTime? DecisionTimestamp,
     Author? DecisionUser,
+    string? OrchestrationId,
+    string? AgentContextId,
     ApprovalDocumentEncryptedProperties? EncryptedProperties
     ) : ICosmosDocument
 {
@@ -34,13 +35,14 @@ public record ApprovalDocument(
         new(
             Id: approval.Id.ToString(),
             ThreadId: approval.ThreadId.ToString(),
-            OrchestrationId: approval.OrchestrationId,
             Title: approval.Title,
             Description: approval.Description,
             Status: ToToolApprovalStatus(approval.Status),
             CreatedTimestamp: approval.CreatedTimestamp,
             DecisionTimestamp: approval.DecisionTimestamp,
             DecisionUser: approval.DecisionUser,
+            OrchestrationId: approval.OrchestrationId,
+            AgentContextId: approval.AgentContextId?.ToString(),
             EncryptedProperties: new ApprovalDocumentEncryptedProperties(approval.OboToken)
         );
 
@@ -48,12 +50,13 @@ public record ApprovalDocument(
         new(
             Id: Guid.Parse(Id),
             ThreadId: ThreadId,
-            OrchestrationId: OrchestrationId,
             Title: Title,
             Description: Description,
             Status: ToApprovalDecision(Status),
             CreatedTimestamp: CreatedTimestamp,
             DecisionTimestamp: DecisionTimestamp,
+            OrchestrationId: OrchestrationId,
+            AgentContextId: Guid.TryParse(AgentContextId, out var agentContextId) ? agentContextId : null,
             OboToken: EncryptedProperties?.OboToken,
             DecisionUser: DecisionUser
         );

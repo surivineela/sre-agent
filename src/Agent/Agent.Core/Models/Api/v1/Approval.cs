@@ -14,12 +14,13 @@ namespace Agent.Core.Models.Api.v1
     public record Approval(
         Guid Id,
         string ThreadId,
-        string OrchestrationId,
         string Title,
         string Description,
         ApprovalDecision Status,
         DateTime CreatedTimestamp,
         DateTime? DecisionTimestamp,
+        string? OrchestrationId,
+        Guid? AgentContextId,
         string? OboToken,
         Author? DecisionUser
         )

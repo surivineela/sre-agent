@@ -3,14 +3,12 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using Agent.Core.Attributes;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Runtime.Helpers;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Logging;
 
@@ -60,7 +58,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
-            var approvalTitle = GenerateUniqueApprovalTitle(
+            var approvalTitle = ApprovalTitleHelper.GenerateUniqueApprovalTitle(
                 input.ThreadId,
                 context.InstanceId,
                 targetFunction,
@@ -82,12 +80,13 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 var newApproval = new Approval(
                     Id: Guid.NewGuid(),
                     ThreadId: input.ThreadId,
-                    OrchestrationId: input.OrchestrationId,
                     Title: approvalTitle,
                     Description: description,
                     Status: ApprovalDecision.Pending,
                     CreatedTimestamp: DateTime.UtcNow,
                     DecisionTimestamp: null,
+                    OrchestrationId: input.OrchestrationId,
+                    AgentContextId: null,
                     DecisionUser: null,
                     OboToken: null);
 
@@ -120,17 +119,5 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 ApprovalStatus = ToolApprovalStatus.Pending,
             };
         }
-    }
-
-    private string GenerateUniqueApprovalTitle(string threadId, string orchstrationId, string operationName, IDictionary<string, object?> arguments)
-    {
-        // calculate SHA256 hash of the arguments
-        var orderedArgs = new OrderedDictionary<string, object?>(arguments);
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(orderedArgs)));
-        var hashString = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-        var truncatedHash = hashString.Substring(0, Math.Min(16, hashString.Length));
-
-        return $"{threadId}-{orchstrationId}-{operationName}-{truncatedHash}";
     }
 }

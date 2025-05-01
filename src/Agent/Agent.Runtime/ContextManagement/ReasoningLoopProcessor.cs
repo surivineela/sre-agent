@@ -1,3 +1,4 @@
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -113,21 +114,12 @@ internal class ReasoningLoopProcessor(
             (agentContext, bool newUserMessage, AgentChatHistory? chatHistory) = await HandleNewUserMessagesAsync(agentContext);
 
             // 2. handle waiting state
-            (agentContext, chatHistory, bool continueExecution) = await HandleWaitAsync(agentContext, chatHistory);
+            (agentContext, chatHistory, bool continueExecution) = await HandleWaitAsync(agentContext, chatHistory, newUserMessage);
 
             if (!continueExecution)
             {
                 return TimeSpan.FromSeconds(3);
             }
-
-            // 3. handle approval state
-            //(agentContext, continueExecution) = await HandleApprovalStateAsync(agentContext);
-
-            //if (!continueExecution)
-            //{
-            //    await Task.Delay(3000);
-            //    continue;
-            //}
 
             // 3. process reasoning step
             agentContext = await ProcessReasoningStepAsync(agentContext, chatHistory);
@@ -199,15 +191,33 @@ internal class ReasoningLoopProcessor(
         return (agentContext, newUserMessage, agentChatHistory);
     }
 
-    private async Task<(AgentContext updatedContext, AgentChatHistory? updatedChatHistory, bool continueExecution)> HandleWaitAsync(AgentContext agentContext, AgentChatHistory? chatHistory)
+    private async Task<(AgentContext updatedContext, AgentChatHistory? updatedChatHistory, bool continueExecution)> HandleWaitAsync(
+        AgentContext agentContext,
+        AgentChatHistory? chatHistory,
+        bool newUserMessage)
     {
         WaitInformation? waitInfo = agentContext.WaitInformation;
+        ApprovalInformation? approvalInfo = agentContext.ApprovalInformation;
 
-        if (waitInfo == null)
+        // if a new user message was received, we should always continue
+        if (newUserMessage)
         {
             return (agentContext, chatHistory, true);
         }
-        else if (waitInfo.WaitUntil != null && waitInfo.WaitUntil <= DateTimeOffset.UtcNow)
+        // check if there is no wait info at all (no wait and no pending approvals)
+        else if (waitInfo == null && (approvalInfo == null || !approvalInfo.HasPendingApprovals))
+        {
+            return (agentContext, chatHistory, true);
+        }
+        // check if we should quit waiting because approval info has changed
+        else if (approvalInfo != null && approvalInfo.PendingApprovals != null && approvalInfo.PendingApprovals.Count > 0)
+        {
+            // handle approval
+            (agentContext, chatHistory, var approvalsUpdated) = await HandleApprovalAsync(agentContext, chatHistory);
+            return (agentContext, chatHistory, approvalsUpdated);
+        }
+        // check if time wait condition has been satisfied
+        else if (waitInfo != null && waitInfo.WaitUntil != null && waitInfo.WaitUntil <= DateTimeOffset.UtcNow)
         {
             _logger.LogInformation("Wait condition satisfied based on time for agent context {AgentContextId}", AgentContextId);
 
@@ -231,12 +241,82 @@ internal class ReasoningLoopProcessor(
 
             return (agentContext, chatHistory, true);
         }
-        else if (waitInfo.ResponseFromUserIsPending ?? false)
+
+        // reaching here means we are still waiting for something
+        return (agentContext, chatHistory, false);
+    }
+
+    private async Task<(AgentContext updatedContext, AgentChatHistory? updatedChatHistory, bool approvalUpdated)> HandleApprovalAsync(AgentContext agentContext, AgentChatHistory? chatHistory)
+    {
+        if (agentContext.ApprovalInformation == null
+            || agentContext.ApprovalInformation.PendingApprovals == null
+            || agentContext.ApprovalInformation.PendingApprovals.Count == 0)
         {
             return (agentContext, chatHistory, false);
         }
 
-        return (agentContext, chatHistory, false);
+        List<Guid> updatedApprovals = [.. agentContext.ApprovalInformation.PendingApprovals];
+        bool approvalUpdated = false;
+
+        foreach (var approvalId in agentContext.ApprovalInformation.PendingApprovals)
+        {
+            var approval = await threadRepository.GetApprovalAsync(Guid.Parse(ThreadId), approvalId);
+
+            string chatMessageString = string.Empty;
+
+            if (approval == null)
+            {
+                chatMessageString = $"Approval record not found, retry the tool call that needed approval";
+                _logger.LogWarning("Approval {ApprovalId} not found for agent context {AgentContextId}", approvalId, AgentContextId);
+
+                updatedApprovals.Remove(approvalId);
+                approvalUpdated = true;
+            }
+            else if (approval.Status == ApprovalDecision.Approved)
+            {
+                chatMessageString = $"Approval by **{approval.DecisionUser}** received for the operation {approval.Description}";
+                _logger.LogInformation("Approval {ApprovalId} was approved by {DecisionUser} for agent context {AgentContextId}",
+                    approvalId, approval.DecisionUser, AgentContextId);
+
+                updatedApprovals.Remove(approvalId);
+                approvalUpdated = true;
+            }
+            else if (approval.Status == ApprovalDecision.Rejected)
+            {
+                chatMessageString = $"Approval was rejected by **{approval.DecisionUser}** for the operation {approval.Description}";
+                _logger.LogInformation("Approval {ApprovalId} was rejected by {DecisionUser} for agent context {AgentContextId}",
+                    approvalId, approval.DecisionUser, AgentContextId);
+
+                updatedApprovals.Remove(approvalId);
+                approvalUpdated = true;
+            }
+            else if (approval.Status == ApprovalDecision.Pending)
+            {
+                continue; // approval is still pending, do nothing
+            }
+
+            if (chatHistory != null)
+            {
+                var reasoningMessage = new ReasoningMessage(
+                    Guid.NewGuid(),
+                    agentContext.Id,
+                    ReasoningMessageRoleEnum.System,
+                    JsonSerializer.Serialize(new ChatMessage(ChatRole.System, chatMessageString)));
+
+                await threadRepository.CreateReasoningMessageAsync(reasoningMessage);
+                chatHistory = await threadRepository.AddReasoningMessagesToChatHistoryAsync(chatHistory, reasoningMessage);
+            }
+        }
+
+        agentContext = agentContext with
+        {
+            ApprovalInformation = new ApprovalInformation(
+                PendingApprovals: updatedApprovals)
+        };
+
+        await threadRepository.UpdateAgentContextAsync(agentContext);
+
+        return (agentContext, chatHistory, approvalUpdated);
     }
 
     private async Task<AgentContext> ProcessReasoningStepAsync(AgentContext agentContext, AgentChatHistory? agentChatHistory)
@@ -295,77 +375,4 @@ internal class ReasoningLoopProcessor(
     {
         return $"{AgentContextId}_{InstanceId}".GetHashCode();
     }
-
-    // TODO: this is unused for now, waiting on actual approval/obo work to be done
-    //private async Task<(AgentContext updatedContext, bool continueExecution)> HandleApprovalStateAsync(AgentContext context)
-    //{
-    //    ApprovalInformation? approvalInfo = context.ApprovalInformation;
-
-    //    if (approvalInfo == null)
-    //    {
-    //        return (context, true);
-    //    }
-
-    //    // check approval state
-
-    //    ApprovalV2? approval = await threadRepository.GetApprovalV2Async(approvalInfo.ApprovalId, context.Id);
-
-    //    if (approval == null)
-    //    {
-    //        var updatedContext = context with
-    //        {
-    //            ApprovalInformation = null,
-    //            ContextState = ContextStateEnum.Processing
-    //        };
-
-    //        await threadRepository.UpdateAgentContextAsync(updatedContext);
-
-    //        return (updatedContext, true);
-    //    }
-
-    //    if (approval.Status == ApprovalDecision.Pending)
-    //    {
-    //        //if (!_agentMessageSent)
-    //        //{
-    //        //    await outboundCommunicationService.UpdateThreadWithAgentMessageAsync(
-    //        //        context, new(ChatRole.Assistant, $"Please approve workflow: {approval.Title} at link {approvalInfo.ApprovalUrl}"));
-
-    //        //    _agentMessageSent = true;
-    //        //}
-
-    //        return (context, false);
-    //    }
-
-    //    if (approval.Status == ApprovalDecision.Approved)
-    //    {
-    //        var updatedContext = context with
-    //        {
-    //            ContextState = ContextStateEnum.Processing
-    //        };
-
-    //        _logger.LogInformation("Approval received for agent context {AgentContextId}", context.Id);
-
-    //        await threadRepository.UpdateAgentContextAsync(updatedContext);
-
-    //        return (updatedContext, true);
-    //    }
-
-    //    if (approval.Status == ApprovalDecision.Rejected)
-    //    {
-    //        var updatedContext = context with
-    //        {
-    //            ContextState = ContextStateEnum.Failed
-    //        };
-
-    //        _logger.LogWarning("Approval was rejected for agent context {AgentContextId}", context.Id);
-
-    //        await threadRepository.UpdateAgentContextAsync(updatedContext);
-
-    //        _complete = true;
-
-    //        return (updatedContext, false);
-    //    }
-
-    //    return (context, true);
-    //}
 }

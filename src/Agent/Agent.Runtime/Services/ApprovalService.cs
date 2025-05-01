@@ -11,17 +11,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Services
 {
-    public class DurableApprovalService : IApprovalService
+    public class ApprovalService : IApprovalService
     {
         private readonly DurableTaskClient _durableTaskClient;
-        private readonly ILogger<DurableApprovalService> _logger;
+        private readonly ILogger<ApprovalService> _logger;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly IThreadRepository _threadRepository;
 
 
-        public DurableApprovalService(DurableTaskClient durableTaskClient,
+        public ApprovalService(DurableTaskClient durableTaskClient,
             IAgentOutboundCommunicationService agentOutboundCommunicationService,
-            ILogger<DurableApprovalService> logger,
+            ILogger<ApprovalService> logger,
             IThreadRepository threadRepository)
         {
             _durableTaskClient = durableTaskClient;
@@ -67,6 +67,23 @@ namespace Agent.Runtime.Services
                 throw new InvalidOperationException(errorMessage);
             }
 
+            AgentContext? subAgentV2Context = null;
+            string? orchestrationId = approval.OrchestrationId;
+
+            if (approval.AgentContextId != null)
+            {
+                subAgentV2Context = await _threadRepository.GetAgentContextAsync(approval.AgentContextId.Value, threadId);
+            }
+            else
+            {
+                orchestrationId = approval.OrchestrationId;
+            }
+
+            if (subAgentV2Context == null && orchestrationId == null)
+            {
+                throw new InvalidOperationException("Orchestration ID or Agent Context ID is required for approval message.");
+            }
+
             if (status == ApprovalDecision.Approved)
             {
                 // Approval Message
@@ -75,7 +92,14 @@ namespace Agent.Runtime.Services
                                          $"- **User:** {user}\n" +
                                          $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, approval.OrchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, approvalMessage));
+                if (subAgentV2Context != null)
+                {
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(subAgentV2Context, new ChatMessage(ChatRole.Assistant, approvalMessage));
+                }
+                else if (orchestrationId != null)
+                {
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new ChatMessage(ChatRole.Assistant, approvalMessage));
+                }
             }
             else if (status == ApprovalDecision.Rejected)
             {
@@ -84,24 +108,35 @@ namespace Agent.Runtime.Services
                        $"- **User:** {user}\n" +
                        $"- **Timestamp:** {DateTime.UtcNow}";
 
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, approval.OrchestrationId, new Microsoft.Extensions.AI.ChatMessage(ChatRole.Assistant, rejectionMessage));
+                if (subAgentV2Context != null)
+                {
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(subAgentV2Context, new ChatMessage(ChatRole.Assistant, rejectionMessage));
+                }
+                else if (orchestrationId != null)
+                {
+                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(threadId, orchestrationId, new ChatMessage(ChatRole.Assistant, rejectionMessage));
+                }
             }
             else
             {
                 throw new ArgumentException($"Invalid approval status: {status} for approvalId: {approvalId}");
             }
 
-            //todo - reconcile this approval status type with the new one introduced in core/models/api
-            var approvalStatus = new ApprovalStatus(
-                approvalId,
-                StartTime: DateTime.UtcNow,
-                ApprovedTime: DateTime.UtcNow,
-                DecisionMaker: user,
-                ProcessedTime: null,
-                OboToken: oboToken
-                );
 
-            await _durableTaskClient.RaiseEventAsync(approval.OrchestrationId, "ApprovalEvent", approvalStatus);
+            if (!string.IsNullOrEmpty(orchestrationId))
+            {
+                //todo - reconcile this approval status type with the new one introduced in core/models/api
+                var approvalStatus = new ApprovalStatus(
+                    approvalId,
+                    StartTime: DateTime.UtcNow,
+                    ApprovedTime: DateTime.UtcNow,
+                    DecisionMaker: user,
+                    ProcessedTime: null,
+                    OboToken: oboToken
+                    );
+
+                await _durableTaskClient.RaiseEventAsync(orchestrationId, "ApprovalEvent", approvalStatus);
+            }
 
             var newApproval = approval with
             {

@@ -1,6 +1,10 @@
-using System.ComponentModel;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
 
 namespace Agent.Core.Models.Api.v1;
 public record ApprovalInformation(
-    [Description("The url to present to the user to approve or reject the operation")] string ApprovalUrl,
-    Guid ApprovalId);
+    List<Guid> PendingApprovals)
+{
+    public bool HasPendingApprovals => PendingApprovals != null && PendingApprovals.Count > 0;
+}
