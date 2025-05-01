@@ -26,6 +26,11 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private readonly CrawlerSettings _crawlerSettings;
     private readonly IActivityLogService _activityLogService;
 
+    private bool _isCrawling = false;
+    private bool _hasCompletedInitialGraphCrawl = false;
+    private int _crawledCount = 0;
+    private int _totalVisibleResources = 0; // Based on current visible nodes. Will not be an accurate count of total resources.
+
     public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, IActivityLogService activityLogService)
     {
         _logger = logger;
@@ -58,6 +63,17 @@ public class ResourceGraphCrawlerService : ICrawlerService
             }
         }
         await Crawl(roots, filtersSet, cascade, cancellationToken);
+    }
+
+    public Task<CrawlerResult> GetCrawlerResult()
+    {
+        return Task.FromResult(new CrawlerResult
+        {
+            IsCrawling = _isCrawling,
+            HasCompletedInitialGraphCrawl = _hasCompletedInitialGraphCrawl,
+            CrawledCount = _crawledCount,
+            TotalVisibleResources = _totalVisibleResources,
+        });
     }
 
     public void StartActivityLogCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null)
@@ -130,6 +146,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
     private async Task Crawl(IList<GraphNode> nodes, HashSet<string> filters = null, bool cascade = true, CancellationToken? cancellationToken = null)
     {
+        _isCrawling = true;
         HashSet<string> crawled = new();
         try
         {
@@ -186,6 +203,8 @@ public class ResourceGraphCrawlerService : ICrawlerService
                         Interlocked.Increment(ref crawledCount);
                         continue;
                     }
+                    _totalVisibleResources = Math.Max(_totalVisibleResources, crawledCount + crawlingCount + pendingCount);
+                    _crawledCount = Math.Max(_crawledCount, crawledCount);
 
                     crawled.Add(node.GetHashString());
 
@@ -233,6 +252,8 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
             sw.Stop();
             cts.Cancel();
+            _isCrawling = false;
+            _hasCompletedInitialGraphCrawl = true;
             _logger.LogInformation($"Done crawling. Time taken: {sw.ElapsedMilliseconds}ms. Total unique crawled resources: {crawled.Count}");
         }
         catch (Exception ex)

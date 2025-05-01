@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 namespace Agent.Runtime.Services;
 
@@ -58,6 +59,13 @@ public interface IGraphService
     /// <param name="resourceId">The resource ID</param>
     /// <returns>The graph resource</returns>
     Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId);
+
+    /// <summary>
+    /// Returns current status of the resource graph generation
+    /// Will return either a completed status or an estimated percentage of completion.
+    /// </summary>
+    /// <returns></returns>
+    Task<CrawlerResult> GetGraphProgressAsync();
 
     Task<List<ArmResourceNode>> GetAllResourceNodes();
 

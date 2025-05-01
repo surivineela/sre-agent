@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Agent.Graph.Schema;
 
 namespace Agent.Graph.Interfaces;
 public interface ICrawlerService
@@ -24,4 +25,9 @@ public interface ICrawlerService
     /// <param name="cancellationToken"></param>
     /// <returns></returns>
     public void StartActivityLogCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null);
+
+    /// <summary>
+    /// Gets the current crawler result. This is a snapshot of the crawler state.
+    /// </summary>
+    public Task<CrawlerResult> GetCrawlerResult();
 }

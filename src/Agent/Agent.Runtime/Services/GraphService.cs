@@ -6,6 +6,8 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Interfaces;
+using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
@@ -20,6 +22,7 @@ public class GraphService : IGraphService
     private readonly IHttpClientFactory _httpClientFactory;
     private readonly DashboardSettings _dashboardSettings;
     private readonly IAuthenticationService _authenticationService;
+    private readonly ICrawlerService _crawlerService;
 
     private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -34,7 +37,7 @@ public class GraphService : IGraphService
     // Define the allowed Kubernetes resource types
     private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
 
-    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService)
+    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService)
     {
         _graphDatabaseClient = graphDatabaseClient;
         _logger = logger;
@@ -43,6 +46,7 @@ public class GraphService : IGraphService
         _grafanaUrl = dashboardSettings.GrafanaUrl.TrimEnd('/');
         _httpClientFactory = httpClientFactory;
         _authenticationService = authenticationService;
+        _crawlerService = crawlerService;
     }
 
     private async Task<HttpClient> GetHttpClient()
@@ -574,6 +578,11 @@ public class GraphService : IGraphService
             _logger.LogError(ex, "Failed to update properties for resource {resourceId}", resourceId);
             throw;
         }
+    }
+
+    public Task<CrawlerResult> GetGraphProgressAsync()
+    {
+        return _crawlerService.GetCrawlerResult();
     }
 
     private string getValue(object val)

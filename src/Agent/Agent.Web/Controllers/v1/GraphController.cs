@@ -90,6 +90,18 @@ namespace Agent.Web.Controllers.v1
             return Ok(result);
         }
 
+        /// <summary>
+        /// Returns current status of the resource graph generation
+        /// Will return either a completed status or an estimated percentage of completion.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("progress")]
+        public async Task<ActionResult<ResultSet<dynamic>>> GetGraphProgressAsync()
+        {
+            var result = await _graphService.GetGraphProgressAsync();
+            return Ok(result);
+        }
+
         #region Resource remarks CRUD APIs
 
         /// <summary>
