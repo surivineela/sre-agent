@@ -343,7 +343,7 @@ For reference, here is the raw Mermaid specification used to create the diagram:
                 }
                 else
                 {
-                    _logger.LogWarning("[VisualizeApplicationComponents] ThreadId is null. Cannot append image to message.");
+                    _logger.LogWarning("[VisualizeApplicationComponents] ThreadId is null. Cannot append diagram to message.");
                     return "Error: ThreadId is null. Cannot generate visualization without a valid thread ID.";
                 }
             }
@@ -382,12 +382,11 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     var mermaidSpec = response.Text;
                     _logger.LogInformation("Generated Mermaid specification successfully");
 
-                    var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
-                    _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
-                    // TODO: read threadcontext from cosmos db
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Application Group](data:image/png;base64,{base64EncodedGraph})\r");
+                    string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
 
-                    return "Visualization Rendered!";
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage);
+
+                    return "Visualization Ready! Your frontend will render the Mermaid diagram.";
                 }
                 catch (Exception ex)
                 {
@@ -398,7 +397,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                     }
                     else
                     {
-                        _logger.LogError($"[VisualizeApplicationComponents] All {maxRetries} attempts to render the image failed. Last error: {ex.Message}");
+                        _logger.LogError($"[VisualizeApplicationComponents] All {maxRetries} attempts to generate the diagram failed. Last error: {ex.Message}");
                         throw;
                     }
                 }

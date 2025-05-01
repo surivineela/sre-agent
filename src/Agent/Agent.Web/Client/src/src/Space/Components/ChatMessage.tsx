@@ -6,6 +6,7 @@ import {
 import { Button, Text, tokens } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
+import mermaid from 'mermaid';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
@@ -17,33 +18,104 @@ import { IChatMessageProps } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentChart from './Charts';
+import MermaidChart from './Mermaid';
 
-// Helper function to parse and render markdown with images
-const renderMarkdownWithImages = (text: string) => {
-    // Check if the text contains markdown image syntax with base64 data
+// Initialize mermaid with default configuration
+// This should be called once when the app loads
+mermaid.initialize({
+    startOnLoad: false,
+    theme: 'neutral',
+    flowchart: { useMaxWidth: false },
+    securityLevel: 'loose',
+});
+
+// Helper function to parse and render markdown with images and mermaid diagrams
+const renderMarkdownWithImagesAndMermaid = (text: string) => {
+    if (!text) return text;
+
+    // Check for markdown image syntax with base64 data
     const imageRegex = /!\[(.*?)\]\((data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+)\)/g;
-    if (!imageRegex.test(text)) {
-        return text; // No images, return original text
+    // Check for mermaid code blocks
+    const mermaidRegex = /```mermaid\n([\s\S]*?)\n```/g;
+    // Check for chart data blocks
+    const chartRegex = /```chart-data\n([\s\S]*?)\n```/g;
+
+    if (!imageRegex.test(text) && !mermaidRegex.test(text) && !chartRegex.test(text)) {
+        return text; // No special content, return original text
     }
 
-    // split ![](data:image)
-    const parts = [];
-    let lastIndex = 0;
-    let match;
-    const regex = /!\[(.*?)\]\((data:image\/[a-z]+;base64,[A-Za-z0-9+/=]+)\)/g;
+    // Reset regex lastIndex properties to ensure we start from the beginning
+    imageRegex.lastIndex = 0;
+    mermaidRegex.lastIndex = 0;
+    chartRegex.lastIndex = 0;
 
-    while ((match = regex.exec(text)) !== null) {
+    // Split images, mermaid blocks, and text
+    const parts: (string | { type: string; [key: string]: any })[] = [];
+    let lastIndex = 0;
+
+    // Function to process a match and add it to the parts array
+    const processMatch = (match: RegExpExecArray, type: string) => {
         if (match.index > lastIndex) {
             parts.push(text.substring(lastIndex, match.index));
         }
 
-        parts.push({
-            type: 'image',
-            alt: match[1],
-            src: match[2],
-        });
+        if (type === 'image') {
+            parts.push({
+                type: 'image',
+                alt: match[1],
+                src: match[2],
+            });
+        } else if (type === 'mermaid') {
+            parts.push({
+                type: 'mermaid',
+                content: match[1],
+            });
+        } else if (type === 'chart-data') {
+            parts.push({
+                type: 'chart-data',
+                content: match[0], // Include the entire match with the markers
+            });
+        }
 
-        lastIndex = regex.lastIndex;
+        lastIndex = match.index + match[0].length;
+    };
+
+    // Find all matches and process them in order of appearance
+    let imageMatch: RegExpExecArray | null;
+    let mermaidMatch: RegExpExecArray | null;
+    let chartMatch: RegExpExecArray | null;
+
+    // Initialize the first matches
+    imageMatch = imageRegex.exec(text);
+    mermaidMatch = mermaidRegex.exec(text);
+    chartMatch = chartRegex.exec(text);
+
+    while (imageMatch || mermaidMatch || chartMatch) {
+        // Find the match that appears first in the text
+        let firstMatch: RegExpExecArray | null = null;
+        let matchType = '';
+
+        if (
+            imageMatch &&
+            (!mermaidMatch || imageMatch.index < mermaidMatch.index) &&
+            (!chartMatch || imageMatch.index < chartMatch.index)
+        ) {
+            firstMatch = imageMatch;
+            matchType = 'image';
+            imageMatch = imageRegex.exec(text);
+        } else if (mermaidMatch && (!chartMatch || mermaidMatch.index < chartMatch.index)) {
+            firstMatch = mermaidMatch;
+            matchType = 'mermaid';
+            mermaidMatch = mermaidRegex.exec(text);
+        } else if (chartMatch) {
+            firstMatch = chartMatch;
+            matchType = 'chart-data';
+            chartMatch = chartRegex.exec(text);
+        }
+
+        if (firstMatch) {
+            processMatch(firstMatch, matchType);
+        }
     }
 
     // Add any remaining text
@@ -88,7 +160,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         if (!message.text && !isTyping) {
             return 'No message content to display';
         }
-        const content = renderMarkdownWithImages(message.text);
+        const content = renderMarkdownWithImagesAndMermaid(message.text);
         return Array.isArray(content) ? content : message.text;
     }, [message.text, isTyping]);
 
@@ -234,42 +306,81 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         }
     };
 
-    // Render content based on type
-    // This is a workaround for rendering markdown images.
-    // We need to change how we save image content in the db to simplify this approach.
-    const renderContent = () => {
-        const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
-        const hasChartData = typeof message.text === 'string' && chartRegex.test(message.text);
+    // Helper function to extract title from mermaid content
+    const extractMermaidTitle = (content: string): string => {
+        const lines = content.trim().split('\n');
+        if (lines.length === 0) return 'Diagram';
 
-        // If message contains chart data, render AgentChart component
-        if (hasChartData) {
+        const firstLine = lines[0];
+
+        if (firstLine.startsWith('%%')) {
+            return firstLine.substring(2).trim();
+        }
+
+        if (firstLine.startsWith('title:')) {
+            return firstLine.substring(6).trim();
+        }
+
+        if (firstLine.length < 50 && !firstLine.includes('->') && !firstLine.includes('--')) {
+            return firstLine.trim();
+        }
+
+        return 'Diagram';
+    };
+
+    // Render specific content types
+    const renderContentPart = (part: any, index: number): React.ReactNode => {
+        // Plain text markdown
+        if (typeof part === 'string') {
+            return (
+                <ReactMarkdown key={index} components={{ a: aLinkRenderer }}>
+                    {part}
+                </ReactMarkdown>
+            );
+        }
+
+        // Handle different content types
+        switch (part.type) {
+            case 'image':
+                return (
+                    <div key={index} style={{ margin: '10px 0' }}>
+                        <img src={part.src} alt={part.alt || 'Embedded image'} style={{ maxWidth: '100%', borderRadius: '4px' }} />
+                        {part.alt && <div style={{ textAlign: 'center', fontSize: '12px', color: '#666' }}>{part.alt}</div>}
+                    </div>
+                );
+
+            case 'mermaid':
+                return <MermaidChart key={index} chart={part.content} title={extractMermaidTitle(part.content)} />;
+
+            case 'chart-data':
+                return <AgentChart key={index} messageText={part.content} />;
+
+            default:
+                return null;
+        }
+    };
+
+    // Main content rendering function
+    const renderContent = (): React.ReactNode => {
+        // Check if the entire message is just a chart-data block
+        const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
+
+        // Special case: if the whole message is a chart, render it directly
+        if (
+            typeof message.text === 'string' &&
+            chartRegex.test(message.text) &&
+            message.text.trim().replace(/\s+/g, ' ').match(chartRegex)?.[0].length === message.text.trim().length
+        ) {
             return <AgentChart messageText={message.text} />;
         }
 
+        // Normal markdown content
         if (!Array.isArray(messageContent)) {
             return <ReactMarkdown components={{ a: aLinkRenderer }}>{messageContent}</ReactMarkdown>;
         }
-        return (
-            <>
-                {messageContent.map((part, index) => {
-                    if (typeof part === 'string') {
-                        return (
-                            <ReactMarkdown key={index} components={{ a: aLinkRenderer }}>
-                                {part}
-                            </ReactMarkdown>
-                        );
-                    } else if (part.type === 'image') {
-                        return (
-                            <div key={index} style={{ margin: '10px 0' }}>
-                                <img src={part.src} alt={part.alt || 'Embedded image'} style={{ maxWidth: '100%', borderRadius: '4px' }} />
-                                {part.alt && <div style={{ textAlign: 'center', fontSize: '12px', color: '#666' }}>{part.alt}</div>}
-                            </div>
-                        );
-                    }
-                    return null;
-                })}
-            </>
-        );
+
+        // Mixed content with special blocks
+        return <>{messageContent.map(renderContentPart)}</>;
     };
 
     const sendApprovalDecision = async (threadId: string, approvalId: string, decision: ApprovalDecision) => {
