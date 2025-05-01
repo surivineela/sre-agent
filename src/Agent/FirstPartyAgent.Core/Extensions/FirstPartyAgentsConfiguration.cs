@@ -66,6 +66,9 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
             services.AddSingleton<GitHubIssuePluginDefinition>();
 
+            services.AddHttpClient();
+            services.AddDevOpsHelperHttpClient();
+
             services.AddSingleton<ICMChartPlugin>();
             services.AddSingleton<WebAppPlugin>();
             services.AddSingleton<AzureAlertingClient>();
@@ -84,11 +87,16 @@ namespace FirstPartyAgent.Core.Extensions
             if (!string.IsNullOrWhiteSpace(config["AppSettings:Core:External:CosmosDB:AccountUrl"]))
             {
                 services.AddSingleton<ICosmosDBService, CosmosDBService>();
+                services.AddSingleton<IIcmAgentConfigService, IcmAgentConfigService>();
             }
             else
             {
                 services.AddSingleton<ICosmosDBService, CosmosDBServiceDisabled>();
+                services.AddSingleton<IIcmAgentConfigService, IcmAgentConfigServiceDisabled>();
             }
+
+            services.AddSingleton<DevOpsHelperService>();
+            services.AddSingleton<TsgFetcherService>();
         }
 
         public static IServiceCollection ConfigureSemanticKernel(this IServiceCollection services)
@@ -170,6 +178,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Observer);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Teams);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Storage);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.DevOps);
 
             return services;
         }

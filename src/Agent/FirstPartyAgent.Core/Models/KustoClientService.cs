@@ -104,11 +104,107 @@ public class KustoClientService
         return result.ToEnumerable<T>();
     }
 
+    public async Task<IDataReader> PerformQueryWithParametersAsync(string queryText, Dictionary<string, object> parameters, string region)
+    {
+        ValidateRegion(region);
+        var properties = new ClientRequestProperties()
+        {
+            ClientRequestId = "Operational Agent;" + Guid.NewGuid().ToString()
+        };
+
+        ApplyParameters(properties, parameters);
+
+        _logger.LogInformation($"Executing query: {queryText}, request Id: {properties.ClientRequestId} with parameters");
+
+        var result = await _regionsToQueryProviders[region].ExecuteQueryAsync(_regionsToClusters[region].Database, queryText, properties);
+        return result;
+    }
+
+    public async Task<IDataReader> PerformQueryWithParametersAsync(string queryText, Dictionary<string, object> parameters, KustoCluster cluster)
+    {
+        var client = GetNewClient(cluster);
+        var properties = new ClientRequestProperties()
+        {
+            ClientRequestId = "Operational Agent;" + Guid.NewGuid().ToString()
+        };
+        ApplyParameters(properties, parameters);
+        _logger.LogInformation($"Executing query: {queryText}, request Id: {properties.ClientRequestId} with parameters");
+        var result = await client.ExecuteQueryAsync(cluster.Database, queryText, properties);
+        return result;
+    }
+
     private void ValidateRegion(string region)
     {
         if (!_regionsToQueryProviders.ContainsKey(region))
         {
             throw new ArgumentException($"Region {region} is not supported");
+        }
+    }
+
+    private void ApplyParameters(ClientRequestProperties properties, Dictionary<string, object> parameters)
+    {
+        if (properties == null) throw new ArgumentNullException(nameof(properties));
+        if (parameters == null || parameters.Count() < 1) return;
+
+        foreach (var param in parameters)
+        {
+            switch (param.Value)
+            {
+                case null:
+                    properties.SetParameter(param.Key, string.Empty);
+                    break;
+                case string stringValue:
+                    properties.SetParameter(param.Key, stringValue);
+                    break;
+                case int intValue:
+                    properties.SetParameter(param.Key, intValue);
+                    break;
+                case long longValue:
+                    properties.SetParameter(param.Key, longValue);
+                    break;
+                case double doubleValue:
+                    properties.SetParameter(param.Key, doubleValue);
+                    break;
+                case bool boolValue:
+                    properties.SetParameter(param.Key, boolValue);
+                    break;
+                case DateTime dateTimeValue:
+                    properties.SetParameter(param.Key, dateTimeValue);
+                    break;
+                case TimeSpan timeSpanValue:
+                    properties.SetParameter(param.Key, timeSpanValue);
+                    break;
+                case Guid guidValue:
+                    properties.SetParameter(param.Key, guidValue);
+                    break;
+                case decimal decimalValue:
+                    properties.SetParameter(param.Key, (double)decimalValue);
+                    break;
+                case float floatValue:
+                    properties.SetParameter(param.Key, (double)floatValue);
+                    break;
+                case byte[] byteArrayValue:
+                    properties.SetParameter(param.Key, Convert.ToBase64String(byteArrayValue));
+                    break;
+                case IEnumerable<object> enumerable:
+                    // Convert collection to JSON string
+                    var jsonString = System.Text.Json.JsonSerializer.Serialize(enumerable);
+                    properties.SetParameter(param.Key, jsonString);
+                    break;
+                default:
+                    // For complex types, serialize to JSON
+                    try
+                    {
+                        var complexJsonString = System.Text.Json.JsonSerializer.Serialize(param.Value);
+                        properties.SetParameter(param.Key, complexJsonString);
+                    }
+                    catch (Exception ex)
+                    {
+                        // Fall back to string representation if serialization fails
+                        properties.SetParameter(param.Key, param.Value.ToString() ?? string.Empty);
+                    }
+                    break;
+            }
         }
     }
 }

@@ -19,6 +19,7 @@ namespace FirstPartyAgent.Core.Configuration
         public TeamsClientSettings Teams { get; set; }
         public StorageAccountSettings Storage { get; set; }
         public AzureAlertingSettings AzureAlerting { get; set; }
+        public DevOpsSetting DevOps { get; set; }
     }
 }
 

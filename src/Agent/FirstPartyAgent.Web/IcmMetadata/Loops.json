@@ -1,0 +1,323 @@
+[
+  {
+    "serviceId": "10060",
+    "serviceName": "App Service (Web Apps)",
+    "teamRules": [
+      {
+        "teamId": "10468",
+        "teamName": "Windows Azure Websites Servicing",
+        "routingId": "AIMS://ANTST"
+      },
+      {
+        "teamId": "11524",
+        "teamName": "Internal Only AntMon",
+        "routingId": "AIMS://ANTMON"
+      },
+      {
+        "teamId": "11616",
+        "teamName": "Internal Only DRMON",
+        "routingId": "AIMS://DRMON"
+      },
+      {
+        "teamId": "73996",
+        "teamName": "Antares Billing Loop",
+        "routingId": "AIMS://BILLING"
+      },
+      {
+        "teamId": "23165",
+        "teamName": "Antares APIHub Loop",
+        "routingId": "AIMS://APIAPP"
+      },
+      {
+        "teamId": "85914",
+        "teamName": "Antares FALCON Team (FrontEnd/DataRole/GRS)",
+        "routingId": "AIMS://FETE"
+      },
+      {
+        "teamId": "24992",
+        "teamName": "wnurg",
+        "routingId": "AIMS://SupportUrgentRequest"
+      },
+      {
+        "teamId": "24993",
+        "teamName": "wnreq",
+        "routingId": "AIMS://SupportRequest"
+      },
+      {
+        "teamId": "25447",
+        "teamName": "Internal Only antcdb",
+        "routingId": "AIMS://AZUREUX\\AUXARM\\SUCCESSBRICKS.CLEARDB"
+      },
+      {
+        "teamId": "25592",
+        "teamName": "Internal Only antmini",
+        "routingId": "AIMS://ANTMINI"
+      },
+      {
+        "teamId": "26012",
+        "teamName": "Internal Only AzureDeploymentSlots",
+        "routingId": "AIMS://AzureDeploymentSlots"
+      },
+      {
+        "teamId": "27991",
+        "teamName": "Internal Only Ruslan",
+        "routingId": "AIMS://Ruslan"
+      },
+      {
+        "teamId": "28119",
+        "teamName": "Internal Only Kranthi",
+        "routingId": "AIMS://Kranthi"
+      },
+      {
+        "teamId": "31569",
+        "teamName": "Internal Only cgillum",
+        "routingId": "AIMS://CGILLUM"
+      },
+      {
+        "teamId": "32007",
+        "teamName": "philuo",
+        "routingId": "AIMS://PHIL"
+      },
+      {
+        "teamId": "32577",
+        "teamName": "Internal Only Diag",
+        "routingId": "AIMS://Diag"
+      },
+      {
+        "teamId": "32621",
+        "teamName": "WindowsAzureWebsitesServicing_AlertsBusinessHours",
+        "routingId": "AIMS://WAWSBUSINESSHOURS"
+      },
+      {
+        "teamId": "40987",
+        "teamName": "VNet (internal-only)",
+        "routingId": "FAE://VNET"
+      },
+      {
+        "teamId": "39711",
+        "teamName": "DSASWhitelist",
+        "routingId": "AIMS://XSTORE"
+      },
+      {
+        "teamId": "40792",
+        "teamName": "Antares Infrastructure Upgrade Loop",
+        "routingId": "AIMS://INFRADEPLOY"
+      },
+      {
+        "teamId": "46995",
+        "teamName": "Internal Only AntRec",
+        "routingId": "SSA://ANTREC"
+      },
+      {
+        "teamId": "46487",
+        "teamName": "App Service Sev 2 Triage",
+        "routingId": "WAWS://Vendors"
+      },
+      {
+        "teamId": "11258",
+        "teamName": "ServicingLoop",
+        "routingId": "SSR://ApiManagement"
+      },
+      {
+        "teamId": "56850",
+        "teamName": "Antares Functions Loop",
+        "routingId": "SSR://Functions"
+      },
+      {
+        "teamId": "58595",
+        "teamName": "Request Assistance - Antares SSL Certs and Domains",
+        "routingId": "SSR://AntDomainAndCertLoop"
+      },
+      {
+        "teamId": "57982",
+        "teamName": "Antares UX Portal Loop",
+        "routingId": "SSR://AntUXPortalLoop"
+      },
+      {
+        "teamId": "58003",
+        "teamName": "Antares Linux Loop",
+        "routingId": "SSA://AntLinux"
+      },
+      {
+        "teamId": "64446",
+        "teamName": "Internal Bootcamp",
+        "routingId": "ANTFUN://BOOTCAMP"
+      },
+      {
+        "teamId": "58178",
+        "teamName": "App Service Control Plane Loop",
+        "routingId": "AntaresEv2Alert"
+      },
+      {
+        "teamId": "57364",
+        "teamName": "Antares ASE Loop",
+        "routingId": "SSR://ANTASEEXT"
+      },
+      {
+        "teamId": "67838",
+        "teamName": "Internal Only Infrastructure Deployment (Business Hours)",
+        "routingId": "ANTFUN://DeployBusinessHours"
+      },
+      {
+        "teamId": "11427",
+        "teamName": "Physical Network DRI",
+        "routingId": "SSR://PhyNet"
+      },
+      {
+        "teamId": "56199",
+        "teamName": "Antares on VMSS Platform Loop",
+        "routingId": "SSR://AntComputePlatform"
+      },
+      {
+        "teamId": "57407",
+        "teamName": "Antares Windows Containers Loop",
+        "routingId": "SSR://AntHyperVContainers"
+      },
+      {
+        "teamId": "77876",
+        "teamName": "Antares Managed Identity/CORS/Easy Auth Loop",
+        "routingId": "SSR://AntManagedIdentity"
+      },
+      {
+        "teamId": "79110",
+        "teamName": "Antares Lima Loop",
+        "routingId": "SSR://AntLimaLoop"
+      },
+      {
+        "teamId": "75360",
+        "teamName": "Antares Windows Worker Loop",
+        "routingId": "SSR://AntFileWinWorker"
+      },
+      {
+        "teamId": "58149",
+        "teamName": "Antares VNET on Public Loop",
+        "routingId": "SSR://AntVNETPublic"
+      },
+      {
+        "teamId": "83120",
+        "teamName": "DataRoleTeam Business Hours Only",
+        "routingId": "AIMS://DataBusinessOnly"
+      },
+      {
+        "teamId": "84435",
+        "teamName": "Antares Functions Linux Loop",
+        "routingId": "SSR://LinuxFunctions"
+      },
+      {
+        "teamId": "68392",
+        "teamName": "Antares Static Website Loop",
+        "routingId": "AIMS://AntaresStaticWebsiteLoop"
+      },
+      {
+        "teamId": "57976",
+        "teamName": "Antares SSL Certs and Domains",
+        "routingId": "SSR://AntSSLAndDomain"
+      },
+      {
+        "teamId": "86832",
+        "teamName": "Internal Only HostRole",
+        "routingId": "AIMS://HOSTROLE"
+      },
+      {
+        "teamId": "95144",
+        "teamName": "Antares Kusto LiveSite",
+        "routingId": "SSR://AntaresKustoLiveSite"
+      },
+      {
+        "teamId": "93073",
+        "teamName": "Antares WAWS Analytics Loop",
+        "routingId": "WAWS://Analytics"
+      },
+      {
+        "teamId": "58594",
+        "teamName": "Request Assistance - Antares ASE",
+        "routingId": "WAWS://ASE"
+      },
+      {
+        "teamId": "84419",
+        "teamName": "Antares Functions Python Loop",
+        "routingId": "SSR://PythonFunctions"
+      },
+      {
+        "teamId": "98127",
+        "teamName": "Splinter Twin",
+        "routingId": "WAWS://SplinterTwin"
+      },
+      {
+        "teamId": "105572",
+        "teamName": "Splinter Twin Business Hours Only",
+        "routingId": "WAWS://SplinterTwinBusinessHours"
+      },
+      {
+        "teamId": "107995",
+        "teamName": "Antares Functions FlexConsumption Loop",
+        "routingId": "WAWS://FlexFunc"
+      },
+      {
+        "teamId": "84424",
+        "teamName": "Antares Functions Deployment Loop",
+        "routingId": "SSR://FunctionsDeployment"
+      },
+      {
+        "teamId": "84422",
+        "teamName": "Antares Functions ScaleController Loop",
+        "routingId": "SSR://FunctionsScaleController"
+      },
+      {
+        "teamId": "106482",
+        "teamName": "Antares File Storage Loop",
+        "routingId": "WAWS://AntFile"
+      },
+      {
+        "teamId": "58597",
+        "teamName": "Request Assistance - Antares UX Portal",
+        "routingId": "SST://AntUXPortalRaLoop"
+      },
+      {
+        "teamId": "89901",
+        "teamName": "Request Assistance - Antares Static Website Loop",
+        "routingId": "SSR://StaticWebAppsRALoop"
+      },
+      {
+        "teamId": "105341",
+        "teamName": "Antares Functions on Container apps Loop",
+        "routingId": "SSR://FunctionsOnACA"
+      },
+      {
+        "teamId": "106492",
+        "teamName": "Antares WebJobs Loop",
+        "routingId": "WAWS://WebJobsLoop"
+      },
+      {
+        "teamId": "57406",
+        "teamName": "Antares Java Loop",
+        "routingId": "WAWS://JavaLoop"
+      },
+      {
+        "teamId": "74536",
+        "teamName": "Web App Publish (GIT/OneDeploy/ZipDeploy/MSDeploy)",
+        "routingId": "WAWS://WebAppPublishLoop"
+      },
+      {
+        "teamId": "122591",
+        "teamName": "Antares ASE Alerts Loop",
+        "routingId": "WAWS://AntaresASEMigrationAlertsLoop"
+      },
+      {
+        "teamId": "125681",
+        "teamName": "Antares Platform Telemetry",
+        "routingId": "WAWS://AntaresPlatformTelemetry"
+      },
+      {
+        "teamId": "118433",
+        "teamName": "Antares Functions PerfBench Infra Loop",
+        "routingId": "SSR://PerfBenchInfraFunctions"
+      },
+      {
+        "teamId": "120089",
+        "teamName": "AzRel SRE",
+        "routingId": "WAWS://AZRELSRE"
+      }
+    ]
+  }
+]

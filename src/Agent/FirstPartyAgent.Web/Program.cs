@@ -10,13 +10,14 @@ using FirstPartyAgent.Core.Services;
 var builder = WebApplication.CreateBuilder(args);
 
 builder.LoadLocalAppSettings();
-builder.Services.RegisterServiceDependencies();
 
 var config = builder.Configuration;
 config.SetBasePath(builder.Environment.ContentRootPath)
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true) //load base settings
             .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
             .AddEnvironmentVariables();
+
+builder.Services.RegisterServiceDependencies();
 
 if (builder.Environment.IsDevelopment())
 {

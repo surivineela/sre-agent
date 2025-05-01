@@ -10,6 +10,10 @@ namespace FirstPartyAgent.Core.Models
 {
     public class ICMAlertConfig
     {
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        public int TeamId { get; set; }
         public string AlertingId { get; set; }
         public string? IncidentTitle { get; set; }
         public string? IncidentTitleContains { get; set; }
@@ -132,6 +136,7 @@ namespace FirstPartyAgent.Core.Models
         public string IcmServiceName { get; set; }
         public string IcmTeamName { get; set; }
         public int? IcmTeamId { get; set; }
+        public string TeamPublicId { get; set; }
     }
 
     public class AgentDeployment
@@ -144,5 +149,31 @@ namespace FirstPartyAgent.Core.Models
         public string ResourceGroup { get; set; }
         public string Name { get; set; }
         public string Location { get; set; }
+    }
+
+    public class TeamConfig
+    {
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        public int TeamId { get; set; }
+        public string TeamName { get; set; }
+    }
+
+    public class IcmIncidentBasicInfo
+    {
+        public string Title { get; set; }
+        public int Severity { get; set; }
+        public string State { get; set; }
+        public int Id { get; set; }
+        public DateTime CreatedDate { get; set; }
+    }
+
+    public class AgentFactoryConfigCosmos<T>
+    {
+        [JsonPropertyName("id")]
+        [JsonProperty("id")]
+        public string Id { get; set; }
+        public T Content { get; set; }
     }
 }

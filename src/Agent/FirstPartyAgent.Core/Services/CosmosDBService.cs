@@ -28,6 +28,8 @@ namespace FirstPartyAgent.Core.Services
 
         Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey);
 
+        Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item, PartitionKey key);
+
         bool IsEnabled { get; }
 
         string IcmAgentDatabaseName { get; }
@@ -44,6 +46,11 @@ namespace FirstPartyAgent.Core.Services
         public Task BulkWriteAsync<T>(string databaseName, string containerName, IEnumerable<T> items, PartitionKey partitionKey)
         {
             return Task.CompletedTask;
+        }
+
+        public Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item, PartitionKey key)
+        {
+            return Task.FromResult(default(ItemResponse<T>));
         }
 
         public string IcmAgentDatabaseName => "HotsiteAgent";
@@ -165,7 +172,12 @@ namespace FirstPartyAgent.Core.Services
             {
                 Console.WriteLine($"Bulk write failed. Status Code: {response.StatusCode}");
             }
+        }
 
+        public async Task<ItemResponse<T>> UpsertItemAsync<T>(string databaseName, string containerName, T item, PartitionKey key)
+        {
+            var container = _cosmosClient.GetContainer(databaseName, containerName);
+            return await container.UpsertItemAsync(item, key);
         }
     }
 

@@ -20,13 +20,14 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly IKustoPlugin _kustoPlugin;
         private readonly ILogger<GenevaActionsPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
-        private List<GenevaActionConfig> _allGenevaActions;
         private readonly IStorageService _storageService;
         private readonly ICosmosDBService _cosmosDbService;
         private ISessionMessageService _sessionMessageService;
         private string storageGenevaActionsContainerName = "genevaactionsconfig";
         private readonly string cosmosGenevaActionsContainerName = "GenevaActionsConfigs";
         private readonly string genevaActionsConfigName = "GenevaActions";
+
+        private Lazy<Task<List<GenevaActionConfig>>> _lazyGenevaActions;
 
         public GenevaActionsPlugin(
             BaseIcmWorkflowClient icmWorkflowClient,
@@ -45,16 +46,22 @@ namespace FirstPartyAgent.Core.Plugins
             _teamsClient = teamsClient;
             _storageService = storageService;
             _cosmosDbService = cosmosDBService;
-            _allGenevaActions = new List<GenevaActionConfig>();
             if (!string.IsNullOrWhiteSpace(storageAccountSettings.GenevaActionsContainerName))
             {
                 storageGenevaActionsContainerName = storageAccountSettings.GenevaActionsContainerName;
             }
-            InitializeGenevaActionsConfig().GetAwaiter().GetResult();
+
+            _lazyGenevaActions = new Lazy<Task<List<GenevaActionConfig>>>(() => InitializeGenevaActionsConfig());
         }
 
-        private async Task InitializeGenevaActionsConfig()
+        private async Task<List<GenevaActionConfig>> GetGenevaActions()
         {
+            return await _lazyGenevaActions.Value;
+        }
+
+        private async Task<List<GenevaActionConfig>> InitializeGenevaActionsConfig()
+        {
+            var allGenevaActions = new List<GenevaActionConfig>();
             var logMessage = $"Initializing Geneva Actions Config";
             _logger.LogInformation(logMessage);
 
@@ -65,7 +72,7 @@ namespace FirstPartyAgent.Core.Plugins
                     var genevaActionsContainer = _cosmosDbService.GetQueryableContainer<GenevaActionsConfigCosmos>(_cosmosDbService.IcmAgentDatabaseName, cosmosGenevaActionsContainerName);
                     var genevaActionsConfig = await genevaActionsContainer.ToListAsync();
 
-                    _allGenevaActions = genevaActionsConfig
+                    allGenevaActions = genevaActionsConfig
                         .SelectMany(c => c.GenevaActions)
                         .GroupBy(a => a.ActionName)
                         .Select(g => g.First())
@@ -86,15 +93,15 @@ namespace FirstPartyAgent.Core.Plugins
                     var genevaActionsConfig = JsonConvert.DeserializeObject<List<GenevaActionConfig>>(genevaActionsConfigString);
                     if (genevaActionsConfig != null && genevaActionsConfig.Count > 0)
                     {
-                        _allGenevaActions.AddRange(genevaActionsConfig);
-                        return;
+                        allGenevaActions.AddRange(genevaActionsConfig);
+                        return allGenevaActions;
                     }
                 }
                 catch (Exception ex)
                 {
                     logMessage = $"Error reading Geneva Actions Config from Storage: {ex.Message}";
                     _logger.LogError(logMessage);
-                    return;
+                    return allGenevaActions;
                 }
             }
 
@@ -108,22 +115,23 @@ namespace FirstPartyAgent.Core.Plugins
                 {
                     logMessage = $"Geneva Actions Config file is empty or not found.";
                     _logger.LogError(logMessage);
-                    return;
+                    return allGenevaActions;
                 }
 
                 var genevaActionsConfig = JsonConvert.DeserializeObject<List<GenevaActionConfig>>(genevaActionsConfigFileContent);
                 if (genevaActionsConfig != null && genevaActionsConfig.Count > 0)
                 {
-                    _allGenevaActions.AddRange(genevaActionsConfig);
-                    return;
+                    allGenevaActions.AddRange(genevaActionsConfig);
+                    return allGenevaActions;
                 }
             }
             catch (Exception ex)
             {
                 logMessage = $"Error reading or deserializing Geneva Actions Config: {ex.Message}";
                 _logger.LogError(logMessage);
-                return;
+                return allGenevaActions;
             }
+            return allGenevaActions;
         }
 
         private async Task<bool> IsSubscriptionInternal(string subscriptionId, Kernel kernel)
@@ -179,7 +187,7 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"[execute_geneva_action][{DateTime.UtcNow}] Invoked with actionName {actionName} and parameters: {JsonConvert.SerializeObject(inputParameters)}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
-            var genevaAction = _allGenevaActions.Where(x => x.ActionName == actionName).FirstOrDefault();
+            var genevaAction = (await GetGenevaActions()).Where(x => x.ActionName == actionName).FirstOrDefault();
             if (genevaAction == null)
             {
                 return $"No Geneva Action found for actionName: {actionName}";
