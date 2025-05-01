@@ -351,7 +351,7 @@ $@"## Facts
             AIFunctionFactory.Create(incidentPluginDefinition.GetPagerDutyIncidentsAsync),
             // AIFunctionFactory.Create(incidentPluginDefinition.ResolvePagerDutyIncidentAsync),
             AIFunctionFactory.Create(functionAppPluginDefinition.ListFunctionAppsAsync),
-            AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
+            //AIFunctionFactory.Create(functionAppPluginDefinition.GetFunctionAppInfoAsync),
             AIFunctionFactory.Create(_connectedIntegrationsPlugin.GetAllActiveIntegrations),
             AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.ListAvailableMetrics),
