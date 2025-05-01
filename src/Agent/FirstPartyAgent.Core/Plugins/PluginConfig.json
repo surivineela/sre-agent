@@ -46,5 +46,9 @@
   {
     "PluginName": "AzureAlertingPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureAlertingPlugin"
+  },
+  {
+    "PluginName": "ColdStartPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Plugins.ColdStartPlugin"
   }
 ]

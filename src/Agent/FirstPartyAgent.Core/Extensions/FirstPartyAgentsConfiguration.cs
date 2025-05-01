@@ -56,6 +56,8 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<KustoClientService>();
             services.AddSingleton<IKustoPlugin, KustoPlugin>();
 
+            services.AddSingleton<ColdStartPlugin>();
+
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
 

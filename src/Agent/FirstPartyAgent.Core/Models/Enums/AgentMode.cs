@@ -12,7 +12,8 @@ namespace FirstPartyAgent.Models
         GithubIssueTagger,
         ICMAgent,
         Sev2,
-        ICMSummarizer
+        ICMSummarizer,
+        ColdStart
     }
 }
 
