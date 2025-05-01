@@ -42,7 +42,7 @@ namespace Agent.Runtime.SubAgents.AzureSqlServerAgent
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
             
             var azureSqlServerSettings = await _armHelper.GetAzureSqlServerSettings(resources);
-            return azureSqlServerSettings.Where(x => x.IsAzureADOnlyAuthenticationEnabled == false)
+            return azureSqlServerSettings.Where(x => x.IsAzureADOnlyAuthenticationEnabled == false && x.IsEntraAdminSet == true)
                 .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
                 .ToList();
         }

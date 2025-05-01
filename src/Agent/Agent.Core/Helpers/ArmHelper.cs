@@ -973,7 +973,8 @@ public class ArmHelper
             ResourceId: resourceId,
             Name: sqlServerResource.Data.Name,
             Location: sqlServerResource.Data.Location,
-            IsAzureADOnlyAuthenticationEnabled: sqlServerResource.Data.Administrators?.IsAzureADOnlyAuthenticationEnabled ?? false
+            IsAzureADOnlyAuthenticationEnabled: sqlServerResource.Data.Administrators?.IsAzureADOnlyAuthenticationEnabled ?? false,
+            IsEntraAdminSet: sqlServerResource.Data.Administrators?.AdministratorType == SqlAdministratorType.ActiveDirectory
             );
     }
 

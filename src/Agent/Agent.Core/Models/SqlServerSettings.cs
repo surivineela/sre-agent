@@ -4,5 +4,6 @@ public sealed record SqlServerSettings(
     string ResourceId,
     string Name,
     string Location,
-    bool IsAzureADOnlyAuthenticationEnabled
+    bool IsAzureADOnlyAuthenticationEnabled,
+    bool IsEntraAdminSet
     );

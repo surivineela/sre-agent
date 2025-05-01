@@ -36,6 +36,7 @@ namespace Agent.Runtime.SubAgents.AzureSqlServerAgent
         protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
         {
             var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
+            // Add tool to set the Entra Admin before disabling local auth.
             yield return () => remediationPluginDefinition.AzureSqlServerSetLocalAuthSupport;
 
             var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
