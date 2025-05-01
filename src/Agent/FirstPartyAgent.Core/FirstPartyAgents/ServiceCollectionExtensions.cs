@@ -89,19 +89,19 @@ public static class ServiceCollectionExtensions
     private static void RegisterFirstPartySubAgents(this IHostApplicationBuilder builder)
     {
         // Register all subagent factories that derive from the shared impl
-        var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartySubAgentsFactory).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
+        var genericSubAgentFactories = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartyAgentsFactory).Assembly, typeof(SimpleResourceSubAgentFactoryBase<,,,>));
         foreach (var type in genericSubAgentFactories)
         {
             builder.Services.AddSingleton(type);
         }
         // Register all subagent plugins that derive from the shared impl
-        var genericSubAgentPlugins = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartySubAgentsFactory).Assembly, typeof(SimpleResourceSubAgentPluginBase<,,,,>));
+        var genericSubAgentPlugins = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartyAgentsFactory).Assembly, typeof(SimpleResourceSubAgentPluginBase<,,,,>));
         foreach (var type in genericSubAgentPlugins)
         {
             builder.Services.AddTransient(type);
         }
         // Register all subagent scanners that derive from the shared impl
-        var genericSubAgentScanners = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartySubAgentsFactory).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
+        var genericSubAgentScanners = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(FirstPartyAgentsFactory).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
         foreach (var type in genericSubAgentScanners)
         {
             builder.Services.AddSingleton(type);

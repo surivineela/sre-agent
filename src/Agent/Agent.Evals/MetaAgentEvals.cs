@@ -5,6 +5,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -85,11 +86,11 @@ public class MetaAgentEvals
         }
     }
 
-    public static MetaAgent GetMockedMetaAgent(
-        IChatClient chatClient,
-        ILogger<MetaAgent>? logger = null,
-        ThreadService? threadService = null,
+    public static ThirdPartAgentsFactory GetMockedThirdPartAgentsFactory(
+        ILogger<ThirdPartAgentsFactory>? logger = null,
         McpToolsRepository? mcpToolsRepository = null,
+        IServiceProvider? serviceProvider = null,
+
         IChartPlugin? chartplugin = null,
         DashboardSettings? dashboardSettings = null,
         IMetaAgentManagedIdentityMigrationPlugin? managedIdentityMigrationPlugin = null,
@@ -105,11 +106,9 @@ public class MetaAgentEvals
         IGraphDBPlugin? graphDBPlugin = null,
         //IMetaAgentAppReliabilityPlugin? appReliabilityPlugin = null,
         IMetaAgentWebAppDownPlugin? webAppDownPlugin = null,
-        IServiceProvider? serviceProvider = null,
+        
         IMetaAgentVmRdpInvestigatorPlugin? vmRdpInvestigatorPlugin = null,
         IMetaAgentFunctionAppConnectivityPlugin? functionAppConnectivityPlugin = null,
-        IFirstPartySubAgentsFactory? firstPartySubAgentsFactory = null,
-        IThreadRepository threadRepository = null,
         IMetaAgentSqlDbQueryPerfPlugin? sqlDbQueryPerfPlugin = null,
         IMetaAgentAppCodeAnalysisPlugin appCodeAnalysisPlugin = null,
         IMetaAgentCPUAnalysisPlugin cpuAnalysisPlugin = null,
@@ -117,14 +116,16 @@ public class MetaAgentEvals
         ICpuAnalysisPlugin cpuPlugin = null,
         IMetricsPlugin metricsPlugin = null,
         IIncidentPlugin incidentPlugin = null,
-        IMetaAgentFunctionAppExecutionFailuresAgentPlugin? functionAppExecutionFailuresAgentPlugin = null)
+        IMetaAgentFunctionAppExecutionFailuresAgentPlugin? functionAppExecutionFailuresAgentPlugin = null,
+        InstanceManagementSettings instanceManagementSettings = null
+        )
     {
 
-        return new MetaAgent(
-            chatClient,
-            logger ?? Mock.Of<ILogger<MetaAgent>>(),
-            threadService ?? Mock.Of<ThreadService>(),
+        return new ThirdPartAgentsFactory(
+            logger ?? Mock.Of<ILogger<ThirdPartAgentsFactory>>(),
             mcpToolsRepository ?? Mock.Of<McpToolsRepository>(),
+            serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
+
             chartplugin ?? Mock.Of<IChartPlugin>(),
             managedIdentityMigrationPlugin ?? Mock.Of<IMetaAgentManagedIdentityMigrationPlugin>(),
             tlsBestPracticesPlugin ?? Mock.Of<IMetaAgentTlsBestPracticesPlugin>(),
@@ -139,11 +140,8 @@ public class MetaAgentEvals
             graphDBPlugin ?? Mock.Of<IGraphDBPlugin>(),
             //appReliabilityPlugin ?? Mock.Of<IMetaAgentAppReliabilityPlugin>(),
             webAppDownPlugin ?? Mock.Of<IMetaAgentWebAppDownPlugin>(),
-            serviceProvider ?? new ServiceCollection().BuildServiceProvider(),
             vmRdpInvestigatorPlugin ?? Mock.Of<IMetaAgentVmRdpInvestigatorPlugin>(),
             functionAppConnectivityPlugin ?? Mock.Of<IMetaAgentFunctionAppConnectivityPlugin>(),
-            firstPartySubAgentsFactory ?? Mock.Of<IFirstPartySubAgentsFactory>(),
-            threadRepository ?? Mock.Of<IThreadRepository>(),
             sqlDbQueryPerfPlugin ?? Mock.Of<IMetaAgentSqlDbQueryPerfPlugin>(),
             Mock.Of<IConnectedIntegrationsPlugin>(),
             appCodeAnalysisPlugin ?? Mock.Of<IMetaAgentAppCodeAnalysisPlugin>(),
@@ -151,9 +149,28 @@ public class MetaAgentEvals
             appCodePlugin ?? Mock.Of<IAppCodeAnalysisPlugin>(),
             cpuPlugin ?? Mock.Of<ICpuAnalysisPlugin>(),
             metricsPlugin ?? Mock.Of<IMetricsPlugin>(),
-            Mock.Of<InstanceManagementSettings>(),
+            instanceManagementSettings ?? Mock.Of<InstanceManagementSettings>(),
             incidentPlugin ?? Mock.Of<IIncidentPlugin>(),
             functionAppExecutionFailuresAgentPlugin ?? Mock.Of<IMetaAgentFunctionAppExecutionFailuresAgentPlugin>()
+        );
+    }
+
+    public static MetaAgent GetMockedMetaAgent(
+        IChatClient chatClient,
+        IAgentsFactory agentsFactory,
+        ILogger<MetaAgent>? logger = null,
+        ThreadService? threadService = null,
+        IThreadRepository threadRepository = null,
+        McpToolsRepository? mcpToolsRepository = null
+        )
+    {
+
+        return new MetaAgent(
+            chatClient,
+            agentsFactory,
+            logger ?? Mock.Of<ILogger<MetaAgent>>(),
+            threadService ?? Mock.Of<ThreadService>(),
+            threadRepository ?? Mock.Of<IThreadRepository>()
         );
     }
 
@@ -312,7 +329,8 @@ public class MetaAgentEvals
         mockGraphDbPlugin.Setup(x => x.GetResourceDetailedProperties(It.IsAny<string>())).
             ReturnsAsync(new Dictionary<string, object>());
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object, threadRepository: mockThreadRepository.Object);
+        var factory = GetMockedThirdPartAgentsFactory(graphDBPlugin: mockGraphDbPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, factory, threadService: threadService, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
@@ -387,7 +405,8 @@ public class MetaAgentEvals
         mockGraphDbPlugin.Setup(x => x.GetKnowledgeGraphResourceUsageDashboard())
             .Returns("https://agent-report-ate4c2fvbcf5epds.eus2.grafana.azure.com/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m");
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object, threadRepository: mockThreadRepository.Object);
+        var factory = GetMockedThirdPartAgentsFactory(graphDBPlugin: mockGraphDbPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, factory, threadService: threadService, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
@@ -483,7 +502,8 @@ public class MetaAgentEvals
             ]);
 
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, graphDBPlugin: mockGraphDbPlugin.Object, threadRepository: mockThreadRepository.Object);
+        var factory = GetMockedThirdPartAgentsFactory(graphDBPlugin: mockGraphDbPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, factory, threadService: threadService, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
@@ -559,7 +579,8 @@ public class MetaAgentEvals
                 new WorkflowMetadata<string>("mock-id", "mock-input")
             });
 
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, threadRepository: mockThreadRepository.Object, kubernetesAgentPlugin: mockKubernetesAgentPlugin.Object);
+        var factory = GetMockedThirdPartAgentsFactory(kubernetesAgentPlugin: mockKubernetesAgentPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, factory, threadService: threadService, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {
@@ -647,7 +668,8 @@ public class MetaAgentEvals
                     }
             });
         // return all function apps in graph
-        var agent = GetMockedMetaAgent(_chatClient!, threadService: threadService, threadRepository: mockThreadRepository.Object, incidentPlugin: incidentPlugin.Object);
+        var factory = GetMockedThirdPartAgentsFactory(incidentPlugin: incidentPlugin.Object);
+        var agent = GetMockedMetaAgent(_chatClient!, factory, threadService: threadService, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
         {

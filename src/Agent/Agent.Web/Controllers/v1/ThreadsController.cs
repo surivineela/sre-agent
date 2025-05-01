@@ -17,6 +17,7 @@ using Microsoft.Extensions.AI;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Microsoft.DurableTask.Client;
+using Agent.Runtime.MetaAgent.Interfaces;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -33,6 +34,7 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
+        IAgentsFactory agentsFactory,
         IThreadRepository repository,
         IChatClient chatClient,
         DurableTaskClient durableTaskClient,
@@ -110,7 +112,7 @@ namespace Agent.Web.Controllers.v1
                 Id: Guid.NewGuid(),
                 AgentContextId: agentContext.Id,
                 Role: ReasoningMessageRoleEnum.System,
-                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, MetaAgent.SystemPrompt))
+                SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, agentsFactory.GetMetaAgentSystemPrompt()))
             );
 
             var startReasoningMessage = new ReasoningMessage(

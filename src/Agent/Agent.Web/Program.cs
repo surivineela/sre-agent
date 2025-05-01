@@ -51,7 +51,6 @@ using Agent.Runtime.TeamsChatServices;
 using Agent.Web.Services;
 using Azure.Monitor.OpenTelemetry.Exporter;
 using FirstPartyAgent.Core.FirstPartyAgents;
-using FirstPartyAgent.Models;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Connector.Authentication;
@@ -67,8 +66,12 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 
-var firstPartySubAgentsFactory = new FirstPartySubAgentsFactory();
-var isFirstAgent = firstPartySubAgentsFactory.IsFirstPartyAgent();
+var isFirstAgent = (Environment.GetEnvironmentVariable("IS_FIRST_PARTY") ?? String.Empty).Trim().ToLower() switch
+{
+    "true" or "1" or "y" => true,
+    "false" or "0" or "n" => false,
+    _ => false // Default to false if the value is invalid or not set
+};
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -132,8 +135,6 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IMetaAgentFunctionAppExecutionFailuresAgentPlugin, FunctionAppExecutionFailuresAgentPlugin>()
         .AddSingleton<IPrometheusQueryService, PrometheusQueryService>()
         .AddSingleton<IRoleAssignmentPlugin, RoleAssignmentPlugin>()
-
-        .AddSingleton<IFirstPartySubAgentsFactory>(firstPartySubAgentsFactory)
 
         .AddSingleton<SqlDbQueryPerfAgentFactory>()
         .AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>()
@@ -246,11 +247,13 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
 
     if (isFirstAgent)
     {
+        builder.Services.AddSingleton<IAgentsFactory, FirstPartyAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, FirstPartyToolsRepository>();
         builder.RegisterFirstPartySubAgentsDependencies();
     }
     else
     {
+        builder.Services.AddSingleton<IAgentsFactory, ThirdPartAgentsFactory>();
         builder.Services.AddSingleton<IToolsRepository, ToolsRepository>();
     }
 

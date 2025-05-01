@@ -236,5 +236,4 @@ public class ToolsRepository : IToolsRepository
         return _connectionToToolSignatures.Values.SelectMany(t => t).Concat(localTools).ToList().AsReadOnly();
     }
 
-
 }

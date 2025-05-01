@@ -26,6 +26,7 @@ using Attachment = Microsoft.Bot.Schema.Attachment;
 using Agent.Core.Helpers;
 using Agent.Core.Extensions;
 using System.Text.Json;
+using Agent.Runtime.MetaAgent.Interfaces;
 
 namespace Agent.Runtime.TeamsChatServices;
 
@@ -35,6 +36,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     private readonly IChatClient _chatClient;
     private readonly IThreadTeamsMappingRepository _conversationThreadMapping;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
+    private readonly IAgentsFactory _agentsFactory;
     private readonly IThreadRepository _threadRepository;
     private readonly IBotFrameworkHttpAdapter _teamsAdapter;
 
@@ -62,6 +64,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         ILogger<TeamsBot> logger,
         IBotFrameworkHttpAdapter teamsAdapter,
         IAgentInboundCommunicationService agentInboundCommunicationService,
+        IAgentsFactory agentsFactory,
         IThreadRepository threadRepository,
         IThreadTeamsMappingRepository threadTeamsMappingRepository,
         TeamsBotSettings teamsBot,
@@ -72,6 +75,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         _conversationThreadMapping = threadTeamsMappingRepository;
         _teamsAdapter = teamsAdapter;
         _agentInboundCommunicationService = agentInboundCommunicationService;
+        _agentsFactory = agentsFactory;
         _threadRepository = threadRepository;
 
         // Initialize credentials from configuration
@@ -306,7 +310,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             Id: Guid.NewGuid(),
             AgentContextId: agentContext.Id,
             Role: ReasoningMessageRoleEnum.System,
-            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, MetaAgent.MetaAgent.SystemPrompt))
+            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, _agentsFactory.GetMetaAgentSystemPrompt()))
         ));
 
         var startReasoningMessage = await _threadRepository.CreateReasoningMessageAsync(new ReasoningMessage(

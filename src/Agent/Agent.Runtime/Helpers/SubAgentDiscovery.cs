@@ -2,8 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using Agent.Core.Models;
+using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
+using Microsoft.Extensions.AI;
 
 namespace Agent.Core.Helpers
 {
@@ -46,6 +49,41 @@ namespace Agent.Core.Helpers
                 name = name[..^5];
             }
             return $"/{name}";
+        }
+
+
+        public static List<AITool> GetSubAgentTools(Guid threadGuid, Assembly subAgentsAssembly, IServiceProvider serviceProvider)
+        {
+            List<AITool> subAgentAItools = [];
+            // Get all instances of background-scanning subagents and register their methods
+            var subClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
+                subAgentsAssembly,
+                typeof(SimpleResourceSubAgentPluginBase<,,,,>)
+            );
+            foreach (var type in subClasses)
+            {
+                // Instantiate the type using DI
+                var instance = serviceProvider.GetService(type);
+                if (instance is null)
+                {
+                    continue;
+                }
+
+                // Set the context
+                var prop = type.GetProperty("ThreadId", BindingFlags.Public | BindingFlags.Instance);
+                if (prop == null)
+                {
+                    throw new InvalidOperationException($"Property 'ThreadId' not found on plugin '{type.Name}'");
+                }
+                prop.SetValue(instance, threadGuid);
+
+                // Get a handle to its methods, and register them in the tools
+                var listWorkflowsAsync = type.GetMethod("ListWorkflowsAsync", BindingFlags.Public | BindingFlags.Instance);
+                var startAgentAsync = type.GetMethod("StartAgentAsync", BindingFlags.Public | BindingFlags.Instance);
+                subAgentAItools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
+                subAgentAItools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
+            }
+            return subAgentAItools;
         }
     }
 }

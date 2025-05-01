@@ -1,4 +1,3 @@
-using Agent.Plugins.Definitions;
 using Agent.Plugins;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -7,11 +6,11 @@ using System.Reflection;
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 public class FirstPartyToolsRepository : ToolsRepository
 {
-    private readonly IFirstPartySubAgentsFactory _firstPartySubAgentsFactory;
+    private readonly IAgentsFactory _agentsFactory;
 
-    public FirstPartyToolsRepository(IServiceProvider sp, IFirstPartySubAgentsFactory firstPartySubAgentsFactory) : base(sp, false)
+    public FirstPartyToolsRepository(IServiceProvider sp, IAgentsFactory agentsFactory) : base(sp, false)
     {
-        _firstPartySubAgentsFactory = firstPartySubAgentsFactory;
+        _agentsFactory = agentsFactory;
         RegisterFirstPartyPlugins();
     }
 
@@ -19,7 +18,7 @@ public class FirstPartyToolsRepository : ToolsRepository
     {
         RegisterPlugin<ControlFlowPluginDefinition>();
         RegisterPlugin<TimePluginDefinition>();
-        var firstPartySubAgentPlugins = _firstPartySubAgentsFactory.GetRequiredPluginDefinitionTypes();
+        var firstPartySubAgentPlugins = _agentsFactory.GetRequiredSubAgentPluginDefinitionTypes();
         foreach (var pluginType in firstPartySubAgentPlugins)
         {
             // Use reflection to call the generic RegisterPlugin<T>() method
