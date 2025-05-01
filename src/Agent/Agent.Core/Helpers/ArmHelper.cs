@@ -1040,14 +1040,14 @@ public class ArmHelper
         {
             if (identity.PrincipalId != null)
             {
-                managedIdentities.Add(new GenericArmResourceIdentityModel(IdentityType.SystemAssignedManagedIdentity, identity.PrincipalId.Value));
+                managedIdentities.Add(new GenericArmResourceIdentityModel(IdentityType.SystemAssignedManagedIdentity.ToString(), identity.PrincipalId.Value));
             }
 
             if (identity.UserAssignedIdentities != null)
             {
                 managedIdentities.AddRange(identity.UserAssignedIdentities.Values
                     .Where(userAssignedIdentity => userAssignedIdentity.PrincipalId != null)
-                    .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity, userAssignedIdentity.PrincipalId.Value)));
+                    .Select(userAssignedIdentity => new GenericArmResourceIdentityModel(IdentityType.UserAssignedManagedIdentity.ToString(), userAssignedIdentity.PrincipalId.Value)));
             }
         }
 

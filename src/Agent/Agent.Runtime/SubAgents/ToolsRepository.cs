@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -58,7 +58,7 @@ public class ToolsRepository : IToolsRepository
         Register200<ArmPluginDefinition>(x => x.GetArmResourceAsJson);
         Register200<ArmPluginDefinition>(x => x.PowerOnVirtualMachine);
         Register200<ArmPluginDefinition>(x => x.GetVirtualMachineBootDiagnostics);
-        Register200<ArmPluginDefinition>(x => x.CheckConnectivityToAzureWebJobsStorage);
+        Register200<ArmPluginDefinition>(x => x.CheckConnectivityViaConnectionString);
         Register200<ArmPluginDefinition>(x => x.CheckTcpConnectivity);
         Register200<ArmPluginDefinition>(x => x.CheckDnsResolution);
         Register200<ArmPluginDefinition>(x => x.GetAppSetting);

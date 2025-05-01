@@ -78,7 +78,7 @@ namespace Agent.Plugins
         }
 
         [Description("Check if all the associated resources can be reached from an Azure function app")]
-        public async Task<string> CheckConnectivityToAzureWebJobsStorage(
+        public async Task<string> CheckConnectivityViaConnectionString(
     [Description("Full resource id of an Azure Function App")] string resourceId)
         {
             return await _armPlugin.CheckConnectivityToAzureWebJobsStorage(resourceId);

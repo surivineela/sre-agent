@@ -10,7 +10,7 @@ public sealed record GenericArmResourceModel(
     IReadOnlyDictionary<string, string> tags,
     List<GenericArmResourceIdentityModel> IdentityModels);
 
-public sealed record GenericArmResourceIdentityModel(IdentityType identityType, Guid principalId);
+public sealed record GenericArmResourceIdentityModel(string identityType, Guid principalId);
 
 public enum IdentityType
 {

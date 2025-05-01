@@ -35,7 +35,7 @@ public sealed class FunctionAppConnectivityAgentFactory
 
         var armPluginDefinition = new ArmPluginDefinition(armPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetArmResourceAsJson));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivityToAzureWebJobsStorage));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckConnectivityViaConnectionString));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckTcpConnectivity));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.CheckDnsResolution));
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.GetAppSetting));
@@ -43,9 +43,7 @@ public sealed class FunctionAppConnectivityAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
-        //toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleAssignments));
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.AddRoleAssignment));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.RemoveRoleAssignment));
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.CheckRoleAssignment));
         toolSignatures.Add(_toolsRepository.GetSignature(() => roleAssignmentPluginDefinition.GetRoleDetailsFromNameAsync));
 
