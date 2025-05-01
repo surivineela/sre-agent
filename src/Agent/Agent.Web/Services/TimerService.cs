@@ -64,7 +64,7 @@ public class TimerService : IHostedService, IDisposable
     private readonly ICrawlerService _crawlerService;
     private readonly IPostToTeamsPlugin _teamsPlugin;
     private readonly IGraphDBPlugin _graphPlugin;
-    private readonly ChartPlugin _chartPlugin;
+    private readonly ChartPluginV2 _chartPlugin;
     private readonly IAgentInboundCommunicationService _agentInboundCommunicationService;
     private readonly IThreadRepository _repository;
     private readonly SinkService _sinkService;
@@ -141,7 +141,7 @@ public class TimerService : IHostedService, IDisposable
         IGraphDBPlugin graphPlugin,
         IAgentInboundCommunicationService agentInboundCommunicationService,
         IThreadRepository repository,
-        ChartPlugin chartPlugin,
+        ChartPluginV2 chartPlugin,
         ScoreCardService scoreCardService,
         SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,

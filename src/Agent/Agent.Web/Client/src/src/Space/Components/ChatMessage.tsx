@@ -13,6 +13,7 @@ import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentRe
 import { IChatMessageProps } from '../Contracts/Activities';
 import { sendApprovalDecision, sendMessageFeedback } from '../Hooks/useChatBox'; // Import the function
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
+import AgentChart from './Charts';
 
 // Helper function to parse and render markdown with images
 const renderMarkdownWithImages = (text: string) => {
@@ -66,7 +67,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         }
         const content = renderMarkdownWithImages(message.text);
         return Array.isArray(content) ? content : message.text;
-    }, [message.text]);
+    }, [message]);
 
     const agentMessageProps = useMemo(() => {
         const messageProps: CopilotMessageProps = {
@@ -214,6 +215,14 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     // This is a workaround for rendering markdown images.
     // We need to change how we save image content in the db to simplify this approach.
     const renderContent = () => {
+        const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
+        const hasChartData = typeof message.text === 'string' && chartRegex.test(message.text);
+
+        // If message contains chart data, render AgentChart component
+        if (hasChartData) {
+            return <AgentChart messageText={message.text} />;
+        }
+
         if (!Array.isArray(messageContent)) {
             return <ReactMarkdown components={{ a: aLinkRenderer }}>{messageContent}</ReactMarkdown>;
         }

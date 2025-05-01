@@ -50,11 +50,11 @@ description: text to accompany the chart when posting the image")]
 Parameters:
 chartTitle: The title displayed at the top of the pie chart.
 dataPoints: Semicolon-separated items in format 'sliceLabel|value',
-e.g.: 'Endpoint A|120;Endpoint B|80;Endpoint C|60'
+e.g.: 'Category A|45;Category B|30;Category C|25'.
 description: A short message to summarize the image.")]
         public async Task<string> PlotPieChartAsync(
             [Description("Chart title, e.g. 'Endpoint Distribution'")] string chartTitle,
-            [Description("Semicolon-separated 'Label|Value' pairs for each slice.")] string dataPoints,
+            [Description("Data in format 'Label1|Value1;Label2|Value2;Label3|Value3'")] string dataPoints,
             [Description("Optional text to describe/post with the image.")] string description)
         {
             return await _chartPlugin.PlotPieChartAsync(chartTitle, dataPoints, description);
