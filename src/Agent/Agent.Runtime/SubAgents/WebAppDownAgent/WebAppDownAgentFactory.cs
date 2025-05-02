@@ -49,7 +49,8 @@ public sealed class WebAppDownAgentFactory
          var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput)); 
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.Wait)); 
 
         //_toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesDataAsync);
          var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
@@ -62,7 +63,7 @@ public sealed class WebAppDownAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetSummaryOfExceptions));
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfLastException));
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetStackTraceOfMostCommonException));
-        toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
+        //toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.WaitInMilliSeconds));
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.GetAppConsoleLogs));
 
         var cpuAnalysisPluginDefinition = new CpuAnalysisPluginDefinition(cpuAnalysisPlugin);

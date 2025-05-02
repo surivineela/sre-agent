@@ -1204,7 +1204,7 @@ public class ArmHelper
             {
                 // Handle unsuccessful response
                 var errorContent = await responseMessage.Content.ReadAsStringAsync();
-                throw new InvalidOperationException($"Failed to get App Insights resource ID. Response: {errorContent}");
+                throw new InvalidOperationException($"Failed to retrieve diagnostic settings. Response: {errorContent}");
             }
             var content = await responseMessage.Content.ReadAsStringAsync();
             var jsonDoc = JsonDocument.Parse(content);
@@ -1239,15 +1239,22 @@ public class ArmHelper
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("An error occurred while getting the App Insights resource ID.", ex);
+            throw new InvalidOperationException("An error occurred while querying Log Analytics.", ex);
         }
     }
 
     public async Task<string> ExecuteAppInsightsQuery(string appInsightsAppId, string queryString)
     {
-        var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
+        try
+        {
+            var endpoint = "https://api.applicationinsights.io/v1/apps/" + appInsightsAppId + "/query";
 
-        return await ExecuteAppInsightsQueryInternal(endpoint, queryString);
+            return await ExecuteAppInsightsQueryInternal(endpoint, queryString);
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("An error occurred while querying Application Insights.", ex);
+        }
     }
 
     private async Task<string> ExecuteAppInsightsQueryInternal(string url, string queryString)
@@ -1272,7 +1279,7 @@ public class ArmHelper
             else
             {
                 var message = await response.Content.ReadAsStringAsync();
-                return $"FAILED! Querying App Insights Failed: Status {response.StatusCode}, Message: {message}";
+                return $"FAILED! Querying {url} Failed: Status {response.StatusCode}, Message: {message}";
             }
         }
         catch (Exception)

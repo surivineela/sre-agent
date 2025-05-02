@@ -506,8 +506,20 @@ public class CosmosDbThreadRepository : IThreadRepository
                 // Replace the approval with the Approval doc in Cosmos
                 if (messageDoc.Approval != null)
                 {
-                    var approvalDoc = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<ApprovalDocument>()
-                        .Where(a => a.Id == messageDoc.Approval.Id.ToString()).FirstOrDefault();
+                    //var approvalDoc = _client.GetContainer<ApprovalDocument>(_databaseName).GetItemLinqQueryable<ApprovalDocument>()
+                    //    .Where(a => a.Id == messageDoc.Approval.Id.ToString()).FirstOrDefault();
+                    var approvalQuery = _client.GetContainer<ApprovalDocument>(_databaseName)
+                            .GetItemLinqQueryable<ApprovalDocument>()
+                             .Where(a => a.Id == messageDoc.Approval.Id.ToString());
+
+                    using var approvalIterator = approvalQuery.ToFeedIterator();
+                    ApprovalDocument? approvalDoc = null;
+                    if (approvalIterator.HasMoreResults)
+                    {
+                        var approvalResults = await approvalIterator.ReadNextAsync();
+                        approvalDoc = approvalResults.FirstOrDefault();
+                    }
+
                     messageDocWithApproval = new MessageDocument(messageDoc.Id,
                         messageDoc.ThreadId,
                         messageDoc.TimeStamp,
