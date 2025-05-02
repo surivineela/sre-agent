@@ -297,5 +297,10 @@ namespace Agent.Plugins
                 return $"ERROR: Chart generation failed: {ex.Message}";
             }
         }
+
+        public Task<string> PlotHeatMapAsync(string chartTitle, string xAxisLabel, string yAxisLabel, string colorLabel, string dataPoints, string description)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

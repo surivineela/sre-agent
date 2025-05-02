@@ -10,6 +10,7 @@ using Azure.Identity;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager;
 using Agent.Core.Models.Charts;
+using Microsoft.AspNetCore.Builder;
 
 namespace Agent.Plugins
 {
@@ -118,6 +119,17 @@ namespace Agent.Plugins
                     TimeStamp: timestamp,
                     AvailabilityPercentage: availability));
             }
+
+            availabilityData[availabilityData.Count - 3] = new RequestAvailabilitySeriesData(
+                TimeStamp: availabilityData[availabilityData.Count - 3].TimeStamp,
+                AvailabilityPercentage: 0); // 0% availability
+            availabilityData[availabilityData.Count - 2] = new RequestAvailabilitySeriesData(
+                    TimeStamp: availabilityData[availabilityData.Count - 2].TimeStamp,
+                    AvailabilityPercentage: 0); // 0% availability
+            availabilityData[availabilityData.Count - 1] = new RequestAvailabilitySeriesData(
+                    TimeStamp: availabilityData.Last().TimeStamp,
+                    AvailabilityPercentage: 0); // 0% availability
+
             return availabilityData;
         }
 
@@ -137,6 +149,24 @@ namespace Agent.Plugins
                 metricsData = await _armHelper.FetchMetricsAsync(
                     resourceId.ToString(),
                     metrics);
+
+                var output = metricsData
+                    .Select(m => new MemoryTimeSeriesData(
+                        TimeStamp: m.Timestamp,
+                        // m.Value is memory in bytes
+                        AverageMemoryInBytes: m.Value))
+                    .ToArray();
+                var last = output.LastOrDefault();
+                output[output.Length - 3] = new MemoryTimeSeriesData(
+            TimeStamp: output[output.Length - 3].TimeStamp,
+            AverageMemoryInBytes: int.MaxValue);
+                output[output.Length - 2] = new MemoryTimeSeriesData(
+                    TimeStamp: output[output.Length - 2].TimeStamp,
+                    AverageMemoryInBytes: int.MaxValue);
+                output[output.Length - 1] = new MemoryTimeSeriesData(
+                    TimeStamp: last.TimeStamp,
+                    AverageMemoryInBytes: int.MaxValue);
+                return output;
             }
             catch (Exception ex)
             {

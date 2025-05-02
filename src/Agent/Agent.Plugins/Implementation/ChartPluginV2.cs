@@ -2,11 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using System.Globalization;
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
+using Agent.Plugins.Attributes;
 using Microsoft.Extensions.Logging;
+using Microsoft.SemanticKernel;
 using ScottPlot;
 
 namespace Agent.Plugins
@@ -309,6 +312,121 @@ namespace Agent.Plugins
 
             return result;
         }
+
+        [KernelFunction("plot_heat_map")]
+        [ThreadSpecific]
+        [Description(
+@"Generates a heat map visualization from the provided data.
+Used for showing intensity relationships between two categorical dimensions.
+
+Arguments:
+chartTitle: Title for the heatmap, e.g. 'Server Response Times by Hour and Day'
+xAxisLabel: Label for the X-axis (columns), e.g. 'Hour of Day'
+yAxisLabel: Label for the Y-axis (rows), e.g. 'Day of Week'
+colorLabel: Label for the color scale, e.g. 'Response Time (ms)'
+dataPoints: Semicolon-separated data points in the format 'xValue|yValue|intensity',
+    e.g.: 'Monday|9|45;Monday|10|78;Tuesday|9|23'
+    For multiple points, each point is separated by a semicolon
+description: Text to accompany the heat map chart")]
+        public async Task<string> PlotHeatMapAsync(
+            [Description("Chart title, e.g. 'Server Response Times'")] string chartTitle,
+            [Description("X-axis label (columns)")] string xAxisLabel,
+            [Description("Y-axis label (rows)")] string yAxisLabel,
+            [Description("Label for the color scale")] string colorLabel,
+            [Description("Semicolon-separated data in format 'xValue|yValue|intensity'")] string dataPoints,
+            [Description("Optional text to describe the heat map")] string description)
+        {
+            var heatMapData = ParseHeatMapData(dataPoints);
+
+            if (!heatMapData.Any())
+            {
+                return "ERROR: Could not parse any valid heat map data from 'dataPoints'.";
+            }
+
+            // Convert heat map data to front-end friendly format
+            var chartData = new
+            {
+                type = "heatmap",
+                title = chartTitle,
+                xAxisLabel = xAxisLabel,
+                yAxisLabel = yAxisLabel,
+                colorLabel = colorLabel,
+                data = FormatHeatMapDataForFrontend(heatMapData)
+            };
+
+            return await SaveAndPostChartData(chartData, description);
+        }
+
+        private List<HeatMapPoint> ParseHeatMapData(string dataPoints)
+        {
+            var heatMapData = new List<HeatMapPoint>();
+            if (string.IsNullOrWhiteSpace(dataPoints)) return heatMapData;
+
+            var entries = dataPoints.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var entry in entries)
+            {
+                var parts = entry.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 3) continue;
+
+                if (!double.TryParse(parts[2].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double intensity))
+                    continue;
+
+                heatMapData.Add(new HeatMapPoint
+                {
+                    X = parts[0].Trim(),  // X category (string)
+                    Y = parts[1].Trim(),  // Y category (string)
+                    Value = intensity     // Intensity/value (numeric)
+                });
+            }
+
+            return heatMapData;
+        }
+
+        /// <summary>
+        /// Format heat map data for front-end rendering
+        /// </summary>
+        private object FormatHeatMapDataForFrontend(List<HeatMapPoint> heatMapData)
+        {
+            // Extract unique X and Y categories
+            var xCategories = heatMapData.Select(p => p.X).Distinct().OrderBy(x => x).ToList();
+            var yCategories = heatMapData.Select(p => p.Y).Distinct().OrderBy(y => y).ToList();
+
+            // Create properly formatted data for the front-end
+            var result = new
+            {
+                xCategories = xCategories,
+                yCategories = yCategories,
+                values = heatMapData.Select(p => new
+                {
+                    x = p.X,
+                    y = p.Y,
+                    value = p.Value
+                }).ToList()
+            };
+
+            return result;
+        }
+
+        /// <summary>
+        /// Represents a single data point in a heat map
+        /// </summary>
+        public class HeatMapPoint
+        {
+            /// <summary>
+            /// X category (column)
+            /// </summary>
+            public string X { get; set; } = string.Empty;
+
+            /// <summary>
+            /// Y category (row)
+            /// </summary>
+            public string Y { get; set; } = string.Empty;
+
+            /// <summary>
+            /// The intensity value at coordinates (X,Y)
+            /// </summary>
+            public double Value { get; set; }
+        };
 
         /// <summary>
         /// Saves and posts chart data to the thread

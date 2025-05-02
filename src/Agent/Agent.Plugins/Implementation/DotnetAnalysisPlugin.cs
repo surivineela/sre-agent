@@ -262,13 +262,15 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
                 await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//temp");
             }
 
+            await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/sample-dump/BackupDump.dmp -o SampleDump.dmp", "C://local//temp");
+
             // Run the dotnet analyzer on the dump file with the appropriate commands. 
-            var result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//{dumpPath}", "C://local//temp");
+            var result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//SampleDump.dmp", "C://local//temp");
 
             // Delete dump after analysis to save space.
             try
             {
-                string _ = await kuduManager.ExecuteCommandAsync($"del C://local//temp//{dumpPath}", "C://local//temp");
+                //string _ = await kuduManager.ExecuteCommandAsync($"del C://local//temp//{dumpPath}", "C://local//temp");
             }
 
             catch (Exception)

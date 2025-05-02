@@ -11,6 +11,7 @@ using Agent.Core.Configuration;
 using Newtonsoft.Json;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
+using System.Text;
 
 namespace Agent.Plugins;
 
@@ -51,9 +52,17 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
 
+                string agentDeepLink = "https://aka.ms/srea-deep-link-0502";
+
+                StringBuilder newBody = new(body);
+                
+                newBody.AppendLine();
+                newBody.AppendLine($"[Investigate App Down Issue with SRE Agent]({agentDeepLink})");
+                
+
                 var issue = new NewIssue(title)
                 {
-                    Body = body
+                    Body = newBody.ToString()
                 };
 
                 foreach (var tag in tags)

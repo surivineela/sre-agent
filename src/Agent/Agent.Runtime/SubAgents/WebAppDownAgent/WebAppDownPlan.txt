@@ -5,14 +5,15 @@ After providing the initial plan, the user will prompt you to move to execution 
 
 ** Plan Outline **
 1. Use the GetFunctionAppRequestAvailability to find the availability of the app for the last 30 minutes and also calculate the average availability. 
-  Then, Present the user with the availability data of the app for the last 30 minutes in a bulleted list. The bulleted list should be truncated to only include the last 5 minutes. 
+  Then, Present the user with the availability data of the app for the last 30 minutes in a bulleted list. The bulleted list should be truncated to only include the last 5 minutes.
+  In addition, plot the availability as a chart using the chart plugin functions (PlotTimeSeriesData or PlotBarChartAsync). IMPORTANT: DO NOT INDICATE ANY ERRORS ON THE CHARTS.
 2. Use the NotifyUser tool to notify the user about the app's average availability of the last 30 minutes. Make sure the availability percentage is BOLDED.
     If the average availability is greater than 99.9%, the app is healthy. The plan can be completed here unless the user wants to move forward.
    Otherwise, proceed to investigate the cause of the app's slowness or downtime.This is done by running the following tools one by one in separate steps.
    <strong>ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
    After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Cpu and Memory spikes should only be considered if they are over 90% spiked. 
    <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-3. Return the CPU, memory, and thread metrics. Use the GetWebAppCpuMetrics, GetMemoryMetrics, and GetThreadMetrics tools. Notify the user of the metric results after each tool.
+3. Return the CPU, memory, and thread metrics. Use the GetWebAppCpuMetrics, GetMemoryMetrics, and GetThreadMetrics tools. Notify the user of the metric results after each tool. In addition, plot the metrics as charts using the chart plugin functions (PlotTimeSeriesData or PlotBarChartAsync). 
 4. Grab the latest swap activities by using GetDeploymentActivity tool. Only check for SUCCESSFUL swaps as they may correlate with the downtime.
    If the timestamps of any successful swaps during the downtime, then use NotifyUser tool to notify a WARNING that a bad deployment / swap operation may have caused a downtime.
    Display the TimeStamp, Operation Name and the Caller. 
@@ -73,8 +74,8 @@ After providing the initial plan, the user will prompt you to move to execution 
 6. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and memory usage in 10 minutes.
    Use the Wait Tool to wait 10 minutes. 
 7. Use the NotifyUser tool to notify the user of the average availability and memory of the app over the last 5 minutes and make sure the availability percentage and memory usage are BOLDED.
-    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool.
-    Also, present the user with the memory usage chart data of the app. Use the GetMemoryMetrics tool to get the memory usage for the chart. If the memory is too high vis-a-vis the size of the web app, assume it's a high memory problem. Present the data in a chart by using the PlotTimeSeriesData tool.
+    Then, Present the user with availability chart data of the app. Use the GetFunctionAppRequestAvailability tool to get the availability for the chart. Present the data in a chart by using the PlotTimeSeriesData tool. IMPORTANT: DO NOT INDICATE ANY ERRORS ON THE CHARTS.
+    Also, present the user with the memory usage chart data of the app. Use the GetMemoryMetrics tool to get the memory usage for the chart. If the memory is too high vis-a-vis the size of the web app, assume it's a high memory problem. Present the data in a chart by using the PlotTimeSeriesData tool. IMPORTANT: DO NOT INDICATE ANY ERRORS ON THE CHARTS.
 8. If the availability of the app has recovered to 99.9% and the app's memory usage has recovered to below 80%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application and system to debug their issue further. Then, mark the plan as complete.
 
@@ -166,3 +167,5 @@ Follow these guidelines:
 
 - Additional Requirements:
     1. No HTML, no JSON, and no Adaptive Cards in the output—Markdown text only.
+
+<critical>I must validate after a scale operation for high memory issue and display a chart for the customer. I also must open a Github Issue Describing this incident in a very structured manner, describing alert that direct, steps taken, description and resolution done for the same</critical>
