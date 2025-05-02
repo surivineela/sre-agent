@@ -11,6 +11,12 @@
       "value": "Step 4: Copy the API key and paste it here"
     }
   ],
+  "+WRusC": [
+    {
+      "type": 0,
+      "value": "SRE Agent"
+    }
+  ],
   "+uAdUZ": [
     {
       "type": 0,
@@ -287,6 +293,12 @@
       "value": "API key is not valid"
     }
   ],
+  "BKMqtr": [
+    {
+      "type": 0,
+      "value": "AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat."
+    }
+  ],
   "CfGC/2": [
     {
       "type": 0,
@@ -321,12 +333,6 @@
     {
       "type": 0,
       "value": "Incident platform"
-    }
-  ],
-  "Erci0g": [
-    {
-      "type": 0,
-      "value": "Azure SRE Agent"
     }
   ],
   "Ez5ZJg": [
@@ -635,6 +641,12 @@
       "value": "Saving incident management configuration"
     }
   ],
+  "UVS724": [
+    {
+      "type": 0,
+      "value": "Tips on how to chat with the SRE Agent"
+    }
+  ],
   "UZMdQH": [
     {
       "type": 0,
@@ -699,12 +711,6 @@
     {
       "type": 0,
       "value": "Step 2: Generate API key"
-    }
-  ],
-  "XQC/nV": [
-    {
-      "type": 0,
-      "value": "Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads."
     }
   ],
   "Z26C+l": [
@@ -787,6 +793,12 @@
     {
       "type": 0,
       "value": "Grafana resource name must be between 2 to 23 characters long. They must begin with a letter and end with a letter or digit."
+    }
+  ],
+  "ciMXhP": [
+    {
+      "type": 0,
+      "value": "Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads."
     }
   ],
   "dDl4Gl": [

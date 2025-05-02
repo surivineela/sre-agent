@@ -1,6 +1,7 @@
 import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
+    sreAgent: { defaultMessage: 'SRE Agent', id: '+WRusC' },
     feedbackDialogTitle: {
         id: 'Nrc9ba',
         defaultMessage: 'Thank you for your feedback!',
@@ -125,6 +126,12 @@ export const SreAgentResources = defineMessages({
     yes: { defaultMessage: 'Yes', id: 'a5msuh' },
     no: { defaultMessage: 'No', id: 'oUWADl' },
     managedIdentity: { defaultMessage: 'Managed Identity', id: 'UZMdQH' },
+    chatAiContentAndPrivacyMessageStatement: {
+        defaultMessage:
+            'AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.',
+        id: 'BKMqtr',
+    },
+    tipsOnHowToChat: { defaultMessage: 'Tips on how to chat with the SRE Agent', id: 'UVS724' },
 });
 
 export const SreAgentTabResources = defineMessages({
@@ -159,7 +166,6 @@ export const ActivitiesResources = defineMessages({
     chatPivotHeader: { defaultMessage: 'Chat', id: 'WTrOy3' },
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
     chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
-    sreAgentDisplayName: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
     knowledgeGraphBuildStatus: {
         defaultMessage:
             'Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads.',

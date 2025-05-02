@@ -1,10 +1,10 @@
-import { Button, tokens } from '@fluentui/react-components';
+import { Button, Text, tokens } from '@fluentui/react-components';
 import { SendRegular } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { ActivitiesResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { useChatInputStyles, useChatInputTextStyles } from '../Styles/Activities.styles';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
@@ -14,7 +14,7 @@ const ChatBoxFooter = ({ sendMessage, disableInput }: IChatBoxFooterProps) => {
 
     const [input, setInput] = useState<string>();
 
-    const { root, footer } = useChatInputStyles();
+    const { root, footer, chatStatement } = useChatInputStyles();
     const { textFieldContainer, textField } = useChatInputTextStyles();
 
     const chatInputHandleSendClick = useCallback(() => {
@@ -63,6 +63,10 @@ const ChatBoxFooter = ({ sendMessage, disableInput }: IChatBoxFooterProps) => {
                     />
                 </div>
             </div>
+
+            <Text block size={200} align="center" className={mergeStyles(chatStatement)}>
+                {intl.formatMessage(SreAgentResources.chatAiContentAndPrivacyMessageStatement)}
+            </Text>
         </div>
     );
 };

@@ -5,7 +5,7 @@ import { useIntl } from 'react-intl';
 import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { ActivitiesResources } from '../../Strings/SREAgentResources';
+import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
@@ -136,6 +136,11 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         [agentTypingMessage, isLoadingInitialChatHistory, threadsInitialized]
     );
 
+    const isNewAndCleanThread = useMemo(
+        () => !isLoadingInitialChatHistory && !currentThreadId && messages.length === 0 && !temporaryUserMessage,
+        [isLoadingInitialChatHistory, currentThreadId, messages, temporaryUserMessage]
+    );
+
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
     const isPreviousChatHistoryLoadingCompleted = useRef(true);
@@ -166,7 +171,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
             author: {
                 role: 'SREAgent',
                 userId: Guid.newGuid(),
-                displayName: intl.formatMessage(ActivitiesResources.sreAgentDisplayName),
+                displayName: intl.formatMessage(SreAgentResources.sreAgent),
             },
             text: '',
         };
@@ -342,6 +347,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         agentTypingMessage,
         sendMessage: sendMessageHandler,
         disableInput,
+        isNewAndCleanThread,
         messagesDivRef,
         onClickDownButton,
         isDownButtonVisible,

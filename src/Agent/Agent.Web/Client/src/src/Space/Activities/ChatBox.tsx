@@ -6,6 +6,7 @@ import ChatMessage from '../Components/ChatMessage';
 import { IChatBoxProps } from '../Contracts/Activities';
 import { useChatBox } from '../Hooks/useChatBox';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
+import { ChatSuggestions } from './ChatSuggestions';
 
 export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
     const {
@@ -15,6 +16,7 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
         isLoadingInitialChatHistory,
         sendMessage,
         disableInput,
+        isNewAndCleanThread,
         messagesDivRef,
         intersectionObserverRef,
         currentThreadId,
@@ -28,9 +30,13 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
                     <CopilotChat className={ChatBoxStyles.chat}>
                         <div ref={intersectionObserverRef} />
                         {isLoadingInitialChatHistory && <ChatLoading />}
+
+                        {isNewAndCleanThread && <ChatSuggestions sendMessage={sendMessage} />}
+
                         {messages.map((message, index) => (
                             <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
                         ))}
+
                         {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} />}
                         {agentTypingMessage && (
                             <ChatMessage

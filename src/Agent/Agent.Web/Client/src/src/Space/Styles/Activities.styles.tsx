@@ -62,7 +62,7 @@ export const ChatBoxStyles = mergeStyleSets({
     chatBox: {
         padding: '0px',
         paddingRight: '10px',
-        height: 'calc(-25px + 100vh)',
+        height: 'calc(100vh - 25px)',
         borderRadius: tokens.borderRadiusXLarge,
         minWidth: '300px',
     },
@@ -71,7 +71,7 @@ export const ChatBoxStyles = mergeStyleSets({
         flexDirection: 'column',
         justifyContent: 'space-between',
         alignItems: 'stretch',
-        height: '90%',
+        height: 'calc(95% - 45px)',
         padding: '20px',
         fontSize: '16px',
         backgroundColor: tokens.colorNeutralForegroundInverted,
@@ -79,6 +79,7 @@ export const ChatBoxStyles = mergeStyleSets({
         position: 'relative',
     },
     chatContainer: {
+        height: '100%',
         overflowX: 'hidden',
         overflowY: 'auto',
         paddingTop: '10px',
@@ -86,6 +87,7 @@ export const ChatBoxStyles = mergeStyleSets({
         borderRadius: tokens.borderRadiusLarge,
     },
     chat: {
+        height: '100%',
         margin: 'auto',
     },
     userMessage: {
@@ -105,7 +107,7 @@ export const ChatBoxStyles = mergeStyleSets({
     },
     arrowDownButton: {
         position: 'absolute',
-        bottom: '150px',
+        bottom: '195px',
         left: '50%',
         zIndex: '1',
         borderRadius: '50% !important',
@@ -119,6 +121,8 @@ export const ChatBoxStyles = mergeStyleSets({
     },
 });
 
+const textFieldMaxWidth = '1000px';
+
 export const useChatInputStyles = makeStyles({
     root: {
         flex: '0 0 auto',
@@ -128,6 +132,11 @@ export const useChatInputStyles = makeStyles({
     footer: {
         display: 'flex',
         justifyContent: 'flex-end',
+    },
+    chatStatement: {
+        color: tokens.colorNeutralForeground3,
+        maxWidth: textFieldMaxWidth,
+        margin: 'auto',
     },
 });
 
@@ -140,9 +149,9 @@ export const useChatInputTextStyles = () => {
             borderStyle: 'solid',
             borderRadius: 3,
             borderWidth: '2px',
-            maxWidth: '1000px',
+            maxWidth: textFieldMaxWidth,
             margin: 'auto',
-            marginBottom: '10px',
+            marginBottom: '8px',
         },
         textField: {
             field: {
