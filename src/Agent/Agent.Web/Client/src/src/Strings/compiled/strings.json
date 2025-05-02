@@ -65,6 +65,12 @@
       "value": "Save incident management configuration"
     }
   ],
+  "3a5wL8": [
+    {
+      "type": 0,
+      "value": "Active"
+    }
+  ],
   "40YXE1": [
     {
       "type": 0,
@@ -365,6 +371,18 @@
       "value": "Provisioning of your Grafana role assignment is in progress."
     }
   ],
+  "FnKIAW": [
+    {
+      "type": 0,
+      "value": "Acknowledged"
+    }
+  ],
+  "Fv1ZSz": [
+    {
+      "type": 0,
+      "value": "Closed"
+    }
+  ],
   "GBnvl1": [
     {
       "type": 0,
@@ -527,6 +545,16 @@
       "value": "Subscription"
     }
   ],
+  "RI4Umu": [
+    {
+      "type": 1,
+      "value": "numOfActions"
+    },
+    {
+      "type": 0,
+      "value": " actions completed"
+    }
+  ],
   "RrCui3": [
     {
       "type": 0,
@@ -631,6 +659,12 @@
       "value": "Create"
     }
   ],
+  "W6nSYE": [
+    {
+      "type": 0,
+      "value": "Resolved"
+    }
+  ],
   "WCaf5C": [
     {
       "type": 0,
@@ -683,6 +717,12 @@
     {
       "type": 0,
       "value": "Failed to create logic app"
+    }
+  ],
+  "Zqa4dQ": [
+    {
+      "type": 0,
+      "value": "Triggered"
     }
   ],
   "a2+0+5": [
@@ -747,6 +787,12 @@
     {
       "type": 0,
       "value": "Enter your feedback here..."
+    }
+  ],
+  "dnXgff": [
+    {
+      "type": 0,
+      "value": "Mitigated"
     }
   ],
   "dqHwfQ": [

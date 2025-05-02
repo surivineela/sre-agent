@@ -1,63 +1,49 @@
-import { Dropdown, Option, Text } from '@fluentui/react-components';
-import { CheckmarkCircle24Filled, ErrorCircle24Filled, Warning24Filled } from '@fluentui/react-icons';
-import { Dispatch, useMemo } from 'react';
-import { IncidentStatus, Thread } from '../../Common/Contracts/Azure/SreAgent';
-import { useIncidentStatusBarStyles } from '../Styles/Incident.styles';
-
-export enum SelectedTimes {
-    OneDay = '24hrs',
-    SevenDays = '7d',
-    ThirtyDays = '30d',
-}
+import { Text } from '@fluentui/react-components';
+import { Dispatch } from 'react';
+import { useIntl } from 'react-intl';
+import { MetricsResources } from '../../Strings/SREAgentResources';
+import { IncidentMetrics } from '../Hooks/useMetrics';
+import { useActionsStatusBarStyles, useIncidentStyles } from '../Styles/Incident.styles';
+import TimeDropdown, { SelectedTimes } from './TimeDropdown';
 
 interface IncidentStatusBarProps {
-    threads: Thread[];
-    selectedTime: string;
-    setSelectedTime: Dispatch<React.SetStateAction<string>>;
+    selectedTime: SelectedTimes;
+    setSelectedTime: Dispatch<React.SetStateAction<SelectedTimes>>;
+    incidentMetrics?: IncidentMetrics;
 }
 
 const IncidentStatusBar = (props: IncidentStatusBarProps) => {
-    const { threads, selectedTime, setSelectedTime } = props;
-    const styles = useIncidentStatusBarStyles();
-
-    const errorCount = useMemo(() => {
-        return threads?.filter(item => item.incidentStatus === IncidentStatus.error)?.length ?? 0;
-    }, [threads]);
-
-    const warningCount = useMemo(() => {
-        return threads?.filter(item => item.incidentStatus === IncidentStatus.warning)?.length ?? 0;
-    }, [threads]);
-
-    const successCount = useMemo(() => {
-        return threads?.filter(item => item.incidentStatus === IncidentStatus.success)?.length ?? 0;
-    }, [threads]);
+    const { selectedTime, setSelectedTime, incidentMetrics } = props;
+    const styles = useActionsStatusBarStyles();
+    const intl = useIntl();
 
     return (
         <div className={styles.container}>
-            <Dropdown
-                onOptionSelect={(_e, data) => setSelectedTime(data.optionValue ?? SelectedTimes.OneDay)}
-                value={selectedTime}
-                className={styles.dropdown}
-            >
-                <Option value={SelectedTimes.OneDay}>{SelectedTimes.OneDay}</Option>
-                <Option value={SelectedTimes.SevenDays}>{SelectedTimes.SevenDays}</Option>
-                <Option value={SelectedTimes.ThirtyDays}>{SelectedTimes.ThirtyDays}</Option>
-            </Dropdown>
+            <TimeDropdown selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
+            <StatusItem active={true} count={incidentMetrics?.activeCount ?? 0} label={intl.formatMessage(MetricsResources.active)} />
+            <StatusItem
+                active={false}
+                count={incidentMetrics?.mitigatedCount ?? 0}
+                label={intl.formatMessage(MetricsResources.mitigated)}
+            />
+            <StatusItem active={false} count={incidentMetrics?.resolvedCount ?? 0} label={intl.formatMessage(MetricsResources.resolved)} />
+        </div>
+    );
+};
 
-            <div className={styles.statusGroup}>
-                <ErrorCircle24Filled className={styles.error} />
-                <Text>{errorCount}</Text>
-            </div>
+type StatusItemProps = {
+    count: number;
+    label: string;
+    active: boolean;
+};
 
-            <div className={styles.statusGroup}>
-                <Warning24Filled className={styles.warning} />
-                <Text>{warningCount}</Text>
-            </div>
-
-            <div className={styles.statusGroup}>
-                <CheckmarkCircle24Filled className={styles.success} />
-                <Text>{successCount}</Text>
-            </div>
+const StatusItem: React.FC<StatusItemProps> = ({ count, label, active }) => {
+    const styles = useIncidentStyles();
+    return (
+        <div className={styles.statusItem}>
+            <div className={active ? styles.verticalBar : styles.verticalBarGray} />
+            <Text className={styles.count}>{count}</Text>
+            <Text className={styles.label}>{label}</Text>
         </div>
     );
 };

@@ -168,22 +168,16 @@ export const useThreadMenuStyle = () => {
         alignItems: 'stretch',
         gap: '10px',
         backgroundColor: tokens.colorNeutralBackground3,
-        paddingTop: '42px',
+        paddingTop: '50px',
         paddingLeft: '20px',
         maxWidth: '300px',
     };
 
     const threadList: IStyle = {
-        height: 'calc(100vh - 220px)',
+        height: 'calc(100vh - 278px)',
         overflowX: 'hidden',
         overflowY: 'auto',
         maxWidth: '300px',
-    };
-    const incidentList: IStyle = {
-        height: 'calc(100vh - 259px)',
-        maxWidth: '300px',
-        overflowX: 'hidden',
-        overflowY: 'auto',
     };
 
     const searchBox: IStyle = {
@@ -214,7 +208,6 @@ export const useThreadMenuStyle = () => {
         searchBox,
         threadItem,
         activeThreadItem,
-        incidentList,
     });
 };
 

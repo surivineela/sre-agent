@@ -55,9 +55,12 @@ export enum IncidentManagementType {
 }
 
 export enum IncidentStatus {
-    error = 'error',
-    warning = 'warning',
-    success = 'success',
+    active = 'active',
+    acknowledged = 'acknowledged',
+    mitigated = 'mitigated',
+    triggered = 'triggered',
+    closed = 'closed',
+    resolved = 'resolved',
 }
 
 export enum ThreadSource {
@@ -73,8 +76,19 @@ export interface Thread {
     createdTimestamp: string;
     modifiedTimestamp: string;
     lastMessage: Message;
-    incidentStatus?: IncidentStatus;
+    status?: AgentStatus;
+    incidentSource?: any;
     source?: ThreadSource;
+}
+export interface AgentStatus {
+    actionsStatus?: {
+        hasCriticalActions: boolean;
+        hasWarningActions: boolean;
+    };
+    incidentStatus?: {
+        incidentId: string;
+        status: string;
+    };
 }
 
 export interface Message {

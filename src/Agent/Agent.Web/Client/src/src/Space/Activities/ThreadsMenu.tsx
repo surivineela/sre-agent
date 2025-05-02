@@ -1,5 +1,5 @@
 import { Button, InputOnChangeData, Radio, RadioGroup, SearchBox, SearchBoxChangeEvent, tokens } from '@fluentui/react-components';
-import { AddRegular, CheckmarkCircle16Filled, ErrorCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
+import { AddRegular, DismissCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
 import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { Text } from '@fluentui/react/lib/Text';
@@ -9,46 +9,41 @@ import { useIntl } from 'react-intl';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadsMenuProps } from '../Contracts/Activities';
+import { useMetrics } from '../Hooks/useMetrics';
 import { useThreadMenuStyle } from '../Styles/Activities.styles';
-import { useIncidentStatusBarStyles } from '../Styles/Incident.styles';
+import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
+import ActivitiesStatusBar from './ActionsStatusBar';
 import { AgentContext } from './Activities.ReactView';
-import ThreadStatusBar, { SelectedTimes } from './IncidentStatusBar';
+import IncidentStatusBar from './IncidentStatusBar';
+import { SelectedTimes } from './TimeDropdown';
 
 enum ThreadMode {
     threads = 'threads',
     incidents = 'incidents',
 }
 
+export enum ThreadActionFilter {
+    all = 'all',
+    warning = 'warning',
+    critical = 'critical',
+}
+
 export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => {
     const { threads, selectThread } = props;
     const { threadsInitialized, activeThreadId } = useContext(AgentContext);
     const [searchString, setSearchString] = useState<string>();
-    const [selectedTime, setSelectedTime] = useState<string>(SelectedTimes.OneDay);
+    const [selectedTime, setSelectedTime] = useState<SelectedTimes>(SelectedTimes.OneDay);
     const [threadMode, setThreadMode] = useState<ThreadMode>(ThreadMode.threads);
+    const [threadActionFilter, setThreadActionFilter] = useState<ThreadActionFilter>(ThreadActionFilter.all);
     const ThreadMenuStyles = useThreadMenuStyle();
     const intl = useIntl();
+
+    const { actionSeverityMetrics, incidentMetrics, actionStatusMetrics } = useMetrics(selectedTime);
 
     const filteredThreads = useMemo(() => {
         let newThreads = threads;
         if (threadMode === ThreadMode.incidents) {
-            newThreads = threads
-                .filter(thread => thread.source === ThreadSource.incident)
-                // Set all incidents to active right now as Status is not populated in the backend
-                .map(thread => ({
-                    ...thread,
-                    incidentStatus: IncidentStatus.error,
-                }));
-
-            if (selectedTime) {
-                const filterByDays = (time: string) => {
-                    const days = time === SelectedTimes.OneDay ? 1 : time === SelectedTimes.SevenDays ? 7 : 30;
-                    const now = new Date();
-                    const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
-                    return newThreads.filter(item => new Date(item.modifiedTimestamp) > cutoff);
-                };
-                newThreads = filterByDays(selectedTime);
-            }
-
+            newThreads = threads.filter(thread => thread.source === ThreadSource.incident);
             if (selectedTime) {
                 const filterByDays = (time: string) => {
                     const days = time === SelectedTimes.OneDay ? 1 : time === SelectedTimes.SevenDays ? 7 : 30;
@@ -59,27 +54,33 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                 newThreads = filterByDays(selectedTime);
             }
         }
+
+        if (selectedTime) {
+            const filterByDays = (time: string) => {
+                const days = time === SelectedTimes.OneDay ? 1 : time === SelectedTimes.SevenDays ? 7 : 30;
+                const now = new Date();
+                const cutoff = new Date(now.getTime() - days * 24 * 60 * 60 * 1000);
+                return newThreads.filter(item => new Date(item.modifiedTimestamp) > cutoff);
+            };
+            newThreads = filterByDays(selectedTime);
+        }
+
+        if (threadActionFilter === ThreadActionFilter.critical) {
+            newThreads = threads.filter(thread => !!thread.status?.actionsStatus?.hasCriticalActions);
+        }
+        if (threadActionFilter == ThreadActionFilter.warning) {
+            newThreads = threads.filter(thread => !!thread.status?.actionsStatus?.hasWarningActions);
+        }
+
         if (searchString) {
             return newThreads.filter(thread => thread.title.toLowerCase().includes(searchString.toLowerCase()));
         } else {
             return newThreads;
         }
-    }, [threadMode, searchString, threads, selectedTime]);
+    }, [threadMode, searchString, threads, selectedTime, threadActionFilter]);
 
     return (
         <div className={ThreadMenuStyles.root}>
-            <RadioGroup
-                value={threadMode}
-                onChange={(_e, data) => setThreadMode(data.value as ThreadMode)}
-                layout="horizontal"
-                disabled={!threadsInitialized}
-            >
-                <Radio value={ThreadMode.threads} label={intl.formatMessage(SreAgentResources.allThreads)} />
-                <Radio value={ThreadMode.incidents} label={intl.formatMessage(SreAgentResources.incidents)} />
-            </RadioGroup>
-            {threadMode === ThreadMode.incidents && (
-                <ThreadStatusBar selectedTime={selectedTime} setSelectedTime={setSelectedTime} threads={filteredThreads} />
-            )}
             <Button
                 style={{
                     height: 'auto',
@@ -100,13 +101,33 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
                 className={ThreadMenuStyles.searchBox}
             />
-            <Shimmer isDataLoaded={threadsInitialized}>
-                <ThreadsList
-                    threadMode={threadMode}
-                    threads={filteredThreads}
-                    selectThread={selectThread}
-                    activeThreadId={activeThreadId}
+            <RadioGroup
+                value={threadMode}
+                onChange={(_e, data) => {
+                    setThreadActionFilter(ThreadActionFilter.all);
+                    setThreadMode(data.value as ThreadMode);
+                }}
+                layout="horizontal"
+                disabled={!threadsInitialized}
+            >
+                <Radio value={ThreadMode.threads} label={intl.formatMessage(SreAgentResources.allThreads)} />
+                <Radio value={ThreadMode.incidents} label={intl.formatMessage(SreAgentResources.incidents)} />
+            </RadioGroup>
+            {threadMode === ThreadMode.threads ? (
+                <ActivitiesStatusBar
+                    selectedTime={selectedTime}
+                    setSelectedTime={setSelectedTime}
+                    setThreadActionFilter={setThreadActionFilter}
+                    actionSeverityMetrics={actionSeverityMetrics}
+                    actionStatusMetrics={actionStatusMetrics}
+                    onWarningClick={clicked => setThreadActionFilter(clicked ? ThreadActionFilter.warning : ThreadActionFilter.all)}
+                    onCriticalClick={clicked => setThreadActionFilter(clicked ? ThreadActionFilter.critical : ThreadActionFilter.all)}
                 />
+            ) : (
+                <IncidentStatusBar selectedTime={selectedTime} setSelectedTime={setSelectedTime} incidentMetrics={incidentMetrics} />
+            )}
+            <Shimmer isDataLoaded={threadsInitialized}>
+                <ThreadsList threads={filteredThreads} selectThread={selectThread} activeThreadId={activeThreadId} />
             </Shimmer>
         </div>
     );
@@ -114,12 +135,10 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
 
 const ThreadsList = memo(
     ({
-        threadMode,
         threads,
         activeThreadId,
         selectThread,
     }: {
-        threadMode: ThreadMode;
         threads: Thread[];
         activeThreadId: string;
         selectThread: (thread: Thread | null) => void;
@@ -127,16 +146,10 @@ const ThreadsList = memo(
         const ThreadMenuStyles = useThreadMenuStyle();
 
         return (
-            <div className={threadMode === ThreadMode.incidents ? ThreadMenuStyles.incidentList : ThreadMenuStyles.threadList} role="tree">
+            <div className={ThreadMenuStyles.threadList} role="tree">
                 {threads.map(thread => {
                     return (
-                        <ThreadItem
-                            threadMode={threadMode}
-                            key={thread.id}
-                            thread={thread}
-                            selectThread={selectThread}
-                            isActive={activeThreadId === thread.id}
-                        />
+                        <ThreadItem key={thread.id} thread={thread} selectThread={selectThread} isActive={activeThreadId === thread.id} />
                     );
                 })}
             </div>
@@ -145,29 +158,35 @@ const ThreadsList = memo(
 );
 
 const ThreadItem = memo(
-    ({
-        threadMode,
-        thread,
-        selectThread,
-        isActive,
-    }: {
-        threadMode: ThreadMode;
-        thread: Thread;
-        selectThread: (thread: Thread | null) => void;
-        isActive: boolean;
-    }) => {
+    ({ thread, selectThread, isActive }: { thread: Thread; selectThread: (thread: Thread | null) => void; isActive: boolean }) => {
         const ThreadMenuStyles = useThreadMenuStyle();
-        const styles = useIncidentStatusBarStyles();
+        const styles = useActionsStatusBarStyles();
+        const intl = useIntl();
 
         const getIncidentIcon = (thread: Thread) => {
-            switch (thread.incidentStatus) {
-                case IncidentStatus.warning:
-                    return <Warning16Filled className={styles.warning} style={{ width: 16, height: 16 }} />;
-                case IncidentStatus.error:
-                    return <ErrorCircle16Filled className={styles.error} style={{ width: 16, height: 16 }} />;
-                default:
-                    return <CheckmarkCircle16Filled className={styles.success} style={{ width: 16, height: 16 }} />;
+            if (thread.status?.actionsStatus?.hasCriticalActions) {
+                return <DismissCircle16Filled className={styles.error} style={{ width: 16, height: 16 }} />;
+            } else if (thread.status?.actionsStatus?.hasWarningActions) {
+                return <Warning16Filled className={styles.warning} style={{ width: 16, height: 16 }} />;
             }
+        };
+
+        const getIncidentStatus = (thread: Thread) => {
+            if (thread.status?.incidentStatus?.status) {
+                switch (thread.status?.incidentStatus?.status) {
+                    case IncidentStatus.acknowledged:
+                        return intl.formatMessage(SreAgentResources.acknowledged);
+                    case IncidentStatus.triggered:
+                        return intl.formatMessage(SreAgentResources.triggered);
+                    case IncidentStatus.mitigated:
+                        return intl.formatMessage(SreAgentResources.mitigated);
+                    case IncidentStatus.closed:
+                        return intl.formatMessage(SreAgentResources.closed);
+                    case IncidentStatus.resolved:
+                        return intl.formatMessage(SreAgentResources.resolved);
+                }
+            }
+            return intl.formatMessage(SreAgentResources.active);
         };
 
         return (
@@ -184,38 +203,24 @@ const ThreadItem = memo(
                 role="treeitem"
                 className={mergeStyles(ThreadMenuStyles.threadItem, isActive ? ThreadMenuStyles.activeThreadItem : undefined)}
             >
-                {threadMode == ThreadMode.threads ? (
+                <div className={styles.threadTitleWithAction}>
                     <Text as="div" variant="medium" nowrap block>
                         {thread.title}
                     </Text>
-                ) : (
-                    <div
-                        style={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'space-between',
-                        }}
-                    >
-                        <Text as="div" variant="medium" nowrap block>
-                            {thread.title}
+                    {<div className={styles.icon}>{getIncidentIcon(thread)}</div>}
+                </div>
+                {thread.source === ThreadSource.incident ? (
+                    <div className={styles.subtitleContainer}>
+                        <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
+                        <Text className={styles.subtitle} as="div" variant="small" nowrap block>
+                            {thread.lastMessage?.text}
                         </Text>
-                        {
-                            <div
-                                style={{
-                                    padding: '2px',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                }}
-                            >
-                                {getIncidentIcon(thread)}
-                            </div>
-                        }
                     </div>
+                ) : (
+                    <Text as="div" variant="small" nowrap block>
+                        {thread.lastMessage?.text}
+                    </Text>
                 )}
-
-                <Text as="div" variant="small" nowrap block>
-                    {thread.lastMessage?.text}
-                </Text>
             </div>
         );
     }

@@ -58,6 +58,13 @@ export const SreAgentResources = defineMessages({
         id: 'dDl4Gl',
     },
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
+    actionsCompleted: { defaultMessage: '{numOfActions} actions completed', id: 'RI4Umu' },
+    active: { defaultMessage: 'Active', id: '3a5wL8' },
+    acknowledged: { defaultMessage: 'Acknowledged', id: 'FnKIAW' },
+    triggered: { defaultMessage: 'Triggered', id: 'Zqa4dQ' },
+    closed: { defaultMessage: 'Closed', id: 'Fv1ZSz' },
+    mitigated: { defaultMessage: 'Mitigated', id: 'dnXgff' },
+    resolved: { defaultMessage: 'Resolved', id: 'W6nSYE' },
     activeThreads: { defaultMessage: 'Active threads', id: 'rFlkvY' },
     allThreads: { defaultMessage: 'All threads', id: 'SDXmEJ' },
     agent: { defaultMessage: 'Agent', id: 'QGVI63' },
@@ -242,6 +249,12 @@ export const ManagedResourcesStringResources = defineMessages({
     filterItems: { defaultMessage: 'Filter items', id: 'F9LrJA' },
     loading: { defaultMessage: 'Loading...', id: 'gjBiyj' },
     subscriptionsLoadFailure: { defaultMessage: 'Failed to load subscriptions.', id: 'EKfWmx' },
+});
+
+export const MetricsResources = defineMessages({
+    active: { defaultMessage: 'Active', id: '3a5wL8' },
+    mitigated: { defaultMessage: 'Mitigated', id: 'dnXgff' },
+    resolved: { defaultMessage: 'Resolved', id: 'W6nSYE' },
 });
 
 export const ComponentResources = defineMessages({
