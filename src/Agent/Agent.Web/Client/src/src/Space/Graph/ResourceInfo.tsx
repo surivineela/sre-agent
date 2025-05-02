@@ -22,16 +22,13 @@ import {
     tokens,
 } from '@fluentui/react-components';
 import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { Guid } from '../../Common/Helpers/Guid';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
 import { createThread, getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
-
-export interface IResourceInfoProps {
-    transferDataToActivities: (threadId?: string | null) => void;
-}
 
 const isNullOrUndefined = (input?: unknown): boolean => {
     return input === undefined || input === null;
@@ -100,7 +97,7 @@ const useStyles = makeStyles({
     },
 });
 
-const ResourceInfo = ({ transferDataToActivities }: IResourceInfoProps) => {
+const ResourceInfo = () => {
     const { selectedNode } = useContext(GraphContext);
 
     const componentKey = useMemo(() => Guid.newGuid(), [selectedNode]);
@@ -109,12 +106,12 @@ const ResourceInfo = ({ transferDataToActivities }: IResourceInfoProps) => {
 
     return (
         <div key={componentKey} className={root}>
-            <ResourceInfoContent transferDataToActivities={transferDataToActivities} selectedNode={selectedNode} />
+            <ResourceInfoContent selectedNode={selectedNode} />
         </div>
     );
 };
 
-const ResourceInfoContent = ({ transferDataToActivities, selectedNode }: IResourceInfoProps & { selectedNode?: GraphNode }) => {
+const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
 
     const properties = resource?.properties;
@@ -137,7 +134,7 @@ const ResourceInfoContent = ({ transferDataToActivities, selectedNode }: IResour
                             <SummaryField label={'Type'} value={getPropertyValue(properties?.resourceType)} />
                             <SummaryField label={'Resource group'} value={getPropertyValue(properties?.resourceGroupName)} />
                             <SummaryField label={'Subscription ID'} value={getPropertyValue(properties?.subscriptionId)} />
-                            <AppHealthInfo resource={resource} transferDataToActivities={transferDataToActivities} />
+                            <AppHealthInfo resource={resource} />
                             <SummaryField label={'Dashboard URL'}>
                                 {resource?.dashboardUrl ? (
                                     <div className={dashboard}>
@@ -172,79 +169,77 @@ const ResourceInfoContent = ({ transferDataToActivities, selectedNode }: IResour
     ) : null;
 };
 
-const AppHealthInfo = memo(
-    ({
-        resource,
-        transferDataToActivities,
-    }: {
-        resource?: ResourceExtended;
-        transferDataToActivities: (threadId?: string | null) => void;
-    }) => {
-        const appHealthInfo = getAppHealthInfo(resource);
+const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
+    const location = useLocation();
+    const navigate = useNavigate();
 
-        const [isSendingReport, setSendingReport] = useState(false);
+    const appHealthInfo = getAppHealthInfo(resource);
 
-        return (
-            appHealthInfo && (
-                <div>
-                    <SummaryField
-                        label={'Costs for the past 7 days'}
-                        value={
-                            isNullOrUndefined(appHealthInfo.Costs) || appHealthInfo.Costs === 0
-                                ? 'Cost calculation pending'
-                                : `${appHealthInfo.Costs} USD`
-                        }
+    const [isSendingReport, setSendingReport] = useState(false);
+
+    return (
+        appHealthInfo && (
+            <div>
+                <SummaryField
+                    label={'Costs for the past 7 days'}
+                    value={
+                        isNullOrUndefined(appHealthInfo.Costs) || appHealthInfo.Costs === 0
+                            ? 'Cost calculation pending'
+                            : `${appHealthInfo.Costs} USD`
+                    }
+                />
+                <SummaryField
+                    label={'Availability'}
+                    value={!isNullOrUndefined(appHealthInfo.Availability) ? `${appHealthInfo.Availability ?? '0'}%` : undefined}
+                />
+                <SummaryField label={'Health'}>
+                    <HealthStatus
+                        health={appHealthInfo.Health}
+                        showReportButton={true}
+                        onClickReportButton={async () => {
+                            setSendingReport(true);
+                            const thread = await createThread(getPropertyValue(resource?.properties?.resourceId));
+                            setSendingReport(false);
+                            navigate({
+                                ...location,
+                                pathname: thread?.id ? `/views/activities/threads/${thread.id}` : '/views/activities',
+                            });
+                        }}
+                        isSendingReport={isSendingReport}
                     />
-                    <SummaryField
-                        label={'Availability'}
-                        value={!isNullOrUndefined(appHealthInfo.Availability) ? `${appHealthInfo.Availability ?? '0'}%` : undefined}
-                    />
-                    <SummaryField label={'Health'}>
-                        <HealthStatus
-                            health={appHealthInfo.Health}
-                            showReportButton={true}
-                            onClickReportButton={async () => {
-                                setSendingReport(true);
-                                const thread = await createThread(getPropertyValue(resource?.properties?.resourceId));
-                                setSendingReport(false);
-                                transferDataToActivities(thread?.id);
-                            }}
-                            isSendingReport={isSendingReport}
-                        />
-                    </SummaryField>
-                    <SummaryField
-                        label={'Number of transactions for the past 30 minutes'}
-                        value={isNullOrUndefined(appHealthInfo.Transactions) ? '0' : appHealthInfo.Transactions.toString()}
-                    />
-                    <SummaryField
-                        label={'Average latency'}
-                        value={
-                            !isNullOrUndefined(appHealthInfo.AvgLatencyInMs)
-                                ? `${(appHealthInfo.AvgLatencyInMs ?? 0) / 1000} seconds`
-                                : undefined
-                        }
-                    />
-                    <SummaryField
-                        label={'Average memory usage'}
-                        value={!isNullOrUndefined(appHealthInfo.AvgMemoryUsage) ? `${appHealthInfo.AvgMemoryUsage} bytes` : undefined}
-                    />
-                    <SummaryField
-                        label={'Average CPU usage'}
-                        value={!isNullOrUndefined(appHealthInfo.AvgCpuUsage) ? `${appHealthInfo.AvgCpuUsage}%` : undefined}
-                    />
-                    <SummaryField
-                        label={'Last data capture time'}
-                        value={
-                            !isNullOrUndefined(appHealthInfo.LastDataCaptureTimeStampInUTC) && appHealthInfo.LastDataCaptureTimeStampInUTC
-                                ? getSafeDateTime(appHealthInfo.LastDataCaptureTimeStampInUTC).toLocaleString()
-                                : undefined
-                        }
-                    />
-                </div>
-            )
-        );
-    }
-);
+                </SummaryField>
+                <SummaryField
+                    label={'Number of transactions for the past 30 minutes'}
+                    value={isNullOrUndefined(appHealthInfo.Transactions) ? '0' : appHealthInfo.Transactions.toString()}
+                />
+                <SummaryField
+                    label={'Average latency'}
+                    value={
+                        !isNullOrUndefined(appHealthInfo.AvgLatencyInMs)
+                            ? `${(appHealthInfo.AvgLatencyInMs ?? 0) / 1000} seconds`
+                            : undefined
+                    }
+                />
+                <SummaryField
+                    label={'Average memory usage'}
+                    value={!isNullOrUndefined(appHealthInfo.AvgMemoryUsage) ? `${appHealthInfo.AvgMemoryUsage} bytes` : undefined}
+                />
+                <SummaryField
+                    label={'Average CPU usage'}
+                    value={!isNullOrUndefined(appHealthInfo.AvgCpuUsage) ? `${appHealthInfo.AvgCpuUsage}%` : undefined}
+                />
+                <SummaryField
+                    label={'Last data capture time'}
+                    value={
+                        !isNullOrUndefined(appHealthInfo.LastDataCaptureTimeStampInUTC) && appHealthInfo.LastDataCaptureTimeStampInUTC
+                            ? getSafeDateTime(appHealthInfo.LastDataCaptureTimeStampInUTC).toLocaleString()
+                            : undefined
+                    }
+                />
+            </div>
+        )
+    );
+});
 
 const AnnotationDialogSurface = memo(
     ({

@@ -2,8 +2,9 @@ import { ThemeContext } from '@fluentui/react';
 import { SelectTabData, SelectTabEvent, Tab, TabList } from '@fluentui/react-components';
 import { LineHorizontal120Regular, Open16Regular } from '@fluentui/react-icons';
 import type { Theme } from '@fluentui/theme';
-import { FC, useCallback, useContext, useEffect, useState } from 'react';
+import { FC, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { BrowserRouter, Route, Routes, useLocation, useNavigate } from 'react-router';
 import AzPortalProxy from '../Common/AzPortalProxy/AzPortalProxy';
 import { EnvironmentContext } from '../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { WorkspaceClient } from '../Common/Clients/WorkspaceClient';
@@ -33,28 +34,31 @@ const inStandaloneMode = AzPortalProxy.inStandaloneMode;
 const query = `ContainerAppConsoleLogs_CL | where TimeGenerated > ago(1d)`;
 const source = `PaasServerless.SreAgentSpace`;
 
-const SREAgentSpace: FC = () => {
+const TabsListWrapper: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
     const theme = useContext(ThemeContext);
     const intl = useIntl();
+    const location = useLocation();
+    const navigate = useNavigate();
 
-    const [selectedValue, setSelectedValue] = useState<TabValues>(TabValues.Activities);
-    const [initialThreadId, setInitialThreadId] = useState<string | null | undefined>(null);
+    const selectedValue = useMemo(() => {
+        if (location.pathname?.startsWith('/views/activities')) {
+            return TabValues.Activities;
+        }
+        if (location.pathname?.startsWith('/views/resourcegraph')) {
+            return TabValues.Graph;
+        }
+        if (location.pathname?.startsWith('/views/settings')) {
+            return TabValues.Settings;
+        }
+        return TabValues.Activities;
+    }, [location.pathname]);
+
     const [workspaceId, setWorkspaceId] = useState<string>();
 
     const styles = useSreAgentSpaceStyles();
 
     const { agent, agentLoaded } = useSreAgent(environmentContext.resourceId);
-
-    const onTabSelect = useCallback((_: SelectTabEvent, data: SelectTabData) => {
-        setInitialThreadId(null);
-        setSelectedValue(data.value as TabValues);
-    }, []);
-
-    const transferDataToActivities = useCallback((threadId: string | null | undefined) => {
-        setInitialThreadId(threadId);
-        setSelectedValue(TabValues.Activities);
-    }, []);
 
     const fetchWorkspaceId = useCallback(async () => {
         const { subscription, resourceGroup } = new ArmResourceDescriptor(environmentContext.resourceId);
@@ -66,7 +70,7 @@ const SREAgentSpace: FC = () => {
         if (response) {
             setWorkspaceId(response);
         }
-    }, [agent?.properties?.logConfiguration?.logAnalyticsConfiguration?.workspaceId]);
+    }, [environmentContext.resourceId, agent?.properties?.logConfiguration?.logAnalyticsConfiguration?.workspaceId]);
 
     const onLogsClick = useCallback(async () => {
         if (workspaceId) {
@@ -77,14 +81,26 @@ const SREAgentSpace: FC = () => {
                 '_blank'
             );
         }
-        setSelectedValue(TabValues.Activities);
     }, [workspaceId, agent?.properties?.logConfiguration?.logAnalyticsConfiguration?.workspaceId]);
 
-    useEffect(() => {
-        if (selectedValue === TabValues.Logs) {
-            onLogsClick();
-        }
-    }, [selectedValue, onLogsClick]);
+    const onTabSelect = useCallback(
+        (_: SelectTabEvent, data: SelectTabData) => {
+            if (data.value === TabValues.Activities) {
+                if (!location.pathname?.startsWith('/views/activities')) {
+                    navigate({ ...location, pathname: '/views/activities' });
+                }
+            } else if (data.value === TabValues.Graph) {
+                navigate({ ...location, pathname: '/views/resourcegraph' });
+            } else if (data.value === TabValues.Settings) {
+                if (!location.pathname?.startsWith('/views/settings')) {
+                    navigate({ ...location, pathname: '/views/settings' });
+                }
+            } else if (data.value === TabValues.Logs) {
+                onLogsClick();
+            }
+        },
+        [location, navigate, onLogsClick]
+    );
 
     useEffect(() => {
         if (agent && !inStandaloneMode) {
@@ -93,34 +109,45 @@ const SREAgentSpace: FC = () => {
     }, [agent, fetchWorkspaceId]);
 
     return (
+        <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
+            <Tab id="Activities" value={TabValues.Activities}>
+                {intl.formatMessage(SreAgentTabResources.activities)}
+            </Tab>
+            <Tab id="Knowledge" value={TabValues.Graph}>
+                {intl.formatMessage(SreAgentTabResources.managedResources)}
+            </Tab>
+            {!inStandaloneMode && (
+                <>
+                    <Tab id="Settings" value={TabValues.Settings}>
+                        {intl.formatMessage(SreAgentTabResources.settings)}
+                    </Tab>{' '}
+                    <LineHorizontal120Regular className={styles.lineIconStyle} />
+                    <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
+                        <div className={styles.logsMenuItemContainer}>
+                            <Open16Regular />
+                            {intl.formatMessage(SreAgentTabResources.logs)}
+                        </div>
+                    </Tab>
+                </>
+            )}
+        </TabList>
+    );
+};
+
+const SREAgentSpace: FC = () => {
+    return (
         <div>
-            <TabList selectedValue={selectedValue} onTabSelect={onTabSelect} style={getTabListStyle(theme as Theme)}>
-                <Tab id="Activities" value={TabValues.Activities}>
-                    {intl.formatMessage(SreAgentTabResources.activities)}
-                </Tab>
-                <Tab id="Knowledge" value={TabValues.Graph}>
-                    {intl.formatMessage(SreAgentTabResources.managedResources)}
-                </Tab>
-                {!inStandaloneMode && (
-                    <>
-                        <Tab id="Settings" value={TabValues.Settings}>
-                            {intl.formatMessage(SreAgentTabResources.settings)}
-                        </Tab>{' '}
-                        <LineHorizontal120Regular className={styles.lineIconStyle} />
-                        <Tab id="Logs" value={TabValues.Logs} disabled={!agentLoaded}>
-                            <div className={styles.logsMenuItemContainer}>
-                                <Open16Regular />
-                                {intl.formatMessage(SreAgentTabResources.logs)}
-                            </div>
-                        </Tab>
-                    </>
-                )}
-            </TabList>
-            <div>
-                {selectedValue === TabValues.Activities && <Activities initialThreadId={initialThreadId} />}
-                {selectedValue === TabValues.Graph && <Graph transferDataToActivities={transferDataToActivities} />}
-                {selectedValue === TabValues.Settings && <Settings />}
-            </div>
+            <BrowserRouter basename="/static">
+                <TabsListWrapper />
+                <Routes>
+                    <Route path="/views/settings/:menuItem" element={<Settings />} />
+                    <Route path="/views/settings" element={<Settings />} />
+                    <Route path="/views/resourcegraph" element={<Graph />} />
+                    <Route path="/views/activities/threads/:threadId" element={<Activities />} />
+                    <Route path="/views/activities" element={<Activities />} />
+                    <Route path="*" element={<Activities />} />
+                </Routes>
+            </BrowserRouter>
         </div>
     );
 };

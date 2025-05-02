@@ -12,11 +12,7 @@ export const AgentContext = createContext<AgentContextProps>({
     activeThreadId: '',
 });
 
-interface IActivitiesProps {
-    initialThreadId?: string | null;
-}
-
-const Activities: FC<IActivitiesProps> = ({ initialThreadId }: IActivitiesProps) => {
+const Activities: FC = () => {
     const {
         threads,
         threadsInitialized,
@@ -26,7 +22,7 @@ const Activities: FC<IActivitiesProps> = ({ initialThreadId }: IActivitiesProps)
         addThread,
         deleteThread,
         activeThreadId,
-    } = useActivities(initialThreadId);
+    } = useActivities();
 
     return (
         <AgentContext.Provider value={{ threadContentAndActionKey, threadsInitialized, activeThreadId }}>

@@ -2,6 +2,7 @@ import { INavLinkGroup, initializeIcons, Nav, ThemeContext } from '@fluentui/rea
 import type { Theme } from '@fluentui/theme';
 import { FC, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
@@ -22,9 +23,17 @@ const Settings: FC = () => {
     const styles = useSettingsStyles();
     const theme = useContext(ThemeContext);
     const intl = useIntl();
+    const { menuItem } = useParams();
+    const location = useLocation();
+    const navigate = useNavigate();
 
     const [iconsInitialized, setIconsInitialized] = useState(false);
-    const [selectedKey, setSelectedKey] = useState<SettingsKeys>(SettingsKeys.IncidentManagement);
+    const selectedKey = useMemo(() => {
+        return (
+            Object.values(SettingsKeys).find(settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()) ||
+            SettingsKeys.IncidentManagement
+        );
+    }, [menuItem]);
 
     const navLinkGroups = useMemo<INavLinkGroup[]>(
         () => [
@@ -74,8 +83,8 @@ const Settings: FC = () => {
                     styles={navStyles}
                     selectedKey={selectedKey}
                     onLinkClick={(_, item) => {
-                        if (item?.key && Object.values(SettingsKeys).includes(item.key as SettingsKeys)) {
-                            setSelectedKey(item.key as SettingsKeys);
+                        if (item?.key && Object.values(SettingsKeys).includes(item.key as SettingsKeys) && item.key !== selectedKey) {
+                            navigate({ ...location, pathname: `/views/settings/${item.key}` });
                         }
                     }}
                 />

@@ -12,19 +12,15 @@ import ResourceSelector from './ResourceSelector';
 
 import '@xyflow/react/dist/style.css';
 
-interface IGraphProps {
-    transferDataToActivities: (threadId?: string | null) => void;
-}
-
-const Graph = (props: IGraphProps) => {
+const Graph = () => {
     return (
         <ReactFlowProvider>
-            <GraphContent {...props} />
+            <GraphContent />
         </ReactFlowProvider>
     );
 };
 
-const GraphContent = (props: IGraphProps) => {
+const GraphContent = () => {
     const {
         nodes,
         edges,
@@ -77,7 +73,7 @@ const GraphContent = (props: IGraphProps) => {
                         </ReactFlow>
                     )}
                 </div>
-                <ResourceInfo {...props} />
+                <ResourceInfo />
             </div>
         </GraphContext.Provider>
     );

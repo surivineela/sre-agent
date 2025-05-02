@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
+import { useLocation, useNavigate, useParams } from 'react-router';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { Thread } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
@@ -44,8 +45,11 @@ const pollLatestThreads = async (currentLatestThread?: Thread) => {
     return latestThreads;
 };
 
-export const useActivities = (initialThreadId?: string | null) => {
+export const useActivities = () => {
     const intl = useIntl();
+    const { threadId: initialThreadId } = useParams();
+    const navigate = useNavigate();
+    const location = useLocation();
 
     const [threads, setThreads] = useState<Thread[]>([]);
     const [threadsInitialized, setThreadsInitialized] = useState<boolean>(false);
@@ -53,21 +57,35 @@ export const useActivities = (initialThreadId?: string | null) => {
     const [threadContentAndActionKey, setThreadContentAndActionKey] = useState<string>(Guid.newGuid());
     const [activeThreadId, setActiveThreadId] = useState<string>('');
 
+    const untouched = useRef<boolean>(true);
     const canPollThread = useRef<boolean>(true);
     const latestThread = useRef<Thread>();
 
     const proxy = useContext(AzPortalContext);
 
-    const addThread = useCallback((thread: Thread) => {
-        setThreads(prevThreads => processThreads(prevThreads, [thread], true));
-        setActiveThreadId(thread.id);
-    }, []);
+    const addThread = useCallback(
+        (thread: Thread) => {
+            untouched.current = false;
+            setThreads(prevThreads => processThreads(prevThreads, [thread], true));
+            setActiveThreadId(thread.id);
+            navigate({ ...location, pathname: `/views/activities/threads/${thread.id}` });
+        },
+        [navigate, location]
+    );
 
-    const selectThread = useCallback((thread: Thread | null) => {
-        setSelectedThread(thread);
-        setThreadContentAndActionKey(Guid.newGuid());
-        setActiveThreadId(thread?.id || '');
-    }, []);
+    const selectThread = useCallback(
+        (thread: Thread | null) => {
+            untouched.current = false;
+            setSelectedThread(thread);
+            setThreadContentAndActionKey(Guid.newGuid());
+            setActiveThreadId(thread?.id || '');
+            navigate({
+                ...location,
+                pathname: thread?.id ? `/views/activities/threads/${thread.id}` : '/views/activities/',
+            });
+        },
+        [navigate, location]
+    );
 
     const deleteThread = useCallback(
         async (thread: Thread) => {
@@ -106,13 +124,20 @@ export const useActivities = (initialThreadId?: string | null) => {
         latestThread.current = getLatestThread(threads);
     }, [threads]);
 
+    useEffect(() => {
+        if (initialThreadId && !activeThreadId && untouched.current) {
+            const thread = threads.find((thread: Thread) => thread.id === initialThreadId);
+            if (thread) {
+                selectThread(thread);
+            }
+        }
+    }, [threads, initialThreadId, activeThreadId, selectThread]);
+
     // Polling exisitng threads
     useEffect(() => {
         let isSubscribed = true;
 
         const getThreadsRequest = async () => {
-            const shouldSetInitialThread = initialThreadId && threads.length === 0;
-
             const oldThreads = await getThreads(threads.length, 20);
 
             // delay 2 seconds before set threads to trigger new polling
@@ -121,13 +146,6 @@ export const useActivities = (initialThreadId?: string | null) => {
             if (isSubscribed) {
                 setThreads(prevThreads => processThreads(prevThreads, oldThreads, false));
                 setThreadsInitialized(true);
-
-                if (shouldSetInitialThread) {
-                    const thread = threads.find((thread: Thread) => thread.id === initialThreadId);
-                    if (thread) {
-                        selectThread(thread);
-                    }
-                }
             }
         };
 
@@ -136,7 +154,7 @@ export const useActivities = (initialThreadId?: string | null) => {
         return () => {
             isSubscribed = false;
         };
-    }, [initialThreadId, selectThread, threads]);
+    }, [threads]);
 
     // Poll latest threads every ten seconds
     useEffect(() => {
