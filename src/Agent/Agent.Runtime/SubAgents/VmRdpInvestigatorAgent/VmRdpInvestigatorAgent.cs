@@ -1,7 +1,8 @@
-using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
+using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.VmRdpInvestigatorAgent;
 
@@ -11,33 +12,34 @@ public class VmRdpInvestigatorAgent: GenericAgentOrchestrator<VmRdpInvestigatorA
     public override async Task<string> RunAsync(TaskOrchestrationContext context, VmRdpInvestigatorAgentInput agentInput)
     {
         var log = context.CreateReplaySafeLogger<VmRdpInvestigatorAgent>();
+        try
+        {
+            // Initial planning phase: generate plan
+            List<ChatMessage> chatHistory = await context.CallVmRdpInvestigatorPlanActivityAsync(agentInput);
 
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(VmRdpInvestigatorAgent), "VmRdpInvestigatorAgentPlan.txt");
-        var systemPrompt = await File.ReadAllTextAsync(path);
-        var userMessage = $"Please investigate RDP failure issue with VM {agentInput.VirtualMachineResourceId}";
+            // Send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
+            chatHistory = await context.CallSendSummaryAndStartActivityAsync(
+                     new GetNextActionInput
+                     {
+                         ChatMessages = chatHistory,
+                         StepCounter = 0,
+                         ToolSignatures = [],
+                     });
 
-        List<ChatMessage> chatHistory = [
-            new ChatMessage(ChatRole.System, systemPrompt),
-            new ChatMessage(ChatRole.User, userMessage)
-        ];
+            // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
+            chatHistory = await RunReasoningLoopAsync(
+                context,
+                chatHistory,
+                agentInput.ToolSignatures,
+                log,
+                agentInput.ThreadId);
 
-        // Send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
-        chatHistory = await context.CallSendSummaryAndStartActivityAsync(
-                 new GetNextActionInput
-                 {
-                     ChatMessages = chatHistory,
-                     StepCounter = 0,
-                     ToolSignatures = [],
-                 });
-
-        // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
-        chatHistory = await RunReasoningLoopAsync(
-            context,
-            chatHistory,
-            agentInput.ToolSignatures,
-            log,
-            agentInput.ThreadId);
-
-        return "success";
+            return "success";
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Error in VmRdpInvestigatorAgent");
+            return $"Error: {ex.Message}";
+        }
     }
 }
