@@ -165,18 +165,20 @@ public class OrchestrationAgent
 
     public async Task RecordStateChange(ReasoningState state, string message)
     {
-        this.ThreadContext = await _taskOrchestrationContext.CallActivityAsync<ThreadContext>(new TaskName(nameof(PersistThreadContextActivity)), new PersistThreadContextInput
-        {
-            OrchestrationInstanceId = _taskOrchestrationContext.InstanceId,
-            ThreadContext = this.ThreadContext,
-            StepCounter = this.StepCount,
-            ThreadId = this.ThreadId,
-            ReasoningState = state,
-            StateMessage = message,
-            TimeStamp = DateTime.UtcNow
-        });
+        this.ThreadContext = await _taskOrchestrationContext.CallActivityAsync<ThreadContext>(
+            new TaskName(nameof(PersistThreadContextActivity)),
+            new PersistThreadContextInput
+            {
+                OrchestrationInstanceId = _taskOrchestrationContext.InstanceId,
+                ThreadContext = this.ThreadContext,
+                StepCounter = this.StepCount,
+                ThreadId = this.ThreadId,
+                ReasoningState = state,
+                StateMessage = message,
+                TimeStamp = DateTime.UtcNow
+            });
     }
-
+    
     public void UpdateOrchestrationStatus()
     {
         string jsonChatHistory = System.Text.Json.JsonSerializer.Serialize(this.ChatHistory, new System.Text.Json.JsonSerializerOptions

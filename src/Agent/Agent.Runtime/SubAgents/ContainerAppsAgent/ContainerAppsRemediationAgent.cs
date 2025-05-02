@@ -15,14 +15,8 @@ public class ContainerAppsRemediationAgent : GenericAgentOrchestrator<ContainerA
     public override async Task<string> RunAsync(TaskOrchestrationContext context, ContainerAppsRemediationAgentInput agentInput)
     {
         var log = context.CreateReplaySafeLogger<ContainerAppsRemediationAgent>();
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ContainerAppsAgent", "ContainerAppsAgent.txt");
-        var systemPrompt = await File.ReadAllTextAsync(path);
-        var monitoringMessage = $"I was delegated to resolve container apps issue from another agent with message: {agentInput.Input}";
 
-        List<ChatMessage> chatHistory = [
-            new ChatMessage(ChatRole.System, systemPrompt),
-            new ChatMessage(ChatRole.System, monitoringMessage)
-        ];
+        List<ChatMessage> chatHistory = await context.CallContainerAppsRemediationPlanActivityAsync(agentInput);
 
         // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
         chatHistory = await RunReasoningLoopAsync(

@@ -230,10 +230,8 @@ namespace Agent.Plugins.Definitions
         public async Task<bool> UpdateContainerImage(
             [Description("Resource ID of the Container App or Linux Web App")]
             string resourceId,
-            
             [Description("New image reference to use (e.g. myregistry.azurecr.io/myapp:v2)")]
             string newImageReference,
-            
             [Description("Optional container name for multi-container apps. If not specified, the first container will be updated.")]
             string containerName = null)
         {
