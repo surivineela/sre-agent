@@ -66,7 +66,7 @@ export const ChatBoxStyles = mergeStyleSets({
         borderRadius: tokens.borderRadiusXLarge,
         minWidth: '300px',
     },
-    root: {
+    chatBoxInner: {
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -80,14 +80,12 @@ export const ChatBoxStyles = mergeStyleSets({
     },
     chatContainer: {
         height: '100%',
+        width: '100%',
         overflowX: 'hidden',
         overflowY: 'auto',
         paddingTop: '10px',
         paddingRight: '5px',
         borderRadius: tokens.borderRadiusLarge,
-    },
-    chat: {
-        height: '100%',
         margin: 'auto',
     },
     userMessage: {
@@ -104,21 +102,7 @@ export const ChatBoxStyles = mergeStyleSets({
         '.fai-CopilotMessage__content': {
             width: '90%',
         },
-    },
-    arrowDownButton: {
-        position: 'absolute',
-        bottom: '195px',
-        left: '50%',
-        zIndex: '1',
-        borderRadius: '50% !important',
-        opacity: '1',
-        transition: 'opacity 0.3s ease',
-        pointerEvents: 'auto',
-    },
-    hiddenButton: {
-        opacity: '0',
-        pointerEvents: 'none',
-    },
+    }
 });
 
 const textFieldMaxWidth = '1000px';

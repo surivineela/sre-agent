@@ -171,6 +171,10 @@ export const ActivitiesResources = defineMessages({
             'Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads.',
         id: 'ciMXhP',
     },
+    newMessagesButtonText: {
+        defaultMessage: 'New messages',
+        id: 'O79Wpv',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

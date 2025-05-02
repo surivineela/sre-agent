@@ -123,6 +123,9 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
     const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
 
+    const [showNewMessageButton, setShowNewMessageButton] = useState(false);
+    const [canShowNewMessageButton, setCanShowNewMessageButton] = useState(false);
+
     const [enableIntersectObserver, setEnableIntersectObserver] = useState<boolean>(false);
 
     const { threadsInitialized } = useContext(AgentContext);
@@ -144,21 +147,31 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
     const isPreviousChatHistoryLoadingCompleted = useRef(true);
-    // the latest message of either the latest message of chat history or the latest message of the polling that happens every 5 seconds
+    // The latest message of either the latest message of chat history, the latest message of the polling that happens every 5 seconds or the answers of the send message
     const latestMessageRef = useRef<Message>();
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController>();
 
-    const isDownButtonVisible =
+    const scrollToBottom = (smooth: boolean) =>
+        messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: smooth ? 'smooth' : undefined });
+
+    const isChatAtBottom = () =>
         messagesDivRef.current &&
-        messagesDivRef.current.scrollHeight - messagesDivRef.current.offsetHeight - messagesDivRef.current.scrollTop > 2;
+        messagesDivRef.current.scrollHeight - messagesDivRef.current.offsetHeight - messagesDivRef.current.scrollTop <= 2;
 
-    const scrollToBottom = () => messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: 'smooth' });
+    const handleScroll = debounce(() => {
+        const isAtBottom = isChatAtBottom();
 
-    const onClickDownButton = useCallback(() => {
-        scrollToBottom();
-    }, []);
+        if (isAtBottom) {
+            setShowNewMessageButton(false);
+        }
+    }, 300);
+
+    const onClickNewMessageButton = () => {
+        scrollToBottom(false);
+        setShowNewMessageButton(false);
+    };
 
     const cancelResponse = useCallback(() => {
         abortControllerRef.current?.abort();
@@ -176,6 +189,11 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
             text: '',
         };
     }, [intl]);
+
+    const handleNewMessages = (newMessages: Message[]) => {
+        setMessages(prev => processMessages(prev, newMessages, false));
+        latestMessageRef.current = newMessages[0];
+    };
 
     const sendMessageHandler = useCallback(
         async (message: string) => {
@@ -205,8 +223,8 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
                 const threadId = currentThreadId || newThread?.id;
 
                 if (threadId) {
-                    // poll answers by get the latest 5 messages
-                    answers = await pollResponses(MessagePollingCounts.active, threadId, undefined, signal);
+                    // poll answers by getting all messages from the most recent one to the lastest message reference
+                    answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal);
                 }
             } catch {
                 //Handle error if it is not abort error
@@ -215,7 +233,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
             if (isMounted.current) {
                 setTemporaryUserMessage(null);
                 setAgentTypingMessage(null);
-                setMessages(prev => processMessages(prev, answers, false));
+                handleNewMessages(answers);
                 setWaitingForSendMessageResponse(false);
 
                 if (newThread) {
@@ -264,8 +282,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
                 const latestMessages = await pollResponses(MessagePollingCounts.default, currentThreadId, latestMessageRef.current);
                 if (isSubscribed && latestMessages && latestMessages.length > 0) {
-                    setMessages(prev => processMessages(prev, latestMessages, false));
-                    latestMessageRef.current = latestMessages[0];
+                    handleNewMessages(latestMessages);
                 }
 
                 isPreviousNewMessagesPollingCompleted.current = true;
@@ -291,8 +308,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
                 if (isSubscribed) {
                     setIsLoadingInitialChatHistory(false);
-                    setMessages(prev => processMessages(prev, messages, true));
-                    latestMessageRef.current = messages[0];
+                    handleNewMessages(messages);
 
                     // The threshold depends on the number of the messages this query is intended to return.
                     // if the top parameter for calling getMessages, the threshold should be changed accordingly
@@ -325,12 +341,31 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     }, [messages, enableIntersectObserver]);
 
     useEffect(() => {
-        // auto scroll to the bottom when the initial history loading is completed, and a new question is sent, or waiting for the answers
+        // auto scroll to the bottom when the initial history loading is completed
         if (!isLoadingInitialChatHistory) {
-            scrollToBottom();
-            setEnableIntersectObserver(true);
+            scrollToBottom(false);
+
+            // Allow loading old chat history and showing new message button after
+            // the initial history loading is completed and the chat is at the bottom position
+            setTimeout(() => {
+                setEnableIntersectObserver(true);
+                setCanShowNewMessageButton(true);
+            }, 100);
         }
-    }, [temporaryUserMessage, agentTypingMessage, isLoadingInitialChatHistory]);
+    }, [isLoadingInitialChatHistory]);
+
+    const lastMessageId = useMemo(() => messages[messages.length - 1]?.id, [messages]);
+    useEffect(() => {
+        if (canShowNewMessageButton && !isChatAtBottom()) {
+            setShowNewMessageButton(true);
+        }
+    }, [lastMessageId, canShowNewMessageButton]);
+
+    useEffect(() => {
+        if (temporaryUserMessage && agentTypingMessage) {
+            scrollToBottom(true);
+        }
+    }, [temporaryUserMessage, agentTypingMessage]);
 
     useEffect(() => {
         isMounted.current = true;
@@ -349,10 +384,12 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         disableInput,
         isNewAndCleanThread,
         messagesDivRef,
-        onClickDownButton,
-        isDownButtonVisible,
         intersectionObserverRef,
         currentThreadId,
         cancelResponse,
+
+        handleScroll,
+        showNewMessageButton,
+        onClickNewMessageButton,
     };
 };
