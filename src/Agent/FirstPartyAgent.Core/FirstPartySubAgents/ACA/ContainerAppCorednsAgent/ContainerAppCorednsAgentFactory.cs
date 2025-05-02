@@ -24,7 +24,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.CorednsAgent
         public ContainerAppCorednsAgentFactory(
             IContainerAppCorednsPlugin CorednsPlugin,
             IThreadOrchestrationManager mappingManager,
-            ToolsRepository toolsRepository,
+            IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient,
             IKustoPlugin kustoPlugin
             )
