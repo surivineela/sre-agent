@@ -16,6 +16,7 @@ using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.AI;
 using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.DurableTask.Client;
 using Agent.Runtime.MetaAgent.Interfaces;
 
@@ -34,7 +35,7 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
-        IAgentsFactory agentsFactory,
+        IAgentsFactory agentsFactory,        
         IThreadRepository repository,
         IChatClient chatClient,
         DurableTaskClient durableTaskClient,

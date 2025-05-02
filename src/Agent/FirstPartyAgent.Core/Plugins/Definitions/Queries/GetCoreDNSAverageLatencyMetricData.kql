@@ -1,0 +1,23 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let metricName = "##metricName##";
+let duration = ##duration##;
+let threshold = toint("##threshold##");
+let dns_sum = MetricsEvents
+    | where PreciseTimeStamp between (queryFrom.. queryTo)
+| where EnvironmentName == managedClusterName
+| where logger == "metrics-agent"
+    | where Metric == strcat(metricName, "_sum")
+    | summarize totalDurationInSecs=sum(todouble(Value)) by bin(PreciseTimeStamp, duration), Role, PodName;
+let dns_count = MetricsEvents
+| where PreciseTimeStamp between (queryFrom.. queryTo)
+| where EnvironmentName == managedClusterName
+| where logger == "metrics-agent"
+    | where Metric == strcat(metricName, "_count")
+    | summarize totalRequests=sum(toint(Value)) by bin(PreciseTimeStamp, duration), Role, PodName;
+dns_sum
+| join kind=inner dns_count on PreciseTimeStamp, Role
+| extend avgLatencyInMillSecond = (totalDurationInSecs / totalRequests) * 1000
+| where  avgLatencyInMillSecond > threshold
+| project PreciseTimeStamp, avgLatencyInMillSecond, vmmssWhereMetricCaptured=Role, CoreDNSPodName=PodName

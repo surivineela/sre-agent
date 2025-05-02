@@ -1,0 +1,14 @@
+let queryFrom = datetime("##fromDate##");
+let queryTo = datetime("##toDate##");
+let managedClusterName = "##managedClusterName##";
+let metricName = "##metricName##";
+let duration = ##duration##;
+let threshold = toint("##threshold##");
+MetricsEvents
+| where PreciseTimeStamp between (queryFrom.. queryTo)
+| where EnvironmentName has managedClusterName
+| where logger == "metrics-agent"
+| where Metric == metricName
+| summarize totalCount=sum(toint(Value)) by bin(PreciseTimeStamp, duration), vmmssWhereMetricCaptured=Role, CoreDNSPodName=PodName
+| where totalCount > threshold
+| project PreciseTimeStamp, totalCount, vmmssWhereMetricCaptured, CoreDNSPodName

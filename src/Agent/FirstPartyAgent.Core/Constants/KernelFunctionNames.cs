@@ -26,6 +26,13 @@ namespace FirstPartyAgent.Constants
             public const string ListKustoFunctions = "list_kusto_functions";
             public const string GetHttpScalerEventsForContainerApp = "get_http_scaler_events_for_conatinerapp";
             public const string GetKedaOperatorEventsForContainerApp = "get_keda_operator_events_for_conatinerapp";
+            public const string CheckIfCustomDNSConfigured = "CheckIfCustomDNSConfigured";
+            public const string GetCustomDNSServers = "GetCustomDNSServers";
+            public const string GetCorednsPodFailureEvents = "GetCorednsPodFailureEvents";
+            public const string GetSwiftBootstrapAgentPodFailureEvents = "GetSwiftBootstrapAgentPodFailureEvents";
+            public const string GetSwiftBootstrapAgentPodHealthStatus = "GetSwiftBootstrapAgentPodHealthStatus";
+            public const string GetDNSConfigUpdateStatus = "GetDNSConfigUpdateStatus";
+            public const string CheckIfDNSServerFailedToResolveDot = "CheckIfDNSServerFailedToResolveDot";
             public const string GetSwiftNetworkingEvents = "get_swift_networking_events";
             public const string GetEnvoyAbnormalLogs = "get_envoy_abnormal_logs";
             public const string GetEnvoyControllerLogs = "get_envoy_controller_logs";

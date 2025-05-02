@@ -103,6 +103,9 @@
     <None Update="FirstPartySubAgents\ACA\ContainerAppEnvoyAgent\ContainerAppEnvoyAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="FirstPartySubAgents\ACA\ContainerAppCorednsAgent\ContainerAppCorednsAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 </Project>

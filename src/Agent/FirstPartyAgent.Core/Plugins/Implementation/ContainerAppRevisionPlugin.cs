@@ -21,38 +21,10 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
         _logger = logger;
         _RevisionService = RevisionService;
         _kustoPlugin = kustoPlugin;
-    }
-
-    private async Task<string> Execute(string functionName, string region, Dictionary<string, string> args)
-    {
-        var fileName = Path.Combine(AppContext.BaseDirectory,"Plugins", "Definitions", "Queries", $"{functionName}.kql");
-
-        if (File.Exists(fileName))
-        {
-            var formatted = await File.ReadAllTextAsync(fileName);
-            // replace ##placeholder## with value
-            foreach (var arg in args)
-            {
-                formatted = formatted.Replace($"##{arg.Key}##", arg.Value);
-            }
-
-            if (formatted.Contains("##"))
-            {
-                _logger.LogError($"Not all placeholders were replaced in the query");
-                throw new Exception($"Not all placeholders were replaced in the query, {formatted}");
-            }
-
-            return await _kustoPlugin.ExecuteKustoQuery(region, formatted);
-        }
-        else
-        {
-            return await _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
-        }
-    }
-
+    }   
     public Task<string> ListRevisions(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("ListRevisions", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "ListRevisions", region,
         new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -64,7 +36,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetActiveRevisionSessions(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetActiveRevisionSessions", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetActiveRevisionSessions", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -77,7 +49,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetHpaHeartbeatMetrics(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetHpaHeartbeatMetrics", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetHpaHeartbeatMetrics", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -90,7 +62,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetRevisionSpecChanges(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetRevisionSpecChanges", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetRevisionSpecChanges", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -103,7 +75,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetEventProcessorEventsWithoutReplica(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetEventProcessorEventsWithoutReplica", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetEventProcessorEventsWithoutReplica", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -116,7 +88,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetPodHeartbeatStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetPodHeartbeatStatus", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetPodHeartbeatStatus", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -129,7 +101,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetInternalEventProcessorEventsForPod(string region, DateTime fromDate, DateTime toDate, string revisionName, string podName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetInternalEventProcessorEventsForPod", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetInternalEventProcessorEventsForPod", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -144,7 +116,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetRevisionTrafficWithReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetRevisionReplicaAndTraffic", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetRevisionReplicaAndTraffic", region,
             new Dictionary<string, string> {
         { "fromDate", fromDate.ToString() },
         { "toDate", toDate.ToString() },
@@ -156,7 +128,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> ContainerAppRevisionStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetRevisionStatus", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetRevisionStatus", region,
             new Dictionary<string, string> {
         { "fromDate", fromDate.ToString() },
         { "toDate", toDate.ToString() },
@@ -168,7 +140,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetHttpScalerEventsForContainerApp", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetHttpScalerEventsForContainerApp", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -180,7 +152,7 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 
     public Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return Execute("GetKedaOperatorEventsForContainerApp", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetKedaOperatorEventsForContainerApp", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
