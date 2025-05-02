@@ -99,6 +99,14 @@ export interface Message {
     approval?: Approval;
 }
 
+export interface KnowledgeGraphBuildStatus {
+    crawledCount: number;
+    hasCompletedInitialGraphCrawl: boolean;
+    isCrawling: boolean;
+    properties: any;
+    totalVisibleResources: number;
+}
+
 export enum ApprovalDecision {
     Pending = 'Pending',
     Approved = 'Approved',

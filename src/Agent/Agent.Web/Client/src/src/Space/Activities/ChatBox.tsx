@@ -1,10 +1,8 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
-import { Button, mergeClasses } from '@fluentui/react-components';
-import { ArrowDownRegular } from '@fluentui/react-icons';
 import { memo } from 'react';
+import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
-import Input from '../Components/Input';
 import { IChatBoxProps } from '../Contracts/Activities';
 import { useChatBox } from '../Hooks/useChatBox';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
@@ -18,8 +16,6 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
         sendMessage,
         disableInput,
         messagesDivRef,
-        onClickDownButton,
-        isDownButtonVisible,
         intersectionObserverRef,
         currentThreadId,
         cancelResponse,
@@ -46,12 +42,7 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
                         )}
                     </CopilotChat>
                 </div>
-                <Button
-                    icon={<ArrowDownRegular />}
-                    className={mergeClasses(ChatBoxStyles.arrowDownButton, isDownButtonVisible ? undefined : ChatBoxStyles.hiddenButton)}
-                    onClick={onClickDownButton}
-                />
-                <Input sendMessage={sendMessage} disableInput={disableInput} />
+                <ChatBoxFooter sendMessage={sendMessage} disableInput={disableInput} />
             </CopilotProvider>
         </div>
     );

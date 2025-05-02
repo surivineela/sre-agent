@@ -160,6 +160,11 @@ export const ActivitiesResources = defineMessages({
     actionsPivotHeader: { defaultMessage: 'Actions', id: 'wL7VAE' },
     chatInputPlaceholder: { defaultMessage: 'I want to...', id: 'PxLzzW' },
     sreAgentDisplayName: { defaultMessage: 'Azure SRE Agent', id: 'Erci0g' },
+    knowledgeGraphBuildStatus: {
+        defaultMessage:
+            'Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads.',
+        id: 'ciMXhP',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

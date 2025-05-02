@@ -5,10 +5,11 @@ import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesResources } from '../../Strings/SREAgentResources';
-import { IInputProps } from '../Contracts/Activities';
+import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { useChatInputStyles, useChatInputTextStyles } from '../Styles/Activities.styles';
+import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 
-const Input = ({ sendMessage, disableInput }: IInputProps) => {
+const ChatBoxFooter = ({ sendMessage, disableInput }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
     const [input, setInput] = useState<string>();
@@ -27,6 +28,7 @@ const Input = ({ sendMessage, disableInput }: IInputProps) => {
 
     return (
         <div className={root}>
+            <KnowledgeGraphBuildStatus />
             <div className={mergeStyles(textFieldContainer as IStyle)}>
                 <TextField
                     placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
@@ -65,4 +67,4 @@ const Input = ({ sendMessage, disableInput }: IInputProps) => {
     );
 };
 
-export default memo(Input);
+export default memo(ChatBoxFooter);

@@ -45,7 +45,7 @@ export interface IActionsProps {
     threadId?: string;
 }
 
-export interface IInputProps {
+export interface IChatBoxFooterProps {
     sendMessage: (message: string) => Promise<void>;
     disableInput: boolean;
 }
