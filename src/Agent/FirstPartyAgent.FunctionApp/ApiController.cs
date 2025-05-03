@@ -113,7 +113,7 @@ namespace FirstPartyAgent.FunctionApp
                         await notFoundResponse.WriteAsJsonAsync(new { error = "Alert details not found" });
                         return notFoundResponse;
                     }
-                    var alertDetails = await File.ReadAllTextAsync(filePath);
+                    var alertDetails = File.ReadAllText(filePath);
                     var response = req.CreateResponse(HttpStatusCode.OK);
                     await response.WriteStringAsync(alertDetails);
                     return response;
@@ -168,7 +168,7 @@ namespace FirstPartyAgent.FunctionApp
                         Directory.CreateDirectory(folderPath);
                     }
                     var filePath = Path.Combine(folderPath, $"{alertId}.json");
-                    await File.WriteAllTextAsync(filePath, requestContent);
+                    File.WriteAllText(filePath, requestContent);
                     var response = req.CreateResponse(HttpStatusCode.OK);
                     await response.WriteStringAsync("Success");
                     return response;
@@ -334,7 +334,7 @@ namespace FirstPartyAgent.FunctionApp
                 _logger.LogInformation($"Successfully parsed {wawsAlertDetailsList.Count} AlertDetails from file");
 
                 var teamsJsonPath = Path.Combine(AppContext.BaseDirectory, "IcmTeams.json");
-                var icmTeams = JsonConvert.DeserializeObject<List<IcmTeam>>(await File.ReadAllTextAsync(teamsJsonPath));
+                var icmTeams = JsonConvert.DeserializeObject<List<IcmTeam>>(File.ReadAllText(teamsJsonPath));
                 var teamNameMap = icmTeams.ToDictionary(t => t.IcmTeamName.ToLower(), t => t.IcmTeamId);
 
                 var alertDetails = wawsAlertDetailsList

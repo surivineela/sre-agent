@@ -26,7 +26,7 @@ public class ManagedIdentityPlanActivity : TaskActivity<ManagedIdentityMigration
             input.AppsToMigrate.Select(x => $"{x.ResourceId} ({x.Name}) currently uses {x.CurrentConnectionMethod}"));
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ManagedIdentityMigrationAgent", "ManagedIdentityMigrationPlan.txt");
-        var systemPrompt = await File.ReadAllTextAsync(path);
+        var systemPrompt = File.ReadAllText(path);
         var monitoringMessage = $"A monitoring service found that these apps that need migration to Managed Identity: {existingAppsDetails}";
 
         List<ChatMessage> messages = [

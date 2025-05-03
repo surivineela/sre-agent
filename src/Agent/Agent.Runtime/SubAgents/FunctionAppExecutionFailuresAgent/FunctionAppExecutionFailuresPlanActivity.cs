@@ -9,12 +9,12 @@ namespace Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent
     public class FunctionAppExecutionFailuresPlanActivity : TaskActivity<FunctionAppExecutionFailuresAgentInput, List<Microsoft.Extensions.AI.ChatMessage>>
     {
         private readonly IChatClient chatClient;
-
+        
         public FunctionAppExecutionFailuresPlanActivity(IChatClient chatClient)
         {
             this.chatClient = chatClient;
         }
-
+        
         public async override Task<List<ChatMessage>> RunAsync(TaskActivityContext context, FunctionAppExecutionFailuresAgentInput input)
         {
             var functionAppDetails = $@"Investigate the execution failures of my function app: {input.FunctionAppResourceId}";
@@ -22,7 +22,7 @@ namespace Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent
             var systemPrompt = string.Empty;
             try
             {
-                systemPrompt = await File.ReadAllTextAsync(path);
+                systemPrompt = File.ReadAllText(path);
             }
             catch (Exception ex)
             {
@@ -34,10 +34,10 @@ namespace Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent
                 new ChatMessage(ChatRole.System, systemPrompt),
                 new ChatMessage(ChatRole.User, functionAppDetails)
             ];
-
+            
             var response = await chatClient.GetResponseAsync(messages);
             messages.Add(response.GetMessage());
             return messages;
         }
-    }
+    } 
 }

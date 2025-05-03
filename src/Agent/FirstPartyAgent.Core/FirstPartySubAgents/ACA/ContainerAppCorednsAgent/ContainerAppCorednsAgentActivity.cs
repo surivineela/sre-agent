@@ -62,10 +62,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.CorednsAgent
             throw new NotImplementedException();
         }
 
-        public override async Task<string> GetPromptTextAsync(ContainerAppCorednsAgentActivityInput input)
+        public override string GetPromptText(ContainerAppCorednsAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppCorednsAgent), "ContainerAppCorednsAgentPlan.txt");
-            var systemPrompt = await File.ReadAllTextAsync(path);
+            var systemPrompt = File.ReadAllText(path);
             return systemPrompt;
         }
     }

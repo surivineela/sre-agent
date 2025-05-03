@@ -13,7 +13,7 @@ public class SqlDbQueryPerfAgent: GenericAgentOrchestrator<SqlDbQueryPerfAgentIn
         var log = context.CreateReplaySafeLogger<SqlDbQueryPerfAgentInput>();
 
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof(SqlDbQueryPerfAgent), "SqlDbQueryPerfAgentPlan.txt");
-        var systemPrompt = await File.ReadAllTextAsync(path);
+        var systemPrompt = File.ReadAllText(path);
         var monitoringMessage = $"I will now attempt to investigate query perf issues with {agentInput.AzSqlDbResourceId}. Once ll the investigation is complete, I will present my final findings in the following format"
             + "    **Summary**: Provide a brief overview of the investigation results."
             + "    **Identified Issues**: List any issues discovered during the investigation."

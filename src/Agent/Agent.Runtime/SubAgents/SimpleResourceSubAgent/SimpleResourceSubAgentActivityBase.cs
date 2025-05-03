@@ -35,11 +35,11 @@ namespace Agent.Runtime.SubAgents
 
     /// <summary>
     /// The base class for the planning activity of a subagent. This is where the agent will generate a plan to act on the resources.
-    /// For a normal agent that acts on one or more resources, you should only need to override <see cref="GetPromptTextAsync"/> to provide
+    /// For a normal agent that acts on one or more resources, you should only need to override <see cref="GetPromptText"/> to provide
     /// the system prompt for your agent.
     /// </summary>
     [DurableTask]
-    public abstract class SimpleResourceSubAgentActivityBase<TPlanInput> : TaskActivity<TPlanInput, List<ChatMessage>>
+    public abstract class SimpleResourceSubAgentActivityBase<TPlanInput> : TaskActivity<TPlanInput, List<ChatMessage>> 
         where TPlanInput : SimpleResourceSubAgentActivityInput
     {
         private readonly IChatClient chatClient;
@@ -59,10 +59,10 @@ namespace Agent.Runtime.SubAgents
         ///   var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), nameof([MyAgent]), "Filename.txt");
         ///   var systemPrompt = File.ReadAllText(path);
         /// </remarks>
-        public virtual async Task<string> GetPromptTextAsync(TPlanInput input)
+        public virtual string GetPromptText(TPlanInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(SubAgents), "SimpleResourceSubAgent", "SimpleResourceAgentDefaultPlan.txt");
-            var systemPrompt = (await File.ReadAllTextAsync(path))
+            var systemPrompt = File.ReadAllText(path)
                 .Replace("{{ResourceType}}", ResourceTypeName)
                 .Replace("{{ActionToTake}}", ActionToTake(input))
                 .Replace("{{ToolsList}}", string.Join("\n- ", ToolNames)); //TODO: Fix
@@ -102,7 +102,7 @@ namespace Agent.Runtime.SubAgents
             var userMessage = $"Here are the resources that need updating: {resourcesStr}";
 
             List<ChatMessage> messages = [
-                new ChatMessage(ChatRole.System, await GetPromptTextAsync(input)),
+                new ChatMessage(ChatRole.System, GetPromptText(input)),
                 new ChatMessage(ChatRole.User, userMessage)
                 ];
 

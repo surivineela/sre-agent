@@ -1064,7 +1064,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var accessToken = await GetAccessTokenForGrafana();
             foreach (var dashboard in dashboards)
             {
-                var dashboardJson = await File.ReadAllTextAsync(dashboard);
+                var dashboardJson = File.ReadAllText(dashboard);
                 dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
                 await PublishDashboardToManagedGrafana(dashboardJson, accessToken, []);
                 _logger.LogInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));

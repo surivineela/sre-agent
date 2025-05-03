@@ -188,7 +188,7 @@ let spans = bins | where duration >= span | top 1 by span desc;
 let bucket = coalesce(toscalar(spans | project bucket), 1d);
 let mdm_bucket = coalesce(toscalar(spans | project mdm_bucket), '1d');
 let mdmData = evaluate geneva_metrics_request(
-	genevaAccountName,
+	genevaAccountName, 
 	strcat(
 		@""metricNamespace('k4apps-metrics')""
 		@"".metric('Replicas')""
@@ -204,7 +204,7 @@ union theSchema, mdmData
 | project Timestamp = TimestampUtc, Revision = revisionName, Max, appArmId
 | where Revision == cappRevisionName
 | order by Timestamp asc, Revision asc;
-";
+";        
         return _kustoPlugin.ExecuteKustoQuery(region, query);
     }
 }

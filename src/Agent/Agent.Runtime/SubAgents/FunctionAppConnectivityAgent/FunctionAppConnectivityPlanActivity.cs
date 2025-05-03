@@ -25,7 +25,7 @@ namespace Agent.Runtime.SubAgents.FunctionAppConnectivityAgent
             var existingAppsDetails = $@"Investigate the network connectivity of my function app: {input.FunctionAppResourceId}";
 
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "FunctionAppConnectivityAgent", "FunctionAppConnectivityAgentPlan.txt");
-            var systemPrompt = await File.ReadAllTextAsync(path);
+            var systemPrompt = File.ReadAllText(path);
 
             List<ChatMessage> messages = [
                 new ChatMessage(ChatRole.System, systemPrompt),
@@ -35,5 +35,5 @@ namespace Agent.Runtime.SubAgents.FunctionAppConnectivityAgent
             messages.Add(response.GetMessage());
             return messages;
         }
-    }
+    } 
 }

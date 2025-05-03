@@ -19,13 +19,13 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
         _kustoPlugin = kustoPlugin;
     }
 
-    private async Task<string> Execute(string functionName, string region, Dictionary<string, string> args)
+    private Task<string> Execute(string functionName, string region, Dictionary<string, string> args)
     {
         var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
 
         if (File.Exists(fileName))
         {
-            var formatted = await File.ReadAllTextAsync(fileName);
+            var formatted = File.ReadAllText(fileName);
             // replace ##placeholder## with value
             foreach (var arg in args)
             {
@@ -38,11 +38,11 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
                 throw new Exception($"Not all placeholders were replaced in the query, {formatted}");
             }
 
-            return await _kustoPlugin.ExecuteKustoQuery(region, formatted);
+            return _kustoPlugin.ExecuteKustoQuery(region, formatted);
         }
         else
         {
-            return await _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
+            return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
         }
     }
 
