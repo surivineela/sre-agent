@@ -64,6 +64,7 @@ interface GraphContextProps {
     unHoverNode: () => void;
     nodesToHightlight: string[];
     edgesToHightlight: string[];
+    selectedAppGroupId?: string;
 }
 
 export const GraphContext = createContext<GraphContextProps>({

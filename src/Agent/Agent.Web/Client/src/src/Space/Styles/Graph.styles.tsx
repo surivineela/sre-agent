@@ -19,7 +19,7 @@ export const useGraphStyles = makeStyles({
     },
     spinner: {
         position: 'fixed',
-        left: '60%',
+        left: '50%',
         top: '50%',
     },
 });
@@ -36,6 +36,9 @@ export const useGraphNodeStyles = makeStyles({
         backgroundColor: tokens.colorNeutralBackground2,
         borderRadius: '15px',
         border: `1px solid`,
+    },
+    appGroupCard: {
+        backgroundColor: tokens.colorBrandStroke2,
     },
     cardHightlight: {
         backgroundColor: tokens.colorBrandBackground2Hover,

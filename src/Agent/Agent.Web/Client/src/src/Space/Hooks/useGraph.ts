@@ -27,6 +27,7 @@ export const useGraph = () => {
     const [edges, setEdges, onEdgesChange] = useEdgesState<Edge<GraphEdge>>([]);
     const [nodesToHightlight, setNodesToHightlight] = useState<string[]>([]);
     const [edgesToHightlight, setEdgesToHightlight] = useState<string[]>([]);
+    const [selectedAppGroupId, setSelectedAppGroupId] = useState<string | undefined>(undefined);
 
     const layoutGraph = useGraphLayout();
 
@@ -57,6 +58,8 @@ export const useGraph = () => {
     const onAppGroupUpdate = useCallback(
         async (appGroup?: ResourceExtended) => {
             setIsLoading(true);
+
+            setSelectedAppGroupId(undefined);
 
             if (appGroup) {
                 if (!graph.has(appGroup.id)) {
@@ -91,6 +94,8 @@ export const useGraph = () => {
                 setIsLoading(false);
                 setSelectedNode(undefined);
             }
+
+            setSelectedAppGroupId(appGroup?.id);
         },
         [graph, setNodes, setEdges]
     );
@@ -114,5 +119,6 @@ export const useGraph = () => {
         unHoverNode,
         nodesToHightlight,
         edgesToHightlight,
+        selectedAppGroupId,
     };
 };

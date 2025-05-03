@@ -34,6 +34,7 @@ const GraphContent = () => {
         nodesToHightlight,
         edgesToHightlight,
         setSelectedNode,
+        selectedAppGroupId,
     } = useGraph();
 
     const { root, reactFlow, spinner } = useGraphStyles();
@@ -49,6 +50,7 @@ const GraphContent = () => {
                 unHoverNode,
                 nodesToHightlight,
                 edgesToHightlight,
+                selectedAppGroupId,
             }}
         >
             <div className={root}>
