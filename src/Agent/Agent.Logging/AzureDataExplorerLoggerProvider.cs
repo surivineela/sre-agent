@@ -1,4 +1,5 @@
 using System;
+using System.Security.Cryptography.X509Certificates;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Kusto.Data;
@@ -21,14 +22,21 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
 
     public AzureDataExplorerLoggerProvider(
         string agentName,
-        IAuthenticationService authenticationService,
         KustoClusterConfiguration internalKustoClusterConfiguration,
-        KustoClusterConfiguration? externalKustoClusterConfiguration)
+        KustoClusterConfiguration? externalKustoClusterConfiguration,
+        string kustoFirstPartyAppClientId,
+        string kustoFirstPartyAppTenantId,
+        string kustoFirstPartyAppCertificatePath)
     {
         if (!string.IsNullOrEmpty(internalKustoClusterConfiguration.ClusterUri))
         {
+            var certPem = File.ReadAllText($"{kustoFirstPartyAppCertificatePath}/tls.crt");
+            var keyPem = File.ReadAllText($"{kustoFirstPartyAppCertificatePath}/tls.key");
+
+            var certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
+
             var internalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(internalKustoClusterConfiguration.ClusterUri)
-                        .WithAadAzureTokenCredentialsAuthentication(authenticationService.GetKustoCredential());
+                        .WithAadApplicationCertificateAuthentication(applicationClientId: kustoFirstPartyAppClientId, certificate, authority: kustoFirstPartyAppTenantId, sendX5c: true);
 
             _internalKustoClient = KustoIngestFactory.CreateDirectIngestClient(internalKustoConnectionStringBuilder);
             _internalDatabaseName = internalKustoClusterConfiguration.DatabaseName;

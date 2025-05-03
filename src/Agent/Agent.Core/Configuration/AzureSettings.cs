@@ -29,6 +29,7 @@ namespace Agent.Core.Configuration
         public CrawlerSettings Crawler { get; set; } = new();
 
         public FederationSettings Federation { get; set; } = new();
+        public KustoFirstPartyAppSettings Kusto { get; set; } = new();
     }
 }
 

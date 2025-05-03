@@ -10,12 +10,6 @@ namespace Agent.Core.Interfaces;
 public interface IAuthenticationService
 {
     /// <summary>
-    /// Get the credential to access the kusto cluster
-    /// </summary>
-    /// <returns></returns>
-    public TokenCredential GetKustoCredential();
-
-    /// <summary>
     /// Get the credential to access the document db
     /// </summary>
     /// <returns></returns>

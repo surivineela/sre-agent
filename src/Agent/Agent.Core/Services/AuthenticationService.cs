@@ -18,21 +18,18 @@ public class AuthenticationService : IAuthenticationService
     private readonly IHostEnvironment _hostEnvironment;
     private readonly DashboardSettings _dashboardSettings;
     private readonly Lazy<IThreadRepository> _threadRepository;
-    private readonly IServiceProvider _serviceProvider;
 
-    public AuthenticationService(ILogger<AuthenticationService> logger,
+    public AuthenticationService(
         CrawlerSettings crawlerSettings,
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
-        _logger = logger;
         _crawlerSettings = crawlerSettings;
         _federationSettings = federationSettings;
         _hostEnvironment = hostEnvironment;
         _dashboardSettings = dashboardSettings;
-        _serviceProvider = serviceProvider;
 
         // To avoid cyclic dependency between cosmos client
         _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
@@ -46,16 +43,6 @@ public class AuthenticationService : IAuthenticationService
         }
 
         return GetManagedIdentityCredential(_crawlerSettings.Identity);
-    }
-
-    public TokenCredential GetKustoCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
     public TokenCredential GetDocumentDbCredential()

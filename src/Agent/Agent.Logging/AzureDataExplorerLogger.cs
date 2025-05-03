@@ -83,7 +83,7 @@ public class AzureDataExplorerLogger : ILogger
             }
             catch (Exception e)
             {
-                Console.WriteLine($"[{DateTime.UtcNow}] [Console] Failed to ingest log to internal cluster: {e.Message}");
+                Console.WriteLine($"[{DateTime.UtcNow}] [Console] Failed to ingest log to internal cluster: {e}");
                 Console.WriteLine($"[{DateTime.UtcNow}] [Console] Log data: {JsonSerializer.Serialize(logData)}");
             }
         }
@@ -131,6 +131,7 @@ public class AzureDataExplorerLogger : ILogger
 
         var jsonData = JsonSerializer.Serialize(logData);
         using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
+
         client.IngestFromStreamAsync(stream, ingestionProperties).Wait();
     }
 }
