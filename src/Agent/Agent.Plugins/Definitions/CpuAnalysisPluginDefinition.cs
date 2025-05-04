@@ -19,6 +19,7 @@ namespace Agent.Plugins
 
         [KernelFunction("scale_up_app_service_plan_by_sku")]
         [Description("Scale up the app service plan by sku")]
+        [RequiresApproval]
         public async Task<string> ScaleUpAppServicePlanBySku(
         [Description("resourceId of the app")] string resourceId)
         {
@@ -27,7 +28,7 @@ namespace Agent.Plugins
 
         [KernelFunction("collect_memory_dump_for_app")]
         [Description("Collect Memory Dump for App")]
-        //[RequiresApproval]
+        [RequiresApproval]
         public async Task<string> CollectMemoryDumpForApp(
         [Description("resourceId of the app")] string resourceId)
         {
@@ -45,6 +46,7 @@ namespace Agent.Plugins
 
         [KernelFunction("autoscale_app_service")]
         [Description("Create AutoScale Settings for App to Autoscale App")]
+        [RequiresApproval]
         public async Task<string> AutoScaleApp(
             [Description("resourceId of the app")] string subscriptionId,
             string resourceGroupName,

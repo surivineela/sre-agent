@@ -80,32 +80,6 @@ description: A short message to summarize the image.")]
             return await _chartPlugin.PlotBarChartAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
 
-        [KernelFunction("plot_heat_map")]
-        [ThreadSpecific]
-        [Description(
-@"Generates a heat map visualization from the provided data.
-Used for showing intensity relationships between two categorical dimensions.
-
-Arguments:
-chartTitle: Title for the heatmap, e.g. 'Server Response Times by Hour and Day'
-xAxisLabel: Label for the X-axis (columns), e.g. 'Hour of Day'
-yAxisLabel: Label for the Y-axis (rows), e.g. 'Day of Week'
-colorLabel: Label for the color scale, e.g. 'Response Time (ms)'
-dataPoints: Semicolon-separated data points in the format 'xValue|yValue|intensity',
-    e.g.: 'Monday|9|45;Monday|10|78;Tuesday|9|23'
-    For multiple points, each point is separated by a semicolon
-description: Text to accompany the heat map chart")]
-        public async Task<string> PlotHeatMapAsync(
-            [Description("Chart title, e.g. 'Server Response Times'")] string chartTitle,
-            [Description("X-axis label (columns)")] string xAxisLabel,
-            [Description("Y-axis label (rows)")] string yAxisLabel,
-            [Description("Label for the color scale")] string colorLabel,
-            [Description("Semicolon-separated data in format 'xValue|yValue|intensity'")] string dataPoints,
-            [Description("Optional text to describe the heat map")] string description)
-        {
-            return await _chartPlugin.PlotHeatMapAsync(chartTitle, xAxisLabel, yAxisLabel, colorLabel, dataPoints, description);
-        }
-
         [KernelFunction("plot_scatter")]
         [ThreadSpecific]
         [Description(@"Generates a scatter plot from X-Y coordinate pairs and returns (or posts) it.

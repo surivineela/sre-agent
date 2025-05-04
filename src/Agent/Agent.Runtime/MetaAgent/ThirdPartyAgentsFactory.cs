@@ -324,7 +324,6 @@ $@"## Facts
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesData),
             AIFunctionFactory.Create(chartPluginDefinition.PlotScatterAsync),
-            AIFunctionFactory.Create(chartPluginDefinition.PlotHeatMapAsync),
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),

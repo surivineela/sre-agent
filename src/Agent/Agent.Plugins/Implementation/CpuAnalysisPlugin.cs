@@ -51,15 +51,16 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
     {
         // Placeholder for the memory dump file name.
         string memoryDumpFile = Path.GetFileName(Path.GetTempFileName() + ".dmp");
-        //KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
-        //if (kuduManager.OS == "Linux")
-        //{
-        //    throw new NotImplementedException("Currently this behavior isn't implemented for Linux");
-        //}
+        KuduManager kuduManager = await KuduManager.Initialize(resourceId, _armHelper);
+        if (kuduManager.OS == "Linux")
+        {
+            throw new NotImplementedException("Currently this behavior isn't implemented for Linux");
+        }
 
         // Curl command on the machine to collect the dump.
-        //int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
-        //string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://local//temp//{memoryDumpFile}";
+        int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
+        string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://local//temp//{memoryDumpFile}";
+        string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://local//temp");
         return $"The memory dump for {resourceId} has been collected:\n{memoryDumpFile}";
     }
 

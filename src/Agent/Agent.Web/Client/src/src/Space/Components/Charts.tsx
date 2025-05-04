@@ -1,17 +1,34 @@
 import React, { useMemo, useRef, useState } from 'react';
-import { Area, CartesianGrid, Label, Legend, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'recharts';
+import {
+    Area,
+    Bar,
+    BarChart,
+    CartesianGrid,
+    Cell,
+    Label,
+    Legend,
+    Line,
+    LineChart,
+    Pie,
+    PieChart,
+    ResponsiveContainer,
+    Scatter,
+    ScatterChart,
+    Tooltip,
+    XAxis,
+    YAxis,
+} from 'recharts';
 
 import { toPng } from 'html-to-image';
 
 interface ChartData {
-    type: 'line' | 'bar' | 'pie' | 'scatter' | 'heatmap';
+    type: 'line' | 'bar' | 'pie' | 'scatter';
     title: string;
     data: any[];
     xAxisLabel?: string;
     yAxisLabel?: string;
     yAxisMin?: number | 'auto';
     yAxisMax?: number | 'auto';
-    colorLabel?: string; // Added for heat map color scale label
 }
 
 interface AgentChartProps {
@@ -28,20 +45,6 @@ const CHART_COLORS = [
     '#06B6D4', // cyan
     '#F97316', // orange
     '#6366F1', // indigo variant
-];
-
-// Color scale for heat map - from cool to hot (blue gradient)
-const HEAT_MAP_COLORS = [
-    '#ebf9ff', // very light blue - lowest intensity
-    '#bfe8ff', // light blue
-    '#7fcfff', // blue
-    '#4db7ff', // medium blue
-    '#1fa1ff', // bright blue
-    '#008aff', // strong blue
-    '#0073d8', // darker blue
-    '#0055a3', // dark blue
-    '#004080', // very dark blue
-    '#052e54', // almost black blue - highest intensity
 ];
 
 const getAreaColors = (index: number) => {
@@ -70,150 +73,6 @@ const extractChartData = (text: string): ChartData | null => {
     }
 
     return null;
-};
-
-// Normalize value to a 0-1 range for color scaling
-const normalizeValue = (value: number, min: number, max: number): number => {
-    if (min === max) return 0.5; // If all values are the same
-    return (value - min) / (max - min);
-};
-
-// Get color based on normalized value
-const getHeatMapColor = (normalizedValue: number): string => {
-    const colorIndex = Math.min(Math.floor(normalizedValue * HEAT_MAP_COLORS.length), HEAT_MAP_COLORS.length - 1);
-    return HEAT_MAP_COLORS[colorIndex];
-};
-
-// Determine if text should be white or black based on background color
-const getContrastTextColor = (hexColor: string): string => {
-    // Convert hex to RGB
-    const r = parseInt(hexColor.slice(1, 3), 16);
-    const g = parseInt(hexColor.slice(3, 5), 16);
-    const b = parseInt(hexColor.slice(5, 7), 16);
-
-    // Calculate luminance - standard formula for perceived brightness
-    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-
-    // Use white text on dark backgrounds, black text on light backgrounds
-    return luminance > 0.5 ? '#000000' : '#ffffff';
-};
-
-// Component for rendering color legend for heat map
-const ColorLegend = ({ min, max, label }: { min: number; max: number; label: string }) => {
-    return (
-        <div
-            style={{
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                marginTop: '1rem',
-                fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
-            }}
-        >
-            <div style={{ fontSize: '0.875rem', marginBottom: '0.5rem', color: '#374151' }}>{label}</div>
-            <div style={{ display: 'flex', width: '80%', height: '24px', borderRadius: '4px', overflow: 'hidden' }}>
-                {HEAT_MAP_COLORS.map((color, i) => (
-                    <div
-                        key={i}
-                        style={{
-                            flex: 1,
-                            backgroundColor: color,
-                            border: '1px solid rgba(255,255,255,0.3)',
-                            borderLeft: 'none',
-                            borderRight: 'none',
-                        }}
-                    />
-                ))}
-            </div>
-            <div
-                style={{
-                    display: 'flex',
-                    width: '80%',
-                    justifyContent: 'space-between',
-                    marginTop: '0.25rem',
-                    fontSize: '0.75rem',
-                    color: '#6B7280',
-                }}
-            >
-                <span>{min.toFixed(1)}</span>
-                <span>{((max - min) / 2 + min).toFixed(1)}</span>
-                <span>{max.toFixed(1)}</span>
-            </div>
-        </div>
-    );
-};
-
-// Prepare heat map data for Recharts
-const prepareHeatMapData = (heatMapData: any) => {
-    const { xCategories, yCategories, values } = heatMapData;
-
-    // Find min/max values for color scaling
-    let minValue = Number.MAX_VALUE;
-    let maxValue = Number.MIN_VALUE;
-
-    // If no values have been provided, return empty data
-    if (!values || values.length === 0) {
-        return {
-            data: [],
-            xCategories: xCategories || [],
-            yCategories: yCategories || [],
-            minValue: 0,
-            maxValue: 100,
-        };
-    }
-
-    // Find min and max values
-    values.forEach((item: any) => {
-        if (item.value !== null && item.value !== undefined) {
-            minValue = Math.min(minValue, item.value);
-            maxValue = Math.max(maxValue, item.value);
-        }
-    });
-
-    // If all values are the same, create a small range
-    if (minValue === maxValue) {
-        minValue = Math.max(0, minValue - 1);
-        maxValue = maxValue + 1;
-    }
-
-    // Handle edge case where no valid values were found
-    if (minValue === Number.MAX_VALUE) {
-        minValue = 0;
-        maxValue = 100;
-    }
-
-    // Create a data structure that Recharts can work with
-    const data = [];
-
-    // Create a cell for each x,y combination
-    for (let yIndex = 0; yIndex < yCategories.length; yIndex++) {
-        const yCategory = yCategories[yIndex];
-
-        for (let xIndex = 0; xIndex < xCategories.length; xIndex++) {
-            const xCategory = xCategories[xIndex];
-
-            // Find if there's a value for this x,y pair
-            const valueObj = values.find((v: any) => v.x === xCategory && v.y === yCategory);
-
-            const value = valueObj ? valueObj.value : null;
-
-            data.push({
-                x: xCategory,
-                y: yCategory,
-                xIndex,
-                yIndex,
-                value: value,
-            });
-        }
-    }
-
-    return {
-        data,
-        xCategories,
-        yCategories,
-        minValue,
-        maxValue,
-    };
 };
 
 const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
@@ -335,7 +194,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
     };
 
     const renderChart = (isZoomedView = false) => {
-        const { type, title, data, xAxisLabel, yAxisLabel, yAxisMin, yAxisMax, colorLabel } = chartData;
+        const { type, title, data, xAxisLabel, yAxisLabel, yAxisMin, yAxisMax } = chartData;
         const ref = isZoomedView ? zoomedChartRef : chartRef;
 
         const tooltipStyle = {
@@ -384,7 +243,6 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
 
         switch (type) {
             case 'line': {
-                // Line chart implementation (unchanged)
                 const seriesNames = Object.keys(data[0]).filter(key => key !== 'name');
                 return (
                     <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>
@@ -469,7 +327,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     iconSize={8}
                                 />
 
-                                {/* Area fills with low opacity behind the lines */}
+                                {/* First render area fills with low opacity behind the lines */}
                                 {seriesNames.map((dataKey, _) => (
                                     <Area
                                         key={`area-${dataKey}-${isZoomedView ? 'zoomed' : 'normal'}`}
@@ -482,7 +340,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     />
                                 ))}
 
-                                {/* Lines on top with greater prominence */}
+                                {/* Then render the actual lines on top with greater prominence */}
                                 {seriesNames.map((dataKey, index) => (
                                     <Line
                                         key={`line-${dataKey}-${isZoomedView ? 'zoomed' : 'normal'}`}
@@ -509,207 +367,251 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                     </div>
                 );
             }
-
-            case 'heatmap': {
-                // New heat map case with improved compact grid layout
-                const { data: heatMapData, xCategories, yCategories, minValue, maxValue } = prepareHeatMapData(data);
-
-                // Calculate the max number of cells to determine appropriate cell size
-                const totalCells = xCategories.length * yCategories.length;
-                const isLargeGrid = totalCells > 100; // Threshold for compact mode
-
-                // Determine text size based on grid density
-                let fontSize = '0.75rem';
-                let cellPadding = '6px';
-                let showValues = true;
-
-                if (isLargeGrid) {
-                    fontSize = '0.6rem';
-                    cellPadding = '2px';
-                }
-
-                if (xCategories.length > 30 || yCategories.length > 20) {
-                    showValues = false; // Hide values if grid is very dense
-                }
-
+            case 'bar':
                 return (
                     <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>
                         {!isZoomedView && screenshotButton}
                         <div style={chartTitleStyle}>{title}</div>
-
-                        {/* Create a compact grid-based heatmap */}
-                        <div
-                            style={{
-                                display: 'flex',
-                                flexDirection: 'column',
-                                maxWidth: '100%',
-                                overflowX: 'auto',
-                            }}
-                        >
-                            {/* Y-axis labels on the left */}
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                    width: 'fit-content',
-                                }}
-                            >
-                                {/* Y-axis label column */}
-                                <div
-                                    style={{
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        marginRight: '8px',
-                                        minWidth: '80px',
-                                    }}
+                        <ResponsiveContainer width="100%" height={isZoomedView ? 600 : 400}>
+                            <BarChart data={data} margin={{ top: 10, right: 30, left: 25, bottom: 40 }} barSize={48} barGap={2}>
+                                <defs>
+                                    <linearGradient id={`barGradient-${isZoomedView ? 'zoomed' : 'normal'}`} x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" stopColor={CHART_COLORS[0]} stopOpacity={1} />
+                                        <stop offset="100%" stopColor={CHART_COLORS[0]} stopOpacity={0.8} />
+                                    </linearGradient>
+                                </defs>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+                                <XAxis
+                                    dataKey="category"
+                                    tick={axisTickConfig}
+                                    stroke="#E5E7EB"
+                                    tickLine={{ stroke: '#E5E7EB' }}
+                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    padding={{ left: 10, right: 10 }}
                                 >
-                                    {/* Empty top-left corner cell */}
-                                    <div
-                                        style={{
-                                            height: '24px',
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'center',
-                                            fontWeight: 'bold',
-                                            fontSize: '0.75rem',
-                                            color: '#374151',
-                                            padding: '4px',
-                                        }}
-                                    >
-                                        {yAxisLabel || ''}
-                                    </div>
-
-                                    {/* Y-axis labels */}
-                                    {yCategories.map((yCat: string, yIndex: number) => (
-                                        <div
-                                            key={`y-label-${yIndex}`}
+                                    {xAxisLabel && (
+                                        <Label
+                                            value={xAxisLabel}
+                                            position="insideBottom"
+                                            offset={-15}
                                             style={{
-                                                height: '24px',
-                                                display: 'flex',
-                                                alignItems: 'center',
-                                                justifyContent: 'flex-end',
-                                                fontSize: '0.75rem',
-                                                color: '#4B5563',
-                                                padding: '4px',
-                                                whiteSpace: 'nowrap',
-                                                overflow: 'hidden',
-                                                textOverflow: 'ellipsis',
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                fill: '#374151',
+                                                fontFamily:
+                                                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
                                             }}
-                                        >
-                                            {yCat}
-                                        </div>
+                                        />
+                                    )}
+                                </XAxis>
+                                <YAxis
+                                    tick={axisTickConfig}
+                                    stroke="#E5E7EB"
+                                    tickLine={{ stroke: '#E5E7EB' }}
+                                    axisLine={{ stroke: '#E5E7EB' }}
+                                >
+                                    {yAxisLabel && (
+                                        <Label
+                                            value={yAxisLabel}
+                                            angle={-90}
+                                            position="insideLeft"
+                                            offset={-10}
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                fill: '#374151',
+                                                fontFamily:
+                                                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                            }}
+                                        />
+                                    )}
+                                </YAxis>
+                                <Tooltip
+                                    contentStyle={tooltipStyle}
+                                    cursor={{ fill: 'rgba(220, 220, 220, 0.2)' }}
+                                    formatter={value => [`${value}`, 'Value']}
+                                />
+                                <Legend
+                                    wrapperStyle={{
+                                        paddingTop: '20px',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                        fontSize: '0.875rem',
+                                    }}
+                                />
+                                <Bar
+                                    dataKey="value"
+                                    fill={`url(#barGradient-${isZoomedView ? 'zoomed' : 'normal'})`}
+                                    radius={[4, 4, 0, 0]}
+                                    isAnimationActive={true}
+                                    animationDuration={800}
+                                >
+                                    {data.map((_, index) => (
+                                        <Cell
+                                            key={`cell-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            fill={CHART_COLORS[index % CHART_COLORS.length]}
+                                            fillOpacity={0.9}
+                                            stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                                            strokeWidth={1}
+                                        />
                                     ))}
-                                </div>
-
-                                {/* Main grid with headers */}
-                                <div style={{ display: 'flex', flexDirection: 'column' }}>
-                                    {/* X-axis labels row */}
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            flexDirection: 'row',
-                                            height: '24px',
-                                            borderBottom: '1px solid #E5E7EB',
-                                        }}
-                                    >
-                                        {xCategories.map((xCat: string, xIndex: number) => (
-                                            <div
-                                                key={`x-label-${xIndex}`}
-                                                style={{
-                                                    width: '24px',
-                                                    display: 'flex',
-                                                    alignItems: 'center',
-                                                    justifyContent: 'center',
-                                                    fontSize: '0.75rem',
-                                                    color: '#4B5563',
-                                                    padding: '2px',
-                                                    transform: 'rotate(-90deg)',
-                                                    transformOrigin: 'center center',
-                                                    whiteSpace: 'nowrap',
-                                                    overflow: 'hidden',
-                                                    textOverflow: 'ellipsis',
-                                                }}
-                                            >
-                                                {xCat}
-                                            </div>
-                                        ))}
-                                    </div>
-
-                                    {/* Main heatmap grid */}
-                                    <div
-                                        style={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
-                                            border: '1px solid #E5E7EB',
-                                            borderRadius: '4px',
-                                            overflow: 'hidden',
-                                        }}
-                                    >
-                                        {yCategories.map((yCat: string, yIndex: number) => (
-                                            <div
-                                                key={`row-${yIndex}`}
-                                                style={{
-                                                    display: 'flex',
-                                                    flexDirection: 'row',
-                                                    borderBottom: yIndex < yCategories.length - 1 ? '1px solid #E5E7EB' : 'none',
-                                                }}
-                                            >
-                                                {xCategories.map((xCat: string, xIndex: number) => {
-                                                    const cell = heatMapData.find((d: any) => d.x === xCat && d.y === yCat);
-
-                                                    const cellValue = cell?.value;
-                                                    const cellColor =
-                                                        cellValue !== null && cellValue !== undefined
-                                                            ? getHeatMapColor(normalizeValue(cellValue, minValue, maxValue))
-                                                            : '#f5f5f5';
-
-                                                    return (
-                                                        <div
-                                                            key={`cell-${xIndex}-${yIndex}`}
-                                                            style={{
-                                                                width: '24px',
-                                                                height: '24px',
-                                                                backgroundColor: cellColor,
-                                                                display: 'flex',
-                                                                alignItems: 'center',
-                                                                justifyContent: 'center',
-                                                                fontSize,
-                                                                color: getContrastTextColor(cellColor),
-                                                                borderRight: xIndex < xCategories.length - 1 ? '1px solid #E5E7EB' : 'none',
-                                                                padding: cellPadding,
-                                                            }}
-                                                            title={`${xCat}, ${yCat}: ${cellValue}`}
-                                                        >
-                                                            {showValues && cellValue !== null && cellValue !== undefined ? cellValue : ''}
-                                                        </div>
-                                                    );
-                                                })}
-                                            </div>
-                                        ))}
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* X-axis label row */}
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'center',
-                                    marginTop: '8px',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 'bold',
-                                    color: '#374151',
-                                }}
-                            >
-                                {xAxisLabel || ''}
-                            </div>
-                        </div>
-
-                        {/* Color scale legend */}
-                        {colorLabel && <ColorLegend min={minValue} max={maxValue} label={colorLabel} />}
+                                </Bar>
+                            </BarChart>
+                        </ResponsiveContainer>
                     </div>
                 );
-            }
+
+            case 'pie':
+                return (
+                    <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>
+                        {!isZoomedView && screenshotButton}
+                        <div style={chartTitleStyle}>{title}</div>
+                        <ResponsiveContainer width="100%" height={isZoomedView ? 600 : 400}>
+                            <PieChart>
+                                <defs>
+                                    {CHART_COLORS.map((color, index) => (
+                                        <linearGradient
+                                            key={`gradientPie-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            id={`colorPie-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop offset="0%" stopColor={color} stopOpacity={0.9} />
+                                            <stop offset="100%" stopColor={color} stopOpacity={0.7} />
+                                        </linearGradient>
+                                    ))}
+                                </defs>
+                                <Pie
+                                    data={data}
+                                    cx="50%"
+                                    cy="50%"
+                                    labelLine={{
+                                        stroke: '#9CA3AF',
+                                        strokeWidth: 1,
+                                        strokeDasharray: '2 2',
+                                    }}
+                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                    outerRadius={isZoomedView ? '40%' : 160}
+                                    innerRadius={isZoomedView ? '20%' : 60} // Create a donut chart
+                                    paddingAngle={2}
+                                    cornerRadius={3}
+                                    fill="#8884d8"
+                                    dataKey="value"
+                                    isAnimationActive={true}
+                                    animationDuration={800}
+                                    animationBegin={100}
+                                >
+                                    {data.map((_, index) => (
+                                        <Cell
+                                            key={`cell-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            fill={`url(#colorPie-${index % CHART_COLORS.length}-${isZoomedView ? 'zoomed' : 'normal'})`}
+                                            stroke={CHART_COLORS[index % CHART_COLORS.length]}
+                                            strokeWidth={1}
+                                        />
+                                    ))}
+                                </Pie>
+                                <Tooltip formatter={value => [`${value}`, 'Value']} contentStyle={tooltipStyle} />
+                                <Legend
+                                    layout="horizontal"
+                                    verticalAlign="bottom"
+                                    align="center"
+                                    wrapperStyle={{
+                                        paddingTop: '20px',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                        fontSize: '0.875rem',
+                                    }}
+                                    iconType="circle"
+                                    iconSize={8}
+                                />
+                            </PieChart>
+                        </ResponsiveContainer>
+                    </div>
+                );
+
+            case 'scatter':
+                return (
+                    <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>
+                        {!isZoomedView && screenshotButton}
+                        <div style={chartTitleStyle}>{title}</div>
+                        <ResponsiveContainer width="100%" height={isZoomedView ? 600 : 400}>
+                            <ScatterChart margin={{ top: 10, right: 30, left: 25, bottom: 40 }}>
+                                <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.4} />
+                                <XAxis
+                                    type="number"
+                                    dataKey="x"
+                                    name={xAxisLabel}
+                                    tick={axisTickConfig}
+                                    stroke="#E5E7EB"
+                                    tickLine={{ stroke: '#E5E7EB' }}
+                                    axisLine={{ stroke: '#E5E7EB' }}
+                                    padding={{ left: 10, right: 10 }}
+                                >
+                                    {xAxisLabel && (
+                                        <Label
+                                            value={xAxisLabel}
+                                            position="insideBottom"
+                                            offset={-15}
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                fill: '#374151',
+                                                fontFamily:
+                                                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                            }}
+                                        />
+                                    )}
+                                </XAxis>
+                                <YAxis
+                                    type="number"
+                                    dataKey="y"
+                                    name={yAxisLabel}
+                                    tick={axisTickConfig}
+                                    stroke="#E5E7EB"
+                                    tickLine={{ stroke: '#E5E7EB' }}
+                                    axisLine={{ stroke: '#E5E7EB' }}
+                                >
+                                    {yAxisLabel && (
+                                        <Label
+                                            value={yAxisLabel}
+                                            angle={-90}
+                                            position="insideLeft"
+                                            offset={-10}
+                                            style={{
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                fill: '#374151',
+                                                fontFamily:
+                                                    '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                            }}
+                                        />
+                                    )}
+                                </YAxis>
+                                <Tooltip
+                                    cursor={{ strokeDasharray: '3 3', stroke: '#9CA3AF', strokeWidth: 1 }}
+                                    contentStyle={tooltipStyle}
+                                    formatter={value => [value, '']}
+                                    labelFormatter={(_, payload) => {
+                                        if (payload && payload.length > 0) {
+                                            return payload[0].payload.label || '';
+                                        }
+                                        return '';
+                                    }}
+                                />
+                                <Scatter name={title} data={data} fill={CHART_COLORS[0]} isAnimationActive={true}>
+                                    {data.map((entry, index) => (
+                                        <Cell
+                                            key={`cell-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]}
+                                            stroke="#FFFFFF"
+                                            strokeWidth={1}
+                                        />
+                                    ))}
+                                </Scatter>
+                            </ScatterChart>
+                        </ResponsiveContainer>
+                    </div>
+                );
 
             default:
                 return <div>Unsupported chart type: {type}</div>;
@@ -742,7 +644,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                     <div
                         style={{
                             ...(modalContentStyle as React.CSSProperties),
-                            overflow: 'auto',
+                            overflow: 'hidden',
                         }}
                         onClick={e => e.stopPropagation()} // Prevent closing when clicking on content
                     >
