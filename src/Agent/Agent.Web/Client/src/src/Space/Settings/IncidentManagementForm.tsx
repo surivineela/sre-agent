@@ -3,6 +3,7 @@ import { Spinner } from '@fluentui/react-components';
 import { FC, useMemo } from 'react';
 import { useIntl } from 'react-intl';
 import {
+    AzMonitorResources,
     IncidentManagementPlatformResources,
     IncidentManagementResources,
     PagerDutyResources,
@@ -26,6 +27,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
         () => [
             { key: IncidentManagementPlatform.Disconnected, text: intl.formatMessage(IncidentManagementPlatformResources.disconnected) },
             { key: IncidentManagementPlatform.PagerDuty, text: intl.formatMessage(IncidentManagementPlatformResources.pagerDuty) },
+            { key: IncidentManagementPlatform.AzMonitor, text: intl.formatMessage(IncidentManagementPlatformResources.azMonitor) },
         ],
         [intl]
     );
@@ -88,6 +90,18 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             canRevealPassword={true}
                             onRenderSuffix={isValidating && !isSubmitting ? () => <Spinner size={'tiny'} /> : undefined}
                         />
+                    </>
+                )}
+
+                {values.platform === IncidentManagementPlatform.AzMonitor && (
+                    <>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <img src="./AzMonitor.svg" alt="Azure Monitor" style={styles.azMonitorLogoStyle} />
+                            <span style={{ marginLeft: '10px', fontWeight: 'bold' }}>Azure Monitor</span>
+                        </div>
+                        <div style={styles.incidentManagementDescriptionStyle}>
+                            {intl.formatMessage(AzMonitorResources.azMonitorDescription)}
+                        </div>
                     </>
                 )}
 

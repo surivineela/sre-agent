@@ -82,6 +82,8 @@ const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, margi
 
 const pagerDutyLogoStyle: CSSProperties = { display: 'block', height: 20, marginTop: 20, marginBottom: 20 };
 
+const azMonitorLogoStyle: CSSProperties = { display: 'block', height: 30, marginTop: 10, marginBottom: 10 };
+
 export const useSettingsStyles = () => {
     return {
         noMcpServersContainer,
@@ -101,6 +103,7 @@ export const useSettingsStyles = () => {
         navPivotContainer,
         incidentManagementDescriptionStyle,
         pagerDutyLogoStyle,
+        azMonitorLogoStyle,
         getNavContainerStyles,
     };
 };

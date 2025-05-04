@@ -217,6 +217,7 @@ export const IncidentManagementResources = defineMessages({
 export const IncidentManagementPlatformResources = defineMessages({
     disconnected: { defaultMessage: 'Disconnected', id: 'FZeQlc' },
     pagerDuty: { defaultMessage: 'PagerDuty', id: '6UyZlH' },
+    azMonitor: { defaultMessage: 'Azure Monitor', id: '7Nz2Ev' },
 });
 
 export const IncidentManagementNotificationResources = defineMessages({
@@ -296,6 +297,14 @@ export const PagerDutyResources = defineMessages({
         id: '9Gaw/4',
     },
     pagerDutyApiKey: { defaultMessage: 'PagerDuty API Key', id: 'fSinmO' },
+});
+
+export const AzMonitorResources = defineMessages({
+    azMonitorDescription: {
+        defaultMessage:
+            'Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration.',
+        id: 'ADENR6',
+    },
 });
 
 export const SettingsTabResources = defineMessages({

@@ -3,6 +3,7 @@ import { FormikProps } from 'formik';
 export enum IncidentManagementPlatform {
     Disconnected = 'Disconnected',
     PagerDuty = 'PagerDuty',
+    AzMonitor = 'AzMonitor',
 }
 
 export interface IncidentManagementFormValues {

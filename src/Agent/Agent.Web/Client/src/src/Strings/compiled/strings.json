@@ -187,6 +187,12 @@
       "value": "Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources."
     }
   ],
+  "7Nz2Ev": [
+    {
+      "type": 0,
+      "value": "Azure Monitor"
+    }
+  ],
   "7cS956": [
     {
       "type": 0,
@@ -285,6 +291,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "ADENR6": [
+    {
+      "type": 0,
+      "value": "Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration."
     }
   ],
   "AXAtAX": [
