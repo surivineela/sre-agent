@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -194,7 +194,7 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInformation($"Starting background services...");
 
         StartCrawlerTimer(cancellationToken);
-        
+
         _logger.LogInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
 
@@ -436,7 +436,7 @@ public class TimerService : IHostedService, IDisposable
                     _logger.LogInformation("No daily report generated.");
                     return;
                 }
-                await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
+                //await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
             }
             catch (Exception ex)
             {
@@ -522,22 +522,6 @@ public class TimerService : IHostedService, IDisposable
                     _logger.LogInformation("Waiting for first crawler run to complete before sending PagerDuty welcome message.");
                     return;
                 }
-                // STACY TO DO:
-                // clean up code
-
-                // STACY TO DO:
-                // this is hard coded to check for pagerDutyLa logic app need to not hard code this
-                // actually I need find another way to check the pagerDuty connection because I don't think logic apps are always discovered....
-                // i think another way to do this is update logic app bicep to send a http call to trigger this timer idk
-
-                //var pagerDutyLaQuery = "g.V().has('resourceName', 'pagerdutyla')";
-                //var pagerDutyLaResult = await _graphPlugin.Query(pagerDutyLaQuery);
-
-                //if (!pagerDutyLaResult.Any())
-                //{
-                //    _logger.LogInformation("PagerDuty Logic App resource not found in graph, skipping welcome message.");
-                //    return;
-                //}
 
                 var welcomeThreads = await _repository.GetThreadsBySourceAsync(null, ThreadSource.WelcomeMessage);
                 if (welcomeThreads.Any())

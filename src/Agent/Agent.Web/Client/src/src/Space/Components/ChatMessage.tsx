@@ -10,6 +10,7 @@ import mermaid from 'mermaid';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
+import DailyReport from '../../Common/Components/DailyReport';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -501,6 +502,22 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         }
     };
 
+    // Add a new method to render the daily report
+    const renderDailyReport = () => {
+        try {
+            const dailyReportData = JSON.parse(message.text);
+            return <DailyReport data={dailyReportData} timestamp={message.timeStamp} />;
+        } catch (e) {
+            console.error('Failed to parse daily report:', e);
+            return (
+                <div>
+                    <div style={{ color: 'red', marginBottom: '8px' }}>Failed to parse daily report:</div>
+                    <pre style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>{message.text}</pre>
+                </div>
+            );
+        }
+    };
+
     switch (message.author.role) {
         case 'SREAgent':
             return (
@@ -519,6 +536,9 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                         {/* For messages with approval - text content may be empty, so we may only need to render approval UI */}
                         {message.approval ? (
                             <>{renderApprovalContent()}</>
+                        ) : message.isDailyReport ? (
+                            /* For daily reports, render the daily report */
+                            <>{renderDailyReport()}</>
                         ) : (
                             /* For regular messages, just render the content */
                             renderContent()

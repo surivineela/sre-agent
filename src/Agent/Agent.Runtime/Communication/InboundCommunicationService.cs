@@ -67,9 +67,10 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Agent,
         string incidentId = "",
-        IncidentSource? incidentSource = null)
+        IncidentSource? incidentSource = null,
+        bool isDailyReport = false)
     {
-        return await CreateThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource);
+        return await CreateThread(title, message, source, agentTypeEnum, incidentId: incidentId, incidentSource: incidentSource, isDailyReport: isDailyReport);
     }
 
     public async Task<Core.Models.Api.v1.Thread> CreateAlertThreadWithTeams(
@@ -263,7 +264,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         AgentTypeEnum agentTypeEnum,
         OutboundConfiguration? outboundConfiguration = null,
         string incidentId = "",
-        IncidentSource? incidentSource = null)
+        IncidentSource? incidentSource = null,
+        bool isDailyReport = false)
     {
         var now = DateTime.UtcNow;
         var startMessage = new Message(
@@ -272,7 +274,8 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             new Author(Role.SREAgent, "agent-default", "Azure SRE Agent"),
             message,
             false,
-            new Posted(false)
+            new Posted(false),
+            IsDailyReport : isDailyReport
         );
 
         var thread = new Core.Models.Api.v1.Thread(

@@ -30,7 +30,8 @@ public interface IAgentInboundCommunicationService
         AgentTypeEnum agentTypeEnum,
         ThreadSource source = ThreadSource.Conversation,
         string incidentId = "",
-        IncidentSource? incidentSource = null);
+        IncidentSource? incidentSource = null,
+        bool isDailyReport = false);
 
     /// <summary>
     /// Used for alert scenarios, where we need to create a new thread for an agent to work from,

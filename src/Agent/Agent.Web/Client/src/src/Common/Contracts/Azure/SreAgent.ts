@@ -96,7 +96,9 @@ export interface Message {
     timeStamp: string;
     author: MessageAuthor;
     text: string;
+    title?: string;
     approval?: Approval;
+    isDailyReport?: boolean;
 }
 
 export interface KnowledgeGraphBuildStatus {

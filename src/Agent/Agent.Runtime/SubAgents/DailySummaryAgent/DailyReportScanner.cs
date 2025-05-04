@@ -8,11 +8,13 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Text.RegularExpressions;
+using System.Threading;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Runtime.Services;
 using Azure.Core;
@@ -20,7 +22,13 @@ using Azure.Identity;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Microsoft.Graph.Models.Security;
+using Octokit;
+using static Agent.Runtime.SubAgents.DailyReportSummary.DailyReportScanner;
 using Thread = Agent.Core.Models.Api.v1.Thread;
+using System.Collections.Concurrent;
+using System.Linq;
+using Microsoft.Extensions.Configuration;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {
@@ -49,6 +57,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly bool _persistScreenshotsInFolder;
         private List<ArmResourceNode> _armResourceNodes;
         private readonly IAuthenticationService _authenticationService;
+        private readonly IIncidentRepository _incidentRepository;
+        private readonly IGithubIssuePlugin _githubIssuePlugin;
+        private readonly IConfiguration _configuration;
 
         private readonly string DashboardScreenshotsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashboardScreenshots");
 
@@ -62,6 +73,15 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             { "microsoft.web/sites", "azure-app-service" },
             // Pending: webapp, sql
         };
+
+        private static readonly ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>> _appHealthHistory 
+            = new ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>>();
+
+        private class AppHealthInfoWithTimestamp
+        {
+            public AppHealthInfo HealthInfo { get; set; }
+            public DateTime Timestamp { get; set; }
+        }
 
         public DailyReportScanner(
             DurableTaskClient durableTaskClient,
@@ -77,6 +97,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             DashboardSettings dashboardSettings,
             IGraphService graphDbService,
             IAuthenticationService authenticationService,
+            IIncidentRepository incidentRepository,
+            IGithubIssuePlugin githubIssuePlugin,
+            IConfiguration configuration,
             string mainDashboardFile = "Main-Dashboard.json",
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
@@ -115,6 +138,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _graphDbService = graphDbService;
             _persistScreenshotsInFolder = !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("PERSIST_SCREENSHOTS"));
             _authenticationService = authenticationService;
+            _incidentRepository = incidentRepository;
+            _githubIssuePlugin = githubIssuePlugin;
+            _configuration = configuration;
         }
 
         public async Task<Thread?> ScanAndGenerateReport(CancellationToken cancellationToken)
@@ -147,113 +173,82 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var now = DateTime.UtcNow;
             var todayReportTime = new DateTime(now.Year, now.Month, now.Day, 7, 0, 0, DateTimeKind.Utc); // 7 AM UTC
 
-            // Skip if it's not time yet for the daily report
+            //Skip if it's not time yet for the daily report
             // the daily report timer interval is 1 hour, so this will evaluate to false if the current hour is 7
             if (now.Hour != todayReportTime.Hour && didItOnce)
             {
                 _logger.LogDebug("Not time for daily report yet. Current hour: {CurrentHour}, Target hour: {TargetHour}",
                     now.Hour, todayReportTime.Hour);
+
+                //even if not returning the daily report add app health info to aggregate it later
+                await addAppHealthInfo();
+                _logger.LogDebug("Added current app health info to app health dictionary. Current hour: {CurrentHour}, Target hour: {TargetHour}",
+                now.Hour, todayReportTime.Hour);
+
                 return null;
             }
 
             didItOnce = true;
 
-            string mainDashboardUrl = await TryToImportDashboards();
-            // to do: stacyzeng - remove this in future temporary solution
-            // delay the scanner by 15 mins to allow more resources to be crawled & health info populated
-            await Task.Delay(TimeSpan.FromMinutes(15));
-            _logger.LogInformation("Wait for a while to allow more resources to be crawled");
+            var cveSummary = await GetCVESummary();
+            var incidentsSummary = await GetIncidentsSummary();
+            var appGroupsHealthSummary = await GetAppGroupsHealthSummaryAsync();
+            var dashboardSummary = string.Empty;
+            
+            string mainDashboardUrl = string.Empty;
 
-            // Get the list of resource types from the knowledge graph
-            _armResourceNodes = await _graphDbService.GetAllResourceNodes();
-            _logger.LogInformation("Found {Count} resource nodes in the knowledge graph", _armResourceNodes.Count);
-
-            // generate health summary from score cards
-            var (healthInfoList, healthSummary) = await GetAppHealthSummaryAsync();
-            _logger.LogInformation("Generated health summary for resources");
-
-            // generate new thread summary
-            var threadSummary = await GenerateThreadSummaryAsync();
-            _logger.LogInformation("Generated thread summary");
-
-            // generate dashboard summary
-            // create and publish custom dashboard
-            // add try catch, in case of grafana or dashboard failures daily report is still generated
-            string dashboardSummary = string.Empty;
-            try
+            // only try to generate dashboard summary if grafana is enabled
+            if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl) && !string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaApiKey))
             {
-                // NEW: Capture screenshots of the main dashboard and get LLM summary before starting orchestration
-                _logger.LogInformation("Capturing dashboard screenshots for LLM analysis");
-                dashboardSummary = await CaptureAndSummarizeDashboardsAsync(mainDashboardUrl);
-            }
-            catch
-            {
-                _logger.LogError("Failed to create and publish dashboard, generate daily report without it");
-            }
-
-            // pass all generated summaries to create concise summary of dashboard and generate action items
-            var conciseSummary = await GenerateConciseSummaryAsync(dashboardSummary, mainDashboardUrl, string.Join("\n", healthInfoList), threadSummary);
-
-            // Create a thread for the report
-            var initialMessage = new StringBuilder();
-
-            // Add the title with the day of the week and date
-            var dayOfWeek = now.ToString("dddd", CultureInfo.InvariantCulture); // e.g., Monday
-            var dateFormatted = now.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture); // e.g., March 20, 2023
-            initialMessage.AppendLine($"# Daily Report - {dayOfWeek}, {dateFormatted} UTC");
-            initialMessage.AppendLine();
-
-            // Add a friendly introduction
-            initialMessage.AppendLine("👋 Hi there! Your friendly SRE Agent here. I've been working hard over the past 24 hours to keep everything running smoothly.");
-            initialMessage.AppendLine("Here are the actions I recommend you consider or take to ensure everything stays on track:");
-            initialMessage.AppendLine();
-
-            // Append the concise summary, health summary, and thread summary
-            initialMessage.AppendLine(conciseSummary);
-            initialMessage.AppendLine();
-            initialMessage.AppendLine("### Here is the state of things currently:");
-            initialMessage.AppendLine();
-            initialMessage.AppendLine(healthSummary);
-            initialMessage.AppendLine();
-            initialMessage.AppendLine(threadSummary);
-            initialMessage.AppendLine();
-
-            if (string.IsNullOrEmpty(mainDashboardUrl))
-            {
-                // Add a note about the dashboard
-                initialMessage.AppendLine($"**I created this dashboard for you to give an overview: [SRE Agent Resource Dashboard]({mainDashboardUrl})**");
-                initialMessage.AppendLine();
-            }
-
-            (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
-                $"Daily Resources Report - {dateFormatted}\n\n",
-                initialMessage.ToString(),
-                agentTypeEnum: AgentTypeEnum.DTS);
-
-            // to do: stacyzeng - add retry logic
-            // Append the screenshot as separate message, this message will be excluded from the chat history to LLM due to token limitation.
-            try
-            {
-                var screenshot = (await CaptureDashboardScreenshotAsync(SreDashboard, armResourceNode: null))?.Screenshot;
-                PersistScreenshot("SreDashboard", screenshot);
-                if (screenshot != null)
+                try
                 {
-                    await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Id, $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n");
+                    mainDashboardUrl = await TryToImportDashboards();
+                    dashboardSummary = await CaptureAndSummarizeDashboardsAsync(mainDashboardUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to create and publish dashboard, generate daily report without it");
                 }
             }
-            catch
-            {
-                // if screenshot fails daily report is still generated
-                _logger.LogError("Failed to capture screenshot, generate daily report without it");
-            }
+            var suggestedActionsAndObservations = await GenerateSuggestedActionsAndOverallObservations(dashboardSummary, mainDashboardUrl, cveSummary, appGroupsHealthSummary, incidentsSummary);
+
+            var overview = GenerateOverview(cveSummary, incidentsSummary, appGroupsHealthSummary);
 
             // Prepare the input for the agent
             var input = new DailyReportSummaryInput
             {
                 ReportType = "Daily",
                 Timespan = "1d",
-                DashboardSummary = dashboardSummary
+                Overview = overview,
+                CVESummary = cveSummary,
+                IncidentsSummary = incidentsSummary,
+                AppGroupResourceSummary = appGroupsHealthSummary,
+                RecommendedActionsAndObservations = suggestedActionsAndObservations
             };
+
+            // generate thread
+            // Add the title with the day of the week and date
+            var dayOfWeek = now.ToString("dddd", CultureInfo.InvariantCulture); // e.g., Monday
+            var dateFormatted = now.ToString("MMMM dd, yyyy", CultureInfo.InvariantCulture); // e.g., March 20, 2023
+
+            // generate json string to pass to the agent
+            var report = JsonSerializer.Serialize(input, new JsonSerializerOptions
+            {
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
+                Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+                Converters =
+                {
+                    new JsonStringEnumConverter(JsonNamingPolicy.CamelCase)
+                }
+            });
+
+            (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                $"Daily Resources Report - {dateFormatted}\n\n",
+                report,
+                agentTypeEnum: AgentTypeEnum.DTS,
+                ThreadSource.Agent,
+                isDailyReport: true);
 
             // Start the agent orchestration
             var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, agentContext.ThreadId);
@@ -285,6 +280,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 _logger.LogError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
             }
+
             return thread;
         }
 
@@ -721,7 +717,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 var messages = new List<ChatMessage>();
 
                 // Add system message with instructions
-                // Add system message with instructions
                 messages.Add(new ChatMessage(ChatRole.System,
                      "You are an expert in analyzing Azure infrastructure and monitoring dashboards. You address yourself as Azure SRE Agent. " +
                      "Your task is to examine the provided dashboard screenshots for last 24 hours and create a very very detailed summary about usage and health of resources" +
@@ -817,47 +812,96 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task<string> GenerateConciseSummaryAsync(string detailedSummary, string dashboardUrl, string appHealthSummary, string threadsSummary)
+        private async Task<RecommendedActionsAndObservations> GenerateSuggestedActionsAndOverallObservations(
+            string dashboardSummary,
+            string dashboardUrl,
+            CVESummary cveSummary,
+            List<AppGroupResourceSummary> appHealthSummary,
+            IncidentSummary incidentsSummary)
         {
             var messages = new List<ChatMessage>();
 
-            // Concise refinement instructions
+            // Convert all objects to JSON strings
+            var context = new
+            {
+                DashboardSummary = dashboardSummary,
+                CVESummary = cveSummary,
+                AppHealthSummary = appHealthSummary,
+                IncidentsSummary = incidentsSummary
+            };
+
+            var jsonContext = JsonSerializer.Serialize(context, new JsonSerializerOptions 
+            { 
+                WriteIndented = true,
+                DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
+            });
+
+            // Concise refinement instructions with context
             messages.Add(new ChatMessage(ChatRole.System,
-                "You are Azure SRE Agent. Your task is now to refine the provided detailed summary" +
-                "into a very concise version. Focus solely on the most actionable findings, critical insights, and key metrics." +
-                "Eliminate any unnecessary details while retaining the essence of the dashboard analysis." +
-                "Then based on the refined summary, appHealthSummary, and threadsSummary provide action steps." +
-                "if there is no detailed dashboard summary, still provide a response based on appHealthSummary and threadsSummary" +
-                "**Response Format 📝**\n" +
-                "- First provide a section with Suggested Actions and Key Insights. Make sure actional steps is first.\n" +
-                "- Provide reasoning for identified metrics and anomalies\n" +
-                "- Follow up with a section with Actions already taken by SRE agent. Include how many incidents were worked on based on the threads summary and how many resources monitored based on the appHealthSummary\n" +
-                "- Use H3 headings only (###) with professional emojis\n" +
-                "- Include appropriate line breaks for readability\n" +
-                "- Put Azure IDs in code blocks\n" +
-                "- Use clear indicators: ✅ healthy, ⚠️ warning, ❌ critical\n" +
-                "- Focus on actionable insights\n"
+                "You are Azure SRE Agent, an expert in analyzing Azure infrastructure and generating actionable insights. " +
+                "I will provide you with monitoring data in JSON format that may include some or all of these sections:\n" +
+                "- DashboardSummary: Overall system dashboard metrics and trends\n" +
+                "- CVESummary: Security vulnerabilities and their details\n" +
+                "- AppHealthSummary: Health status of applications across subscriptions\n" +
+                "- IncidentsSummary: Active and recent incidents from PagerDuty and Azure Monitor\n\n" +
+                "For any sections that are null, empty, or missing, simply ignore them and focus on the available data.\n\n" +
+                "Here is the current monitoring data:\n\n" + jsonContext + "\n\n" +
+                "Based on the available data, generate a structured response with prioritized actions and key observations. " +
+                "Your response must be in this JSON format:\n" +
+                "{\n" +
+                "  \"actions\": [\n" +
+                "    {\n" +
+                "      \"priority\": \"High/Medium/Low\",\n" +
+                "      \"description\": \"Clear, specific action to take\",\n" +
+                "      \"eta\": \"Immediate/Today/Tomorrow/This week\"\n" +
+                "    }\n" +
+                "  ],\n" +
+                "  \"observations\": [\n" +
+                "    \"Clear, data-driven insights with specific metrics\"\n" +
+                "  ]\n" +
+                "}\n\n" +
+                "Guidelines:\n" +
+                "1. Only reference data that is actually present in the monitoring data\n" +
+                "2. Prioritize by severity: Critical CVEs > High CVEs > Unhealthy Apps > Performance Issues\n" +
+                "3. For each action, ensure the assignee and ETA are appropriate for the task\n" +
+                "4. Include specific metrics and trends in observations when available\n" +
+                "5. Suggest automated remediation for common issues\n" +
+                "6. If no critical issues are found, focus on optimization and preventive measures"
             ));
-            messages.Add(new ChatMessage(ChatRole.System, $"Refinement performed at: {DateTime.Now:yyyy-MM-dd HH:mm:ss} local time."));
-            messages.Add(new ChatMessage(ChatRole.System, $"Reference dashboard URL: {dashboardUrl}"));
+
+            messages.Add(new ChatMessage(ChatRole.System, $"Analysis performed at: {DateTime.Now:yyyy-MM-dd HH:mm:ss} local time."));
+            if (!string.IsNullOrEmpty(dashboardUrl))
+            {
+                messages.Add(new ChatMessage(ChatRole.System, $"Reference dashboard URL: {dashboardUrl}"));
+            }
+
             messages.Add(new ChatMessage(ChatRole.User,
-                $"Here is the detailed summary:\n\n{detailedSummary}\n\n" +
-                $"If there is a gremlin json(Very concise), summarize it in max 1-2 lines.\n\n" +
-                $"Notify: Activated the Default Dashboards on Azure Managed Grafana for Cosmos, WebApp, Redis, ContainerApp, Storage. Used some of these dashboard to produce the summary for today\n\n" +
-                "Please produce a very concise version highlighting only the most important points and make all points as actionable as possible"
-            ));
+                "Generate a JSON response with prioritized actions and key observations based on the available monitoring data."));
 
             var options = new ChatOptions
             {
-                Temperature = 0.2f,
+                Temperature = (float)0.2,
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
-                    ["response_format"] = "text"
+                    ["response_format"] = "json"
                 }
             };
 
             var response = await _chatClient.GetResponseAsync(messages, options);
-            return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate concise summary.";
+            var jsonResponse = response.Messages[0].Text;
+            string jsonResponseCleaned = jsonResponse.Replace("```json", "").Replace("```", "").Trim();
+            try
+            {
+                return JsonSerializer.Deserialize<RecommendedActionsAndObservations>(
+                    jsonResponseCleaned,
+                    new JsonSerializerOptions { PropertyNameCaseInsensitive = true }
+                );
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to parse LLM response as JSON: {Response}", jsonResponse);
+                return new RecommendedActionsAndObservations();
+            }
         }
 
         private async Task<(string, string)> CreateAndPublishDashboard(string dataSourceUid)
@@ -1071,58 +1115,433 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
         }
 
-        private async Task<(List<AppHealthInfo>, string)> GetAppHealthSummaryAsync()
+        private async Task<CVESummary> GetCVESummary()
         {
-            var healthInfoList = new List<AppHealthInfo>();
-            var summary = new StringBuilder();
-            summary.AppendLine($"### 🔍 Resource Health Summary:");
-            summary.AppendLine();
-            summary.AppendLine($"**{_armResourceNodes.Count}** resources found\n");
+            _logger.LogInformation("Fetching CVE summary...");
+            var summary = new CVESummary();
 
-            foreach (var node in _armResourceNodes)
+            try
             {
-                if (node.AppHealthInfo != null)
+                // Get all repositories from the graph database
+                var unscannedRepos = await _graphDatabaseClient.Query(@"
+                    g.V().has('resourceType', 'microsoft.source/repository')
+                    .values('resourceId')");
+
+                var repos = unscannedRepos
+                    .Select(x => (string)x)
+                    .OrderBy(resourceId => resourceId.Split("/").Last())
+                    .ToList();
+
+                foreach (var repoUrl in repos)
                 {
-                    healthInfoList.Add(node.AppHealthInfo);
+                    try
+                    {
+                        // Fetch GitHub security dependabot alerts for each repo
+                        var vulnerabilities = await _githubIssuePlugin.FetchGithubSecurityDependabotAlerts(repoUrl);
+
+                        // Filter vulnerabilities from the last 24 hours
+                        var now = DateTime.UtcNow;
+                        var last24Hours = now.AddDays(-1);
+
+                        foreach (var vulnerability in vulnerabilities)
+                        {
+                            var cveInfo = new CVEInfo
+                            {
+                                RepoUrl = repoUrl,
+                                Number = vulnerability.Number,
+                                State = vulnerability.State,
+                                Title = vulnerability.Title,
+                                Description = vulnerability.Body
+                            };
+
+                            summary.Vulnerabilities.Add(cveInfo);
+
+                            // Track vulnerabilities by repo
+                            if (!summary.VulnerabilitiesByRepo.ContainsKey(repoUrl))
+                            {
+                                summary.VulnerabilitiesByRepo[repoUrl] = new List<string>();
+                            }
+                            summary.VulnerabilitiesByRepo[repoUrl].Add(vulnerability.Title);
+
+                            // Update vulnerability counts
+                            summary.TotalVulnerabilities++;
+                            switch (vulnerability.Body.ToLowerInvariant())
+                            {
+                                case var s when s.Contains("critical"):
+                                    summary.CriticalVulnerabilities++;
+                                    break;
+                                case var s when s.Contains("high"):
+                                    summary.HighVulnerabilities++;
+                                    break;
+                                case var s when s.Contains("medium"):
+                                    summary.ModerateVulnerabilities++;
+                                    break;
+                                case var s when s.Contains("low"):
+                                    summary.LowVulnerabilities++;
+                                    break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogError(ex, "Error fetching CVE information for repo {RepoUrl}: {Message}", repoUrl, ex.Message);
+                    }
                 }
             }
-
-            if (!healthInfoList.Any())
+            catch (Exception ex)
             {
-                summary.AppendLine("No health information available for any resources");
-
-                return (healthInfoList, summary.ToString());
+                _logger.LogError(ex, "Error generating CVE summary: {Message}", ex.Message);
             }
 
-            // Calculate summary statistics
-            var healthyCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Healthy);
-            var degradedCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Degraded);
-            var unhealthyCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Unhealthy);
-            var unknownCount = healthInfoList.Count(h => h.Health == ScorecardHealthState.Unknown);
-            var totalCount = healthyCount + degradedCount + unhealthyCount + unknownCount;
-
-            var avgAvailability = healthInfoList.Where(h => h.Availability.HasValue).Average(h => h.Availability.Value);
-            var avgCpuUsage = healthInfoList.Where(h => h.AvgCpuUsage.HasValue).Average(h => h.AvgCpuUsage.Value);
-            var avgMemoryUsage = healthInfoList.Where(h => h.AvgMemoryUsage.HasValue).Average(h => h.AvgMemoryUsage.Value);
-            var totalCost = healthInfoList.Where(h => h.Costs.HasValue).Sum(h => h.Costs.Value);
-
-            summary.AppendLine($"**Total number of resources with health info: {totalCount}**");
-            summary.AppendLine();
-            summary.AppendLine($"📊 **Health Status:**");
-            summary.AppendLine($"- ✅ Healthy: {healthyCount}");
-            summary.AppendLine($"- ⚠️ Degraded: {degradedCount}");
-            summary.AppendLine($"- ❌ Unhealthy: {unhealthyCount}");
-            summary.AppendLine($"- ❓ Unknown: {unknownCount}");
-            summary.AppendLine();
-            summary.AppendLine($"📈 **Performance Metrics:**");
-            summary.AppendLine($"- Average Availability: {avgAvailability:F2}%");
-            summary.AppendLine($"- Average CPU Usage: {avgCpuUsage:F2}%");
-            summary.AppendLine($"- Average Memory Usage: {avgMemoryUsage:F2} bytes");
-
-            return (healthInfoList, summary.ToString());
+            return summary;
         }
 
+        private async Task<List<AppGroupResourceSummary>> GetAppGroupsHealthSummaryAsync()
+        {
+            // Clean up old entries (older than 24 hours)
+            DateTime cutoffTime = DateTime.UtcNow.AddDays(-1);
+            foreach (var key in _appHealthHistory.Keys)
+            {
+                _appHealthHistory.TryGetValue(key, out var history);
+                if (history != null)
+                {
+                    // Remove old entries
+                    var filteredHistory = history.Where(h => h.Timestamp >= cutoffTime).ToList();
+                    _appHealthHistory[key] = filteredHistory;
+                }
+            }
+            
+            var result = new List<AppGroupResourceSummary>();
+            var subscriptions = await _graphDBPlugin.ListSubscriptionsAsync();
+            
+            foreach (var sub in subscriptions)
+            {
+                var appGroups = await _graphDbService.GetAppGroupsBySubscriptionAsync(sub["id"]);
+                var summary = new List<AppGroupResourceInfo>();
+                
+                if (appGroups != null)
+                {
+                    foreach (var appGroup in appGroups)
+                    {
+                        var properties = appGroup["properties"] as IDictionary<string, object>;
+                        string appGroupId = appGroup["id"]?.ToString();
+                        
+                        if (properties != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
+                        {
+                            var options = new JsonSerializerOptions
+                            {
+                                IncludeFields = true,
+                            };
 
+                            var jsonStringList = ((IEnumerable<object>)appHealthInfoObj)
+                                .OfType<string>()
+                                .Where(s => !string.IsNullOrEmpty(s))
+                                .ToList();
+                            
+                            if (jsonStringList.Any())
+                            {
+                                // Get latest health data point
+                                var latestHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0], options);
+                                
+                                if (latestHealthInfo != null)
+                                {
+                                    // Add current data point to history
+                                    if (!_appHealthHistory.TryGetValue(appGroupId, out var history))
+                                    {
+                                        history = new List<AppHealthInfoWithTimestamp>();
+                                        _appHealthHistory[appGroupId] = history;
+                                    }
+                                    
+                                    history.Add(new AppHealthInfoWithTimestamp
+                                    {
+                                        HealthInfo = latestHealthInfo,
+                                        Timestamp = DateTime.UtcNow
+                                    });
+                                    
+                                    // Create aggregated view based on stored history
+                                    var aggregatedHealthInfo = AggregateHealthInfoFromHistory(appGroupId);
+                                    
+                                    summary.Add(new AppGroupResourceInfo
+                                    {
+                                        Name = appGroup["name"]?.ToString() ?? string.Empty,
+                                        Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                        AppHealthInfo = aggregatedHealthInfo
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+
+                result.Add(new AppGroupResourceSummary
+                {
+                    SubscriptionId = sub["id"]?.ToString() ?? string.Empty,
+                    SubscriptionName = sub["name"]?.ToString() ?? string.Empty,
+                    AppGroups = summary
+                });
+            }
+
+            return result;
+        }
+
+        private AppHealthInfo AggregateHealthInfoFromHistory(string appGroupId)
+        {
+            if (!_appHealthHistory.TryGetValue(appGroupId, out var history) || !history.Any())
+            {
+                return null;
+            }
+            
+            var healthInfos = history.Select(h => h.HealthInfo).ToList();
+            
+            return new AppHealthInfo
+            {
+                LastDataCaptureTimeStampInUTC = DateTime.UtcNow,
+
+                // Determine overall health based on worst state in past 24 hours
+                Health = DetermineAggregateHealth(healthInfos.Select(h => h.Health)), 
+                // Average metrics for last 24 hours
+                Availability = healthInfos.Average(h => h.Availability),
+                AvgCpuUsage = healthInfos.Average(h => h.AvgCpuUsage),
+                AvgMemoryUsage = healthInfos.Average(h => h.AvgMemoryUsage),
+                
+                // Sum transactions over the period
+                Transactions = healthInfos.Sum(h => h.Transactions),
+                
+                // Include the 24-hour historical data
+                HistoricalData = history
+                    .OrderBy(h => h.Timestamp)
+                    .Select(h => new HistoricalDataPoint
+                    {
+                        Timestamp = h.Timestamp,
+                        Availability = h.HealthInfo.Availability,
+                        CpuUsage = h.HealthInfo.AvgCpuUsage,
+                        MemoryUsage = h.HealthInfo.AvgMemoryUsage
+                    })
+                    .ToList()
+            };
+        }
+
+        private static ScorecardHealthState DetermineAggregateHealth(IEnumerable<ScorecardHealthState> healthStatuses)
+        {
+            if (healthStatuses.Any(h => h == ScorecardHealthState.Unhealthy))
+                return ScorecardHealthState.Unhealthy;
+            if (healthStatuses.Any(h => h == ScorecardHealthState.Degraded))
+                return ScorecardHealthState.Degraded;
+            else
+                return ScorecardHealthState.Healthy;
+        }
+
+        private async Task<IncidentSummary> GetIncidentsSummary()
+        {
+            _logger.LogInformation("Fetching incidents summary...");
+
+            var result = new IncidentSummary();
+
+            // get all incidents from the last 24 hours
+            var now = DateTime.UtcNow;
+            var last24Hours = now.AddDays(-1);
+            var pagerDutyIncidents = await _incidentRepository.GetAllPagerDutyIncidentsAsync();
+            var azMonIncidents = await _incidentRepository.GetAllAzMonIncidentsAsync();
+
+            // Filter incidents created in the last 24 hours
+            pagerDutyIncidents = pagerDutyIncidents.Where(i => i.CreatedAt >= last24Hours).ToList();
+            azMonIncidents = azMonIncidents.Where(i => i.CreatedAt >= last24Hours).ToList();
+
+            // PagerDuty Incidents
+            var pagerDutyIncidentsSummary = new List<IncidentInfo>();
+            foreach (var incident in pagerDutyIncidents)
+            {
+                // generate an impact summary
+                var impactSummary = await GenerateIncidentImpactSummaryAsync(incident.ToString());
+
+                // generate a resolution or investigation status summary
+                var resolutionSummary = string.Empty;
+                var investigationSummary = string.Empty;
+                if (incident.Status != "closed")
+                {
+                    investigationSummary = await GenerateIncidentInvestigationSummaryAsync(incident.ToString());
+                }
+                else
+                {
+                    resolutionSummary = await GenerateIncidentResolutionAsync(incident.ToString());
+                }
+
+                // get incident thread (ie: thread in Cosmos where IncidentId = incident.Id)
+                string threadId = "";
+                // Get all threads and find the one with matching incident ID
+                var allThreads = await _threadRepository.GetThreadsAsync(null);
+                var incidentThread = allThreads.FirstOrDefault(t => 
+                    t.IncidentSource?.IncidentId == incident.Id);
+                
+                if (incidentThread != null)
+                {
+                    threadId = incidentThread.Id.ToString();
+                }
+
+                pagerDutyIncidentsSummary.Add(
+                   new IncidentInfo
+                   {
+                       IncidentId = incident.Id,
+                       Name = incident.Title,
+                       CreateTime = incident.CreatedAt,
+                       Duration = DateTime.UtcNow - incident.CreatedAt,
+                       Status = incident.Status,
+                       Impact = impactSummary,
+                       Resolution = resolutionSummary,
+                       InvestigationDetails = investigationSummary,
+                       ThreadLink = GenerateThreadLink(threadId)
+                   });
+            }
+
+            result.PagerDuty = pagerDutyIncidentsSummary;
+
+            // azure monitor
+            var azMonIncidentsSummary = new List<IncidentInfo>();
+            foreach (var incident in azMonIncidents)
+            {
+                // generate an impact summary
+                var impactSummary = await GenerateIncidentImpactSummaryAsync(incident.ToString());
+
+                // generate a resolution or investigation status summary
+                var resolutionSummary = string.Empty;
+                var investigationSummary = string.Empty;
+                if (incident.Status != "closed")
+                {
+                    investigationSummary = await GenerateIncidentInvestigationSummaryAsync(incident.ToString());
+                }
+                else
+                {
+                    resolutionSummary = await GenerateIncidentResolutionAsync(incident.ToString());
+                }
+
+                // get incident thread (ie: thread in Cosmos where IncidentId = incident.Id)
+                string threadId = "";
+                // Get all threads and find the one with matching incident ID
+                var allThreads = await _threadRepository.GetThreadsAsync(null);
+                var incidentThread = allThreads.FirstOrDefault(t => 
+                    t.Status?.IncidentStatus?.IncidentId == incident.Id);
+                
+                if (incidentThread != null)
+                {
+                    threadId = incidentThread.Id.ToString();
+                }
+
+                var incidentSummary = new IncidentInfo
+                {
+                    IncidentId = incident.Id,
+                    Name = incident.Title,
+                    CreateTime = incident.CreatedAt.DateTime,
+                    Duration = DateTime.UtcNow - incident.CreatedAt,
+                    Status = incident.Status,
+                    Impact = impactSummary,
+                    Resolution = resolutionSummary,
+                    InvestigationDetails = investigationSummary,
+                    ThreadLink = GenerateThreadLink(threadId)
+                };
+                
+                azMonIncidentsSummary.Add(incidentSummary);
+            }
+
+            result.AzureMonitor = azMonIncidentsSummary;
+
+            return result;
+        }
+
+        private async Task<string> GenerateIncidentInvestigationSummaryAsync(string incidentInfo)
+        {
+            try
+            {
+                var messages = new List<ChatMessage>();
+
+                messages.Add(new ChatMessage(ChatRole.System, 
+                    "You are an Azure SRE Agent analyzing incident information. " +
+                    "Generate a brief, one sentenced, focused summary of the ongoing investigation status. " + 
+                    "Keep the response concise and highlight only the key investigation points."));
+
+                messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
+
+                var options = new ChatOptions
+                {
+                    Temperature = (float)0.2,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        ["response_format"] = "text"
+                    }
+                };
+
+                var response = await _chatClient.GetResponseAsync(messages, options);
+                return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate investigation summary.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating incident investigation summary: {Message}", ex.Message);
+                return "Error generating investigation summary.";
+            }
+        }
+
+        private async Task<string> GenerateIncidentResolutionAsync(string incidentInfo)
+        {
+            try
+            {
+                var messages = new List<ChatMessage>();
+
+                messages.Add(new ChatMessage(ChatRole.System, 
+                    "You are an Azure SRE Agent analyzing incident information. " +
+                    "Generate a brief, one sentence, focused summary of the incident resolution. " +
+                    "Keep the response concise and highlight only the key resolution points."));
+
+                messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
+
+                var options = new ChatOptions
+                {
+                    Temperature = (float)0.2,
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        ["response_format"] = "text"
+                    }
+                };  
+
+                var response = await _chatClient.GetResponseAsync(messages, options);
+                return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate resolution summary.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating incident resolution summary: {Message}", ex.Message);
+                return "Error generating resolution summary.";
+            }   
+        }
+
+        private async Task<string> GenerateIncidentImpactSummaryAsync(string incidentInfo)
+        {
+            try
+            {
+                var messages = new List<ChatMessage>();
+
+                messages.Add(new ChatMessage(ChatRole.System, 
+                    "You are an Azure SRE Agent analyzing incident information. " +
+                    "Generate a brief, one sentence, focused summary of the incident impact. " +
+                    "Keep the response concise and highlight only the key impact points."));
+
+                messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
+
+                var options = new ChatOptions
+                {
+                    Temperature = 0.2f, 
+                    AdditionalProperties = new AdditionalPropertiesDictionary
+                    {
+                        ["response_format"] = "text"
+                    }
+                };
+
+                var response = await _chatClient.GetResponseAsync(messages, options);
+                return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate impact summary.";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error generating incident impact summary: {Message}", ex.Message);
+                return "Error generating impact summary.";
+            }
+        }
         private async Task<string> GenerateThreadSummaryAsync()
         {
             var now = DateTime.UtcNow;
@@ -1183,6 +1602,31 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             return threadSummary.ToString();
         }
 
+        private string GenerateThreadLink(string threadId)
+        {
+            // If threadId is empty, return an empty string or placeholder link
+            if (string.IsNullOrEmpty(threadId))
+            {
+                _logger.LogWarning("No thread found for incident, cannot generate thread link");
+                return string.Empty;
+            }
+
+            // to do: temporary, add logic to generate based on agent host name
+            var agentHost = "https://portal.azure.com/";
+
+            var flags = string.Empty;
+
+            // if local then append local flag
+            var environment = _configuration["ASPNETCORE_ENVIRONMENT"];
+            if (string.Equals(environment, "Development", StringComparison.OrdinalIgnoreCase))
+            {
+                flags = "Microsoft_Azure_PaasServerless_sre_local=true";
+            }
+
+            flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=canary&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D#view/Microsoft_Azure_PaasServerless/AgentFrameBlade/id/%2F";
+            return $"{agentHost}?Microsoft_Azure_PaasServerless_srelink=/views/activities/threads/{threadId}&{flags}";
+        }
+
         public class ScreenshotResponse
         {
             [JsonPropertyName("screenshot")]
@@ -1199,6 +1643,168 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             public string PluginId { get; set; } = string.Empty;
             [JsonPropertyName("value")]
             public string Value { get; set; } = string.Empty;
+        }
+
+        private async Task addAppHealthInfo()
+        {
+            try
+            {
+                // Clean up old entries (older than 24 hours)
+                DateTime cutoffTime = DateTime.UtcNow.AddDays(-1);
+                foreach (var key in _appHealthHistory.Keys)
+                {
+                    _appHealthHistory.TryGetValue(key, out var history);
+                    if (history != null)
+                    {
+                        // Remove old entries
+                        var filteredHistory = history.Where(h => h.Timestamp >= cutoffTime).ToList();
+                        _appHealthHistory[key] = filteredHistory;
+                    }
+                }
+                
+                var subscriptions = await _graphDBPlugin.ListSubscriptionsAsync();
+                
+                foreach (var sub in subscriptions)
+                {
+                    var appGroups = await _graphDbService.GetAppGroupsBySubscriptionAsync(sub["id"]);
+                    
+                    if (appGroups != null)
+                    {
+                        foreach (var appGroup in appGroups)
+                        {
+                            var properties = appGroup["properties"] as IDictionary<string, object>;
+                            string appGroupId = appGroup["id"]?.ToString();
+                            
+                            if (properties != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
+                            {
+                                var options = new JsonSerializerOptions
+                                {
+                                    IncludeFields = true,
+                                };
+
+                                var jsonStringList = ((IEnumerable<object>)appHealthInfoObj)
+                                    .OfType<string>()
+                                    .Where(s => !string.IsNullOrEmpty(s))
+                                    .ToList();
+                                
+                                if (jsonStringList.Any())
+                                {
+                                    // Get latest health data point
+                                    var latestHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0], options);
+                                    
+                                    if (latestHealthInfo != null)
+                                    {
+                                        // Add current data point to history
+                                        if (!_appHealthHistory.TryGetValue(appGroupId, out var history))
+                                        {
+                                            history = new List<AppHealthInfoWithTimestamp>();
+                                            _appHealthHistory[appGroupId] = history;
+                                        }
+                                        
+                                        history.Add(new AppHealthInfoWithTimestamp
+                                        {
+                                            HealthInfo = latestHealthInfo,
+                                            Timestamp = DateTime.UtcNow
+                                        });
+                                        
+                                        _logger.LogDebug("Added health data for app group {AppGroupId}", appGroupId);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                
+                _logger.LogInformation("Successfully collected and stored app health information for {Count} app groups", 
+                    _appHealthHistory.Count);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error collecting app health information: {Message}", ex.Message);
+            }
+        }
+
+        private ReportOverview GenerateOverview(CVESummary cveSummary, IncidentSummary incidentsSummary, List<AppGroupResourceSummary> appGroupsHealthSummary)
+        {
+            var overview = new ReportOverview();
+            
+            // Populate Security Findings overview
+            if (cveSummary != null)
+            {
+                overview.SecurityFindings.Critical = cveSummary.CriticalVulnerabilities;
+                overview.SecurityFindings.High = cveSummary.HighVulnerabilities;
+                overview.SecurityFindings.Moderate = cveSummary.ModerateVulnerabilities;
+                overview.SecurityFindings.Low = cveSummary.LowVulnerabilities;
+                overview.SecurityFindings.TotalCount = cveSummary.TotalVulnerabilities;
+            }
+            
+            // Populate Incidents overview
+            if (incidentsSummary != null)
+            {
+                // Count active incidents (non-closed)
+                overview.Incidents.Active = 
+                    (incidentsSummary.PagerDuty?.Count(i => i.Status != "closed" && i.Status != "resolved") ?? 0) +
+                    (incidentsSummary.AzureMonitor?.Count(i => i.Status != "closed" && i.Status != "resolved") ?? 0);
+                
+                // Count mitigated incidents (acknowledged)
+                overview.Incidents.Mitigated = 
+                    (incidentsSummary.PagerDuty?.Count(i => i.Status == "acknowledged") ?? 0) +
+                    (incidentsSummary.AzureMonitor?.Count(i => i.Status == "acknowledged") ?? 0);
+                
+                // Count resolved incidents
+                overview.Incidents.Resolved = 
+                    (incidentsSummary.PagerDuty?.Count(i => i.Status == "closed" || i.Status == "resolved") ?? 0) +
+                    (incidentsSummary.AzureMonitor?.Count(i => i.Status == "closed" || i.Status == "resolved") ?? 0);
+                
+                // Total count
+                overview.Incidents.TotalCount = 
+                    (incidentsSummary.PagerDuty?.Count ?? 0) + 
+                    (incidentsSummary.AzureMonitor?.Count ?? 0);
+            }
+            
+            // Populate Health and Performance overview
+            if (appGroupsHealthSummary != null)
+            {
+                int healthy = 0;
+                int degraded = 0;
+                int unhealthy = 0;
+                
+                foreach (var appGroup in appGroupsHealthSummary)
+                {
+                    foreach (var app in appGroup.AppGroups)
+                    {
+                        if (app.AppHealthInfo != null)
+                        {
+                            switch (app.AppHealthInfo.Health)
+                            {
+                                case ScorecardHealthState.Healthy:
+                                    healthy++;
+                                    break;
+                                case ScorecardHealthState.Degraded:
+                                    degraded++;
+                                    break;
+                                case ScorecardHealthState.Unhealthy:
+                                    unhealthy++;
+                                    break;
+                            }
+                        }
+                    }
+                }
+                
+                overview.HealthAndPerformance.Healthy = healthy;
+                overview.HealthAndPerformance.Degraded = degraded;
+                overview.HealthAndPerformance.Unhealthy = unhealthy;
+                overview.HealthAndPerformance.TotalCount = healthy + degraded + unhealthy;
+            }
+            
+            return overview;
+        }
+
+        public string GetAgentName()
+        {
+            return _configuration["Agent:Name"];
+            // Or from environment variables
+            // return Environment.GetEnvironmentVariable("AGENT_NAME");
         }
     }
 }

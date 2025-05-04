@@ -29,8 +29,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 .Replace("{{timespan}}", input.Timespan);
 
             var userMessage =
-                $"Already created a daily report dashboard here: {input.ReportType.ToLower()} report summary for the following resource types:. " +
-                $"Include metrics for: '{input.DashboardSummary}' over the past {input.Timespan} timespan." +
                 $"Send a summary that this report has been generated and user can ask any questions on top of it";
 
             List<ChatMessage> messages = [

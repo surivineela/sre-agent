@@ -102,7 +102,7 @@ export const ChatBoxStyles = mergeStyleSets({
         '.fai-CopilotMessage__content': {
             width: '90%',
         },
-    }
+    },
 });
 
 const textFieldMaxWidth = '1000px';

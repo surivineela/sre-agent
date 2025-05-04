@@ -213,6 +213,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                     threadDoc.Id
                 );
 
+
                 // last message may be null if thread was created before we started saving last message id
                 // & a new message has not been added to the thread
                 Message lastMessageDocDomainModel;
@@ -227,12 +228,12 @@ public class CosmosDbThreadRepository : IThreadRepository
                         threadDoc.LastMessageId,
                         threadDoc.Id
                     );
-                    lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel();
+                    lastMessageDocDomainModel = lastMessageDoc == null ? null : lastMessageDoc.ToDomainModel(isDailyReport: lastMessageDoc.IsDailyReport);
                 }
 
                 if (startMessageDoc != null)
                 {
-                    var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
+                    var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(isDailyReport : startMessageDoc.IsDailyReport), lastMessageDocDomainModel);
 
                     if (!string.IsNullOrEmpty(threadDoc.IncidentId))
                     {
@@ -244,6 +245,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                             }
                         };
                     }
+
                     threads.Add(thread);
                 }
             }
@@ -527,9 +529,11 @@ public class CosmosDbThreadRepository : IThreadRepository
                         messageDoc.Text,
                         messageDoc.IsImageContent,
                         messageDoc.Posted,
-                        approvalDoc?.ToDomainModel());
+                        approvalDoc?.ToDomainModel(),
+                        messageDoc.IncidentDiscussionId,
+                        messageDoc.IsDailyReport);
                 }
-                messages.Add(messageDocWithApproval.ToDomainModel());
+                messages.Add(messageDocWithApproval.ToDomainModel(isDailyReport: messageDoc.IsDailyReport));
             }
         }
 
@@ -938,17 +942,17 @@ public class CosmosDbThreadRepository : IThreadRepository
         // add incident status
         if (thread.Source == ThreadSource.Incident)
         {
-            if (thread.Status?.IncidentStatus?.IncidentId != null && !string.IsNullOrEmpty(thread.Status?.IncidentStatus?.IncidentId))
+            if (thread.Status != null && !string.IsNullOrEmpty(thread.IncidentSource?.IncidentId))
             {
                 // check for incident in cosmos and apply status
                 // check pager duty first
-                PagerDutyIncidentDocument pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(thread.Status?.IncidentStatus?.IncidentId, thread.Status?.IncidentStatus?.IncidentId);
+                PagerDutyIncidentDocument pagerDutyIncident = await GetDocumentAsync<PagerDutyIncidentDocument>(thread.IncidentSource.IncidentId, thread.IncidentSource.IncidentId);
 
                 if (pagerDutyIncident != null)
                 {
                     status.IncidentStatus = new IncidentStatus
                     {
-                        IncidentId = thread.Status?.IncidentStatus?.IncidentId,
+                        IncidentId = thread.IncidentSource.IncidentId,
                         Status = pagerDutyIncident.Status
                     };
                 }

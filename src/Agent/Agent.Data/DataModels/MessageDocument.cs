@@ -18,7 +18,8 @@ public record MessageDocument(
     Approval? Approval = null,
     // e.g. If this message belongs to a PagerDuty incident thread and is a discussion(called note in PagerDuty), 
     // it is the PagerDuty note id. PagerDuty note id is is not a guid
-    string? IncidentDiscussionId = null 
+    string? IncidentDiscussionId = null,
+    bool IsDailyReport = false
 ) : ICosmosDocument
 {
     public string DocumentType => "Message";
@@ -36,10 +37,11 @@ public record MessageDocument(
             message.IsImageContent,
             message.Posted,
             Approval: message.Approval ?? null,
-            IncidentDiscussionId: message.IncidentDiscussionId
+            IncidentDiscussionId: message.IncidentDiscussionId,
+            message.IsDailyReport
         );
 
-    public Message ToDomainModel(Approval? approval = null) =>
+    public Message ToDomainModel(Approval? approval = null, bool isDailyReport = false) =>
         new Message(
             Guid.Parse(Id),
             TimeStamp,
@@ -48,6 +50,7 @@ public record MessageDocument(
             IsImageContent,
             Posted,
             Approval,
-            IncidentDiscussionId: IncidentDiscussionId
+            IncidentDiscussionId: IncidentDiscussionId,
+            IsDailyReport
         );
 }
