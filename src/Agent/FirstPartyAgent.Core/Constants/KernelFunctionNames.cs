@@ -58,6 +58,7 @@ namespace FirstPartyAgent.Constants
             public const string IcmAddTag = "icm_add_tag";
             public const string IcmGetDisscussionEntries = "icm_get_discussion_entries";
             public const string IcmAddDiscussionEntry = "icm_add_discussion_entry";
+            public const string IcmSummarizeIncident = "icm_summarize_incident";
         }
 
         public static class AzureSearch

@@ -13,6 +13,7 @@ using Moq;
 using Microsoft.Extensions.Logging;
 using FirstPartyAgent.Tests.Integration.Logging;
 using Agent.Core.Configuration;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 
 namespace FirstPartyAgent.Tests.Integration
 {

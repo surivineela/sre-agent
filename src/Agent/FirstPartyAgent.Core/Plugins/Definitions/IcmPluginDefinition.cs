@@ -6,6 +6,7 @@ using System.ComponentModel;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Constants;
 using Microsoft.SemanticKernel;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 
 namespace FirstPartyAgent.Plugins.Definitions
 {
@@ -90,6 +91,20 @@ The return value is a boolean value for indicating if the operation is successfu
             [Description("Discussion entry text")] string text)
         {
             return await _plugin.AddDiscussionEntry(incidentId, text);
+        }
+
+        [KernelFunction(KernelFunctionNames.Icm.IcmSummarizeIncident)]
+        [Description(@"Summarize an ICM incident
+This operation will summarize the given IcM Incident and extract the key information from it in a well-defined format.
+Input parameters:
+- incidentId: The Id of the IcM incident. It is usually a integer number.
+
+The operation will summarize the given incident and return the summary in a markdown format.
+")]
+        public async Task<string> SummarizeICM(
+            [Description("Incident ID")] string incidentId)
+        {
+            return await _plugin.SummarizeICM(incidentId);
         }
     }
 }

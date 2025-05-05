@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 

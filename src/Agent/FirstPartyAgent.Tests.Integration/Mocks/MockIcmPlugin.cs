@@ -2,8 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Models;
-using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
 {
@@ -98,6 +98,11 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
 
                 }
             });
+        }
+
+        public Task<string> SummarizeICM(string incidentId)
+        {
+            return Task.FromResult("This is a mock incident summary");
         }
     }
 

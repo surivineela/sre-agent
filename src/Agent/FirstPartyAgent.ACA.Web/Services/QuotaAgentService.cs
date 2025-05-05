@@ -10,6 +10,7 @@ using Agent.Core.Models;
 using FirstPartyAgent.AgentPrompts;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Models;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;

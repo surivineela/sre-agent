@@ -11,7 +11,7 @@ using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
-using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.DurableTask;

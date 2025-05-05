@@ -91,7 +91,7 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
                     foreach (var volumeMount in container.VolumeMounts)
                     {
                         var volume = statefulSet.Spec.Template.Spec.Volumes?.FirstOrDefault(v => v.Name == volumeMount.Name);
-                        if (!knownVolumes.Contains(volume.Name))
+                        if (volume?.Name != null && !knownVolumes.Contains(volume.Name))
                         {
                             knownVolumes.Add(volume.Name);
                             var refNode = await volume.TryLinkVolumeReferenceAsync(statefulSetNode, _k8sService, _graphDbClient, _logger);
