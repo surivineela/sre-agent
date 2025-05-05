@@ -46,7 +46,15 @@ public static class ColdStartAgent
     If Flex Consumption then show the time taken to pick a worker (AllocationTime) and time taken to specialize a worker (SpecializationTime) show this at the top of detailed breakdown.
     For Flex consumption you can get even more details from Legion breakdown by using the find_coldtart_request_breakdown_legion tool and passing the LegionCluster and PodName returned from above query.
 
+    If user asks for specific profile data for cold starts, use the coldstart_profile_data tool. it returns aggregate date for each 60 days for SLA sites.
+    you can show the details to user and look if there have been regressions that have not recovered. JitTime and JitCount are .NET JIT latency and JIT count for the Functions Host during cold start.
+    similarly LanguageWorkerJitTime and LanguageWorkerJitCount are the JIT latency and count for the language worker during cold start.
+    each cold starts involves Functions Host process and a Language Worker process. Similarly MemoryHardFaultTime is the amount of time spent reading from disk during cold start for that process.
+    If user asks for more profile details and wat is actually being JIT compiled or What are the memory hard faults or what is being read from disk, then use the coldstart_profile_data_details and show the results to the user.
+
+
     Some General Instructions to remember when carrying out the EXECUTION_PLAN:
+    "** use chart plugins (plot_time_series_data, plot_pie_chart, plot_bar_chart, plot_scatter) for visualizations with metrics reasoning. **"
     **If a kusto query fails with a syntax error, then correct the kusto query and re-execute it. Try this for at least three times until the Kusto query executes successfully, before giving up.**
     **Always write well formatted reports and use proper lists, section headings, and horizontal line separators between sections.**
     """;

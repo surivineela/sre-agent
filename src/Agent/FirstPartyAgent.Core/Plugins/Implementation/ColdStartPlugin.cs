@@ -139,6 +139,52 @@ namespace FirstPartyAgent.Plugins
             }
         }
 
+        [KernelFunction("coldstart_profile_data")]
+        [Description("Show Profile data for prod cold start SLA sites.")]
+        public async Task<string> GetColdStartProfileData()
+        {
+            try
+            {
+                _logger.LogInformation($"Initializing GetColdStartProfileData");
+                var clusterName = "wawseus";
+                var databaseName = "wawsprod";
+                DateTime? nowOverride = null;
+
+                var kustoQuery = GetColdStartProfileDataQuery();
+
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                return kustoResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while initializing the cold start process for SLA sites.");
+                return $"An error occurred: {ex.Message}";
+            }
+        }
+
+        [KernelFunction("coldstart_profile_data_details")]
+        [Description("Show detailed Profile data for prod cold start SLA sites.")]
+        public async Task<string> GetColdStartProfileDataDetails()
+        {
+            try
+            {
+                _logger.LogInformation($"Initializing GetColdStartProfileDataDetails");
+                var clusterName = "wawseus";
+                var databaseName = "wawsprod";
+                DateTime? nowOverride = null;
+
+                var kustoQuery = GetColdStartProfileDataQueryDetails();
+
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
+                return kustoResult;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while initializing the cold start process for SLA sites.");
+                return $"An error occurred: {ex.Message}";
+            }
+        }
+
         private static string GetColdStartQueryForSlaSites(int days, string platform, string stack)
         {
             var query = $@"
@@ -151,7 +197,9 @@ namespace FirstPartyAgent.Plugins
                 | where OperatingSystem contains operatingSystem
                 | where isempty(stack) or (stack =~ 'dotnet' and Stack =~ stack) or (stack !~ 'dotnet' and Stack contains stack)
                 | where Sc_status == int(200)
-                | summarize P50 = percentile(FETimeTakenMs, 50), P99 = percentile(FETimeTakenMs, 99) by bin(pdate, 1d)";
+                | extend pdate = format_datetime(pdate, ""yyyy-MM-dd"")
+                | summarize P50 = percentile(FETimeTakenMs, 50), P99 = percentile(FETimeTakenMs, 99) by pdate
+                | order by pdate asc";
             return query;
         }
 
@@ -236,5 +284,60 @@ namespace FirstPartyAgent.Plugins
                     | extend PAUnzip = round(todouble(json[""podagent.unzip-duration""]))";
             return query;
         }
+
+        private static string GetColdStartProfileDataQuery()
+        {
+            var query = $@"
+            FunctionsColdStartAnalyzer
+            | where TIMESTAMP > ago(60d)
+            | where AppName startswith ""sla-ws-func"" and AppName contains ""cold""
+            | extend S_sitename = AppName
+            | invoke GetFunctionsSlaSiteProperties()
+            | summarize
+                count(), 
+                percentile(ColdStartTime, 50),
+                percentile(JitTime, 50),
+                percentile(FunctionsGCTime, 50),
+                percentile(DiskReadTime, 50),
+                percentile(GCAllocationInBytes, 50),
+                percentile(FunctionsMemoryHardFaultTime, 50),
+                percentile(TotalDwasOutboundCallsTime, 50),
+                percentile(TotalDwasProvisioningTime, 50),
+                percentile(DwasJitTime, 50),
+                percentile(LanguageWorkerJitTime, 50),
+                percentile(LanguageWorkerGCTime, 50),
+                percentile(LanguageWorkerMemoryHardFaultTime, 50),
+                percentile(LanguageWorkerAssemblyLoaderTime, 50),
+                percentile(JitCount, 50), 
+                percentile(LanguageWorkerJitCount, 50),
+                percentile(LanguageWorkerAssemblyLoaderCount, 50),
+                percentile(MiniYarpJitTime, 50)
+                by bin(TIMESTAMP, 7d), Stack
+            | order by TIMESTAMP asc
+            ";
+            return query;
+        }
+
+        private static string GetColdStartProfileDataQueryDetails()
+        {
+            var query = $@"
+            FunctionsColdStartAnalyzer
+            | where TIMESTAMP > ago(7d)
+            | where AppName startswith ""sla-ws-func"" and AppName contains ""cold""
+            | extend S_sitename = AppName
+            | invoke GetFunctionsSlaSiteProperties()
+            | summarize
+                take_any(DetailedJIT),
+                take_any(DetailedDiskRead),
+                take_any(FunctionsHostVersion),
+                take_any(FunctionsDetailedMemoryHardFaults),
+                take_any(LanguageWorkerDetailedJIT),
+                take_any(LanguageWorkerDetailedAssemblyLoader),
+                take_any(LanguageWorkerMemoryHardFaults)
+                by Stack
+            ";
+            return query;
+        }
+
     }
 }
