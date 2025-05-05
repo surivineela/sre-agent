@@ -2,24 +2,33 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Linq.Expressions;
+using System.Text.Json;
+using Agent.Core;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
-using System.Linq.Expressions;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
 {
     // [MENDATORY]
-    public class ContainerAppEnvoyAgentFactory : SimpleResourceSubAgentFactoryBase<ContainerAppEnvoyAgent, ContainerAppEnvoyAgentInput, ContainerAppEnvoyAgentActivity, ContainerAppEnvoyAgentActivityInput>
+    public class ContainerAppEnvoyAgentFactory 
     {
         private readonly IContainerAppEnvoyPlugin _envoyPlugin;
         private readonly IKustoPlugin _kustoPlugin;
-
+        private readonly AgentToolsRegistry _toolsRegistry;
+        private readonly DurableTaskClient _durableTaskClient;
+        private readonly IThreadOrchestrationManager _mappingManager;
+        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppEnvoyAgentInput);
         public ContainerAppEnvoyAgentFactory(
             IContainerAppEnvoyPlugin envoyPlugin,
             IThreadOrchestrationManager mappingManager,
@@ -27,33 +36,45 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
             DurableTaskClient durableTaskClient,
             IKustoPlugin kustoPlugin
             )
-            : base(toolsRepository, mappingManager, durableTaskClient)
+            
         {
             _envoyPlugin = envoyPlugin;
             _kustoPlugin = kustoPlugin;
+            _toolsRegistry = new AgentToolsRegistry();
+            _mappingManager = mappingManager;
+            //_toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
+            //_toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
+            _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
+            _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
+            _toolsRegistry.RegisterPlugin<ContainerAppRevisionPluginDefinition>();
+            
+            _durableTaskClient = durableTaskClient;
+            
+
+
         }
 
-        protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
+        public async Task<string> StartOrchestration(
+           ContainerAppEnvoyAgentActivityInput input,
+           Guid threadId)
         {
+            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-            var kustoDefinition = new KustoPluginDefinition(_kustoPlugin);
-            // Add static methods
-            yield return () => kustoDefinition.ListFunctionsAsync;
-            yield return () => kustoDefinition.ExecuteFunction;
-            yield return () => kustoDefinition.ExecuteKustoQuery;
+            await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
 
+            await _durableTaskClient.ScheduleNewContainerAppEnvoyAgentInstanceAsync(
+                new ContainerAppEnvoyAgentInput(
+                    Input: input,
+                    ToolSignatures: _toolsRegistry.ToolSignatures,
+                    ThreadId: threadId),
+                new StartOrchestrationOptions(InstanceId: instanceId));
 
-            var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(_envoyPlugin);
-            yield return () => envoyPluginDefinition.GetEnvoyAbnormalLogs;
-            yield return () => envoyPluginDefinition.GetEnvoyControllerLogs;
-            yield return () => envoyPluginDefinition.GetEnvoyAccessLogs;
-            yield return () => envoyPluginDefinition.GetSwiftNetworkingEvents;
+            return instanceId;
+        }
 
-            var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-            yield return () => controlFlowPluginDefinition.Wait;
-            yield return () => controlFlowPluginDefinition.MarkPlanComplete;
-            yield return () => controlFlowPluginDefinition.NotifyUser;
-            yield return () => controlFlowPluginDefinition.AskUserForInput;
+        public ContainerAppEnvoyAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
+        {
+            return JsonSerializer.Deserialize<ContainerAppEnvoyAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
         }
     }
 }

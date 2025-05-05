@@ -2,70 +2,87 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
-using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
-using System.Linq.Expressions;
 
-namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.CorednsAgent
+namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
 {
     // [MENDATORY]
-    public class ContainerAppCorednsAgentFactory : SimpleResourceSubAgentFactoryBase<ContainerAppCorednsAgent, CorednsAgentInput, ContainerAppCorednsAgentActivity, ContainerAppCorednsAgentActivityInput>
+    public sealed class ContainerAppCorednsAgentFactory
     {
-        private readonly IContainerAppCorednsPlugin _CorednsPlugin;
-        private readonly IKustoPlugin _kustoPlugin;
+        private readonly IToolsRepository _toolsRegistry;
+        private readonly DurableTaskClient _durableTaskClient;
+        private readonly IThreadOrchestrationManager _mappingManager;
+        private readonly IReadOnlyList<string> _toolSignatures;
+        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppCorednsAgent);
 
         public ContainerAppCorednsAgentFactory(
-            IContainerAppCorednsPlugin CorednsPlugin,
-            IThreadOrchestrationManager mappingManager,
-            IToolsRepository toolsRepository,
-            DurableTaskClient durableTaskClient,
-            IKustoPlugin kustoPlugin
-            )
-            : base(toolsRepository, mappingManager, durableTaskClient)
+        IMetricsPlugin metricsPlugin,
+        ITimePlugin timePlugin,
+        IContainerAppCorednsPlugin corednsPlugin,
+        IChartPlugin chartPlugin,
+        IToolsRepository toolsRepository,
+        IThreadOrchestrationManager mappingManager,
+        DurableTaskClient durableTaskClient)
         {
-            _CorednsPlugin = CorednsPlugin;
-            _kustoPlugin = kustoPlugin;
-        }
+            _toolsRegistry = toolsRepository;
+            var toolSignatures = new List<string>();
 
-        protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
-        {
-
-           //var kustoDefinition = new KustoPluginDefinition(_kustoPlugin);
-           // // Add static methods
-           // yield return () => kustoDefinition.ListFunctionsAsync;
-           // yield return () => kustoDefinition.ExecuteFunction;
-           // yield return () => kustoDefinition.ExecuteKustoQuery;
-
-            // Import all tools that defined in System prompt of this 'CorednsAgent' sub-agent including required fundamental plugins like RecordActionsPluginDefinition, ControlFlowPluginDefinition, ApprovalPluginDefinition, etc.
-            var CorednsPluginDefinition = new ContainerAppCorednsPluginDefinition(_CorednsPlugin);
-            yield return () => CorednsPluginDefinition.CheckIfCustomDNSConfigured;
-            yield return () => CorednsPluginDefinition.GetCustomDNSServers;
-            yield return () => CorednsPluginDefinition.GetUpstreamCustomDNSServerHealthStatus;
-            yield return () => CorednsPluginDefinition.GetCoreDNSConfigReloadFailuresCount;
-            yield return () => CorednsPluginDefinition.GetCoreDNSTotalDNSRequestCount;
-            yield return () => CorednsPluginDefinition.GetCoreDNSForwardConcurrentRejectsCount;
-            yield return () => CorednsPluginDefinition.GetAverageLatencyOfDNSResolutionRequests;
-            yield return () => CorednsPluginDefinition.GetAverageLatencyOfCoreDNSKubernetesDNSProgramming;
-            yield return () => CorednsPluginDefinition.GetAverageLatencyOfUpstreamDNSResolutionForwardRequests;
-            yield return () => CorednsPluginDefinition.GetCorednsPodFailureEvents;
-            yield return () => CorednsPluginDefinition.GetSwiftBootstrapAgentPodFailureEvents;
-            yield return () => CorednsPluginDefinition.GetSwiftBootstrapAgentPodHealthStatus;
-            yield return () => CorednsPluginDefinition.GetDNSConfigUpdateStatus;
-            yield return () => CorednsPluginDefinition.CheckIfDNSServerFailedToResolveDot;
-
+            var remediationPluginDefinition = new ContainerAppCorednsPluginDefinition(corednsPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfCustomDNSConfigured));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCustomDNSServers));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetUpstreamCustomDNSServerHealthStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSConfigReloadFailuresCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSTotalDNSRequestCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSForwardConcurrentRejectsCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAverageLatencyOfDNSResolutionRequests));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAverageLatencyOfCoreDNSKubernetesDNSProgramming));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetAverageLatencyOfUpstreamDNSResolutionForwardRequests));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCorednsPodFailureEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetSwiftBootstrapAgentPodFailureEvents));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetSwiftBootstrapAgentPodHealthStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetDNSConfigUpdateStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfDNSServerFailedToResolveDot));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-            yield return () => controlFlowPluginDefinition.Wait;
-            yield return () => controlFlowPluginDefinition.MarkPlanComplete;
-            yield return () => controlFlowPluginDefinition.NotifyUser;
-            yield return () => controlFlowPluginDefinition.AskUserForInput;
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            _toolSignatures = toolSignatures;
+            _durableTaskClient = durableTaskClient;
+            _mappingManager = mappingManager;
+        }
+
+        public async Task<string> StartOrchestration(
+            ContainerAppCorednsAgentActivityInput input,
+            Guid threadId)
+        {
+            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+
+            await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
+
+            await _durableTaskClient.ScheduleNewContainerAppCorednsAgentInstanceAsync(
+                new CorednsAgentInput(
+                    Input: input,
+                    ToolSignatures: _toolSignatures,
+                    ThreadId: threadId),
+                new StartOrchestrationOptions(InstanceId: instanceId));
+
+            return instanceId;
+        }
+
+        public ContainerAppCorednsAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
+        {
+            return JsonSerializer.Deserialize<CorednsAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
         }
     }
 }

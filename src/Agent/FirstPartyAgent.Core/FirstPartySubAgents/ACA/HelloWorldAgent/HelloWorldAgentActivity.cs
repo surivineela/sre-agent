@@ -1,45 +1,49 @@
 using System.ComponentModel;
-using Agent.Runtime.SubAgents;
+using Agent.Core.Extensions;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
 {
     // [MENDATORY]
-    public record HelloWorldAgentActivityInput(
-    [Description("The list of Azure hello world Resources (as resource IDs) to affect in this run.")]
-        List<SimpleResourceSubAgentResourceInformation> Resources
-    )
-    : SimpleResourceSubAgentActivityInput(Resources)
-    {
-        public HelloWorldAgentActivityInput()
-            : this(new List<SimpleResourceSubAgentResourceInformation>())
-        {
-        }
-
-        public override string GetPlanText()
-        {
-            throw new NotImplementedException();
-        }
+    public record HelloWorldAgentActivityInput : BaseContainerAppIssueActivityInput {
+        [Description("Resource id")]
+        public string? ResourceId { get; init; }
     }
+    
 
     // [MENDATORY]
     [DurableTask]
-    public class HelloWorldAgentActivity : SimpleResourceSubAgentActivityBase<HelloWorldAgentActivityInput>
+    public class HelloWorldAgentActivity : TaskActivity<HelloWorldAgentActivityInput, List<ChatMessage>>
     {
-        public HelloWorldAgentActivity(IChatClient chatClient) : base(chatClient)
+        private readonly IChatClient _chatClient;
+        private readonly ILogger<HelloWorldAgentActivity> _logger;
+        public HelloWorldAgentActivity(IChatClient chatClient, ILogger<HelloWorldAgentActivity> logger)
         {
+            _logger = logger;
+            _chatClient = chatClient;
         }
 
-        public override string ResourceTypeName { get; } = nameof(HelloWorldAgent);
-        public override string[] ToolNames { get; } = new string[] { };
-
-        public override string ActionToTake(HelloWorldAgentActivityInput input)
+        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, HelloWorldAgentActivityInput input)
         {
-            throw new NotImplementedException();
-        }
+            var resourcesStr = input.ResourceId;
+            var userMessage = $"Here are the resources that need updating: {resourcesStr}";
 
-        public override string GetPromptText(HelloWorldAgentActivityInput input)
+            List<ChatMessage> messages = [
+                new ChatMessage(ChatRole.System, await GetPromptTextAsync(input)),
+                new ChatMessage(ChatRole.User, userMessage)
+                ];
+
+            var response = await _chatClient.GetResponseAsync(messages);
+            messages.Add(response.GetMessage());
+
+            return messages;
+        }
+       
+
+        public  async Task<string> GetPromptTextAsync(HelloWorldAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(HelloWorldAgent), "HelloWorldAgentPlan.txt");
             var systemPrompt = File.ReadAllText(path);

@@ -3,6 +3,11 @@ using Agent.Core.Helpers;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
@@ -61,17 +66,28 @@ public static class ServiceCollectionExtensions
     private static void RegisterFirstPartyPluginDependencies(this IServiceCollection services)
     {
         // TODO: automatically inject these DI in next iteration
-        // one should add new fundamental plugin dependencies here
-        // Note: Don't add sub-agent plugin like 'HelloWorldAgentPlugin' which is automatically loaded.
         services.AddSingleton<lHelloWorldPlugin, HelloWorldPlugin>();
-        services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
-        services.AddSingleton<ContainerAppRevisionPluginDefinition>();
-        services.AddSingleton<ContainerAppCorednsPluginDefinition>();
-        services.AddSingleton<IContainerAppCorednsPlugin, ContainerAppCorednsPlugin>();
-        services.AddSingleton<IContainerAppEnvoyPlugin, ContainerAppEnvoyPlugin>();
-        services.AddSingleton<ContainerAppEnvoyPluginDefinition>();
-        services.AddSingleton<KustoPluginDefinition>();
+        services.AddSingleton<HelloWorldAgentPlugin>();
         services.AddSingleton<HelloWorldPluginDefinition>();
+        services.AddSingleton<HelloWorldAgentFactory>();
+
+        services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
+        services.AddSingleton<ContainerAppRevisionAgentPlugin>();
+        services.AddSingleton<ContainerAppRevisionPluginDefinition>();
+        services.AddSingleton<ContainerAppRevisionAgentFactory>();
+
+
+        services.AddSingleton<IContainerAppEnvoyPlugin, ContainerAppEnvoyPlugin>();
+        services.AddSingleton<ContainerAppEnvoyAgentPlugin>();
+        services.AddSingleton<ContainerAppEnvoyPluginDefinition>();
+        services.AddSingleton<ContainerAppEnvoyAgentFactory>();
+
+        services.AddSingleton<IContainerAppCorednsPlugin, ContainerAppCorednsPlugin>();
+        services.AddSingleton<ContainerAppCorednsAgentPlugin>();
+        services.AddSingleton<ContainerAppCorednsPluginDefinition>();
+        services.AddSingleton<ContainerAppCorednsAgentFactory>();
+
+        services.AddSingleton<KustoPluginDefinition>();
         services.AddSingleton<IcmPluginDefinition>();
         services.AddSingleton<IIcmPlugin, IcmPlugin>();
         services.AddSingleton<ContainerAppsPluginDefinition>();

@@ -1,60 +1,62 @@
 using System.ComponentModel;
-using Agent.Plugins;
-using Agent.Runtime.SubAgents;
+using System.Text.Json;
+using Agent.Core.Extensions;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.Extensions.Logging;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
 {
-    public record ContainerAppsQuotaAgentActivityInput(
-        [Description("The IncidentId of the Azure Container Apps Quota request incident")]
-    List<SimpleResourceSubAgentResourceInformation> Resources)
-        : SimpleResourceSubAgentActivityInput(Resources)
+    public record ContainerAppsQuotaAgentActivityInput : BaseContainerAppIssueActivityInput
     {
-        public ContainerAppsQuotaAgentActivityInput()
-            : this(new List<SimpleResourceSubAgentResourceInformation>())
-        {
-        }
-        public override string GetPlanText()
-        {
-            var resourceBullets = Resources.Select(r => $"{r.ResourceId}");
-            return $"""
-                I will update the Icm to process the quota request: 
-                  {string.Join(Environment.NewLine, resourceBullets)}
-                """;
-        }
-
+        [Description("The name of the container app.")]
+        public string ContainerAppName { get; init; } = string.Empty;
     }
 
     [DurableTask]
-    public class ContainerAppsQuotaAgentActivity : SimpleResourceSubAgentActivityBase<ContainerAppsQuotaAgentActivityInput>
+    public class ContainerAppsQuotaAgentActivity : TaskActivity<ContainerAppsQuotaAgentActivityInput, List<ChatMessage>>
     {
-        public ContainerAppsQuotaAgentActivity(IChatClient chatClient) : base(chatClient)
+        private readonly IChatClient _chatClient;
+        private readonly ILogger<ContainerAppsQuotaAgentActivity> _logger;
+
+        public ContainerAppsQuotaAgentActivity(IChatClient chatClient, ILogger<ContainerAppsQuotaAgentActivity> logger)
         {
+            _logger = logger;
+            _chatClient = chatClient;
         }
-        public override string ResourceTypeName { get; } = "ContainerAppsQuotaRequest";
-
-        public override string[] ToolNames { get; } = [
-            nameof(ContainerAppsPluginDefinition.ValidateQuotaRequest),
-            nameof(ContainerAppsPluginDefinition.SetSubscriptionQuota),
-            nameof(ContainerAppsPluginDefinition.GetSubscriptionDetail),
-            nameof(ContainerAppsPluginDefinition.GetSubscriptionUsage),
-            nameof(IcmPluginDefinition.GetIncidentInfo),
-            nameof(IcmPluginDefinition.AddDiscussionEntry),
-            nameof(IcmPluginDefinition.ResolveIncident),
-            nameof(ControlFlowPluginDefinition.Wait),
-            nameof(ControlFlowPluginDefinition.MarkPlanComplete),
-            nameof(ControlFlowPluginDefinition.NotifyUser),
-            nameof(ControlFlowPluginDefinition.AskUserForInput),
-        ];
-
-        public override string ActionToTake(ContainerAppsQuotaAgentActivityInput input)
+        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppsQuotaAgentActivityInput input)
         {
-            return $"Extract quota request information from the Incident, and process it.";
+
+
+            _logger.LogInformation($"ContainerAppsQuotaAgentActivity started with input: {JsonSerializer.Serialize(input)}");
+
+
+            var systemPrompt = await GetPromptTextAsync(input);
+
+            List<ChatMessage> messages = [
+                new ChatMessage(ChatRole.System, systemPrompt),
+                new ChatMessage(ChatRole.System, @$"
+                    Input information
+                    - Container App Name: {input.ContainerAppName}
+                    - Region: {input.Region}
+                    - From: {input.FromDate:O}
+                    - To: {input.ToDate:O}
+                    ")
+                    ];
+
+            _logger.LogInformation("ContainerAppsQuotaAgentActivity sending messages to chat client.");
+            var response = await _chatClient.GetResponseAsync(messages);
+            messages.Add(response.GetMessage());
+
+            _logger.LogInformation("ContainerAppsQuotaAgentActivity completed with response.");
+            return messages;
         }
 
-        public override string GetPromptText(ContainerAppsQuotaAgentActivityInput input)
+
+
+        public async Task<string> GetPromptTextAsync(ContainerAppsQuotaAgentActivityInput input)
         {
             // Read the system prompt from a file
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppsQuotaAgent), "ContainerAppsQuotaAgent.txt");

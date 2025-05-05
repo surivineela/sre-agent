@@ -2,27 +2,11 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
 using System.ComponentModel;
-using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.Tracing;
-using System.Reactive;
-using System.Security.Permissions;
-using System.Text.RegularExpressions;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Azure.ResourceManager.AppContainers.Models;
-using Castle.Components.DictionaryAdapter;
 using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Plugins.Interfaces;
-using Google.Protobuf.WellKnownTypes;
-using Microsoft.AspNetCore.Routing;
-using Microsoft.CodeAnalysis.FlowAnalysis;
-using Microsoft.Kiota.Abstractions;
 using Microsoft.SemanticKernel;
-using ScottPlot.Colormaps;
-using ScottPlot.Hatches;
-using ScottPlot.Palettes;
-using static System.Net.WebRequestMethods;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {
@@ -65,7 +49,7 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - RevisionProvisioningState: Provisioning status.
     - RevisionRunningState: Running status.
     - AppReadyForTrafficState: Traffic readiness status."
-)]public Task<string> ListRevisions(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+)]public Task<string> ListRevisions([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.ListRevisions(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -85,7 +69,12 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - EnvironmentName: Name of the cluster hosting the container app.
     - Msg: Detailed message describing the scaling activity or failure reason."
 )]
-        public Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetHttpScalerEventsForContainerApp([Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -97,7 +86,12 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - LogTime: Log timestamp.
     - Level: Event severity(Info / Error).
     - Msg: Operator event message."
-)] public Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+)] public Task<string> GetKedaOperatorEventsForContainerApp([Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetKedaOperatorEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -117,21 +111,21 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     ⚠️ Important Diagnostic Logic:
     - If ReplicaCount > 0 and Requests == 0, it may indicate a scaling issue, a stuck scale-out, or a service issue requiring deeper investigation."
 )]
-        public Task<string> GetRevisionTrafficWithReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetRevisionTrafficWithReplicaCount([Description("Azure region.")] string region, [Description("Start time.")] DateTime fromDate, [Description("End time.")] DateTime toDate, [Description("Revision name.")] string revisionName, [Description("App name.")] string containerAppName, [Description("Resource group.")] string resourceGroupName, [Description("Subscription ID.")] string subscriptionId)
         {
             return _plugin.GetRevisionTrafficWithReplicaCount(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.ContainerAppRevisionStatus)]
         [Description("Return Container Apps Revision Statu for a given container app revision in a time range")]
-        public Task<string> ContainerAppRevisionStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> ContainerAppRevisionStatus([Description("Azure region.")] string region, [Description("Start time.")] DateTime fromDate, [Description("End time.")] DateTime toDate, [Description("Revision name.")] string revisionName, [Description("App name.")] string containerAppName, [Description("Resource group.")] string resourceGroupName, [Description("Subscription ID.")] string subscriptionId)
         {
             return _plugin.ContainerAppRevisionStatus(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetReplicaCount)]
         [Description("Return Replica Count of revision for a given time range")]
-        public Task<string> GetReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetReplicaCount([Description("Azure region.")] string region, [Description("Start time.")] DateTime fromDate, [Description("End time.")] DateTime toDate, [Description("Revision name.")] string revisionName, [Description("App name.")] string containerAppName, [Description("Resource group.")] string resourceGroupName, [Description("Subscription ID.")] string subscriptionId)
         {
             return _plugin.GetReplicaCount(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -146,7 +140,13 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - GroupBy: The revision name.
     - Health: Health status derived from state."
 )]
-        public Task<string> GetActiveRevisionSessions(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetActiveRevisionSessions([Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app revision.")] string revisionName,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetActiveRevisionSessions(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -159,7 +159,13 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - Legend: Metric type(e.g., cpu: current, memory: target).
     - Value: The numeric value of the metric."
 )]
-        public Task<string> GetHpaHeartbeatMetrics(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetHpaHeartbeatMetrics([Description("Azure region.")] string region,
+            [Description("Start time for metrics.")] DateTime fromDate,
+            [Description("End time for metrics.")] DateTime toDate,
+            [Description("Name of the revision.")] string revisionName,
+            [Description("Container app name.")] string containerAppName,
+            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)
         {
             return _plugin.GetHpaHeartbeatMetrics(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -172,7 +178,13 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - Legend: Metric type(e.g., cpu: current, memory: target).
     - Value: The numeric value of the metric."
 )]
-        public Task<string> GetRevisionSpecChanges(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetRevisionSpecChanges([Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)
         {
             return _plugin.GetRevisionSpecChanges(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -185,7 +197,13 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - RevisionName: Revision associated.
     - Reason: Why the event occurred.
     - Msg: Additional event message details."
-)]public Task<string> GetEventProcessorEventsWithoutReplica(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+)]public Task<string> GetEventProcessorEventsWithoutReplica([Description("Azure region.")] string region,
+            [Description("Start time.")] DateTime fromDate,
+            [Description("End time.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group.")] string resourceGroupName,
+            [Description("Subscription ID.")] string subscriptionId)        
         {
             return _plugin.GetEventProcessorEventsWithoutReplica(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -200,7 +218,13 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - PreciseTimeStamp: Last heartbeat timestamp.
     - LegionPodName: If it's a 'consumption' workload pod."
 )]
-        public Task<string> GetPodHeartbeatStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetPodHeartbeatStatus([Description("Azure region.")] string region,
+            [Description("Start of the time range.")] DateTime fromDate,
+            [Description("End of the time range.")] DateTime toDate,
+            [Description("Revision name.")] string revisionName,
+            [Description("App name.")] string containerAppName,
+            [Description("Resource group name.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetPodHeartbeatStatus(region.NormalizeLocation(), fromDate, toDate, revisionName, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -218,8 +242,15 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     - ReplicaName: The pod's replica name.
     - RevisionName: Associated revision.
     - Level: Mapped to Info or Error."
-)]public Task<string> GetInternalEventProcessorEventsForPod(string region, DateTime fromDate, DateTime toDate, string revisionName, string podName, string containerAppName, string resourceGroupName, string subscriptionId)
-        {
+)]public Task<string> GetInternalEventProcessorEventsForPod([Description("Azure region.")] string region,
+            [Description("Start timestamp.")] DateTime fromDate,
+            [Description("End timestamp.")] DateTime toDate,
+            [Description("Name of the revision.")] string revisionName,
+            [Description("Pod name within the revision.")] string podName,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
+        { 
             return _plugin.GetInternalEventProcessorEventsForPod(region.NormalizeLocation(), fromDate, toDate, revisionName, podName, containerAppName, resourceGroupName, subscriptionId);
         }
 

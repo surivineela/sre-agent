@@ -3,45 +3,70 @@
 // ------------------------------------------------------------
 
 using System.Linq.Expressions;
+using System.Text.Json;
+using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Plugins;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
 {
     // [MENDATORY]
-    public class HelloWorldAgentFactory : SimpleResourceSubAgentFactoryBase<HelloWorldAgent, HelloWorldAgentInput, HelloWorldAgentActivity, HelloWorldAgentActivityInput>
+    public class HelloWorldAgentFactory
     {
         
         private readonly lHelloWorldPlugin _helloWorldPlugin;
-
+        private readonly IContainerAppEnvoyPlugin _envoyPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
+        private readonly AgentToolsRegistry _toolsRegistry;
+        private readonly DurableTaskClient _durableTaskClient;
+        private readonly IThreadOrchestrationManager _mappingManager;
+        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppEnvoyAgentInput);
         public HelloWorldAgentFactory(
             lHelloWorldPlugin helloWorldPlugin,
             IThreadOrchestrationManager mappingManager,
             IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient
             )
-            : base(toolsRepository, mappingManager, durableTaskClient)
+            
         {
             _helloWorldPlugin = helloWorldPlugin;
+            _toolsRegistry = new AgentToolsRegistry();
+
+            
+            
+            _toolsRegistry.RegisterPlugin<HelloWorldPluginDefinition>();
         }
 
-        protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
+        public async Task<string> StartOrchestration(
+           HelloWorldAgentActivityInput input,
+           Guid threadId)
         {
-            // Import all tools that defined in System prompt of this 'HelloWorldAgent' sub-agent including required fundamental plugins like RecordActionsPluginDefinition, ControlFlowPluginDefinition, ApprovalPluginDefinition, etc.
+            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-            var helloWorldPluginDefinition = new HelloWorldPluginDefinition(_helloWorldPlugin);
-            yield return () => helloWorldPluginDefinition.GetHelloWorldMessageAsync;
+            await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
 
-            var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-            yield return () => controlFlowPluginDefinition.Wait;
-            yield return () => controlFlowPluginDefinition.MarkPlanComplete;
-            yield return () => controlFlowPluginDefinition.NotifyUser;
-            yield return () => controlFlowPluginDefinition.AskUserForInput;
+            await _durableTaskClient.ScheduleNewHelloWorldAgentInstanceAsync(
+                new HelloWorldAgentInput(
+                    Input: input,
+                    ToolSignatures: _toolsRegistry.ToolSignatures,
+                    ThreadId: threadId),
+                new StartOrchestrationOptions(InstanceId: instanceId));
+
+            return instanceId;
+        }
+
+        public HelloWorldAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
+        {
+            return JsonSerializer.Deserialize<HelloWorldAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
         }
     }
 }

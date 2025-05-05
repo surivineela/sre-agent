@@ -2,21 +2,33 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Linq.Expressions;
+using System.Text.Json;
+using Agent.Core;
 using Agent.Plugins;
+using Agent.Plugins.Definitions;
+using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
+using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
-using System.Linq.Expressions;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
 {
     // [MENDATORY]
-    public class ContainerAppsQuotaAgentFactory : SimpleResourceSubAgentFactoryBase<ContainerAppsQuotaAgent, ContainerAppsQuotaAgentInput, ContainerAppsQuotaAgentActivity, ContainerAppsQuotaAgentActivityInput>
+    public class ContainerAppsQuotaAgentFactory 
     {
         private readonly IIcmPlugin icmPlugin;
         private readonly IContainerAppsPlugin containerAppsPlugin;
+        private readonly AgentToolsRegistry _toolsRegistry;
+        private readonly DurableTaskClient _durableTaskClient;
+        private readonly IThreadOrchestrationManager _mappingManager;
+
+        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsQuotaAgent);
 
         public ContainerAppsQuotaAgentFactory(
             ITimePlugin timePlugin,
@@ -26,30 +38,40 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
             IThreadOrchestrationManager mappingManager,
             DurableTaskClient durableTaskClient
             )
-            : base(toolsRepository, mappingManager, durableTaskClient)
+            
         {
             this.icmPlugin = icmPlugin;
             this.containerAppsPlugin = containerAppsPlugin;
+            _toolsRegistry = new AgentToolsRegistry();
+
+            //_toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
+            //_toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
+            _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
+            _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
+            _toolsRegistry.RegisterPlugin<ContainerAppsPluginDefinition>();
         }
 
-        protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
+        public async Task<string> StartOrchestration(
+            ContainerAppsQuotaAgentActivityInput input,
+            Guid threadId)
         {
-            var containerAppPluginDefinition = new ContainerAppsPluginDefinition(containerAppsPlugin);
-            yield return () => containerAppPluginDefinition.ValidateQuotaRequest;
-            yield return () => containerAppPluginDefinition.SetSubscriptionQuota;
-            yield return () => containerAppPluginDefinition.GetSubscriptionDetail;
-            yield return () => containerAppPluginDefinition.GetSubscriptionUsage;
+            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
 
-            var icmPluginDefinition = new IcmPluginDefinition(icmPlugin);
-            yield return () => icmPluginDefinition.GetIncidentInfo;
-            yield return () => icmPluginDefinition.AddDiscussionEntry;
-            yield return () => icmPluginDefinition.ResolveIncident;
+            await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
 
-            var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-            yield return () => controlFlowPluginDefinition.Wait;
-            yield return () => controlFlowPluginDefinition.MarkPlanComplete;
-            yield return () => controlFlowPluginDefinition.NotifyUser;
-            yield return () => controlFlowPluginDefinition.AskUserForInput;
+            await _durableTaskClient.ScheduleNewContainerAppsQuotaAgentInstanceAsync(
+                new ContainerAppsQuotaAgentInput(
+                    Input: input,
+                    ToolSignatures: _toolsRegistry.ToolSignatures,
+                    ThreadId: threadId),
+                new StartOrchestrationOptions(InstanceId: instanceId));
+
+            return instanceId;
+        }
+
+        public ContainerAppsQuotaAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
+        {
+            return JsonSerializer.Deserialize<ContainerAppsQuotaAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
         }
     }
 }

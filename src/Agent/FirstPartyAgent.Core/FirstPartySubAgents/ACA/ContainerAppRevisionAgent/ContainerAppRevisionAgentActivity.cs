@@ -1,46 +1,65 @@
 using System.ComponentModel;
-using Agent.Runtime.SubAgents;
+using System.Text.Json;
+using Agent.Core.Extensions;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
-
+using Microsoft.Extensions.Logging;
+using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 {
     // [MENDATORY]
-    public record ContainerAppRevisionAgentActivityInput(
-    [Description("The list of Azure container apps revision Resources (as resource IDs) to affect in this run.")]
-        List<SimpleResourceSubAgentResourceInformation> Resources
-    )
-    : SimpleResourceSubAgentActivityInput(Resources)
+    public record ContainerAppRevisionAgentActivityInput : BaseContainerAppIssueActivityInput
     {
-        public ContainerAppRevisionAgentActivityInput()
-            : this(new List<SimpleResourceSubAgentResourceInformation>())
-        {
-        }
+        [Description("The name of the container app.")]
+        public string ContainerAppName { get; init; } = string.Empty;
 
-        public override string GetPlanText()
-        {
-           return string.Empty;
-        }
+        [Description("The revision name of the container app.")]
+        public string RevisionName { get; init; } = string.Empty;
     }
 
     // [MENDATORY]
     [DurableTask]
-    public class ContainerAppRevisionAgentActivity : SimpleResourceSubAgentActivityBase<ContainerAppRevisionAgentActivityInput>
+    public class ContainerAppRevisionAgentActivity : TaskActivity<ContainerAppRevisionAgentActivityInput, List<ChatMessage>>
     {
-        public ContainerAppRevisionAgentActivity(IChatClient chatClient) : base(chatClient)
+
+        private readonly IChatClient _chatClient;
+        private readonly ILogger<ContainerAppRevisionAgentActivity> _logger;
+
+        public ContainerAppRevisionAgentActivity(IChatClient chatClient, ILogger<ContainerAppRevisionAgentActivity> logger)
         {
+            _logger = logger;
+            _chatClient = chatClient;
         }
 
-        public override string ResourceTypeName => "Revisions";
-
-        public override string[] ToolNames => new string[] {};
-
-        public override string ActionToTake(ContainerAppRevisionAgentActivityInput input)
+        public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppRevisionAgentActivityInput input)
         {
-            throw new NotImplementedException();
+            _logger.LogInformation($"ContainerAppRevisionAgentActivity started with input: {JsonSerializer.Serialize(input)}");
+
+            
+            var systemPrompt = await GetPromptTextAsync(input);
+        
+            List<ChatMessage> messages = [
+                new ChatMessage(ChatRole.System, systemPrompt),
+                new ChatMessage(ChatRole.System, @$"
+                    Input information
+                    - Container App Name: {input.ContainerAppName}
+                    - Revision Name: {input.RevisionName}
+                    - Region: {input.Region}
+                    - From: {input.FromDate:O}
+                    - To: {input.ToDate:O}
+                    ")
+                    ];
+
+            _logger.LogInformation("ContainerAppRevisionAgentActivity sending messages to chat client.");
+            var response = await _chatClient.GetResponseAsync(messages);
+            messages.Add(response.GetMessage());
+
+            _logger.LogInformation("ContainerAppRevisionAgentActivity completed with response.");
+            return messages;
         }
 
-        public override string GetPromptText(ContainerAppRevisionAgentActivityInput input)
+        public async Task<string> GetPromptTextAsync(ContainerAppRevisionAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartySubAgents), "ACA", nameof(ContainerAppRevisionAgent), "ContainerAppRevisionAgentPlan.txt");
             var systemPrompt = File.ReadAllText(path);

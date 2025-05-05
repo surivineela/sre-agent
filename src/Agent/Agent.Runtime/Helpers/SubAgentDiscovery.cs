@@ -54,6 +54,8 @@ namespace Agent.Core.Helpers
 
         public static List<AITool> GetSubAgentTools(Guid threadGuid, Assembly subAgentsAssembly, IServiceProvider serviceProvider)
         {
+
+            // DEPRACTED DO NOT USE SimpleResourceSubAgentPluginBase
             List<AITool> subAgentAItools = [];
             // Get all instances of background-scanning subagents and register their methods
             var subClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(
@@ -83,7 +85,45 @@ namespace Agent.Core.Helpers
                 subAgentAItools.Add(AIFunctionFactory.Create(listWorkflowsAsync, instance));
                 subAgentAItools.Add(AIFunctionFactory.Create(startAgentAsync, instance));
             }
+
+            //Best pratice using Attributes to register Workflow Classes , to avoid calling the last workflow registered for any reasoning 
+            var allTypes = subAgentsAssembly.GetTypes();
+            var extraTypes = allTypes
+                .Where(t =>
+                    t.IsClass &&
+                    !t.IsAbstract &&
+                    t.GetCustomAttribute<WorkflowClassAttribute>() != null)
+                .ToList();
+
+            foreach (var extraType in extraTypes)
+            {
+                var extraInstance = serviceProvider.GetService(extraType);
+                if (extraInstance == null) continue;
+
+                SetThreadIdIfExists(extraType, extraInstance, threadGuid);
+
+                var methods = GetWorkflowFunctions(extraType);
+                foreach (var method in methods)
+                {
+                    subAgentAItools.Add(AIFunctionFactory.Create(method, extraInstance));
+                }
+            }
             return subAgentAItools;
+            
+        }
+        private static IEnumerable<MethodInfo> GetWorkflowFunctions(Type type)
+        {
+            return type.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                       .Where(m => m.GetCustomAttribute<WorkflowFunctionAttribute>() != null);
+        }
+
+        private static void SetThreadIdIfExists(Type type, object instance, Guid threadId)
+        {
+            var prop = type.GetProperty("ThreadId", BindingFlags.Public | BindingFlags.Instance);
+            if (prop != null && prop.CanWrite)
+            {
+                prop.SetValue(instance, threadId);
+            }
         }
     }
 }

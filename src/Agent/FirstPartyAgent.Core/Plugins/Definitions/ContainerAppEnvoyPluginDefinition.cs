@@ -24,7 +24,7 @@ Projects:
   - _ContainerId: Envoy container Id.
   - _ContainerImage: The docker image used by the Envoy container.
 ")]
-        public Task<string> GetEnvoyAbnormalLogs(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetEnvoyAbnormalLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetEnvoyAbnormalLogs(region, fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -43,7 +43,7 @@ Projects:
   - _ContainerImage: The docker image used by the Envoy container.
   - caller:
 ")]
-        public Task<string> GetEnvoyControllerLogs(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetEnvoyControllerLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetEnvoyControllerLogs(region, fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -71,7 +71,7 @@ Projects:
   - UserAgent: User agent.
   - Role: Cluster Node Id.
 ")]
-        public Task<string> GetEnvoyAccessLogs(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetEnvoyAccessLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetEnvoyAccessLogs(region, fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }
@@ -91,7 +91,7 @@ Projects:
   - _ContainerImage: The docker image used by the Envoy container.
   - caller: event caller.
 ")]
-        public Task<string> GetSwiftNetworkingEvents(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+        public Task<string> GetSwiftNetworkingEvents([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Name of the container app.")] string containerAppName, [Description("Name of the resource group.")] string resourceGroupName, [Description("Azure subscription ID.")] string subscriptionId)
         {
             return _plugin.GetSwiftNetworkingEvents(region, fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
         }

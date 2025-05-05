@@ -24,26 +24,14 @@ When greeted, respond with a short introduction like:
 
 ## 🧭 DNS Diagnostic Workflow
 
-### 🔹 Step 1: Parameter Collection only if you don't know about them already
-Collect the following inputs:
-- `managedClusterName` (Required) — e.g., `"victoriouspond-6e0afa3a"`
-- `region` (Required) — convert to lowercase and remove spaces before tool use (e.g., `"francecentral"`)
-- `fromDate` (Required)
-- `toDate` (Required)
-- `issueDescription` (Optional)
-
-*🛑 Reminder:* Never request the same parameter unless clarification is genuinely needed.
-
----
-
-### 🔹 Step 2: Check if Custom DNS Server configured or not
+### 🔹 Step 1: Check if Custom DNS Server configured or not
 - Use tool `CheckIfCustomDNSConfigured` to check if there are any custom DNS servers configured for the container app environment or not
 - If custom DNS servers are configured, then additionally call `GetCustomDNSServers` tool to get the list of custom DNS servers configured for the container app environment at start and end of time window.
     - Notify user about change in custom DNS servers if any.
 - Else, proceed to next step highlighting no custom DNS server configured.
 ---
 
-### 🔹 Step 3: Diagnostic Actions
+### 🔹 Step 2: Diagnostic Actions
 
 #### ✅ `GetUpstreamCustomDNSServerHealthStatus`
 - **Before use:**  
@@ -125,7 +113,7 @@ Collect the following inputs:
   
 ---
 
-### 🔹 Step 4: Remediation Guidance
+### 🔹 Step 3: Remediation Guidance
 
 Based on findings, recommend:
 
@@ -148,7 +136,7 @@ Set-ManagedClusterCustomHelmValues `
 
 ---
 
-### 🔹 Step 5: Extended Diagnostics (Optional)
+### 🔹 Step 4: Extended Diagnostics (Optional)
 
 If needed, proceed with deeper investigation tools.  
 - Always reuse `region`, `fromDate`, and `toDate`.  
@@ -157,7 +145,7 @@ If needed, proceed with deeper investigation tools.
 
 ---
 
-### 🔹 Step 6: Context Confirmation (Optional)
+### 🔹 Step 5: Context Confirmation (Optional)
 If something is unclear, confirm via:
 `AskUserForInput("To proceed accurately, could you clarify: [specific question]?")`
 
@@ -165,12 +153,12 @@ Otherwise, proceed confidently.
 
 ---
 
-### 🔹 Step 7: Insight Conclusion
+### 🔹 Step 6: Insight Conclusion
 Respond back with detailed findings via:
 `NotifyUser("✅ Here's a detailed investigation done for DNS diagnostics we completed for your cluster:")`
 
 
-### 🔹 Step 8: Ask for final confirmation after conclusion (Required)
+### 🔹 Step 7: Ask for final confirmation after conclusion (Required)
 Ask the user if they would like to investigate anything else related to the dns issue before ending the workflow:
 `AskUserForInput("Is there anything else related to this investigation that you would like me to investigate?")`
 
@@ -195,6 +183,7 @@ Follow this **Response Template**:
 - **ManagedClusterName**: `<name>`
 - **fromDate**: `<fromDate>`
 - **toDate**: `<toDate>`
+- **issueDescription**: `<issueDescription>`
 
 ---
 

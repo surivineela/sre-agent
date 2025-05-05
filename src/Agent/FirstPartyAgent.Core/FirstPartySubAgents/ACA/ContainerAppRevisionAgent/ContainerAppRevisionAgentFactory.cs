@@ -2,82 +2,88 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
+using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
-using FirstPartyAgent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
+using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
-using System.Linq.Expressions;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 {
     // [MENDATORY]
-    public class ContainerAppRevisionAgentFactory : SimpleResourceSubAgentFactoryBase<ContainerAppRevisionAgent, RevisionAgentInput, ContainerAppRevisionAgentActivity, ContainerAppRevisionAgentActivityInput>
+    public sealed class ContainerAppRevisionAgentFactory
     {
-       
-        private readonly IContainerAppRevisionPlugin _revisionPlugin;
-        private readonly IKustoPlugin _kustoPlugin;
+        private readonly IToolsRepository _toolsRegistry;
+        private readonly DurableTaskClient _durableTaskClient;
+        private readonly IThreadOrchestrationManager _mappingManager;
+        private readonly IReadOnlyList<string> _toolSignatures;
+        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppRevisionAgent);
 
         public ContainerAppRevisionAgentFactory(
-            IContainerAppRevisionPlugin revisionPlugin,
-            IThreadOrchestrationManager mappingManager,
-            IToolsRepository toolsRepository,
-            DurableTaskClient durableTaskClient,
-            IKustoPlugin kustoPlugin
-            )
-            : base(toolsRepository, mappingManager, durableTaskClient)
+        IMetricsPlugin metricsPlugin,
+        ITimePlugin timePlugin,
+        IContainerAppRevisionPlugin revisionPlugin,
+        IRecordActionsPlugin recordActionsPlugin,
+        IChartPlugin chartPlugin,
+        IToolsRepository toolsRepository,
+        IThreadOrchestrationManager mappingManager,
+        DurableTaskClient durableTaskClient)
         {
-            _revisionPlugin = revisionPlugin;
-            _kustoPlugin = kustoPlugin;
-        }
+            _toolsRegistry = toolsRepository;
+            var toolSignatures = new List<string>();
 
-        protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
-        {
+    
 
-           var kustoDefinition = new KustoPluginDefinition(_kustoPlugin);
 
-            //// Register all Kusto functions dynamically
-            //foreach (var pair in kustoDefinition.GetRegisteredFunctionDelegates())
-            //{
-            //    var functionName = pair.Key;
-            //    var func = pair.Value;
-            //    var f = new Func<Task<string>>(func);
-                
-            //    // Expression wrapper for Func<Task<string>> to Delegate
-            //    yield return () => new Func<Task<string>>(func);
-            //}
+            var remediationPluginDefinition = new ContainerAppRevisionPluginDefinition(revisionPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.ListRevisions));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionTrafficWithReplicaCount));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetEventProcessorEventsWithoutReplica));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.ContainerAppRevisionStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetActiveRevisionSessions));
 
-            // Add static methods
-            yield return () => kustoDefinition.ListFunctionsAsync;
-            yield return () => kustoDefinition.ExecuteFunction;
-            yield return () => kustoDefinition.ExecuteKustoQuery;
-
-            // Import all tools that defined in System prompt of this 'RevisionAgent' sub-agent including required fundamental plugins like RecordActionsPluginDefinition, ControlFlowPluginDefinition, ApprovalPluginDefinition, etc.
-            var revisionPluginDefinition = new ContainerAppRevisionPluginDefinition(_revisionPlugin);
-            yield return () => revisionPluginDefinition.ListRevisions;
-            yield return () => revisionPluginDefinition.GetRevisionTrafficWithReplicaCount;
-            yield return () => revisionPluginDefinition.GetActiveRevisionSessions;
-            yield return () => revisionPluginDefinition.GetHpaHeartbeatMetrics;
-            yield return () => revisionPluginDefinition.GetRevisionSpecChanges;
-            yield return () => revisionPluginDefinition.GetEventProcessorEventsWithoutReplica;
-            yield return () => revisionPluginDefinition.GetPodHeartbeatStatus;
-            yield return () => revisionPluginDefinition.GetInternalEventProcessorEventsForPod;
-
-            yield return () => revisionPluginDefinition.GetReplicaCount;
-            yield return () => revisionPluginDefinition.ContainerAppRevisionStatus;
+            //var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
+            //toolSignatures.Add(_toolsRegistry.GetSignature(() => recordActionsPluginDefinition.RecordAction));
+            //toolSignatures.Add(_toolsRegistry.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
-            yield return () => controlFlowPluginDefinition.Wait;
-            yield return () => controlFlowPluginDefinition.MarkPlanComplete;
-            yield return () => controlFlowPluginDefinition.NotifyUser;
-            yield return () => controlFlowPluginDefinition.AskUserForInput;
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
 
-            //var approvalPluginDefinition = new ApprovalPluginDefinition(_approvalPlugin);
-            //yield return () => approvalPluginDefinition.StartApprovalFlow;
+            _toolSignatures = toolSignatures;
+            _durableTaskClient = durableTaskClient;
+            _mappingManager = mappingManager;
+        }
+
+        public async Task<string> StartOrchestration(
+            ContainerAppRevisionAgentActivityInput input,
+            Guid threadId)
+        {
+            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+
+            await _mappingManager.AddMappingAsync(threadId.ToString(), instanceId);
+
+            await _durableTaskClient.ScheduleNewContainerAppRevisionAgentInstanceAsync(
+                new RevisionAgentInput(
+                    Input: input,
+                    ToolSignatures: _toolSignatures,
+                    ThreadId: threadId),
+                new StartOrchestrationOptions(InstanceId: instanceId));
+
+            return instanceId;
+        }
+
+        public ContainerAppRevisionAgentActivityInput DeserializeInput(string serializedOrchestrationInput)
+        {
+            return JsonSerializer.Deserialize<RevisionAgentInput>(serializedOrchestrationInput).ThrowIfNull().Input;
         }
     }
+  
 }
