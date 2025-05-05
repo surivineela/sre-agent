@@ -31,7 +31,6 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
             args
         );
 
-
         // For any other function call, defer to the derived implementation
         var execInput = new ExecuteActionInput(
             ThreadId: threadId,

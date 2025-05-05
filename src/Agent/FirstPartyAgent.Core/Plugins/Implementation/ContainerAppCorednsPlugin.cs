@@ -12,15 +12,11 @@ namespace FirstPartyAgent.Core.Plugins.Implementation;
 // [MENDATORY]
 public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 {
-    private readonly ILogger<ContainerAppCorednsPlugin> _logger;
     private readonly IKustoPlugin _kustoPlugin;
-    private readonly IChatClient _chatClient;
 
-    public ContainerAppCorednsPlugin(ILogger<ContainerAppCorednsPlugin> logger, IKustoPlugin kustoPlugin, IChatClient chatClient)
+    public ContainerAppCorednsPlugin(IKustoPlugin kustoPlugin)
     {
-        _logger = logger;
         _kustoPlugin = kustoPlugin;
-        _chatClient = chatClient;
     }
 
     public Task<string> CheckIfCustomDNSConfigured(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
@@ -61,7 +57,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public Task<string> GetCoreDNSCountMetricData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetCoreDNSCountMetricData", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetCoreDNSCountMetricData", region,
         new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -74,7 +70,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public Task<string> GetCoreDNSAvgLatencyMetricData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetCoreDNSAverageLatencyMetricData", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetCoreDNSAverageLatencyMetricData", region,
         new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -87,7 +83,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public async Task<string> GetMyCoreDNSAvgLatencyMetricDataAsync(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)
     {
-        var rawData = await _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetCoreDNSAverageLatencyMetricData", region,
+        var rawData = await _kustoPlugin.ExecuteLocalFunctionAsync("GetCoreDNSAverageLatencyMetricData", region,
             new Dictionary<string, string>
             {
                 { "fromDate", fromDate.ToString() },
@@ -102,7 +98,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public Task<string> GetPodFailureEvents(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string podNamePrefix, string podNamespace, int threshold)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetPodFailureEvents", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodFailureEvents", region,
     new Dictionary<string, string>
     {
                 { "fromDate", fromDate.ToString() },
@@ -116,7 +112,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public Task<string> GetPodHealthStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string podNamePrefix, string podNamespace)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetPodHealthStatus", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHealthStatus", region,
     new Dictionary<string, string>
     {
                 { "fromDate", fromDate.ToString() },
@@ -129,7 +125,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public Task<string> GetDNSConfigUpdateStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "GetDNSConfigUpdateStatus", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("GetDNSConfigUpdateStatus", region,
     new Dictionary<string, string>
     {
                 { "fromDate", fromDate.ToString() },
@@ -140,7 +136,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 
     public Task<string> CheckIfDNSServerFailedToResolveDot(string region, DateTime fromDate, DateTime toDate, string managedClusterName, int threshold)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync(_logger, "CheckIfDNSServerFailedToResolveDot", region,
+        return _kustoPlugin.ExecuteLocalFunctionAsync("CheckIfDNSServerFailedToResolveDot", region,
     new Dictionary<string, string>
     {
                 { "fromDate", fromDate.ToString() },

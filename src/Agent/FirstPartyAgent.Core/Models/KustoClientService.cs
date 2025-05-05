@@ -34,6 +34,11 @@ public class KustoClientService
         }
     }
 
+    public KustoCluster GetCluster(string region)
+    {
+        return _regionsToClusters[region];
+    }
+
     private ICslQueryProvider GetNewClient(KustoCluster cluster)
     {
         ICslQueryProvider? queryProvider = null;

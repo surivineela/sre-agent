@@ -4,6 +4,8 @@
 
 using Agent.Core.Configuration;
 using Agent.Core.Helpers;
+using Agent.Core.Interfaces;
+using Agent.Core.Services;
 using Agent.Plugins;
 using Agent.Plugins.Models;
 using Azure.Identity;
@@ -41,6 +43,7 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<KustoServiceClientFactory>();
             services.AddSingleton<IKustoPlugin, KustoPlugin>();
+            services.AddSingleton<KustoClientService>();
 
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
@@ -57,7 +60,6 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<IKustoPlugin, KustoPlugin>();
 
             services.AddSingleton<ColdStartPlugin>();
-
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
 

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Plugins.Models;
@@ -21,8 +22,6 @@ namespace Agent.Plugins.Implementation
         }
 
         public async Task<string> SetMinimumTlsVersion(
-            Guid threadId,
-            Guid approvalId,
             string appResourceId,
             string minimumTlsVersion)
         {
@@ -40,7 +39,7 @@ namespace Agent.Plugins.Implementation
                     return msg;
                 }
 
-                var approvalContext = new ApprovalContext(threadId, approvalId);
+                var approvalContext = new ApprovalContext(ToolStatic.AsyncLocalThreadId.Value, ToolStatic.AsyncLocalApprovalId.Value ?? throw new ArgumentNullException("Approval ID is null"));
                 var response = await _armHelper.UpdateMinimumTlsVersion(approvalContext, status, minimumTlsVersion);
                 success = response.Item1;
                 reason = response.Item2;

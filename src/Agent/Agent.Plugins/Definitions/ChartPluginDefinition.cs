@@ -18,7 +18,6 @@ namespace Agent.Plugins
         }
 
         [KernelFunction("plot_time_series_data")]
-        [ThreadSpecific]
         [Description(
 @"Generates a base64-encoded chart from time-series data.
 Used whenever giving a comparison to user. eg: how many of my total monitored apps basic auth enabled
@@ -45,7 +44,6 @@ description: text to accompany the chart when posting the image")]
         }
 
         [KernelFunction("plot_pie_chart")]
-        [ThreadSpecific]
         [Description(@"Generates a pie chart from the provided data and returns (or posts) it.
 Parameters:
 chartTitle: The title displayed at the top of the pie chart.
@@ -61,7 +59,6 @@ description: A short message to summarize the image.")]
         }
 
         [KernelFunction("plot_bar_chart")]
-        [ThreadSpecific]
         [Description(@"Generates a bar chart from the provided data and returns (or posts) it.
 Parameters:
 chartTitle: The title displayed at the top of the bar chart.
@@ -81,7 +78,6 @@ description: A short message to summarize the image.")]
         }
 
         [KernelFunction("plot_scatter")]
-        [ThreadSpecific]
         [Description(@"Generates a scatter plot from X-Y coordinate pairs and returns (or posts) it.
 Parameters:
 chartTitle: The title displayed at the top of the scatter plot.
@@ -101,7 +97,6 @@ description: A short message to summarize the image.")]
         }
 
         [KernelFunction("plot_heatmap")]
-        [ThreadSpecific]
         [Description(@"Generates a heatmap chart from the provided data and returns (or posts) it.
 Parameters:
 chartTitle: The title displayed at the top of the heatmap.

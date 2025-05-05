@@ -2,12 +2,14 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using System.Reflection;
 using Agent.Core.Attributes;
 using Agent.Plugins.Attributes;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Core;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -36,15 +38,9 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
 
         try
         {
-            if (ShouldInjectThreadId(input.FunctionCallContent.Name, input.ToolSignatures))
-            {
-                input.FunctionCallContent.Arguments["threadId"] = input.ThreadId;
-            }
-
-            if (ShouldInjectApprovalId(input.FunctionCallContent.Name, input.ToolSignatures))
-            {
-                input.FunctionCallContent.Arguments["approvalId"] = input.ApprovalId;
-            }
+            // set the TLS ThreadId
+            ToolStatic.AsyncLocalThreadId.Value = input.ThreadId;
+            ToolStatic.AsyncLocalApprovalId.Value = input.ApprovalId;
 
             // Invoke the function
             var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
@@ -75,27 +71,6 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
                 ChatMessage: new ChatMessage(ChatRole.Tool, [errorResult]),
                 Is202Submit: false);
         }
-    }
-
-    // Helper method to check if a function has the ThreadSpecific attribute
-    private bool ShouldInjectThreadId(string functionName, IReadOnlyList<string> toolSignatures)
-    {
-        var aiFunctions = _toolsRepository.GetAllTools(toolSignatures).Select(_toolsRepository.FindAiFunction);
-        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == functionName);
-
-        var attribute = matchingTool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<ThreadSpecificAttribute>();
-
-        return attribute != null;
-    }
-
-    private bool ShouldInjectApprovalId(string functionName, IReadOnlyList<string> toolSignatures)
-    {
-        var aiFunctions = _toolsRepository.GetAllTools(toolSignatures).Select(_toolsRepository.FindAiFunction);
-        var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == functionName);
-
-        var attribute = matchingTool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
-
-        return attribute != null;
     }
 }
 
