@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Core.Services;
 using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
@@ -32,6 +33,8 @@ public class AzMonitorAlertScanner
     private readonly IAzMonitorAlertService _azMonitorAlertService;
     private readonly Container _dbContainer;
     private readonly IGraphDatabaseClient _graphDbClient;
+    private readonly ILogQueryService _logQueryService;
+    private readonly IAzMonitorAlertInvestigationService _azMonitorInvestigationService;
 
 
     public AzMonitorAlertScanner(
@@ -42,6 +45,8 @@ public class AzMonitorAlertScanner
         CosmosClient cosmosClient,
         CosmosDBSettings cosmosDbSettings,
         IGraphDatabaseClient graphDatabaseClient,
+        ILogQueryService logQueryService,
+        IAzMonitorAlertInvestigationService alertInvestigationService,
         IChatClient chatClient, ILogger<AzMonitorAlertScanner> logger)
     {
         _graphDBPlugin = graphDbPlugin;
@@ -54,8 +59,15 @@ public class AzMonitorAlertScanner
 
         _dbContainer = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, AgentDataConfiguration.ThreadContainerName);
         _graphDbClient = graphDatabaseClient;
+        _logQueryService = logQueryService;
+        _azMonitorInvestigationService = alertInvestigationService;
     }
 
+    /// <summary>
+    /// Polls for new alerts in Log Analytics Workspace on a given cadence. 
+    /// </summary>
+    /// <param name="ct">Cancellation token.</param>
+    /// <returns></returns>
     public async Task PollNewAlertsAsync(CancellationToken ct = default)
     {
         _logger.LogInformation("Polling for new Azure Monitor alerts from the last minute");
@@ -109,12 +121,97 @@ public class AzMonitorAlertScanner
             await SaveAlertToGraphDb(alert);
 
             // Create incident thread
-            await CreateIncidentThread(alert);
+            var (thread, agentContext) = await CreateIncidentThread(alert);
+
+            // Start investigating workflow
+            var investigationSummary = await StartInvestigationFlow(alert, thread);
+
+            // Signal the agent to start investigating with all the context summaries
+            await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+               ThreadId: thread.Id,
+               AgentContextId: agentContext.Id,
+               MessageId: thread.StartMessage.Id,
+               Message: investigationSummary,
+               UserId: "incident-system",
+               DisplayName: "Azure Monitor Investigation Summary",
+               Timestamp: DateTime.UtcNow
+           ));
         }
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error processing alert {alert.Id}: {ex.Message}");
         }
+    }
+
+    private async Task<string> StartInvestigationFlow(AlertItem alert, Thread alertThread)
+    {
+        StringBuilder investigationSummary = new();
+
+        try
+        {
+            // Get general app health summary (scorecard)
+            var healthSummary = await _azMonitorInvestigationService.GetApplicationHealthAsync(alert, alertThread);
+
+            // Get relevant metrics for the resource
+            // TODO: Enable this once Metrics plugin is merged
+            //var metricsSummary = await _azMonitorInvestigationService.GetMetricsForResource(alert, alertThread);
+
+            // Analyze activity logs for the impacted resource
+            var activityLogSummary = await _azMonitorInvestigationService.AnalyzeActivityLogsForResource(alert, alertThread);
+
+            // Analyze connected components
+            var kgSummary = await _azMonitorInvestigationService.AnalyzeConnectedComponents(alert, alertThread);
+
+            // Analyze saved queries from Azure Log Analytics workspace / App Insights
+            var logQuerySummary = await _azMonitorInvestigationService.AnalyzeLogQueries(alert, alertThread);
+
+
+            investigationSummary.AppendLine("# ALERT INVESTIGATION SUMMARY!");
+            investigationSummary.AppendLine();
+            investigationSummary.AppendLine("The following context contains the results of an automated investigation into an Azure Monitor alert. " +
+                                    "This includes details about the alert itself, the health of the affected application, relevant metrics, " +
+                                    "recent activity logs, analysis of connected components, and results from relevant log queries. " +
+                                    "This information should be used to determine the root cause of the alert and provide recommendations for resolution.");
+            investigationSummary.AppendLine();
+            investigationSummary.AppendLine("# Alert Information");
+            investigationSummary.AppendLine($"- Alert ID: {alert.Id}");
+            investigationSummary.AppendLine($"- Alert Name: {alert.Name}");
+            investigationSummary.AppendLine($"- Severity: {alert.Properties.Essentials.Severity}");
+            investigationSummary.AppendLine($"- Monitor Condition: {alert.Properties.Essentials.MonitorCondition}");
+            investigationSummary.AppendLine($"- Alert Rule: {alert.Properties.Essentials.AlertRule}");
+            investigationSummary.AppendLine($"- Description: {alert.Properties.Essentials.Description}");
+            investigationSummary.AppendLine($"- Target Resource: {alert.Properties.Essentials.TargetResource}");
+            investigationSummary.AppendLine($"- Resource Type: {alert.Properties.Essentials.TargetResourceType}");
+            investigationSummary.AppendLine($"- Fired At: {alert.Properties.Essentials.StartDateTime}");
+            investigationSummary.AppendLine();
+
+            investigationSummary.AppendLine("# Application Health Summary");
+            investigationSummary.AppendLine(healthSummary);
+            investigationSummary.AppendLine();
+
+            // NOTE: ignore for now.
+            // TODO: Enable this when metrics plugin is added.
+            //investigationSummary.AppendLine("# Resource Metrics Summary");
+            //investigationSummary.AppendLine(metricsSummary);
+            //investigationSummary.AppendLine();
+
+            investigationSummary.AppendLine("# Activity Log Analysis");
+            investigationSummary.AppendLine(activityLogSummary);
+            investigationSummary.AppendLine();
+
+            investigationSummary.AppendLine("# Related Resource Analysis");
+            investigationSummary.AppendLine(kgSummary);
+            investigationSummary.AppendLine();
+
+            investigationSummary.AppendLine("# Log Query Analysis");
+            investigationSummary.AppendLine(logQuerySummary);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error during alert investigation flow: {ex.Message}");
+        }
+
+        return investigationSummary.ToString();
     }
 
     private async Task<string> SaveAlertToDocumentDb(AlertItem alert)
@@ -144,11 +241,13 @@ public class AzMonitorAlertScanner
             string status = essentials.AlertState.ToString();
             DateTimeOffset createdAt = ParseDateTimeOffset(essentials.StartDateTime);
 
+            var alertRuleName = new ResourceIdentifier(alertRule);
+
             var alertResourceId = new ResourceIdentifier(alertId);
 
             var newAlertDocument = new AzMonitorAlertDocument(
-                Id: alertResourceId.Name,
-                Name: name,
+                Id: alertResourceId.Name, // only get the alert Id (guid)
+                Name: alertRuleName.Name, // only get the Alert Name
                 Severity: severity,
                 TargetResourceType: targetResourceType,
                 TargetResourceId: targetResourceId,
@@ -256,7 +355,7 @@ public class AzMonitorAlertScanner
         }
     }
 
-    private async Task<Thread> CreateIncidentThread(AlertItem alert)
+    private async Task<(Thread, AgentContext)> CreateIncidentThread(AlertItem alert)
     {
         var messageBuilder = new StringBuilder();
 
@@ -270,6 +369,9 @@ public class AzMonitorAlertScanner
         var monitorCondition = essentials.MonitorCondition.ToString();
         var monitorService = essentials.MonitorService;
         var startDateTime = ParseDateTimeOffset(essentials.StartDateTime);
+
+        var alertRuleName = new ResourceIdentifier(alertRule);
+        var targetResourceId = new ResourceIdentifier(targetResource);
 
         var incidentMessage = $"🚨 **New Azure Monitor Alert Detected**\n\n" +
             $"**Alert ID:** {alertId}\n\n" +
@@ -296,37 +398,33 @@ public class AzMonitorAlertScanner
             incidentMessage += $"Description: {description}\n";
         }
 
-        incidentMessage += $"Signal Type: {alert.Properties.Essentials.SignalType}\n";
-        incidentMessage += $"Resource Group: {alert.Properties.Essentials.TargetResourceGroup}\n";
-        incidentMessage += $"Resource Name: {alert.Properties.Essentials.TargetResourceName}\n";
-        incidentMessage += $"Resource Type: {alert.Properties.Essentials.TargetResourceType} \n";
+        incidentMessage += $"Signal Type: {alert.Properties.Essentials.SignalType}\n\n";
+        incidentMessage += $"Resource Group: {alert.Properties.Essentials.TargetResourceGroup}\n\n";
+        incidentMessage += $"Resource Name: {alert.Properties.Essentials.TargetResourceName}\n\n";
+        incidentMessage += $"Resource Type: {alert.Properties.Essentials.TargetResourceType} \n\n";
 
 
         (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
-            title: $"Alert - {alertRule}",
+            title: $"Incident Alert - [{severity}] [{targetResourceId.Name}] {alertRuleName.Name}",
             message: incidentMessage,
             agentTypeEnum: AgentTypeEnum.Meta,
             source: ThreadSource.Incident,
             incidentId: alertId
         );
 
-        var agentMessage = $"**Acknowledging the alert**. I'm starting to investigate and see how I can help.";
-        await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
-
-        await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-            ThreadId: thread.Id,
-            AgentContextId: agentContext.Id,
-            MessageId: thread.StartMessage.Id,
-            Message: messageBuilder.ToString(),
-            UserId: "incident-system",
-            DisplayName: monitorService.ToString() ?? "Azure Monitor",
-            Timestamp: DateTime.UtcNow
-        ));
-
         // acknowledge incident
         await _azMonitorAlertService.AcknowledgeAlert(alertId);
 
-        return thread;
+        var agentMessage = $"**Acknowledging the alert**. 🔍 Analyzing different data sources to determine what's happening.";
+
+        await _repository.AddMessageAsync(thread.Id, new Message(
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                agentMessage
+            ));
+
+        return (thread, agentContext);
     }
 
     private async Task<T> GetDocumentAsync<T>(string id, string partitionKey) where T : ICosmosDocument

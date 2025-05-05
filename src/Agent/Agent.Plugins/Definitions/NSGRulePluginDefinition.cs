@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
+// ------------------------------------------------------------
+//  Copyright (c) Microsoft Corporation.  All rights reserved.
+// ------------------------------------------------------------
+
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Agent.Core.Attributes;
 using Azure.ResourceManager.Network;
 using Microsoft.SemanticKernel;

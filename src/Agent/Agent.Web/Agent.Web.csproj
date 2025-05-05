@@ -26,10 +26,6 @@
     <ProjectReference Include="..\Agent.Prometheus\Agent.Prometheus.csproj" />
     <ProjectReference Include="..\FirstPartyAgent.Core\FirstPartyAgent.Core.csproj" />
   </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="wwwroot\" />
-  </ItemGroup>
   <Target Name="BuildReactApp" BeforeTargets="Build">
     <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
     <Exec Command="npm install" WorkingDirectory="Client" />

@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel.DataAnnotations;
-using System.Runtime.Serialization;
 using System.Text.Json.Serialization;
 
 namespace Agent.Core.Configuration
@@ -13,7 +12,8 @@ namespace Agent.Core.Configuration
     public enum IncidentManagementType
     {
         PagerDuty,
-        Icm
+        Icm,
+        AzMonitor
     }
 
     public class IncidentManagementSettings

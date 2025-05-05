@@ -222,6 +222,11 @@ namespace Agent.Plugins.Mocks
         {
             return Task.FromResult<string>("/subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp");
         }
+
+        public Task<string> GetApplicationHealthInfoAsync(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

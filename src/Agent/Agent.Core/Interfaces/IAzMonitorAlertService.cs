@@ -2,9 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Services;
 using Azure.ResourceManager.AlertsManagement.Models;
 
-namespace Agent.Runtime.Services;
+namespace Agent.Core.Interfaces;
 public interface IAzMonitorAlertService
 {
     Task<IEnumerable<AlertItem>> PollNewAlertsBySubscriptionId(string subscriptionId, int scanWindowInMins = 1);

@@ -237,5 +237,12 @@ namespace Agent.Plugins.Definitions
         {
             return await _containerAppPlugin.UpdateContainerImage(resourceId, newImageReference, containerName);
         }
+
+        [Description("Rollback the container app to the last active revision.")]
+        public async Task<string> RollbackToLastRevision(
+            [Description("The resource ID of the Container App instance.")] string resourceId)
+        {
+            return await _containerAppPlugin.RollbackToLastRevision(resourceId); 
+        }
     }
 }

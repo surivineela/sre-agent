@@ -11,7 +11,7 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Extensions.Logging;
 
-namespace Agent.Runtime.Services;
+namespace Agent.Core.Services;
 public class AzMonitorAlertService : IAzMonitorAlertService
 {
     private readonly ILogger<AzMonitorAlertService> _logger;

@@ -130,7 +130,7 @@ namespace Agent.Plugins
         Task<List<Dictionary<string, object>>> ListResourceGroupsAsync(string subscriptionId);
 
         /// <summary>
-        /// Retrieves and summarizes activity logs for a container app and its dependent resources.
+        /// Retrieves and summarizes activity logs for a resource and its dependent resources.
         /// Analyzes recent operations, changes, and potential issues over a specified time period.
         /// </summary>
         /// <param name="resourceId">Azure Resource Id of the resource to analyze.</param>
@@ -165,6 +165,14 @@ namespace Agent.Plugins
         /// along with total resource counts.
         /// </summary>
         Task<dynamic> GetManagedResourcesInfoAsync();
+
+        /// <summary>
+        /// Retrieves the application health information for a specific resource from the graph database.
+        /// This provides metrics like availability, CPU usage, memory usage, latency, and overall health state.
+        /// </summary>
+        /// <param name="resourceId">Azure Resource Id of the resource to get health information for.</param>
+        /// <returns>A AppHealthInfo object containing health metrics, or null if the resource doesn't have health data.</returns>
+        Task<string> GetApplicationHealthInfoAsync(string resourceId);
 
         string GetKnowledgeGraphResourceUsageDashboard();
 

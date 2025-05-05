@@ -284,5 +284,18 @@ namespace Agent.Plugins
             return await _plugin.GetResourceIdForResourceName(resourceName, resourceType);
         }
 
+        [KernelFunction("GetResourceHealthInfo")]
+        [Description("Retrieves detailed health metrics for a specific Azure resource from the graph database. " +
+            "This function is useful when you need to: " +
+            "1) Check the current health state of a resource, " +
+            "2) Get performance metrics like CPU, memory usage and availability, " +
+            "3) Verify if a resource is active or potentially idle, or " +
+            "4) Get insight into the resource's performance characteristics. " +
+            "The output provides health state, availability, transaction count, latency, CPU and memory usage when available.")]
+        public async Task<string> GetResourceHealthInfo(
+    [Description("Azure Resource Id of the resource to get health information for. Should begin with /subscriptions/... Example: /subscriptions/123/resourcegroups/myapp/providers/microsoft.web/sites/mywebapp")] string resourceId)
+        {
+            return await _plugin.GetApplicationHealthInfoAsync(resourceId);
+        }
     }
 }

@@ -23,7 +23,7 @@ public class PagerDutyIncidentNode : GraphNode
 
     public override string GetNodeLabel()
     {
-        return "/incidents/pagerduty";
+        return "incidents/pagerduty";
     }
 
     public override string GetResourceType()

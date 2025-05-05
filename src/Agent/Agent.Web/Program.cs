@@ -194,6 +194,8 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<CVEScanner>()
         .AddSingleton<FeedbackRCAScanner>()
         .AddSingleton<IAzMonitorAlertService, AzMonitorAlertService>()
+        .AddSingleton<ILogQueryService, LogQueryService>()
+        .AddSingleton<IAzMonitorAlertInvestigationService, AzMonitorAlertInvestigationService>()
         .AddSingleton<AzMonitorAlertScanner>()
         .AddSingleton<PostToTeamsPluginDefinition>()
         .AddSingleton<DailyReportScanner>()

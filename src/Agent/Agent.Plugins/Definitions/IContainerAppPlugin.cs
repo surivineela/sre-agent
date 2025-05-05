@@ -44,5 +44,7 @@ namespace Agent.Plugins.Definitions
         Task<bool> RollbackToLastWorkingImage(string resourceId);
 
         Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null);
+
+        Task<string> RollbackToLastRevision(string resourceId);
     }
 }

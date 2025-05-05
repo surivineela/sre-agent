@@ -5,7 +5,6 @@
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
-using Azure.ResourceManager.Network.Models;
 
 namespace Agent.Plugins.Mocks
 {
@@ -309,6 +308,11 @@ namespace Agent.Plugins.Mocks
             }
             
             return Task.FromResult(true);
+        }
+
+        public Task<string> RollbackToLastRevision(string resourceId)
+        {
+            throw new NotImplementedException();
         }
     }
 }

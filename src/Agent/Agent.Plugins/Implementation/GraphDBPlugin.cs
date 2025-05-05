@@ -1286,10 +1286,10 @@ g.V().has('id', '{deploymentResourceId}')
         }
 
         /// <summary>
-        /// Retrieves and summarizes activity logs for a container app and its dependent resources.
+        /// Retrieves and summarizes activity logs for an azure resource and its dependent resources.
         /// </summary>
         [KernelFunction("GetActivityLogsSummary")]
-        [Description("Retrieves and summarizes activity logs for a container app and its dependent resources")]
+        [Description("Retrieves and summarizes activity logs for an azure resource and its dependent resources")]
         public async Task<string> FetchAndSummarizeActivityLogs(
             string resourceId,
             int daysBack = 1,
@@ -1419,6 +1419,59 @@ g.V().has('id', '{deploymentResourceId}')
             }
 
             return resourceGroups;
+        }
+
+        /// <summary>
+        /// Retrieves the application health information for a specific resource from the graph database.
+        /// This provides metrics like availability, CPU usage, memory usage, latency, and overall health state.
+        /// </summary>
+        /// <param name="resourceId">Azure Resource Id of the resource to get health information for.</param>
+        /// <returns>A AppHealthInfo object containing health metrics, or null if the resource doesn't have health data.</returns>
+        public async Task<string> GetApplicationHealthInfoAsync(string resourceId)
+        {
+            try
+            {
+                string sanitizedResourceId = SanitizeInputForQuery(resourceId.ToLowerInvariant());
+
+                var resourceID = new ResourceIdentifier(sanitizedResourceId);
+
+                string query = $"g.V().has('resourceId', '{sanitizedResourceId}').project('properties').by(valueMap().by(unfold()))";
+
+                var result = await GraphDbClient.Query<dynamic>(query);
+
+                if (result == null || !result.Any())
+                {
+                    string message = $"Resource with ID {resourceId} not found in graph database.";
+                    _logger.LogWarning(message);
+                    return message;
+                }
+
+                var resource = result.First();
+                var properties = resource["properties"];
+
+                if (properties.ContainsKey("appHealthInfo"))
+                {
+                    string appHealthInfoJson = properties["appHealthInfo"].ToString();
+
+                    // Deserialize the JSON string to AppHealthInfo object
+                    AppHealthInfo healthInfo = JsonSerializer.Deserialize<AppHealthInfo>(appHealthInfoJson);
+
+                    return FormatHealthInfoMessage(healthInfo, resourceId);
+                }
+
+                _logger.LogInformation($"Resource with ID {resourceId} does not have health information.");
+                return $"Resource with ID {resourceId} does not have health information.";
+            }
+            catch (FormatException ex)
+            {
+                _logger.LogWarning($"Invalid resource id : {resourceId}");
+                return $"Invalid resource id : {resourceId}";
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"Error retrieving health information for resource {resourceId}: {ex.Message}");
+                return $"Error retrieving health information for resource {resourceId}: {ex.Message}";
+            }
         }
 
         private async Task<List<Dictionary<string, object>>> FetchActivityLogsForResource(string resourceId, int daysBack)
@@ -1675,6 +1728,93 @@ Please provide a highly concise summary with sections for each of the above poin
                 _logger.LogError(ex, "Error summarizing dashboard screenshot for {DashboardUrl}", dashboardUrl);
                 return $"Error summarizing dashboard screenshot: {ex.Message}";
             }
+        }
+
+        private string FormatHealthInfoMessage(AppHealthInfo healthInfo, string resourceId)
+        {
+            var resourceName = resourceId.Split('/').Last();
+            var sb = new StringBuilder();
+
+            sb.AppendLine($"## Health Scorecard for {resourceName}");
+            sb.AppendLine();
+
+            // Overall health state
+            sb.AppendLine($"**Overall Health State**: {GetHealthStateEmoji(healthInfo.Health)} {healthInfo.Health}");
+            sb.AppendLine();
+
+            // Key metrics section
+            sb.AppendLine("### Key Metrics");
+
+            if (healthInfo.Availability.HasValue)
+            {
+                sb.AppendLine($"- **Availability**: {healthInfo.Availability.Value:P2}");
+            }
+
+            if (healthInfo.AvgCpuUsage.HasValue)
+            {
+                sb.AppendLine($"- **CPU Usage**: {healthInfo.AvgCpuUsage.Value:P2}");
+            }
+
+            if (healthInfo.AvgMemoryUsage.HasValue)
+            {
+                sb.AppendLine($"- **Memory Usage**: {healthInfo.AvgMemoryUsage.Value:P2}");
+            }
+
+            if (healthInfo.AvgLatencyInMs.HasValue)
+            {
+                sb.AppendLine($"- **Average Latency**: {healthInfo.AvgLatencyInMs.Value:N2} ms");
+            }
+
+            if (healthInfo.Transactions.HasValue)
+            {
+                sb.AppendLine($"- **Transaction Volume**: {healthInfo.Transactions.Value:N0} requests");
+            }
+
+            // Activity status
+            sb.AppendLine();
+            sb.AppendLine($"**Activity Status**: {(healthInfo.IsActive ? "🟢 Active" : "🔴 Inactive")}");
+
+            if (healthInfo.TimeSinceLastActivity.HasValue)
+            {
+                var timeSince = DateTime.UtcNow - healthInfo.TimeSinceLastActivity.Value;
+                sb.AppendLine($"**Last Activity**: {FormatTimeSpan(timeSince)} ago");
+            }
+
+            sb.AppendLine();
+            sb.AppendLine($"*Last updated: {healthInfo.LastDataCaptureTimeStampInUTC.ToString("yyyy-MM-dd HH:mm:ss")} UTC*");
+
+            return sb.ToString();
+        }
+
+        private string FormatTimeSpan(TimeSpan timeSpan)
+        {
+            if (timeSpan.TotalDays > 1)
+            {
+                return $"{timeSpan.TotalDays:N1} days";
+            }
+            else if (timeSpan.TotalHours > 1)
+            {
+                return $"{timeSpan.TotalHours:N1} hours";
+            }
+            else if (timeSpan.TotalMinutes > 1)
+            {
+                return $"{timeSpan.TotalMinutes:N1} minutes";
+            }
+            else
+            {
+                return $"{timeSpan.TotalSeconds:N0} seconds";
+            }
+        }
+
+        private string GetHealthStateEmoji(ScorecardHealthState healthState)
+        {
+            return healthState switch
+            {
+                ScorecardHealthState.Healthy => "✅",
+                ScorecardHealthState.Degraded => "⚠️",
+                ScorecardHealthState.Unhealthy => "❌",
+                _ => "❓"
+            };
         }
 
         public class ScreenshotResponse

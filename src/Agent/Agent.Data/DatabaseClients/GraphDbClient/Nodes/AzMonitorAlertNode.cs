@@ -21,7 +21,7 @@ public class AzMonitorAlertNode : GraphNode
 
     public override string GetNodeLabel()
     {
-        return "/incidents/azmonitor";
+        return "incidents/azmonitor";
     }
 
     public override string GetResourceType()

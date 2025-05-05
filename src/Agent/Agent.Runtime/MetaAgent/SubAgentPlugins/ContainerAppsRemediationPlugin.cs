@@ -7,7 +7,6 @@ using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Agent.Core.Models.Api.v1;
 
 
 namespace Agent.Runtime.MetaAgent;

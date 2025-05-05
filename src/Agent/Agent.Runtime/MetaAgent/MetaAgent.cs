@@ -69,7 +69,6 @@ public sealed class MetaAgent : IAgent
             chatHistory[0] = new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, systemPrompt);
         }
 
-
         try
         {
             var response = await ChatClientHelper.ExecuteWithRetryAsync(
