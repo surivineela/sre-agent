@@ -12,7 +12,7 @@ namespace FirstPartyAgent.Core.Models
     {
         [JsonPropertyName("id")]
         [JsonProperty("id")]
-        public string Id { get; set; }
+        public string? Id { get; set; }
         public int TeamId { get; set; }
         public string AlertingId { get; set; }
         public string? IncidentTitle { get; set; }
@@ -20,8 +20,8 @@ namespace FirstPartyAgent.Core.Models
         public List<string> OwningTeams { get; set; } = new List<string>();
         public string AgentMode { get; set; }
         public bool UseCorrelationIdForKustoQuery { get; set; }
-        public List<GenevaActionConfigBase> GenevaActions { get; set; }
-        public List<string> AllowedGenevaActions { get; set; }
+        public List<GenevaActionConfigBase>? GenevaActions { get; set; } = new List<GenevaActionConfigBase>();
+        public List<string>? AllowedGenevaActions { get; set; } = new List<string>();
         public List<ICMConfigKustoQueryModel> KustoQueries { get; set; } = new List<ICMConfigKustoQueryModel>();
         public List<string> Owners { get; set;} = new List<string>();
         public int ActionTimeoutIntervalInMinutes { get; set; }

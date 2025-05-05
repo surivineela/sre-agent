@@ -268,7 +268,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         });
 
         alertConfig.Id = Guid.NewGuid().ToString();
-        //await _alertconfigContainer.CreateItemAsync(alertConfig, new PartitionKey(alertConfig.TeamId));
+        await _cosmosDbService.UpsertItemAsync<ICMAlertConfig>(_cosmosDbService.IcmAgentDatabaseName, _alertConfigContainerName, alertConfig, new PartitionKey(alertConfig.TeamId));
 
         return alertConfig.AlertingId;
     }
@@ -279,6 +279,12 @@ public class IcmAgentConfigService : IIcmAgentConfigService
         {
             throw new InvalidOperationException("Icm service disabled");
         }
+
+        if(string.IsNullOrWhiteSpace(alertId))
+        {
+            throw new ArgumentException("Alert id cannot be empty", nameof(alertId));
+        }
+
         try
         {
             var existingConfig = await GetAlertConfig(loopId, alertId);
