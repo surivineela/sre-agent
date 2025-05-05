@@ -21,6 +21,8 @@ namespace FirstPartyAgent.Core.Plugins
         private readonly ILogger<ICMPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
         private readonly ISessionMessageService _sessionMessageService;
+        private const string HumanInterventionTag = "SREAgent_HumanIntervention";
+        private const string AgentProcessedTag = "SREAgent_Processed";
 
         public ICMPlugin(IICMAPIClient icmAPIClient, ICMWorkflowClient icmWorkflowClient, ILogger<ICMPlugin> logger, ITeamsClient teamsClient, ISessionMessageService sessionMessageService)
         {
@@ -186,6 +188,8 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[transfer_icm_incident][{DateTime.UtcNow}] Transferring Incident {incidentId} to the team {tenantName}/{owningTeam}.\n<b>Reason</b>:\n {discussionEntry}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
+            await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
+            await AddTagToIncident(incidentId, HumanInterventionTag, kernel);
             return _icmApiClient.IsEnabled() ? await _icmApiClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam) : await _icmWorkflowClient.TransferIncidentAsync(incidentId, discussionEntry, tenantName, owningTeam);
         }
 
@@ -201,7 +205,10 @@ namespace FirstPartyAgent.Core.Plugins
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
 
             var mitigationResult = _icmApiClient.IsEnabled() ? await _icmApiClient.MitigateIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.MitigateIncidentAsync(incidentId, discussionEntry);
+            // Add SREAgent_Mitigated tag specifically for mitigation
             var addMitigationTagResult = await _icmWorkflowClient.AddTagToIncident(incidentId, "SREAgent_Mitigated");
+            // Also add the general processed tag
+            await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
             return mitigationResult;
         }
 
@@ -215,7 +222,9 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[downgrade_sev2_incident_to_sev3][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
-            return _icmApiClient.IsEnabled() ? await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry) : await _icmWorkflowClient.DowngradeSeverityAsync(incidentId, discussionEntry);
+            var result = _icmApiClient.IsEnabled() ? await _icmApiClient.ChangeSeverityAsync(incidentId, 3, discussionEntry) : await _icmWorkflowClient.DowngradeSeverityAsync(incidentId, discussionEntry);
+            await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
+            return result;
         }
 
         [KernelFunction("resolve_icm_incident")]
@@ -228,7 +237,9 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[resolve_icm_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
-            return _icmApiClient.IsEnabled() ? await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.ResolveIncidentAsync(incidentId, discussionEntry);
+            var result = _icmApiClient.IsEnabled() ? await _icmApiClient.ResolveIncidentAsync(incidentId, discussionEntry) : await _icmWorkflowClient.ResolveIncidentAsync(incidentId, discussionEntry);
+            await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
+            return result;
         }
 
         [KernelFunction("post_icm_discussion_entry")]
@@ -240,7 +251,9 @@ namespace FirstPartyAgent.Core.Plugins
             var logMessage = $"[post_icm_discussion_entry][{DateTime.UtcNow}] Invoked with incidentId {incidentId}.\n<b>discussionEntry</b>:\n {discussionEntry}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             discussionEntry = IcmPostTemplates.DiscussionEntryTemplate.Replace("POST_CONTENT_HERE", discussionEntry);
-            return _icmApiClient.IsEnabled() ? await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry) : await _icmWorkflowClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
+            var result = _icmApiClient.IsEnabled() ? await _icmApiClient.PostDiscussionEntryAsync(incidentId, discussionEntry) : await _icmWorkflowClient.PostDiscussionEntryAsync(incidentId, discussionEntry);
+            await AddTagToIncident(incidentId, AgentProcessedTag, kernel);
+            return result;
         }
 
         [KernelFunction("icm_add_tag")]
@@ -252,9 +265,10 @@ namespace FirstPartyAgent.Core.Plugins
         {
             var logMessage = $"[icm_add_tag][{DateTime.UtcNow}] Invoked with incidentId {incidentId}, tag: {tag}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            // Note: We don't call AddTagToIncident with AgentProcessedTag here to avoid potential infinite loops
+            // if this method is called with AgentProcessedTag itself. The caller should handle adding the processed tag if needed.
             return _icmApiClient.IsEnabled() ? await _icmApiClient.AddTagToIncident(incidentId, tag) : await _icmWorkflowClient.AddTagToIncident(incidentId, tag);
         }
-
 
         // acknowledge_icm_incident using ICM API
         [KernelFunction("acknowledge_icm_incident")]
@@ -269,7 +283,9 @@ namespace FirstPartyAgent.Core.Plugins
             {
                 throw new InvalidOperationException("ICM API client is not enabled.");
             }
-            return await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
+            var result = await _icmApiClient.AcknowledgeIncidentAsync(incidentId);
+            await AddTagToIncident(incidentId, "SREAgent_Processing", kernel);
+            return result;
         }
     }
 }
