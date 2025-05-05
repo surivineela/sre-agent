@@ -5,6 +5,7 @@
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.SubAgents.KubernetesAgent;
 
@@ -14,24 +15,35 @@ public class KubernetesAgent : GenericAgentOrchestrator<KubernetesAgentInput, st
     public override async Task<string> RunAsync(TaskOrchestrationContext context, KubernetesAgentInput agentInput)
     {
         var log = context.CreateReplaySafeLogger<KubernetesAgent>();
-        var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "KubernetesAgent", "KubernetesAgent.txt");
-        var systemPrompt = File.ReadAllText(path);
-        var monitoringMessage = $"META AGENT REQUEST:\n {agentInput.Input}";
 
-        List<ChatMessage> chatHistory = [
-            new ChatMessage(ChatRole.System, systemPrompt),
-            new ChatMessage(ChatRole.System, monitoringMessage)
-        ];
+        try
+        {
+            // Initial planning phase: generate plan
+            List<ChatMessage> chatHistory = await context.CallKubernetesAgentPlanActivityAsync(agentInput);
 
-        // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
-        chatHistory = await RunReasoningLoopAsync(
-            context,
-            chatHistory,
-            agentInput.ToolSignatures,
-            log,
-            agentInput.ThreadId);
+            // Send a summary and start the execution (this activity could be similar to your SendSummaryAndStartActivity)
+            chatHistory = await context.CallSendSummaryAndStartActivityAsync(
+                     new GetNextActionInput
+                     {
+                         ChatMessages = chatHistory,
+                         StepCounter = 0,
+                         ToolSignatures = [],
+                     });
 
-        return "success";
+            // Run the generic reasoning loop to get actions and process function calls until the plan is complete.
+            chatHistory = await RunReasoningLoopAsync(
+                context,
+                chatHistory,
+                agentInput.ToolSignatures,
+                log,
+                agentInput.ThreadId);
+
+            return "success";
+        }
+        catch (Exception ex)
+        {
+            log.LogError(ex, "Error in KubernetesAgent: {Message}", ex.Message);
+            return $"Error: {ex.Message}";
+        }
     }
 }
-
