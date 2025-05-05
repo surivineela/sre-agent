@@ -5,6 +5,7 @@
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using Agent.Logging;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
 
@@ -35,7 +36,7 @@ namespace Agent.Plugins.Implementation
                 if (string.Equals(status.MinimumTlsVersion, minimumTlsVersion, StringComparison.InvariantCultureIgnoreCase))
                 {
                     var msg = $"Resource {appResourceId} already has minimum TLS version set to {status.MinimumTlsVersion}. No action needed.";
-                    _logger?.LogInformation(msg);
+                    _logger?.LogInternalInformation(msg);
                     return msg;
                 }
 
@@ -57,7 +58,7 @@ namespace Agent.Plugins.Implementation
             };
 
 
-            _logger?.LogInformation(message);
+            _logger?.LogInternalInformation(message);
             return message;
         }
         public async Task<List<TlsStatus>> GetTlsSettings(List<string> resourceIds)

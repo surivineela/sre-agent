@@ -11,6 +11,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure;
@@ -59,7 +60,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
         {
-            _logger.LogInformation($"[get_container_app_info] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_container_app_info] Invoked with resourceId: {resourceId}");
 
             try
             {
@@ -76,7 +77,7 @@ namespace Agent.Plugins.Implementation
 
                 if (result == null || !result.Any())
                 {
-                    _logger.LogWarning($"Container App with ID '{resourceId}' not found in graph database.");
+                    _logger.LogInternalWarning($"Container App with ID '{resourceId}' not found in graph database.");
                     return null;
                 }
 
@@ -84,14 +85,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetContainerAppInfoAsync with resourceId {resourceId}");
+                _logger.LogInternalError(ex, $"Error in GetContainerAppInfoAsync with resourceId {resourceId}");
                 return null;
             }
         }
 
         public async Task<IReadOnlyList<RevisionInfo>> ListContainerAppRevisionsAsync(string resourceId)
         {
-            _logger.LogInformation($"[${nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}')]");
+            _logger.LogInternalInformation($"[${nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}')]");
             try
             {
                 var cappResourceId = resourceId.ToLower().Replace("/", "_");
@@ -113,14 +114,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in {nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}'");
+                _logger.LogInternalError(ex, $"Error in {nameof(ListContainerAppRevisionsAsync)}(resourceId: '{resourceId}'");
                 return null;
             }
         }
 
         public async Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId)
         {
-            _logger.LogInformation($"[get_latest_revision] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_latest_revision] Invoked with resourceId: {resourceId}");
 
             try
             {
@@ -132,7 +133,7 @@ namespace Agent.Plugins.Implementation
 
                 if (string.IsNullOrEmpty(latestRevisionName))
                 {
-                    _logger.LogWarning($"No latest revision name found for Container App {resourceId}");
+                    _logger.LogInternalWarning($"No latest revision name found for Container App {resourceId}");
                     return null;
                 }
 
@@ -174,14 +175,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetLatestRevisionAsync with resourceId {resourceId}");
+                _logger.LogInternalError(ex, $"Error in GetLatestRevisionAsync with resourceId {resourceId}");
                 return null;
             }
         }
 
         public async Task<IReadOnlyList<ContainerAppDescriptor>> ListContainerAppsAsync(Guid subscriptionId)
         {
-            _logger.LogInformation($"[list_container_app_instances] Invoked with subscription {subscriptionId}");
+            _logger.LogInternalInformation($"[list_container_app_instances] Invoked with subscription {subscriptionId}");
 
             try
             {
@@ -197,7 +198,7 @@ namespace Agent.Plugins.Implementation
 
                 if (result == null! || !result.Any())
                 {
-                    _logger.LogInformation(
+                    _logger.LogInternalInformation(
                         "No container apps found for subscription {subscriptionId} in graph database.", subscriptionId);
                     return [];
                 }
@@ -209,7 +210,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error in ListContainerAppsAsync with subscription {subscriptionId}", subscriptionId);
+                _logger.LogInternalError(ex, "Error in ListContainerAppsAsync with subscription {subscriptionId}", subscriptionId);
                 return [];
             }
         }
@@ -284,7 +285,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetAllNSGRulesForContainerAppAsync(string resourceId)
         {
-            _logger.LogInformation($"[get_containerapp_nsg_rules] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_containerapp_nsg_rules] Invoked with resourceId: {resourceId}");
             var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
 
             try
@@ -295,7 +296,7 @@ namespace Agent.Plugins.Implementation
 
                 if (containerApp.Value.Data.ManagedEnvironmentId == null)
                 {
-                    _logger.LogWarning($"Container App {resourceId} does not have a managed environment ID");
+                    _logger.LogInternalWarning($"Container App {resourceId} does not have a managed environment ID");
                     return result;
                 }
 
@@ -307,7 +308,7 @@ namespace Agent.Plugins.Implementation
                 if (environmentData.Value.Data.VnetConfiguration == null ||
                     string.IsNullOrEmpty(environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId))
                 {
-                    _logger.LogWarning($"Container App Environment {environment.Id} does not have VNet configuration with infrastructure subnet");
+                    _logger.LogInternalWarning($"Container App Environment {environment.Id} does not have VNet configuration with infrastructure subnet");
                     return result;
                 }
 
@@ -325,25 +326,25 @@ namespace Agent.Plugins.Implementation
 
                     // Add this NSG's rules to the result dictionary
                     result[nsgId] = nsgData.Value.Data.SecurityRules.ToList();
-                    _logger.LogInformation($"Found NSG {nsgId} with {nsgData.Value.Data.SecurityRules.Count} rules for infrastructure subnet");
+                    _logger.LogInternalInformation($"Found NSG {nsgId} with {nsgData.Value.Data.SecurityRules.Count} rules for infrastructure subnet");
                 }
                 else
                 {
-                    _logger.LogInformation($"No NSG found for infrastructure subnet {infrastructureSubnetId}");
+                    _logger.LogInternalInformation($"No NSG found for infrastructure subnet {infrastructureSubnetId}");
                 }
 
                 return result;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetAllNSGRulesForContainerAppAsync with resourceId {resourceId}");
+                _logger.LogInternalError(ex, $"Error in GetAllNSGRulesForContainerAppAsync with resourceId {resourceId}");
                 return result;
             }
         }
 
         public async Task<bool> ScaleContainerApp(string resourceId, string desiredMemory, int minReplicas, int maxReplicas)
         {
-            _logger.LogInformation($"[scale_container_app] Invoked with resourceId: {resourceId}, memory: {desiredMemory}, minReplicas: {minReplicas}, maxReplicas: {maxReplicas}");
+            _logger.LogInternalInformation($"[scale_container_app] Invoked with resourceId: {resourceId}, memory: {desiredMemory}, minReplicas: {minReplicas}, maxReplicas: {maxReplicas}");
 
             try
             {
@@ -357,7 +358,7 @@ namespace Agent.Plugins.Implementation
 
                 if (!validCpuMemoryCombinations.TryGetValue(desiredMemory, out double cpu))
                 {
-                    _logger.LogError($"Unsupported memory size: {desiredMemory}. Valid options include: 0.25Gi, 0.5Gi, 1Gi, 2Gi, 256Mi, 512Mi, etc.");
+                    _logger.LogInternalError($"Unsupported memory size: {desiredMemory}. Valid options include: 0.25Gi, 0.5Gi, 1Gi, 2Gi, 256Mi, 512Mi, etc.");
                     return false;
                 }
 
@@ -371,7 +372,7 @@ namespace Agent.Plugins.Implementation
 
                 if (containerApp.Data.Template?.Containers == null || containerApp.Data.Template.Containers.Count == 0)
                 {
-                    _logger.LogError($"No container definition found in the app {resourceId}");
+                    _logger.LogInternalError($"No container definition found in the app {resourceId}");
                     return false;
                 }
 
@@ -383,7 +384,7 @@ namespace Agent.Plugins.Implementation
                 {
                     if (container.Resources == null)
                     {
-                        _logger.LogInformation($"Creating new resources for container {container.Name}");
+                        _logger.LogInternalInformation($"Creating new resources for container {container.Name}");
                         container.Resources = new AppContainerResources
                         {
                             Cpu = cpu,
@@ -401,7 +402,7 @@ namespace Agent.Plugins.Implementation
                 // Update scale settings
                 if (containerAppUpdateData.Template.Scale == null)
                 {
-                    _logger.LogInformation("Creating new scale configuration");
+                    _logger.LogInternalInformation("Creating new scale configuration");
                     containerAppUpdateData.Template.Scale = new ContainerAppScale
                     {
                         MinReplicas = minReplicas,
@@ -416,43 +417,43 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Apply the update
-                _logger.LogInformation("Applying container app scale update...");
+                _logger.LogInternalInformation("Applying container app scale update...");
                 await containerAppResource.UpdateAsync(WaitUntil.Completed, containerAppUpdateData);
 
-                _logger.LogInformation($"Successfully scaled container app {resourceId} to {cpu} vCPU / {desiredMemory} with min {minReplicas}, max {maxReplicas} replicas");
+                _logger.LogInternalInformation($"Successfully scaled container app {resourceId} to {cpu} vCPU / {desiredMemory} with min {minReplicas}, max {maxReplicas} replicas");
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error scaling container app {resourceId}");
+                _logger.LogInternalError(ex, $"Error scaling container app {resourceId}");
                 return false;
             }
         }
 
         public async Task<string> GetContainerAppLogsAsync(string resourceId, string? revisionName = null)
         {
-            _logger.LogInformation("GetRevisionLogsAsync(resourceId: {resourceId}, revisionName: {revisionName})", resourceId, revisionName);
+            _logger.LogInternalInformation("GetRevisionLogsAsync(resourceId: {resourceId}, revisionName: {revisionName})", resourceId, revisionName);
 
             try
             {
                 var containerApp = await _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId)).GetAsync();
                 if (!containerApp.HasValue)
                 {
-                    _logger.LogWarning("Container App with ID '{resourceId}' not found.", resourceId);
+                    _logger.LogInternalWarning("Container App with ID '{resourceId}' not found.", resourceId);
                     return string.Empty;
                 }
 
                 revisionName = NormalizeRevisionName(containerApp, revisionName);
                 if (string.IsNullOrEmpty(revisionName))
                 {
-                    _logger.LogWarning("Revision name is null or empty.");
+                    _logger.LogInternalWarning("Revision name is null or empty.");
                     return string.Empty;
                 }
 
                 var streamToken = await containerApp.Value.GetAuthTokenAsync();
                 if (!streamToken.HasValue)
                 {
-                    _logger.LogWarning("No auth token found for Container App {containerAppName}", containerApp.Value.Data.Name);
+                    _logger.LogInternalWarning("No auth token found for Container App {containerAppName}", containerApp.Value.Data.Name);
                     return string.Empty;
                 }
 
@@ -474,14 +475,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in GetRevisionLogsAsync with resourceId {resourceId}, revisionName {revisionName}");
+                _logger.LogInternalError(ex, $"Error in GetRevisionLogsAsync with resourceId {resourceId}, revisionName {revisionName}");
                 return null;
             }
         }
 
         private async Task<string> SummarizeLogs(string logs)
         {
-            _logger.LogInformation("Summarizing logs");
+            _logger.LogInternalInformation("Summarizing logs");
             const string prompt = $"Please summarize these application logs. " +
                                   $"This summary will be used to determine if there any potential issues with the application. " +
                                   $"Make sure it's complete, detailed, and references any particular numbers, error messages, error codes verbatim in case they are relevant for debugging" +
@@ -511,7 +512,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<bool> UpdateTargetPort(string resourceId, int targetPort)
         {
-            _logger.LogInformation("[UpdateTargetPort] Invoked with resourceId: {resourceId}, targetPort: {targetPort}", resourceId, targetPort);
+            _logger.LogInternalInformation("[UpdateTargetPort] Invoked with resourceId: {resourceId}, targetPort: {targetPort}", resourceId, targetPort);
 
             try
             {
@@ -520,7 +521,7 @@ namespace Agent.Plugins.Implementation
 
                 if (containerApp.Value.Data.Configuration?.Ingress == null)
                 {
-                    _logger.LogError($"No ingress configuration found in the app {resourceId}");
+                    _logger.LogInternalError($"No ingress configuration found in the app {resourceId}");
                     return false;
                 }
 
@@ -530,12 +531,12 @@ namespace Agent.Plugins.Implementation
                 // Apply the update
                 await containerAppResource.UpdateAsync(WaitUntil.Completed, containerApp.Value.Data);
 
-                _logger.LogInformation($"Successfully updated target port of container app {resourceId} to {targetPort}");
+                _logger.LogInternalInformation($"Successfully updated target port of container app {resourceId} to {targetPort}");
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating target port for container app {resourceId}");
+                _logger.LogInternalError(ex, $"Error updating target port for container app {resourceId}");
                 return false;
             }
         }
@@ -617,7 +618,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> GetImageReferenceFromResourceId(string resourceId)
         {
-            _logger.LogInformation($"Getting image reference for resource: {resourceId}");
+            _logger.LogInternalInformation($"Getting image reference for resource: {resourceId}");
             var resourceIdentifier = new ResourceIdentifier(resourceId);
 
             try
@@ -626,14 +627,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting image reference for resource {resourceId}");
+                _logger.LogInternalError(ex, $"Error getting image reference for resource {resourceId}");
                 return null;
             }
         }
 
         public async Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference)
         {
-            _logger.LogInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
+            _logger.LogInternalInformation($"Verifying external registry connectivity for {resourceId} and image {imageReference}");
 
             try
             {
@@ -655,7 +656,7 @@ namespace Agent.Plugins.Implementation
                 var connectivityResult = await TestExternalRegistryConnectivity(registryHostname);
                 if (!connectivityResult)
                 {
-                    _logger.LogWarning($"Basic connectivity test to registry {registryHostname} failed");
+                    _logger.LogInternalWarning($"Basic connectivity test to registry {registryHostname} failed");
                     return false;
                 }
 
@@ -684,14 +685,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error verifying external registry for image {imageReference}");
+                _logger.LogInternalError(ex, $"Error verifying external registry for image {imageReference}");
                 return false;
             }
         }
 
         public async Task<bool> RollbackToLastWorkingImage(string resourceId)
         {
-            _logger.LogInformation($"Rolling back to last known working image for resource: {resourceId}");
+            _logger.LogInternalInformation($"Rolling back to last known working image for resource: {resourceId}");
 
             try
             {
@@ -699,14 +700,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error rolling back resource {resourceId} to last working image");
+                _logger.LogInternalError(ex, $"Error rolling back resource {resourceId} to last working image");
                 return false;
             }
         }
 
         public async Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
         {
-            _logger.LogInformation($"Updating container image for resource: {resourceId} to {newImageReference}");
+            _logger.LogInternalInformation($"Updating container image for resource: {resourceId} to {newImageReference}");
 
             try
             {
@@ -714,7 +715,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating container image for resource {resourceId}");
+                _logger.LogInternalError(ex, $"Error updating container image for resource {resourceId}");
                 return false;
             }
         }
@@ -753,7 +754,7 @@ namespace Agent.Plugins.Implementation
                 containerToUpdate.Image = newImageReference;
 
                 // Update the Container App with the new template
-                _logger.LogInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
+                _logger.LogInternalInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
                 var updateOperation = await containerAppResource.UpdateAsync(
                     WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
                     updateData,          // The ContainerAppData object to update
@@ -761,13 +762,13 @@ namespace Agent.Plugins.Implementation
                 );
                 var updatedApp = updateOperation.Value;
 
-                _logger.LogInformation($"Successfully updated Container App {resourceId} to image: {newImageReference}");
+                _logger.LogInternalInformation($"Successfully updated Container App {resourceId} to image: {newImageReference}");
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating Container App {resourceId}");
+                _logger.LogInternalError(ex, $"Error updating Container App {resourceId}");
                 return false;
             }
         }
@@ -837,7 +838,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Update the Container App with the new template
-                _logger.LogInformation($"Updating Container App {resourceId} with previous working image: {targetImageReference}");
+                _logger.LogInternalInformation($"Updating Container App {resourceId} with previous working image: {targetImageReference}");
                 var updateOperation = await containerAppResource.UpdateAsync(
                    WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
                    updateData,          // The ContainerAppData object to update
@@ -845,13 +846,13 @@ namespace Agent.Plugins.Implementation
                 );
                 var updatedApp = updateOperation.Value;
 
-                _logger.LogInformation($"Successfully rolled back Container App {resourceId} to image: {targetImageReference}");
+                _logger.LogInternalInformation($"Successfully rolled back Container App {resourceId} to image: {targetImageReference}");
 
                 return true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error rolling back Container App {resourceId}");
+                _logger.LogInternalError(ex, $"Error rolling back Container App {resourceId}");
                 return false;
             }
         }
@@ -913,12 +914,12 @@ namespace Agent.Plugins.Implementation
                         var rateLimitLimit = response.Headers.GetValues("X-RateLimit-Limit").FirstOrDefault();
                         var rateLimitReset = response.Headers.GetValues("X-RateLimit-Reset").FirstOrDefault();
 
-                        _logger.LogInformation($"Rate Limit Remaining: {rateLimitRemaining}/{rateLimitLimit}, Reset Time: {rateLimitReset}");
+                        _logger.LogInternalInformation($"Rate Limit Remaining: {rateLimitRemaining}/{rateLimitLimit}, Reset Time: {rateLimitReset}");
 
                         // If remaining requests are 0, handle rate limiting
                         if (int.TryParse(rateLimitRemaining, out int remaining) && remaining == 0)
                         {
-                            _logger.LogWarning("Rate limit exceeded. Please wait until the limit resets.");
+                            _logger.LogInternalWarning("Rate limit exceeded. Please wait until the limit resets.");
                             return false;
                         }
                     }
@@ -929,7 +930,7 @@ namespace Agent.Plugins.Implementation
                         var retryAfter = values.FirstOrDefault();
                         if (retryAfter != null && int.TryParse(retryAfter, out int seconds))
                         {
-                            _logger.LogWarning($"Rate limit exceeded. Retry after {seconds} seconds.");
+                            _logger.LogInternalWarning($"Rate limit exceeded. Retry after {seconds} seconds.");
                             return false;
                         }
                     }
@@ -949,7 +950,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error verifying Docker Hub registry for {imageReference}");
+                _logger.LogInternalError(ex, $"Error verifying Docker Hub registry for {imageReference}");
                 return false;
             }
         }
@@ -999,13 +1000,13 @@ namespace Agent.Plugins.Implementation
 
                 if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    _logger.LogInformation($"Successfully verified MCR image: {imageReference}");
+                    _logger.LogInternalInformation($"Successfully verified MCR image: {imageReference}");
                     return true;
                 }
 
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    _logger.LogWarning($"Image {imageReference} not found in Microsoft Container Registry");
+                    _logger.LogInternalWarning($"Image {imageReference} not found in Microsoft Container Registry");
                     return false;
                 }
 
@@ -1013,7 +1014,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error verifying Microsoft Container Registry for {imageReference}");
+                _logger.LogInternalError(ex, $"Error verifying Microsoft Container Registry for {imageReference}");
                 return false;
             }
         }
@@ -1041,13 +1042,13 @@ namespace Agent.Plugins.Implementation
 
                 if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
                 {
-                    _logger.LogInformation($"Successfully verified GCR image: {imageReference}");
+                    _logger.LogInternalInformation($"Successfully verified GCR image: {imageReference}");
                     return true;
                 }
 
                 if (response.StatusCode == HttpStatusCode.NotFound)
                 {
-                    _logger.LogWarning($"Image {imageReference} not found in Google Container Registry");
+                    _logger.LogInternalWarning($"Image {imageReference} not found in Google Container Registry");
                     return false;
                 }
 
@@ -1055,7 +1056,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error verifying Google Container Registry for {imageReference}");
+                _logger.LogInternalError(ex, $"Error verifying Google Container Registry for {imageReference}");
                 return false;
             }
         }
@@ -1067,7 +1068,7 @@ namespace Agent.Plugins.Implementation
                 var registryHostname = ExtractRegistryHostname(imageReference);
                 if (string.IsNullOrEmpty(registryHostname))
                 {
-                    _logger.LogWarning($"Could not extract registry hostname from {imageReference}");
+                    _logger.LogInternalWarning($"Could not extract registry hostname from {imageReference}");
                     return false;
                 }
 
@@ -1093,18 +1094,18 @@ namespace Agent.Plugins.Implementation
                     // 401 Unauthorized is also acceptable as it confirms the registry exists but needs auth
                     if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
                     {
-                        _logger.LogInformation($"Successfully verified registry API accessibility for: {registryHostname}");
+                        _logger.LogInternalInformation($"Successfully verified registry API accessibility for: {registryHostname}");
                         return true;
                     }
 
                     if (response.StatusCode == HttpStatusCode.NotFound)
                     {
-                        _logger.LogWarning($"Registry API endpoint not found at {manifestUrl}. The registry may not implement the Docker Registry HTTP API V2.");
+                        _logger.LogInternalWarning($"Registry API endpoint not found at {manifestUrl}. The registry may not implement the Docker Registry HTTP API V2.");
                     }
                 }
                 catch (HttpRequestException ex)
                 {
-                    _logger.LogWarning(ex, $"Error connecting to registry API for {registryHostname}. This may be due to network restrictions or registry configuration.");
+                    _logger.LogInternalWarning(ex, $"Error connecting to registry API for {registryHostname}. This may be due to network restrictions or registry configuration.");
                 }
 
                 // If container app has registry credentials, assume the registry is accessible
@@ -1113,7 +1114,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error verifying private registry for {imageReference}");
+                _logger.LogInternalError(ex, $"Error verifying private registry for {imageReference}");
                 return false;
             }
         }
@@ -1221,7 +1222,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to get logs from {eventsStreamUrl}.", eventsStreamUrl);
+                _logger.LogInternalError(e, "Failed to get logs from {eventsStreamUrl}.", eventsStreamUrl);
                 return [];
             }
         }
@@ -1235,7 +1236,7 @@ namespace Agent.Plugins.Implementation
             var revision = await containerApp.GetContainerAppRevisionAsync(revisionName);
             if (!revision.HasValue)
             {
-                _logger.LogWarning("Revision {revisionName} not found for Container App {containerAppName}", revisionName, containerApp.Data.Name);
+                _logger.LogInternalWarning("Revision {revisionName} not found for Container App {containerAppName}", revisionName, containerApp.Data.Name);
                 return [];
             }
 
@@ -1290,7 +1291,7 @@ namespace Agent.Plugins.Implementation
                     }
                     catch (JsonException e)
                     {
-                        _logger.LogError(e, "Failed to deserialize JSON from {logStreamEndpoint}", logStreamEndpoint);
+                        _logger.LogInternalError(e, "Failed to deserialize JSON from {logStreamEndpoint}", logStreamEndpoint);
                         return [];
                     }
                 }
@@ -1300,7 +1301,7 @@ namespace Agent.Plugins.Implementation
             }
             else
             {
-                _logger.LogError("Failed to get logs from {logStreamEndpoint}. Status code: {StatusCode}", logStreamEndpoint, response.StatusCode);
+                _logger.LogInternalError("Failed to get logs from {logStreamEndpoint}. Status code: {StatusCode}", logStreamEndpoint, response.StatusCode);
                 return [];
             }
         }
@@ -1313,7 +1314,7 @@ namespace Agent.Plugins.Implementation
             var workspaceId = await GetContainerAppWorkspaceIdAsync(containerApp);
             if (string.IsNullOrEmpty(workspaceId))
             {
-                _logger.LogWarning("No workspace ID found for Container App {containerAppName}", containerApp.Data.Name);
+                _logger.LogInternalWarning("No workspace ID found for Container App {containerAppName}", containerApp.Data.Name);
                 return ["ContainerApp is missing a Log Analytics workspace ID for historical logs"];
             }
 
@@ -1338,7 +1339,7 @@ namespace Agent.Plugins.Implementation
 
             if (logAnalyticsLogs == null! || logAnalyticsLogs.Count == 0)
             {
-                _logger.LogWarning("No logs found for Container App {containerAppName} in the last 2 hours", containerApp.Data.Name);
+                _logger.LogInternalWarning("No logs found for Container App {containerAppName} in the last 2 hours", containerApp.Data.Name);
                 return [];
             }
 
@@ -1496,7 +1497,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error extracting registry hostname from {imageReference}");
+                _logger.LogInternalError(ex, $"Error extracting registry hostname from {imageReference}");
                 return string.Empty;
             }
         }
@@ -1514,20 +1515,20 @@ namespace Agent.Plugins.Implementation
                     var httpResponse = await _httpClient.SendAsync(request);
                     if (httpResponse.IsSuccessStatusCode || httpResponse.StatusCode == HttpStatusCode.Unauthorized)
                     {
-                        _logger.LogInformation($"Successfully connected to registry {hostname} via HTTPS");
+                        _logger.LogInternalInformation($"Successfully connected to registry {hostname} via HTTPS");
                         return true;
                     }
                 }
                 catch (HttpRequestException ex)
                 {
-                    _logger.LogWarning(ex, $"HTTPS connection failed to {hostname}");
+                    _logger.LogInternalWarning(ex, $"HTTPS connection failed to {hostname}");
                 }
 
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error testing connectivity to external registry: {hostname}");
+                _logger.LogInternalError(ex, $"Error testing connectivity to external registry: {hostname}");
                 return false;
             }
         }
@@ -1556,7 +1557,7 @@ namespace Agent.Plugins.Implementation
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, $"Could not retrieve latest revision {latestRevisionName} for app {resourceId}, falling back to template");
+                    _logger.LogInternalWarning(ex, $"Could not retrieve latest revision {latestRevisionName} for app {resourceId}, falling back to template");
                 }
             }
             // Fall back to the template if available

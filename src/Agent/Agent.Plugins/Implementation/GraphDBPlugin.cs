@@ -23,6 +23,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
+using Agent.Logging;
 
 namespace Agent.Plugins
 {
@@ -116,14 +117,14 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding network connected resources");
+                _logger.LogInternalError(ex, "Error finding network connected resources");
                 return $"Error finding network connected resources: {ex.Message}";
             }
         }
 
         public async Task<List<Node>> GetApplicationComponentsSummary(string resourceId, int hops = 3)
         {
-            _logger.LogInformation($"[GetApplicationComponentsSummary] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[GetApplicationComponentsSummary] Invoked with resourceId: {resourceId}");
 
             var result = await GetApplicationComponentsRaw(resourceId, hops);
             return ConvertResultToNodes(result);
@@ -135,7 +136,7 @@ namespace Agent.Plugins
             string deploymentName,
             Guid? threadId = null)
         {
-            _logger.LogInformation($"[VisualizeAKSMicroserviceTopology] Invoked with resourceId: {AKSClusterResourceId}");
+            _logger.LogInternalInformation($"[VisualizeAKSMicroserviceTopology] Invoked with resourceId: {AKSClusterResourceId}");
 
             // Validation that resourceId is not null or empty
             if (string.IsNullOrWhiteSpace(AKSClusterResourceId))
@@ -172,7 +173,7 @@ namespace Agent.Plugins
                 }
                 else
                 {
-                    _logger.LogWarning("[VisualizeAKSMicroserviceTopology] ThreadId is null. Cannot append image to message.");
+                    _logger.LogInternalWarning("[VisualizeAKSMicroserviceTopology] ThreadId is null. Cannot append image to message.");
                     return "Error: ThreadId is null. Cannot generate visualization without a valid thread ID.";
                 }
             }
@@ -187,7 +188,7 @@ namespace Agent.Plugins
                     var result = await GetAKSMicroserviceTopologyRaw(AKSClusterResourceId, _namespace, deploymentName);
                     if (result.Count == 0)
                     {
-                        _logger.LogWarning($"No components found to visualize, cluster {AKSClusterResourceId}, namespace {_namespace}, deployment {deploymentName}");
+                        _logger.LogInternalWarning($"No components found to visualize, cluster {AKSClusterResourceId}, namespace {_namespace}, deployment {deploymentName}");
                         return "Error: No components found to visualize";
                     }
 
@@ -249,7 +250,7 @@ namespace Agent.Plugins
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning($"[VisualizeAKSMicroserviceTopology] Could not serialize filtered item for deduplication. Skipping item. Error: {ex.Message}");
+                            _logger.LogInternalWarning($"[VisualizeAKSMicroserviceTopology] Could not serialize filtered item for deduplication. Skipping item. Error: {ex.Message}");
                             // Decide if you want to add the item anyway or skip it if serialization fails
                             // uniqueFilteredResults.Add(filteredItem); // Optional: Add even if serialization fails
                         }
@@ -271,10 +272,10 @@ Input JSON:
 """;
                     var response = await ChatClient.GetResponseAsync(prompt, new ChatOptions { Temperature = 0.2f });
                     var mermaidSpec = response.Text;
-                    _logger.LogInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
+                    _logger.LogInternalInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
                     var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
-                    _logger.LogInformation($"base64 encoded image: {base64EncodedGraph}");
+                    _logger.LogInternalInformation($"base64 encoded image: {base64EncodedGraph}");
                     await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Microservice Topology](data:image/png;base64,{base64EncodedGraph})\r\n");
 
                     // Construct the final response string for the LLM, this helps the LLM to further answer questions regarding the topology
@@ -287,19 +288,19 @@ For reference, here is the raw Mermaid specification used to create the diagram:
 {mermaidSpec}
 ```";
 
-                    _logger.LogInformation("[VisualizeAKSMicroserviceTopology] Successfully generated visualization and response text.");
+                    _logger.LogInternalInformation("[VisualizeAKSMicroserviceTopology] Successfully generated visualization and response text.");
                     return llmResponse;
                 }
                 catch (Exception ex)
                 {
                     if (attempt < maxRetries)
                     {
-                        _logger.LogWarning($"[VisualizeAKSMicroserviceTopology] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
+                        _logger.LogInternalWarning($"[VisualizeAKSMicroserviceTopology] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
                         await Task.Delay(retryDelayMilliseconds);
                     }
                     else
                     {
-                        _logger.LogError($"[VisualizeAKSMicroserviceTopology] All {maxRetries} attempts to render the image failed. Last error: {ex.Message}");
+                        _logger.LogInternalError($"[VisualizeAKSMicroserviceTopology] All {maxRetries} attempts to render the image failed. Last error: {ex.Message}");
                         throw;
                     }
                 }
@@ -314,7 +315,7 @@ For reference, here is the raw Mermaid specification used to create the diagram:
             int hops = 3,
             Guid? threadId = null)
         {
-            _logger.LogInformation($"[VisualizeApplicationComponents] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[VisualizeApplicationComponents] Invoked with resourceId: {resourceId}");
 
             // Validation
             if (string.IsNullOrWhiteSpace(resourceId))
@@ -343,7 +344,7 @@ For reference, here is the raw Mermaid specification used to create the diagram:
                 }
                 else
                 {
-                    _logger.LogWarning("[VisualizeApplicationComponents] ThreadId is null. Cannot append diagram to message.");
+                    _logger.LogInternalWarning("[VisualizeApplicationComponents] ThreadId is null. Cannot append diagram to message.");
                     return "Error: ThreadId is null. Cannot generate visualization without a valid thread ID.";
                 }
             }
@@ -358,7 +359,7 @@ For reference, here is the raw Mermaid specification used to create the diagram:
                     var result = await GetApplicationComponentsRaw(resourceId, hops);
                     if (result.Count == 0)
                     {
-                        _logger.LogInformation($"No components found for resourceId: {resourceId}");
+                        _logger.LogInternalInformation($"No components found for resourceId: {resourceId}");
                         throw new Exception($"No components found for resourceId: {resourceId}. Was the correct resource ID provided? Alternatively, the Knowledge Graph may not have been built for this component.");
                     }
                     var jsonResult = JsonSerializer.Serialize(result, new JsonSerializerOptions { WriteIndented = true });
@@ -380,7 +381,7 @@ graph LR
 Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'. Do not include any markdown formatting, code fences, or additional text.";
                     var response = await ChatClient.GetResponseAsync(prompt);
                     var mermaidSpec = response.Text;
-                    _logger.LogInformation("Generated Mermaid specification successfully");
+                    _logger.LogInternalInformation("Generated Mermaid specification successfully");
 
                     string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
 
@@ -392,12 +393,12 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                 {
                     if (attempt < maxRetries)
                     {
-                        _logger.LogWarning($"[VisualizeApplicationComponents] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
+                        _logger.LogInternalWarning($"[VisualizeApplicationComponents] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
                         await Task.Delay(retryDelayMilliseconds);
                     }
                     else
                     {
-                        _logger.LogError($"[VisualizeApplicationComponents] All {maxRetries} attempts to generate the diagram failed. Last error: {ex.Message}");
+                        _logger.LogInternalError($"[VisualizeApplicationComponents] All {maxRetries} attempts to generate the diagram failed. Last error: {ex.Message}");
                         throw;
                     }
                 }
@@ -410,7 +411,7 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
         {
             try
             {
-                _logger.LogInformation("Calling Mermaid rendering service to generate graph visualization");
+                _logger.LogInternalInformation("Calling Mermaid rendering service to generate graph visualization");
 
                 using (var httpClient = new HttpClient())
                 {
@@ -432,31 +433,31 @@ Output ONLY the raw Mermaid specification as plain text starting with 'graph LR'
                             var responseObject = JsonSerializer.Deserialize<JsonElement>(jsonResponse);
                             var base64Image = responseObject.GetProperty("image_base64").GetString();
 
-                            _logger.LogInformation("Successfully generated graph visualization");
+                            _logger.LogInternalInformation("Successfully generated graph visualization");
                             return base64Image;
                         }
                         else
                         {
                             var errorMessage = await response.Content.ReadAsStringAsync();
-                            _logger.LogError($"Error calling Mermaid rendering service. Status: {response.StatusCode}, Message: {errorMessage}");
+                            _logger.LogInternalError($"Error calling Mermaid rendering service. Status: {response.StatusCode}, Message: {errorMessage}");
                             return $"Error generating visualization: {response.StatusCode}. The rendering service returned an error. Please try a smaller graph or different visualization settings.";
                         }
                     }
                     catch (TaskCanceledException)
                     {
-                        _logger.LogWarning("The visualization request timed out after {Timeout} seconds", httpClient.Timeout.TotalSeconds);
+                        _logger.LogInternalWarning("The visualization request timed out after {Timeout} seconds", httpClient.Timeout.TotalSeconds);
                         return $"The visualization request timed out after {httpClient.Timeout.TotalSeconds} seconds. The graph may be too complex to render. Here's the raw Mermaid specification that you can paste into a Mermaid editor:\n\n```mermaid\n{mermaidSpec}\n```";
                     }
                     catch (HttpRequestException ex)
                     {
-                        _logger.LogError(ex, "HTTP request error while calling Mermaid rendering service");
+                        _logger.LogInternalError(ex, "HTTP request error while calling Mermaid rendering service");
                         return $"Error connecting to the visualization service: {ex.Message}. Please check network connectivity or try again later.";
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Exception occurred while calling Mermaid rendering service");
+                _logger.LogInternalError(ex, "Exception occurred while calling Mermaid rendering service");
                 return $"Error generating visualization: {ex.Message}";
             }
         }
@@ -478,19 +479,19 @@ g.V().has('id', '{deploymentResourceId}')
 .emit().dedup()
 .path().by(valueMap('resourceName', 'resourceType'))";
 
-                _logger.LogInformation($"Executing AKS microservice topology query for resource: {resourceId}, namespace: {namespaceName}, deployment: {deploymentName ?? "all"}");
+                _logger.LogInternalInformation($"Executing AKS microservice topology query for resource: {resourceId}, namespace: {namespaceName}, deployment: {deploymentName ?? "all"}");
                 return await GraphDbClient.Query(query);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing AKS microservice topology Gremlin query");
+                _logger.LogInternalError(ex, "Error executing AKS microservice topology Gremlin query");
                 throw;
             }
         }
 
         private async Task<ResultSet<dynamic>> GetApplicationComponentsRaw(string resourceId, int hops = 3)
         {
-            _logger.LogInformation($"[GetApplicationComponentsRaw] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[GetApplicationComponentsRaw] Invoked with resourceId: {resourceId}");
 
             try
             {
@@ -520,14 +521,14 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding application components");
+                _logger.LogInternalError(ex, "Error finding application components");
                 throw;
             }
         }
 
         public async Task<List<ApplicationGraph>> DiscoverApplications(string subscriptionId)
         {
-            _logger.LogInformation($"[DiscoverApplications] Invoked with subscription {subscriptionId}");
+            _logger.LogInternalInformation($"[DiscoverApplications] Invoked with subscription {subscriptionId}");
 
             try
             {
@@ -546,7 +547,7 @@ g.V().has('id', '{deploymentResourceId}')
 
                     if (components.Count == 0)
                     {
-                        _logger.LogWarning($"No components found for application: {entryPoint.Name}");
+                        _logger.LogInternalWarning($"No components found for application: {entryPoint.Name}");
                         continue;
                     }
 
@@ -565,7 +566,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error discovering applications");
+                _logger.LogInternalError(ex, "Error discovering applications");
                 return new List<ApplicationGraph>();
             }
         }
@@ -699,7 +700,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding network connected resources");
+                _logger.LogInternalError(ex, "Error finding network connected resources");
             }
         }
 
@@ -795,7 +796,7 @@ g.V().has('id', '{deploymentResourceId}')
                 // Validate inputs
                 if (string.IsNullOrEmpty(resourceName) || string.IsNullOrEmpty(resourceType))
                 {
-                    _logger.LogWarning("Resource name or type cannot be empty");
+                    _logger.LogInternalWarning("Resource name or type cannot be empty");
                     return "Failed to generate health summary: Resource name or type not provided.";
                 }
 
@@ -805,7 +806,7 @@ g.V().has('id', '{deploymentResourceId}')
                 // Check if the resource type is supported
                 if (!_dashboardsToProcessByResourceType.TryGetValue(resourceType, out var dashboardType))
                 {
-                    _logger.LogWarning("Unsupported resource type for dashboard: {ResourceType}", resourceType);
+                    _logger.LogInternalWarning("Unsupported resource type for dashboard: {ResourceType}", resourceType);
                     return $"Failed to generate health summary: Dashboard not available for resource type '{resourceType}'.";
                 }
 
@@ -813,7 +814,7 @@ g.V().has('id', '{deploymentResourceId}')
                 var resourceNodes = await SearchResourceAsync(resourceName, resourceType);
                 if (resourceNodes == null || !resourceNodes.Any())
                 {
-                    _logger.LogWarning("Resource not found: {ResourceName} of type {ResourceType}", resourceName, resourceType);
+                    _logger.LogInternalWarning("Resource not found: {ResourceName} of type {ResourceType}", resourceName, resourceType);
                     return $"Failed to generate health summary: Resource '{resourceName}' of type '{resourceType}' was not found in the knwoledge graph.";
                 }
 
@@ -872,13 +873,13 @@ g.V().has('id', '{deploymentResourceId}')
                 // Build the final dashboard URL
                 dashboardUrl = AddQueryParameters(dashboardUrl, queryParams);
 
-                _logger.LogInformation("Generated dashboard URL: {DashboardUrl} for resource {ResourceName}", dashboardUrl, resourceName);
+                _logger.LogInternalInformation("Generated dashboard URL: {DashboardUrl} for resource {ResourceName}", dashboardUrl, resourceName);
 
                 // Capture screenshot for the dashboard
                 var screenshotResponse = await CaptureDashboardScreenshotAsync(dashboardUrl);
                 if (string.IsNullOrEmpty(screenshotResponse?.Screenshot))
                 {
-                    _logger.LogWarning("No screenshot captured for resource {ResourceName}", resourceName);
+                    _logger.LogInternalWarning("No screenshot captured for resource {ResourceName}", resourceName);
                     return $"Failed to capture dashboard screenshot for resource '{resourceName}'. Dashboard URL: {dashboardUrl}";
                 }
 
@@ -889,12 +890,12 @@ g.V().has('id', '{deploymentResourceId}')
                 }
 
                 string healthSummary = await SummarizeDashboardScreenshotAsync(screenshotResponse.Screenshot, dashboardUrl);
-                _logger.LogInformation("General health summary generated successfully for resource {ResourceName}.  Dashboard URL: {dashboardUrl}", resourceName);
+                _logger.LogInternalInformation("General health summary generated successfully for resource {ResourceName}.  Dashboard URL: {dashboardUrl}", resourceName);
                 return $"Summary--------{healthSummary}------\nDashboard URL from where the summary was retrieved: {_grafanaUrl}{dashboardUrl}";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating general health summary for resource {ResourceName} of type {ResourceType}", resourceName, resourceType);
+                _logger.LogInternalError(ex, "Error generating general health summary for resource {ResourceName} of type {ResourceType}", resourceName, resourceType);
                 return $"Error generating health summary: {ex.Message}";
             }
         }
@@ -943,12 +944,12 @@ g.V().has('id', '{deploymentResourceId}')
                     resources.Add(propertyBag);
                 }
 
-                _logger.LogInformation("Found {Count} resources of type '{ResourceType}'", resources.Count, resourceType);
+                _logger.LogInternalInformation("Found {Count} resources of type '{ResourceType}'", resources.Count, resourceType);
                 return resources;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error listing resources of type '{Type}'", resourceType);
+                _logger.LogInternalError(ex, "Error listing resources of type '{Type}'", resourceType);
                 throw;
             }
         }
@@ -996,7 +997,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching for resource with name '{Name}' and type '{Type}'", resourceName, resourceType);
+                _logger.LogInternalError(ex, "Error searching for resource with name '{Name}' and type '{Type}'", resourceName, resourceType);
                 throw;
             }
         }
@@ -1044,7 +1045,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error searching for resource with name '{Name}'", resourceName);
+                _logger.LogInternalError(ex, "Error searching for resource with name '{Name}'", resourceName);
                 throw;
             }
         }
@@ -1070,7 +1071,7 @@ g.V().has('id', '{deploymentResourceId}')
                     {
                         // Convert the first result to long
                         count = Convert.ToInt64(result.First());
-                        _logger.LogInformation("Found {Count} resources of type '{Type}'", count, resourceType);
+                        _logger.LogInternalInformation("Found {Count} resources of type '{Type}'", count, resourceType);
                     }
 
                     return new { ResourceType = resourceType, Count = count };
@@ -1124,17 +1125,17 @@ g.V().has('id', '{deploymentResourceId}')
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogWarning(ex, "Error processing result item");
+                            _logger.LogInternalWarning(ex, "Error processing result item");
                         }
                     }
 
-                    _logger.LogInformation("Found resource counts grouped by '{GroupBy}' for type '{Type}'", groupBy, resourceType);
+                    _logger.LogInternalInformation("Found resource counts grouped by '{GroupBy}' for type '{Type}'", groupBy, resourceType);
                     return new { ResourceType = resourceType, GroupBy = groupBy, Counts = groupedResults };
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting count for resource type '{Type}' grouped by '{GroupBy}'", resourceType, groupBy);
+                _logger.LogInternalError(ex, "Error getting count for resource type '{Type}' grouped by '{GroupBy}'", resourceType, groupBy);
                 throw;
             }
         }
@@ -1213,7 +1214,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error getting managed resources information");
+                _logger.LogInternalError(ex, "Error getting managed resources information");
                 throw;
             }
         }
@@ -1232,14 +1233,14 @@ g.V().has('id', '{deploymentResourceId}')
 
                 var result = await GraphDbClient.Query(query);
 
-                _logger.LogInformation("Found {Count} subscriptions", result.Count);
+                _logger.LogInternalInformation("Found {Count} subscriptions", result.Count);
 
                 // Return the list of subscription objects with name and id properties intact
                 return result.ToList();
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error listing subscriptions");
+                _logger.LogInternalError(ex, "Error listing subscriptions");
                 throw;
             }
         }
@@ -1275,12 +1276,12 @@ g.V().has('id', '{deploymentResourceId}')
                     resources.Add(propertyBag);
                 }
 
-                _logger.LogInformation("Found {Count} resource groups for subscription '{SubscriptionId}'", resources.Count, subscriptionId);
+                _logger.LogInternalInformation("Found {Count} resource groups for subscription '{SubscriptionId}'", resources.Count, subscriptionId);
                 return resources;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error listing resource groups for subscription '{SubscriptionId}'", subscriptionId);
+                _logger.LogInternalError(ex, "Error listing resource groups for subscription '{SubscriptionId}'", subscriptionId);
                 throw;
             }
         }
@@ -1295,7 +1296,7 @@ g.V().has('id', '{deploymentResourceId}')
             int daysBack = 1,
             Guid? threadId = null)
         {
-            _logger.LogInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
 
             if (string.IsNullOrWhiteSpace(resourceId))
             {
@@ -1332,13 +1333,13 @@ g.V().has('id', '{deploymentResourceId}')
 
                     if (components.Count == 0)
                     {
-                        _logger.LogWarning($"No components found for resourceId: {resourceId}");
+                        _logger.LogInternalWarning($"No components found for resourceId: {resourceId}");
                         return $"No components found for resourceId: {resourceId}. Was the correct resource ID provided? Alternatively, the Knowledge Graph may not have been built for this component.";
                     }
 
                     var resourceIds = components.Select(c => c.Id).ToList();
                     var rgs = ExtractUniqueResourceGroups(resourceIds);
-                    _logger.LogInformation($"Found {resourceIds.Count} related resources for activity log analysis");
+                    _logger.LogInternalInformation($"Found {resourceIds.Count} related resources for activity log analysis");
 
                     var allActivityLogs = new List<Dictionary<string, object>>();
 
@@ -1349,7 +1350,7 @@ g.V().has('id', '{deploymentResourceId}')
                         {
                             allActivityLogs.AddRange(logs);
                         }
-                        _logger.LogInformation($"Fetched {logs.Count} activity logs for resource {id}");
+                        _logger.LogInternalInformation($"Fetched {logs.Count} activity logs for resource {id}");
                     }
 
                     if (allActivityLogs.Count == 0)
@@ -1364,7 +1365,7 @@ g.V().has('id', '{deploymentResourceId}')
                             DateTimeOffset.MinValue)
                         .ToList();
 
-                    _logger.LogInformation($"Total activity logs collected: {allActivityLogs.Count}");
+                    _logger.LogInternalInformation($"Total activity logs collected: {allActivityLogs.Count}");
 
                     var logsJson = JsonSerializer.Serialize(allActivityLogs, new JsonSerializerOptions { WriteIndented = true });
                     var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString());
@@ -1375,12 +1376,12 @@ g.V().has('id', '{deploymentResourceId}')
                 {
                     if (attempt < maxRetries)
                     {
-                        _logger.LogWarning($"[FetchAndSummarizeActivityLogs] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
+                        _logger.LogInternalWarning($"[FetchAndSummarizeActivityLogs] Attempt {attempt} failed with error: {ex.Message}. Retrying in {retryDelayMilliseconds}ms...");
                         await Task.Delay(retryDelayMilliseconds);
                     }
                     else
                     {
-                        _logger.LogError($"[FetchAndSummarizeActivityLogs] All {maxRetries} attempts failed. Last error: {ex.Message}");
+                        _logger.LogInternalError($"[FetchAndSummarizeActivityLogs] All {maxRetries} attempts failed. Last error: {ex.Message}");
                         throw;
                     }
                 }
@@ -1476,7 +1477,7 @@ g.V().has('id', '{deploymentResourceId}')
 
         private async Task<List<Dictionary<string, object>>> FetchActivityLogsForResource(string resourceId, int daysBack)
         {
-            _logger.LogInformation($"[FetchActivityLogsForResource] Fetching activity logs for: {resourceId}");
+            _logger.LogInternalInformation($"[FetchActivityLogsForResource] Fetching activity logs for: {resourceId}");
 
             try
             {
@@ -1575,7 +1576,7 @@ g.V().has('id', '{deploymentResourceId}')
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error fetching activity logs for {resourceId}");
+                _logger.LogInternalError(ex, $"Error fetching activity logs for {resourceId}");
                 return new List<Dictionary<string, object>>();
             }
         }
@@ -1630,7 +1631,7 @@ Please provide a highly concise summary with sections for each of the above poin
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error summarizing logs with LLM");
+                _logger.LogInternalError(ex, "Error summarizing logs with LLM");
                 return $"Error summarizing logs: {ex.Message}";
             }
         }
@@ -1653,7 +1654,7 @@ Please provide a highly concise summary with sections for each of the above poin
                 string requestJson = JsonSerializer.Serialize(payload);
                 var content = new StringContent(requestJson, Encoding.UTF8, "application/json");
 
-                _logger.LogInformation("Requesting screenshot for dashboard: {DashboardUrl}", dashboardUrl);
+                _logger.LogInternalInformation("Requesting screenshot for dashboard: {DashboardUrl}", dashboardUrl);
 
                 var response = await _httpClient.PostAsync($"{_puppeteerScreenshotApiUrl}/screenshot", content);
                 response.EnsureSuccessStatusCode();
@@ -1661,12 +1662,12 @@ Please provide a highly concise summary with sections for each of the above poin
                 string responseJson = await response.Content.ReadAsStringAsync();
                 var screenshotResponse = JsonSerializer.Deserialize<ScreenshotResponse>(responseJson);
 
-                _logger.LogInformation("Screenshot captured successfully for dashboard: {DashboardUrl}", dashboardUrl);
+                _logger.LogInternalInformation("Screenshot captured successfully for dashboard: {DashboardUrl}", dashboardUrl);
                 return screenshotResponse;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error capturing dashboard screenshot for {DashboardUrl}", dashboardUrl);
+                _logger.LogInternalError(ex, "Error capturing dashboard screenshot for {DashboardUrl}", dashboardUrl);
                 return new ScreenshotResponse { Screenshot = string.Empty };
             }
         }
@@ -1698,7 +1699,7 @@ Please provide a highly concise summary with sections for each of the above poin
                 var prompt = $"Please analyze the dashboard screenshot for the dashboard at {dashboardUrl}. " +
                              $"Based on the visual data, provide a concise summary of the resource's health and any notable observations.";
 
-                _logger.LogInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
+                _logger.LogInternalInformation("Sending screenshot data to LLM for summarization for dashboard: {DashboardUrl}", dashboardUrl);
                 messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, prompt));
                 var screenshot = Convert.FromBase64String(base64Screenshot);
                 var content = new List<AIContent>
@@ -1720,12 +1721,12 @@ Please provide a highly concise summary with sections for each of the above poin
                 var response = await ChatClient.GetResponseAsync(messages, options);
                 string summary = response.Text;
 
-                _logger.LogInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);
+                _logger.LogInternalInformation("Dashboard summary generated successfully for {DashboardUrl}", dashboardUrl);
                 return summary;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error summarizing dashboard screenshot for {DashboardUrl}", dashboardUrl);
+                _logger.LogInternalError(ex, "Error summarizing dashboard screenshot for {DashboardUrl}", dashboardUrl);
                 return $"Error summarizing dashboard screenshot: {ex.Message}";
             }
         }

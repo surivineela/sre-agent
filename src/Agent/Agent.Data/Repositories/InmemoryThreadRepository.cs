@@ -6,6 +6,7 @@ using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Logging;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Extensions.Logging;
 using Action = Agent.Core.Models.Api.v1.Action;
@@ -45,7 +46,7 @@ namespace Agent.Data.Repositories
 
         public Task<Thread> GetThreadAsync(Guid threadId)
         {
-            _logger.LogInformation("Trying to get thread: {Id}", threadId);
+            _logger.LogInternalInformation("Trying to get thread: {Id}", threadId);
             _threads.TryGetValue(threadId, out var thread);
 
             thread.Status = GetThreadStatusAsync(thread).Result;
@@ -170,7 +171,7 @@ namespace Agent.Data.Repositories
         {
             if (!_threads.TryGetValue(threadId, out var thread))
             {
-                _logger.LogWarning("Cannot update title: Thread {ThreadId} not found", threadId);
+                _logger.LogInternalWarning("Cannot update title: Thread {ThreadId} not found", threadId);
                 return Task.FromResult<Thread>(null);
             }
 
@@ -183,7 +184,7 @@ namespace Agent.Data.Repositories
 
             _threads[threadId] = updatedThread;
 
-            _logger.LogInformation("Successfully updated title for thread {ThreadId}", threadId);
+            _logger.LogInternalInformation("Successfully updated title for thread {ThreadId}", threadId);
             return Task.FromResult(updatedThread);
         }
 
@@ -446,7 +447,7 @@ namespace Agent.Data.Repositories
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
+                _logger.LogInternalError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
                 throw;
             }
         }

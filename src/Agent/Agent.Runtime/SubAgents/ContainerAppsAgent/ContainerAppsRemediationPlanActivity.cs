@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Agent.Core.Extensions;
+using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -20,7 +21,7 @@ public class ContainerAppsRemediationPlanActivity : TaskActivity<ContainerAppsRe
 
     public async override Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppsRemediationAgentInput agentInput)
     {
-        _logger.LogInformation($"ContainerAppsRemediationPlanActivity started with input: {JsonSerializer.Serialize(agentInput)}");
+        _logger.LogInternalInformation($"ContainerAppsRemediationPlanActivity started with input: {JsonSerializer.Serialize(agentInput)}");
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "ContainerAppsAgent", "ContainerAppsAgent.txt");
         var systemPrompt = await File.ReadAllTextAsync(path);
         var monitoringMessage = $"I was delegated to resolve container apps issue from another agent with message: {agentInput.Input}";
@@ -32,7 +33,7 @@ public class ContainerAppsRemediationPlanActivity : TaskActivity<ContainerAppsRe
 
         var response = await _chatClient.GetResponseAsync(chatHistory);
         chatHistory.Add(response.GetMessage());
-        _logger.LogInformation($"ContainerAppsRemediationPlanActivity completed with response.");
+        _logger.LogInternalInformation($"ContainerAppsRemediationPlanActivity completed with response.");
         return chatHistory;
     }
 }

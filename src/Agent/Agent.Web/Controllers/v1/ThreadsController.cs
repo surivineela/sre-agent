@@ -61,12 +61,12 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("{id}")]
         public async Task<ActionResult<Thread>> GetThread(Guid id)
         {
-            logger.LogInformation("Trying to get thread: {Id}", id);
+            logger.LogInternalInformation("Trying to get thread: {Id}", id);
             var thread = await repository.GetThreadAsync(id);
 
             if (thread == null)
             {
-                logger.LogInformation("Thread not found: {Id}", id);
+                logger.LogInternalInformation("Thread not found: {Id}", id);
                 return NotFound();
             }
 
@@ -273,7 +273,7 @@ namespace Agent.Web.Controllers.v1
             if (threadContext == null)
                 return NotFound();
 
-            logger.LogInformation($"Get context for thread {threadId}: {JsonSerializer.Serialize(threadContext.OrchestrationState)}");
+            logger.LogInternalInformation($"Get context for thread {threadId}: {JsonSerializer.Serialize(threadContext.OrchestrationState)}");
 
             if (threadContext.OrchestrationState != null &&
                 !string.IsNullOrEmpty(threadContext.OrchestrationState.OrchestrationInstanceId) &&

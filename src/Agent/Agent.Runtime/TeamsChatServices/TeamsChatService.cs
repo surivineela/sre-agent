@@ -9,6 +9,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Streaming;
 using Agent.Core.Configuration;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
 using Microsoft.Bot.Builder.Teams;
@@ -82,7 +83,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         _appId = teamsBot.AppId;
 
         // Log credential information (without exposing the actual password)
-        _logger.LogInformation($"TeamsBot initialized with AppId: {(_appId != null ? "Configured" : "Not Configured, disable sending proactive messages")}");
+        _logger.LogInternalInformation($"TeamsBot initialized with AppId: {(_appId != null ? "Configured" : "Not Configured, disable sending proactive messages")}");
     }
 
     protected override async Task OnMessageActivityAsync(ITurnContext<IMessageActivity> turnContext, CancellationToken cancellationToken)
@@ -90,7 +91,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         string messageText = turnContext.Activity.RemoveRecipientMention()?.Trim();
         if (string.IsNullOrEmpty(messageText))
         {
-            _logger.LogInformation("Received empty message from user");
+            _logger.LogInternalInformation("Received empty message from user");
             var msg = MessageFactory.Text("Empty message received, please tag me along with the messages.");
             // msg.Attachments.Add(new Attachment
             // {
@@ -128,7 +129,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                         DisplayName: senderName,
                         Timestamp: DateTime.UtcNow);
 
-        _logger.LogInformation($"[Teams Conversation: {conversationId}][Thread: {threadId}]\nSending message to agent: {messageText}");
+        _logger.LogInternalInformation($"[Teams Conversation: {conversationId}][Thread: {threadId}]\nSending message to agent: {messageText}");
 
         if (messageText.ToLowerInvariant() == "hello")
         {
@@ -177,7 +178,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error in Teams bot message processing");
+            _logger.LogInternalError(ex, "Error in Teams bot message processing");
             await turnContext.SendActivityAsync($"Error process the request: {ex.Message}");
         }
     }
@@ -192,7 +193,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         var mapping = await _conversationThreadMapping.GetFirstOrDefaultChannel();
         if (mapping == null)
         {
-            _logger.LogError($"Failed to create thread and send proactive message with Teams post due to conversation {conversationId} not found");
+            _logger.LogInternalError($"Failed to create thread and send proactive message with Teams post due to conversation {conversationId} not found");
             return "";
         }
 
@@ -201,14 +202,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
         if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
         {
-            _logger.LogWarning("Missing channelId or serviceUrl in stored conversation reference, probably this is from Teams private chat or chat group, please make sure this is from teams channel.");
+            _logger.LogInternalWarning("Missing channelId or serviceUrl in stored conversation reference, probably this is from Teams private chat or chat group, please make sure this is from teams channel.");
             return mapping.Id;
         }
 
         var adapter = _teamsAdapter as CloudAdapter;
         if (adapter == null)
         {
-            _logger.LogError("Adapter is not a CloudAdapter instance.");
+            _logger.LogInternalError("Adapter is not a CloudAdapter instance.");
             return mapping.Id;
         }
         var newThreadId = Guid.NewGuid();
@@ -248,7 +249,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                             turnContext.Activity.GetConversationReference()
                         ));
 
-                        _logger.LogInformation($"Created new thread with Teams post {newThreadId} for conversation {conversationId}");
+                        _logger.LogInternalInformation($"Created new thread with Teams post {newThreadId} for conversation {conversationId}");
                         await turnContext.SendActivityAsync("New conversation thread created.", cancellationToken: ct);
                     },
                     cancellationToken: CancellationToken.None);
@@ -256,7 +257,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to create thread with Teams post for conversation {conversationId}");
+                _logger.LogInternalError(ex, $"Failed to create thread with Teams post for conversation {conversationId}");
             }
         });
 
@@ -268,11 +269,11 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
     /// </summary>
     private async Task<string> GetOrCreateThread(Guid startMessageId, string conversationId, string serviceUrl, string channelId, string messageText, ConversationReference reference = null, ChannelAccount sender = null)
     {
-        _logger.LogInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
+        _logger.LogInternalInformation($"Get or create thread ID for conversation {conversationId}, service URL: {serviceUrl}, channel ID: {channelId}, reference: {reference}");
         var mapping = await _conversationThreadMapping.GetMappingByConversationIdAsync(conversationId);
         if (mapping != null)
         {
-            _logger.LogInformation($"Found existing thread ID {mapping.ThreadId} for conversation {conversationId}");
+            _logger.LogInternalInformation($"Found existing thread ID {mapping.ThreadId} for conversation {conversationId}");
             return mapping.ThreadId;
         }
 
@@ -343,7 +344,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             DateTime.UtcNow,
             reference
         ));
-        _logger.LogInformation($"Created new thread ID {newThreadId} for conversation {conversationId}");
+        _logger.LogInternalInformation($"Created new thread ID {newThreadId} for conversation {conversationId}");
         return newThreadId.ToString();
     }
 
@@ -396,7 +397,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         {
             var errorResponse = ex as Microsoft.Bot.Schema.ErrorResponseException;
             string errorMessage = "Error while sending streaming activity: " + (errorResponse?.Body?.Error?.Message ?? ex.Message);
-            _logger.LogError(ex, errorMessage);
+            _logger.LogInternalError(ex, errorMessage);
 
             // Only send error message back to user if it's a critical error
             if (ex is not TimeoutException)
@@ -472,11 +473,11 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
         if (string.IsNullOrEmpty(_appId))
         {
-            _logger.LogWarning("AppId is not configured. Skip start message polling.");
+            _logger.LogInternalWarning("AppId is not configured. Skip start message polling.");
             return;
         }
         _isPollingStarted = true;
-        _logger.LogInformation("Starting Teams message polling");
+        _logger.LogInternalInformation("Starting Teams message polling");
 
         // Run polling in a background task
         Task.Run(async () =>
@@ -489,7 +490,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error in Teams message polling");
+                    _logger.LogInternalError(ex, "Error in Teams message polling");
                 }
 
                 // Wait before polling again
@@ -503,7 +504,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
         if (!_isPollingStarted)
             return;
 
-        _logger.LogInformation("Stopping Teams message polling");
+        _logger.LogInternalInformation("Stopping Teams message polling");
         _pollingCancellationSource.Cancel();
         _isPollingStarted = false;
     }
@@ -519,7 +520,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             {
                 if (string.IsNullOrEmpty(mapping.ConversationId))
                 {
-                    _logger.LogWarning($"Empty conversation ID found for thread {mapping.ThreadId}");
+                    _logger.LogInternalWarning($"Empty conversation ID found for thread {mapping.ThreadId}");
                     continue;
                 }
 
@@ -527,7 +528,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
                 if (!Guid.TryParse(threadId, out Guid threadGuid))
                 {
-                    _logger.LogError($"Failed to poll Teams messages due to invalid thread ID format: {threadId}");
+                    _logger.LogInternalError($"Failed to poll Teams messages due to invalid thread ID format: {threadId}");
                     continue;
                 }
 
@@ -535,7 +536,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 if (threadContext == null || threadContext.OutboundConfiguration == null ||
                     threadContext.OutboundConfiguration.Teams == null || threadContext.OutboundConfiguration.Teams.Enabled != true)
                 {
-                    _logger.LogWarning($"Thread context not found or outbound configuration to teams not enabled for thread ID {threadId}");
+                    _logger.LogInternalWarning($"Thread context not found or outbound configuration to teams not enabled for thread ID {threadId}");
                     continue;
                 }
 
@@ -567,7 +568,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error polling messages for conversation {mapping.ConversationId} thread {mapping.Id}");
+                _logger.LogInternalError(ex, $"Error polling messages for conversation {mapping.ConversationId} thread {mapping.Id}");
             }
         }
     }
@@ -579,14 +580,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             // Get the Teams conversation reference
             if (conversationReference == null)
             {
-                _logger.LogWarning($"No conversation reference found for conversation {conversationId}, thread {threadId}");
+                _logger.LogInternalWarning($"No conversation reference found for conversation {conversationId}, thread {threadId}");
                 return;
             }
 
             // Ensure we have the necessary credentials
             if (string.IsNullOrEmpty(_appId))
             {
-                _logger.LogError("AppId is not configured. Cannot send proactive messages.");
+                _logger.LogInternalError("AppId is not configured. Cannot send proactive messages.");
                 return;
             }
 
@@ -594,7 +595,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             var adapter = _teamsAdapter as CloudAdapter;
             if (adapter == null)
             {
-                _logger.LogError("Adapter is not a CloudAdapter instance. Cannot send proactive messages.");
+                _logger.LogInternalError("Adapter is not a CloudAdapter instance. Cannot send proactive messages.");
                 return;
             }
 
@@ -657,14 +658,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
 
                     // Add to our local collection of successfully posted messages
                     postedMessageIds.Add(message.Id.ToString());
-                    _logger.LogInformation($"Posted message {message.Id} to Teams conversation {conversationId}");
+                    _logger.LogInternalInformation($"Posted message {message.Id} to Teams conversation {conversationId}");
 
                     // Respect Teams rate limits (7 messages per second)
                     await Task.Delay(200);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error posting message {message.Id} to Teams conversation {conversationId}");
+                    _logger.LogInternalError(ex, $"Error posting message {message.Id} to Teams conversation {conversationId}");
                 }
             }
 
@@ -673,12 +674,12 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             if (postedMessageIds.Any())
             {
                 var success = await _conversationThreadMapping.AddPostedMessagesAsync(threadId, postedMessageIds);
-                _logger.LogInformation($"Database update for thread {threadId} with {postedMessageIds.Count} posted messages was {(success ? "successful" : "unsuccessful")}");
+                _logger.LogInternalInformation($"Database update for thread {threadId} with {postedMessageIds.Count} posted messages was {(success ? "successful" : "unsuccessful")}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in PostMessagesToTeams for conversation {conversationId}");
+            _logger.LogInternalError(ex, $"Error in PostMessagesToTeams for conversation {conversationId}");
         }
     }
 }
@@ -706,7 +707,7 @@ public class AdapterWithErrorHandler : CloudAdapter
             // NOTE: In production environment, you should consider logging this to
             // Azure Application Insights. Visit https://aka.ms/bottelemetry to see how
             // to add telemetry capture to your bot.
-            logger.LogError(exception, $"[OnTurnError] unhandled error : {exception.Message}");
+            logger.LogInternalError(exception, $"[OnTurnError] unhandled error : {exception.Message}");
 
             // Only send error message for user messages, not for other message types so the bot doesn't spam a channel or chat.
             if (turnContext.Activity.Type == ActivityTypes.Message)

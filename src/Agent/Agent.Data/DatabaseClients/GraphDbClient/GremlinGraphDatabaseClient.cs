@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Core.Configuration;
+using Agent.Logging;
 using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
 using Microsoft.Extensions.Logging;
@@ -148,12 +149,12 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
             catch (Gremlin.Net.Driver.Exceptions.ResponseException ex) when (ex.StatusAttributes["x-ms-status-code"].ToString() == "429")
             {
-                _logger.LogError(ex, $"429. Query: {query}");
+                _logger.LogInternalError(ex, $"429. Query: {query}");
                 return false;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error add/update node: {ex.Message}. Query: {query}");
+                _logger.LogInternalError(ex, $"Error add/update node: {ex.Message}. Query: {query}");
                 return false;
             }
         }
@@ -192,7 +193,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error add/update edge: {ex.Message}. Query: {query}");
+                _logger.LogInternalError(ex, $"Error add/update edge: {ex.Message}. Query: {query}");
                 return false;
             }
         }
@@ -218,7 +219,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             }
             catch (Exception e)
             {
-                _logger.LogError(e, $"Exception: {e.Message}. Query: {query}");
+                _logger.LogInternalError(e, $"Exception: {e.Message}. Query: {query}");
 
                 return new ResultSet<T>([], null);
             }

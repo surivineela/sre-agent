@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.SubAgents;
 using ModelContextProtocol.Client;
@@ -60,7 +61,7 @@ public class McpConnection
             };
 
 
-            logger.LogInformation("Attempting to connect to {endpoint}", Url);
+            logger.LogInternalInformation("Attempting to connect to {endpoint}", Url);
 
             Client = await McpClientFactory.CreateAsync(
                 config,
@@ -74,7 +75,7 @@ public class McpConnection
 
             foreach (var tool in Tools)
             {
-                logger.LogInformation("Imported tool: {tool} from MCP server {server}", tool.Name, config.Location);
+                logger.LogInternalInformation("Imported tool: {tool} from MCP server {server}", tool.Name, config.Location);
             }
 
             if (!string.IsNullOrEmpty(Client.ServerInstructions))
@@ -84,7 +85,7 @@ public class McpConnection
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Failed to initialize connection to {endpoint}", Url);
+            logger.LogInternalError(ex, "Failed to initialize connection to {endpoint}", Url);
             throw;
         }
     }

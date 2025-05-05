@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -43,9 +44,9 @@ You can run multiple tool calls to answer a single question.";
         [Description("This agent will convert a specific question about a service's azure resources and attempt answer it using graph queries.")]
         public async Task<string> LaunchGraphTraversalAgentAsync(string question)
         {
-            _logger.LogInformation("Invoking graph traversal agent");
+            _logger.LogInternalInformation("Invoking graph traversal agent");
             string answer = await _queryAgent.Ask(question);
-            _logger.LogInformation($"Graph traversal agent responded with: {answer}");
+            _logger.LogInternalInformation($"Graph traversal agent responded with: {answer}");
             return answer;
         }
 

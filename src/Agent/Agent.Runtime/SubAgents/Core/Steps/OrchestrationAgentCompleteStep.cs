@@ -2,7 +2,7 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel.ChatCompletion;
-
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
@@ -26,7 +26,7 @@ public class OrchestrationAgentCompleteStep : OrchestrationAgentStep
             message = messageObj.ToString() ?? string.Empty;
         }
 
-        log.LogInformation("[{ThreadId}] Marking plan as complete with message: {Message}", threadId, message);
+        log.LogInternalInformation("[{ThreadId}] Marking plan as complete with message: {Message}", threadId, message);
 
         // Call the communication activity
         await context.CallUpdateThreadWithAgentMessageActivityAsync(new UpdateThreadWithAgentMessageInput(
@@ -37,6 +37,6 @@ public class OrchestrationAgentCompleteStep : OrchestrationAgentStep
 
         var resultContent = new FunctionResultContent(FunctionCall.CallId, "Plan marked as complete.");
         agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-        log.LogInformation("[{ThreadId}] Marking plan as complete", threadId);
+        log.LogInternalInformation("[{ThreadId}] Marking plan as complete", threadId);
     }
 }

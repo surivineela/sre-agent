@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -23,7 +24,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
     {
         if (gnode is not ArmResourceNode node)
         {
-            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
+            _logger.LogInternalWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
             return new AppHealthInfo { };
         }
         var resourceId = node.GetNodeId();
@@ -31,13 +32,13 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         // Check if it's a function app by looking at the properties
         if (!IsFunctionApp(node))
         {
-            _logger.LogInformation($"Node {node.GetNodeId()} is not a function app, skipping metrics collection");
+            _logger.LogInternalInformation($"Node {node.GetNodeId()} is not a function app, skipping metrics collection");
             return new AppHealthInfo { };
         }
 
         if (resourceId == null)
         {
-            _logger.LogWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
+            _logger.LogInternalWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
             return new AppHealthInfo { };
         }
 
@@ -68,7 +69,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to get metrics for the Function App {node.GetNodeId()}");
+            _logger.LogInternalError(ex, $"Failed to get metrics for the Function App {node.GetNodeId()}");
         }
 
         return new AppHealthInfo { };
@@ -87,7 +88,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetAvgCpuUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average CPU usage for Function App: {resourceId}");
+        _logger.LogInternalInformation($"Getting average CPU usage for Function App: {resourceId}");
         var metrics = new List<Metric>
         {
             new Metric { Name = "FunctionExecutionUnits", Unit = "Count", Aggregation = "Total" },
@@ -102,7 +103,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetAvgMemoryUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average Memory usage for Function App: {resourceId}");
+        _logger.LogInternalInformation($"Getting average Memory usage for Function App: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -118,14 +119,14 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get memory metrics for Function App: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get memory metrics for Function App: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetFunctionExecutionsAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting function executions for Function App: {resourceId}");
+        _logger.LogInternalInformation($"Getting function executions for Function App: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -141,14 +142,14 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get execution metrics for Function App: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get execution metrics for Function App: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetAvailabilityAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting availability for Function App: {resourceId}");
+        _logger.LogInternalInformation($"Getting availability for Function App: {resourceId}");
         try
         {
             // For Function Apps, calculate availability based on HTTP status codes
@@ -175,7 +176,7 @@ public class FunctionAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get availability metrics for Function App: {resourceId}. Will return 100% (default).");
+            _logger.LogInternalWarning(ex, $"Failed to get availability metrics for Function App: {resourceId}. Will return 100% (default).");
             return 100;
         }
     }

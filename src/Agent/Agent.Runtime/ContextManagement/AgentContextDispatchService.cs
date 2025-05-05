@@ -8,6 +8,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Agent.Runtime.V2;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
@@ -129,7 +130,7 @@ public sealed class AgentContextDispatchService(
 
                 if (selectedWorker == null)
                 {
-                    logger.LogError("Failed to get select worker to assign agent context {agentContextId}", agentContext.Id);
+                    logger.LogInternalError("Failed to get select worker to assign agent context {agentContextId}", agentContext.Id);
                     continue;
                 }
 
@@ -148,7 +149,7 @@ public sealed class AgentContextDispatchService(
 
                 if (!success)
                 {
-                    logger.LogError("Failed to create agent context instance assignment for agent context {agentContextId}",
+                    logger.LogInternalError("Failed to create agent context instance assignment for agent context {agentContextId}",
                         agentContext.Id);
                     continue;
                 }
@@ -171,11 +172,11 @@ public sealed class AgentContextDispatchService(
     {
         if (exception is ChangeFeedProcessorUserException userException)
         {
-            logger.LogError(userException, "Lease {changeFeedLeaseToken} processing failed with unhandled exception from user delegate: {innerException}", leaseToken, userException.InnerException);
+            logger.LogInternalError(userException, "Lease {changeFeedLeaseToken} processing failed with unhandled exception from user delegate: {innerException}", leaseToken, userException.InnerException);
         }
         else
         {
-            logger.LogError(exception, "Lease {changeFeedLeaseToken} processing failed, exception source not from user delegate", leaseToken);
+            logger.LogInternalError(exception, "Lease {changeFeedLeaseToken} processing failed, exception source not from user delegate", leaseToken);
         }
 
         // TODO: failure to assign a context needs to be retried

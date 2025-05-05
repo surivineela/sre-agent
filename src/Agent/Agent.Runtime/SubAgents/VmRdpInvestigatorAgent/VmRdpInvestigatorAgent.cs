@@ -1,3 +1,4 @@
+using Agent.Logging;
 using Agent.Runtime.SubAgents.RdpInvestigatorAgent;
 using Agent.Runtime.SubAgents.Core;
 using Microsoft.DurableTask;
@@ -38,7 +39,7 @@ public class VmRdpInvestigatorAgent: GenericAgentOrchestrator<VmRdpInvestigatorA
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "Error in VmRdpInvestigatorAgent");
+            log.LogInternalError(ex, "Error in VmRdpInvestigatorAgent");
             return $"Error: {ex.Message}";
         }
     }

@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
@@ -60,7 +61,7 @@ public class IncidentWebhookController : ControllerBase
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing PagerDuty webhook");
+            _logger.LogInternalError(ex, "Error processing PagerDuty webhook");
             return StatusCode(500, "Failed to process PagerDuty webhook");
         }
     }

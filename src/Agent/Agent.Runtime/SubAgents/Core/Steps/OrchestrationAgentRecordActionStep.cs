@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Agent.Core.Models.Api.v1;
 using Microsoft.SemanticKernel.ChatCompletion;
 using System.Threading;
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
@@ -41,7 +42,7 @@ public class OrchestrationAgentRecordActionStep : OrchestrationAgentStep
             toolName = toolNameObj.ToString() ?? string.Empty;
         }
 
-        log.LogInformation("[{ThreadId}] Recording action with title: {Title}, status: {Status}", threadId, title, status);
+        log.LogInternalInformation("[{ThreadId}] Recording action with title: {Title}, status: {Status}", threadId, title, status);
 
         // Call the record action activity
         var action = await context.CallRecordActionActivityAsync(new RecordActionInput(
@@ -50,7 +51,7 @@ public class OrchestrationAgentRecordActionStep : OrchestrationAgentStep
             Status: status,
             ToolName: toolName
         ));
-        log.LogInformation("[{ThreadId}] Action recorded: {Action}", threadId, action.ToString());
+        log.LogInternalInformation("[{ThreadId}] Action recorded: {Action}", threadId, action.ToString());
 
         // Return the action details as a JSON string
         var resultContent = new FunctionResultContent(

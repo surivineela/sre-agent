@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ public class AppServicePlugin : IAppServicePlugin
 
     public async Task<AppServiceDescriptor> GetAppServiceInfoAsync(string resourceId)
     {
-        _logger.LogInformation($"[get_app_service_info] Invoked with resourceId: {resourceId}");
+        _logger.LogInternalInformation($"[get_app_service_info] Invoked with resourceId: {resourceId}");
 
         try
         {
@@ -43,7 +44,7 @@ public class AppServicePlugin : IAppServicePlugin
 
             if (result == null || !result.Any())
             {
-                _logger.LogWarning($"App Service with ID '{resourceId}' not found in graph database.");
+                _logger.LogInternalWarning($"App Service with ID '{resourceId}' not found in graph database.");
                 return null;
             }
 
@@ -76,14 +77,14 @@ public class AppServicePlugin : IAppServicePlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in GetAppServiceInfoAsync with resourceId {resourceId}");
+            _logger.LogInternalError(ex, $"Error in GetAppServiceInfoAsync with resourceId {resourceId}");
             return null;
         }
     }
 
     public async Task<IReadOnlyList<AppServiceDescriptor>> ListAppServicesAsync(Guid subscriptionId)
     {
-        _logger.LogInformation($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
+        _logger.LogInternalInformation($"[list_app_service_instances] Invoked with subscription {subscriptionId}");
 
         var appServices = new List<AppServiceDescriptor>();
 
@@ -103,7 +104,7 @@ public class AppServicePlugin : IAppServicePlugin
 
             if (result == null || !result.Any())
             {
-                _logger.LogInformation($"No app services found for subscription {subscriptionId} in graph database.");
+                _logger.LogInternalInformation($"No app services found for subscription {subscriptionId} in graph database.");
                 return appServices;
             }
 
@@ -143,7 +144,7 @@ public class AppServicePlugin : IAppServicePlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in ListAppServicesAsync with subscription {subscriptionId}");
+            _logger.LogInternalError(ex, $"Error in ListAppServicesAsync with subscription {subscriptionId}");
             return new List<AppServiceDescriptor>();
         }
 

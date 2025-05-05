@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using YamlDotNet.Serialization;
 using Newtonsoft.Json.Converters;
+using Agent.Logging;
 
 namespace Agent.Plugins
 {
@@ -64,7 +65,7 @@ namespace Agent.Plugins
                 string namespaceName = "default";
                 string resourceName = "";
 
-                _logger?.LogInformation("Parsing YAML object with kind: {Kind}, apiVersion: {ApiVersion}", kind, apiVersion);
+                _logger?.LogInternalInformation("Parsing YAML object with kind: {Kind}, apiVersion: {ApiVersion}", kind, apiVersion);
 
                 // Extract namespace and name from metadata if present
                 if (tempObj.TryGetValue("metadata", out var metadataObj))
@@ -85,7 +86,7 @@ namespace Agent.Plugins
                     }
                     else
                     {
-                        _logger?.LogWarning("Metadata is not in expected format: {MetadataType}", metadataObj?.GetType().FullName ?? "null");
+                        _logger?.LogInternalWarning("Metadata is not in expected format: {MetadataType}", metadataObj?.GetType().FullName ?? "null");
                         metadata = new Dictionary<string, object>();
                     }
 
@@ -105,10 +106,10 @@ namespace Agent.Plugins
                 }
                 else
                 {
-                    _logger?.LogWarning("No 'metadata' field found in YAML");
+                    _logger?.LogInternalWarning("No 'metadata' field found in YAML");
                 }
 
-                _logger?.LogInformation($"Applying new resource {kind}/{resourceName} in namespace {namespaceName}");
+                _logger?.LogInternalInformation($"Applying new resource {kind}/{resourceName} in namespace {namespaceName}");
 
 
                 // Convert the already parsed YAML object to JSON with proper numeric handling
@@ -139,11 +140,11 @@ namespace Agent.Plugins
                         name: resourceName);
 
                     resourceExists = (existingResource != null);
-                    _logger?.LogInformation("Resource {Kind}/{Name} already exists, will update", kind, resourceName);
+                    _logger?.LogInternalInformation("Resource {Kind}/{Name} already exists, will update", kind, resourceName);
                 }
                 catch (k8s.Autorest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    _logger?.LogInformation("Resource {Kind}/{Name} does not exist, will create", kind, resourceName);
+                    _logger?.LogInternalInformation("Resource {Kind}/{Name} does not exist, will create", kind, resourceName);
                     resourceExists = false;
                 }
 
@@ -213,7 +214,7 @@ namespace Agent.Plugins
                     switch (kind.ToLowerInvariant())
                     {
                         case "deployment":
-                            _logger?.LogInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
                             var deployment = JsonConvert.DeserializeObject<V1Deployment>(jsonBody);
                             await _client.AppsV1.CreateNamespacedDeploymentAsync(
                                 body: deployment,
@@ -221,7 +222,7 @@ namespace Agent.Plugins
                             break;
 
                         case "service":
-                            _logger?.LogInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var service = JsonConvert.DeserializeObject<V1Service>(jsonBody);
                             await _client.CoreV1.CreateNamespacedServiceAsync(
@@ -230,7 +231,7 @@ namespace Agent.Plugins
                             break;
 
                         case "ingress":
-                            _logger?.LogInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var ingress = JsonConvert.DeserializeObject<V1Ingress>(jsonBody);
                             await _client.NetworkingV1.CreateNamespacedIngressAsync(
@@ -239,7 +240,7 @@ namespace Agent.Plugins
                             break;
 
                         case "configmap":
-                            _logger?.LogInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var configMap = JsonConvert.DeserializeObject<V1ConfigMap>(jsonBody);
                             await _client.CoreV1.CreateNamespacedConfigMapAsync(
@@ -248,7 +249,7 @@ namespace Agent.Plugins
                             break;
 
                         case "statefulset":
-                            _logger?.LogInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var statefulSet = JsonConvert.DeserializeObject<V1StatefulSet>(jsonBody);
                             await _client.AppsV1.CreateNamespacedStatefulSetAsync(
@@ -257,7 +258,7 @@ namespace Agent.Plugins
                             break;
 
                         default:
-                            _logger?.LogInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
+                            _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             // Use generic method for other resource types
                             await _client.CustomObjects.CreateNamespacedCustomObjectAsync(
@@ -274,7 +275,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
+                _logger?.LogInternalError(ex, "Error applying Kubernetes YAML to cluster {ResourceId}", resourceId);
                 return $"Error applying YAML: {ex.Message}";
             }
         }

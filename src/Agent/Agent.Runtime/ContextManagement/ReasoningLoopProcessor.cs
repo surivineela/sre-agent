@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.V2;
 using Microsoft.Extensions.AI;
@@ -59,7 +60,7 @@ internal class ReasoningLoopProcessor(
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unhandled error occurred during agent context reasoning, agent context {AgentContextId}, instance {InstanceId}", AgentContextId, InstanceId);
+                _logger.LogInternalError(e, "Unhandled error occurred during agent context reasoning, agent context {AgentContextId}, instance {InstanceId}", AgentContextId, InstanceId);
                 _complete = true;
                 agentContext = agentContext with
                 {
@@ -137,7 +138,7 @@ internal class ReasoningLoopProcessor(
         }
         catch (Exception e)
         {
-            _logger.LogError(e,
+            _logger.LogInternalError(e,
                 "Unhandled error occurred during agent context reasoning, agent context {AgentContextId}, instance {InstanceId}",
                 AgentContextId,
                 InstanceId);
@@ -146,7 +147,7 @@ internal class ReasoningLoopProcessor(
 
             if (_retryCount >= maxRetryCount)
             {
-                _logger.LogError("Max retry count reached for agent context {AgentContextId}, instance {InstanceId}", AgentContextId, InstanceId);
+                _logger.LogInternalError("Max retry count reached for agent context {AgentContextId}, instance {InstanceId}", AgentContextId, InstanceId);
                 _complete = true;
 
                 agentContext = agentContext with
@@ -173,7 +174,7 @@ internal class ReasoningLoopProcessor(
         if (agentChatHistory != null && agentChatHistory.LatestUserMessageId != _lastProcessedUserMessageId)
         {
             // reset waiting state on context so new user messages are handled
-            _logger.LogInformation("New user message found for agent context {AgentContextId}, resetting wait information", AgentContextId);
+            _logger.LogInternalInformation("New user message found for agent context {AgentContextId}, resetting wait information", AgentContextId);
 
             newUserMessage = true;
 
@@ -219,7 +220,7 @@ internal class ReasoningLoopProcessor(
         // check if time wait condition has been satisfied
         else if (waitInfo != null && waitInfo.WaitUntil != null && waitInfo.WaitUntil <= DateTimeOffset.UtcNow)
         {
-            _logger.LogInformation("Wait condition satisfied based on time for agent context {AgentContextId}", AgentContextId);
+            _logger.LogInternalInformation("Wait condition satisfied based on time for agent context {AgentContextId}", AgentContextId);
 
             // put system message in chat history to inform the agent that waiting is complete
             if (chatHistory != null)
@@ -267,7 +268,7 @@ internal class ReasoningLoopProcessor(
             if (approval == null)
             {
                 chatMessageString = $"Approval record not found, retry the tool call that needed approval";
-                _logger.LogWarning("Approval {ApprovalId} not found for agent context {AgentContextId}", approvalId, AgentContextId);
+                _logger.LogInternalWarning("Approval {ApprovalId} not found for agent context {AgentContextId}", approvalId, AgentContextId);
 
                 updatedApprovals.Remove(approvalId);
                 approvalUpdated = true;
@@ -275,7 +276,7 @@ internal class ReasoningLoopProcessor(
             else if (approval.Status == ApprovalDecision.Approved)
             {
                 chatMessageString = $"Approval by **{approval.DecisionUser}** received for the operation {approval.Description}";
-                _logger.LogInformation("Approval {ApprovalId} was approved by {DecisionUser} for agent context {AgentContextId}",
+                _logger.LogInternalInformation("Approval {ApprovalId} was approved by {DecisionUser} for agent context {AgentContextId}",
                     approvalId, approval.DecisionUser, AgentContextId);
 
                 updatedApprovals.Remove(approvalId);
@@ -284,7 +285,7 @@ internal class ReasoningLoopProcessor(
             else if (approval.Status == ApprovalDecision.Rejected)
             {
                 chatMessageString = $"Approval was rejected by **{approval.DecisionUser}** for the operation {approval.Description}";
-                _logger.LogInformation("Approval {ApprovalId} was rejected by {DecisionUser} for agent context {AgentContextId}",
+                _logger.LogInternalInformation("Approval {ApprovalId} was rejected by {DecisionUser} for agent context {AgentContextId}",
                     approvalId, approval.DecisionUser, AgentContextId);
 
                 updatedApprovals.Remove(approvalId);

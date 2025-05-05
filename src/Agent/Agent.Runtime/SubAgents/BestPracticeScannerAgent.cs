@@ -4,6 +4,7 @@
 
 using Agent.Core.Extensions;
 using Agent.Core.Models;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System.ComponentModel;
@@ -52,7 +53,7 @@ namespace Agent.Runtime.SubAgents
             [Description("Keep empty unless the user specifies additional things to check")] List<string> additionalBestPractices,
             [Description("Keep null")] CancellationToken? cancellationToken = null)
         {
-            _logger.LogInformation(ScanningMessage);
+            _logger.LogInternalInformation(ScanningMessage);
 
             List<string> unmetConditionAnswers = new();
             bool allPracticesMet = true;

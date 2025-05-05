@@ -9,6 +9,7 @@ using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Models;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 
 namespace Agent.Plugins.Implementation
 {
@@ -25,7 +26,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<SqlConnectionDescriptor> CheckSqlConnectionTypeAsync(string resourceId)
         {
-            _logger.LogInformation($"[check_sql_connection_type] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[check_sql_connection_type] Invoked with resourceId: {resourceId}");
 
             var armClient = _armClientFactory.GetArmClient();
 
@@ -72,14 +73,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (RequestFailedException ex)
             {
-                _logger.LogError($"Error in CheckSqlConnectionTypeAsync: {ex.Message}");
+                _logger.LogInternalError($"Error in CheckSqlConnectionTypeAsync: {ex.Message}");
                 throw;
             }
         }
 
         public async Task<string> CheckSqlResourceIdForAppAsync(string resourceId)
         {
-            _logger.LogInformation($"[check_sql_resource_id] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[check_sql_resource_id] Invoked with resourceId: {resourceId}");
 
             var armClient = _armClientFactory.GetArmClient();
 
@@ -114,7 +115,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (RequestFailedException ex)
             {
-                _logger.LogError($"Error in CheckSqlResourceIdForAppAsync: {ex.Message}");
+                _logger.LogInternalError($"Error in CheckSqlResourceIdForAppAsync: {ex.Message}");
                 throw;
             }
         }

@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
@@ -39,7 +40,7 @@ public class AppServicePlanCrawler : GenericArmResourceCrawler
 
         if (aspResponse == null || !aspResponse.Value.HasData)
         {
-            _logger.LogWarning($"Failed to get App Service Plan {aspNode.ResourceId}.");
+            _logger.LogInternalWarning($"Failed to get App Service Plan {aspNode.ResourceId}.");
             yield break;
         }
 

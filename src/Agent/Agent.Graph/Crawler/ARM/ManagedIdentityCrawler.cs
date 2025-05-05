@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.ManagedServiceIdentities;
@@ -40,7 +41,7 @@ public class ManagedIdentityCrawler : IResourceCrawler
             var resp = rgResource.GetUserAssignedIdentity(identityNode.ResourceName);
             if (resp == null || resp.Value == null || !resp.Value.HasData)
             {
-                _logger.LogWarning($"Failed to get user assigned managed identity {identityNode.ResourceId}");
+                _logger.LogInternalWarning($"Failed to get user assigned managed identity {identityNode.ResourceId}");
                 yield break;
             }
 
@@ -58,14 +59,14 @@ public class ManagedIdentityCrawler : IResourceCrawler
             var resp = await _armClient.GetGenericResource(id).GetAsync();
             if (resp == null || resp.Value == null || !resp.Value.HasData)
             {
-                _logger.LogWarning($"Failed to get resource {identityNode.ResourceId}");
+                _logger.LogInternalWarning($"Failed to get resource {identityNode.ResourceId}");
                 yield break;
             }
 
             var identityResp = await resp.Value.GetSystemAssignedIdentity().GetAsync();
             if (identityResp == null || identityResp.Value == null || !identityResp.Value.HasData)
             {
-                _logger.LogWarning($"Failed to get system managed identity {identityNode.ResourceId}");
+                _logger.LogInternalWarning($"Failed to get system managed identity {identityNode.ResourceId}");
                 yield break;
             }
 

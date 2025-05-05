@@ -5,6 +5,7 @@
 using System.ComponentModel;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 using Agent.Plugins.Helpers;
 using Octokit;
 using Agent.Core.Configuration;
@@ -175,7 +176,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 
                 var res = await _gitHubClient.Issue.GetAllForRepository(owner, repo, actualFilter);
 
-                _logger.LogInformation($"Github issues fetched");
+                _logger.LogInternalInformation($"Github issues fetched");
 
                 // Only fetch issues, not pull requests
                 return res.Where(issue => issue.PullRequest == null).Select(issue => issue.ToGithubIssuePluginIssue());
@@ -197,7 +198,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
 
                 var res = await _gitHubClient.Issue.Get(owner, repo, issueNumber);
 
-                _logger.LogInformation($"GitHub issue with id {issueNumber} fetched from repo {owner}/{repo}");
+                _logger.LogInternalInformation($"GitHub issue with id {issueNumber} fetched from repo {owner}/{repo}");
 
                 if (res == null)
                 {
@@ -209,7 +210,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 {
                     var enrichedContent = await EnrichContentText(issue.Body, kernel, kernel.GetRequiredService<IChatCompletionService>());
                     issue.Body = enrichedContent;
-                    _logger.LogInformation($"GitHub issue with id {issueNumber} enriched by extracting text from image");
+                    _logger.LogInternalInformation($"GitHub issue with id {issueNumber} enriched by extracting text from image");
                 }
 
                 return issue;
@@ -342,7 +343,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 var imageUri = new Uri(imageUrl);
                 var chatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
                 var imageDescription = await ExtractImageDescription(imageUri, kernel, chatCompletionService);
-                _logger.LogInformation($"Image URL: {imageUrl}\nExtracted image description: {imageDescription}");
+                _logger.LogInternalInformation($"Image URL: {imageUrl}\nExtracted image description: {imageDescription}");
                 return imageDescription;
             },
             _logger);
@@ -410,7 +411,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error extracting image description");
+            _logger.LogInternalError(ex, "Error extracting image description");
             return string.Empty;
         }
     }

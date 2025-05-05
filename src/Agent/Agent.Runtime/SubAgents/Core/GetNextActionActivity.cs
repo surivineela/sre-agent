@@ -41,7 +41,7 @@ namespace Agent.Runtime.SubAgents.Core;
 //        }
 //        catch (Exception ex)
 //        {
-//            _logger.LogError(ex, "Error getting next action");
+//            _logger.LogInternalError(ex, "Error getting next action");
 //            throw;
 //        }
 //    }

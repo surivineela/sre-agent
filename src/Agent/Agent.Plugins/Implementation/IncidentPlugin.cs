@@ -9,6 +9,7 @@ using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Plugins.Implementation;
 
@@ -21,14 +22,14 @@ public class IncidentPlugin(ILogger<IncidentPlugin> logger,
 	private readonly Container container = cosmosClient.GetContainer(cosmosDbSettings.Docs.Database, PagerDutyIncidentDocument.ContainerName);
 	public async Task<List<PagerDutyIncidentDocument>> GetPagerDutyIncidentsAsync(string resourceId, uint maxResults = 5)
 	{
-		logger.LogInformation("GetPagerDutyIncidentsAsync called with resourceId: {ResourceId}", resourceId);
+		logger.LogInternalInformation("GetPagerDutyIncidentsAsync called with resourceId: {ResourceId}", resourceId);
 		if (string.IsNullOrEmpty(resourceId))
 		{
-			logger.LogWarning("ResourceId is null or empty.");
+			logger.LogInternalWarning("ResourceId is null or empty.");
 			return [];
 		}
 		var query = $"g.V().has('resourceId', '{resourceId}').out('RELATED_TO_INCIDENT').has('resourceType', '/incidents/pagerduty').has('incidentId').project('incidentId').by('incidentId')";
-		logger.LogInformation("Found {n} incidents for resourceId: {ResourceId}", query, resourceId);
+		logger.LogInternalInformation("Found {n} incidents for resourceId: {ResourceId}", query, resourceId);
 
 		var result = await graphDatabaseClient.Query<Dictionary<string, object>>(query);
 		List<string> incidentIds = result

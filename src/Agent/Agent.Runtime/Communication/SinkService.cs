@@ -6,6 +6,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
 using Microsoft.Extensions.Logging;
 using Agent.Core.Helpers;
+using Agent.Logging;
 
 namespace Agent.Runtime.Communication;
 
@@ -39,7 +40,7 @@ public class SinkService
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error adding agent message: {Message}", ex.Message);
+            _logger.LogInternalError("Error adding agent message: {Message}", ex.Message);
             throw;
         }
 
@@ -67,7 +68,7 @@ public class SinkService
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error adding user message: {Message}", ex.Message);
+            _logger.LogInternalError("Error adding user message: {Message}", ex.Message);
             throw;
         }
     }

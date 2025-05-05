@@ -7,6 +7,7 @@ using Agent.Core.Extensions;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Microsoft.Extensions.AI;
@@ -42,13 +43,13 @@ public sealed class MetaAgent : IAgent
         _log = logger;
 
         _agentsFactory = agentsFactory;
-        _log.LogInformation("Loading agent factory of type: {AgentFactoryType}", _agentsFactory.GetType());
+        _log.LogInternalInformation("Loading agent factory of type: {AgentFactoryType}", _agentsFactory.GetType());
     }
 
     public async Task<string> ProcessUserMessageAsync(AgentContext agentContext, AgentChatHistory agentChatHistory)
     {
         var lastUserMessage = await _threadService.GetLastUserMessage(agentContext.ThreadId);
-        _log.LogInformation("[ChatThreadId {threadId}] Processing user message: {Message}", agentContext.ThreadId, lastUserMessage);
+        _log.LogExternalInformation("[ChatThreadId {threadId}] Processing user message: {Message}", agentContext.ThreadId, lastUserMessage);
         using var _ = await _lock.AcquireWriterAsync();
 
         Guid threadGuid = agentContext.ThreadId;
@@ -91,7 +92,7 @@ public sealed class MetaAgent : IAgent
         }
         catch (System.ClientModel.ClientResultException ex) when (ex.Message.Contains("HTTP 400 (content_filter)"))
         {
-            _log.LogError(ex, "An error occurred while processing the user message.");
+            _log.LogInternalError(ex, "An error occurred while processing the user message.");
             return ex.Message;
 
         }

@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Extensions.Logging;
 using Octokit;
 using Agent.Core.Models;
+using Agent.Logging;
 
 namespace Agent.Plugins.Implementation
 {
@@ -37,7 +38,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error checking pull request merge status for PR {PullRequestNumber} in {RepoUrl}", pullRequestNumber, repoUrl);
+                _logger.LogInternalError(ex, "Error checking pull request merge status for PR {PullRequestNumber} in {RepoUrl}", pullRequestNumber, repoUrl);
                 throw;
             }
         }
@@ -84,7 +85,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error triggering workflow for resource {ResourceId} in {RepoUrl}", resourceId, repoUrl);
+                _logger.LogInternalError(ex, "Error triggering workflow for resource {ResourceId} in {RepoUrl}", resourceId, repoUrl);
                 throw;
             }
         }
@@ -117,7 +118,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error tracking workflow run {RunId} in {RepoUrl}", runId, repoUrl);
+                _logger.LogInternalError(ex, "Error tracking workflow run {RunId} in {RepoUrl}", runId, repoUrl);
                 throw;
             }
         }

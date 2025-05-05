@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
+using Agent.Logging;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
 using Microsoft.Extensions.Logging;
@@ -48,7 +49,7 @@ public class AppServiceScanner
         {
             if (result == null)
             {
-                _logger.LogWarning("Null result encountered, skipping");
+                _logger.LogInternalWarning("Null result encountered, skipping");
                 continue;
             }
 
@@ -57,7 +58,7 @@ public class AppServiceScanner
                 var node = CreateArmResourceNodeFromDictionary(result);
                 if (node == null)
                 {
-                    _logger.LogWarning($"Could not create ArmResourceNode from result");
+                    _logger.LogInternalWarning($"Could not create ArmResourceNode from result");
                     continue;
                 }
 
@@ -70,7 +71,7 @@ public class AppServiceScanner
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating score card for node");
+                _logger.LogInternalError(ex, $"Error updating score card for node");
             }
         }
 
@@ -133,7 +134,7 @@ public class AppServiceScanner
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
             {
-                _logger.LogWarning($"Properties is null for node {id}");
+                _logger.LogInternalWarning($"Properties is null for node {id}");
                 return null;
             }
 
@@ -171,7 +172,7 @@ public class AppServiceScanner
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error converting dictionary to ArmResourceNode");
+            _logger.LogInternalError(ex, $"Error converting dictionary to ArmResourceNode");
             return null;
         }
     }

@@ -5,6 +5,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using System.Text.Json;
 using System.Text;
@@ -39,7 +40,7 @@ namespace Agent.Web.Controllers.v1
             };
             if (request.Alerts == null || request.Alerts.Count == 0)
             {
-                logger.LogWarning("Received Grafana alert webhook with no alerts");
+                logger.LogInternalWarning("Received Grafana alert webhook with no alerts");
                 return BadRequest("No alerts found in the request");
             }
 
@@ -131,7 +132,7 @@ namespace Agent.Web.Controllers.v1
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error creating alert thread for {Title}", request.Title);
+                logger.LogInternalError(ex, "Error creating alert thread for {Title}", request.Title);
                 return StatusCode(500, "Failed to process alert");
             }
         }
@@ -158,7 +159,7 @@ namespace Agent.Web.Controllers.v1
                 }
                 catch (Exception ex)
                 {
-                    logger.LogError(ex, "Error processing alert thread {ThreadId} in background", threadId);
+                    logger.LogInternalError(ex, "Error processing alert thread {ThreadId} in background", threadId);
                 }
             });
         }

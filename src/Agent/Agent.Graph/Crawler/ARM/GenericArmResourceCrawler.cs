@@ -6,6 +6,7 @@ using System.Net;
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -52,7 +53,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
         var id = new ResourceIdentifier(armNode.ResourceId);
         if (id == null)
         {
-            _logger.LogWarning($"Invalid resource id: {armNode.ResourceId}");
+            _logger.LogInternalWarning($"Invalid resource id: {armNode.ResourceId}");
             yield break;
         }
 
@@ -75,7 +76,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
                 }
                 else
                 {
-                    _logger.LogWarning($"Failed to get resource: {armNode.ResourceId}, {ex}");
+                    _logger.LogInternalWarning($"Failed to get resource: {armNode.ResourceId}, {ex}");
                 }
             }
             yield break;
@@ -89,13 +90,13 @@ public class GenericArmResourceCrawler : IResourceCrawler
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to get resource: {armNode.ResourceId}, {ex}");
+            _logger.LogInternalWarning($"Failed to get resource: {armNode.ResourceId}, {ex}");
             yield break;
         }
 
         if (resp == null || resp.Value == null || !resp.Value.HasData)
         {
-            _logger.LogWarning($"Failed to get resource: {armNode.ResourceId}");
+            _logger.LogInternalWarning($"Failed to get resource: {armNode.ResourceId}");
 
         }
 
@@ -111,7 +112,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
                 var identityResp = await resp.Value.GetSystemAssignedIdentity().GetAsync();
                 if (resp == null || resp.Value == null || !resp.Value.HasData)
                 {
-                    _logger.LogWarning($"Failed to get system assigned identity for resource: {armNode.ResourceId}");
+                    _logger.LogInternalWarning($"Failed to get system assigned identity for resource: {armNode.ResourceId}");
                 }
 
                 var identityResourceId = resp.Value.Id;

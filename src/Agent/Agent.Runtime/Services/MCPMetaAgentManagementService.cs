@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Logging;
 using Agent.Runtime.Interfaces;
 using Agent.Runtime.Models;
 using Agent.Runtime.SubAgents;
@@ -55,7 +56,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     {
         try
         {
-            _logger.LogInformation("Starting MCPMetaAgent async initialization");
+            _logger.LogInternalInformation("Starting MCPMetaAgent async initialization");
 
             // Block app startup until we have tried to connect once
             await ReconnectTimerWork();
@@ -63,11 +64,11 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
             StartReconnectTimer(cancellationToken);
             StartConnectionVerificationTimer(cancellationToken);
 
-            _logger.LogInformation("Completed MCPMetaAgent async initialization");
+            _logger.LogInternalInformation("Completed MCPMetaAgent async initialization");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to initialize MCPAgent instance");
+            _logger.LogInternalError(ex, $"Failed to initialize MCPAgent instance");
         }
     }
 
@@ -76,7 +77,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     /// </summary>
     public void StartConnectionVerificationTimer(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting connection verification timer");
+        _logger.LogInternalInformation("Starting connection verification timer");
 
         _connectionVerificationTimer = new Timer(async _ =>
         {
@@ -109,7 +110,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
 
             if (!completed)
             {
-                _logger.LogWarning("Ping timed out for '{connection}', removing associated agent", connection);
+                _logger.LogInternalWarning("Ping timed out for '{connection}', removing associated agent", connection);
                 connection.Backend.TryRemoveServer(connection);
                 _activeConnections.TryRemove(connection.Url, out McpConnection? _);
             }
@@ -120,7 +121,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, "Ping failed for MCP agent '{connection}', removing associated agent", connection);
+            _logger.LogInternalWarning(ex, "Ping failed for MCP agent '{connection}', removing associated agent", connection);
             connection.Backend.TryRemoveServer(connection);
             _activeConnections.TryRemove(connection.Url, out McpConnection? _);
         }
@@ -131,7 +132,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     /// </summary>
     public void StartReconnectTimer(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting reconnect timer");
+        _logger.LogInternalInformation("Starting reconnect timer");
 
         _reconnectTimer = new Timer(async _ => await ReconnectTimerWork(), null, TimeSpan.FromSeconds(_mcpSettings.PingIntervalInSeconds), TimeSpan.FromSeconds(_mcpSettings.PingIntervalInSeconds));
     }
@@ -172,11 +173,11 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
         {
             if (t.IsFaulted)
             {
-                _logger.LogInformation("Failed to initialize connection '{connection}'", connection);
+                _logger.LogInternalInformation("Failed to initialize connection '{connection}'", connection);
             }
             else
             {
-                _logger.LogInformation("Initialized connection '{connection}'", connection);
+                _logger.LogInternalInformation("Initialized connection '{connection}'", connection);
                 connectable.TryAddServer(connection);
                 _activeConnections.TryAdd(connection.Url, connection);
             }
@@ -184,7 +185,7 @@ public class MCPMetaAgentManagementService : IHostedService, IDisposable
     }
 
     public Task StopAsync(CancellationToken cancellationToken) {
-        _logger.LogInformation($"Stopping...");
+        _logger.LogInternalInformation($"Stopping...");
 
         _connectionVerificationTimer?.Change(Timeout.Infinite, 0);
         _reconnectTimer?.Change(Timeout.Infinite, 0);

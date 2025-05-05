@@ -1,8 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Core.Extensions;
 
@@ -19,7 +20,7 @@ public static class TaskExtensions
             }
             catch (Exception e)
             {
-                logger?.LogError(e, "Ignored task exception: {Exception}", e.ToString());
+                logger?.LogInternalError(e, "Ignored task exception: {Exception}", e.ToString());
             }
             return default(T);
         }, TaskContinuationOptions.ExecuteSynchronously);

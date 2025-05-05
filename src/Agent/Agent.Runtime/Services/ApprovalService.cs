@@ -5,6 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -32,14 +33,14 @@ namespace Agent.Runtime.Services
 
         public async Task<Approval> GetApproval(Guid threadId, string approvalId)
         {
-            _logger.LogInformation($"Getting approval for thread {threadId} with approval id {approvalId}");
+            _logger.LogInternalInformation($"Getting approval for thread {threadId} with approval id {approvalId}");
 
             return await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
         }
 
         public async Task<IList<Approval>> GetApprovals(Guid threadId)
         {
-            _logger.LogInformation($"Getting approvals for thread {threadId}");
+            _logger.LogInternalInformation($"Getting approvals for thread {threadId}");
 
             return await _threadRepository.GetApprovalsAsync(threadId);
         }
@@ -50,7 +51,7 @@ namespace Agent.Runtime.Services
             Guid threadId,
             string? oboToken = null)
         {
-            _logger.LogInformation($"Processing approval decision for {approvalId} with status {status}");
+            _logger.LogInternalInformation($"Processing approval decision for {approvalId} with status {status}");
 
             var approval = await _threadRepository.GetApprovalAsync(threadId, Guid.Parse(approvalId));
 

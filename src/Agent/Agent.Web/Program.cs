@@ -60,6 +60,7 @@ using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
 using Microsoft.DurableTask.Worker.AzureManaged;
 using Microsoft.Extensions.AI;
+using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using OpenTelemetry;
 using OpenTelemetry.Metrics;
@@ -530,6 +531,7 @@ void ConfigureLogger()
     if (builder.Environment.IsDevelopment())
     {
         builder.Logging.AddConsole();
+        builder.Services.AddSingleton<AzureDataExplorerLogger>(new AzureDataExplorerLogger());
     }
     else
     {
@@ -546,13 +548,19 @@ void ConfigureLogger()
             var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
             var logger = new AzureDataExplorerLoggerProvider(
                 agentName: agentName,
-                internalKustoClusterConfiguration: internalKustoClusterSettings,
-                externalKustoClusterConfiguration: externalKustoClusterSettings,
+                internalKustoClusterUri: internalKustoClusterSettings.ClusterUri,
+                internalKustoDatabaseName: internalKustoClusterSettings.DatabaseName,
+                internalKustoTableName: internalKustoClusterSettings.TableName,
+                externalKustoClusterUri: externalKustoClusterSettings?.ClusterUri,
+                externalKustoDatabaseName: externalKustoClusterSettings?.DatabaseName,
+                externalKustoTableName: externalKustoClusterSettings?.TableName,
+                externalKustoIdentityClientId: externalKustoClusterSettings?.Identity,
                 kustoFirstPartyAppClientId: clientId,
                 kustoFirstPartyAppTenantId: tenantId,
                 kustoFirstPartyAppCertificatePath: certificatePath);
 
             builder.Services.AddSingleton<ILoggerProvider>(logger);
+            builder.Services.AddSingleton<AzureDataExplorerLogger>(logger.GetLogger());
         }
     }
 }

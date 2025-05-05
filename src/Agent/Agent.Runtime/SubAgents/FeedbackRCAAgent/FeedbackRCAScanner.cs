@@ -38,7 +38,7 @@ namespace Agent.Runtime.SubAgents.FeedbackRCAAgent
 
             if (feedbackRCAAgentContexts != null && feedbackRCAAgentContexts.Count > 0)
             {
-                _logger.LogInformation("Feedback RCA thread context already exists. Skipping scan.");
+                _logger.LogInternalInformation("Feedback RCA thread context already exists. Skipping scan.");
                 return;
             }
 

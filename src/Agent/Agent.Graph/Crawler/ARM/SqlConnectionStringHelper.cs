@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Data.SqlClient;
@@ -87,12 +88,12 @@ public class SqlConnectionStringHelper
                 return sqlNode;
             }
 
-            _logger.LogWarning($"SQL server with name {serverName} was not found in the subscription.");
+            _logger.LogInternalWarning($"SQL server with name {serverName} was not found in the subscription.");
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error processing connection string: {ex.Message}");
+            _logger.LogInternalError($"Error processing connection string: {ex.Message}");
             return null;
         }
     }
@@ -133,7 +134,7 @@ public class SqlConnectionStringHelper
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
+            _logger.LogInternalError($"Error linking SQL resource from value: {possibleSqlResource}. Exception: {ex.Message}");
             return null;
         }
     }

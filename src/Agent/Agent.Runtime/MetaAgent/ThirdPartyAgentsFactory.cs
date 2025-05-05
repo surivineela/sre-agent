@@ -3,6 +3,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -445,7 +446,7 @@ $@"## Facts
                 var startSubAgentMemberNameProperty = type.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Public);
                 if (startSubAgentMemberNameProperty is null)
                 {
-                    _log.LogError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
+                    _log.LogInternalError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
                     continue;
                 }
 
@@ -453,7 +454,7 @@ $@"## Facts
 
                 if (string.IsNullOrEmpty(startSubAgentMethodName))
                 {
-                    _log.LogError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
+                    _log.LogInternalError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
                     continue;
                 }
 
@@ -465,7 +466,7 @@ $@"## Facts
 
                     if (startSubAgent is null)
                     {
-                        _log.LogError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
+                        _log.LogInternalError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
                         continue;
                     }
 
@@ -474,7 +475,7 @@ $@"## Facts
             }
             catch (Exception e)
             {
-                _log.LogError(e, "Failed to add tools for plugin {PluginType}", type);
+                _log.LogInternalError(e, "Failed to add tools for plugin {PluginType}", type);
             }
         }
 
@@ -492,7 +493,7 @@ $@"## Facts
                 var startSubAgentMemberNameProperty = type.GetProperty(propertyName, BindingFlags.Static | BindingFlags.Public);
                 if (startSubAgentMemberNameProperty is null)
                 {
-                    _log.LogError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
+                    _log.LogInternalError("Property 'StartSubAgentMemberName' does not exist on type {PluginType}", type);
                     continue;
                 }
 
@@ -500,7 +501,7 @@ $@"## Facts
 
                 if (string.IsNullOrEmpty(startSubAgentMethodName))
                 {
-                    _log.LogError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
+                    _log.LogInternalError("Property 'StartSubAgentMemberName' is null or empty on type {PluginType}", type);
                     continue;
                 }
 
@@ -512,7 +513,7 @@ $@"## Facts
 
                     if (startSubAgent is null)
                     {
-                        _log.LogError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
+                        _log.LogInternalError("Method '{StartSubAgentMethodName}' does not exist on type {PluginType}", startSubAgentMethodName, type);
                         continue;
                     }
 
@@ -521,7 +522,7 @@ $@"## Facts
             }
             catch (Exception e)
             {
-                _log.LogError(e, "Failed to add tools for plugin {PluginType}", type);
+                _log.LogInternalError(e, "Failed to add tools for plugin {PluginType}", type);
             }
         }
 

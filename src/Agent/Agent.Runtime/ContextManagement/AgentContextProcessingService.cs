@@ -7,6 +7,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -69,7 +70,7 @@ public sealed class AgentContextProcessingService(
 
         Task.Run(processor.RunLoopAsync);
 
-        logger.LogInformation(
+        logger.LogInternalInformation(
             "Started new reasoning loop processor for agent context {AgentContextId} on Instance {InstanceId}",
             assignment.AgentContextId, assignment.InstanceId);
 

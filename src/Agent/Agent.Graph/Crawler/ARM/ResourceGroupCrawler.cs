@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
 using Azure.ResourceManager;
 using Azure.ResourceManager.Resources;
 using Microsoft.Extensions.Logging;
@@ -147,7 +148,7 @@ public class ResourceGroupCrawler : IResourceCrawler
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error creating node from JSON: {ex.Message}");
+            _logger.LogInternalError($"Error creating node from JSON: {ex.Message}");
             return null;
         }
     }

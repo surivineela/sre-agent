@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Prometheus.Services;
 
@@ -340,14 +341,14 @@ public class MetricsRegistry : IMetricsRegistry
     {
         if (string.IsNullOrEmpty(metric.Name))
         {
-            _logger.LogWarning("Attempted to register a metric with an empty name");
+            _logger.LogInternalWarning("Attempted to register a metric with an empty name");
             return false;
         }
 
         // Validate metric name for Prometheus compatibility
         if (!IsValidMetricName(metric.Name))
         {
-            _logger.LogWarning("Invalid metric name: {MetricName}. Must match [a-zA-Z_:][a-zA-Z0-9_:]*", metric.Name);
+            _logger.LogInternalWarning("Invalid metric name: {MetricName}. Must match [a-zA-Z_:][a-zA-Z0-9_:]*", metric.Name);
             return false;
         }
 
@@ -356,11 +357,11 @@ public class MetricsRegistry : IMetricsRegistry
 
         if (result)
         {
-            _logger.LogInformation("Registered new metric: {MetricName}", metric.Name);
+            _logger.LogInternalInformation("Registered new metric: {MetricName}", metric.Name);
         }
         else
         {
-            _logger.LogWarning("Failed to register metric - name already exists: {MetricName}", metric.Name);
+            _logger.LogInternalWarning("Failed to register metric - name already exists: {MetricName}", metric.Name);
         }
 
         return result;
@@ -372,11 +373,11 @@ public class MetricsRegistry : IMetricsRegistry
 
         if (result)
         {
-            _logger.LogInformation("Unregistered metric: {MetricName}", name);
+            _logger.LogInternalInformation("Unregistered metric: {MetricName}", name);
         }
         else
         {
-            _logger.LogWarning("Failed to unregister metric - not found: {MetricName}", name);
+            _logger.LogInternalWarning("Failed to unregister metric - not found: {MetricName}", name);
         }
 
         return result;
@@ -402,11 +403,11 @@ public class MetricsRegistry : IMetricsRegistry
         if (_metrics.ContainsKey(name))
         {
             _metrics[name] = metric;
-            _logger.LogInformation("Updated metric: {MetricName}", name);
+            _logger.LogInternalInformation("Updated metric: {MetricName}", name);
         }
         else
         {
-            _logger.LogWarning("Cannot update non-existent metric: {MetricName}", name);
+            _logger.LogInternalWarning("Cannot update non-existent metric: {MetricName}", name);
         }
     }
 

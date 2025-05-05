@@ -21,7 +21,7 @@ public class IcmController : Controller
     private readonly TsgFetcherService _tsgFetcherService;
     public IcmController(ILogger<ApiController> logger, IConfiguration configuration, IIcmAgentConfigService icmConfigService,
         IHttpClientFactory httpClientFactory, ICMWorkflowClient icmWorkflowClient
-        ,IAlertProcessingService alertProcessingService, ISessionMessageService sessionMessageService
+        , IAlertProcessingService alertProcessingService, ISessionMessageService sessionMessageService
         )
     {
         _logger = logger;
@@ -39,7 +39,7 @@ public class IcmController : Controller
     {
         return Ok(_icmConfigService.IsEnabled());
     }
-    
+
     [HttpGet("getOnboardedLoops")]
     [HttpOptions("getOnboardedLoops")]
     public async Task<IActionResult> GetOnboardedLoops()
@@ -59,7 +59,7 @@ public class IcmController : Controller
     [HttpOptions("getLoopAlertConfigs/{loopId?}")]
     public async Task<IActionResult> GetLoopAlertConfigs(int? loopId)
     {
-        if(loopId  != null && loopId <= 0)
+        if (loopId != null && loopId <= 0)
         {
             return BadRequest("ID must be greater than 0");
         }
@@ -75,7 +75,7 @@ public class IcmController : Controller
         }
     }
 
-    
+
     [HttpGet("getLoopAlerts/{loopId}")]
     [HttpOptions("getLoopAlerts/{loopId}")]
     public async Task<IActionResult> GetLoopAlerts(int loopId)
@@ -196,7 +196,7 @@ public class IcmController : Controller
         }
     }
 
-    
+
     [HttpGet("getAlertConfig/{loopId}/{alertId}")]
     [HttpOptions("getAlertConfig/{loopId}/{alertId}")]
     public async Task<IActionResult> GetAlertConfig(int loopId, string alertId)
@@ -372,7 +372,7 @@ public class IcmController : Controller
             return StatusCode(500, $"Error retrieving Geneva Action configuration: {ex.Message}");
         }
     }
-   
+
     [HttpPost("saveGenevaConfig")]
     [HttpOptions("saveGenevaConfig")]
     public async Task<IActionResult> SaveGenevaConfig([FromBody] GenevaActionsConfigCosmos genevaActionsConfig)
@@ -398,7 +398,7 @@ public class IcmController : Controller
         }
     }
 
-    
+
     [HttpGet("loops")]
     [HttpOptions("loops")]
     public IActionResult GetLoops()
@@ -416,7 +416,7 @@ public class IcmController : Controller
         }
     }
 
-    
+
 
     /// <summary>
     /// Processes alert stream data by connecting to an external API and streaming the response back.
@@ -443,7 +443,7 @@ public class IcmController : Controller
             _logger.LogInformation($"Agent Invoked with message - {JsonConvert.SerializeObject(req)}");
 
             if (string.IsNullOrEmpty(req.IncidentId))
-            {                
+            {
                 await Response.Body.WriteAsync(Encoding.UTF8.GetBytes("Invalid request body - IncidentId is required"));
                 await Response.Body.FlushAsync();
                 return;

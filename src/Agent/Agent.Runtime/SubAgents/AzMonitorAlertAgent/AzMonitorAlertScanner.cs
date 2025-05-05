@@ -12,6 +12,7 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Services;
 using Azure.Core;
@@ -70,7 +71,7 @@ public class AzMonitorAlertScanner
     /// <returns></returns>
     public async Task PollNewAlertsAsync(CancellationToken ct = default)
     {
-        _logger.LogInformation("Polling for new Azure Monitor alerts from the last minute");
+        _logger.LogInternalInformation("Polling for new Azure Monitor alerts from the last minute");
 
         try
         {
@@ -83,30 +84,30 @@ public class AzMonitorAlertScanner
 
             if (subscriptions.Count == 0)
             {
-                _logger.LogInformation($"No subscriptions found in the Graph DB.");
+                _logger.LogInternalInformation($"No subscriptions found in the Graph DB.");
                 return;
             }
 
-            _logger.LogInformation($"Scanning for Azure Monitor Alerts in the following subscriptions: {string.Join(", ", subscriptions)}");
+            _logger.LogInternalInformation($"Scanning for Azure Monitor Alerts in the following subscriptions: {string.Join(", ", subscriptions)}");
 
             foreach (var subscription in subscriptions)
             {
-                _logger.LogInformation($"Checking for alerts in subscription: {subscription}");
+                _logger.LogInternalInformation($"Checking for alerts in subscription: {subscription}");
                 var newAlerts = await _azMonitorAlertService.PollNewAlertsBySubscriptionId(subscription, 1);
 
                 int alertCount = newAlerts.Count();
-                _logger.LogInformation($"Found {alertCount} alerts in subscription {subscription}");
+                _logger.LogInternalInformation($"Found {alertCount} alerts in subscription {subscription}");
 
                 foreach (var alert in newAlerts)
                 {
-                    _logger.LogInformation($"Processing new alert {alert.Id}...");
+                    _logger.LogInternalInformation($"Processing new alert {alert.Id}...");
                     await ProcessAlertAsync(alert);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error polling Azure Monitor alerts");
+            _logger.LogInternalError(ex, "Error polling Azure Monitor alerts");
         }
     }
 
@@ -139,7 +140,7 @@ public class AzMonitorAlertScanner
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error processing alert {alert.Id}: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error processing alert {alert.Id}: {ex.Message}");
         }
     }
 
@@ -220,7 +221,7 @@ public class AzMonitorAlertScanner
 
         if (alertDocument is null)
         {
-            _logger.LogInformation($"Creating new incident document for {alert.Id}.");
+            _logger.LogInternalInformation($"Creating new incident document for {alert.Id}.");
 
             var essentials = alert.Properties.Essentials;
 
@@ -268,19 +269,19 @@ public class AzMonitorAlertScanner
                     new PartitionKey(newAlertDocument.PartitionKey)
                 );
 
-                _logger.LogInformation($"Alert document created successfully with id: {newAlertDocument.Id}");
+                _logger.LogInternalInformation($"Alert document created successfully with id: {newAlertDocument.Id}");
 
                 return newAlertDocument.Id;
             }
             catch (CosmosException ex)
             {
-                _logger.LogError(ex, $"Error creating alert document in database: {ex.Message}");
+                _logger.LogInternalError(ex, $"Error creating alert document in database: {ex.Message}");
                 throw;
             }
         }
         else
         {
-            _logger.LogInformation($"Alert document already exists with id: {alertDocument.Id}. No new incident created.");
+            _logger.LogInternalInformation($"Alert document already exists with id: {alertDocument.Id}. No new incident created.");
         }
 
         return alertDocument.Id;
@@ -296,7 +297,7 @@ public class AzMonitorAlertScanner
         else
         {
             createdAt = DateTimeOffset.UtcNow;
-            _logger.LogWarning($"Could not parse start time {value}, using current time instead");
+            _logger.LogInternalWarning($"Could not parse start time {value}, using current time instead");
         }
 
         return createdAt;
@@ -311,7 +312,7 @@ public class AzMonitorAlertScanner
 
             if (string.IsNullOrEmpty(targetResourceId))
             {
-                _logger.LogWarning($"Alert {alert.Id} has no target resource, skipping graph DB operations");
+                _logger.LogInternalWarning($"Alert {alert.Id} has no target resource, skipping graph DB operations");
                 return false;
             }
 
@@ -321,12 +322,12 @@ public class AzMonitorAlertScanner
                 UpdateTs = DateTime.UtcNow.Ticks
             };
 
-            _logger.LogInformation($"Adding/updating alert node in graph DB for {alert.Id}");
+            _logger.LogInternalInformation($"Adding/updating alert node in graph DB for {alert.Id}");
             var nodeResult = await _graphDbClient.AddOrUpdateNodeAsync(alertNode);
 
             if (!nodeResult)
             {
-                _logger.LogWarning($"Failed to add/update alert node in graph DB for {alert.Id}");
+                _logger.LogInternalWarning($"Failed to add/update alert node in graph DB for {alert.Id}");
                 return false;
             }
 
@@ -338,19 +339,19 @@ public class AzMonitorAlertScanner
                 UpdateTs = DateTime.UtcNow.Ticks
             };
 
-            _logger.LogInformation($"Adding/updating edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
+            _logger.LogInternalInformation($"Adding/updating edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
             var edgeResult = await _graphDbClient.AddOrUpdateEdgeAsync(edge);
 
             if (!edgeResult)
             {
-                _logger.LogWarning($"Failed to add/update edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
+                _logger.LogInternalWarning($"Failed to add/update edge in graph DB between resource {targetResourceId} and alert {alert.Id}");
             }
 
             return true;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error saving alert {alert.Id} to graph database: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error saving alert {alert.Id} to graph database: {ex.Message}");
             return false;
         }
     }

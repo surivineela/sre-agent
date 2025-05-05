@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Helpers;
+using Agent.Logging;
 using Microsoft.AspNetCore.OData.Query;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -48,7 +49,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
     public async Task<Thread> GetThreadAsync(Guid threadId)
     {
-        _logger.LogInformation("Trying to get thread: {Id}", threadId);
+        _logger.LogInternalInformation("Trying to get thread: {Id}", threadId);
         try
         {
             // First get the thread document
@@ -57,7 +58,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             if (threadDoc == null)
             {
-                _logger.LogInformation("Thread not found: {Id}", threadId);
+                _logger.LogInternalInformation("Thread not found: {Id}", threadId);
                 return null;
             }
 
@@ -66,7 +67,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             if (startMessageDoc == null)
             {
-                _logger.LogInformation("Start message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadId);
+                _logger.LogInternalInformation("Start message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadId);
                 return null;
             }
 
@@ -75,7 +76,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             Message lastMessageDocDomainModel;
             if (threadDoc.LastMessageId == null)
             {
-                _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
                 lastMessageDocDomainModel = null;
             }
             else
@@ -148,7 +149,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                 Message lastMessageDocDomainModel;
                 if (threadDoc.LastMessageId == null)
                 {
-                    _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                    _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
                     lastMessageDocDomainModel = null;
                 }
                 else
@@ -219,7 +220,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                 Message lastMessageDocDomainModel;
                 if (threadDoc.LastMessageId == null)
                 {
-                    _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                    _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
                     lastMessageDocDomainModel = null;
                 }
                 else
@@ -385,7 +386,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             if (threadDoc == null)
             {
-                _logger.LogWarning("Cannot update title: Thread {ThreadId} not found", threadId);
+                _logger.LogInternalWarning("Cannot update title: Thread {ThreadId} not found", threadId);
                 return null;
             }
 
@@ -416,7 +417,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             Message lastMessageDocDomainModel;
             if (threadDoc.LastMessageId == null)
             {
-                _logger.LogInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
+                _logger.LogInternalInformation("last message {startMessageId} not found for thread: {Id}", threadDoc.MessageId, threadDoc.Id);
                 lastMessageDocDomainModel = null;
             }
             else
@@ -430,7 +431,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             if (startMessageDoc == null)
             {
-                _logger.LogWarning("Start message {MessageId} not found for thread {ThreadId}",
+                _logger.LogInternalWarning("Start message {MessageId} not found for thread {ThreadId}",
                     threadDoc.MessageId, threadId);
 
                 // Return a partial Thread model without the start message
@@ -445,17 +446,17 @@ public class CosmosDbThreadRepository : IThreadRepository
             }
 
             // Return the complete updated Thread domain model
-            _logger.LogInformation("Successfully updated title for thread {ThreadId}", threadId);
+            _logger.LogInternalInformation("Successfully updated title for thread {ThreadId}", threadId);
             return updatedThreadDoc.ToDomainModel(startMessageDoc.ToDomainModel(), lastMessageDocDomainModel);
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogWarning("Cannot update title: Thread {ThreadId} not found", threadId);
+            _logger.LogInternalWarning("Cannot update title: Thread {ThreadId} not found", threadId);
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating title for thread {ThreadId}", threadId);
+            _logger.LogInternalError(ex, "Error updating title for thread {ThreadId}", threadId);
             throw;
         }
     }
@@ -798,7 +799,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
+            _logger.LogInternalError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
             throw;
         }
     }
@@ -836,7 +837,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error retrieving action with tool call {ToolName} for thread {ThreadId}", toolName, threadId);
+            _logger.LogInternalError(ex, "Error retrieving action with tool call {ToolName} for thread {ThreadId}", toolName, threadId);
             throw;
         }
     }
@@ -1198,7 +1199,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
             if (!response.IsSuccessStatusCode)
             {
-                _logger.LogError("Failed to patch assignment info for agent context {agentContextId} with thread id {threadId}, status code: {statusCode}",
+                _logger.LogInternalError("Failed to patch assignment info for agent context {agentContextId} with thread id {threadId}, status code: {statusCode}",
                     agentContextId, threadId, response.StatusCode);
 
                 return false;
@@ -1208,7 +1209,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating assignment info for agent context {agentContextId} with thread id {threadId}",
+            _logger.LogInternalError(ex, "Error updating assignment info for agent context {agentContextId} with thread id {threadId}",
                 agentContextId, threadId);
 
             return false;
@@ -1413,7 +1414,7 @@ public class CosmosDbThreadRepository : IThreadRepository
                 if (i == retryLimit - 1)
                 {
                     // log the error and throw an exception
-                    _logger.LogError("Failed to update agent chat history for agent context {AgentContextId} after {RetryCount} attempts", agentChatHistory.AgentContextId, retryLimit);
+                    _logger.LogInternalError("Failed to update agent chat history for agent context {AgentContextId} after {RetryCount} attempts", agentChatHistory.AgentContextId, retryLimit);
                     throw;
                 }
 

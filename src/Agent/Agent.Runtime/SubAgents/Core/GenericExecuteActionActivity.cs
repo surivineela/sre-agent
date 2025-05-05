@@ -5,6 +5,7 @@
 using System.Text.Json;
 using System.Reflection;
 using Agent.Core.Attributes;
+using Agent.Logging;
 using Agent.Plugins.Attributes;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
@@ -53,7 +54,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Function tool invocation failed.");
+            _logger.LogInternalError(ex, "Function tool invocation failed.");
 
             // Handle all errors with a single catch
             string errorMessage = $"Error executing {input.FunctionCallContent?.Name ?? "function"}: {ex.Message}";

@@ -1,4 +1,4 @@
-using System.Net;using Agent.Core.Configuration;using Agent.Data.DatabaseClients.GraphDbClient;using Agent.Data.DataModels;using Agent.Data.Helpers;using Microsoft.Azure.Cosmos;using Microsoft.Azure.Cosmos.Linq;using Microsoft.Extensions.Logging;
+using System.Net;using Agent.Core.Configuration;using Agent.Data.DatabaseClients.GraphDbClient;using Agent.Data.DataModels;using Agent.Data.Helpers;using Agent.Logging;using Microsoft.Azure.Cosmos;using Microsoft.Azure.Cosmos.Linq;using Microsoft.Extensions.Logging;
 
 namespace Agent.Data.Repositories;
 
@@ -21,7 +21,7 @@ public class CosmosDbIncidentRepository : IIncidentRepository
 
     public async Task<List<PagerDutyIncidentDocument>> GetAllPagerDutyIncidentsAsync()
     {
-        _logger.LogInformation("Fetching all PagerDuty incidents from Cosmos DB.");
+        _logger.LogInternalInformation("Fetching all PagerDuty incidents from Cosmos DB.");
 
         var iterator = _container.GetItemLinqQueryable<PagerDutyIncidentDocument>()
             .Where(doc => doc.DocumentType == "PagerDutyIncident")
@@ -38,13 +38,13 @@ public class CosmosDbIncidentRepository : IIncidentRepository
             }
         }
 
-        _logger.LogInformation("Fetched {Count} PagerDuty incidents from Cosmos DB.", incidents.Count);
+        _logger.LogInternalInformation("Fetched {Count} PagerDuty incidents from Cosmos DB.", incidents.Count);
         return incidents;
     }
 
     public async Task<List<AzMonitorAlertDocument>> GetAllAzMonIncidentsAsync()
     {
-        _logger.LogInformation("Fetching all AzMon incidents from Cosmos DB.");
+        _logger.LogInternalInformation("Fetching all AzMon incidents from Cosmos DB.");
 
         var iterator = _container.GetItemLinqQueryable<AzMonitorAlertDocument>()
             .Where(doc => doc.DocumentType == "AzMonitorAlert")
@@ -61,7 +61,7 @@ public class CosmosDbIncidentRepository : IIncidentRepository
             }
         }
 
-        _logger.LogInformation("Fetched {Count} AzMon incidents from Cosmos DB.", incidents.Count);
+        _logger.LogInternalInformation("Fetched {Count} AzMon incidents from Cosmos DB.", incidents.Count);
         return incidents;
     }
 }

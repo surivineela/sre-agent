@@ -1,7 +1,7 @@
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
@@ -14,7 +14,7 @@ public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentSt
         var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAppComponentsStep>();
         Guid threadId = agent.ThreadId;
 
-        log.LogInformation("[{ThreadId}] Generating Visualization", threadId);
+        log.LogInternalInformation("[{ThreadId}] Generating Visualization", threadId);
 
         // Extract arguments from the function call
         string resourceId = string.Empty;
@@ -60,7 +60,7 @@ public class OrchestrationAgentVisualizeAppComponentsStep : OrchestrationAgentSt
         if (executionResult.Is202Submit)
         {
             agent.Pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
-            log.LogInformation("[{ThreadId}] 202 activity submitted for visualization: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
+            log.LogInternalInformation("[{ThreadId}] 202 activity submitted for visualization: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
         }
     }
 }

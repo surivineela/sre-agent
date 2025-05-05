@@ -5,6 +5,7 @@ using System.Threading.Channels;
 using Agent.Core.Helpers;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.Monitor.Models;
 using Microsoft.Extensions.Logging;
@@ -115,7 +116,7 @@ public class ActivityLogService : IActivityLogService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Failed to list activity logs. Url: {url}");
+                _logger.LogInternalError(ex, $"Failed to list activity logs. Url: {url}");
             }
 
             // Wait for the next interval

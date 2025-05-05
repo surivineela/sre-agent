@@ -1,4 +1,5 @@
 using Agent.Runtime.SubAgents.Core;
+using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -38,7 +39,7 @@ namespace Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent
             }
             catch (Exception ex)
             {
-                log.LogError(ex, "An error occurred while running the FunctionAppExecutionFailuresAgent.");
+                log.LogInternalError(ex, "An error occurred while running the FunctionAppExecutionFailuresAgent.");
                 return "failure";
             }
 

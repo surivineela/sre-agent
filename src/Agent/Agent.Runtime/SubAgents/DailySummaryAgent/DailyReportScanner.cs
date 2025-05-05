@@ -15,6 +15,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Services;
 using Azure.Core;
@@ -74,7 +75,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             // Pending: webapp, sql
         };
 
-        private static readonly ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>> _appHealthHistory 
+        private static readonly ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>> _appHealthHistory
             = new ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>>();
 
         private class AppHealthInfoWithTimestamp
@@ -165,7 +166,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
             if (runningAgents.Count > 0)
             {
-                _logger.LogInformation("Daily report summary agent already running, skipping this run.");
+                _logger.LogInternalInformation("Daily report summary agent already running, skipping this run.");
                 return null;
             }
 
@@ -194,7 +195,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var incidentsSummary = await GetIncidentsSummary();
             var appGroupsHealthSummary = await GetAppGroupsHealthSummaryAsync();
             var dashboardSummary = string.Empty;
-            
+
             string mainDashboardUrl = string.Empty;
 
             // only try to generate dashboard summary if grafana is enabled
@@ -207,7 +208,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to create and publish dashboard, generate daily report without it");
+                    _logger.LogInternalError(ex, "Failed to create and publish dashboard, generate daily report without it");
                 }
             }
             var suggestedActionsAndObservations = await GenerateSuggestedActionsAndOverallObservations(dashboardSummary, mainDashboardUrl, cveSummary, appGroupsHealthSummary, incidentsSummary);
@@ -253,7 +254,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             // Start the agent orchestration
             var instanceId = await _dailyReportSummaryAgentFactory.StartOrchestration(input, agentContext.ThreadId);
 
-            _logger.LogInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
+            _logger.LogInternalInformation("Started daily report generation with instance ID: {InstanceId}", instanceId);
 
             // Wait for completion or handle timeout
             try
@@ -262,23 +263,23 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
                 {
                     await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
-                    _logger.LogInformation("Daily report generation completed successfully.");
+                    _logger.LogInternalInformation("Daily report generation completed successfully.");
                 }
             }
             catch (OperationCanceledException)
             {
                 if (cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogWarning("Daily report generation was cancelled.");
+                    _logger.LogInternalWarning("Daily report generation was cancelled.");
                 }
                 else
                 {
-                    _logger.LogWarning("Daily report generation timed out.");
+                    _logger.LogInternalWarning("Daily report generation timed out.");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error waiting for daily report generation: {Message}", ex.Message);
             }
 
             return thread;
@@ -290,22 +291,22 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             try
             {
                 string uid = await SetupPrometheusDataSourceAsync(_grafanaUrl, _prometheusUrl, _dataSourceName);
-                _logger.LogInformation("data source {uid} already setup", uid);
+                _logger.LogInternalInformation("data source {uid} already setup", uid);
                 var (dashboardUrl, dashboardUid) = await CreateAndPublishDashboard(uid);
-                _logger.LogInformation("Main dashboard {uid} imported. Url {url}", dashboardUid, dashboardUrl);
+                _logger.LogInternalInformation("Main dashboard {uid} imported. Url {url}", dashboardUid, dashboardUrl);
 
                 // Activate predefined Azure Monitor dashboards
                 await ActivateAzureMonitorDashboards();
-                _logger.LogInformation("Azure monitor dashboards imported");
+                _logger.LogInternalInformation("Azure monitor dashboards imported");
 
                 // Activate predefined customized dashboards (except the main dashboard)
                 await ActivateCustomizedDashboards([_mainDashboardFilePath]);
-                _logger.LogInformation("Customized dashboards imported");
+                _logger.LogInternalInformation("Customized dashboards imported");
                 return dashboardUrl;
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Failed to import dashboards");
+                _logger.LogInternalError(e, "Failed to import dashboards");
             }
 
             return "";
@@ -333,7 +334,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 var dashboardsContent = await dashboardsResponse.Content.ReadAsStringAsync();
                 var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
 
-                _logger.LogInformation("Found {Count} dashboards to capture", dashboards.GetArrayLength());
+                _logger.LogInternalInformation("Found {Count} dashboards to capture", dashboards.GetArrayLength());
 
                 // Capture each dashboard
                 foreach (var dashboard in dashboards.EnumerateArray())
@@ -352,7 +353,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                             var (resourceType, dashboardType) = _dashboardsToProcessByResourceType.FirstOrDefault(resourceType => url.Contains(resourceType.Value, StringComparison.OrdinalIgnoreCase));
                             if (string.IsNullOrEmpty(dashboardType))
                             {
-                                _logger.LogWarning("Failed to capture screenshot for dashboard: {Title}, Reason: Dashboard type not supported", title);
+                                _logger.LogInternalWarning("Failed to capture screenshot for dashboard: {Title}, Reason: Dashboard type not supported", title);
                                 continue;
                             }
 
@@ -367,7 +368,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                             if (!screenshotResponses.Any())
                             {
-                                _logger.LogWarning("Failed to capture screenshot for dashboard: {Title}, Reason: No screenshot received for {ArmResourceCount} {ResourceType} resources", title, armResourceNodes.Count(), resourceType);
+                                _logger.LogInternalWarning("Failed to capture screenshot for dashboard: {Title}, Reason: No screenshot received for {ArmResourceCount} {ResourceType} resources", title, armResourceNodes.Count(), resourceType);
                                 continue;
                             }
 
@@ -380,15 +381,15 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                 {
                                     PersistScreenshot(indexedTitle, base64Image);
                                     dashboardScreenshots.Add(indexedTitle, base64Image);
-                                    _logger.LogInformation($"Successfully captured screenshot for dashboard: {title}", title);
+                                    _logger.LogInternalInformation($"Successfully captured screenshot for dashboard: {title}", title);
                                 }
                             }
 
-                            _logger.LogInformation($"[Summary] Successfully captured {index} screenshots for resource type: {resourceType}");
+                            _logger.LogInternalInformation($"[Summary] Successfully captured {index} screenshots for resource type: {resourceType}");
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, "Error capturing screenshot for dashboard {Title}: {Message}", title, ex.Message);
+                            _logger.LogInternalError(ex, "Error capturing screenshot for dashboard {Title}: {Message}", title, ex.Message);
                         }
                     }
                 }
@@ -396,18 +397,18 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 // If we have any screenshots, use LLM to summarize them
                 if (dashboardScreenshots.Count > 0)
                 {
-                    _logger.LogInformation("Summarizing {Count} dashboard screenshots using LLM", dashboardScreenshots.Count);
+                    _logger.LogInternalInformation("Summarizing {Count} dashboard screenshots using LLM", dashboardScreenshots.Count);
                     return await SummarizeDashboardScreenshotsAsync(dashboardScreenshots, dashboardUrl);
                 }
                 else
                 {
-                    _logger.LogWarning("No dashboard screenshots were captured, skipping LLM summarization");
+                    _logger.LogInternalWarning("No dashboard screenshots were captured, skipping LLM summarization");
                     return "No dashboard screenshots available for analysis.";
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error capturing and summarizing dashboard screenshots: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error capturing and summarizing dashboard screenshots: {Message}", ex.Message);
                 return $"Error generating dashboard visual summary: {ex.Message}";
             }
         }
@@ -433,7 +434,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var filePath = Path.Combine(DashboardScreenshotsFolder, $"{SanitizeFileName(title)}-{DateTime.Now.ToString("HHmmss")}.jpg");
             File.WriteAllBytes(filePath, imageBytes);
 
-            _logger.LogInformation($"Image saved successfully at: {Path.GetFullPath(filePath)}");
+            _logger.LogInternalInformation($"Image saved successfully at: {Path.GetFullPath(filePath)}");
         }
 
         /// <summary>
@@ -447,7 +448,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                 if (!string.IsNullOrEmpty(dashboardUrlWithParameters))
                 {
-                    _logger.LogInformation($"Requesting screenshot for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}");
+                    _logger.LogInternalInformation($"Requesting screenshot for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}");
                     var request = new HttpRequestMessage(HttpMethod.Post, $"{_puppeteerScreenshotApiUrl}/screenshot");
 
                     var payload = new
@@ -469,13 +470,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                     var screenshotResponse = JsonSerializer.Deserialize<ScreenshotResponse>(responseJson);
 
-                    _logger.LogInformation($"Succesfully captured screenshot (Length: {screenshotResponse?.Screenshot?.Length}) for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}. Duration: {duration.TotalSeconds} seconds");
+                    _logger.LogInternalInformation($"Succesfully captured screenshot (Length: {screenshotResponse?.Screenshot?.Length}) for {armResourceNode?.ResourceName} from dashboard: {dashboardUrlWithParameters}. Duration: {duration.TotalSeconds} seconds");
                     return screenshotResponse;
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error capturing screenshot for {ResourceName} from dashboard {DashboardUrl}: {Message}", armResourceNode?.ResourceName, dashboardUrl, ex.Message);
+                _logger.LogInternalError(ex, "Error capturing screenshot for {ResourceName} from dashboard {DashboardUrl}: {Message}", armResourceNode?.ResourceName, dashboardUrl, ex.Message);
             }
 
             return new ScreenshotResponse() { Screenshot = string.Empty };
@@ -617,7 +618,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 var existingDs = await GetDataSourceByName(_httpClient, dataSourceName);
                 if (existingDs != null)
                 {
-                    _logger?.LogInformation($"Data source '{dataSourceName}' already exists");
+                    _logger?.LogInternalInformation($"Data source '{dataSourceName}' already exists");
                     // Extract UID from existing data source
                     if (existingDs.Value.TryGetProperty("uid", out var uidElement))
                     {
@@ -661,7 +662,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 if (!response.IsSuccessStatusCode)
                 {
                     var errorContent = await response.Content.ReadAsStringAsync();
-                    _logger?.LogError($"Failed to create data source: {response.StatusCode}, {errorContent}");
+                    _logger?.LogInternalError($"Failed to create data source: {response.StatusCode}, {errorContent}");
                     throw new Exception($"Failed to create data source: {response.StatusCode}");
                 }
 
@@ -669,12 +670,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 var result = JsonSerializer.Deserialize<JsonElement>(responseContent);
                 string dataSourceUid = result.GetProperty("datasource").GetProperty("uid").GetString();
 
-                _logger?.LogInformation($"Data source '{dataSourceName}' created successfully with UID: {dataSourceUid}");
+                _logger?.LogInternalInformation($"Data source '{dataSourceName}' created successfully with UID: {dataSourceUid}");
                 return dataSourceUid;
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Exception setting up Prometheus data source: {ex.Message}");
+                _logger?.LogInternalError($"Exception setting up Prometheus data source: {ex.Message}");
                 throw new Exception($"Exception setting up Prometheus data source: {ex.Message}", ex);
             }
         }
@@ -807,7 +808,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error summarizing dashboards with LLM: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error summarizing dashboards with LLM: {Message}", ex.Message);
                 return $"Error generating dashboard visual summary: {ex.Message}";
             }
         }
@@ -830,8 +831,8 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 IncidentsSummary = incidentsSummary
             };
 
-            var jsonContext = JsonSerializer.Serialize(context, new JsonSerializerOptions 
-            { 
+            var jsonContext = JsonSerializer.Serialize(context, new JsonSerializerOptions
+            {
                 WriteIndented = true,
                 DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
             });
@@ -899,7 +900,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to parse LLM response as JSON: {Response}", jsonResponse);
+                _logger.LogInternalError(ex, "Failed to parse LLM response as JSON: {Response}", jsonResponse);
                 return new RecommendedActionsAndObservations();
             }
         }
@@ -910,7 +911,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 if (!File.Exists(_mainDashboardFilePath))
                 {
-                    _logger.LogError("Dashboard template file not found: {FilePath}", _mainDashboardFilePath);
+                    _logger.LogInternalError("Dashboard template file not found: {FilePath}", _mainDashboardFilePath);
                     return (null, null);
                 }
 
@@ -935,14 +936,14 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 // Publish dashboard directly to Azure Managed Grafana
                 var dashboardUid = await PublishDashboardToManagedGrafana(dashboardJson, token, [input]);
 
-                _logger.LogInformation("Successfully published dashboard with UID: {DashboardUid}", dashboardUid);
+                _logger.LogInternalInformation("Successfully published dashboard with UID: {DashboardUid}", dashboardUid);
                 string dashboardUrl = $"{_grafanaUrl}/d/{dashboardUid}";
 
                 return (dashboardUrl, dashboardUid);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error creating and publishing dashboard: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error creating and publishing dashboard: {Message}", ex.Message);
                 return (null, null);
             }
         }
@@ -976,7 +977,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError("Failed to publish dashboard: {StatusCode}, {ErrorContent}", response.StatusCode, errorContent);
+                _logger.LogInternalError("Failed to publish dashboard: {StatusCode}, {ErrorContent}", response.StatusCode, errorContent);
                 throw new Exception($"Failed to publish dashboard: {response.StatusCode}");
             }
 
@@ -1006,7 +1007,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 var availableDashboardsContent = await availableDashboardsResponse.Content.ReadAsStringAsync();
                 var availableDashboards = JsonSerializer.Deserialize<JsonElement>(availableDashboardsContent);
 
-                _logger.LogInformation("Found {Count} available Azure Monitor dashboards", availableDashboards.GetArrayLength());
+                _logger.LogInternalInformation("Found {Count} available Azure Monitor dashboards", availableDashboards.GetArrayLength());
 
                 // Dictionary to map dashboard titles to their path values
                 var dashboardMap = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -1029,7 +1030,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         }
                         else
                         {
-                            _logger.LogInformation("Dashboard '{Title}' is already imported, skipping", title);
+                            _logger.LogInternalInformation("Dashboard '{Title}' is already imported, skipping", title);
                         }
                     }
                 }
@@ -1047,12 +1048,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         if (matchingKey != null)
                         {
                             dashboardPath = dashboardMap[matchingKey];
-                            _logger.LogInformation("Found partial match for dashboard '{DashboardTitle}': '{MatchingTitle}'",
+                            _logger.LogInternalInformation("Found partial match for dashboard '{DashboardTitle}': '{MatchingTitle}'",
                                 dashboardTitle, matchingKey);
                         }
                         else
                         {
-                            _logger.LogWarning("Dashboard '{DashboardTitle}' not found in available dashboards", dashboardTitle);
+                            _logger.LogInternalWarning("Dashboard '{DashboardTitle}' not found in available dashboards", dashboardTitle);
                             continue;
                         }
                     }
@@ -1085,19 +1086,19 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         response.EnsureSuccessStatusCode();
                         var responseContent = await response.Content.ReadAsStringAsync();
 
-                        _logger.LogInformation("Successfully imported dashboard: {DashboardTitle}", dashboardTitle);
+                        _logger.LogInternalInformation("Successfully imported dashboard: {DashboardTitle}", dashboardTitle);
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Failed to import dashboard {DashboardTitle}: {Message}", dashboardTitle, ex.Message);
+                        _logger.LogInternalError(ex, "Failed to import dashboard {DashboardTitle}: {Message}", dashboardTitle, ex.Message);
                     }
                 }
 
-                _logger.LogInformation("Completed activation of Azure Monitor dashboards");
+                _logger.LogInternalInformation("Completed activation of Azure Monitor dashboards");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error activating Azure Monitor dashboards: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error activating Azure Monitor dashboards: {Message}", ex.Message);
             }
         }
 
@@ -1111,13 +1112,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 var dashboardJson = File.ReadAllText(dashboard);
                 dashboardJson = dashboardJson.Replace("\"datasource\": \"KnowledgeGraph\"", $"\"datasource\": \"{_dataSourceName}\"");
                 await PublishDashboardToManagedGrafana(dashboardJson, accessToken, []);
-                _logger.LogInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));
+                _logger.LogInternalInformation("Successfully published customized dashboard: {DashboardName}", Path.GetFileName(dashboard));
             }
         }
 
         private async Task<CVESummary> GetCVESummary()
         {
-            _logger.LogInformation("Fetching CVE summary...");
+            _logger.LogInternalInformation("Fetching CVE summary...");
             var summary = new CVESummary();
 
             try
@@ -1184,13 +1185,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogError(ex, "Error fetching CVE information for repo {RepoUrl}: {Message}", repoUrl, ex.Message);
+                        _logger.LogInternalError(ex, "Error fetching CVE information for repo {RepoUrl}: {Message}", repoUrl, ex.Message);
                     }
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating CVE summary: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error generating CVE summary: {Message}", ex.Message);
             }
 
             return summary;
@@ -1210,22 +1211,22 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     _appHealthHistory[key] = filteredHistory;
                 }
             }
-            
+
             var result = new List<AppGroupResourceSummary>();
             var subscriptions = await _graphDBPlugin.ListSubscriptionsAsync();
-            
+
             foreach (var sub in subscriptions)
             {
                 var appGroups = await _graphDbService.GetAppGroupsBySubscriptionAsync(sub["id"]);
                 var summary = new List<AppGroupResourceInfo>();
-                
+
                 if (appGroups != null)
                 {
                     foreach (var appGroup in appGroups)
                     {
                         var properties = appGroup["properties"] as IDictionary<string, object>;
                         string appGroupId = appGroup["id"]?.ToString();
-                        
+
                         if (properties != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
                         {
                             var options = new JsonSerializerOptions
@@ -1237,12 +1238,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                 .OfType<string>()
                                 .Where(s => !string.IsNullOrEmpty(s))
                                 .ToList();
-                            
+
                             if (jsonStringList.Any())
                             {
                                 // Get latest health data point
                                 var latestHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0], options);
-                                
+
                                 if (latestHealthInfo != null)
                                 {
                                     // Add current data point to history
@@ -1251,16 +1252,16 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                         history = new List<AppHealthInfoWithTimestamp>();
                                         _appHealthHistory[appGroupId] = history;
                                     }
-                                    
+
                                     history.Add(new AppHealthInfoWithTimestamp
                                     {
                                         HealthInfo = latestHealthInfo,
                                         Timestamp = DateTime.UtcNow
                                     });
-                                    
+
                                     // Create aggregated view based on stored history
                                     var aggregatedHealthInfo = AggregateHealthInfoFromHistory(appGroupId);
-                                    
+
                                     summary.Add(new AppGroupResourceInfo
                                     {
                                         Name = appGroup["name"]?.ToString() ?? string.Empty,
@@ -1290,23 +1291,23 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 return null;
             }
-            
+
             var healthInfos = history.Select(h => h.HealthInfo).ToList();
-            
+
             return new AppHealthInfo
             {
                 LastDataCaptureTimeStampInUTC = DateTime.UtcNow,
 
                 // Determine overall health based on worst state in past 24 hours
-                Health = DetermineAggregateHealth(healthInfos.Select(h => h.Health)), 
+                Health = DetermineAggregateHealth(healthInfos.Select(h => h.Health)),
                 // Average metrics for last 24 hours
                 Availability = healthInfos.Average(h => h.Availability),
                 AvgCpuUsage = healthInfos.Average(h => h.AvgCpuUsage),
                 AvgMemoryUsage = healthInfos.Average(h => h.AvgMemoryUsage),
-                
+
                 // Sum transactions over the period
                 Transactions = healthInfos.Sum(h => h.Transactions),
-                
+
                 // Include the 24-hour historical data
                 HistoricalData = history
                     .OrderBy(h => h.Timestamp)
@@ -1333,7 +1334,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
         private async Task<IncidentSummary> GetIncidentsSummary()
         {
-            _logger.LogInformation("Fetching incidents summary...");
+            _logger.LogInternalInformation("Fetching incidents summary...");
 
             var result = new IncidentSummary();
 
@@ -1370,9 +1371,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 string threadId = "";
                 // Get all threads and find the one with matching incident ID
                 var allThreads = await _threadRepository.GetThreadsAsync(null);
-                var incidentThread = allThreads.FirstOrDefault(t => 
+                var incidentThread = allThreads.FirstOrDefault(t =>
                     t.IncidentSource?.IncidentId == incident.Id);
-                
+
                 if (incidentThread != null)
                 {
                     threadId = incidentThread.Id.ToString();
@@ -1418,9 +1419,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 string threadId = "";
                 // Get all threads and find the one with matching incident ID
                 var allThreads = await _threadRepository.GetThreadsAsync(null);
-                var incidentThread = allThreads.FirstOrDefault(t => 
+                var incidentThread = allThreads.FirstOrDefault(t =>
                     t.Status?.IncidentStatus?.IncidentId == incident.Id);
-                
+
                 if (incidentThread != null)
                 {
                     threadId = incidentThread.Id.ToString();
@@ -1438,7 +1439,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     InvestigationDetails = investigationSummary,
                     ThreadLink = GenerateThreadLink(threadId)
                 };
-                
+
                 azMonIncidentsSummary.Add(incidentSummary);
             }
 
@@ -1453,9 +1454,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 var messages = new List<ChatMessage>();
 
-                messages.Add(new ChatMessage(ChatRole.System, 
+                messages.Add(new ChatMessage(ChatRole.System,
                     "You are an Azure SRE Agent analyzing incident information. " +
-                    "Generate a brief, one sentenced, focused summary of the ongoing investigation status. " + 
+                    "Generate a brief, one sentenced, focused summary of the ongoing investigation status. " +
                     "Keep the response concise and highlight only the key investigation points."));
 
                 messages.Add(new ChatMessage(ChatRole.User, incidentInfo));
@@ -1474,7 +1475,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating incident investigation summary: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error generating incident investigation summary: {Message}", ex.Message);
                 return "Error generating investigation summary.";
             }
         }
@@ -1485,7 +1486,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 var messages = new List<ChatMessage>();
 
-                messages.Add(new ChatMessage(ChatRole.System, 
+                messages.Add(new ChatMessage(ChatRole.System,
                     "You are an Azure SRE Agent analyzing incident information. " +
                     "Generate a brief, one sentence, focused summary of the incident resolution. " +
                     "Keep the response concise and highlight only the key resolution points."));
@@ -1499,16 +1500,16 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     {
                         ["response_format"] = "text"
                     }
-                };  
+                };
 
                 var response = await _chatClient.GetResponseAsync(messages, options);
                 return response.Messages.Count > 0 ? response.Messages[0].Text : "Unable to generate resolution summary.";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating incident resolution summary: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error generating incident resolution summary: {Message}", ex.Message);
                 return "Error generating resolution summary.";
-            }   
+            }
         }
 
         private async Task<string> GenerateIncidentImpactSummaryAsync(string incidentInfo)
@@ -1517,7 +1518,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             {
                 var messages = new List<ChatMessage>();
 
-                messages.Add(new ChatMessage(ChatRole.System, 
+                messages.Add(new ChatMessage(ChatRole.System,
                     "You are an Azure SRE Agent analyzing incident information. " +
                     "Generate a brief, one sentence, focused summary of the incident impact. " +
                     "Keep the response concise and highlight only the key impact points."));
@@ -1526,7 +1527,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                 var options = new ChatOptions
                 {
-                    Temperature = 0.2f, 
+                    Temperature = 0.2f,
                     AdditionalProperties = new AdditionalPropertiesDictionary
                     {
                         ["response_format"] = "text"
@@ -1538,7 +1539,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error generating incident impact summary: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error generating incident impact summary: {Message}", ex.Message);
                 return "Error generating impact summary.";
             }
         }
@@ -1572,12 +1573,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     threadSummary.AppendLine($"- **Title**: {thread.Title}");
                     threadSummary.AppendLine($"  **Created**: {thread.CreatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC");
                 }
-                _logger.LogInformation("Added {Count} alert threads to the summary.", agentThreads.Count);
+                _logger.LogInternalInformation("Added {Count} alert threads to the summary.", agentThreads.Count);
             }
             else
             {
                 threadSummary.AppendLine("No new alert threads in the past 24 hours.");
-                _logger.LogInformation("No alert threads found in the past 24 hours.");
+                _logger.LogInternalInformation("No alert threads found in the past 24 hours.");
             }
             threadSummary.AppendLine();
 
@@ -1591,12 +1592,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     threadSummary.AppendLine($"- **Title**: {thread.Title}");
                     threadSummary.AppendLine($"  **Created**: {thread.CreatedTimestamp:yyyy-MM-dd HH:mm:ss} UTC");
                 }
-                _logger.LogInformation("Added {Count} incident threads to the summary.", incidentThreads.Count);
+                _logger.LogInternalInformation("Added {Count} incident threads to the summary.", incidentThreads.Count);
             }
             else
             {
                 threadSummary.AppendLine("No new incident threads in the past 24 hours.");
-                _logger.LogInformation("No incident threads found in the past 24 hours.");
+                _logger.LogInternalInformation("No incident threads found in the past 24 hours.");
             }
 
             return threadSummary.ToString();
@@ -1607,7 +1608,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             // If threadId is empty, return an empty string or placeholder link
             if (string.IsNullOrEmpty(threadId))
             {
-                _logger.LogWarning("No thread found for incident, cannot generate thread link");
+                _logger.LogInternalWarning("No thread found for incident, cannot generate thread link");
                 return string.Empty;
             }
 
@@ -1661,20 +1662,20 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         _appHealthHistory[key] = filteredHistory;
                     }
                 }
-                
+
                 var subscriptions = await _graphDBPlugin.ListSubscriptionsAsync();
-                
+
                 foreach (var sub in subscriptions)
                 {
                     var appGroups = await _graphDbService.GetAppGroupsBySubscriptionAsync(sub["id"]);
-                    
+
                     if (appGroups != null)
                     {
                         foreach (var appGroup in appGroups)
                         {
                             var properties = appGroup["properties"] as IDictionary<string, object>;
                             string appGroupId = appGroup["id"]?.ToString();
-                            
+
                             if (properties != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
                             {
                                 var options = new JsonSerializerOptions
@@ -1686,12 +1687,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                     .OfType<string>()
                                     .Where(s => !string.IsNullOrEmpty(s))
                                     .ToList();
-                                
+
                                 if (jsonStringList.Any())
                                 {
                                     // Get latest health data point
                                     var latestHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0], options);
-                                    
+
                                     if (latestHealthInfo != null)
                                     {
                                         // Add current data point to history
@@ -1700,13 +1701,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                                             history = new List<AppHealthInfoWithTimestamp>();
                                             _appHealthHistory[appGroupId] = history;
                                         }
-                                        
+
                                         history.Add(new AppHealthInfoWithTimestamp
                                         {
                                             HealthInfo = latestHealthInfo,
                                             Timestamp = DateTime.UtcNow
                                         });
-                                        
+
                                         _logger.LogDebug("Added health data for app group {AppGroupId}", appGroupId);
                                     }
                                 }
@@ -1714,20 +1715,20 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         }
                     }
                 }
-                
-                _logger.LogInformation("Successfully collected and stored app health information for {Count} app groups", 
+
+                _logger.LogInternalInformation("Successfully collected and stored app health information for {Count} app groups",
                     _appHealthHistory.Count);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error collecting app health information: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Error collecting app health information: {Message}", ex.Message);
             }
         }
 
         private ReportOverview GenerateOverview(CVESummary cveSummary, IncidentSummary incidentsSummary, List<AppGroupResourceSummary> appGroupsHealthSummary)
         {
             var overview = new ReportOverview();
-            
+
             // Populate Security Findings overview
             if (cveSummary != null)
             {
@@ -1737,38 +1738,38 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 overview.SecurityFindings.Low = cveSummary.LowVulnerabilities;
                 overview.SecurityFindings.TotalCount = cveSummary.TotalVulnerabilities;
             }
-            
+
             // Populate Incidents overview
             if (incidentsSummary != null)
             {
                 // Count active incidents (non-closed)
-                overview.Incidents.Active = 
+                overview.Incidents.Active =
                     (incidentsSummary.PagerDuty?.Count(i => i.Status != "closed" && i.Status != "resolved") ?? 0) +
                     (incidentsSummary.AzureMonitor?.Count(i => i.Status != "closed" && i.Status != "resolved") ?? 0);
-                
+
                 // Count mitigated incidents (acknowledged)
-                overview.Incidents.Mitigated = 
+                overview.Incidents.Mitigated =
                     (incidentsSummary.PagerDuty?.Count(i => i.Status == "acknowledged") ?? 0) +
                     (incidentsSummary.AzureMonitor?.Count(i => i.Status == "acknowledged") ?? 0);
-                
+
                 // Count resolved incidents
-                overview.Incidents.Resolved = 
+                overview.Incidents.Resolved =
                     (incidentsSummary.PagerDuty?.Count(i => i.Status == "closed" || i.Status == "resolved") ?? 0) +
                     (incidentsSummary.AzureMonitor?.Count(i => i.Status == "closed" || i.Status == "resolved") ?? 0);
-                
+
                 // Total count
-                overview.Incidents.TotalCount = 
-                    (incidentsSummary.PagerDuty?.Count ?? 0) + 
+                overview.Incidents.TotalCount =
+                    (incidentsSummary.PagerDuty?.Count ?? 0) +
                     (incidentsSummary.AzureMonitor?.Count ?? 0);
             }
-            
+
             // Populate Health and Performance overview
             if (appGroupsHealthSummary != null)
             {
                 int healthy = 0;
                 int degraded = 0;
                 int unhealthy = 0;
-                
+
                 foreach (var appGroup in appGroupsHealthSummary)
                 {
                     foreach (var app in appGroup.AppGroups)
@@ -1790,13 +1791,13 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                         }
                     }
                 }
-                
+
                 overview.HealthAndPerformance.Healthy = healthy;
                 overview.HealthAndPerformance.Degraded = degraded;
                 overview.HealthAndPerformance.Unhealthy = unhealthy;
                 overview.HealthAndPerformance.TotalCount = healthy + degraded + unhealthy;
             }
-            
+
             return overview;
         }
 

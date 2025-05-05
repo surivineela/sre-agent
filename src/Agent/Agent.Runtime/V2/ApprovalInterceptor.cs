@@ -7,6 +7,7 @@ using System.Text.Json;
 using Agent.Core.Attributes;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -61,7 +62,7 @@ public class ApprovalInterceptor : AIFunction
     {
         string operationName = _innerFunction.Name; // TODO: get better name for this
 
-        _logger.LogInformation("[{ThreadId}] Checking approval for operation: {OperationName}",
+        _logger.LogInternalInformation("[{ThreadId}] Checking approval for operation: {OperationName}",
             _context.ThreadId, operationName);
 
         var approvalTitle = ApprovalTitleHelper.GenerateUniqueApprovalTitle(
@@ -110,7 +111,7 @@ public class ApprovalInterceptor : AIFunction
                 _context.ThreadId,
                 newApproval);
 
-            _logger.LogInformation("[{ThreadId}] Approval required for operation: {OperationName}",
+            _logger.LogInternalInformation("[{ThreadId}] Approval required for operation: {OperationName}",
                 _context.ThreadId, operationName);
 
             throw new ApprovalRequiredException($"Approval is required for this action {operationName}");
@@ -118,21 +119,21 @@ public class ApprovalInterceptor : AIFunction
         else if (approval.Status == ApprovalDecision.Approved)
         {
             // approval received, invoke the inner function
-            _logger.LogInformation("[{ThreadId}] Approval received for operation: {OperationName}",
+            _logger.LogInternalInformation("[{ThreadId}] Approval received for operation: {OperationName}",
                 _context.ThreadId, operationName);
 
             return await _innerFunction.InvokeAsync(argsDict, cancellationToken);
         }
         else if (approval.Status == ApprovalDecision.Rejected)
         {
-            _logger.LogInformation("[{ThreadId}] Approval rejected for operation: {OperationName}",
+            _logger.LogInternalInformation("[{ThreadId}] Approval rejected for operation: {OperationName}",
                 _context.ThreadId, operationName);
 
             throw new ApprovalRejectedException($"User rejected the action {operationName}");
         }
         else
         {
-            _logger.LogInformation("[{ThreadId}] Approval required for operation: {OperationName}",
+            _logger.LogInternalInformation("[{ThreadId}] Approval required for operation: {OperationName}",
                 _context.ThreadId, operationName);
 
             throw new ApprovalRequiredException($"Approval is required for this action {operationName}");

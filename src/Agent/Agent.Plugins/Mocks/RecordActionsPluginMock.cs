@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Microsoft.Diagnostics.Tracing.Parsers.Kernel;
 using Microsoft.Extensions.Logging;
@@ -31,7 +32,7 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning)
         {
-            _logger?.LogInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
+            _logger?.LogInternalInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
                 threadId, title, status);
 
             var guidBytes = new byte[16];
@@ -63,18 +64,18 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<Action> UpdateActionStatus(Guid threadId, Guid actionId, ActionStatus status)
         {
-            _logger?.LogInformation("[MOCK] Updating action {ActionId} status to {Status} for thread {ThreadId}",
+            _logger?.LogInternalInformation("[MOCK] Updating action {ActionId} status to {Status} for thread {ThreadId}",
                 actionId, status, threadId);
 
             if (!_actionsByThread.TryGetValue(threadId, out var threadActions))
             {
-                _logger?.LogWarning("[MOCK] Thread {ThreadId} not found", threadId);
+                _logger?.LogInternalWarning("[MOCK] Thread {ThreadId} not found", threadId);
                 throw new KeyNotFoundException($"Thread {threadId} not found");
             }
 
             if (!threadActions.TryGetValue(actionId, out var existingAction))
             {
-                _logger?.LogWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
+                _logger?.LogInternalWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
                 throw new KeyNotFoundException($"Action {actionId} not found in thread {threadId}");
             }
 
@@ -92,17 +93,17 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<Action> GetAction(Guid threadId, Guid actionId)
         {
-            _logger?.LogInformation("[MOCK] Getting action {ActionId} for thread {ThreadId}", actionId, threadId);
+            _logger?.LogInternalInformation("[MOCK] Getting action {ActionId} for thread {ThreadId}", actionId, threadId);
 
             if (!_actionsByThread.TryGetValue(threadId, out var threadActions))
             {
-                _logger?.LogWarning("[MOCK] Thread {ThreadId} not found", threadId);
+                _logger?.LogInternalWarning("[MOCK] Thread {ThreadId} not found", threadId);
                 throw new KeyNotFoundException($"Thread {threadId} not found");
             }
 
             if (!threadActions.TryGetValue(actionId, out var action))
             {
-                _logger?.LogWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
+                _logger?.LogInternalWarning("[MOCK] Action {ActionId} not found in thread {ThreadId}", actionId, threadId);
                 throw new KeyNotFoundException($"Action {actionId} not found in thread {threadId}");
             }
 
@@ -114,7 +115,7 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public Task<IEnumerable<Action>> GetAllActions(Guid threadId)
         {
-            _logger?.LogInformation("[MOCK] Getting all actions for thread {ThreadId}", threadId);
+            _logger?.LogInternalInformation("[MOCK] Getting all actions for thread {ThreadId}", threadId);
 
             if (!_actionsByThread.TryGetValue(threadId, out var threadActions))
             {
@@ -129,7 +130,7 @@ namespace Agent.Plugins.Mocks
         /// </summary>
         public void ClearAll()
         {
-            _logger?.LogInformation("[MOCK] Clearing all actions");
+            _logger?.LogInternalInformation("[MOCK] Clearing all actions");
             _actionsByThread.Clear();
         }
     }

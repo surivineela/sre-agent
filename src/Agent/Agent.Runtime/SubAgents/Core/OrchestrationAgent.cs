@@ -3,6 +3,7 @@ using System.Text.Json.Serialization;
 using Agent.Core.Attributes;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
@@ -53,11 +54,11 @@ public class OrchestrationAgent
     // we can remove the generic args once we have derived classes inherit from this rather than generic agent orchestrator
     public async Task RunReasoningLoop<TInput, TResult>(GenericAgentOrchestrator<TInput, TResult> genericAgentOrchestrator)
     {
-        log.LogInformation("Starting reasoning loop with thread ID: {ThreadId}", this.ThreadId);
+        log.LogInternalInformation("Starting reasoning loop with thread ID: {ThreadId}", this.ThreadId);
         while (!Done)
         {
             StepCount += 1;
-            log.LogInformation("[{ThreadId}] Step {StepCount} of reasoning loop", this.ThreadId, StepCount);
+            log.LogInternalInformation("[{ThreadId}] Step {StepCount} of reasoning loop", this.ThreadId, StepCount);
 
             UpdateOrchestrationStatus();
 
@@ -87,13 +88,13 @@ public class OrchestrationAgent
         // There's potential throttling for OpenAI calls, use retry policy to avoid.
         new TaskOptions(new TaskRetryOptions(new RetryPolicy(10, TimeSpan.FromSeconds(1), backoffCoefficient: 1.5f, maxRetryInterval: TimeSpan.FromSeconds(10)))));
 
-        log.LogInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
+        log.LogInternalInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
 
 
         var functionCalls = reasoningResult.ChatMessages.Last().Contents.OfType<FunctionCallContent>();
 
 
-        log.LogInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
+        log.LogInternalInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
         // Extract the function call (assumes a single function call in the message)
         var functionCall = functionCalls.Single();
 
@@ -114,7 +115,7 @@ public class OrchestrationAgent
         }
         else
         {
-            log.LogInformation("[{ThreadId}] Approval status is: {ApprovalStatus}", threadId, approvalResult.ApprovalStatus);
+            log.LogInternalInformation("[{ThreadId}] Approval status is: {ApprovalStatus}", threadId, approvalResult.ApprovalStatus);
             if (approvalResult.ApprovalStatus == ToolApprovalStatus.Pending)
             {
                 if (approvalResult.ApprovalId != null)
@@ -126,7 +127,7 @@ public class OrchestrationAgent
             }
             else if (approvalResult.ApprovalStatus == ToolApprovalStatus.Approved)
             {
-                log.LogInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
+                log.LogInternalInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
                 if (approvalResult.ApprovalId != null)
                 {
                     PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
@@ -136,7 +137,7 @@ public class OrchestrationAgent
             }
             else
             {
-                log.LogInformation("[{ThreadId}] function call to {FunctionCall} is rejected", threadId, functionCall.Name);
+                log.LogInternalInformation("[{ThreadId}] function call to {FunctionCall} is rejected", threadId, functionCall.Name);
                 if (approvalResult.ApprovalId != null)
                 {
                     PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
@@ -199,7 +200,7 @@ public class OrchestrationAgent
         // So in that case, we don't want to block on the pending wait task.
         if (agent.WaitTask is not null || agent.ResponseFromUserIsPending == true || agent.PendingApprovals.Count > 0)
         {
-            log.LogInformation("[{ThreadId}] Waiting for task to complete. ResponseFromUserIsPending={ResponseFromUserIsPending}, PendingApprovals={PendingApprovalToolCalls}", threadId, ResponseFromUserIsPending, agent.PendingApprovals.Count);
+            log.LogInternalInformation("[{ThreadId}] Waiting for task to complete. ResponseFromUserIsPending={ResponseFromUserIsPending}, PendingApprovals={PendingApprovalToolCalls}", threadId, ResponseFromUserIsPending, agent.PendingApprovals.Count);
             string stateMessage = ResponseFromUserIsPending ? "Waiting for user's response" : (agent.PendingApprovals.Count > 0 ? $"Waiting for {agent.PendingApprovals.Count} user approvals" : "Waiting for task to complete");
 
             await RecordStateChange(ReasoningState.Waiting, stateMessage);
@@ -215,28 +216,28 @@ public class OrchestrationAgent
             }
 
             var task = await Task.WhenAny(tasksToWaitFor);
-            log.LogInformation("[{ThreadId}] Some task completed", threadId);
+            log.LogInternalInformation("[{ThreadId}] Some task completed", threadId);
 
             if (agent.WaitTask != null && agent.WaitTask.IsCompleted)
             {
                 try
                 {
                     await agent.WaitTask;
-                    log.LogInformation("[{ThreadId}] waitTask completed", threadId);
+                    log.LogInternalInformation("[{ThreadId}] waitTask completed", threadId);
                 }
                 catch (TaskCanceledException)
                 {
-                    log.LogInformation("[{ThreadId}] waitTask was canceled", threadId);
+                    log.LogInternalInformation("[{ThreadId}] waitTask was canceled", threadId);
                     // Task cancellation is expected when tokens are canceled, so we don't need to propagate this exception
                 }
                 catch (OperationCanceledException)
                 {
-                    log.LogInformation("[{ThreadId}] waitTask operation was canceled", threadId);
+                    log.LogInternalInformation("[{ThreadId}] waitTask operation was canceled", threadId);
                     // Operation cancellation is expected when tokens are canceled, so we don't need to propagate this exception
                 }
                 catch (Exception ex)
                 {
-                    log.LogError(ex, "[{ThreadId}] Error awaiting waitTask", threadId);
+                    log.LogInternalError(ex, "[{ThreadId}] Error awaiting waitTask", threadId);
                     // Consider whether to rethrow or handle other exceptions differently
                 }
                 finally
@@ -249,7 +250,7 @@ public class OrchestrationAgent
                 agent.WaitTokenSource.Cancel();
                 agent.WaitTokenSource.Dispose();
                 agent.WaitTokenSource = new CancellationTokenSource();
-                log.LogInformation("[{ThreadId}] waitTask cancelled", threadId);
+                log.LogInternalInformation("[{ThreadId}] waitTask cancelled", threadId);
             }
         }
     }
@@ -260,7 +261,7 @@ public class OrchestrationAgent
 
         // Process finished 202 activities
         var notCompleted202 = new List<Task<ChatMessage>>();
-        log.LogInformation("[{ThreadId}] Processing pending 202 activities", threadId);
+        log.LogInternalInformation("[{ThreadId}] Processing pending 202 activities", threadId);
         foreach (var pending202ActivityTask in this.Pending202Activities)
         {
             if (pending202ActivityTask.IsCompleted)
@@ -268,7 +269,7 @@ public class OrchestrationAgent
                 // TODO: error handling
                 var pendingTaskResult = await pending202ActivityTask;
                 this.ChatHistory.Add(pendingTaskResult);
-                log.LogInformation("[{ThreadId}] 202 activity completed with message: {ChatMessage}", threadId, pendingTaskResult.ToString());
+                log.LogInternalInformation("[{ThreadId}] 202 activity completed with message: {ChatMessage}", threadId, pendingTaskResult.ToString());
             }
             else
             {
@@ -286,7 +287,7 @@ public class OrchestrationAgent
         {
             // TODO: error handling
             var newMessage = await _newMessageTask;
-            log.LogInformation("[{ThreadId}] New chat message received: {ChatMessage}", this.ThreadId, newMessage.ToString());
+            log.LogInternalInformation("[{ThreadId}] New chat message received: {ChatMessage}", this.ThreadId, newMessage.ToString());
 
             // this is hacky - need to decide whether to move customized behavior into derived types of OrchestrationAgent or keep them on the orchestrator
             await genericAgentOrchestrator.OnUserMessage(_taskOrchestrationContext, this.ChatHistory, newMessage);
@@ -312,14 +313,14 @@ public class OrchestrationAgent
             if (approvalEvent.IsApproved)
             {
                 var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** received at {approvalEvent.ApprovedTime}";
-                log.LogInformation(approvalString);
+                log.LogInternalInformation(approvalString);
 
                 ChatHistory.Add(new ChatMessage(ChatRole.System, approvalString));
             }
             else
             {
                 var rejectionString = $"Operation was not approved. Rejected by **{approvalEvent.DecisionMaker}** at {approvalEvent.ApprovedTime}";
-                log.LogInformation(rejectionString);
+                log.LogInternalInformation(rejectionString);
 
                 ChatHistory.Add(new ChatMessage(ChatRole.System, rejectionString));
             }
@@ -332,7 +333,7 @@ public class OrchestrationAgent
     {
         string threadId = this.ThreadId.ToString();
 
-        log.LogInformation("[{ThreadId}] Reasoning loop completed. Notifying user", threadId);
+        log.LogInternalInformation("[{ThreadId}] Reasoning loop completed. Notifying user", threadId);
 
         await RecordStateChange(ReasoningState.OrchestrationCompleted, "Orchestration completed");
 
@@ -343,7 +344,7 @@ public class OrchestrationAgent
             Status: "Completed",
             Summary: "Task completed successfully"
         ));
-        log.LogInformation("[{ThreadId}] Completion notification sent", threadId);
+        log.LogInternalInformation("[{ThreadId}] Completion notification sent", threadId);
     }
 }
 

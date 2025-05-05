@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Logging;
 using Agent.Prometheus;
 using Agent.Prometheus.Services;
 using Gremlin.Net.Process.Traversal;
@@ -43,14 +44,14 @@ public class AKSMetricsCollector : IResourceMetricsCollector
     {
         if (gnode is not KubernetesNamespacedResourceNode node)
         {
-            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an KubernetesResourceNode");
+            _logger.LogInternalWarning($"Node {gnode.GetNodeId()} is not an KubernetesResourceNode");
             return new AppHealthInfo { };
         }
 
         var resourceId = node.GetNodeId();
         if (resourceId == null)
         {
-            _logger.LogWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
+            _logger.LogInternalWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
             return new AppHealthInfo { };
         }
 
@@ -80,7 +81,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to get metrics for the App Service {node.GetNodeId()}");
+            _logger.LogInternalError(ex, $"Failed to get metrics for the App Service {node.GetNodeId()}");
         }
 
         return new AppHealthInfo { };
@@ -91,7 +92,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         string _namespace = node.Namespace;
         string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
         string workloadName = node.ResourceName;
-        _logger.LogInformation($"Getting average CPU usage for AKS {workloadType}: {_namespace}/{workloadName}");
+        _logger.LogInternalInformation($"Getting average CPU usage for AKS {workloadType}: {_namespace}/{workloadName}");
         return await GetAzureMonitorPrometheusMetricsAsync(_namespace, workloadType, workloadName, "cpu");
     }
 
@@ -100,7 +101,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         string _namespace = node.Namespace;
         string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
         string workloadName = node.ResourceName;
-        _logger.LogInformation($"Getting average Memory usage for AKS {workloadType}: {_namespace}/{workloadName}");
+        _logger.LogInternalInformation($"Getting average Memory usage for AKS {workloadType}: {_namespace}/{workloadName}");
         return await GetAzureMonitorPrometheusMetricsAsync(_namespace, workloadType, workloadName, "memory");
     }
 
@@ -110,7 +111,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         string workloadType = node.Kind.TrimEnd('s').ToLowerInvariant();
         string workloadName = node.ResourceName;
         var aksResourceId = node.ClusterResourceId;
-        _logger.LogInformation($"Getting availability for AKS {workloadType}: {_namespace}/{workloadName}");
+        _logger.LogInternalInformation($"Getting availability for AKS {workloadType}: {_namespace}/{workloadName}");
         try
         { 
         
@@ -129,7 +130,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                     var status3 = await client3.CoreV1.ReadNamespacedPodStatusAsync(workloadName, _namespace);
                     return (double)status3.Status.ContainerStatuses.Count(s => s.Ready) / (double)status3.Status.ContainerStatuses.Count * 100;
                 default:
-                    _logger.LogWarning($"Unsupported availability type for AKS {workloadType}: {_namespace}/{workloadName}");
+                    _logger.LogInternalWarning($"Unsupported availability type for AKS {workloadType}: {_namespace}/{workloadName}");
                     return 100;
             }
         }
@@ -142,7 +143,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                 // Resource not found (404), just return without logging
                 return 100;
             }
-            _logger.LogWarning(ex, $"Failed to get availability for AKS {workloadType}: {_namespace}/{workloadName}, default to 100.");
+            _logger.LogInternalWarning(ex, $"Failed to get availability for AKS {workloadType}: {_namespace}/{workloadName}, default to 100.");
             return 100;
         }
     }
@@ -166,7 +167,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
 
             if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
             {
-                _logger?.LogWarning(
+                _logger?.LogInternalWarning(
                     "Failed to build a valid PromQL query for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                     metricType, _namespace, workloadType, workloadName);
                 return 0;
@@ -209,13 +210,13 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                     }
                     return sum / count;
                 case ErrorResponse errorResponse:
-                    _logger?.LogError(
+                    _logger?.LogInternalError(
                         "Received an error response from Azure Monitor Prometheus for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}': {Error}",
                         metricType, _namespace, workloadType, workloadName, errorResponse.Error);
                     return 0;
 
                 default:
-                    _logger?.LogWarning(
+                    _logger?.LogInternalWarning(
                         "Received an unexpected response type '{ResponseType}' from Azure Monitor Prometheus for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                         response.GetType().Name, metricType, _namespace, workloadType, workloadName);
                     return 0;
@@ -224,7 +225,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         }
         catch (HttpRequestException httpEx)
         {
-            _logger?.LogError(
+            _logger?.LogInternalError(
                 httpEx,
                 "HTTP error while querying Azure Monitor Prometheus for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                 metricType, _namespace, workloadType, workloadName);
@@ -232,7 +233,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger?.LogError(
+            _logger?.LogInternalError(
                 ex,
                 "Unexpected error while fetching Prometheus metrics for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                 metricType, _namespace, workloadType, workloadName);
@@ -254,7 +255,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
                 filter = $"pod=\"{workloadName}\"";
                 break;
             default:
-                _logger?.LogWarning(
+                _logger?.LogInternalWarning(
                     "Unsupported workload type '{WorkloadType}' for AKS in namespace '{Namespace}' and workload name '{WorkloadName}'.",
                     workloadType, _namespace, workloadName);
                 return $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'.";
@@ -301,7 +302,7 @@ public class AKSMetricsCollector : IResourceMetricsCollector
 
             // Default case for custom queries or other unhandled metric types
             default:
-                _logger?.LogWarning(
+                _logger?.LogInternalWarning(
                     "No query configured for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                     metricType, _namespace, workloadType, workloadName);
 

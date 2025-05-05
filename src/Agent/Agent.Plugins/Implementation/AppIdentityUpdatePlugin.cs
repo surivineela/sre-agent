@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager.AppService;
@@ -54,7 +55,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error migrating to managed identity");
+                _logger.LogInternalError(ex, "Error migrating to managed identity");
                 throw;
             }
         }
@@ -99,7 +100,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error migrating to managed identity");
+                _logger.LogInternalError(ex, "Error migrating to managed identity");
                 throw;
             }
         }
@@ -155,12 +156,12 @@ namespace Agent.Plugins.Implementation
             }
             catch (RequestFailedException ex)
             {
-                _logger.LogError(ex, "Request failed while enabling SQL AD auth: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Request failed while enabling SQL AD auth: {Message}", ex.Message);
                 throw new Exception($"Request failed: {ex.Message}", ex);
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Unexpected error enabling SQL AD auth: {Message}", ex.Message);
+                _logger.LogInternalError(ex, "Unexpected error enabling SQL AD auth: {Message}", ex.Message);
                 throw new Exception($"Unexpected error: {ex.Message}", ex);
             }
         }

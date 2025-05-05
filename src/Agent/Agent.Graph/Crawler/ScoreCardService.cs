@@ -6,6 +6,7 @@ using System.Collections;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler;
@@ -27,7 +28,7 @@ public class ScoreCardService
 
     public async Task UpdateAllScoreCardsAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting score card update for all resources");
+        _logger.LogInternalInformation("Starting score card update for all resources");
         string nodesToUpdateQuery = GetResourceNodesToUpdateQuery();
 
         var queryResults = await _graphDatabaseClient.Query(nodesToUpdateQuery);
@@ -37,7 +38,7 @@ public class ScoreCardService
         {
             if (result == null)
             {
-                _logger.LogWarning("Null result encountered, skipping");
+                _logger.LogInternalWarning("Null result encountered, skipping");
                 continue;
             }
 
@@ -46,7 +47,7 @@ public class ScoreCardService
                 var resourceType = result["type"]?.ToString();
                 if (string.IsNullOrEmpty(resourceType))
                 {
-                    _logger.LogWarning($"Resource type is null or empty for result: {result}");
+                    _logger.LogInternalWarning($"Resource type is null or empty for result: {result}");
                     continue;
                 }
                 var updated = false;
@@ -57,7 +58,7 @@ public class ScoreCardService
                     var node = CreateKubernetesResourceNodeFromDictionary(result);
                     if (node == null)
                     {
-                        _logger.LogWarning($"Could not create KubernetesResourceNode from result");
+                        _logger.LogInternalWarning($"Could not create KubernetesResourceNode from result");
                         continue;
                     }
 
@@ -68,7 +69,7 @@ public class ScoreCardService
                 var armResourceNode = CreateArmResourceNodeFromDictionary(result);
                 if (armResourceNode == null)
                 {
-                    _logger.LogWarning($"Could not create ArmResourceNode from result");
+                    _logger.LogInternalWarning($"Could not create ArmResourceNode from result");
                     continue;
                 }
 
@@ -77,11 +78,11 @@ public class ScoreCardService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error updating score card for node");
+                _logger.LogInternalError(ex, $"Error updating score card for node");
             }
         }
 
-        _logger.LogInformation($"Updated scorecards for {updatedCount} nodes");
+        _logger.LogInternalInformation($"Updated scorecards for {updatedCount} nodes");
     }
 
     private ArmResourceNode CreateArmResourceNodeFromDictionary(Dictionary<string, object> result)
@@ -96,7 +97,7 @@ public class ScoreCardService
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
             {
-                _logger.LogWarning($"Properties is null for node {id}");
+                _logger.LogInternalWarning($"Properties is null for node {id}");
                 return null;
             }
 
@@ -134,7 +135,7 @@ public class ScoreCardService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error converting dictionary to ArmResourceNode");
+            _logger.LogInternalError(ex, $"Error converting dictionary to ArmResourceNode");
             return null;
         }
     }
@@ -151,7 +152,7 @@ public class ScoreCardService
             var properties = result["properties"] as Dictionary<string, object>;
             if (properties == null)
             {
-                _logger.LogWarning($"Properties is null for node {id}");
+                _logger.LogInternalWarning($"Properties is null for node {id}");
                 return null;
             }
 
@@ -204,7 +205,7 @@ public class ScoreCardService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error converting dictionary to KubernetesResourceNode");
+            _logger.LogInternalError(ex, $"Error converting dictionary to KubernetesResourceNode");
             return null;
         }
     }
@@ -236,7 +237,7 @@ public class ScoreCardService
 
         if (collector == null)
         {
-            _logger.LogWarning($"No metrics collector found for resource type {node.ResourceType}, resource name: {node.ResourceName}");
+            _logger.LogInternalWarning($"No metrics collector found for resource type {node.ResourceType}, resource name: {node.ResourceName}");
             return false;
         }
 
@@ -249,7 +250,7 @@ public class ScoreCardService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to update appHealthInfo for node {node.ResourceId} ({node.ResourceName})");
+            _logger.LogInternalError(ex, $"Failed to update appHealthInfo for node {node.ResourceId} ({node.ResourceName})");
             return false;
         }
     }
@@ -262,7 +263,7 @@ public class ScoreCardService
 
         if (collector == null)
         {
-            _logger.LogWarning($"No metrics collector found for resource type {node.Kind.ToLowerInvariant()}, resource name: {node.ResourceName}");
+            _logger.LogInternalWarning($"No metrics collector found for resource type {node.Kind.ToLowerInvariant()}, resource name: {node.ResourceName}");
             return false;
         }
 
@@ -275,7 +276,7 @@ public class ScoreCardService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to update appHealthInfo for node {node.GetNodeId()} ({node.ResourceName})");
+            _logger.LogInternalError(ex, $"Failed to update appHealthInfo for node {node.GetNodeId()} ({node.ResourceName})");
             return false;
         }
     }

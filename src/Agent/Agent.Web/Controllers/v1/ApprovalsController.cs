@@ -5,6 +5,7 @@
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Data.Repositories;
 using Agent.Runtime;
 using Agent.Runtime.Services;
@@ -45,7 +46,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<IActionResult> GetApprovals(string threadId, [FromQuery] string filter = null)
         {
             // TODO: Implement pagination and filtering logic
-            _logger.LogInformation("GET approval requested for thread {ThreadId} with filter: {Filter}", threadId, filter);
+            _logger.LogInternalInformation("GET approval requested for thread {ThreadId} with filter: {Filter}", threadId, filter);
 
             var approvals = await _approvalService.GetApprovals(Guid.Parse(threadId));
 
@@ -62,7 +63,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<IActionResult> GetApproval(string threadId, string id)
         {
             // TODO: Implement getting a specific approval
-            _logger.LogInformation("GET approval requested for thread {ThreadId} with ID: {Id}", threadId, id);
+            _logger.LogInternalInformation("GET approval requested for thread {ThreadId} with ID: {Id}", threadId, id);
             
             var approval = await _approvalService.GetApproval(Guid.Parse(threadId), id);
 
@@ -79,7 +80,7 @@ namespace Agent.Web.Controllers.v1
         [HttpPost("{threadId}/{id}/decision")]
         public async Task<IActionResult> SubmitApprovalDecision(string threadId, string id, [FromBody] ApprovalDecisionRequest request)
         {
-            _logger.LogInformation("Submitting approval decision for thread {ThreadId} with ID: {Id}, Status: {Status}",
+            _logger.LogInternalInformation("Submitting approval decision for thread {ThreadId} with ID: {Id}, Status: {Status}",
                 threadId, id, request.Status);
 
             if (!Enum.TryParse<ApprovalDecision>(request.Status, true, out var approvalStatus))
@@ -137,7 +138,7 @@ namespace Agent.Web.Controllers.v1
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Failed to decode JWT token");
+                    _logger.LogInternalError(ex, "Failed to decode JWT token");
                 }
             }
 
@@ -181,7 +182,7 @@ namespace Agent.Web.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Failed to process approval decision");
+                _logger.LogInternalError(ex, "Failed to process approval decision");
                 return StatusCode(500, new { error = "Internal server error" });
             }
         }

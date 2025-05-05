@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
 using System.Text.Json;
@@ -30,7 +31,7 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("all")]
         public async Task<IActionResult> GetAllOrchestrationsChatHistory()
         {
-            _logger.LogInformation("GET chat history requested for all running orchestrations");
+            _logger.LogInternalInformation("GET chat history requested for all running orchestrations");
 
             var result = new Dictionary<string, object>();
 
@@ -39,7 +40,7 @@ namespace Agent.Web.Controllers.v1
                 Statuses = new[] { OrchestrationRuntimeStatus.Running }
             }).ToListAsync();
 
-            _logger.LogInformation("Found {Count} running orchestrations", runningOrchestrations.Count);
+            _logger.LogInternalInformation("Found {Count} running orchestrations", runningOrchestrations.Count);
 
             foreach (var orchestration in runningOrchestrations)
             {
@@ -67,7 +68,7 @@ namespace Agent.Web.Controllers.v1
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, "Error retrieving chat history for orchestration ID: {Id}", orchestration.InstanceId);
+                    _logger.LogInternalError(ex, "Error retrieving chat history for orchestration ID: {Id}", orchestration.InstanceId);
                     result.Add(orchestration.InstanceId, $"Error: {ex.Message}");
                 }
             }
@@ -83,7 +84,7 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("orchestration/{orchestrationId}")]
         public async Task<IActionResult> GetOrchestrationChatHistory(string orchestrationId)
         {
-            _logger.LogInformation("GET chat history requested for orchestration ID: {Id}", orchestrationId);
+            _logger.LogInternalInformation("GET chat history requested for orchestration ID: {Id}", orchestrationId);
 
             // Get the orchestration instance with custom status
             var orchestrationWithStatus = await _durableTaskClient.GetInstanceAsync(
@@ -110,7 +111,7 @@ namespace Agent.Web.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error retrieving chat history for orchestration ID: {Id}", orchestrationId);
+                _logger.LogInternalError(ex, "Error retrieving chat history for orchestration ID: {Id}", orchestrationId);
                 return StatusCode(500, new { error = "Failed to retrieve chat history" });
             }
         }

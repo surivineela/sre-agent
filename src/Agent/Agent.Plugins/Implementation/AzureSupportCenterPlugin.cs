@@ -1,6 +1,7 @@
 using Azure.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 
@@ -85,7 +86,7 @@ public class AzureSupportCenterPlugin : IAzureSupportCenterPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error occurred while getting Azure Support Center diagnostic results.");
+            _logger.LogInternalError(ex, "Error occurred while getting Azure Support Center diagnostic results.");
             return $"Error occurred while getting Azure Support Center diagnostic results: {ex.Message}";
         }        
     }

@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Azure;
 using Azure.Core;
 using Azure.ResourceManager;
@@ -86,7 +87,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                     }
                     catch (RequestFailedException ex)
                     {
-                        _logger.LogWarning($"Failed to get app service plan data for {webApp.Data.AppServicePlanId}: {ex.Message}");
+                        _logger.LogInternalWarning($"Failed to get app service plan data for {webApp.Data.AppServicePlanId}: {ex.Message}");
                     }
                 }
 
@@ -187,12 +188,12 @@ public class AppServiceCrawler : GenericArmResourceCrawler
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning($"Failed to get functions for {appServiceNode.ResourceId}: {ex.Message}");
+                    _logger.LogInternalWarning($"Failed to get functions for {appServiceNode.ResourceId}: {ex.Message}");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error processing function app properties for {appServiceNode.ResourceId}: {ex.Message}");
+                _logger.LogInternalError($"Error processing function app properties for {appServiceNode.ResourceId}: {ex.Message}");
             }
         }
 
@@ -255,7 +256,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to get hostname bindings for {webApp.Data.Id}: {ex.Message}");
+            _logger.LogInternalWarning($"Failed to get hostname bindings for {webApp.Data.Id}: {ex.Message}");
         }
 
         await _graphDbClient.AddOrUpdateNodeAsync(appServiceNode);
@@ -294,7 +295,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error processing app service plan for {appServiceNode.ResourceId}: {ex.Message}");
+                _logger.LogInternalWarning($"Error processing app service plan for {appServiceNode.ResourceId}: {ex.Message}");
             }
             
             if (appServicePlanNode != null)
@@ -343,7 +344,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error processing VNet for {appServiceNode.ResourceId}: {ex.Message}");
+                _logger.LogInternalWarning($"Error processing VNet for {appServiceNode.ResourceId}: {ex.Message}");
             }
             
             if (subnetNode != null)
@@ -396,7 +397,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
             }
             catch (Exception ex)
             {
-                _logger.LogWarning($"Error processing connection string in app setting {name} for {appServiceNode.ResourceId}: {ex.Message}");
+                _logger.LogInternalWarning($"Error processing connection string in app setting {name} for {appServiceNode.ResourceId}: {ex.Message}");
             }
             
             // Yield resources outside of the try/catch block
@@ -483,7 +484,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to get plan type for {appServicePlanId}: {ex.Message}");
+            _logger.LogInternalWarning($"Failed to get plan type for {appServicePlanId}: {ex.Message}");
         }
 
         return null;
@@ -553,7 +554,7 @@ public class AppServiceCrawler : GenericArmResourceCrawler
         }
         catch (Exception ex)
         {
-            _logger.LogWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
+            _logger.LogInternalWarning($"Failed to parse function config for {data.Name}: {ex.Message}");
             return new AppServiceNode.Function
             {
                 Name = data.Name ?? "unknown",

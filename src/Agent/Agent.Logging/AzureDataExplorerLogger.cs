@@ -9,6 +9,8 @@ namespace Agent.Logging;
 
 public class AzureDataExplorerLogger : ILogger
 {
+    private readonly LogBuffer _logBuffer;
+
     public const string LogTypeName = "LogType";
     public const string InternalLogType = "Internal";
     public const string ExternalLogType = "External";
@@ -24,6 +26,8 @@ public class AzureDataExplorerLogger : ILogger
     private readonly bool _isExternalKustoClientEnabled;
 
     private readonly string _agentName;
+
+    public AzureDataExplorerLogger() { _logBuffer = new LogBuffer(); }
 
     public AzureDataExplorerLogger(
         string agentName,
@@ -44,6 +48,8 @@ public class AzureDataExplorerLogger : ILogger
         _externalDatabaseName = externalDatabaseName;
         _externalTableName = externalTableName;
         _isExternalKustoClientEnabled = externalKustoClient != null && !string.IsNullOrEmpty(externalDatabaseName) && !string.IsNullOrEmpty(externalTableName);
+
+        _logBuffer = new LogBuffer();
     }
 
     public IDisposable BeginScope<TState>(TState state) => null;
@@ -56,13 +62,18 @@ public class AzureDataExplorerLogger : ILogger
 
         var logMessage = formatter(state, exception);
 
-        var logMessageStartIndex = logMessage.IndexOf(">>>", StringComparison.Ordinal) + 4;
+        if (!string.IsNullOrEmpty(logMessage)
+            && logMessage.Contains(">>> "))
+        {
+            var logMessageStartIndex = logMessage.IndexOf(">>>", StringComparison.Ordinal) + 4;
+            logMessage = logMessage.Substring(logMessageStartIndex);
+        }
 
         var logData = new
         {
             PreciseTimeStamp = DateTime.UtcNow,
             LogLevel = logLevel.ToString(),
-            Message = logMessage.Substring(logMessageStartIndex),
+            Message = logMessage,
             Exception = exception?.ToString(),
             AgentName = _agentName
         };
@@ -73,19 +84,7 @@ public class AzureDataExplorerLogger : ILogger
         // Route logs based on the logType property
         if (logType == InternalLogType)
         {
-            try
-            {
-                IngestToCluster(
-                    _internalKustoClient,
-                    databaseName: _internalDatabaseName,
-                    tableName: _internalTableName,
-                    logData: logData);
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine($"[{DateTime.UtcNow}] [Console] Failed to ingest log to internal cluster: {e}");
-                Console.WriteLine($"[{DateTime.UtcNow}] [Console] Log data: {JsonSerializer.Serialize(logData)}");
-            }
+            _logBuffer.Logs.Enqueue(logData);
         }
         else if (logType == ExternalLogType && _isExternalKustoClientEnabled)
         {
@@ -94,6 +93,10 @@ public class AzureDataExplorerLogger : ILogger
                 databaseName: _externalDatabaseName,
                 tableName: _externalTableName,
                 logData: logData);
+        }
+        else if (logType == ExternalLogType)
+        {
+            Console.WriteLine($"[{DateTime.UtcNow}] [ExternalKusto] {logMessage}");
         }
         else
         {
@@ -120,6 +123,44 @@ public class AzureDataExplorerLogger : ILogger
         return null;
         // TODO: Uncomment to make strongly opinionated
         //throw new Exception("LogType property not found in log message");
+    }
+
+    public void FlushLogBuffer()
+    {
+        if (_logBuffer.Logs.Count > 0)
+        {
+            var logDataList = new List<object>();
+            while (_logBuffer.Logs.TryDequeue(out var logData))
+            {
+                logDataList.Add(logData);
+            }
+
+            IngestBatchToCluster(logDataList);
+        }
+    }
+
+    private void IngestBatchToCluster(IEnumerable<object> logDataBatch)
+    {
+        var jsonData = JsonSerializer.Serialize(logDataBatch);
+
+        var ingestionProperties = new KustoIngestionProperties(_internalDatabaseName, _internalTableName)
+        {
+            Format = DataSourceFormat.multijson // Specify JSON format
+        };
+
+        // Create a memory stream from the JSON data
+        using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonData));
+
+        // Ensure the stream is not empty
+        if (stream.Length == 0)
+        {
+            return;
+        }
+
+        stream.Position = 0; // Reset the position to the start of the stream
+
+        // Ingest the batch into Kusto
+        _internalKustoClient.IngestFromStreamAsync(stream, ingestionProperties).Wait();
     }
 
     private void IngestToCluster(IKustoIngestClient client, string databaseName, string tableName, object logData)

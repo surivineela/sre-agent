@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
@@ -40,7 +41,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
         var rgResource = _armClient.GetResourceGroupResource(rgResourceId);
         if (rgResource == null)
         {
-            _logger.LogWarning($"Failed to get container app environment: {envNode.ResourceId}");
+            _logger.LogInternalWarning($"Failed to get container app environment: {envNode.ResourceId}");
             yield break;
         }
 
@@ -48,7 +49,7 @@ public class ContainerAppEnvironmentCrawler : GenericArmResourceCrawler
 
         if (envResp == null || !envResp.Value.HasData)
         {
-            _logger.LogWarning($"Failed to get container app environment: {envNode.ResourceId}");
+            _logger.LogInternalWarning($"Failed to get container app environment: {envNode.ResourceId}");
             yield break;
         }
 

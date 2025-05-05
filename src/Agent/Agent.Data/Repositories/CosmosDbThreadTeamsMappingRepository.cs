@@ -7,6 +7,7 @@ using System.Text;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Helpers;
+using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Extensions.Logging;
 
@@ -243,18 +244,18 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
             }
 
             if (mappings.Count > 0)
-                _logger.LogInformation("Found {0} active thread mappings for threads with unposted messages", mappings.Count);
+                _logger.LogInternalInformation("Found {0} active thread mappings for threads with unposted messages", mappings.Count);
 
             return mappings;
         }
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
-            _logger.LogError(ex, "Error querying for active conversations");
+            _logger.LogInternalError(ex, "Error querying for active conversations");
             return Enumerable.Empty<ThreadTeamsMapping>();
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unexpected error in ListActiveConversationsAsync");
+            _logger.LogInternalError(ex, "Unexpected error in ListActiveConversationsAsync");
             return Enumerable.Empty<ThreadTeamsMapping>();
         }
     }
@@ -283,13 +284,13 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
             }
             else
             {
-                _logger.LogError("Failed to patch items in batch for thread {ThreadId}", threadId);
+                _logger.LogInternalError("Failed to patch items in batch for thread {ThreadId}", threadId);
                 return false;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error updating posted messages for thread {ThreadId}", threadId);
+            _logger.LogInternalError(ex, "Error updating posted messages for thread {ThreadId}", threadId);
             return false;
         }
     }

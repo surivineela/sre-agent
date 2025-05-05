@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Runtime.Communication;
@@ -34,7 +35,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting mappings for thread ID {ThreadId}", threadId);
+            _logger.LogInternalError(ex, "Error getting mappings for thread ID {ThreadId}", threadId);
             return Enumerable.Empty<ThreadOrchestrationMapping>();
         }
     }
@@ -43,7 +44,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
     {
         if (string.IsNullOrEmpty(mapping.ThreadId) || string.IsNullOrEmpty(mapping.OrchestrationInstanceId))
         {
-            _logger.LogWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
+            _logger.LogInternalWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
             return;
         }
 
@@ -54,7 +55,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding mapping for thread ID {ThreadId} and orchestration instance ID {InstanceId}",
+            _logger.LogInternalError(ex, "Error adding mapping for thread ID {ThreadId} and orchestration instance ID {InstanceId}",
                 mapping.ThreadId, mapping.OrchestrationInstanceId);
         }
     }
@@ -63,7 +64,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
     {
         if (string.IsNullOrEmpty(threadId) || string.IsNullOrEmpty(threadId))
         {
-            _logger.LogWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
+            _logger.LogInternalWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
             return;
         }
 
@@ -81,7 +82,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
     {
         if (!Guid.TryParse(threadIdStr, out var threadId))
         {
-            _logger.LogError($"Fail to parse threadID {threadIdStr} to valid Guid");
+            _logger.LogInternalError($"Fail to parse threadID {threadIdStr} to valid Guid");
             return;
         }
 
@@ -94,7 +95,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get or create thread context, threadId: {ThreadId}", threadIdStr);
+            _logger.LogInternalError(ex, "Failed to get or create thread context, threadId: {ThreadId}", threadIdStr);
             throw;
         }
 
@@ -108,7 +109,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         };
 
         var serializedState = JsonSerializer.Serialize(threadContext.OrchestrationState);
-        _logger.LogInformation("Persisting thread context, threadId: {ThreadId}, state: {SerializedState}", threadIdStr, serializedState);
+        _logger.LogInternalInformation("Persisting thread context, threadId: {ThreadId}, state: {SerializedState}", threadIdStr, serializedState);
 
         try
         {
@@ -116,7 +117,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update thread context, threadId: {ThreadId}", threadIdStr);
+            _logger.LogInternalError(ex, "Failed to update thread context, threadId: {ThreadId}", threadIdStr);
             throw;
         }
         return;
@@ -130,7 +131,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error removing mappings for thread ID {ThreadId}", threadId);
+            _logger.LogInternalError(ex, "Error removing mappings for thread ID {ThreadId}", threadId);
         }
     }
 
@@ -142,7 +143,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error removing mapping for thread ID {ThreadId} and orchestration instance ID {InstanceId}",
+            _logger.LogInternalError(ex, "Error removing mapping for thread ID {ThreadId} and orchestration instance ID {InstanceId}",
                 threadId, orchestrationInstanceId);
         }
     }
@@ -155,7 +156,7 @@ public class CosmosThreadOrchestrationManager : IThreadOrchestrationManager
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting all mappings");
+            _logger.LogInternalError(ex, "Error getting all mappings");
             return Enumerable.Empty<ThreadOrchestrationMapping>();
         }
     }

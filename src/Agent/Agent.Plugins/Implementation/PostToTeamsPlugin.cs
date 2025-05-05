@@ -1,8 +1,9 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Builder;
 using Microsoft.Bot.Builder.Integration.AspNet.Core;
@@ -56,7 +57,7 @@ namespace Agent.Plugins.Implementation
 
             if (defaultChannel == null)
             {
-                _logger.LogError("No conversation references available in the repository. The bot hasn't registered any Teams channels yet.");
+                _logger.LogInternalError("No conversation references available in the repository. The bot hasn't registered any Teams channels yet.");
                 return (null, "Error: No Teams channels available to post message. The bot needs to register at least one Teams channel first.");
             }
 
@@ -66,7 +67,7 @@ namespace Agent.Plugins.Implementation
 
             if (string.IsNullOrEmpty(serviceUrl) || string.IsNullOrEmpty(channelId))
             {
-                _logger.LogError($"Service URL or Channel Id in default conversation reference is empty. ServiceUrl: {serviceUrl}, Channel ID: {channelId}");
+                _logger.LogInternalError($"Service URL or Channel Id in default conversation reference is empty. ServiceUrl: {serviceUrl}, Channel ID: {channelId}");
                 return (null, "Error posting message to Teams.");
             }
 
@@ -104,7 +105,7 @@ namespace Agent.Plugins.Implementation
                             DateTime.UtcNow,
                             turnContext.Activity.GetConversationReference());
 
-                        _logger.LogInformation("New Teams thread created and message posted.");
+                        _logger.LogInternalInformation("New Teams thread created and message posted.");
                     },
                     cancellationToken: CancellationToken.None);
 
@@ -112,7 +113,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error posting message to Teams.");
+                _logger.LogInternalError(ex, "Error posting message to Teams.");
                 throw;
             }
         }
@@ -127,7 +128,7 @@ namespace Agent.Plugins.Implementation
                 await _threadTeamsMappingRepository.AddMappingAsync(mapping);
                 if (returnMessage != "Message posted successfully.")
                 {
-                    _logger.LogError("Failed to post message to Teams.");
+                    _logger.LogInternalError("Failed to post message to Teams.");
                     return false;
                 }
                 if (!string.IsNullOrEmpty(messageId))
@@ -142,14 +143,14 @@ namespace Agent.Plugins.Implementation
 
             if (string.IsNullOrEmpty(channelId) || string.IsNullOrEmpty(serviceUrl))
             {
-                _logger.LogError("Missing channelId or serviceUrl in stored conversation reference, probably this is from Teams private chat or chat group, please make sure this is from teams channel.");
+                _logger.LogInternalError("Missing channelId or serviceUrl in stored conversation reference, probably this is from Teams private chat or chat group, please make sure this is from teams channel.");
                 return false;
             }
 
             var adapter = _adapter as CloudAdapter;
             if (adapter == null)
             {
-                _logger.LogError("Adapter is not a CloudAdapter instance.");
+                _logger.LogInternalError("Adapter is not a CloudAdapter instance.");
                 return false;
             }
             var newThreadId = Guid.NewGuid();
@@ -180,15 +181,15 @@ namespace Agent.Plugins.Implementation
                     var result = await PostTeamsMessage(threadId, activity, messageId);
                     if (result)
                     {
-                        _logger.LogInformation("Successfully posted message to Teams");
+                        _logger.LogInternalInformation("Successfully posted message to Teams");
                         return true; // Success, exit method
                     }
 
-                    _logger.LogWarning("Attempt {Attempt} failed with result: {Result}", attempt, result);
+                    _logger.LogInternalWarning("Attempt {Attempt} failed with result: {Result}", attempt, result);
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogWarning(ex, "Attempt {Attempt} failed with exception", attempt);
+                    _logger.LogInternalWarning(ex, "Attempt {Attempt} failed with exception", attempt);
                 }
 
                 // Only delay if we're going to retry again
@@ -198,7 +199,7 @@ namespace Agent.Plugins.Implementation
                 }
                 else
                 {
-                    _logger.LogError("Failed to post message to Teams after {MaxRetries} attempts", MaxRetries);
+                    _logger.LogInternalError("Failed to post message to Teams after {MaxRetries} attempts", MaxRetries);
                 }
             }
             return false; // Failure after all attempts

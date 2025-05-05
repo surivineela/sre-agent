@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Core.Extensions;
+using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -25,7 +26,7 @@ public class AppServiceRemediationPlanActivity : TaskActivity<AppServiceRemediat
 
     public async override Task<List<ChatMessage>> RunAsync(TaskActivityContext context, AppServiceRemediationInput input)
     {
-        _logger.LogInformation($"AppServiceRemediationPlanActivity started with input: {JsonSerializer.Serialize(input)}");
+        _logger.LogInternalInformation($"AppServiceRemediationPlanActivity started with input: {JsonSerializer.Serialize(input)}");
         var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "AppServiceRemediationAgent", "AppServiceAgent.txt");
         var systemPrompt = await File.ReadAllTextAsync(path);
 
@@ -34,10 +35,10 @@ public class AppServiceRemediationPlanActivity : TaskActivity<AppServiceRemediat
             new ChatMessage(ChatRole.User, $"Here're the app service resource ids: {string.Join(", ", input.AppServiceResourceIds)}")
         ];
 
-        _logger.LogInformation("AppServiceRemediationPlanActivity sending messages to chat client.");
+        _logger.LogInternalInformation("AppServiceRemediationPlanActivity sending messages to chat client.");
         var response = await _chatClient.GetResponseAsync(messages);
         messages.Add(response.GetMessage());
-        _logger.LogInformation($"AppServiceRemediationPlanActivity completed with response.");
+        _logger.LogInternalInformation($"AppServiceRemediationPlanActivity completed with response.");
 
         return messages;
     }

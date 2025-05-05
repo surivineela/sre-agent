@@ -2,6 +2,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.Identity;
@@ -50,7 +51,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger.LogInformation("Invoked UpdateAlwaysOn function");
+                _logger.LogInternalInformation("Invoked UpdateAlwaysOn function");
 
                 bool success = await _armHelper.UpdateAlwaysOn(resourceId, enabled);
 
@@ -60,12 +61,12 @@ namespace Agent.Plugins.Implementation
                     false => $"Failed to update resource {resourceId}'s alwaysOn to true at {DateTime.UtcNow:o}",
                 };
 
-                _logger.LogInformation(message);
+                _logger.LogInternalInformation(message);
                 return message;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"UpdateAlwaysOn failed: {ex.ToString()}");
+                _logger.LogInternalError(ex, $"UpdateAlwaysOn failed: {ex.ToString()}");
                 throw;
             }
         }
@@ -75,7 +76,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger.LogInformation("Invoked UpdateHealthCheck function");
+                _logger.LogInternalInformation("Invoked UpdateHealthCheck function");
 
                 bool success = false;
 
@@ -87,12 +88,12 @@ namespace Agent.Plugins.Implementation
                     false => $"Failed to update resource {resourceId}'s healthCheckPath to {healthCheckPath} at {DateTime.UtcNow:o}",
                 };
 
-                _logger.LogInformation(message);
+                _logger.LogInternalInformation(message);
                 return message;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"UpdateHealthCheck failed: {ex.ToString()}");
+                _logger.LogInternalError(ex, $"UpdateHealthCheck failed: {ex.ToString()}");
                 throw;
             }
         }
@@ -102,7 +103,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger.LogInformation("Invoked UpdateAutoHeal function");
+                _logger.LogInternalInformation("Invoked UpdateAutoHeal function");
 
                 bool success = await _armHelper.UpdateAutoHeal(resourceId, autoHealEnabled, autoHealRules);
 
@@ -112,12 +113,12 @@ namespace Agent.Plugins.Implementation
                     false => $"Failed to update resource {resourceId}'s autoHeal to {autoHealEnabled} at {DateTime.UtcNow:o}",
                 };
 
-                _logger.LogInformation(message);
+                _logger.LogInternalInformation(message);
                 return message;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"UpdateAutoHeal failed: {ex.ToString()}");
+                _logger.LogInternalError(ex, $"UpdateAutoHeal failed: {ex.ToString()}");
                 throw;
             }
             
@@ -128,7 +129,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger.LogInformation("Invoked UpdateHostWorkers function");
+                _logger.LogInternalInformation("Invoked UpdateHostWorkers function");
 
                 bool success = await _armHelper.UpdateNumberOfWorkersAppService(resourceId, numberOfWorkers);
 
@@ -138,12 +139,12 @@ namespace Agent.Plugins.Implementation
                     false => $"Failed to change resource {resourceId}'s number of Workers to {numberOfWorkers} at {DateTime.UtcNow:o}",
                 };
 
-                _logger.LogInformation(message);
+                _logger.LogInternalInformation(message);
                 return message;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"UpdateHostWorkers failed: {ex.ToString()}");
+                _logger.LogInternalError(ex, $"UpdateHostWorkers failed: {ex.ToString()}");
                 throw;
             }
         }
@@ -151,7 +152,7 @@ namespace Agent.Plugins.Implementation
         // returns the Reliability properties of the app service
         public async Task<string> GetReliabilityStatus(string resourceId)
         {
-            _logger.LogInformation("Invoked GetReliabilityStatus function");
+            _logger.LogInternalInformation("Invoked GetReliabilityStatus function");
 
             CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             return await GetReliabilityOfAppService(_kernel, resourceId, tokenSource.Token);
@@ -160,7 +161,7 @@ namespace Agent.Plugins.Implementation
         // returns the Reliability properties of the app services
         public async Task<string> GetReliabilityStatus(string[] resourceIds)
         {
-            _logger.LogInformation("Invoked GetReliabilityStatus function");
+            _logger.LogInternalInformation("Invoked GetReliabilityStatus function");
 
             CancellationTokenSource tokenSource = new CancellationTokenSource(TimeSpan.FromMinutes(5));
             return await GetReliabilityOfAppServices(_kernel, resourceIds, tokenSource.Token);
@@ -168,7 +169,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> GetReliabilityStatusForSubscriptions(CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Invoked GetReliabilityStatusForSubscriptions function");
+            _logger.LogInternalInformation("Invoked GetReliabilityStatusForSubscriptions function");
             try
             {
                 var subs = await _graphDBPlugin.ListSubscriptionsAsync();
@@ -206,7 +207,7 @@ namespace Agent.Plugins.Implementation
 
                 string userQuery = $"Format these apps into a table with the columns App Name, Number of Workers, Auto Heal Enabled, Always On Enabled, Health Check Enabled. ** Only return the table. ** \r\n {JsonConvert.SerializeObject(ReliabilityTables)}";
                 var response = await _chatCompletionService.GetChatMessageContentAsync(userQuery);
-                _logger.LogInformation(response.Content);
+                _logger.LogInternalInformation(response.Content);
                 return response.Content ?? string.Empty;
             }
             catch(Exception ex)
@@ -217,7 +218,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> GetAppsToMonitor(CancellationToken cancellationToken = default)
         {
-            _logger.LogInformation("Invoked GetAppsToMonitor function");
+            _logger.LogInternalInformation("Invoked GetAppsToMonitor function");
             var appsToMonitor = new List<AppReliability>();
             try
             {
@@ -245,7 +246,7 @@ namespace Agent.Plugins.Implementation
                     }
                 }
                 var response = JsonConvert.SerializeObject(appsToMonitor);
-                _logger.LogInformation(response);
+                _logger.LogInternalInformation(response);
                 return response;
             }
             catch (Exception ex)
@@ -256,7 +257,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<OrchestrationRuntimeStatus> GetReliabilityOrchestrationStatus(string instanceId)
         {
-            _logger.LogInformation("Invoked GetReliabilityOrchestrationStatus function");
+            _logger.LogInternalInformation("Invoked GetReliabilityOrchestrationStatus function");
             
             var instance = await _durableTaskClient.GetInstanceAsync(instanceId);
             return instance.RuntimeStatus;
@@ -402,7 +403,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError($"Error creating node from JSON: {ex.Message}");
+                _logger.LogInternalError($"Error creating node from JSON: {ex.Message}");
                 return null;
             }
         }

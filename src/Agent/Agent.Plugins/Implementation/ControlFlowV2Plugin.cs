@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -35,7 +36,7 @@ namespace Agent.Plugins
 
         public async Task StartWait(string waitReason, TimeSpan? waitFor = null)
         {
-            _logger.LogInformation($"Starting wait state for context {_agentContextId} thread {_threadId} with reason: {waitReason}");
+            _logger.LogInternalInformation($"Starting wait state for context {_agentContextId} thread {_threadId} with reason: {waitReason}");
 
             var agentContext = await _repository.GetAgentContextAsync(agentContextId: _agentContextId, threadId: _threadId);
             var updatedAgentContext = agentContext with
@@ -70,7 +71,7 @@ namespace Agent.Plugins
 
         public async Task Complete()
         {
-            _logger.LogInformation($"Completing context {_agentContextId} thread {_threadId}");
+            _logger.LogInternalInformation($"Completing context {_agentContextId} thread {_threadId}");
 
             var agentContext = await _repository.GetAgentContextAsync(agentContextId: _agentContextId, threadId: _threadId);
             var updatedAgentContext = agentContext with
@@ -85,7 +86,7 @@ namespace Agent.Plugins
 
         public async Task AskForUserInput(string message)
         {
-            _logger.LogInformation(
+            _logger.LogInternalInformation(
                 "User input needed, setting wait state for context {AgentContextId} thread {ThreadId} with agent message: {message}",
                 _agentContextId, _threadId, message);
 

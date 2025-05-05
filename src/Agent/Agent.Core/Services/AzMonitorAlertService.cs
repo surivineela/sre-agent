@@ -9,6 +9,7 @@ using Agent.Core.Interfaces;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AlertsManagement.Models;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
@@ -36,7 +37,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
         try
         {
-            _logger.LogInformation($"Getting token for Azure ARM operations for subscription {subscriptionId}");
+            _logger.LogInternalInformation($"Getting token for Azure ARM operations for subscription {subscriptionId}");
             // Get the access token for ARM operations
             var credential = _authService.GetArmReadOperationCredential();
             var token = await credential.GetTokenAsync(
@@ -54,7 +55,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             // Add both time range and monitor condition filters
             apiUrl += $"&timeRange={timeRange}&monitorCondition=Fired";
 
-            _logger.LogInformation($"Calling Alert Management API with URL: {apiUrl}");
+            _logger.LogInternalInformation($"Calling Alert Management API with URL: {apiUrl}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
             request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
@@ -70,7 +71,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
                 if (alertResponse?.Value != null)
                 {
-                    _logger.LogInformation($"Found {alertResponse.Value.Count} alerts from REST API");
+                    _logger.LogInternalInformation($"Found {alertResponse.Value.Count} alerts from REST API");
 
                     foreach (var alertItem in alertResponse.Value)
                     {
@@ -80,7 +81,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                         {
                             if (essentials.MonitorCondition == "Fired" && startTime >= cutoffTime)
                             {
-                                _logger.LogInformation($"Adding alert {alertItem.Id} to new alerts list - Rule: {essentials.AlertRule}, Time: {startTime}");
+                                _logger.LogInternalInformation($"Adding alert {alertItem.Id} to new alerts list - Rule: {essentials.AlertRule}, Time: {startTime}");
 
                                 newAlerts.Add(alertItem);
                             }
@@ -91,21 +92,21 @@ public class AzMonitorAlertService : IAzMonitorAlertService
                         }
                         else
                         {
-                            _logger.LogWarning($"Could not parse start time for alert {alertItem.Id}: {essentials.StartDateTime}");
+                            _logger.LogInternalWarning($"Could not parse start time for alert {alertItem.Id}: {essentials.StartDateTime}");
                         }
                     }
                 }
             }
             else
             {
-                _logger.LogError($"API call failed with status: {response.StatusCode}");
+                _logger.LogInternalError($"API call failed with status: {response.StatusCode}");
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"Error response: {errorContent}");
+                _logger.LogInternalError($"Error response: {errorContent}");
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Exception thrown when polling for AzMonitor Alerts: {ex.Message}");
+            _logger.LogInternalError($"Exception thrown when polling for AzMonitor Alerts: {ex.Message}");
             _logger.LogDebug($"Stack trace: {ex.StackTrace}");
         }
 
@@ -114,7 +115,7 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
     public async Task<bool> AcknowledgeAlert(string alertId)
     {
-        _logger.LogInformation($"Acknowledging alert {alertId}");
+        _logger.LogInternalInformation($"Acknowledging alert {alertId}");
         return await UpdateAlertStatus(alertId, ServiceAlertState.Acknowledged);
     }
 
@@ -147,19 +148,19 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation($"Alert {alertId} status updated to {alertState} successfully");
+                _logger.LogInternalInformation($"Alert {alertId} status updated to {alertState} successfully");
                 return true;
             }
             else
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"Failed to update alert status for {alertId}: {response.StatusCode} - {errorContent}");
+                _logger.LogInternalError($"Failed to update alert status for {alertId}: {response.StatusCode} - {errorContent}");
                 return false;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to update alert status for {alertId}: {ex.Message}");
+            _logger.LogInternalError(ex, $"Failed to update alert status for {alertId}: {ex.Message}");
             return false;
         }
     }

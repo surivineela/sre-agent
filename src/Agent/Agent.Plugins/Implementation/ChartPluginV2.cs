@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Text.Json;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
+using Agent.Logging;
+using Agent.Plugins.Attributes;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
 
@@ -371,7 +373,7 @@ namespace Agent.Plugins
         {
             if (ThreadId == null)
             {
-                _logger?.LogWarning("ThreadId is null while posting chart data.");
+                _logger?.LogInternalWarning("ThreadId is null while posting chart data.");
                 return "ERROR: Context is null.";
             }
 
@@ -385,7 +387,7 @@ namespace Agent.Plugins
 
                 // Serialize chart data to JSON
                 var chartDataJson = JsonSerializer.Serialize(chartData);
-                _logger?.LogInformation("Posting chart data to thread {ThreadId}: {ChartData}", threadId, chartDataJson);
+                _logger?.LogInternalInformation("Posting chart data to thread {ThreadId}: {ChartData}", threadId, chartDataJson);
 
                 // Pass chart data as a special message format that the front-end will recognize
                 await _outboundService.AppendAgentImageMessage(ThreadId.Value, $"```chart-data\n{chartDataJson}\n```\n{description}");
@@ -394,7 +396,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Failed to save and post chart data");
+                _logger?.LogInternalError(ex, "Failed to save and post chart data");
                 return $"ERROR: Chart data processing failed: {ex.Message}";
             }
         }

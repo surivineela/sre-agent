@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Agent.Prometheus.Extensions;
 using Gremlin.Net.Driver;
 using Gremlin.Net.Structure.IO.GraphSON;
@@ -194,7 +195,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 var exportedMetrics = await reader.ReadToEndAsync(cancellationToken);
                 if (string.IsNullOrEmpty(exportedMetrics))
                 {
-                    _logger.LogWarning("No metrics to write to remote storage.");
+                    _logger.LogInternalWarning("No metrics to write to remote storage.");
                     await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
                     continue;
                 }
@@ -202,25 +203,25 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 _logger.LogDebug("Exported metrics in Text: {Metrics}", exportedMetrics);
 
                 var metricsFamilies = PrometheusTextParser.Parse(exportedMetrics);
-                _logger.LogInformation("Parsed metrics n families: {count}", metricsFamilies.Count);
+                _logger.LogInternalInformation("Parsed metrics n families: {count}", metricsFamilies.Count);
                 var filteredMetricsFamilies = metricsFamilies.Where(m => ShouldBeExported(m.Name)).ToList();
-                _logger.LogInformation("Filtered metrics families: {count}", filteredMetricsFamilies.Count);
+                _logger.LogInternalInformation("Filtered metrics families: {count}", filteredMetricsFamilies.Count);
                 var writeRequest = filteredMetricsFamilies.ToWriteRequest(DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
 
                 var succeeded = await _remoteWriteService.RemoteWriteAsync(writeRequest);
 
                 if (!succeeded)
                 {
-                    _logger.LogError("Failed to remote write metrics to Azure Managed Prometheus.");
+                    _logger.LogInternalError("Failed to remote write metrics to Azure Managed Prometheus.");
                 }
                 else
                 {
-                    _logger.LogInformation("Successfully remote wrote metrics to Azure Managed Prometheus.");
+                    _logger.LogInternalInformation("Successfully remote wrote metrics to Azure Managed Prometheus.");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Error writing metrics to remote storage");
+                _logger.LogInternalWarning(ex, "Error writing metrics to remote storage");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(1), cancellationToken);
@@ -238,7 +239,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
     private async Task CollectAppGroupMetrics(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Starting App group metrics collection");
+        _logger.LogInternalInformation("Starting App group metrics collection");
         while (!cancellationToken.IsCancellationRequested)
         {
             try
@@ -256,7 +257,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
 
                         if (resourceType == null || resourceId == null || subscriptionId == null || location == null || appHealthInfoJson == null)
                         {
-                            _logger.LogWarning("App group metrics is missing required fields: {ResourceType}, {ResourceId}, {SubscriptionId}, {Location}, {AppHealthInfo}", resourceType, resourceId, subscriptionId, location, appHealthInfoJson);
+                            _logger.LogInternalWarning("App group metrics is missing required fields: {ResourceType}, {ResourceId}, {SubscriptionId}, {Location}, {AppHealthInfo}", resourceType, resourceId, subscriptionId, location, appHealthInfoJson);
                             continue;
                         }
 
@@ -303,18 +304,18 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                             _appHealthGauge.WithLabels(resourceType, resourceId, subscriptionId, location).Set(health);
                         }
 
-                        _logger.LogInformation("Got App group metrics: {ResourceType}, {ResourceId}, {SubscriptionId}, {Location}, {AppHealthInfo}", resourceType, resourceId, subscriptionId, location, appHealthInfoJson);
+                        _logger.LogInternalInformation("Got App group metrics: {ResourceType}, {ResourceId}, {SubscriptionId}, {Location}, {AppHealthInfo}", resourceType, resourceId, subscriptionId, location, appHealthInfoJson);
                     }
                     else
                     {
-                        _logger.LogWarning("App group metrics is null");
+                        _logger.LogInternalWarning("App group metrics is null");
                     }
                 }
             }
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("app_group").Inc();
-                _logger.LogWarning(ex, "App group metrics collection failed");
+                _logger.LogInternalWarning(ex, "App group metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
@@ -330,17 +331,17 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 // Vertex count
                 var vertexCount = await ExecuteCountQuery("g.V().count()");
                 _vertexCountGauge.Set(vertexCount);
-                _logger.LogInformation("Updated vertex count: {Count}", vertexCount);
+                _logger.LogInternalInformation("Updated vertex count: {Count}", vertexCount);
 
                 // Edge count
                 var edgeCount = await ExecuteCountQuery("g.E().count()");
                 _edgeCountGauge.Set(edgeCount);
-                _logger.LogInformation("Updated edge count: {Count}", edgeCount);
+                _logger.LogInternalInformation("Updated edge count: {Count}", edgeCount);
             }
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("core").Inc();
-                _logger.LogWarning(ex, "Core metrics collection failed");
+                _logger.LogInternalWarning(ex, "Core metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromSeconds(30), cancellationToken);
@@ -366,12 +367,12 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                     _resourceTypeCountGauge.WithLabels($"microsoft.web/sites/{type.Key}").Set(type.Value);
                 }
 
-                _logger.LogInformation("Updated resource type metrics");
+                _logger.LogInternalInformation("Updated resource type metrics");
             }
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("resource_type").Inc();
-                _logger.LogWarning(ex, "Resource type metrics collection failed");
+                _logger.LogInternalWarning(ex, "Resource type metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
@@ -389,12 +390,12 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 {
                     _edgeTypeCountGauge.WithLabels(type.Key).Set(type.Value);
                 }
-                _logger.LogInformation("Updated edge type metrics");
+                _logger.LogInternalInformation("Updated edge type metrics");
             }
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("edge_type").Inc();
-                _logger.LogWarning(ex, "Edge type metrics collection failed");
+                _logger.LogInternalWarning(ex, "Edge type metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(5), cancellationToken);
@@ -423,12 +424,12 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                     _edgePropertyCountGauge.WithLabels(prop).Set(count);
                 }
 
-                _logger.LogInformation("Updated property metrics");
+                _logger.LogInternalInformation("Updated property metrics");
             }
             catch (Exception ex)
             {
                 _errorsCounter.WithLabels("property").Inc();
-                _logger.LogWarning(ex, "Property metrics collection failed");
+                _logger.LogInternalWarning(ex, "Property metrics collection failed");
             }
 
             await Task.Delay(TimeSpan.FromMinutes(15), cancellationToken);
@@ -475,7 +476,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
                 catch (Exception ex)
                 {
                     _errorsCounter.WithLabels("custom").Inc();
-                    _logger.LogWarning(ex, "Custom metric collection failed for {MetricName}", metric.Name);
+                    _logger.LogInternalWarning(ex, "Custom metric collection failed for {MetricName}", metric.Name);
                 }
 
                 await Task.Delay(TimeSpan.FromSeconds(metric.ScrapeIntervalSeconds), cancellationToken);
@@ -521,7 +522,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogWarning(ex, "Error executing count query: {Query}", query);
+            _logger.LogInternalWarning(ex, "Error executing count query: {Query}", query);
             throw new Exception($"Error executing query '{query}'", ex);
         }
     }
@@ -555,7 +556,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogWarning(ex, "Error executing group count query: {Query}", query);
+            _logger.LogInternalWarning(ex, "Error executing group count query: {Query}", query);
             throw new Exception($"Error executing query '{query}'", ex);
         }
     }
@@ -583,7 +584,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogWarning(ex, "Error executing deduplication query: {Query}", query);
+            _logger.LogInternalWarning(ex, "Error executing deduplication query: {Query}", query);
             return [];
         }
     }
@@ -592,7 +593,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
     {
         if (string.IsNullOrEmpty(metric.Query))
         {
-            _logger.LogWarning("Empty query for metric {MetricName}", metric.Name);
+            _logger.LogInternalWarning("Empty query for metric {MetricName}", metric.Name);
             return;
         }
 
@@ -642,7 +643,7 @@ public class GremlinMetricsService : IGremlinMetricsService, IDisposable
             _queryLatencyGauge.WithLabels(queryType).Set(latency);
             _errorsCounter.WithLabels(queryType).Inc();
 
-            _logger.LogWarning(ex, "Error executing custom metric query: {Query} for metric {MetricName}",
+            _logger.LogInternalWarning(ex, "Error executing custom metric query: {Query} for metric {MetricName}",
                 metric.Query, metric.Name);
         }
     }

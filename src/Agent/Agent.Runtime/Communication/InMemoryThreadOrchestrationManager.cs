@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using System.Collections.Concurrent;
 
@@ -31,7 +32,7 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
     {
         if (string.IsNullOrEmpty(mapping.ThreadId) || string.IsNullOrEmpty(mapping.OrchestrationInstanceId))
         {
-            _logger.LogWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
+            _logger.LogInternalWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
             return Task.CompletedTask;
         }
 
@@ -48,7 +49,7 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
 
                 if (existingMapping != null)
                 {
-                    _logger.LogWarning("Mapping for ThreadId: {ThreadId} and OrchestrationInstanceId: {InstanceId} already exists.",
+                    _logger.LogInternalWarning("Mapping for ThreadId: {ThreadId} and OrchestrationInstanceId: {InstanceId} already exists.",
                         mapping.ThreadId, mapping.OrchestrationInstanceId);
                 }
                 else
@@ -72,7 +73,7 @@ public class InMemoryThreadOrchestrationManager : IThreadOrchestrationManager
     {
         if (string.IsNullOrEmpty(threadId) || string.IsNullOrEmpty(threadId))
         {
-            _logger.LogWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
+            _logger.LogInternalWarning("Cannot add mapping with null or empty ThreadId or OrchestrationInstanceId");
             return;
         }
 

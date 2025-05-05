@@ -9,11 +9,6 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" />
     <PackageReference Include="Microsoft.Azure.Kusto.Ingest" />
-
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
   </ItemGroup>
 
 </Project>

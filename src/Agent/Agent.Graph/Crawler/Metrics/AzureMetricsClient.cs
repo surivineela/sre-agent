@@ -7,6 +7,7 @@ using Agent.Core.Helpers;
 using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure.Core;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -34,7 +35,7 @@ public class AzureMetricsClient : IAzureMetricsClient
     {
         try
         {
-            _logger.LogInformation($"Getting weekly cost for resourceId: {resourceId} ending on {endTime}");
+            _logger.LogInternalInformation($"Getting weekly cost for resourceId: {resourceId} ending on {endTime}");
 
             var resourceIdentifier = new ResourceIdentifier(resourceId);
             string subscriptionId = resourceIdentifier.SubscriptionId;
@@ -90,7 +91,7 @@ public class AzureMetricsClient : IAzureMetricsClient
             if (!response.IsSuccessStatusCode)
             {
                 var errorContent = await response.Content.ReadAsStringAsync();
-                _logger.LogError($"Error fetching cost data: {response.StatusCode}, Error: {errorContent}");
+                _logger.LogInternalError($"Error fetching cost data: {response.StatusCode}, Error: {errorContent}");
                 return 0;
             }
 
@@ -105,12 +106,12 @@ public class AzureMetricsClient : IAzureMetricsClient
                 totalCost += row[0].GetDouble();
             }
 
-            _logger.LogInformation($"Total weekly cost for {resourceId}: ${totalCost}");
+            _logger.LogInternalInformation($"Total weekly cost for {resourceId}: ${totalCost}");
             return totalCost;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to fetch cost data for resource {resourceId}");
+            _logger.LogInternalError(ex, $"Failed to fetch cost data for resource {resourceId}");
             return 0;
         }
     }

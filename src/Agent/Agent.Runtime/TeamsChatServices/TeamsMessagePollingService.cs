@@ -4,6 +4,7 @@
 
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Runtime.TeamsChatServices
 {
@@ -20,14 +21,14 @@ namespace Agent.Runtime.TeamsChatServices
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Ensuring Teams message polling is started");
+            _logger.LogInternalInformation("Ensuring Teams message polling is started");
             _botPollingMessage.StartMessagePolling();
             return Task.CompletedTask;
         }
 
         public Task StopAsync(CancellationToken cancellationToken)
         {
-            _logger.LogInformation("Teams message polling service stopping");
+            _logger.LogInternalInformation("Teams message polling service stopping");
             _botPollingMessage.StopMessagePolling();  // This will properly cancel the polling
             return Task.CompletedTask;
         }

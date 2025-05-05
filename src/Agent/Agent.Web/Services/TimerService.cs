@@ -27,6 +27,7 @@ using Microsoft.Extensions.AI;
 using Newtonsoft.Json;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 using Agent.Runtime.SubAgents.PagerDutyAgent;
+using Agent.Logging;
 
 namespace Agent.Web.Services;
 
@@ -81,6 +82,7 @@ public class TimerService : IHostedService, IDisposable
     private ScoreCardService _scoreCardService;
     private FeedbackRCAScanner _feedbackRCAScanner;
     private AzMonitorAlertScanner _azMonitorAlertScanner;
+    private AzureDataExplorerLogger _azureDataExplorerLogger;
 
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
@@ -118,6 +120,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _azMonitorAlertScannerTimerIsRunning = false;
     private TimeSpan _azMonitorAlertScannerTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _logFlushTimer = null;
+    private bool _logFlushTimerIsRunning = false;
+    private TimeSpan _logFlushTimerInterval = TimeSpan.FromSeconds(30);
+
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
@@ -146,7 +152,8 @@ public class TimerService : IHostedService, IDisposable
         SinkService sinkService,
         FeedbackRCAScanner feedbackRCAScanner,
         AzMonitorAlertScanner azMonitorAlertScanner,
-        PagerDutyScanner pagerDutyScanner)
+        PagerDutyScanner pagerDutyScanner,
+        AzureDataExplorerLogger azureDataExplorerLogger)
     {
         _logger = logger;
         _crawlerService = crawlerService;
@@ -169,6 +176,7 @@ public class TimerService : IHostedService, IDisposable
         _dashboardSettings = dashboardSettings;
         _azMonitorAlertScanner = azMonitorAlertScanner;
         _pagerDutyScanner = pagerDutyScanner;
+        _azureDataExplorerLogger = azureDataExplorerLogger;
 
         // Register all the scanners that implement this base type
         var scannerSubClasses = TypeReflectionHelpers.GetClassesDerivedFromGeneric(typeof(MetaAgent).Assembly, typeof(SimpleResourceSubAgentScannerBase<,,,>));
@@ -188,47 +196,50 @@ public class TimerService : IHostedService, IDisposable
     {
         if (_timerSettings.Disabled)
         {
-            _logger.LogWarning("Timer is disabled in appsettings. Skipping timer initialization.");
+            _logger.LogInternalWarning("Timer is disabled in appsettings. Skipping timer initialization.");
             return Task.CompletedTask;
         }
-        _logger.LogInformation($"Starting background services...");
+        _logger.LogInternalInformation($"Starting background services...");
 
         StartCrawlerTimer(cancellationToken);
 
-        _logger.LogInformation($"Starting TLS timer...");
+        _logger.LogInternalInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
 
-        _logger.LogInformation("Starting Daily Report timer...");
+        _logger.LogInternalInformation("Starting Daily Report timer...");
         StartDailyReportTimer(cancellationToken);
 
-        _logger.LogInformation($"Starting Source Code timer...");
+        _logger.LogInternalInformation($"Starting Source Code timer...");
         StartSourceCodeTimer(cancellationToken);
 
-        _logger.LogInformation($"Starting CVE timer...");
+        _logger.LogInternalInformation($"Starting CVE timer...");
         StartCVETimer(cancellationToken);
 
-        _logger.LogInformation("Starting App Service timer...");
+        _logger.LogInternalInformation("Starting App Service timer...");
         //StartAppServiceTimer(cancellationToken);
 
         StartAllGenericSubAgentTimers(cancellationToken);
 
-        _logger.LogInformation($"Starting Score Card timer...");
+        _logger.LogInternalInformation($"Starting Score Card timer...");
         StartScoreCardTimer(cancellationToken);
 
-        _logger.LogInformation($"Finished starting background services");
+        _logger.LogInternalInformation($"Finished starting background services");
 
-        _logger.LogInformation("Starting Send Welcome Message timer...");
+        _logger.LogInternalInformation("Starting Send Welcome Message timer...");
         SendWelcomeToPagerDutyMessageTimer(cancellationToken);
 
-        _logger.LogInformation("Starting Feedback RCA timer...");
+        _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
+
+        _logger.LogInformation("Starting Log Flush timer...");
+        StartLogFlushTimer(cancellationToken);
 
         if (_incidentManagementSettings != null && _incidentManagementSettings.Type == IncidentManagementType.AzMonitor)
         {
             _logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
             StartAzMonitorAlertScannerTimer(cancellationToken);
         }
-        
+
         StartPagerDutyScannerTimer(cancellationToken);
 
         return Task.CompletedTask;
@@ -236,7 +247,7 @@ public class TimerService : IHostedService, IDisposable
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Stopping background services...");
+        _logger.LogInternalInformation("Stopping background services...");
 
         _crawlerTimer?.Change(Timeout.Infinite, 0); // Stop the timer
 
@@ -266,7 +277,7 @@ public class TimerService : IHostedService, IDisposable
         {
             if (_crawlerTimerIsRunning)
             {
-                _logger.LogInformation("Crawler is running. Skip this round");
+                _logger.LogInternalInformation("Crawler is running. Skip this round");
                 return; // Prevent overlapping executions
             }
 
@@ -280,12 +291,12 @@ public class TimerService : IHostedService, IDisposable
                 {
                     _crawlerFinishedOnce = true;
                     _crawlerService.StartActivityLogCrawler(roots, cancellationToken);
-                    _logger.LogInformation("Started activity log crawler");
+                    _logger.LogInternalInformation("Started activity log crawler");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing crawler timer.");
+                _logger.LogInternalError(ex, "Error executing crawler timer.");
             }
             finally
             {
@@ -300,7 +311,7 @@ public class TimerService : IHostedService, IDisposable
         {
             if (_tlsTimerIsRunning)
             {
-                _logger.LogInformation("Tls best practice scanner is running. Skip this round");
+                _logger.LogInternalInformation("Tls best practice scanner is running. Skip this round");
                 return; // Prevent overlapping executions
             }
             try
@@ -310,7 +321,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing TLS timer.");
+                _logger.LogInternalError(ex, "Error executing TLS timer.");
             }
             finally
             {
@@ -324,18 +335,15 @@ public class TimerService : IHostedService, IDisposable
     {
         _sourceCodeCrawlerTimer = new Timer(async _ =>
         {
-            _logger.LogInternalInformation("Test internal log");
-            _logger.LogExternalInformation("Test external log");
-
             if (!_crawlerFinishedOnce)
             {
-                _logger.LogInformation("StartSourceCodeTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                _logger.LogInternalInformation("StartSourceCodeTimer: Resource crawler still in progress, wait for one round of scan to complete..");
                 return; // Wait for the first crawl to finish
             }
 
             if (_sourceCodeCrawlerTimerIsRunning)
             {
-                _logger.LogInformation("Source code scanner is running. Skip this round");
+                _logger.LogInternalInformation("Source code scanner is running. Skip this round");
                 return; // Prevent overlapping executions
             }
             try
@@ -345,7 +353,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing source code timer.");
+                _logger.LogInternalError(ex, "Error executing source code timer.");
             }
             finally
             {
@@ -361,13 +369,13 @@ public class TimerService : IHostedService, IDisposable
         {
             if (!_crawlerFinishedOnce)
             {
-                _logger.LogInformation("StartCVETimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                _logger.LogInternalInformation("StartCVETimer: Resource crawler still in progress, wait for one round of scan to complete..");
                 return; // Wait for the first crawl to finish
             }
 
             if (_cveCrawlerTimerIsRunning)
             {
-                _logger.LogInformation("CVE scanner is running. Skip this round");
+                _logger.LogInternalInformation("CVE scanner is running. Skip this round");
                 return; // Prevent overlapping executions
             }
             try
@@ -377,7 +385,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing CVE timer.");
+                _logger.LogInternalError(ex, "Error executing CVE timer.");
             }
             finally
             {
@@ -394,24 +402,24 @@ public class TimerService : IHostedService, IDisposable
     {
         foreach (var scanner in GenericSubAgentScannerTimers)
         {
-            _logger.LogInformation($"Starting timer for {scanner.Name} scanner...");
+            _logger.LogInternalInformation($"Starting timer for {scanner.Name} scanner...");
             scanner.Timer = new Timer(async _ =>
             {
                 if (scanner.IsRunning)
                 {
-                    _logger.LogInformation($"Scanner '{scanner.Name}' is running. Skipping this round");
+                    _logger.LogInternalInformation($"Scanner '{scanner.Name}' is running. Skipping this round");
                     return; // Prevent overlapping executions
                 }
                 try
                 {
-                    _logger.LogInformation($"Starting scanner '{scanner.Name}'");
+                    _logger.LogInternalInformation($"Starting scanner '{scanner.Name}'");
                     scanner.IsRunning = true;
                     var task = (Task)scanner.ScanMethod.Invoke(scanner.ScanTarget, [cancellationToken]);
                     await task!;
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error executing scanner '{scanner.Name}' timer.");
+                    _logger.LogInternalError(ex, $"Error executing scanner '{scanner.Name}' timer.");
                 }
                 finally
                 {
@@ -427,7 +435,7 @@ public class TimerService : IHostedService, IDisposable
         {
             if (_dailyReportTimerIsRunning)
             {
-                _logger.LogInformation("Daily report scanner is already running. Skip this round.");
+                _logger.LogInternalInformation("Daily report scanner is already running. Skip this round.");
                 return;
             }
             try
@@ -436,14 +444,14 @@ public class TimerService : IHostedService, IDisposable
                 var thread = await _dailyReportScanner.ScanAndGenerateReport(cancellationToken);
                 if (thread == null)
                 {
-                    _logger.LogInformation("No daily report generated.");
+                    _logger.LogInternalInformation("No daily report generated.");
                     return;
                 }
                 //await _teamsPlugin.CreateTeamsThread(thread.Id.ToString(), thread.StartMessage.Text, thread.StartMessage.Id.ToString());
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing daily report scanner.");
+                _logger.LogInternalError(ex, "Error executing daily report scanner.");
             }
             finally
             {
@@ -458,13 +466,13 @@ public class TimerService : IHostedService, IDisposable
         {
             if (!_crawlerFinishedOnce)
             {
-                _logger.LogInformation("StartScoreCardTimer: Resource crawler still in progress, wait for one round of scan to complete..");
+                _logger.LogInternalInformation("StartScoreCardTimer: Resource crawler still in progress, wait for one round of scan to complete..");
                 return;
             }
 
             if (_scoreCardTimerIsRunning)
             {
-                _logger.LogInformation("Score card update service is already running. Skip this round!");
+                _logger.LogInternalInformation("Score card update service is already running. Skip this round!");
                 return;
             }
             try
@@ -474,7 +482,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing score card update service.");
+                _logger.LogInternalError(ex, "Error executing score card update service.");
             }
             finally
             {
@@ -489,7 +497,7 @@ public class TimerService : IHostedService, IDisposable
         {
             if (_appServiceCrawlerTimerIsRunning)
             {
-                _logger.LogInformation("App service scanner is already running. Skip this round.");
+                _logger.LogInternalInformation("App service scanner is already running. Skip this round.");
                 return;
             }
             try
@@ -499,7 +507,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing app service timer.");
+                _logger.LogInternalError(ex, "Error executing app service timer.");
             }
             finally
             {
@@ -514,7 +522,7 @@ public class TimerService : IHostedService, IDisposable
         {
             if (_pagerDutyWelcomeSent)
             {
-                _logger.LogInformation("PagerDuty welcome message already sent, skipping.");
+                _logger.LogInternalInformation("PagerDuty welcome message already sent, skipping.");
                 return;
             }
 
@@ -522,14 +530,14 @@ public class TimerService : IHostedService, IDisposable
             {
                 if (!_crawlerFinishedOnce)
                 {
-                    _logger.LogInformation("Waiting for first crawler run to complete before sending PagerDuty welcome message.");
+                    _logger.LogInternalInformation("Waiting for first crawler run to complete before sending PagerDuty welcome message.");
                     return;
                 }
 
                 var welcomeThreads = await _repository.GetThreadsBySourceAsync(null, ThreadSource.WelcomeMessage);
                 if (welcomeThreads.Any())
                 {
-                    _logger.LogInformation("Welcome message already sent, skipping.");
+                    _logger.LogInternalInformation("Welcome message already sent, skipping.");
                     return;
                 }
 
@@ -713,12 +721,12 @@ public class TimerService : IHostedService, IDisposable
 
                 //await _agentInboundCommunicationService.AppendAgentImageMessage(thread.Item2, appGroupMessageString);
 
-                _logger.LogInformation("PagerDuty welcome message sent successfully.");
+                _logger.LogInternalInformation("PagerDuty welcome message sent successfully.");
                 _pagerDutyWelcomeSent = true;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error sending PagerDuty welcome message.");
+                _logger.LogInternalError(ex, "Error sending PagerDuty welcome message.");
             }
         }, null, TimeSpan.Zero, TimeSpan.FromMinutes(2));
     }
@@ -729,7 +737,7 @@ public class TimerService : IHostedService, IDisposable
         {
             if (_feedbackRCATimerIsRunning)
             {
-                _logger.LogInformation("Feedback RCA scanner is already running. Skip this round.");
+                _logger.LogInternalInformation("Feedback RCA scanner is already running. Skip this round.");
                 return;
             }
             try
@@ -739,7 +747,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing feedback RCA scanner.");
+                _logger.LogInternalError(ex, "Error executing feedback RCA scanner.");
             }
             finally
             {
@@ -748,13 +756,44 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.Zero, _feedbackRCATimerInterval);
     }
 
+    public void StartLogFlushTimer(CancellationToken cancellationToken)
+    {
+        _logFlushTimer = new Timer(async _ =>
+        {
+            if (_azureDataExplorerLogger == null)
+            {
+                Console.WriteLine("Azure Data Explorer logger is not initialized. Skip this round.");
+                return;
+            }
+
+            if (_logFlushTimerIsRunning)
+            {
+                Console.WriteLine("Log flusher is already running. Skip this round.");
+                return;
+            }
+            try
+            {
+                _logFlushTimerIsRunning = true;
+                _azureDataExplorerLogger.FlushLogBuffer();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing log flusher.");
+            }
+            finally
+            {
+                _logFlushTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _logFlushTimerInterval);
+    }
+
     public void StartAzMonitorAlertScannerTimer(CancellationToken cancellationToken)
     {
         _azMonitorAlertScannerTimer = new Timer(async _ =>
         {
             if (_azMonitorAlertScannerTimerIsRunning)
             {
-                _logger.LogInformation("Az Monitor Alert Scanner is already running, Skipping this round.");
+                _logger.LogInternalInformation("Az Monitor Alert Scanner is already running, Skipping this round.");
                 return;
             }
             try
@@ -764,7 +803,7 @@ public class TimerService : IHostedService, IDisposable
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error executing Az Monitor Alert Scanner.");
+                _logger.LogInternalError(ex, "Error executing Az Monitor Alert Scanner.");
             }
             finally
             {
@@ -775,7 +814,7 @@ public class TimerService : IHostedService, IDisposable
 
     public void Dispose()
     {
-        _logger.LogInformation("Disposing Azure Resource Crawler Worker");
+        _logger.LogInternalInformation("Disposing Azure Resource Crawler Worker");
 
         _crawlerTimer?.Dispose();
 

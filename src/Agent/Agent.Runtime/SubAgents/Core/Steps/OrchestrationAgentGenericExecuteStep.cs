@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
@@ -18,7 +19,7 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
         var log = context.CreateReplaySafeLogger<OrchestrationAgentGenericExecuteStep>();
         Guid threadId = agent.ThreadId;
 
-        log.LogInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, FunctionCall.ToString());
+        log.LogInternalInformation("[{ThreadId}] Get other Function call: {FunctionCall}", threadId, FunctionCall.ToString());
 
         // For any other function call, check if there're arguments match with key in threadContext.Properties
         // if so, use the value from threadContext.Properties to set the arguments to avoid LLM hallucinations
@@ -43,7 +44,7 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
         if (executionResult.Is202Submit)
         {
             agent.Pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
-            log.LogInformation("[{ThreadId}] 202 activity submitted: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
+            log.LogInternalInformation("[{ThreadId}] 202 activity submitted: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
         }
     }
 }

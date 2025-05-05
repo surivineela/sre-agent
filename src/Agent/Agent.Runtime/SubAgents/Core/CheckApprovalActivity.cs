@@ -11,6 +11,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
+using Agent.Logging;
 using Agent.Runtime.Helpers;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.Hosting;
@@ -125,7 +126,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
         }
         catch (Exception ex)
         {
-            _logger.LogError("Error while checking approval: {Message}", ex.Message);
+            _logger.LogInternalError("Error while checking approval: {Message}", ex.Message);
             return new CheckApprovalActivityOutput()
             {
                 ApprovalStatus = ToolApprovalStatus.Pending,

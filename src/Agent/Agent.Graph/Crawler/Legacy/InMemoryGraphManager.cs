@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
+using Agent.Logging;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 
@@ -97,20 +98,20 @@ namespace Agent.Graph.Crawler.Legacy
 
         public Task<bool> AddOrUpdateEdgeAsync(string sourceNodeId, string targetNodeId, string relationshipType, IDictionary<string, object> properties)
         {
-            _logger.LogInformation($"Adding edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}'.");
+            _logger.LogInternalInformation($"Adding edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}'.");
             var sourceNode = GetNode(sourceNodeId) ?? throw new ArgumentException($"Source node with ID '{sourceNodeId}' does not exist.");
             var targetNode = GetNode(targetNodeId) ?? throw new ArgumentException($"Target node with ID '{targetNodeId}' does not exist.");
             var edgeAdded = AddDirectedEdgeIfNotExists(sourceNode, targetNode, relationshipType, properties);
-            _logger.LogInformation($"Edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}' added: {edgeAdded}.");
+            _logger.LogInternalInformation($"Edge from {sourceNodeId} to {targetNodeId} with relationship type '{relationshipType}' added: {edgeAdded}.");
             return Task.FromResult(edgeAdded);
         }
 
         public Task<bool> AddOrUpdateNodeAsync(string nodeLabel, string nodeId, string resourceType, IDictionary<string, object> properties)
         {
-            _logger.LogInformation($"Adding or updating node with ID '{nodeId}'.");
+            _logger.LogInternalInformation($"Adding or updating node with ID '{nodeId}'.");
             var node = new Node(nodeId, nodeLabel, resourceType, properties);
             var nodeAdded = AddOrUpdateNode(node);
-            _logger.LogInformation($"Node with ID '{nodeId}' added or updated: {nodeAdded}.");
+            _logger.LogInternalInformation($"Node with ID '{nodeId}' added or updated: {nodeAdded}.");
             return Task.FromResult(nodeAdded);
         }
 

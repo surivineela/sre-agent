@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -23,7 +24,7 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
     {
         if (gnode is not ArmResourceNode node)
         {
-            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
+            _logger.LogInternalWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
             return new AppHealthInfo { };
         }
 
@@ -31,7 +32,7 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
 
         if (resourceId == null)
         {
-            _logger.LogWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
+            _logger.LogInternalWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
             return new AppHealthInfo { };
         }
 
@@ -62,7 +63,7 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to get metrics for the node {node.GetNodeId()}");
+            _logger.LogInternalError(ex, $"Failed to get metrics for the node {node.GetNodeId()}");
         }
 
         return new AppHealthInfo { };
@@ -70,7 +71,7 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
 
     public async Task<double> GetAvgCpuUsagePercentAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average CPU usage for resourceId: {resourceId}]");
+        _logger.LogInternalInformation($"Getting average CPU usage for resourceId: {resourceId}]");
         try
         {
             var metrics = new List<Metric>
@@ -86,14 +87,14 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get CPU metrics for Container App: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get CPU metrics for Container App: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     public async Task<double> GetAvgMemoryUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average Memory usage for resourceId: {resourceId}]");
+        _logger.LogInternalInformation($"Getting average Memory usage for resourceId: {resourceId}]");
         try
         {
             var metrics = new List<Metric>
@@ -109,14 +110,14 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get memory metrics for Container App: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get memory metrics for Container App: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     public async Task<double> GetAvgRequestCountAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average request count for resourceId: {resourceId}]");
+        _logger.LogInternalInformation($"Getting average request count for resourceId: {resourceId}]");
         try
         {
             var metrics = new List<Metric>
@@ -132,14 +133,14 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get request count metrics for Container App: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get request count metrics for Container App: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetAvailabilityAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting availability for Container App: {resourceId}");
+        _logger.LogInternalInformation($"Getting availability for Container App: {resourceId}");
 
         try
         {
@@ -170,7 +171,7 @@ public class ContainerAppMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to calculate availability for Container App: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to calculate availability for Container App: {resourceId}. Will return 0.");
             return 0;
         }
     }

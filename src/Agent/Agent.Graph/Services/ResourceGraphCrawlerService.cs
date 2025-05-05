@@ -10,6 +10,7 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.Monitor.Models;
 using Microsoft.Extensions.Logging;
@@ -42,7 +43,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
     public async Task CrawlAsync(IEnumerable<string> rootIds, IEnumerable<string>? filters = null, bool cascade = true, CancellationToken? cancellationToken = null)
     {
-        _logger.LogInformation($"Crawl roots: {string.Join(",", rootIds)}. Cascade = {cascade}.");
+        _logger.LogInternalInformation($"Crawl roots: {string.Join(",", rootIds)}. Cascade = {cascade}.");
         List<GraphNode> roots = new List<GraphNode>();
         foreach (var rootId in rootIds)
         {
@@ -78,7 +79,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
 
     public void StartActivityLogCrawler(IEnumerable<string> resourceIds, CancellationToken? cancellationToken = null)
     {
-        _logger.LogInformation($"Start activity log crawler for resources: {string.Join(",", resourceIds)}");
+        _logger.LogInternalInformation($"Start activity log crawler for resources: {string.Join(",", resourceIds)}");
 
         List<WatchEventSource> sources = new List<WatchEventSource>();
         foreach (var resourceId in resourceIds)
@@ -177,10 +178,10 @@ public class ResourceGraphCrawlerService : ICrawlerService
             {
                 while (!linkedCts.IsCancellationRequested)
                 {
-                    _logger.LogInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+                    _logger.LogInternalInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
                     await Task.Delay(5 * 1000);
                 }
-                _logger.LogInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+                _logger.LogInternalInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
             });
 
             while (toCrawl.Count > 0 || tasks.Count > 0)
@@ -254,11 +255,11 @@ public class ResourceGraphCrawlerService : ICrawlerService
             cts.Cancel();
             _isCrawling = false;
             _hasCompletedInitialGraphCrawl = true;
-            _logger.LogInformation($"Done crawling. Time taken: {sw.ElapsedMilliseconds}ms. Total unique crawled resources: {crawled.Count}");
+            _logger.LogInternalInformation($"Done crawling. Time taken: {sw.ElapsedMilliseconds}ms. Total unique crawled resources: {crawled.Count}");
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error crawling resources");
+            _logger.LogInternalError(ex, "Error crawling resources");
         }
     }
 
@@ -271,27 +272,27 @@ public class ResourceGraphCrawlerService : ICrawlerService
     //    ArmResourceNode subNode = ArmResourceCrawlerFactory.CreateResourceNodeFromResourceIdentifier($"/subscriptions/{subscription}");
 
     //    // crawl for all resources to resource group level to refresh in edges
-    //    _logger.LogInformation($"Crawling subscription {subscription} for resources");
+    //    _logger.LogInternalInformation($"Crawling subscription {subscription} for resources");
     //    await Crawl([subNode], new HashSet<string>() { "subscriptions", "resourcegroups" });
-    //    _logger.LogInformation($"Done crawling. Start to cleanup orphan nodes under subscription {subscription} (no inE)");
+    //    _logger.LogInternalInformation($"Done crawling. Start to cleanup orphan nodes under subscription {subscription} (no inE)");
 
     //    var query = $"g.V().not(hasLabel('subscription')).has('subscriptionId', '{subscription}').where(__.inE().count().is(0))";
     //    var result = await _graphDbClient.Query(query, maxMessageSize: 0);
     //    int count = result.Count;
     //    while (count > 0)
     //    {
-    //        _logger.LogInformation($"Will drop {count} orphan nodes");
+    //        _logger.LogInternalInformation($"Will drop {count} orphan nodes");
     //        await _graphDbClient.Query($"{query}.drop()");
     //        result = await _graphDbClient.Query(query, maxMessageSize: 0);
     //        count = result.Count;
     //    }
-    //    _logger.LogInformation($"Done cleanup orphan nodes under subscription {subscription} (no inE)");
+    //    _logger.LogInternalInformation($"Done cleanup orphan nodes under subscription {subscription} (no inE)");
 
-    //    _logger.LogInformation($"Start to cleanup orphan nodes in graph (no edges)");
+    //    _logger.LogInternalInformation($"Start to cleanup orphan nodes in graph (no edges)");
     //    await _graphDbClient.Query($"g.V().not(hasLabel('subscription')).where(__.bothE().count().is(0)).drop()");
-    //    _logger.LogInformation($"Done cleanup orphan nodes in graph (no edges)");
+    //    _logger.LogInternalInformation($"Done cleanup orphan nodes in graph (no edges)");
 
-    //    _logger.LogInformation($"Done cleaning up");
+    //    _logger.LogInternalInformation($"Done cleaning up");
     //}
 
     private bool FilterResourceType(HashSet<string> filters, GraphNode node)

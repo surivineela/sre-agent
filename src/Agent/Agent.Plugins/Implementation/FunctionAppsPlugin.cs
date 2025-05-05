@@ -4,6 +4,7 @@
 
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Microsoft.Extensions.Logging;
@@ -24,7 +25,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
     public async Task<FunctionAppDescriptor> GetFunctionAppInfoAsync(string resourceId)
     {
-        _logger.LogInformation($"[get_function_app_info] Invoked with resourceId: {resourceId}");
+        _logger.LogInternalInformation($"[get_function_app_info] Invoked with resourceId: {resourceId}");
 
         try
         {
@@ -44,7 +45,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
             if (result == null || !result.Any())
             {
-                _logger.LogWarning($"Function App with ID '{resourceId}' not found in graph database.");
+                _logger.LogInternalWarning($"Function App with ID '{resourceId}' not found in graph database.");
                 return null;
             }
 
@@ -96,14 +97,14 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in GetFunctionAppInfoAsync with resourceId {resourceId}");
+            _logger.LogInternalError(ex, $"Error in GetFunctionAppInfoAsync with resourceId {resourceId}");
             return null;
         }
     }
 
     public async Task<IReadOnlyList<FunctionAppDescriptor>> ListFunctionAppsAsync(Guid subscriptionId)
     {
-        _logger.LogInformation($"[list_function_app_instances] Invoked with subscription {subscriptionId}");
+        _logger.LogInternalInformation($"[list_function_app_instances] Invoked with subscription {subscriptionId}");
 
         var functionApps = new List<FunctionAppDescriptor>();
 
@@ -124,7 +125,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
 
             if (result == null || !result.Any())
             {
-                _logger.LogInformation($"No function apps found for subscription {subscriptionId} in graph database.");
+                _logger.LogInternalInformation($"No function apps found for subscription {subscriptionId} in graph database.");
                 return functionApps;
             }
 
@@ -166,7 +167,7 @@ public class FunctionAppsPlugin : IFunctionAppsPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error in ListFunctionAppsAsync with subscription {subscriptionId}");
+            _logger.LogInternalError(ex, $"Error in ListFunctionAppsAsync with subscription {subscriptionId}");
             return new List<FunctionAppDescriptor>();
         }
 

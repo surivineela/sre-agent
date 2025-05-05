@@ -1,7 +1,7 @@
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
@@ -14,7 +14,7 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
         var log = context.CreateReplaySafeLogger<OrchestrationAgentVisualizeAKSMicroserviceTopologyStep>();
         Guid threadId = agent.ThreadId;
 
-        log.LogInformation("[{ThreadId}] Generating Visualization", threadId);
+        log.LogInternalInformation("[{ThreadId}] Generating Visualization", threadId);
 
         // Extract arguments from the function call
         string resourceId = string.Empty;
@@ -34,7 +34,7 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
         {
             deployment = deploymentObj.ToString() ?? string.Empty;
         }
-        log.LogInformation("[{ThreadId}] Generating Visualization with AKS {resourceIdObj}, namespace {_namespace}, name: {deployment}", threadId, resourceId, _namespace, deployment);
+        log.LogInternalInformation("[{ThreadId}] Generating Visualization with AKS {resourceIdObj}, namespace {_namespace}, name: {deployment}", threadId, resourceId, _namespace, deployment);
 
 
         // Create a new args dictionary with the threadId as a Guid
@@ -64,7 +64,7 @@ public class OrchestrationAgentVisualizeAKSMicroserviceTopologyStep : Orchestrat
         if (executionResult.Is202Submit)
         {
             agent.Pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
-            log.LogInformation("[{ThreadId}] 202 activity submitted for visualization: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
+            log.LogInternalInformation("[{ThreadId}] 202 activity submitted for visualization: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
         }
     }
 }

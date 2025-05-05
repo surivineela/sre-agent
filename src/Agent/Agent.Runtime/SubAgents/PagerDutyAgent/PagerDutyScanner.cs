@@ -11,6 +11,7 @@ using Agent.Data;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
+using Agent.Logging;
 using Agent.Graph.Interfaces;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
@@ -37,13 +38,13 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
     {
         if (incidentManagementSettings is null || incidentManagementSettings.Type != IncidentManagementType.PagerDuty)
         {
-            logger.LogInformation("PagerDuty is not configured. Skipping scanning.");
+            logger.LogInternalInformation("PagerDuty is not configured. Skipping scanning.");
             return;
         }
 
         if (string.IsNullOrEmpty(incidentManagementSettings.ConnectionKey))
         {
-            logger.LogWarning("PagerDuty API key is not configured. Skipping scanning.");
+            logger.LogInternalWarning("PagerDuty API key is not configured. Skipping scanning.");
             return;
         }
 
@@ -62,17 +63,17 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         {
             if (cancellationToken.IsCancellationRequested)
             {
-                logger.LogInformation("Cancellation requested, stopping the scanner.");
+                logger.LogInternalInformation("Cancellation requested, stopping the scanner.");
                 return;
             }
             uint offset = page * PageSize;
             try
             {
-                logger.LogInformation("Scanning PagerDuty incidents, page {page}", page);
+                logger.LogInternalInformation("Scanning PagerDuty incidents, page {page}", page);
                 var response = await pagerDutyService.GetIncidentsAsync(limit: PageSize, offset: offset);
                 if (response is null || response.Incidents.Count == 0)
                 {
-                    logger.LogInformation("No more incidents to process, stopping the scanner.");
+                    logger.LogInternalInformation("No more incidents to process, stopping the scanner.");
                     return;
                 }
 
@@ -89,7 +90,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error scanning PagerDuty incidents");
+                logger.LogInternalError(ex, "Error scanning PagerDuty incidents");
             }
 
             page++;
@@ -102,20 +103,20 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         {
             if (incidentDocument is null)
             {
-                logger.LogWarning("Incident document is null, skipping notification.");
+                logger.LogInternalWarning("Incident document is null, skipping notification.");
                 return;
             }
 
             if (incidentDocument.Status == "resolved")
             {
-                logger.LogInformation("Incident {incidentId} is resolved, skipping notification.", incidentDocument.Id);
+                logger.LogInternalInformation("Incident {incidentId} is resolved, skipping notification.", incidentDocument.Id);
                 return;
             }
 
             var threadDocument = await GetIncidentThread(incidentDocument.Id);
             if (threadDocument is null)
             {
-                logger.LogInformation("Thread doesn't exist for incident {incidentId}, creating a new one", incidentDocument.Id);
+                logger.LogInternalInformation("Thread doesn't exist for incident {incidentId}, creating a new one", incidentDocument.Id);
                 var title = $"New PagerDuty incident reported: {incidentDocument.Title}";
                 var sb = new StringBuilder();
                 sb.AppendLine($"**Incident ID:** {incidentDocument.Id}\n");
@@ -137,7 +138,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             }
             else
             {
-                logger.LogInformation("Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
+                logger.LogInternalInformation("Thread already exists for incident {incidentId}, checking whether it needs to be updated", incidentDocument.Id);
                 // todo
                 var iterator = container.GetItemLinqQueryable<MessageDocument>()
                     .Where(doc => doc.DocumentType == "Message" && doc.ThreadId == threadDocument.Id)
@@ -154,7 +155,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         existingNotesIds.Add(item);
                     }
                 }
-                logger.LogInformation("Found {existingNotesCount} existing notes for incident {incidentId}", existingNotesIds.Count, incidentDocument.Id);
+                logger.LogInternalInformation("Found {existingNotesCount} existing notes for incident {incidentId}", existingNotesIds.Count, incidentDocument.Id);
 
                 var newNotes = incidentDocument.Notes
                     .Where(note => !existingNotesIds.Contains(note.Id))
@@ -164,13 +165,13 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
 
                 if (newNotes.Count > 0)
                 {
-                    logger.LogInformation("Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
+                    logger.LogInternalInformation("Found {newNotesCount} new notes for incident {incidentId}", newNotes.Count, incidentDocument.Id);
                     await agentInboundCommunicationService.AddNewDiscussionsToIncidentThread(Guid.Parse(threadDocument.Id), newNotes);
-                    logger.LogInformation("Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
+                    logger.LogInternalInformation("Added {newNotesCount} new notes to incident thread {threadId}", newNotes.Count, threadDocument.Id);
                 }
                 else
                 {
-                    logger.LogInformation("No new notes found for incident {incidentId}", incidentDocument.Id);
+                    logger.LogInternalInformation("No new notes found for incident {incidentId}", incidentDocument.Id);
                 }
 
             }
@@ -178,7 +179,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error notifying user about incident {incidentId}", incidentDocument.Id);
+            logger.LogInternalError(ex, "Error notifying user about incident {incidentId}", incidentDocument.Id);
         }
 
     }
@@ -200,7 +201,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             }
             else if (response.Count > 1)
             {
-                logger.LogWarning("Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
+                logger.LogInternalWarning("Multiple threads({threadIds}) found for incident {incidentId}, returning the first one.", string.Join(',', response.Select(t => t.Id)), incidentId);
                 return response.FirstOrDefault();
             }
         }
@@ -217,7 +218,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             if (incidentDocument is null)
             {
                 needsUpsert = true;
-                logger.LogInformation("Creating new incident document by id {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("Creating new incident document by id {incidentId}", incident.IncidentId);
                 incidentDocument = new PagerDutyIncidentDocument(Id: incident.IncidentId, HtmlUrl: incident.HtmlUrl, CreatedAt: incident.CreatedAt, Status: incident.Status, Priority: incident.Priority?.Summary ?? "Not set", Urgency: incident.Urgency ?? "Not set")
                 {
                     Title = incident.Title,
@@ -249,7 +250,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             }
             else
             {
-                logger.LogInformation("Updating existing incident document by id {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("Updating existing incident document by id {incidentId}", incident.IncidentId);
                 if (latestDetails is not null)
                 {
                     if (!string.IsNullOrEmpty(latestDetails.LatestDescription) && incidentDocument.Description != latestDetails.LatestDescription)
@@ -279,18 +280,18 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
             if (needsUpsert)
             {
                 await container.UpsertItemAsync(incidentDocument, new PartitionKey(incident.IncidentId), cancellationToken: cancellationToken);
-                logger.LogInformation("Upserted incident document for PagerDuty incident {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("Upserted incident document for PagerDuty incident {incidentId}", incident.IncidentId);
             }
             else
             {
-                logger.LogInformation("No changes detected for PagerDuty incident {incidentId}", incident.IncidentId);
+                logger.LogInternalInformation("No changes detected for PagerDuty incident {incidentId}", incident.IncidentId);
             }
             return incidentDocument;
 
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error upserting incident document for PagerDuty incident {incidentId}", incident.IncidentId);
+            logger.LogInternalError(ex, "Error upserting incident document for PagerDuty incident {incidentId}", incident.IncidentId);
         }
         return incidentDocument;
     }
@@ -299,7 +300,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
     {
         if (incidentDocument is null)
         {
-            logger.LogWarning("Incident document is null, skipping resource graph update.");
+            logger.LogInternalWarning("Incident document is null, skipping resource graph update.");
             return [];
         }
 
@@ -310,24 +311,24 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                 IncidentId = incident.IncidentId
             };
             var result = await graphDbClient.AddOrUpdateNodeAsync(incidentNode);
-            logger.LogInformation("Upserted incident node for {incidentId}", incident.IncidentId);
+            logger.LogInternalInformation("Upserted incident node for {incidentId}", incident.IncidentId);
 
             if (!string.IsNullOrEmpty(incidentDocument.Description))
             {
                 var relatedResourceIds = await GetRelatedResourceIdsAsync(incidentDocument.Description);
-                logger.LogInformation("Related resource ids to incident {incidentId}: {relatedResourceIds}", incident.IncidentId, string.Join(", ", relatedResourceIds));
+                logger.LogInternalInformation("Related resource ids to incident {incidentId}: {relatedResourceIds}", incident.IncidentId, string.Join(", ", relatedResourceIds));
 
                 foreach (var resourceId in relatedResourceIds)
                 {
                     if (string.IsNullOrEmpty(resourceId))
                     {
-                        logger.LogWarning("Related resource id is null or empty for incident {incidentId}", incident.IncidentId);
+                        logger.LogInternalWarning("Related resource id is null or empty for incident {incidentId}", incident.IncidentId);
                         continue;
                     }
                     var nodeId = await graphDbClient.GetNodeId(resourceId);
                     if (string.IsNullOrEmpty(nodeId))
                     {
-                        logger.LogWarning("{resourceId} related to incident {incidentId} doesn't exist in knowledge graph", resourceId, incident.IncidentId);
+                        logger.LogInternalWarning("{resourceId} related to incident {incidentId} doesn't exist in knowledge graph", resourceId, incident.IncidentId);
                         continue;
                     }
                     var edge = new RelatedToIncidentEdge
@@ -336,14 +337,14 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
                         TargetNodeId = incidentNode.GetNodeId(),
                     };
                     await graphDbClient.AddOrUpdateEdgeAsync(edge);
-                    logger.LogInformation("Added RelatedToIncidentEdge from {resourceId} to {incidentId}", resourceId, incident.IncidentId);
+                    logger.LogInternalInformation("Added RelatedToIncidentEdge from {resourceId} to {incidentId}", resourceId, incident.IncidentId);
                 }
                 return relatedResourceIds;
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error updating resource graph for incident {incidentId}", incident.IncidentId);
+            logger.LogInternalError(ex, "Error updating resource graph for incident {incidentId}", incident.IncidentId);
         }
         return [];
     }
@@ -374,7 +375,7 @@ public class PagerDutyScanner(ILogger<PagerDutyScanner> logger,
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Error getting related resource ids from chat client");
+            logger.LogInternalError(ex, "Error getting related resource ids from chat client");
             return [];
         }
     }

@@ -5,6 +5,7 @@
 using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.Repositories;
+using Agent.Logging;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
@@ -33,7 +34,7 @@ public sealed class InstanceLifetimeService(
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Starting instance lifetime service for instance {InstanceId}", InstanceId);
+        logger.LogInternalInformation("Starting instance lifetime service for instance {InstanceId}", InstanceId);
 
         bool registerResult = await instanceManagementRepository.RegisterWorkerInstanceAsync(new WorkerInstance
         {
@@ -45,12 +46,12 @@ public sealed class InstanceLifetimeService(
 
         if (!registerResult)
         {
-            logger.LogError("Failed to register worker instance {InstanceId}", InstanceId);
+            logger.LogInternalError("Failed to register worker instance {InstanceId}", InstanceId);
 
             throw new Exception("Failed to register worker instance");
         }
 
-        logger.LogInformation("Successfully registered worker instance {InstanceId}", InstanceId);
+        logger.LogInternalInformation("Successfully registered worker instance {InstanceId}", InstanceId);
 
         _instanceLifetimeLoopTimer = new Timer(
             async _ => await InstanceLifetimeLoopAsync(),
@@ -73,7 +74,7 @@ public sealed class InstanceLifetimeService(
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogInformation("Stopping instance lifetime service for instance {InstanceId}", InstanceId);
+        logger.LogInternalInformation("Stopping instance lifetime service for instance {InstanceId}", InstanceId);
 
         _instanceLifetimeLoopTimer?.Change(Timeout.Infinite, 0);
         _leaderLeaseTimer?.Change(Timeout.Infinite, 0);
@@ -87,11 +88,11 @@ public sealed class InstanceLifetimeService(
 
             if (!successFullyReleased)
             {
-                logger.LogWarning("Failed to release leader lease on instance {InstanceId}", InstanceId);
+                logger.LogInternalWarning("Failed to release leader lease on instance {InstanceId}", InstanceId);
             }
             else
             {
-                logger.LogInformation("Successfully released leader lease on instance {InstanceId}", InstanceId);
+                logger.LogInternalInformation("Successfully released leader lease on instance {InstanceId}", InstanceId);
             }
         }
 
@@ -99,12 +100,12 @@ public sealed class InstanceLifetimeService(
 
         if (!unregisterResult)
         {
-            logger.LogError("Failed to unregister worker instance {InstanceId}", InstanceId);
+            logger.LogInternalError("Failed to unregister worker instance {InstanceId}", InstanceId);
 
             throw new Exception("Failed to unregister worker instance");
         }
 
-        logger.LogInformation("Successfully unregistered worker instance {InstanceId}", InstanceId);
+        logger.LogInternalInformation("Successfully unregistered worker instance {InstanceId}", InstanceId);
     }
 
     /// <summary>
@@ -130,7 +131,7 @@ public sealed class InstanceLifetimeService(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error executing instance lifetime loop for instance {InstanceId}", InstanceId);
+                logger.LogInternalError(ex, "Error executing instance lifetime loop for instance {InstanceId}", InstanceId);
             }
             finally
             {
@@ -161,7 +162,7 @@ public sealed class InstanceLifetimeService(
                     }
                     else
                     {
-                        logger.LogWarning("Failed to renew leader lease on instance {InstanceId}", InstanceId);
+                        logger.LogInternalWarning("Failed to renew leader lease on instance {InstanceId}", InstanceId);
                         _isLeader = false;
                     }
                 }
@@ -173,7 +174,7 @@ public sealed class InstanceLifetimeService(
                     {
                         _isLeader = true;
 
-                        logger.LogInformation("Acquired leader lease on instance {InstanceId}", InstanceId);
+                        logger.LogInternalInformation("Acquired leader lease on instance {InstanceId}", InstanceId);
                     }
                 }
 
@@ -188,7 +189,7 @@ public sealed class InstanceLifetimeService(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error executing leader lease loop for instance {InstanceId}", InstanceId);
+                logger.LogInternalError(ex, "Error executing leader lease loop for instance {InstanceId}", InstanceId);
             }
             finally
             {
@@ -220,7 +221,7 @@ public sealed class InstanceLifetimeService(
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "Error updating processing service on instance {InstanceId}", InstanceId);
+                logger.LogInternalError(ex, "Error updating processing service on instance {InstanceId}", InstanceId);
             }
             finally
             {

@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.MetaAgent;
 using Microsoft.DurableTask;
@@ -62,7 +63,7 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Function tool invocation failed.");
+            _logger.LogInternalError(ex, "Function tool invocation failed.");
 
             // Handle all errors with a single catch
             string errorMessage = $"Error executing {input.FunctionCallContent?.Name ?? "function"}: {ex.Message}";

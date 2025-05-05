@@ -6,6 +6,7 @@ using Microsoft.Extensions.AI;
 using AIChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.Logging;
 using Microsoft.DurableTask.Client;
@@ -68,7 +69,7 @@ public class ThreadService
         {
             string failureMessage = $"Orchestration id {orchestrationInstanceId} mapped to thread {threadId} " +
                 $"has failed with runtime status {existingOrchestration.RuntimeStatus}.";
-            _logger.LogWarning(failureMessage);
+            _logger.LogInternalWarning(failureMessage);
 
             await _mappingManager.RemoveMappingAsync(threadId.ToString(), orchestrationInstanceId);
 
@@ -80,12 +81,12 @@ public class ThreadService
                 var finalState = existingOrchestration.ReadCustomStatusAs<string>();
                 if (!string.IsNullOrEmpty(finalState))
                 {
-                    _logger.LogInformation($"Final state of orchestration {orchestrationInstanceId}: {finalState}");
+                    _logger.LogInternalInformation($"Final state of orchestration {orchestrationInstanceId}: {finalState}");
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error reading final state of orchestration {orchestrationInstanceId}");
+                _logger.LogInternalError(ex, $"Error reading final state of orchestration {orchestrationInstanceId}");
             }
 
             return true;

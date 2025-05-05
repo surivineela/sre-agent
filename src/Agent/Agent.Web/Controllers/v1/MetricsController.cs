@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using Action = Agent.Core.Models.Api.v1.Action;
@@ -35,7 +36,7 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("actionSeverity")]
         public async Task<ActionResult<actionSeverityMetrics>> GetActionSeverityMetrics([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
-            _logger.LogInformation("Getting action severity metrics from {StartTime} to {EndTime}", startTime, endTime);
+            _logger.LogInternalInformation("Getting action severity metrics from {StartTime} to {EndTime}", startTime, endTime);
             
             // Get all actions across all threads to calculate metrics
             var actions = await _repository.GetAllActionsAsync();
@@ -69,7 +70,7 @@ namespace Agent.Web.Controllers.v1
         [HttpGet("actionStatus")]
         public async Task<ActionResult<actionStatusMetrics>> GetActionStatusMetrics([FromQuery] DateTime? startTime, [FromQuery] DateTime? endTime)
         {
-            _logger.LogInformation("Getting status metrics for actions");
+            _logger.LogInternalInformation("Getting status metrics for actions");
 
             // Get all actions across all threads
             var actions = await _repository.GetAllActionsAsync();
@@ -106,7 +107,7 @@ namespace Agent.Web.Controllers.v1
         {
             try
             {
-                _logger.LogInformation("Fetching all incidents from Cosmos DB.");
+                _logger.LogInternalInformation("Fetching all incidents from Cosmos DB.");
 
                 // Get all pager duty incidents
                 var pagerDutyIncidents = await _incidentRepository.GetAllPagerDutyIncidentsAsync();
@@ -150,7 +151,7 @@ namespace Agent.Web.Controllers.v1
                         status == AzMonIncidentStatus.Closed);
                 }
 
-                _logger.LogInformation("Successfully calculated incident status metrics.");
+                _logger.LogInternalInformation("Successfully calculated incident status metrics.");
 
                 // Return the metrics
                 return Ok(new IncidentStatusMetrics
@@ -162,7 +163,7 @@ namespace Agent.Web.Controllers.v1
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while fetching incident status metrics.");
+                _logger.LogInternalError(ex, "Error occurred while fetching incident status metrics.");
                 return StatusCode(500, "An error occurred while fetching incident status metrics.");
             }
         }

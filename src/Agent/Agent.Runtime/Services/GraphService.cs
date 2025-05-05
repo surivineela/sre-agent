@@ -8,6 +8,7 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
+using Agent.Logging;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
@@ -60,7 +61,7 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<dynamic>> QuerySubscriptionsAsync()
     {
-        _logger.LogInformation("Querying subscriptions from graph database");
+        _logger.LogInternalInformation("Querying subscriptions from graph database");
         string query = $@"g.V().has('resourceType', '{SubscriptionNode.Type}')
                          .project('name', 'id')
                          .by('subscriptionName')
@@ -90,7 +91,7 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId, string? resourceType = null)
     {
-        _logger.LogInformation("Querying app groups for subscription {subscriptionId}", subscriptionId);
+        _logger.LogInternalInformation("Querying app groups for subscription {subscriptionId}", subscriptionId);
         if (string.IsNullOrWhiteSpace(subscriptionId))
         {
             throw new ArgumentException("Subscription ID cannot be null or empty", nameof(subscriptionId));
@@ -144,7 +145,7 @@ public class GraphService : IGraphService
                         )";
             }
 
-            _logger.LogInformation("Found {count} AKS resources, fetching their deployments and statefulsets", aksResources.Count);
+            _logger.LogInternalInformation("Found {count} AKS resources, fetching their deployments and statefulsets", aksResources.Count);
 
             var allResults = new List<dynamic>(azureResourceApps);
 
@@ -154,10 +155,10 @@ public class GraphService : IGraphService
                 string aksResourceId = GetFirstValueAsString(aksResource["properties"] as IDictionary<string, object>, "resourceId");
                 if (string.IsNullOrWhiteSpace(aksResourceId))
                 {
-                    _logger.LogWarning("AKS resource ID is null or empty, skipping query for deployments and statefulsets.");
+                    _logger.LogInternalWarning("AKS resource ID is null or empty, skipping query for deployments and statefulsets.");
                     continue;
                 }
-                _logger.LogInformation("Querying deployments and statefulsets for AKS clusterResourceId {resourceId}", aksResourceId);
+                _logger.LogInternalInformation("Querying deployments and statefulsets for AKS clusterResourceId {resourceId}", aksResourceId);
 
                 // Query to get deployments and statefulsets for this AKS cluster
                 string k8sQuery = $@"g.V().has('clusterResourceId', '{aksResourceId}')
@@ -172,7 +173,7 @@ public class GraphService : IGraphService
 
                 if (k8sResources != null && k8sResources.Any())
                 {
-                    _logger.LogInformation("Found {count} deployments/statefulsets for AKS resource {resourceId}",
+                    _logger.LogInternalInformation("Found {count} deployments/statefulsets for AKS resource {resourceId}",
                         k8sResources.Count, aksResourceId);
                     allResults.AddRange(k8sResources);
                 }
@@ -321,16 +322,16 @@ public class GraphService : IGraphService
 
     public async Task<List<ArmResourceNode>> GetAllResourceNodes()
     {
-        _logger.LogInformation("Fetching all resource nodes from the graph database.");
+        _logger.LogInternalInformation("Fetching all resource nodes from the graph database.");
         var allResourceNodes = await _graphDatabaseClient.Query("g.V().project('resourceType', 'resourceName','resourceGroupName','subscriptionId', 'resourceId', 'properties').by(coalesce(values('resourceType'), constant('MISSING'))).by(coalesce(values('resourceName'), constant('MISSING'))).by(coalesce(values('resourceGroupName'), constant('MISSING'))).by(coalesce(values('subscriptionId'), constant('MISSING'))).by(coalesce(values('resourceId'), constant('MISSING'))).by(valueMap())");
 
         if (allResourceNodes is null || allResourceNodes.Count == 0)
         {
-            _logger.LogWarning("No resource nodes found in the graph database.");
+            _logger.LogInternalWarning("No resource nodes found in the graph database.");
             return [];
         }
 
-        _logger.LogInformation($"Fetched {allResourceNodes.Count} resource nodes from the graph database.");
+        _logger.LogInternalInformation($"Fetched {allResourceNodes.Count} resource nodes from the graph database.");
 
         var resources = new List<ArmResourceNode>();
         foreach (var node in allResourceNodes)
@@ -381,7 +382,7 @@ public class GraphService : IGraphService
 
     public async Task<ResultSet<dynamic>> GetGraphResourceAsync(string resourceId)
     {
-        _logger.LogInformation("Querying graph resource {resourceId}", resourceId);
+        _logger.LogInternalInformation("Querying graph resource {resourceId}", resourceId);
         string query = $@"g.V().has('id', '{resourceId}')
                     .project('id', 'name', 'type', 'properties')
                     .by(id())
@@ -398,7 +399,7 @@ public class GraphService : IGraphService
 
                 if (!dict.TryGetValue("properties", out var propertiesObj) || propertiesObj == null)
                 {
-                    _logger.LogWarning("Properties not found or null");
+                    _logger.LogInternalWarning("Properties not found or null");
                     continue;
                 }
 
@@ -454,7 +455,7 @@ public class GraphService : IGraphService
                     }
                     catch (Exception ex)
                     {
-                        _logger.LogWarning(ex, "Failed to get dashboard URL from API, using base URL");
+                        _logger.LogInternalWarning(ex, "Failed to get dashboard URL from API, using base URL");
                     }
 
                     // Add query parameters to URL
@@ -471,7 +472,7 @@ public class GraphService : IGraphService
             }
             catch (Exception ex)
             {
-                _logger.LogWarning(ex, "Failed to add dashboard URL to result");
+                _logger.LogInternalWarning(ex, "Failed to add dashboard URL to result");
                 // Ensure the property exists even if there's an error
                 try
                 {
@@ -538,7 +539,7 @@ public class GraphService : IGraphService
             throw new ArgumentException("Properties cannot be null or empty", nameof(properties));
         }
 
-        _logger.LogInformation("Updating properties for resource {resourceId}", resourceId);
+        _logger.LogInternalInformation("Updating properties for resource {resourceId}", resourceId);
 
         // check if the vertex exists
         string checkQuery = $"g.V().has('id', '{resourceId}').count()";
@@ -547,7 +548,7 @@ public class GraphService : IGraphService
 
         if (checkResult == null || !checkResult.Any() || Convert.ToInt64(checkResult.First()) == 0)
         {
-            _logger.LogWarning($"Resource {resourceId} not found in the graph database");
+            _logger.LogInternalWarning($"Resource {resourceId} not found in the graph database");
             throw new KeyNotFoundException($"Resource with ID {resourceId} not found");
         }
 
@@ -570,12 +571,12 @@ public class GraphService : IGraphService
         try
         {
             var result = await _graphDatabaseClient.Query(updateQuery);
-            _logger.LogInformation("Successfully updated properties for resource {resourceId}", resourceId);
+            _logger.LogInternalInformation("Successfully updated properties for resource {resourceId}", resourceId);
             return result;
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update properties for resource {resourceId}", resourceId);
+            _logger.LogInternalError(ex, "Failed to update properties for resource {resourceId}", resourceId);
             throw;
         }
     }

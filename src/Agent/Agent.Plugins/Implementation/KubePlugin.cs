@@ -28,6 +28,7 @@ using Agent.Core.Configuration;
 using Agent.Prometheus;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Core.Services;
+using Agent.Logging;
 
 namespace Agent.Plugins
 {
@@ -146,7 +147,7 @@ namespace Agent.Plugins
 
         public async Task<string> DiagnoseAKSAppAsync(string resourceId, string _namespace, string kind, string name)
         {
-            _logger?.LogInformation("Diagnosing {Kind} {Name} in namespace {Namespace}", kind, name, _namespace);
+            _logger?.LogInternalInformation("Diagnosing {Kind} {Name} in namespace {Namespace}", kind, name, _namespace);
             var diagnosis = new StringBuilder();
             var tasks = new List<Task>();
 
@@ -193,7 +194,7 @@ namespace Agent.Plugins
 
             foreach (var pod in podList.Split(", ").Where(p => !string.IsNullOrEmpty(p)))
             {
-                _logger.LogInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
+                _logger.LogInternalInformation("Diagnosing pod: {Pod} for component: {Name}", pod, name);
                 podResults[pod] = new Dictionary<string, string>();
                 podTasks.Add(GetKubePodSpecStatusAsync(resourceId, _namespace, pod)
                     .ContinueWith(task => podResults[pod]["PodYaml"] = task.Result));
@@ -387,7 +388,7 @@ namespace Agent.Plugins
                 }
 
                 // Log the current replica count before scaling
-                _logger?.LogInformation(
+                _logger?.LogInternalInformation(
                     "Scaling deployment {Deployment} in namespace {Namespace} from {CurrentReplicas} to {TargetReplicas} replicas",
                     deployment,
                     _namespace,
@@ -418,7 +419,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error scaling deployment {Deployment} in namespace {Namespace}", deployment, _namespace);
+                _logger?.LogInternalError(ex, "Error scaling deployment {Deployment} in namespace {Namespace}", deployment, _namespace);
                 return $"Error scaling deployment: {ex.Message}";
             }
         }
@@ -443,7 +444,7 @@ namespace Agent.Plugins
                 }
 
                 // Log the current replica count before scaling
-                _logger?.LogInformation(
+                _logger?.LogInternalInformation(
                     "Scaling statefulset {Deployment} in namespace {Namespace} from {CurrentReplicas} to {TargetReplicas} replicas",
                     deployment,
                     _namespace,
@@ -474,7 +475,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error scaling Statefulset {Deployment} in namespace {Namespace}", deployment, _namespace);
+                _logger?.LogInternalError(ex, "Error scaling Statefulset {Deployment} in namespace {Namespace}", deployment, _namespace);
                 return $"Error scaling Statefulset: {ex.Message}";
             }
         }
@@ -537,7 +538,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error summarizing logs with chat service");
+                _logger?.LogInternalError(ex, "Error summarizing logs with chat service");
                 return rawLogs; // Return raw logs if summarization fails
             }
         }
@@ -602,7 +603,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error listing custom resources");
+                _logger?.LogInternalError(ex, "Error listing custom resources");
                 return $"Error listing custom resources: {ex.Message}";
             }
         }
@@ -619,13 +620,13 @@ namespace Agent.Plugins
             if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
             {
                 var errorResponse = $"Failed to build a valid PromQL query for metric type '{metricsType}' in namespace '{_namespace}', workload type '{kind}', and workload name '{name}'";
-                _logger?.LogWarning(
+                _logger?.LogInternalWarning(
                    errorResponse,
                     metricsType, _namespace, kind, name);
                 return errorResponse;
             }
 
-            _logger?.LogInformation(
+            _logger?.LogInternalInformation(
                 "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
                 _prometheusQueryEndpoint, query);
 
@@ -673,7 +674,7 @@ namespace Agent.Plugins
             }
 
             // Default to current time if parsing fails
-            _logger?.LogWarning("Failed to parse time string: {TimeDate}. Using current time.", timeDate);
+            _logger?.LogInternalWarning("Failed to parse time string: {TimeDate}. Using current time.", timeDate);
             return DateTime.UtcNow;
         }
 
@@ -768,7 +769,7 @@ namespace Agent.Plugins
                         }
                         catch (Exception ex)
                         {
-                            _logger?.LogError(ex, $"Error getting custom resource {kind}/{name} in namespace {_namespace}");
+                            _logger?.LogInternalError(ex, $"Error getting custom resource {kind}/{name} in namespace {_namespace}");
                             return $"Error getting custom resource events: {ex.Message}";
                         }
                         break;
@@ -791,7 +792,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"Error getting events for {kind}, {name}");
+                _logger?.LogInternalError(ex, $"Error getting events for {kind}, {name}");
                 return $"Error getting events for {kind}, {name}: {ex.Message}";
             }
         }
@@ -843,7 +844,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"Error getting spec status for {kind}, {name} ");
+                _logger?.LogInternalError(ex, $"Error getting spec status for {kind}, {name} ");
                 return $"Error getting custom resource YAML: {ex.Message}";
             }
         }
@@ -886,13 +887,13 @@ namespace Agent.Plugins
                 {
 
                     var errorResponse = $"Failed to build a valid PromQL query for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'";
-                    _logger?.LogWarning(
+                    _logger?.LogInternalWarning(
                         errorResponse,
                         metricType, _namespace, workloadType, workloadName);
                     return errorResponse;
                 }
 
-                _logger?.LogInformation(
+                _logger?.LogInternalInformation(
                     "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
                     _prometheusQueryEndpoint, query);
 
@@ -903,7 +904,7 @@ namespace Agent.Plugins
             }
             catch (HttpRequestException httpEx)
             {
-                _logger?.LogError(
+                _logger?.LogInternalError(
                     httpEx,
                     "HTTP error while querying Azure Monitor Prometheus for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                     metricType, _namespace, workloadType, workloadName);
@@ -911,7 +912,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(
+                _logger?.LogInternalError(
                     ex,
                     "Unexpected error while fetching Prometheus metrics for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                     metricType, _namespace, workloadType, workloadName);
@@ -1131,17 +1132,17 @@ namespace Agent.Plugins
             // 1. Validate Inputs
             if (minutesAgo <= 0)
             {
-                _logger?.LogWarning("minutesAgo must be positive. Received {MinutesAgo} for namespace {Namespace}", minutesAgo, _namespace);
+                _logger?.LogInternalWarning("minutesAgo must be positive. Received {MinutesAgo} for namespace {Namespace}", minutesAgo, _namespace);
                 return $"Invalid input: minutesAgo must be a positive number (received {minutesAgo}).";
             }
             if (string.IsNullOrWhiteSpace(AKSClusterResourceId))
             {
-                _logger?.LogWarning("AKSClusterResourceId cannot be null or empty when checking namespace {Namespace}", _namespace);
+                _logger?.LogInternalWarning("AKSClusterResourceId cannot be null or empty when checking namespace {Namespace}", _namespace);
                 return "Invalid input: AKSClusterResourceId cannot be empty.";
             }
             if (string.IsNullOrWhiteSpace(_namespace))
             {
-                _logger?.LogWarning("Namespace cannot be null or empty.");
+                _logger?.LogInternalWarning("Namespace cannot be null or empty.");
                 return "Invalid input: Namespace cannot be empty.";
             }
 
@@ -1155,7 +1156,7 @@ namespace Agent.Plugins
                 IKubernetes client = await GetOrCreateClientAsync(AKSClusterResourceId); // Assuming GetOrCreateClientAsync exists
 
                 // 3. Check Deployments in the specified namespace
-                _logger?.LogInformation("Checking for Deployments updated since {CutoffTime} in namespace: {Namespace}",
+                _logger?.LogInternalInformation("Checking for Deployments updated since {CutoffTime} in namespace: {Namespace}",
                     cutoffTime.ToString("o"), _namespace);
 
                 V1DeploymentList deploymentList;
@@ -1165,12 +1166,12 @@ namespace Agent.Plugins
                 }
                 catch (Microsoft.Rest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
-                    _logger?.LogWarning("Namespace '{TargetNamespace}' not found when checking Deployments.", _namespace);
+                    _logger?.LogInternalWarning("Namespace '{TargetNamespace}' not found when checking Deployments.", _namespace);
                     return $"Namespace '{_namespace}' not found."; // Namespace doesn't exist, return error
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "Error listing Deployments in namespace {Namespace}", _namespace);
+                    _logger?.LogInternalError(ex, "Error listing Deployments in namespace {Namespace}", _namespace);
                     return $"Error listing Deployments in namespace '{_namespace}': {ex.Message}";
                 }
 
@@ -1211,7 +1212,7 @@ namespace Agent.Plugins
                 }
 
                 // 4. Check StatefulSets in the specified namespace
-                _logger?.LogInformation("Checking for StatefulSets updated since {CutoffTime} in namespace: {Namespace}",
+                _logger?.LogInternalInformation("Checking for StatefulSets updated since {CutoffTime} in namespace: {Namespace}",
                     cutoffTime.ToString("o"), _namespace);
 
                 V1StatefulSetList statefulSetList;
@@ -1222,13 +1223,13 @@ namespace Agent.Plugins
                 catch (Microsoft.Rest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 {
                     // Namespace was likely already reported as not found from Deployment check, but log anyway.
-                    _logger?.LogWarning("Namespace '{TargetNamespace}' not found when checking StatefulSets (already checked for Deployments).", _namespace);
+                    _logger?.LogInternalWarning("Namespace '{TargetNamespace}' not found when checking StatefulSets (already checked for Deployments).", _namespace);
 
                     statefulSetList = new V1StatefulSetList(items: new List<V1StatefulSet>()); // Assume empty list if somehow missed earlier
                 }
                 catch (Exception ex)
                 {
-                    _logger?.LogError(ex, "Error listing StatefulSets in namespace {Namespace}", _namespace);
+                    _logger?.LogInternalError(ex, "Error listing StatefulSets in namespace {Namespace}", _namespace);
                     return $"Error listing StatefulSets in namespace '{_namespace}': {ex.Message}";
                 }
 
@@ -1269,7 +1270,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error retrieving recently updated workloads for resourceId {ResourceId} and namespace {Namespace}", AKSClusterResourceId, _namespace);
+                _logger?.LogInternalError(ex, "Error retrieving recently updated workloads for resourceId {ResourceId} and namespace {Namespace}", AKSClusterResourceId, _namespace);
                 // Return an error message string
                 return $"An error occurred while checking for recently updated workloads in namespace '{_namespace}': {ex.Message}";
             }
@@ -1341,7 +1342,7 @@ namespace Agent.Plugins
 
                 // Default case for custom queries or other unhandled metric types
                 default:
-                    _logger?.LogWarning(
+                    _logger?.LogInternalWarning(
                         "No query configured for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                         metricType, _namespace, workloadType, workloadName);
 
@@ -1417,7 +1418,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error fetching API server metrics for AKS cluster {ResourceId}", resourceId);
+                _logger?.LogInternalError(ex, "Error fetching API server metrics for AKS cluster {ResourceId}", resourceId);
                 return $"Error retrieving API server metrics: {ex.Message}";
             }
         }
@@ -1469,7 +1470,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "Error fetching etcd metrics for AKS cluster {ResourceId}", resourceId);
+                _logger?.LogInternalError(ex, "Error fetching etcd metrics for AKS cluster {ResourceId}", resourceId);
                 return $"Error retrieving etcd metrics: {ex.Message}";
             }
         }

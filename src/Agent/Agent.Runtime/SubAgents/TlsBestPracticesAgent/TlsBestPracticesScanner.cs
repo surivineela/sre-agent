@@ -7,6 +7,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Grpc.Core;
 using Microsoft.DurableTask.Client;
@@ -53,7 +54,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
 
             if (runningAgents.Count > 0)
             {
-                _logger.LogInformation("TlsBestPractices agent already running, skipping the scan.");
+                _logger.LogInternalInformation("TlsBestPractices agent already running, skipping the scan.");
                 return;
             }
 
@@ -102,7 +103,7 @@ namespace Agent.Runtime.SubAgents.TlsBestPracticesAgent
                     }
                     catch (RpcException ex)
                     {
-                        _logger.LogError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
+                        _logger.LogInternalError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
                         await Task.Delay(1000, cancellationToken);
                     }
                 }

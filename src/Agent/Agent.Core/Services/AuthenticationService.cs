@@ -3,6 +3,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using Azure.Core;
+using Agent.Logging;
 using Azure.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -207,7 +208,7 @@ public class AuthenticationService : IAuthenticationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse access token.");
+            _logger.LogInternalError(ex, "Failed to parse access token.");
             // blindly set expiration to 1 hour later
             accessToken = new AccessToken(token, DateTimeOffset.UtcNow.AddHours(1));
         }

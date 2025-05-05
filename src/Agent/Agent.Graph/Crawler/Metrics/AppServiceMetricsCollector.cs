@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -23,14 +24,14 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
     {
         if (gnode is not ArmResourceNode node)
         {
-            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
+            _logger.LogInternalWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
             return new AppHealthInfo { };
         }
         var resourceId = node.GetNodeId();
 
         if (resourceId == null)
         {
-            _logger.LogWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
+            _logger.LogInternalWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
             return new AppHealthInfo { };
         }
 
@@ -61,7 +62,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to get metrics for the App Service {node.GetNodeId()}");
+            _logger.LogInternalError(ex, $"Failed to get metrics for the App Service {node.GetNodeId()}");
         }
 
         return new AppHealthInfo { };
@@ -69,7 +70,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetAvgCpuUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average CPU usage for App Service: {resourceId}");
+        _logger.LogInternalInformation($"Getting average CPU usage for App Service: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -89,14 +90,14 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get CPU metrics for App Service: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get CPU metrics for App Service: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetAvgMemoryUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average Memory usage for App Service: {resourceId}");
+        _logger.LogInternalInformation($"Getting average Memory usage for App Service: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -112,14 +113,14 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get memory metrics for App Service: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get memory metrics for App Service: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetAvgRequestCountAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average request count for App Service: {resourceId}");
+        _logger.LogInternalInformation($"Getting average request count for App Service: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -135,14 +136,14 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get request metrics for App Service: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get request metrics for App Service: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetAvailabilityAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting availability for App Service: {resourceId}");
+        _logger.LogInternalInformation($"Getting availability for App Service: {resourceId}");
         try
         {
             // For App Service, we calculate availability as the percentage of successful requests
@@ -169,7 +170,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get availability metrics for App Service: {resourceId}. Will return 100% (default).");
+            _logger.LogInternalWarning(ex, $"Failed to get availability metrics for App Service: {resourceId}. Will return 100% (default).");
             return 100;
         }
     }

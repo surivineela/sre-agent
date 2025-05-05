@@ -5,6 +5,7 @@
 using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Azure;
 using Azure.Core;
@@ -90,7 +91,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error retrieving role assignments for resource {resourceId} and principal {principalId}");
+            _logger.LogInternalError(ex, $"Error retrieving role assignments for resource {resourceId} and principal {principalId}");
             return $"ERROR: Failed to retrieve role assignments: {ex.Message}";
         }
     }
@@ -174,7 +175,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error adding role assignment for resource {ResourceId}, principal {PrincipalId}, and role {RoleName}", resourceId, principalId, roleName);
+            _logger.LogInternalError(ex, "Error adding role assignment for resource {ResourceId}, principal {PrincipalId}, and role {RoleName}", resourceId, principalId, roleName);
             return $"ERROR: Failed to add role assignment: {ex.Message}";
         }
     }
@@ -237,7 +238,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error removing role assignment for resource {ResourceId}, principal {PrincipalId}, and role {RoleName}", resourceId, principalId, roleName);
+            _logger.LogInternalError(ex, "Error removing role assignment for resource {ResourceId}, principal {PrincipalId}, and role {RoleName}", resourceId, principalId, roleName);
             return $"ERROR: Failed to remove role assignment: {ex.Message}";
         }
     }
@@ -299,7 +300,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error checking role assignment for resource {resourceId}, principal {principalId}, and role {roleName}");
+            _logger.LogInternalError(ex, $"Error checking role assignment for resource {resourceId}, principal {principalId}, and role {roleName}");
             return $"ERROR: Failed to check role assignment: {ex.Message}";
         }
     }
@@ -349,7 +350,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting role details for role name {RoleName}", roleName);
+            _logger.LogInternalError(ex, "Error getting role details for role name {RoleName}", roleName);
             return string.Empty;
         }
     }
@@ -390,7 +391,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting role definition ID for role name {RoleName}", roleName);
+            _logger.LogInternalError(ex, "Error getting role definition ID for role name {RoleName}", roleName);
             return string.Empty;
         }
     }
@@ -409,13 +410,13 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
 
             if (string.IsNullOrWhiteSpace(roleDefinition.Value.Data.RoleName))
             {
-                _logger.LogWarning("Role name is empty for role definition ID {RoleDefinitionId}", roleDefinitionId);
+                _logger.LogInternalWarning("Role name is empty for role definition ID {RoleDefinitionId}", roleDefinitionId);
             }
             return roleDefinition.Value.Data.RoleName ?? "Unknown Role";
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error getting role name from definition ID {RoleDefinitionId}", roleDefinitionId);
+            _logger.LogInternalError(ex, "Error getting role name from definition ID {RoleDefinitionId}", roleDefinitionId);
 
             if (!string.IsNullOrWhiteSpace(resourceId))
             {
@@ -425,13 +426,13 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                     var resourceLevelRoleDefinition = await resource.GetAuthorizationRoleDefinitionAsync(roleDefResourceId);
                     if (string.IsNullOrWhiteSpace(resourceLevelRoleDefinition.Value.Data.RoleName))
                     {
-                        _logger.LogWarning("Role name is empty for role definition ID {resourceLevelRoleDefinition}", resourceLevelRoleDefinition);
+                        _logger.LogInternalWarning("Role name is empty for role definition ID {resourceLevelRoleDefinition}", resourceLevelRoleDefinition);
                     }
                     return resourceLevelRoleDefinition.Value.Data.RoleName ?? "Unknown Role";
                 }
                 catch (Exception innerEx)
                 {
-                    _logger.LogError(innerEx, "Error getting role name from definition ID {RoleDefinitionId} at resource level", roleDefinitionId);
+                    _logger.LogInternalError(innerEx, "Error getting role name from definition ID {RoleDefinitionId} at resource level", roleDefinitionId);
                 }
             } 
 

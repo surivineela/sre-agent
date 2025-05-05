@@ -8,6 +8,7 @@ using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.Core;
@@ -89,10 +90,10 @@ namespace Agent.Plugins.Implementation
 
         public async Task<RemediationResult> CollectMemoryDump(string resourceId)
         {
-            _logger?.LogInformation("[CollectMemoryDump] Starting memory dump collection for resource: {ResourceId}", resourceId);
+            _logger?.LogInternalInformation("[CollectMemoryDump] Starting memory dump collection for resource: {ResourceId}", resourceId);
             try
             {
-                _logger?.LogInformation($"[collect_memory_dump] Invoked with resourceId: {resourceId}");
+                _logger?.LogInternalInformation($"[collect_memory_dump] Invoked with resourceId: {resourceId}");
                 var dumpPath = await _armHelper.TakeMemoryDumpAsync(resourceId);
 
                 return new RemediationResult(
@@ -106,7 +107,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "[CollectMemoryDump] Error during memory dump collection for resource {ResourceId}: {ErrorMessage}",
+                _logger?.LogInternalError(ex, "[CollectMemoryDump] Error during memory dump collection for resource {ResourceId}: {ErrorMessage}",
                     resourceId, ex.Message);
                 return new RemediationResult(
                     Success: false,
@@ -121,7 +122,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger?.LogInformation($"[restart_webapp] Invoked with resourceId: {resourceId}");
+                _logger?.LogInternalInformation($"[restart_webapp] Invoked with resourceId: {resourceId}");
 
                 var httpClient = new HttpClient();
                 var token = await GetAccessTokenAsync();
@@ -154,20 +155,20 @@ namespace Agent.Plugins.Implementation
 
         public async Task<RemediationResult> ScaleAppServicePlanVertically(string resourceId)
         {
-            _logger?.LogInformation("[ScaleAppServicePlanVertically] Starting vertical scaling for resource: {ResourceId}", resourceId);
+            _logger?.LogInternalInformation("[ScaleAppServicePlanVertically] Starting vertical scaling for resource: {ResourceId}", resourceId);
             try
             {
                 // Get App Service Plan ID from Web App
                 var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
-                _logger?.LogInformation("[ScaleAppServicePlanVertically] Retrieved App Service Plan ID: {AppServicePlanId}", appServicePlanId);
+                _logger?.LogInternalInformation("[ScaleAppServicePlanVertically] Retrieved App Service Plan ID: {AppServicePlanId}", appServicePlanId);
 
                 // Get current SKU
                 var currentSku = await _armHelper.GetCurrentSkuAsync(appServicePlanId);
-                _logger?.LogInformation("[ScaleAppServicePlanVertically] Current SKU: {CurrentSku}", currentSku.Name);
+                _logger?.LogInternalInformation("[ScaleAppServicePlanVertically] Current SKU: {CurrentSku}", currentSku.Name);
 
                 // Get next SKU in progression
                 var targetSku = ArmHelper.GetNextSku(currentSku);
-                _logger?.LogInformation("[ScaleAppServicePlanVertically] Target SKU for scaling: {TargetSku}", targetSku.Name);
+                _logger?.LogInternalInformation("[ScaleAppServicePlanVertically] Target SKU for scaling: {TargetSku}", targetSku.Name);
 
                 // Perform scaling operation
                 var success = await _armHelper.ScaleUpAppServicePlanByNameAsync(
@@ -176,11 +177,11 @@ namespace Agent.Plugins.Implementation
 
                 if (success)
                 {
-                    _logger?.LogInformation("[ScaleAppServicePlanVertically] Successfully scaled to {TargetSku}", targetSku.Name);
+                    _logger?.LogInternalInformation("[ScaleAppServicePlanVertically] Successfully scaled to {TargetSku}", targetSku.Name);
                 }
                 else
                 {
-                    _logger?.LogError("[ScaleAppServicePlanVertically] Failed to scale to {TargetSku}", targetSku.Name);
+                    _logger?.LogInternalError("[ScaleAppServicePlanVertically] Failed to scale to {TargetSku}", targetSku.Name);
                 }
 
                 return new RemediationResult(
@@ -192,7 +193,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, "[ScaleAppServicePlanVertically] Error during scaling for resource {ResourceId}: {ErrorMessage}",
+                _logger?.LogInternalError(ex, "[ScaleAppServicePlanVertically] Error during scaling for resource {ResourceId}: {ErrorMessage}",
                     resourceId, ex.Message);
                 return new RemediationResult(
                     Success: false,
@@ -207,7 +208,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger?.LogInformation($"[possible_next_sku] Invoked with resourceId: {resourceId}, direction: {direction}, currentSku: {currentSku}");
+                _logger?.LogInternalInformation($"[possible_next_sku] Invoked with resourceId: {resourceId}, direction: {direction}, currentSku: {currentSku}");
                 var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
 
                 // Validate current SKU exists
@@ -301,7 +302,7 @@ namespace Agent.Plugins.Implementation
                             {
                                 if (container.Data.PublicAccess != StoragePublicAccessType.None)
                                 {
-                                    _logger.LogInformation($"Disabling public access to container: {container.Data.Name}");
+                                    _logger.LogInternalInformation($"Disabling public access to container: {container.Data.Name}");
                                     container.Data.PublicAccess = StoragePublicAccessType.None;
                                     await container.UpdateAsync(container.Data);
                                 }
@@ -324,7 +325,7 @@ namespace Agent.Plugins.Implementation
                     bool desiredState = featureState == FeatureState.Enabled;
                     if (desiredState != resource.Data.AllowSharedKeyAccess)
                     {
-                        _logger?.LogInformation($"Setting shared key access to {desiredState} for storage account");
+                        _logger?.LogInternalInformation($"Setting shared key access to {desiredState} for storage account");
                         await _armHelper.SetStorageAccountSharedKeySupportAsync(resourceId, featureState);
                     }
                 });
@@ -338,7 +339,7 @@ namespace Agent.Plugins.Implementation
                 fetchResourceFunc: _armHelper.GetCosmosDbAccountAsync,
                 remediationActionFunc: async (resource) =>
                 {
-                    _logger?.LogInformation($"Setting local auth support for CosmosDb");
+                    _logger?.LogInternalInformation($"Setting local auth support for CosmosDb");
                     await _armHelper.SetCosmosDbLocalAuthSupport(resourceId, featureState);
                 });
         }
@@ -351,7 +352,7 @@ namespace Agent.Plugins.Implementation
                 fetchResourceFunc: _armHelper.GetEventHubAccountAsync,
                 remediationActionFunc: async (resource) =>
                 {
-                    _logger?.LogInformation($"Setting local auth support for Event Hub");
+                    _logger?.LogInternalInformation($"Setting local auth support for Event Hub");
                     await _armHelper.SetEventHubLocalAuthSupport(resourceId, featureState);
                 });
         }
@@ -364,7 +365,7 @@ namespace Agent.Plugins.Implementation
                 fetchResourceFunc: _armHelper.GetServiceBusAccountAsync,
                 remediationActionFunc: async (resource) =>
                 {
-                    _logger?.LogInformation($"Setting local auth support for Service Bus");
+                    _logger?.LogInternalInformation($"Setting local auth support for Service Bus");
                     await _armHelper.SetServiceBusLocalAuthSupport(resourceId, featureState);
                 });
         }
@@ -377,15 +378,15 @@ namespace Agent.Plugins.Implementation
                 fetchResourceFunc: _armHelper.GetSqlServerAsync,
                 remediationActionFunc: async (resource) =>
                 {
-                    _logger?.LogInformation($"Setting local auth support for Sql Server");
+                    _logger?.LogInternalInformation($"Setting local auth support for Sql Server");
                     if(resource.Data.Administrators?.AdministratorType == SqlAdministratorType.ActiveDirectory)
                     {
-                        _logger?.LogInformation($"Setting local auth support for Sql Server");
+                        _logger?.LogInternalInformation($"Setting local auth support for Sql Server");
                         await _armHelper.SetSqlServerEntraAuthSupport(resourceId, featureState);
                     }
                     else
                     {
-                        _logger?.LogInformation($"Sql Server is not configured with an AD Administrator.");
+                        _logger?.LogInternalInformation($"Sql Server is not configured with an AD Administrator.");
                     }
                 });
         }
@@ -444,7 +445,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                _logger?.LogInformation($"[{operationName}] Invoked with resourceId: {resourceId}");
+                _logger?.LogInternalInformation($"[{operationName}] Invoked with resourceId: {resourceId}");
 
                 // Fetch the resource
                 var resource = await fetchResourceFunc(resourceId);
@@ -455,7 +456,7 @@ namespace Agent.Plugins.Implementation
                 {
                     if (managementLock.Data.Level == ManagementLockLevel.ReadOnly)
                     {
-                        _logger?.LogInformation($"[{operationName}] {resourceTypeName} is locked preventing updates");
+                        _logger?.LogInternalInformation($"[{operationName}] {resourceTypeName} is locked preventing updates");
                         return new RemediationResult(
                             Success: false,
                             Action: $"Failed to {operationName}",
@@ -477,7 +478,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"[{operationName}] Error during operation for resource {resourceId}: {ex.Message}");
+                _logger?.LogInternalError(ex, $"[{operationName}] Error during operation for resource {resourceId}: {ex.Message}");
                 return new RemediationResult(
                     Success: false,
                     Action: $"Failed to {operationName}",

@@ -6,6 +6,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.AI;
+using Agent.Logging;
 
 namespace Agent.Core.Helpers;
 
@@ -41,11 +42,11 @@ public static class ChatClientHelper
 
                 if (retryCount >= maxRetries)
                 {
-                    logger?.LogError("Failed to get chat response after {RetryCount} retries due to service unavailability (HTTP 503)", maxRetries);
+                    logger?.LogInternalError("Failed to get chat response after {RetryCount} retries due to service unavailability (HTTP 503)", maxRetries);
                     throw;
                 }
 
-                logger?.LogWarning("Received 503 error from chat client. Retry {Current}/{Max} after {Delay}s delay", retryCount, maxRetries, delay.TotalSeconds);
+                logger?.LogInternalWarning("Received 503 error from chat client. Retry {Current}/{Max} after {Delay}s delay", retryCount, maxRetries, delay.TotalSeconds);
                 await Task.Delay(delay);
                 delay = TimeSpan.FromSeconds(Math.Min(30, delay.TotalSeconds * 2)); // Exponential backoff capped at 30s
             }

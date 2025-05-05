@@ -6,6 +6,7 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -50,7 +51,7 @@ public class GenericExecute202ActionActivity : TaskActivity<ExecuteActionInput, 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Function tool invocation failed.");
+            _logger.LogInternalError(ex, "Function tool invocation failed.");
 
             // Handle all errors with a single catch
             string operationName = input.FunctionCallContent?.Name ?? "unknown operation";

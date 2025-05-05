@@ -4,6 +4,7 @@
 
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Graph.Crawler.Metrics;
@@ -23,14 +24,14 @@ public class RedisMetricsCollector : IResourceMetricsCollector
     {
         if (gnode is not ArmResourceNode node)
         {
-            _logger.LogWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
+            _logger.LogInternalWarning($"Node {gnode.GetNodeId()} is not an ArmResourceNode");
             return new AppHealthInfo { };
         }
         var resourceId = node.GetNodeId();
 
         if (resourceId == null)
         {
-            _logger.LogWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
+            _logger.LogInternalWarning($"Resource id for node {node.GetNodeLabel()} cannot be null or empty");
             return new AppHealthInfo { };
         }
 
@@ -66,7 +67,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Failed to get metrics for the Redis Cache {node.GetNodeId()}");
+            _logger.LogInternalError(ex, $"Failed to get metrics for the Redis Cache {node.GetNodeId()}");
         }
 
         return new AppHealthInfo { };
@@ -74,7 +75,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetCpuUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting CPU usage for Redis Cache: {resourceId}");
+        _logger.LogInternalInformation($"Getting CPU usage for Redis Cache: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -90,14 +91,14 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get CPU metrics for Redis Cache: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get CPU metrics for Redis Cache: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetMemoryUsageAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting memory usage for Redis Cache: {resourceId}");
+        _logger.LogInternalInformation($"Getting memory usage for Redis Cache: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -113,14 +114,14 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get memory metrics for Redis Cache: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get memory metrics for Redis Cache: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetCacheHitsAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting cache hits for Redis Cache: {resourceId}");
+        _logger.LogInternalInformation($"Getting cache hits for Redis Cache: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -136,14 +137,14 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get cache hits metrics for Redis Cache: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get cache hits metrics for Redis Cache: {resourceId}. Will return 0.");
             return 0;
         }
     }
 
     private async Task<double> GetServerLoadAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting server load for Redis Cache: {resourceId}");
+        _logger.LogInternalInformation($"Getting server load for Redis Cache: {resourceId}");
         try
         {
             var metrics = new List<Metric>
@@ -159,7 +160,7 @@ public class RedisMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get server load metrics for Redis Cache: {resourceId}. Will return 0.");
+            _logger.LogInternalWarning(ex, $"Failed to get server load metrics for Redis Cache: {resourceId}. Will return 0.");
             return 0;
         }
     }

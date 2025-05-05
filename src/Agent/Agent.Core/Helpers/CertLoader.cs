@@ -7,6 +7,7 @@ using Azure.Identity;
 using Azure.Security.KeyVault.Certificates;
 using Azure.Security.KeyVault.Secrets;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Core.Helpers
 {
@@ -40,7 +41,7 @@ namespace Agent.Core.Helpers
                 if (certCollection.Count > 0)
                 {
                     Cert = certCollection[0];
-                    if (log != null) log.LogInformation($"Successfully loaded Cert with thumbprint {Thumbprint}");
+                    if (log != null) log.LogInternalInformation($"Successfully loaded Cert with thumbprint {Thumbprint}");
                     return Cert;
                 }
                 else
@@ -50,7 +51,7 @@ namespace Agent.Core.Helpers
             }
             catch (Exception ex)
             {
-                if (log != null) log.LogInformation($"Error: {ex.Message} occurred while trying to load cert {Thumbprint}, Stack Trace: {ex.StackTrace} ");
+                if (log != null) log.LogInternalInformation($"Error: {ex.Message} occurred while trying to load cert {Thumbprint}, Stack Trace: {ex.StackTrace} ");
                 throw;
             }
             finally
@@ -71,19 +72,19 @@ namespace Agent.Core.Helpers
                     var content = File.ReadAllText(certFilePath);
                     var certBytes = Convert.FromBase64String(content);
                     var cert = new X509Certificate2(certBytes, certPassword);
-                    log?.LogInformation("Successfully loaded Cert from base64 string");
+                    log?.LogInternalInformation("Successfully loaded Cert from base64 string");
                     return cert;
                 }
                 else
                 {
                     var cert = new X509Certificate2(certFilePath, certPassword);
-                    log?.LogInformation("Successfully loaded Cert from file {}", certFilePath);
+                    log?.LogInternalInformation("Successfully loaded Cert from file {}", certFilePath);
                     return cert;
                 }
             }
             catch (Exception ex)
             {
-                log?.LogError(ex, "Error: {} occurred while trying to load cert from file {}", ex.Message, certFilePath);
+                log?.LogInternalError(ex, "Error: {} occurred while trying to load cert from file {}", ex.Message, certFilePath);
                 throw;
             }
         }
@@ -102,12 +103,12 @@ namespace Agent.Core.Helpers
                 // Create an X509Certificate2 object from the byte array
                 X509Certificate2 certificate = new X509Certificate2(privateKeyBytes, certPassword);
 
-                log?.LogInformation($"Successfully loaded Cert from Key Vault, Certificate Subject: {certificate.Subject}");
+                log?.LogInternalInformation($"Successfully loaded Cert from Key Vault, Certificate Subject: {certificate.Subject}");
                 return certificate;
             }
             catch (Exception ex)
             {
-                log?.LogError(ex, "Error: {} occurred while trying to load cert from Key Vault {}", ex.Message, keyVaultUrl);
+                log?.LogInternalError(ex, "Error: {} occurred while trying to load cert from Key Vault {}", ex.Message, keyVaultUrl);
                 throw;
             }
         }

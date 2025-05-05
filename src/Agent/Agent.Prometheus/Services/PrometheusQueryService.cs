@@ -4,6 +4,8 @@ using System.Text.Json.Nodes;
 using Agent.Core.Interfaces;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
+using Agent.Logging;
 
 namespace Agent.Prometheus.Services;
 
@@ -47,7 +49,7 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogError("Failed to query Prometheus: {errorContent}", errorContent);
+            logger.LogInternalError("Failed to query Prometheus: {errorContent}", errorContent);
             throw new HttpRequestException($"Failed to query Prometheus: {response.StatusCode} - {errorContent}");
         }
     }
@@ -85,7 +87,7 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
         else
         {
             var errorContent = await response.Content.ReadAsStringAsync(cancellationToken);
-            logger.LogError("Failed to query Prometheus: {errorContent}", errorContent);
+            logger.LogInternalError("Failed to query Prometheus: {errorContent}", errorContent);
             throw new HttpRequestException($"Failed to query Prometheus: {response.StatusCode} - {errorContent}");
         }
     }
@@ -102,7 +104,7 @@ public class PrometheusQueryService(ILogger<PrometheusQueryService> logger, IHtt
         }
         catch (Exception ex)
         {
-            logger.LogInformation(ex, "Failed to deserialize response: {content}", content);
+            logger.LogInternalInformation(ex, "Failed to deserialize response: {content}", content);
         }
         return default;
     }

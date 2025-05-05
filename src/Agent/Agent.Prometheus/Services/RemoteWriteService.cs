@@ -7,6 +7,7 @@ namespace Agent.Prometheus.Services;
 using System.Threading.Tasks;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Azure.Core;
 using Microsoft.Extensions.Logging;
 using Google.Protobuf;
@@ -70,11 +71,11 @@ public class RemoteWriteService(ILogger<RemoteWriteService> logger,
         if (!response.IsSuccessStatusCode)
         {
             var errorMessage = await response.Content.ReadAsStringAsync();
-            logger.LogError("Remote-write failed with status code: {StatusCode}. Messge: {ErrorMessage}", response.StatusCode, errorMessage);
+            logger.LogInternalError("Remote-write failed with status code: {StatusCode}. Messge: {ErrorMessage}", response.StatusCode, errorMessage);
             return false;
         }
 
-        logger.LogInformation("Remote-write succeeded with status code: {StatusCode}", response.StatusCode);
+        logger.LogInternalInformation("Remote-write succeeded with status code: {StatusCode}", response.StatusCode);
         return true;
     }
 }

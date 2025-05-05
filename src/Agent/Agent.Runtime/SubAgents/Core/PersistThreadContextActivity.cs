@@ -4,6 +4,7 @@
 
 using Agent.Core.Helpers;
 using Agent.Core.Extensions;
+using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -41,7 +42,7 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to get or create thread context, threadId: {ThreadId}", input.ThreadId);
+            _logger.LogInternalError(ex, "Failed to get or create thread context, threadId: {ThreadId}", input.ThreadId);
             throw;
         }
 
@@ -53,14 +54,14 @@ public class PersistThreadContextActivity : TaskActivity<PersistThreadContextInp
             StateMessage = input.StateMessage,
             TimeStamp = input.TimeStamp
         };
-        _logger.LogInformation("Persisting thread context, threadId: {ThreadId}, state: {OrchestrationState}", input.ThreadId, JsonSerializer.Serialize(threadContext.OrchestrationState));
+        _logger.LogInternalInformation("Persisting thread context, threadId: {ThreadId}, state: {OrchestrationState}", input.ThreadId, JsonSerializer.Serialize(threadContext.OrchestrationState));
         try
         {
             threadContext = await _repository.UpdateThreadContextAsync(threadContext);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to update thread context, threadId: {ThreadId}", input.ThreadId);
+            _logger.LogInternalError(ex, "Failed to update thread context, threadId: {ThreadId}", input.ThreadId);
             throw;
         }
         return threadContext;

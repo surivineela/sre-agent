@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
@@ -71,12 +72,12 @@ public class RedisConnectionStringHelper
                 }
             }
 
-            _logger.LogWarning($"Redis cache with name {serverName} was not found in the subscription.");
+            _logger.LogInternalWarning($"Redis cache with name {serverName} was not found in the subscription.");
             return null;
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Error processing Redis connection string: {ex.Message}");
+            _logger.LogInternalError($"Error processing Redis connection string: {ex.Message}");
             return null;
         }
     }

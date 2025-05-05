@@ -6,6 +6,7 @@ using System.Globalization;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Charts;
+using Agent.Logging;
 using Microsoft.Extensions.Logging;
 using ScottPlot;
 
@@ -264,7 +265,7 @@ namespace Agent.Plugins
         {
             if (ThreadId == null)
             {
-                _logger?.LogWarning("ThreadId is null while posting the chart.");
+                _logger?.LogInternalWarning("ThreadId is null while posting the chart.");
                 return "ERROR: Context is null.";
             }
             try
@@ -281,7 +282,7 @@ namespace Agent.Plugins
                     return "ERROR: No thread ID available for posting the chart.";
                 }
 
-                _logger?.LogInformation("Posting chart to thread {ThreadId}, base64 image: {base64Image}", threadId, base64Image);
+                _logger?.LogInternalInformation("Posting chart to thread {ThreadId}, base64 image: {base64Image}", threadId, base64Image);
                 // if the base64Image doesn't contains the prefix, add it
                 if (!base64Image.StartsWith("data:image/png;base64,"))
                 {
@@ -293,7 +294,7 @@ namespace Agent.Plugins
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, errorContext);
+                _logger?.LogInternalError(ex, errorContext);
                 return $"ERROR: Chart generation failed: {ex.Message}";
             }
         }

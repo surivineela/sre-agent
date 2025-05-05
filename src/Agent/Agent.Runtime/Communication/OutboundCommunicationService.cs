@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Microsoft.Bot.Schema;
 using Microsoft.Extensions.AI;
@@ -36,7 +37,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
         {
             await _mappingManager.AddMappingAsync(threadId.ToString(), orchestrationInstanceId);
         }
-        _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
+        _logger.LogExternalInformation("orchestrationInstanceId {orchestrationInstanceId} message to thread {ThreadId}: {Message}",
             orchestrationInstanceId, threadId, message.Text);
 
         await _sinkService.SinkAgentMessageAsync(threadId.Value, message.Text ?? string.Empty);
@@ -66,7 +67,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
     public async Task NotifyCompletionAsync(string threadId, string orchestrationInstanceId, string status, string? summary = null)
     {
-        _logger.LogInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);
+        _logger.LogInternalInformation("orchestrationInstanceId {orchestrationInstanceId} completed with status: {Status}", orchestrationInstanceId, status);
 
         var mapping = await _mappingManager.GetMappingsByThreadIdAsync(threadId);
         if (mapping.Any())
@@ -85,7 +86,7 @@ public class OutboundCommunicationService : IAgentOutboundCommunicationService
 
     public Task UpdateThreadWithAgentMessageAsync(AgentContext context, ChatMessage message)
     {
-        _logger.LogInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
+        _logger.LogExternalInformation("Agent context {AgentContextId} of type {AgentType} message to thread {ThreadId}: {message}",
             context.Id, context.AgentType.ToString(), context.ThreadId, message.Text);
 
         return _sinkService.SinkAgentMessageAsync(context.ThreadId, message.Text ?? string.Empty);

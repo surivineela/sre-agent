@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.MetaAgent;
@@ -153,7 +154,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
             if (string.IsNullOrEmpty(orchestrationInstanceId))
             {
                 // No existing orchestration, create a new one
-                _logger.LogInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
+                _logger.LogInternalInformation("No existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
 
                 string agentResponse = string.Empty;
                 bool isComplete = false;
@@ -214,7 +215,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
                 // This will enable us for scenarios that need to share chat history with multiple orchestrations for different purposes.
 
                 // Existing orchestration, raise an event to it
-                _logger.LogInformation("Sending message to existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
+                _logger.LogInternalInformation("Sending message to existing orchestration for thread: {ThreadId}", threadMessage.ThreadId);
                 await _durableTaskClient.RaiseEventAsync(
                     orchestrationInstanceId,
                     "NewChatMessage",
@@ -225,7 +226,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing user message for thread: {ThreadId}", threadMessage.ThreadId);
+            _logger.LogInternalError(ex, "Error processing user message for thread: {ThreadId}", threadMessage.ThreadId);
             throw;
         }
     }
@@ -252,7 +253,7 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing feedback for thread: {ThreadId}", threadMessageFeedback.ThreadId);
+            _logger.LogInternalError(ex, "Error processing feedback for thread: {ThreadId}", threadMessageFeedback.ThreadId);
             throw;
         }
     }

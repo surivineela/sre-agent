@@ -7,6 +7,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
 using Agent.Core.Helpers;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -37,10 +38,10 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> GetFunctionAppExecutionFailures(string resourceId)
         {
-            _logger.LogInformation($"[get_function_app_execution_failures] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_function_app_execution_failures] Invoked with resourceId: {resourceId}");
             if (string.IsNullOrEmpty(resourceId))
             {
-                _logger.LogError("Resource ID is null or empty.");
+                _logger.LogInternalError("Resource ID is null or empty.");
                 return "Invalid resource ID.";
             }
 
@@ -54,14 +55,14 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting function app execution failures for {resourceId}");
+                _logger.LogInternalError(ex, $"Error getting function app execution failures for {resourceId}");
                 return $"Failed to retrieve execution failures: {ex.Message}";
             }
         }
 
         public async Task<string> GetFunctionAppCallStacks(string resourceId)
         {
-            _logger.LogInformation($"[get_function_app_call_stacks] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_function_app_call_stacks] Invoked with resourceId: {resourceId}");
             
             try
             {
@@ -72,7 +73,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting function app call stacks for {resourceId}");
+                _logger.LogInternalError(ex, $"Error getting function app call stacks for {resourceId}");
                 return $"Failed to retrieve call stacks: {ex.Message}";
             }
         }
@@ -83,7 +84,7 @@ namespace Agent.Plugins.Implementation
             startTime ??= DateTime.UtcNow.AddHours(-1);
             endTime ??= DateTime.UtcNow.AddMinutes(-15);
 
-            _logger.LogInformation($"[GetFailedRequestsPerFunction] Invoked with resourceId: {resourceId}, startTime: {startTime}, endTime: {endTime}");
+            _logger.LogInternalInformation($"[GetFailedRequestsPerFunction] Invoked with resourceId: {resourceId}, startTime: {startTime}, endTime: {endTime}");
 
             string resourceName = resourceId;
             if (resourceId.Contains('/'))
@@ -113,7 +114,7 @@ namespace Agent.Plugins.Implementation
             startTime ??= DateTime.UtcNow.AddHours(-1);
             endTime ??= DateTime.UtcNow.AddMinutes(-15);
 
-            _logger.LogInformation($"[GetTop3ExceptionsPerFunction] Invoked with resourceId: {resourceId}, startTime: {startTime}, endTime: {endTime}");
+            _logger.LogInternalInformation($"[GetTop3ExceptionsPerFunction] Invoked with resourceId: {resourceId}, startTime: {startTime}, endTime: {endTime}");
 
             string top3ExceptionsPerFunctionQuery = $@"
                 let start=datetime({startTime.Value.ToString("O")});
@@ -136,10 +137,10 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> GetHostRuntimeErrorEvents(string resourceId, DateTime? startTime = null, DateTime? endTime = null)
         {
-            _logger.LogInformation($"[get_host_runtime_error_events] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[get_host_runtime_error_events] Invoked with resourceId: {resourceId}");
             if (string.IsNullOrEmpty(resourceId))
             {
-                _logger.LogError("Resource ID is null or empty.");
+                _logger.LogInternalError("Resource ID is null or empty.");
                 return "Invalid resource ID.";
             }
 
@@ -193,7 +194,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting error events for {resourceId}");
+                _logger.LogInternalError(ex, $"Error getting error events for {resourceId}");
                 return $"Failed to retrieve error events: {ex.Message}";
             }
         }

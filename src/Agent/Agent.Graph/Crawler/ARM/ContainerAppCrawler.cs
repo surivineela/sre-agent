@@ -4,6 +4,7 @@
 
 using System.Text.Json;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
@@ -42,14 +43,14 @@ public class ContainerAppCrawler : GenericArmResourceCrawler
         var rgResource = _armClient.GetResourceGroupResource(rgResourceId);
         if (rgResource == null)
         {
-            _logger.LogWarning($"Failed to get container app: {cappNode.ResourceId}");
+            _logger.LogInternalWarning($"Failed to get container app: {cappNode.ResourceId}");
             yield break;
         }
 
         var cappResp = await rgResource.GetContainerAppAsync(cappNode.ResourceName);
         if (cappResp == null || !cappResp.Value.HasData)
         {
-            _logger.LogWarning($"Failed to get container app: {cappNode.ResourceId}");
+            _logger.LogInternalWarning($"Failed to get container app: {cappNode.ResourceId}");
             yield break;
         }
 

@@ -8,6 +8,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Data.Helpers;
+using Agent.Logging;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Cosmos.Linq;
 using Microsoft.Extensions.Logging;
@@ -33,13 +34,13 @@ public class CosmosDbInstanceManagementRepository(
     /// <inheritdoc/>
     public async Task<(LeaderLease lease, bool isAcquired)> TryAcquireLeaderLeaseAsync(string instanceId)
     {
-        logger.LogInformation("Attempting to acquire leader lease for instance {InstanceId}", instanceId);
+        logger.LogInternalInformation("Attempting to acquire leader lease for instance {InstanceId}", instanceId);
 
         var (leaderLeaseDoc, etag) = await GetLeaderLeaseDocumentWithEtagAsync();
 
         if (leaderLeaseDoc == null)
         {
-            logger.LogInformation("No existing leader lease document found");
+            logger.LogInternalInformation("No existing leader lease document found");
 
             // create new leader lease
             leaderLeaseDoc = new LeaderLeaseDocument
@@ -55,7 +56,7 @@ public class CosmosDbInstanceManagementRepository(
                     new PartitionKey(leaderLeaseDoc.PartitionKey)
                 );
 
-                logger.LogInformation("Acquired leader lease for instance {InstanceId}", instanceId);
+                logger.LogInternalInformation("Acquired leader lease for instance {InstanceId}", instanceId);
 
                 return (response.Resource.ToDomainModel(), true);
             }
@@ -63,7 +64,7 @@ public class CosmosDbInstanceManagementRepository(
             {
                 // someone else got the lease first, return the updated lease entry
                 var leaderLease = await GetLeaderLeaseAsync();
-                logger.LogInformation("Failed to acquire leader lease for instance {InstanceId}, acquired by {LeaseHolder}", instanceId, leaderLease?.LeaseHolder);
+                logger.LogInternalInformation("Failed to acquire leader lease for instance {InstanceId}, acquired by {LeaseHolder}", instanceId, leaderLease?.LeaseHolder);
 
                 return (leaderLease, false);
             }
@@ -73,11 +74,11 @@ public class CosmosDbInstanceManagementRepository(
         {
             if (string.IsNullOrEmpty(leaderLeaseDoc.LeaseHolder))
             {
-                logger.LogInformation("Leader lease has been released, attempting to acquire for instance {InstanceId}", instanceId);
+                logger.LogInternalInformation("Leader lease has been released, attempting to acquire for instance {InstanceId}", instanceId);
             }
             else
             {
-                logger.LogInformation("Leader lease held by {LeaseHolder} has expired, attempting to acquire for instance {InstanceId}", leaderLeaseDoc.LeaseHolder, instanceId);
+                logger.LogInternalInformation("Leader lease held by {LeaseHolder} has expired, attempting to acquire for instance {InstanceId}", leaderLeaseDoc.LeaseHolder, instanceId);
             }
 
             // expired, try to acquire
@@ -96,7 +97,7 @@ public class CosmosDbInstanceManagementRepository(
                     }
                 );
 
-                logger.LogInformation("Acquired leader lease for instance {InstanceId}", instanceId);
+                logger.LogInternalInformation("Acquired leader lease for instance {InstanceId}", instanceId);
 
                 return (response.Resource.ToDomainModel(), true);
             }
@@ -104,7 +105,7 @@ public class CosmosDbInstanceManagementRepository(
             {
                 // someone else got the lease first, return the updated lease entry
                 var leaderLease = await GetLeaderLeaseAsync();
-                logger.LogInformation("Failed to acquire leader lease for instance {InstanceId}, acquired by {LeaseHolder}", instanceId, leaderLease?.LeaseHolder);
+                logger.LogInternalInformation("Failed to acquire leader lease for instance {InstanceId}, acquired by {LeaseHolder}", instanceId, leaderLease?.LeaseHolder);
 
                 return (leaderLease, false);
             }
@@ -122,13 +123,13 @@ public class CosmosDbInstanceManagementRepository(
     /// <inheritdoc/>
     public async Task<bool> ReleaseLeaderLeaseAsync(string instanceId)
     {
-        logger.LogInformation("Attempting to release leader lease for instance {InstanceId}", instanceId);
+        logger.LogInternalInformation("Attempting to release leader lease for instance {InstanceId}", instanceId);
 
         var (leaderLeaseDoc, _) = await GetLeaderLeaseDocumentWithEtagAsync();
 
         if (leaderLeaseDoc == null)
         {
-            logger.LogInformation("No existing leader lease document found");
+            logger.LogInternalInformation("No existing leader lease document found");
             return false;
         }
         else if (leaderLeaseDoc.LeaseHolder == instanceId)
@@ -142,12 +143,12 @@ public class CosmosDbInstanceManagementRepository(
                 new PartitionKey(leaderLeaseDoc.PartitionKey)
             );
 
-            logger.LogInformation("Released leader lease for instance {InstanceId}", instanceId);
+            logger.LogInternalInformation("Released leader lease for instance {InstanceId}", instanceId);
 
             return true;
         }
 
-        logger.LogWarning("Leader lease held by {LeaseHolder}, cannot release from instance {InstanceId}", leaderLeaseDoc.LeaseHolder, instanceId);
+        logger.LogInternalWarning("Leader lease held by {LeaseHolder}, cannot release from instance {InstanceId}", leaderLeaseDoc.LeaseHolder, instanceId);
 
         return false;
     }
@@ -155,13 +156,13 @@ public class CosmosDbInstanceManagementRepository(
     /// <inheritdoc/>
     public async Task<(LeaderLease lease, bool isRenewed)> RenewLeaderLeaseAsync(string instanceId)
     {
-        logger.LogInformation("Attempting to renew leader lease for instance {InstanceId}", instanceId);
+        logger.LogInternalInformation("Attempting to renew leader lease for instance {InstanceId}", instanceId);
 
         var (leaderLeaseDoc, _) = await GetLeaderLeaseDocumentWithEtagAsync();
 
         if (leaderLeaseDoc == null)
         {
-            logger.LogInformation("No existing leader lease document found");
+            logger.LogInternalInformation("No existing leader lease document found");
 
             throw new InvalidOperationException("No existing leader lease document found");
         }
@@ -179,7 +180,7 @@ public class CosmosDbInstanceManagementRepository(
             return (response.Resource.ToDomainModel(), true);
         }
 
-        logger.LogWarning("Leader lease held by {LeaseHolder}, cannot renew from instance {InstanceId}", leaderLeaseDoc.LeaseHolder, instanceId);
+        logger.LogInternalWarning("Leader lease held by {LeaseHolder}, cannot renew from instance {InstanceId}", leaderLeaseDoc.LeaseHolder, instanceId);
 
         return (leaderLeaseDoc.ToDomainModel(), false);
     }
@@ -212,7 +213,7 @@ public class CosmosDbInstanceManagementRepository(
         }
         catch (CosmosException ex)
         {
-            logger.LogError(ex, "Cosmos exception occurred while registering worker instance {InstanceId}", instance.Id);
+            logger.LogInternalError(ex, "Cosmos exception occurred while registering worker instance {InstanceId}", instance.Id);
 
             return false;
         }
@@ -274,7 +275,7 @@ public class CosmosDbInstanceManagementRepository(
         }
         catch (CosmosException ex)
         {
-            logger.LogError(ex, "Cosmos exception occurred while updating worker instance {InstanceId}", instance.Id);
+            logger.LogInternalError(ex, "Cosmos exception occurred while updating worker instance {InstanceId}", instance.Id);
 
             return false;
         }
@@ -298,7 +299,7 @@ public class CosmosDbInstanceManagementRepository(
         }
         catch (CosmosException ex)
         {
-            logger.LogError(ex, "Cosmos exception occurred while unregistering worker instance {InstanceId}", instanceId);
+            logger.LogInternalError(ex, "Cosmos exception occurred while unregistering worker instance {InstanceId}", instanceId);
 
             return false;
         }
@@ -330,7 +331,7 @@ public class CosmosDbInstanceManagementRepository(
         }
         catch (CosmosException e)
         {
-            logger.LogError(e, "Failed to create agent context instance assignment document for agent context {AgentContextId} and instance {InstanceId}",
+            logger.LogInternalError(e, "Failed to create agent context instance assignment document for agent context {AgentContextId} and instance {InstanceId}",
                 assignment.AgentContextId, assignment.InstanceId);
 
             throw;
@@ -349,7 +350,7 @@ public class CosmosDbInstanceManagementRepository(
         }
         catch (CosmosException e)
         {
-            logger.LogError(e, "Failed to update agent context instance assignment document for agent context {AgentContextId} and instance {InstanceId}",
+            logger.LogInternalError(e, "Failed to update agent context instance assignment document for agent context {AgentContextId} and instance {InstanceId}",
                 assignment.AgentContextId, assignment.InstanceId);
 
             throw;
@@ -372,7 +373,7 @@ public class CosmosDbInstanceManagementRepository(
         }
         catch (CosmosException ex)
         {
-            logger.LogError(ex, "Failed to delete agent context instance assignment for agent context {AgentContextId}, instance id {InstanceId}", agentContextId, instanceId);
+            logger.LogInternalError(ex, "Failed to delete agent context instance assignment for agent context {AgentContextId}, instance id {InstanceId}", agentContextId, instanceId);
             throw;
         }
     }

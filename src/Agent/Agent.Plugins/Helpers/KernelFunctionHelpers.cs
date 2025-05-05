@@ -5,6 +5,7 @@
 using Microsoft.Extensions.Logging;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using Agent.Logging;
 
 namespace Agent.Plugins.Helpers;
 
@@ -14,14 +15,14 @@ public class KernelFunctionHelpers
     {
         try
         {
-            logger.LogInformation($"[{className}] Performing action '{caller}'...");
+            logger.LogInternalInformation($"[{className}] Performing action '{caller}'...");
             TResult res = func();
-            logger.LogInformation($"[{className}] Completed action '{caller}'");
+            logger.LogInternalInformation($"[{className}] Completed action '{caller}'");
             return res;
         }
         catch (Exception e)
         {
-            logger.LogError(e, "Error occurred while executing action");
+            logger.LogInternalError(e, "Error occurred while executing action");
             throw;
         }
     }

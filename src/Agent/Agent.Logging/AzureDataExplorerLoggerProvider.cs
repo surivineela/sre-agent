@@ -1,11 +1,7 @@
-using System;
 using System.Security.Cryptography.X509Certificates;
-using Agent.Core.Configuration;
-using Agent.Core.Interfaces;
 using Kusto.Data;
 using Kusto.Ingest;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
 
 namespace Agent.Logging;
 public class AzureDataExplorerLoggerProvider : ILoggerProvider
@@ -20,36 +16,47 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
 
     private readonly string _agentName;
 
+    private AzureDataExplorerLogger _logger;
+
     public AzureDataExplorerLoggerProvider(
         string agentName,
-        KustoClusterConfiguration internalKustoClusterConfiguration,
-        KustoClusterConfiguration? externalKustoClusterConfiguration,
+        string internalKustoClusterUri,
+        string internalKustoDatabaseName,
+        string internalKustoTableName,
+        string? externalKustoClusterUri,
+        string? externalKustoDatabaseName,
+        string? externalKustoTableName,
+        string? externalKustoIdentityClientId,
         string kustoFirstPartyAppClientId,
         string kustoFirstPartyAppTenantId,
         string kustoFirstPartyAppCertificatePath)
     {
-        if (!string.IsNullOrEmpty(internalKustoClusterConfiguration.ClusterUri))
+        if (!string.IsNullOrEmpty(internalKustoClusterUri))
         {
             var certPem = File.ReadAllText($"{kustoFirstPartyAppCertificatePath}/tls.crt");
             var keyPem = File.ReadAllText($"{kustoFirstPartyAppCertificatePath}/tls.key");
 
             var certificate = X509Certificate2.CreateFromPem(certPem, keyPem);
 
-            var internalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(internalKustoClusterConfiguration.ClusterUri)
+            var internalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(internalKustoClusterUri)
                         .WithAadApplicationCertificateAuthentication(applicationClientId: kustoFirstPartyAppClientId, certificate, authority: kustoFirstPartyAppTenantId, sendX5c: true);
 
             _internalKustoClient = KustoIngestFactory.CreateDirectIngestClient(internalKustoConnectionStringBuilder);
-            _internalDatabaseName = internalKustoClusterConfiguration.DatabaseName;
-            _internalTableName = internalKustoClusterConfiguration.TableName;
+            _internalDatabaseName = internalKustoDatabaseName;
+            _internalTableName = internalKustoTableName;
 
         }
 
-        if (externalKustoClusterConfiguration != null)
+        if (!string.IsNullOrEmpty(externalKustoClusterUri)
+            && !string.IsNullOrEmpty(externalKustoDatabaseName)
+            && !string.IsNullOrEmpty(externalKustoTableName)
+            && !string.IsNullOrEmpty(externalKustoIdentityClientId))
         {
-            var externalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(externalKustoClusterConfiguration.ClusterUri).WithAadUserManagedIdentity(externalKustoClusterConfiguration.Identity);
+            var externalKustoConnectionStringBuilder = new KustoConnectionStringBuilder(externalKustoClusterUri)
+                .WithAadUserManagedIdentity(externalKustoIdentityClientId);
             _externalKustoClient = KustoIngestFactory.CreateDirectIngestClient(externalKustoConnectionStringBuilder);
-            _externalDatabaseName = externalKustoClusterConfiguration.DatabaseName;
-            _externalTableName = externalKustoClusterConfiguration.TableName;
+            _externalDatabaseName = externalKustoDatabaseName;
+            _externalTableName = externalKustoTableName;
         }
 
         _agentName = agentName;
@@ -57,23 +64,37 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
 
     public ILogger CreateLogger(string categoryName)
     {
+        return GetLogger();
+    }
+
+    public AzureDataExplorerLogger GetLogger()
+    {
+        if (_logger != null)
+        {
+            return _logger;
+        }
+
         if (_externalKustoClient == null)
         {
-            return new AzureDataExplorerLogger(
+            _logger = new AzureDataExplorerLogger(
                 agentName: _agentName,
                 internalKustoClient: _internalKustoClient,
                 internalDatabaseName: _internalDatabaseName,
                 internalTableName: _internalTableName);
         }
+        else
+        {
+            _logger = new AzureDataExplorerLogger(
+                agentName: _agentName,
+                internalKustoClient: _internalKustoClient,
+                internalDatabaseName: _internalDatabaseName,
+                internalTableName: _internalTableName,
+                externalKustoClient: _externalKustoClient,
+                externalDatabaseName: _externalDatabaseName,
+                externalTableName: _externalTableName);
+        }
 
-        return new AzureDataExplorerLogger(
-            agentName: _agentName,
-            internalKustoClient: _internalKustoClient,
-            internalDatabaseName: _internalDatabaseName,
-            internalTableName: _internalTableName,
-            externalKustoClient: _externalKustoClient,
-            externalDatabaseName: _externalDatabaseName,
-            externalTableName: _externalTableName);
+        return _logger;
     }
 
     public void Dispose()

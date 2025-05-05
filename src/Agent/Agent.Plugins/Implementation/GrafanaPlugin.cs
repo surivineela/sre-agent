@@ -12,6 +12,7 @@ using System.ComponentModel;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
+using Agent.Logging;
 
 namespace Agent.Plugins.Implementation
 {
@@ -74,7 +75,7 @@ namespace Agent.Plugins.Implementation
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
-                        _logger?.LogError($"Failed to publish dashboard: {response.StatusCode}, {errorContent}");
+                        _logger?.LogInternalError($"Failed to publish dashboard: {response.StatusCode}, {errorContent}");
                         return $"Failed to publish dashboard: {response.StatusCode}";
                     }
 
@@ -82,13 +83,13 @@ namespace Agent.Plugins.Implementation
                     dynamic result = JsonConvert.DeserializeObject(responseContent);
                     string dashboardUid = result.uid;
 
-                    _logger?.LogInformation($"Dashboard published successfully with UID: {dashboardUid}");
+                    _logger?.LogInternalInformation($"Dashboard published successfully with UID: {dashboardUid}");
                     return dashboardUid; // Return just the UID for easier chaining
                 }
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Exception publishing dashboard: {ex.Message}");
+                _logger?.LogInternalError($"Exception publishing dashboard: {ex.Message}");
                 throw new Exception($"Exception publishing dashboard: {ex.Message}", ex);
             }
         }
@@ -110,17 +111,17 @@ namespace Agent.Plugins.Implementation
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
-                        _logger?.LogError($"Failed to capture dashboard: {response.StatusCode}, {errorContent}");
+                        _logger?.LogInternalError($"Failed to capture dashboard: {response.StatusCode}, {errorContent}");
                         throw new Exception($"Failed to capture dashboard: {response.StatusCode}");
                     }
 
-                    _logger?.LogInformation($"Screenshot captured for dashboard with UID: {dashboardUid}");
+                    _logger?.LogInternalInformation($"Screenshot captured for dashboard with UID: {dashboardUid}");
                     return await response.Content.ReadAsByteArrayAsync();
                 }
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Exception capturing dashboard: {ex.Message}");
+                _logger?.LogInternalError($"Exception capturing dashboard: {ex.Message}");
                 throw new Exception($"Exception capturing dashboard: {ex.Message}", ex);
             }
         }
@@ -143,16 +144,16 @@ namespace Agent.Plugins.Implementation
             // try to look up the dashboard UID by name
             if (string.IsNullOrEmpty(existingDashboardUid) && !string.IsNullOrEmpty(dashboardName))
             {
-                _logger?.LogInformation($"No dashboard UID provided, looking up dashboard by name: {dashboardName}");
+                _logger?.LogInternalInformation($"No dashboard UID provided, looking up dashboard by name: {dashboardName}");
                 existingDashboardUid = await GetDashboardUidByName(dashboardName);
 
                 if (string.IsNullOrEmpty(existingDashboardUid))
                 {
-                    _logger?.LogWarning($"No dashboard found with name: {dashboardName}");
+                    _logger?.LogInternalWarning($"No dashboard found with name: {dashboardName}");
                 }
                 else
                 {
-                    _logger?.LogInformation($"Found dashboard with name '{dashboardName}' and UID: {existingDashboardUid}");
+                    _logger?.LogInternalInformation($"Found dashboard with name '{dashboardName}' and UID: {existingDashboardUid}");
                 }
             }
 
@@ -280,7 +281,7 @@ namespace Agent.Plugins.Implementation
                     var existingDs = await GetDataSourceByName(client, dataSourceName);
                     if (existingDs != null)
                     {
-                        _logger?.LogInformation($"Data source '{dataSourceName}' already exists with UID: {existingDs.uid}");
+                        _logger?.LogInternalInformation($"Data source '{dataSourceName}' already exists with UID: {existingDs.uid}");
                         return existingDs.uid;
                     }
 
@@ -308,7 +309,7 @@ namespace Agent.Plugins.Implementation
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
-                        _logger?.LogError($"Failed to create data source: {response.StatusCode}, {errorContent}");
+                        _logger?.LogInternalError($"Failed to create data source: {response.StatusCode}, {errorContent}");
                         throw new Exception($"Failed to create data source: {response.StatusCode}");
                     }
 
@@ -316,13 +317,13 @@ namespace Agent.Plugins.Implementation
                     dynamic result = JsonConvert.DeserializeObject(responseContent);
                     string dataSourceUid = result.datasource.uid;
 
-                    _logger?.LogInformation($"Data source '{dataSourceName}' created successfully with UID: {dataSourceUid}");
+                    _logger?.LogInternalInformation($"Data source '{dataSourceName}' created successfully with UID: {dataSourceUid}");
                     return dataSourceUid; // Return just the UID for easier chaining
                 }
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Exception setting up Prometheus data source: {ex.Message}");
+                _logger?.LogInternalError($"Exception setting up Prometheus data source: {ex.Message}");
                 throw new Exception($"Exception setting up Prometheus data source: {ex.Message}", ex);
             }
         }
@@ -341,7 +342,7 @@ namespace Agent.Plugins.Implementation
                     if (!dashboardResponse.IsSuccessStatusCode)
                     {
                         var errorContent = await dashboardResponse.Content.ReadAsStringAsync();
-                        _logger?.LogError($"Failed to retrieve dashboard: {dashboardResponse.StatusCode}, {errorContent}");
+                        _logger?.LogInternalError($"Failed to retrieve dashboard: {dashboardResponse.StatusCode}, {errorContent}");
                         throw new Exception($"Failed to retrieve dashboard: {dashboardResponse.StatusCode}");
                     }
 
@@ -355,7 +356,7 @@ namespace Agent.Plugins.Implementation
                     if (!dsResponse.IsSuccessStatusCode)
                     {
                         var errorContent = await dsResponse.Content.ReadAsStringAsync();
-                        _logger?.LogError($"Failed to retrieve data source: {dsResponse.StatusCode}, {errorContent}");
+                        _logger?.LogInternalError($"Failed to retrieve data source: {dsResponse.StatusCode}, {errorContent}");
                         throw new Exception($"Failed to retrieve data source: {dsResponse.StatusCode}");
                     }
 
@@ -369,7 +370,7 @@ namespace Agent.Plugins.Implementation
                     
                     if (!panelsUpdated)
                     {
-                        _logger?.LogWarning($"No panels found in dashboard '{dashboardUid}' to update");
+                        _logger?.LogInternalWarning($"No panels found in dashboard '{dashboardUid}' to update");
                     }
 
                     // Re-publish the dashboard with updated data source
@@ -390,17 +391,17 @@ namespace Agent.Plugins.Implementation
                     if (!response.IsSuccessStatusCode)
                     {
                         var errorContent = await response.Content.ReadAsStringAsync();
-                        _logger?.LogError($"Failed to update dashboard with data source: {response.StatusCode}, {errorContent}");
+                        _logger?.LogInternalError($"Failed to update dashboard with data source: {response.StatusCode}, {errorContent}");
                         throw new Exception($"Failed to update dashboard with data source: {response.StatusCode}");
                     }
 
-                    _logger?.LogInformation($"Dashboard '{dashboardUid}' successfully linked to data source '{dsName}'");
+                    _logger?.LogInternalInformation($"Dashboard '{dashboardUid}' successfully linked to data source '{dsName}'");
                     return $"Dashboard '{dashboardUid}' successfully linked to data source '{dsName}'";
                 }
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Exception linking data source to dashboard: {ex.Message}");
+                _logger?.LogInternalError($"Exception linking data source to dashboard: {ex.Message}");
                 throw new Exception($"Exception linking data source to dashboard: {ex.Message}", ex);
             }
         }
@@ -420,7 +421,7 @@ namespace Agent.Plugins.Implementation
                         dataSourceName, 
                         isDefault);
                     
-                    _logger?.LogInformation($"Step 1 complete: Prometheus data source ready with UID '{dataSourceUid}'");
+                    _logger?.LogInternalInformation($"Step 1 complete: Prometheus data source ready with UID '{dataSourceUid}'");
                     
                     // Step 2: Pre-process dashboard JSON to update data source references
                     var dashboard = JsonConvert.DeserializeObject<JObject>(dashboardJson);
@@ -465,14 +466,14 @@ namespace Agent.Plugins.Implementation
                     dynamic result = JsonConvert.DeserializeObject(responseContent);
                     string dashboardUid = result.uid;
                     
-                    _logger?.LogInformation($"Dashboard published and linked to Prometheus data source");
+                    _logger?.LogInternalInformation($"Dashboard published and linked to Prometheus data source");
                     
                     return $"Dashboard published with UID '{dashboardUid}' and linked to Prometheus data source '{dataSourceName}'";
                 }
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Exception in combined operation: {ex.Message}");
+                _logger?.LogInternalError($"Exception in combined operation: {ex.Message}");
                 throw new Exception($"Failed to complete the dashboard publishing workflow: {ex.Message}", ex);
             }
         }
@@ -646,7 +647,7 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger?.LogError($"Error looking up dashboard by name: {ex.Message}");
+                _logger?.LogInternalError($"Error looking up dashboard by name: {ex.Message}");
                 throw new Exception($"Error looking up dashboard by name: {ex.Message}", ex);
             }
         }

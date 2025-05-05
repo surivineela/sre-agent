@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
 using Microsoft.DurableTask;
@@ -25,7 +26,7 @@ namespace Agent.Runtime
 
             var startTime = context.CurrentUtcDateTime;
 
-            logger.LogInformation($"Waiting for approval of operation {input.OperationName} with ID {context.InstanceId} started at {startTime:o}");
+            logger.LogInternalInformation($"Waiting for approval of operation {input.OperationName} with ID {context.InstanceId} started at {startTime:o}");
             // todo - send user approval link
 
             using (var cts = new CancellationTokenSource())
@@ -74,14 +75,14 @@ namespace Agent.Runtime
             if (approvalEvent.IsApproved)
             {
                 var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** received at {approvalEvent.ApprovedTime}";
-                _logger.LogInformation(approvalString);
+                _logger.LogInternalInformation(approvalString);
 
                 outputMessage = new ChatMessage(ChatRole.System, approvalString);
             }
             else
             {
                 var rejectionString = $"Operation was not approved. Rejected by **{approvalEvent.DecisionMaker}** at {approvalEvent.ApprovedTime}";
-                _logger.LogInformation(rejectionString);
+                _logger.LogInternalInformation(rejectionString);
                 outputMessage = new ChatMessage(ChatRole.System, rejectionString);
             }
 
@@ -107,7 +108,7 @@ namespace Agent.Runtime
             var (approvalInput, approvalEvent) = input;
             
             string timeoutMessage = $"Approval was not received within the timeout period. Operation timed out at {approvalEvent.ProcessedTime}";
-            _logger.LogInformation(timeoutMessage);
+            _logger.LogInternalInformation(timeoutMessage);
             var outputMessage = new ChatMessage(ChatRole.System, timeoutMessage);
 
             await _durableTaskClient.RaiseEventAsync(approvalInput.ParentInstanceId, "NewChatMessage", outputMessage);

@@ -11,6 +11,7 @@ using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Agent.Logging;
 
 namespace Agent.Runtime.SubAgents.CVEAgent
 {
@@ -53,7 +54,7 @@ namespace Agent.Runtime.SubAgents.CVEAgent
 
             if (cveAgentContexts != null && cveAgentContexts.Count > 0)
             {
-                _logger.LogInformation("CVEAgent thread context already exists. Skipping scan.");
+                _logger.LogInternalInformation("CVEAgent thread context already exists. Skipping scan.");
                 return;
             }
 

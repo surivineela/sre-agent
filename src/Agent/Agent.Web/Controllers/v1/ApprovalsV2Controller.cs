@@ -4,6 +4,7 @@
 
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
+using Agent.Logging;
 using Agent.Runtime.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.DurableTask.Client;
@@ -42,7 +43,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<IActionResult> GetApprovals()
         {
             // TODO: Implement pagination
-            _logger.LogInformation("GET approvals requested");
+            _logger.LogInternalInformation("GET approvals requested");
 
             var approvals = await _threadRepository.GetAllApprovalV2sAsync();
             return Ok(approvals);
@@ -57,7 +58,7 @@ namespace Agent.Web.Controllers.v1
         public async Task<IActionResult> GetApproval(string id, [FromQuery] string agentContextId)
         {
             // TODO: Implement getting a specific approval
-            _logger.LogInformation("GET approval requested with ID: {Id}, AgentContextId: {agentContextId}", id, agentContextId);
+            _logger.LogInternalInformation("GET approval requested with ID: {Id}, AgentContextId: {agentContextId}", id, agentContextId);
             
             // Stub implementation - Return sample data
             var approval = await _threadRepository.GetApprovalV2Async(approvalIdV2: Guid.Parse(id), agentContextId: Guid.Parse(agentContextId));
@@ -74,7 +75,7 @@ namespace Agent.Web.Controllers.v1
         [HttpPost("{id}/decision")]
         public async Task<IActionResult> SubmitApprovalDecision(string id, [FromQuery] string agentContextId, [FromBody] ApprovalDecisionRequest request)
         {
-            _logger.LogInformation("Submitting approval decision for ID: {Id}, Status: {Status}", 
+            _logger.LogInternalInformation("Submitting approval decision for ID: {Id}, Status: {Status}", 
                 id, request.Status);
 
             var existingApprovalV2 = await _threadRepository.GetApprovalV2Async(approvalIdV2: Guid.Parse(id), agentContextId: Guid.Parse(agentContextId));
