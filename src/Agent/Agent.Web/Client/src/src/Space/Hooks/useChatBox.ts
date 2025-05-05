@@ -119,6 +119,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     const [isLoadingInitialChatHistory, setIsLoadingInitialChatHistory] = useState<boolean>(true);
     const [noChatHistoryLeftToLoad, setNoChatHistoryLeftToLoad] = useState<boolean>(false);
     const [waitingForSendMessageResponse, setWaitingForSendMessageResponse] = useState<boolean>(false);
+    const [isIntersecting, setIsIntersecting] = useState<boolean>(false);
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
     const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
@@ -146,12 +147,13 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
-    const isPreviousChatHistoryLoadingCompleted = useRef(true);
     // The latest message of either the latest message of chat history, the latest message of the polling that happens every 5 seconds or the answers of the send message
     const latestMessageRef = useRef<Message>();
     const messagesDivRef = useRef<HTMLDivElement>(null);
     const intersectionObserverRef = useRef<HTMLDivElement>(null);
     const abortControllerRef = useRef<AbortController>();
+    const messagesLengthRef = useRef<number>(0);
+    messagesLengthRef.current = messages.length;
 
     const scrollToBottom = (smooth: boolean) =>
         messagesDivRef.current?.scrollTo({ top: messagesDivRef.current.scrollHeight, behavior: smooth ? 'smooth' : undefined });
@@ -245,29 +247,6 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         [currentThreadId, addThread, userId, displayName]
     );
 
-    const onIntersect = debounce(async (entries: IntersectionObserverEntry[]) => {
-        const entry = entries[0];
-
-        if (entry.isIntersecting && currentThreadId && isPreviousChatHistoryLoadingCompleted.current && !noChatHistoryLeftToLoad) {
-            isPreviousChatHistoryLoadingCompleted.current = false;
-            const currentMessages = await getMessages(currentThreadId, messages.length, MessageLoadingCounts.active);
-
-            if (isMounted.current) {
-                if (currentMessages.length > 0) {
-                    setMessages(prev => processMessages(prev, currentMessages, true));
-                }
-
-                // The threshold depends on the number of the messages this query is intended to return.
-                // if the top parameter for calling getMessages, the threshold should be changed accordingly
-                if (currentMessages.length < MessageLoadingCounts.active) {
-                    setNoChatHistoryLeftToLoad(true);
-                }
-            }
-
-            isPreviousChatHistoryLoadingCompleted.current = true;
-        }
-    }, 100);
-
     useEffect(() => {
         let isSubscribed = true;
 
@@ -330,15 +309,68 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     }, [currentThreadId]);
 
     useEffect(() => {
-        const observer = new IntersectionObserver(onIntersect);
+        const observer = new IntersectionObserver((entries: IntersectionObserverEntry[]) => {
+            const entry = entries[0];
+            setIsIntersecting(entry.isIntersecting);
+        });
         if (observer && intersectionObserverRef.current && enableIntersectObserver) {
             observer.observe(intersectionObserverRef.current);
         }
 
         return () => {
             observer?.disconnect();
+            setIsIntersecting(false);
         };
-    }, [messages, enableIntersectObserver]);
+    }, [enableIntersectObserver]);
+
+    useEffect(() => {
+        let timeoutId: NodeJS.Timeout | null = null;
+        let isSubscribed = true;
+
+        // If newly loaded chat history message is already in messages state, that means
+        // we are sending a message right now and the current messages's length is outdated.
+        // In this case, we increase the skip number by one in order to get an old message
+        // that is not in the current messages state.
+        const loadOldChatHistory = async (shouldIncreaseSkipNumber: boolean) => {
+            if (isIntersecting && currentThreadId && !noChatHistoryLeftToLoad) {
+                const currentMessages = await getMessages(
+                    currentThreadId,
+                    messagesLengthRef.current + (shouldIncreaseSkipNumber ? MessageLoadingCounts.active : 0),
+                    MessageLoadingCounts.active
+                );
+
+                if (isSubscribed) {
+                    let isCurrentMessageAlreadyInMessages = false;
+
+                    if (currentMessages.length > 0) {
+                        setMessages(prev => {
+                            const newMessages = processMessages(prev, currentMessages, true);
+                            isCurrentMessageAlreadyInMessages = newMessages.length === prev.length;
+                            return newMessages;
+                        });
+                    }
+
+                    // The threshold depends on the number of the messages this query is intended to return.
+                    // if the top parameter for calling getMessages, the threshold should be changed accordingly
+                    if (currentMessages.length < MessageLoadingCounts.active) {
+                        setNoChatHistoryLeftToLoad(true);
+                    } else {
+                        timeoutId = setTimeout(() => loadOldChatHistory(isCurrentMessageAlreadyInMessages), 100);
+                    }
+                }
+            }
+        };
+
+        loadOldChatHistory(false);
+
+        return () => {
+            isSubscribed = false;
+
+            if (timeoutId !== null) {
+                clearTimeout(timeoutId);
+            }
+        };
+    }, [currentThreadId, noChatHistoryLeftToLoad, isIntersecting]);
 
     useEffect(() => {
         // auto scroll to the bottom when the initial history loading is completed
