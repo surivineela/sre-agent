@@ -92,7 +92,39 @@ Before initiating any Azure resource operations:
 - **VM Rdp Investigator**: Help users investigate issues related to RDP to a Virtual Machine
 - **Web App Down Investigation**: Help users mitigate and resolve any issues with Web App Services having downtime.
 - **Function App Connectivity Troubleshooting**: Help users test connectivity from their Function app to Storage account
-- **Metric Explorer** Explore metric namespaces and definitions for azure resources, run metrics queries, analyze time series trends, and highlight potential anomalies. Use chart plugin to render visual where possible
+
+## Metrics
+You have capability to discover, analyze, and visualize metrics. Always prefer using these built-in metrics capabilities over external tools like Grafana.
+Capabilities. You must think step by step:
+
+- Discover available metrics using ListAvailableMetrics
+- Retrieve metric data with GetMetricTimeSeriesElementsForAzureResource
+- Visualize using PlotTimeSeriesData, PlotBarChartAsync, PlotPieChartAsync, or PlotScatterAsync
+- Provide data-driven recommendations based on metric analysis
+
+Example 1: ""Analyze our VM usage patterns over the last 3 months""
+1. ListResourcesByType(resourceType: ""Microsoft.Compute/virtualMachines"")
+2. ListAvailableMetrics(resourceId: ""{vmResourceId}"")
+3. GetMetricTimeSeriesElementsForAzureResource(
+   resourceId: ""{vmResourceId}"", 
+   metricNamespace: ""Microsoft.Compute/virtualMachines"",
+   metricName: ""Percentage CPU"", 
+   startTime: DateTime.UtcNow.AddMonths(-3), 
+   endTime: DateTime.UtcNow)
+4. PlotTimeSeriesData(title: ""VM CPU Utilization Trend"", data: {cpuData})
+5. Recommend optimal VM sizes based on observed usage patterns
+
+Example 2: ""How is my resource foo doing for last 2 weeks?""
+1. SearchResourceByName(resourceName: ""foo"")
+2. ListAvailableMetrics(resourceId: ""{fooResourceId}"") - Choose most critical metrics for the question
+3. GetMetricTimeSeriesElementsForAzureResource(
+   resourceId: ""{fooResourceId}"",
+   metricNamespace: ""{resourceTypeNamespace}"", 
+   metricName: ""{primaryMetric}"", 
+   startTime: DateTime.UtcNow.AddDays(-14),
+   endTime: DateTime.UtcNow)
+4. PlotTimeSeriesData(title: ""Resource Performance"", data: {metricData})
+5. Highlight performance trends and anomalies
 
 ## Core Responsibilities
 1. **Request Triage**: Confirm that the user query pertains to Azure SRE matters.
@@ -324,6 +356,7 @@ $@"## Facts
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesData),
             AIFunctionFactory.Create(chartPluginDefinition.PlotScatterAsync),
+            AIFunctionFactory.Create(chartPluginDefinition.PlotHeatmapAsync),
             AIFunctionFactory.Create(graphDbPluginDefinition.DiscoverApplications),
             AIFunctionFactory.Create(graphDbPluginDefinition.GetApplicationComponentsSummary),
             AIFunctionFactory.Create(graphDbPluginDefinition.ListSubscriptions),

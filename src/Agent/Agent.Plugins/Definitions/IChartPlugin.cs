@@ -2,7 +2,10 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.ComponentModel;
 using Agent.Core.Models.Api.v1;
+using Agent.Plugins.Attributes;
+using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins
 {
@@ -36,5 +39,13 @@ namespace Agent.Plugins
             string yAxisLabel,
             string dataPoints,
             string description);
+
+        Task<string> PlotHeatmapAsync(
+            string chartTitle,
+            string xAxisLabel,
+            string yAxisLabel,
+            string dataPoints,
+            string description);
     }
 }
+

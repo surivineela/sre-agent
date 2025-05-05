@@ -33,7 +33,7 @@ public static class TitleHelper
         {
             var chats = new List<ChatMessage>
             {
-                new ChatMessage(ChatRole.System, "Generate a concise, descriptive title (maximum 6 words) for this conversation. Return only the title text without quotes or extra formatting."),
+                new ChatMessage(ChatRole.System, "This is a thread for Azure SRE Agent. Generate a concise, descriptive title (maximum 6 words) for this conversation. Return only the title text without quotes or extra formatting."),
                 new ChatMessage(ChatRole.User, message)
             };
 

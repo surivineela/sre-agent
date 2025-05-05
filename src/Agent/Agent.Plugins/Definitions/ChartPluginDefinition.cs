@@ -99,5 +99,26 @@ description: A short message to summarize the image.")]
         {
             return await _chartPlugin.PlotScatterAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
+
+        [KernelFunction("plot_heatmap")]
+        [ThreadSpecific]
+        [Description(@"Generates a heatmap chart from the provided data and returns (or posts) it.
+Parameters:
+chartTitle: The title displayed at the top of the heatmap.
+xAxisLabel: Label for the X-axis (e.g., 'Time (hours)').
+yAxisLabel: Label for the Y-axis (e.g., 'Temperature (°C)').
+dataPoints: Semicolon-separated items in format 'x|y|value',
+e.g.: '12:00|25|8.5;12:00|30|4.2;13:00|25|9.1'
+where x is the x-axis position, y is the y-axis position, and value is the intensity.
+description: A short message to summarize the chart.")]
+        public async Task<string> PlotHeatmapAsync(
+     [Description("Chart title")] string chartTitle,
+     [Description("X-axis label")] string xAxisLabel,
+     [Description("Y-axis label")] string yAxisLabel,
+     [Description("Semicolon-separated 'x|y|value' triples")] string dataPoints,
+     [Description("Optional text to describe/post with the chart")] string description)
+        {
+            return await _chartPlugin.PlotHeatmapAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
+        }
     }
 }

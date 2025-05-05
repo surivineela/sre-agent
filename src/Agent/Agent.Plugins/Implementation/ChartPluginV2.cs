@@ -116,6 +116,32 @@ namespace Agent.Plugins
             return await SaveAndPostChartData(chartData, description);
         }
 
+        public async Task<string> PlotHeatmapAsync(
+            string chartTitle,
+            string xAxisLabel,
+            string yAxisLabel,
+            string dataPoints,
+            string description)
+        {
+            var heatmapData = ParseHeatmapData(dataPoints);
+
+            if (!heatmapData.Any())
+            {
+                return "ERROR: Could not parse any valid heatmap data from 'dataPoints'.";
+            }
+
+            var chartData = new
+            {
+                type = "heatmap",
+                title = chartTitle,
+                xAxisLabel = xAxisLabel,
+                yAxisLabel = yAxisLabel,
+                data = heatmapData.Select(p => new { x = p.X, y = p.Y, value = p.Value }).ToList()
+            };
+
+            return await SaveAndPostChartData(chartData, description);
+        }
+
         /// <summary>
         /// Creates a scatter plot with interactive data points
         /// </summary>
@@ -211,6 +237,34 @@ namespace Agent.Plugins
             }
 
             return slices;
+        }
+
+        private List<HeatmapPoint> ParseHeatmapData(string dataPoints)
+        {
+            var heatmapData = new List<HeatmapPoint>();
+            if (string.IsNullOrWhiteSpace(dataPoints)) return heatmapData;
+
+            var entries = dataPoints.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var entry in entries)
+            {
+                var parts = entry.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 3) continue;
+
+                var x = parts[0].Trim();
+                var y = parts[1].Trim();
+
+                if (!double.TryParse(parts[2].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double value))
+                    continue;
+
+                heatmapData.Add(new HeatmapPoint
+                {
+                    X = x,
+                    Y = y,
+                    Value = value
+                });
+            }
+
+            return heatmapData;
         }
 
         /// <summary>

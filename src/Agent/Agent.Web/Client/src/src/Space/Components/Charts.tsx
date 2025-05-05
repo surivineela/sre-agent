@@ -1,3 +1,4 @@
+import { toPng } from 'html-to-image';
 import React, { useMemo, useRef, useState } from 'react';
 import {
     Area,
@@ -19,21 +20,45 @@ import {
     YAxis,
 } from 'recharts';
 
-import { toPng } from 'html-to-image';
-
 interface ChartData {
-    type: 'line' | 'bar' | 'pie' | 'scatter';
+    type: 'line' | 'bar' | 'pie' | 'scatter' | 'heatmap';
     title: string;
     data: any[];
     xAxisLabel?: string;
     yAxisLabel?: string;
     yAxisMin?: number | 'auto';
     yAxisMax?: number | 'auto';
+    xField?: string;
+    yField?: string;
+    valueField?: string;
+    colorLabel?: string;
 }
-
+interface PieDataPoint {
+    label: string;
+    value: number;
+}
+interface ScatterDataPoint {
+    x: number;
+    y: number;
+    label: string;
+}
 interface AgentChartProps {
     messageText: string;
 }
+
+// Determine if text should be white or black based on background color
+const getContrastTextColor = (hexColor: string): string => {
+    // Convert hex to RGB
+    const r = parseInt(hexColor.slice(1, 3), 16);
+    const g = parseInt(hexColor.slice(3, 5), 16);
+    const b = parseInt(hexColor.slice(5, 7), 16);
+
+    // Calculate luminance - standard formula for perceived brightness
+    const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
+
+    // Use white text on dark backgrounds, black text on light backgrounds
+    return luminance > 0.5 ? '#000000' : '#ffffff';
+};
 
 const CHART_COLORS = [
     '#4F46E5', // indigo primary
@@ -45,6 +70,22 @@ const CHART_COLORS = [
     '#06B6D4', // cyan
     '#F97316', // orange
     '#6366F1', // indigo variant
+];
+
+const HEAT_MAP_COLORS = [
+    '#084081', // dark blue
+    '#0868ac', // blue
+    '#43a2ca', // light blue
+    '#7bccc4', // turquoise
+    '#a8ddb5', // light green
+    '#ccebc5', // pale green
+    '#f0f9b8', // yellow-green
+    '#fef0a9', // light yellow
+    '#fedda0', // yellow
+    '#fdbb84', // orange
+    '#fc8d59', // dark orange
+    '#e34a33', // red
+    '#b30000', // dark red
 ];
 
 const getAreaColors = (index: number) => {
@@ -460,7 +501,9 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                     </div>
                 );
 
-            case 'pie':
+            case 'pie': {
+                const typedData = data as PieDataPoint[];
+
                 return (
                     <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>
                         {!isZoomedView && screenshotButton}
@@ -468,7 +511,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                         <ResponsiveContainer width="100%" height={isZoomedView ? 600 : 400}>
                             <PieChart>
                                 <defs>
-                                    {CHART_COLORS.map((color, index) => (
+                                    {CHART_COLORS.map((color: string, index: number) => (
                                         <linearGradient
                                             key={`gradientPie-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
                                             id={`colorPie-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
@@ -483,26 +526,27 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     ))}
                                 </defs>
                                 <Pie
-                                    data={data}
+                                    data={typedData}
                                     cx="50%"
                                     cy="50%"
                                     labelLine={{
-                                        stroke: '#9CA3AF',
-                                        strokeWidth: 1,
+                                        stroke: '#6B7280',
+                                        strokeWidth: 1.5,
                                         strokeDasharray: '2 2',
                                     }}
-                                    label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                                    label={({ name, value, percent }: any) => `${name}: ${value} (${(percent * 100).toFixed(0)}%)`}
                                     outerRadius={isZoomedView ? '40%' : 160}
-                                    innerRadius={isZoomedView ? '20%' : 60} // Create a donut chart
+                                    innerRadius={isZoomedView ? '20%' : 60}
                                     paddingAngle={2}
                                     cornerRadius={3}
                                     fill="#8884d8"
                                     dataKey="value"
+                                    nameKey="label"
                                     isAnimationActive={true}
                                     animationDuration={800}
                                     animationBegin={100}
                                 >
-                                    {data.map((_, index) => (
+                                    {typedData.map((_: PieDataPoint, index: number) => (
                                         <Cell
                                             key={`cell-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
                                             fill={`url(#colorPie-${index % CHART_COLORS.length}-${isZoomedView ? 'zoomed' : 'normal'})`}
@@ -511,7 +555,10 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         />
                                     ))}
                                 </Pie>
-                                <Tooltip formatter={value => [`${value}`, 'Value']} contentStyle={tooltipStyle} />
+                                <Tooltip
+                                    formatter={(value: any, _: string, props: any) => [`${value}`, props.payload.label]}
+                                    contentStyle={tooltipStyle}
+                                />
                                 <Legend
                                     layout="horizontal"
                                     verticalAlign="bottom"
@@ -523,19 +570,292 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     }}
                                     iconType="circle"
                                     iconSize={8}
+                                    formatter={(_: string, entry: any) => (
+                                        <span style={{ color: '#374151', fontWeight: entry.payload.value > 30 ? 'bold' : 'normal' }}>
+                                            {entry.payload.label}
+                                        </span>
+                                    )}
                                 />
                             </PieChart>
                         </ResponsiveContainer>
                     </div>
                 );
+            }
 
-            case 'scatter':
+            case 'heatmap': {
+                // -------------------- data prep --------------------
+                const { title, data, xAxisLabel, yAxisLabel, colorLabel } = chartData;
+
+                const xCategories = [...new Set(data.map(d => d.x))].sort();
+                const yCategories = [...new Set(data.map(d => d.y))].sort();
+
+                let minValue = Number.MAX_VALUE;
+                let maxValue = Number.MIN_VALUE;
+                data.forEach(d => {
+                    if (d.value !== null && d.value !== undefined) {
+                        minValue = Math.min(minValue, d.value);
+                        maxValue = Math.max(maxValue, d.value);
+                    }
+                });
+                if (minValue === maxValue || minValue === Number.MAX_VALUE) {
+                    minValue = Math.max(0, minValue - 1);
+                    maxValue += 1;
+                }
+
+                const getHeatMapColor = (v: number | null | undefined): string => {
+                    if (v === null || v === undefined) return '#f5f5f5';
+                    const t = (v - minValue) / (maxValue - minValue);
+                    const idx = Math.min(Math.floor(t * HEAT_MAP_COLORS.length), HEAT_MAP_COLORS.length - 1);
+                    return HEAT_MAP_COLORS[idx];
+                };
+
+                // -------------------- layout constants --------------------
+                const rowHeight = isZoomedView ? 60 : 40;
+                const gridHeight = yCategories.length * rowHeight;
+
+                const chartContainerStyle: React.CSSProperties = {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    position: 'relative',
+                    // let it size itself by its content; no minHeight “floor”
+                    overflowX: isZoomedView ? 'auto' : undefined,
+                };
+
+                return (
+                    <div
+                        ref={ref}
+                        style={{
+                            ...containerStyle,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            padding: isZoomedView ? '4rem 3.5rem 1.5rem 3.5rem' : '3.5rem 3rem 1rem 3rem',
+                        }}
+                        onClick={!isZoomedView ? toggleZoom : undefined}
+                    >
+                        {!isZoomedView && screenshotButton}
+
+                        {/* title */}
+                        <div style={{ ...chartTitleStyle, marginTop: 0, marginBottom: '1.75rem' }}>{title}</div>
+
+                        {/* chart container */}
+                        <div style={chartContainerStyle}>
+                            {/* y‑axis label (zoom only) */}
+                            {yAxisLabel && isZoomedView && (
+                                <div
+                                    style={{
+                                        position: 'absolute',
+                                        left: '-30px',
+                                        top: '50%',
+                                        transform: 'translateY(-50%) rotate(-90deg)',
+                                        fontSize: 13,
+                                        fontWeight: 600,
+                                        color: '#374151',
+                                        fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+                                    }}
+                                >
+                                    {yAxisLabel}
+                                </div>
+                            )}
+
+                            {/* y‑ticks + grid */}
+                            <div style={{ display: 'flex' }}>
+                                {/* y‑ticks */}
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        marginRight: 12,
+                                        justifyContent: 'space-around',
+                                        height: gridHeight,
+                                    }}
+                                >
+                                    {yCategories.map(y => (
+                                        <div
+                                            key={y}
+                                            style={{
+                                                height: rowHeight,
+                                                display: 'flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'flex-end',
+                                                fontSize: 11.5,
+                                                color: '#6B7280',
+                                                fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+                                                maxWidth: 120,
+                                                overflow: 'hidden',
+                                                textOverflow: 'ellipsis',
+                                                whiteSpace: 'nowrap',
+                                            }}
+                                        >
+                                            {y}
+                                        </div>
+                                    ))}
+                                </div>
+
+                                {/* grid + x‑axis */}
+                                <div style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+                                    {/* grid */}
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: `repeat(${xCategories.length}, 1fr)`,
+                                            gridTemplateRows: `repeat(${yCategories.length}, ${rowHeight}px)`, // 🔹 NEW
+                                            gap: 1,
+                                        }}
+                                    >
+                                        {yCategories.flatMap(y =>
+                                            xCategories.map(x => {
+                                                const d = data.find(pt => pt.x === x && pt.y === y);
+                                                const val = d?.value;
+                                                const bg = getHeatMapColor(val);
+                                                const fg = getContrastTextColor(bg);
+                                                return (
+                                                    <div
+                                                        key={`${x}-${y}`}
+                                                        style={{
+                                                            backgroundColor: bg,
+                                                            display: 'flex',
+                                                            alignItems: 'center',
+                                                            justifyContent: 'center',
+                                                            color: fg,
+                                                            fontWeight: 500,
+                                                            fontSize: 13,
+                                                            fontFamily:
+                                                                '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+                                                        }}
+                                                        title={`${x}, ${y}: ${val}`}
+                                                    >
+                                                        {val}
+                                                    </div>
+                                                );
+                                            })
+                                        )}
+                                    </div>
+
+                                    {/* x‑ticks */}
+                                    <div
+                                        style={{
+                                            display: 'grid',
+                                            gridTemplateColumns: `repeat(${xCategories.length}, 1fr)`,
+                                            marginTop: 8,
+                                            padding: '0 4px',
+                                        }}
+                                    >
+                                        {xCategories.map(x => (
+                                            <div
+                                                key={x}
+                                                style={{
+                                                    textAlign: 'center',
+                                                    fontSize: 11.5,
+                                                    color: '#6B7280',
+                                                    fontFamily:
+                                                        '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+                                                    overflow: 'hidden',
+                                                    textOverflow: 'ellipsis',
+                                                    whiteSpace: 'nowrap',
+                                                }}
+                                            >
+                                                {x}
+                                            </div>
+                                        ))}
+                                    </div>
+
+                                    {/* x‑axis label (zoom only) */}
+                                    {xAxisLabel && isZoomedView && (
+                                        <div
+                                            style={{
+                                                textAlign: 'center',
+                                                marginTop: 12,
+                                                fontSize: 13,
+                                                fontWeight: 600,
+                                                color: '#374151',
+                                                fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+                                            }}
+                                        >
+                                            {xAxisLabel}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* legend */}
+                        <div
+                            style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                alignItems: 'center',
+                                marginTop: '1rem',
+                                marginBottom: '0.5rem',
+                                fontFamily: '-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif',
+                            }}
+                        >
+                            {/* legend title (zoom only) */}
+                            {isZoomedView && (
+                                <div
+                                    style={{
+                                        fontSize: '0.8rem',
+                                        marginBottom: '0.3rem',
+                                        color: '#374151',
+                                    }}
+                                >
+                                    {colorLabel || 'Value'}
+                                </div>
+                            )}
+
+                            {/* colour bar */}
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    width: '80%',
+                                    height: 18,
+                                    borderRadius: 4,
+                                    overflow: 'hidden',
+                                }}
+                            >
+                                {HEAT_MAP_COLORS.map((c, i) => (
+                                    <div
+                                        key={i}
+                                        style={{
+                                            flex: 1,
+                                            backgroundColor: c,
+                                            border: '1px solid rgba(255,255,255,0.3)',
+                                            borderLeft: 'none',
+                                            borderRight: 'none',
+                                        }}
+                                    />
+                                ))}
+                            </div>
+
+                            {/* min / mid / max */}
+                            <div
+                                style={{
+                                    display: 'flex',
+                                    width: '80%',
+                                    justifyContent: 'space-between',
+                                    marginTop: '0.25rem',
+                                    fontSize: '0.7rem',
+                                    color: '#6B7280',
+                                }}
+                            >
+                                <span>{minValue.toFixed(1)}</span>
+                                <span>{((maxValue + minValue) / 2).toFixed(1)}</span>
+                                <span>{maxValue.toFixed(1)}</span>
+                            </div>
+                        </div>
+                    </div>
+                );
+            }
+
+            case 'scatter': {
+                // Using the updated interface without isAnomaly
+                const typedData = data as ScatterDataPoint[];
+
                 return (
                     <div ref={ref} style={containerStyle} onClick={!isZoomedView ? toggleZoom : undefined}>
                         {!isZoomedView && screenshotButton}
                         <div style={chartTitleStyle}>{title}</div>
                         <ResponsiveContainer width="100%" height={isZoomedView ? 600 : 400}>
-                            <ScatterChart margin={{ top: 10, right: 30, left: 25, bottom: 40 }}>
+                            <ScatterChart margin={{ top: 20, right: 30, left: 25, bottom: 40 }}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" strokeOpacity={0.4} />
                                 <XAxis
                                     type="number"
@@ -590,28 +910,48 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                 <Tooltip
                                     cursor={{ strokeDasharray: '3 3', stroke: '#9CA3AF', strokeWidth: 1 }}
                                     contentStyle={tooltipStyle}
-                                    formatter={value => [value, '']}
-                                    labelFormatter={(_, payload) => {
+                                    formatter={(value: any, name: string) => [value, name]}
+                                    labelFormatter={(_: any, payload: any[]) => {
                                         if (payload && payload.length > 0) {
                                             return payload[0].payload.label || '';
                                         }
                                         return '';
                                     }}
                                 />
-                                <Scatter name={title} data={data} fill={CHART_COLORS[0]} isAnimationActive={true}>
-                                    {data.map((entry, index) => (
+
+                                {/* Render all points with a single color */}
+                                <Scatter name="Data Points" data={typedData} fill={CHART_COLORS[0]} isAnimationActive={true}>
+                                    {typedData.map((_: ScatterDataPoint, index: number) => (
                                         <Cell
                                             key={`cell-${index}-${isZoomedView ? 'zoomed' : 'normal'}`}
-                                            fill={entry.color || CHART_COLORS[index % CHART_COLORS.length]}
+                                            fill={CHART_COLORS[0]}
                                             stroke="#FFFFFF"
                                             strokeWidth={1}
                                         />
                                     ))}
                                 </Scatter>
+
+                                {/* Add text labels for all points */}
+                                {typedData.map((entry: ScatterDataPoint, index: number) => (
+                                    <text
+                                        key={`text-${index}`}
+                                        x={entry.x}
+                                        y={entry.y}
+                                        dx={10}
+                                        dy={-10}
+                                        fontSize={12}
+                                        fontFamily="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif"
+                                        fill="#4B5563"
+                                        textAnchor="start"
+                                    >
+                                        {entry.label}
+                                    </text>
+                                ))}
                             </ScatterChart>
                         </ResponsiveContainer>
                     </div>
                 );
+            }
 
             default:
                 return <div>Unsupported chart type: {type}</div>;
@@ -638,7 +978,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                 </div>
             )}
 
-            {/* Zoom Modal */}
+            {/* Zoom Mohdal */}
             {isZoomed && (
                 <div style={modalOverlayStyle as React.CSSProperties} onClick={toggleZoom}>
                     <div
