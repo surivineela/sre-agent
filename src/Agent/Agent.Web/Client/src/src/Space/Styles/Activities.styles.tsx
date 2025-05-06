@@ -14,6 +14,24 @@ export const activitiesStylesRoot: CSSProperties = {
     height: 'calc(100vh - 44px)',
 };
 
+export const getExpandCollapseButtonStyles = (position: 'left' | 'right') => {
+    const continerMarginLeft = position === 'left' ? undefined : 'auto';
+    const buttonMargin = position === 'left' ? 'auto auto auto 10px' : 'auto 0px auto auto';
+
+    return {
+        container: {
+            marginLeft: continerMarginLeft,
+            height: '50px',
+            display: 'flex',
+        },
+        button: {
+            maxHeight: 'fit-content',
+            maxWidth: 'fit-content',
+            margin: buttonMargin,
+        },
+    };
+};
+
 export const ThreadContentStyles = mergeStyleSets({
     root: {
         flex: '1 1 auto',
@@ -32,12 +50,15 @@ export const ThreadContentStyles = mergeStyleSets({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: '10px',
+        marginRight: 10,
+        height: '50px',
     },
     title: {
         fontWeight: 600,
         lineHeight: '22px',
         paddingBottom: '-10px',
         fontSize: '18px',
+        marginBlock: '0px 0px',
     },
 });
 
@@ -152,17 +173,16 @@ export const useChatInputTextStyles = () => {
     };
 };
 
-export const useThreadMenuStyle = () => {
+export const useThreadMenuStyle = (collapsed?: boolean) => {
     const root: IStyle = {
-        flex: '0 0 20%',
+        flex: collapsed ? '0 0 0%' : '0 0 20%',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'stretch',
         gap: '10px',
         backgroundColor: tokens.colorNeutralBackground3,
-        paddingTop: '50px',
-        paddingLeft: '20px',
+        paddingLeft: '10px',
         maxWidth: '300px',
     };
 
@@ -232,7 +252,6 @@ export const useThreadActionsStyles = makeStyles({
         alignItems: 'stretch',
         gap: '10px',
         backgroundColor: tokens.colorNeutralBackground3,
-        paddingTop: '42px',
         paddingLeft: '5px',
         paddingRight: '10px',
     },

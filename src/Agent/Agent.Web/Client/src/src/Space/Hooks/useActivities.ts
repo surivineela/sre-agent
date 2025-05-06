@@ -56,6 +56,7 @@ export const useActivities = () => {
     const [selectedThread, setSelectedThread] = useState<Thread | null>(null);
     const [threadContentAndActionKey, setThreadContentAndActionKey] = useState<string>(Guid.newGuid());
     const [activeThreadId, setActiveThreadId] = useState<string>('');
+    const [actionsCollapsed, setActionsCollapsed] = useState<boolean>(false);
 
     const untouched = useRef<boolean>(true);
     const canPollThread = useRef<boolean>(true);
@@ -189,5 +190,7 @@ export const useActivities = () => {
         selectThread,
         threadContentAndActionKey,
         activeThreadId,
+        actionsCollapsed,
+        setActionsCollapsed,
     };
 };

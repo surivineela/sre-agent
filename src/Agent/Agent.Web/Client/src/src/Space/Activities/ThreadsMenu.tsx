@@ -1,5 +1,11 @@
 import { Button, InputOnChangeData, Radio, RadioGroup, SearchBox, SearchBoxChangeEvent, tokens } from '@fluentui/react-components';
-import { AddRegular, DismissCircle16Filled, Warning16Filled } from '@fluentui/react-icons';
+import {
+    AddRegular,
+    DismissCircle16Filled,
+    PanelLeftContractRegular,
+    PanelLeftExpandRegular,
+    Warning16Filled,
+} from '@fluentui/react-icons';
 import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { Text } from '@fluentui/react/lib/Text';
@@ -10,7 +16,7 @@ import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azu
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadsMenuProps } from '../Contracts/Activities';
 import { useMetrics } from '../Hooks/useMetrics';
-import { useThreadMenuStyle } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 import ActivitiesStatusBar from './ActionsStatusBar';
 import { AgentContext } from './Activities.ReactView';
@@ -27,6 +33,7 @@ export enum ThreadActionFilter {
     warning = 'warning',
     critical = 'critical',
 }
+const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
 export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => {
     const { threads, selectThread } = props;
@@ -35,7 +42,8 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
     const [selectedTime, setSelectedTime] = useState<SelectedTimes>(SelectedTimes.OneDay);
     const [threadMode, setThreadMode] = useState<ThreadMode>(ThreadMode.threads);
     const [threadActionFilter, setThreadActionFilter] = useState<ThreadActionFilter>(ThreadActionFilter.all);
-    const ThreadMenuStyles = useThreadMenuStyle();
+    const [collapsed, setCollapsed] = useState(true);
+    const ThreadMenuStyles = useThreadMenuStyle(collapsed);
     const intl = useIntl();
 
     const { actionSeverityMetrics, incidentMetrics, actionStatusMetrics } = useMetrics(selectedTime);
@@ -79,8 +87,17 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
         }
     }, [threadMode, searchString, threads, selectedTime, threadActionFilter]);
 
-    return (
+    return collapsed ? (
         <div className={ThreadMenuStyles.root}>
+            <div style={expandCollapseButtonStyles.container}>
+                <Button
+                    style={expandCollapseButtonStyles.button}
+                    icon={<PanelLeftExpandRegular />}
+                    onClick={() => setCollapsed(false)}
+                    aria-label={intl.formatMessage(ActivitiesResources.showThreadMenuButtonText)}
+                    appearance="transparent"
+                />
+            </div>
             <Button
                 style={{
                     height: 'auto',
@@ -88,10 +105,39 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                     borderColor: tokens.colorNeutralBackground3Selected,
                     maxWidth: 'fit-content',
                     marginLeft: '10px',
+                    marginTop: '-10px',
                 }}
                 icon={<AddRegular />}
                 disabled={!threadsInitialized}
                 onClick={() => selectThread(null)}
+                aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
+            />
+        </div>
+    ) : (
+        <div className={ThreadMenuStyles.root}>
+            <div style={expandCollapseButtonStyles.container}>
+                <Button
+                    style={expandCollapseButtonStyles.button}
+                    icon={<PanelLeftContractRegular />}
+                    onClick={() => setCollapsed(true)}
+                    aria-label={intl.formatMessage(ActivitiesResources.hideThreadMenuButtonText)}
+                    appearance="transparent"
+                />
+            </div>
+
+            <Button
+                style={{
+                    height: 'auto',
+                    borderRadius: tokens.borderRadiusLarge,
+                    borderColor: tokens.colorNeutralBackground3Selected,
+                    maxWidth: 'fit-content',
+                    marginLeft: '10px',
+                    marginTop: '-10px',
+                }}
+                icon={<AddRegular />}
+                disabled={!threadsInitialized}
+                onClick={() => selectThread(null)}
+                aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
             >
                 {intl.formatMessage(ActivitiesResources.createThreadButtonText)}
             </Button>

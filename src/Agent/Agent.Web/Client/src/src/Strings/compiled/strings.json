@@ -487,6 +487,12 @@
       "value": " deleted successfully"
     }
   ],
+  "MACADd": [
+    {
+      "type": 0,
+      "value": "Hide thread actions"
+    }
+  ],
   "NEY2T1": [
     {
       "type": 0,
@@ -533,6 +539,18 @@
       "value": "Enter name"
     }
   ],
+  "OWBgF9": [
+    {
+      "type": 0,
+      "value": "Hide thread menu"
+    }
+  ],
+  "PipPB3": [
+    {
+      "type": 0,
+      "value": "Show thread actions"
+    }
+  ],
   "PxLzzW": [
     {
       "type": 0,
@@ -577,6 +595,12 @@
     {
       "type": 0,
       "value": " actions completed"
+    }
+  ],
+  "RSDnlS": [
+    {
+      "type": 0,
+      "value": "Show thread menu"
     }
   ],
   "RrCui3": [

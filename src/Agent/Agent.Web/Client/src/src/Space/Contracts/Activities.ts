@@ -17,11 +17,14 @@ export interface IThreadsMenuProps {
 
 export interface IThreadContentProps {
     thread?: Thread | null;
+    actionsCollapsed: boolean;
+    expandActions: () => void;
     addThread: (thread: Thread) => void;
     deleteThread: (thread: Thread) => void;
 }
 
 export interface IThreadActivitiesProps {
+    collapse: () => void;
     thread?: Thread | null;
 }
 

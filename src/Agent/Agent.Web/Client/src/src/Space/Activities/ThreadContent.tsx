@@ -1,14 +1,18 @@
+import { Button } from '@fluentui/react-components';
+import { PanelRightExpandRegular } from '@fluentui/react-icons';
 import { Text } from '@fluentui/react/lib/Text';
 import { memo, useCallback, useContext } from 'react';
 import { useIntl } from 'react-intl';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadContentProps } from '../Contracts/Activities';
-import { ThreadContentStyles } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, ThreadContentStyles } from '../Styles/Activities.styles';
 import { AgentContext } from './Activities.ReactView';
 import ChatBox from './ChatBox';
 import ThreadDeleteAction from './ThreadDeleteAction';
 
-export const ThreadContent = memo(({ thread, addThread, deleteThread }: IThreadContentProps) => {
+const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
+
+export const ThreadContent = memo(({ thread, addThread, deleteThread, actionsCollapsed, expandActions }: IThreadContentProps) => {
     const { threadContentAndActionKey } = useContext(AgentContext);
     const intl = useIntl();
 
@@ -25,6 +29,17 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread }: IThreadC
                     {thread?.title ?? intl.formatMessage(SreAgentResources.newThread)}
                 </Text>
                 {thread && <ThreadDeleteAction handleThreadDelete={handleThreadDelete} />}
+                {actionsCollapsed && (
+                    <div style={expandCollapseButtonStyles.container}>
+                        <Button
+                            style={expandCollapseButtonStyles.button}
+                            icon={<PanelRightExpandRegular />}
+                            onClick={expandActions}
+                            aria-label={intl.formatMessage(ActivitiesResources.showThreadActionsButtonText)}
+                            appearance="transparent"
+                        />
+                    </div>
+                )}
             </div>
             <ChatBox threadId={thread?.id} addThread={addThread} />
         </div>

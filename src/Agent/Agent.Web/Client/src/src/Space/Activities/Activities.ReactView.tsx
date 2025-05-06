@@ -22,14 +22,22 @@ const Activities: FC = () => {
         addThread,
         deleteThread,
         activeThreadId,
+        actionsCollapsed,
+        setActionsCollapsed,
     } = useActivities();
 
     return (
         <AgentContext.Provider value={{ threadContentAndActionKey, threadsInitialized, activeThreadId }}>
             <div style={activitiesStylesRoot}>
                 <ThreadsMenu threads={threads} selectThread={selectThread} />
-                <ThreadContent thread={selectedThread} addThread={addThread} deleteThread={deleteThread} />
-                <ThreadActions thread={selectedThread} />
+                <ThreadContent
+                    thread={selectedThread}
+                    addThread={addThread}
+                    deleteThread={deleteThread}
+                    actionsCollapsed={actionsCollapsed}
+                    expandActions={() => setActionsCollapsed(false)}
+                />
+                {!actionsCollapsed && <ThreadActions thread={selectedThread} collapse={() => setActionsCollapsed(true)} />}
             </div>
         </AgentContext.Provider>
     );

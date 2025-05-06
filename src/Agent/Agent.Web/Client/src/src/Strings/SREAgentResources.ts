@@ -175,6 +175,22 @@ export const ActivitiesResources = defineMessages({
         defaultMessage: 'New messages',
         id: 'O79Wpv',
     },
+    showThreadActionsButtonText: {
+        defaultMessage: 'Show thread actions',
+        id: 'PipPB3',
+    },
+    hideThreadActionsButtonText: {
+        defaultMessage: 'Hide thread actions',
+        id: 'MACADd',
+    },
+    showThreadMenuButtonText: {
+        defaultMessage: 'Show thread menu',
+        id: 'RSDnlS',
+    },
+    hideThreadMenuButtonText: {
+        defaultMessage: 'Hide thread menu',
+        id: 'OWBgF9',
+    },
 });
 
 export const ActivitiesThreadHeaderResources = defineMessages({

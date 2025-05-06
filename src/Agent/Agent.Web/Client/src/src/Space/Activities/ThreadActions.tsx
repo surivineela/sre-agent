@@ -1,15 +1,15 @@
-import { Card, CardFooter, CardHeader, InputOnChangeData, SearchBox, SearchBoxChangeEvent, Text } from '@fluentui/react-components';
-import { ArrowSync16Filled, CheckmarkCircle16Filled, Dismiss16Filled } from '@fluentui/react-icons';
+import { Button, Card, CardFooter, CardHeader, InputOnChangeData, SearchBox, SearchBoxChangeEvent, Text } from '@fluentui/react-components';
+import { ArrowSync16Filled, CheckmarkCircle16Filled, Dismiss16Filled, PanelRightContractRegular } from '@fluentui/react-icons';
 import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import debounce from 'lodash/debounce';
 import { FC, memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { Action, ActionStatus } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
-import { ActionsResources, SreAgentResources } from '../../Strings/SREAgentResources';
+import { ActionsResources, ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadActivitiesProps } from '../Contracts/Activities';
 import { useActions } from '../Hooks/useActions';
-import { useThreadActionsStyles } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, useThreadActionsStyles } from '../Styles/Activities.styles';
 import { AgentContext } from './Activities.ReactView';
 
 export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
@@ -24,8 +24,10 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
     );
 };
 
+const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
+
 const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
-    const { thread } = props;
+    const { thread, collapse } = props;
     const { threadsInitialized } = useContext(AgentContext);
     const { actions, isLoading } = useActions(thread?.id);
     const intl = useIntl();
@@ -44,6 +46,15 @@ const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActiviti
 
     return (
         <div className={actionsStyles.content}>
+            <div style={expandCollapseButtonStyles.container}>
+                <Button
+                    style={expandCollapseButtonStyles.button}
+                    icon={<PanelRightContractRegular />}
+                    onClick={collapse}
+                    aria-label={intl.formatMessage(ActivitiesResources.hideThreadActionsButtonText)}
+                    appearance="transparent"
+                />
+            </div>
             <Text as="h3" className={actionsStyles.title}>
                 {intl.formatMessage(ActionsResources.actions)}
             </Text>
