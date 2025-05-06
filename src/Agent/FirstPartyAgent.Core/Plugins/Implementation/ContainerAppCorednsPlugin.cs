@@ -12,14 +12,14 @@ namespace FirstPartyAgent.Core.Plugins.Implementation;
 // [MENDATORY]
 public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
 {
-    private readonly IKustoPlugin _kustoPlugin;
+    private readonly IKustoPluginChat _kustoPlugin;
 
-    public ContainerAppCorednsPlugin(IKustoPlugin kustoPlugin)
+    public ContainerAppCorednsPlugin(IKustoPluginChat kustoPlugin)
     {
         _kustoPlugin = kustoPlugin;
     }
 
-    public Task<string> CheckIfCustomDNSConfigured(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    public async Task<string> CheckIfCustomDNSConfigured(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
         string query = $@"
             let fromDate = datetime(""{fromDate}"");
@@ -37,10 +37,10 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
                 ""Unknown"" // Unknown means DNS configuration changed in the time interval
             )
             ";
-        return _kustoPlugin.ExecuteKustoQuery(region, query);
+        return (await _kustoPlugin.ExecuteKustoQuery(region, query)).Result;
     }
 
-    public Task<string> GetCustomDNSServers(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    public async Task<string> GetCustomDNSServers(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
         string query = $@"
                 let fromDate = datetime(""{fromDate}"");
@@ -52,7 +52,7 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
                 | where msg has ""Customer DNS Servers are >> ""
                 | summarize StartTime = min(PreciseTimeStamp), EndTime = max(PreciseTimeStamp) by msg
                 ";
-        return _kustoPlugin.ExecuteKustoQuery(region, query);
+        return (await _kustoPlugin.ExecuteKustoQuery(region, query)).Result;
     }
 
     public Task<string> GetCoreDNSCountMetricData(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string metricName, int thresold)

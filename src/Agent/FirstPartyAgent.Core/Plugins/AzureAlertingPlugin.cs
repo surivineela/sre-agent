@@ -80,7 +80,7 @@ namespace FirstPartyAgent.Core.Plugins
                         $"| where CorrelationId == '{correlationId}'";
                 }
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             return $"Alert details not found for alertId {alertId}";
         }

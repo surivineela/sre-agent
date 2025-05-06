@@ -14,9 +14,9 @@ namespace FirstPartyAgent.Core.Plugins.Implementation;
 // [MENDATORY]
 public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 {
-    private readonly IKustoPlugin _kustoPlugin;
+    private readonly IKustoPluginChat _kustoPlugin;
     private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-    public ContainerAppRevisionPlugin(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+    public ContainerAppRevisionPlugin(IKustoPluginChat kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _kustoPlugin = kustoPlugin;
         _agentOutboundCommunicationService = agentOutboundCommunicationService;
@@ -224,7 +224,7 @@ union theSchema, mdmData
 | project Timestamp = TimestampUtc, Revision = revisionName, Max, appArmId
 | where Revision == cappRevisionName
 | order by Timestamp asc, Revision asc;
-";
-        return await _kustoPlugin.ExecuteKustoQuery(region, query);
+";        
+        return (await _kustoPlugin.ExecuteKustoQuery(region, query)).Result;
     }
 }

@@ -49,6 +49,7 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton(new RevisionSettings());
 
         builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
+        builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
         builder.Services.AddSingleton<KustoClientService>();
         builder.Services.AddSingleton<TeamsClientSettings>();

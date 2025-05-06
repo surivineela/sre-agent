@@ -6,6 +6,8 @@ using Agent.Runtime;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Services;
+using FirstPartyAgent.Plugins;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,6 +20,9 @@ config.SetBasePath(builder.Environment.ContentRootPath)
             .AddEnvironmentVariables();
 
 builder.Services.RegisterServiceDependencies();
+
+// remove this plugin because its dependencies are not registered.
+builder.Services.RemoveAll<IKustoPluginChat>();
 
 if (builder.Environment.IsDevelopment())
 {

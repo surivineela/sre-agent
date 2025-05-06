@@ -41,7 +41,7 @@ namespace FirstPartyAgent.Plugins
 
                 var kustoQuery = GetRequestGeneralInfoQuery(activityId, utcDateTime);
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             catch (Exception ex)
             {
@@ -79,7 +79,7 @@ namespace FirstPartyAgent.Plugins
                 }
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             catch (Exception ex)
             {
@@ -104,7 +104,7 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartRequestDetailsForFlexConsumptionFromLegion(podName, utcDateTime);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(legionClusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             catch (Exception ex)
             {
@@ -130,7 +130,7 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartQueryForSlaSites(days, platform, stack);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             catch (Exception ex)
             {
@@ -153,7 +153,7 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartProfileDataQuery();
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             catch (Exception ex)
             {
@@ -176,7 +176,7 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartProfileDataQueryDetails();
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult;
+                return kustoResult.Result;
             }
             catch (Exception ex)
             {

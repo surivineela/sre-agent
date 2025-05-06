@@ -8,9 +8,9 @@ using FirstPartyAgent.Plugins;
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
 {
-    private readonly IKustoPlugin _kustoPlugin;
+    private readonly IKustoPluginChat _kustoPlugin;
 
-    public ContainerAppEnvoyPlugin(IKustoPlugin kustoPlugin)
+    public ContainerAppEnvoyPlugin(IKustoPluginChat kustoPlugin)
     {
         _kustoPlugin = kustoPlugin;
     }

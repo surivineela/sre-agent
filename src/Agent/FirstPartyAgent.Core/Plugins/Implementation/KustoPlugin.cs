@@ -3,20 +3,18 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
-using System.IO.Compression;
-using System.Text;
+using System.Data;
 using System.Text.RegularExpressions;
-using System.Web;
-using Agent.Core;
 using Agent.Core.Helpers;
-using Agent.Core.Interfaces;
 using Agent.Core.Models;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
-using Kusto.Cloud.Platform.Data;
-using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
+using Microsoft.Extensions.AI;
+using System.Text;
+using System.IO.Compression;
+using System.Web;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -36,25 +34,9 @@ namespace FirstPartyAgent.Plugins
             _kustoClientService = kustoClientService;
         }
 
-        public static string EncodeQuery(string input)
-        {
-            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
-            using (var outputStream = new MemoryStream())
-            {
-                using (var gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
-                {
-                    gzipStream.Write(inputBytes, 0, inputBytes.Length);
-                }
-                byte[] compressedBytes = outputStream.ToArray();
-                string base64 = Convert.ToBase64String(compressedBytes);
-                string urlEncoded = HttpUtility.UrlEncode(base64);
-                return urlEncoded;
-            }
-        }
-
         [KernelFunction("execute_kusto_query")]
         [Description("Executes a Kusto query on a regional cluster and returns the result as a JSON string.")]
-        public async Task<string> ExecuteKustoQuery(
+        public async Task<KustoQueryResult> ExecuteKustoQuery(
             [Description("The region of the target Kusto cluster.")] string region,
             [Description("The Kusto query to execute.")] string query
             )
@@ -64,24 +46,21 @@ namespace FirstPartyAgent.Plugins
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
 
                 var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
-                var reader = await _kustoClientService.PerformQueryAsync(query, region);
-                var writer = new StringWriter();
-
-                reader.WriteAsJson(writer, 1024 * 1024, out var size);
-
-                _logger.LogInformation($"result: {writer.ToString()}");
-                return writer.ToString();
+                using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+                var ret = new KustoQueryResult(reader, query);
+                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount);
+                return ret;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return $"An error occurred while executing Kusto Query: {ex.Message}";
+                return KustoQueryResult.Error;
             }
         }
 
         [KernelFunction("execute_kusto_query_on_cluster")]
         [Description("Executes a fully qualified Kusto query on a specific cluster and database, returning the result in JSON format.")]
-        public async Task<string> ExecuteClusterKustoQuery(
+        public async Task<KustoQueryResult> ExecuteClusterKustoQuery(
             [Description("The short name of the target Kusto cluster (without URL schema or suffix).")] string cluster,
             [Description("The name of the target Kusto database.")] string database,
             [Description("The full Kusto query to execute.")] string fullQuery,
@@ -102,22 +81,14 @@ namespace FirstPartyAgent.Plugins
                     Database = database,
                 };
                 var reader = await _kustoClientService.PerformQueryAsync(config, fullQuery);
-                var writer = new StringWriter();
-
-                reader.WriteAsJson(writer, 1024 * 1024, out var size);
-                if (size > 1024 * 1024)
-                {
-                    _logger.LogWarning($"Kusto query result size exceeds 1MB: {size} bytes");
-                }
-                var result = writer.ToString();
-                _logger.LogInformation($"Kusto Output: {result}");
-
-                return !string.IsNullOrWhiteSpace(result) ? result : "ZERO_ROWS_RETURNED";
+                var ret = new KustoQueryResult(reader, fullQuery);
+                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, database);
+                return ret;
             }
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return $"An error occurred while executing Kusto Query: {ex.Message}";
+                return KustoQueryResult.Error;
             }
         }
 
@@ -134,10 +105,10 @@ namespace FirstPartyAgent.Plugins
             {
                 result.Add(new KustoFunction
                 {
-                    Name = reader["Name"].ToString(),
-                    Folder = reader["Folder"]?.ToString(),
-                    DocString = reader["DocString"]?.ToString(),
-                    Parameters = reader["Parameters"]?.ToString()
+                    Name = reader["Name"]?.ToString() ?? string.Empty,
+                    Folder = reader["Folder"]?.ToString() ?? string.Empty,
+                    DocString = reader["DocString"]?.ToString() ?? string.Empty,
+                    Parameters = reader["Parameters"]?.ToString() ?? string.Empty
                 });
             }
 
@@ -146,7 +117,7 @@ namespace FirstPartyAgent.Plugins
 
         [KernelFunction("execute_kusto_function")]
         [Description("Executes a user-defined Kusto function with named arguments on the regional Kusto cluster and returns the results.")]
-        public async Task<string> ExecuteFunctionAsync(
+        public async Task<KustoQueryResult> ExecuteFunctionAsync(
             [Description("The name of the Kusto function to invoke.")] string functionName,
             [Description("The region of the Kusto cluster.")] string region,
             Dictionary<string, string>? args = null
@@ -158,20 +129,26 @@ namespace FirstPartyAgent.Plugins
 
             var query = string.IsNullOrEmpty(argList) ? $"{functionName}()" : $"{functionName}({argList})";
 
-            using var reader = await _kustoClientService.PerformQueryAsync(query, region);
-
-            var output = new StringBuilder();
-            while (reader.Read())
+            try
             {
-                output.AppendLine(reader[0].ToString());
+                using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+                var ret = new KustoQueryResult(reader, query);
+                ret.Message = CreateChatMessage(query, region, ret.RowCount, functionName: functionName);
+                return ret;
             }
-
-            return output.ToString();
+            catch (Exception ex)
+            {
+                _logger.LogError($"An error occurred while executing Kusto Function {functionName}: {ex.Message}");
+                return KustoQueryResult.Error;
+            }
         }
 
-        [KernelFunction("create_agent_chat_message_for_kusto_query")]
-        [Description("Creates a chat message with the role set to 'Tool' for a Kusto query or function execution. Includes a link to the Azure Data Explorer (ADX) and the query details.")]
-        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, string database = null, string functionName = null)
+        private static string QuoteIfNeeded(string value)
+        {
+            return $"\"{value}\"";
+        }
+
+        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, string? database = null, string? functionName = null)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -211,17 +188,17 @@ namespace FirstPartyAgent.Plugins
             if (!string.IsNullOrWhiteSpace(functionName))
             {
                 // For function execution
-                displayText = $"[adx]({adxUri})\nExecuting Kusto function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n```kql\n{query}\n```";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n```kql\n{query}\n```\n\nRows: {count}";
             }
             else if (!string.IsNullOrWhiteSpace(database))
             {
                 // For cluster and database-specific queries
-                displayText = $"[adx]({adxUri})\nExecuting Kusto query on cluster '{regionOrClusterUri}' in database '{database}':\n```kql\n{{query}}\n```";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query on cluster '{regionOrClusterUri}' in database '{database}':\n```kql\n{query}\n```\n\nRows: {count}";
             }
             else
             {
                 // For regional queries
-                displayText = $"[adx]({adxUri})\nExecuting Kusto query in region {regionOrClusterUri}:\n```kql\n{query}\n```";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query in region {regionOrClusterUri}:\n```kql\n{query}\n```\n\nRows:{count}";
             }
 
             return new ChatMessage(ChatRole.Tool, new List<AIContent>
@@ -231,35 +208,19 @@ namespace FirstPartyAgent.Plugins
             });
         }
 
-        private static string QuoteIfNeeded(string value)
+        public static string EncodeQuery(string input)
         {
-            return  $"\"{value}\"" ;
-        }
-
-        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args)
-        {
-            var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
-
-            if (File.Exists(fileName))
+            byte[] inputBytes = Encoding.UTF8.GetBytes(input);
+            using (var outputStream = new MemoryStream())
             {
-                var formatted = File.ReadAllText(fileName);
-                // replace ##placeholder## with value
-                foreach (var arg in args)
+                using (var gzipStream = new GZipStream(outputStream, CompressionMode.Compress))
                 {
-                    formatted = formatted.Replace($"##{arg.Key}##", arg.Value);
+                    gzipStream.Write(inputBytes, 0, inputBytes.Length);
                 }
-
-                if (formatted.Contains("##"))
-                {
-                    _logger.LogError($"Not all placeholders were replaced in the query");
-                    throw new Exception($"Not all placeholders were replaced in the query, {formatted}");
-                }
-
-                return await ExecuteKustoQuery(region, formatted);
-            }
-            else
-            {
-                return await ExecuteFunctionAsync(functionName, region, args);
+                byte[] compressedBytes = outputStream.ToArray();
+                string base64 = Convert.ToBase64String(compressedBytes);
+                string urlEncoded = HttpUtility.UrlEncode(base64);
+                return urlEncoded;
             }
         }
     }

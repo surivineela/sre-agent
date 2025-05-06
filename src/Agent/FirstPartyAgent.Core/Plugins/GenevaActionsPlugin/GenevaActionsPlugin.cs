@@ -142,7 +142,8 @@ namespace FirstPartyAgent.Core.Plugins
                 | where SubscriptionId == '{subscriptionId}'
                 | project ServiceName, SubscriptionId, ServiceId, Environment
                 | take 1";
-            var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery("servicetreepublic.westus", "Shared", kustoQuery, null, kernel);
+            var result = await _kustoPlugin.ExecuteClusterKustoQuery("servicetreepublic.westus", "Shared", kustoQuery, null, kernel);
+            var kustoResult = result.Result;
             if (kustoResult != "ZERO_ROWS_RETURNED" && !string.IsNullOrWhiteSpace(kustoResult))
             {
                 var kustoResultDictionary = JsonConvert.DeserializeObject<Dictionary<string, string>>(kustoResult);

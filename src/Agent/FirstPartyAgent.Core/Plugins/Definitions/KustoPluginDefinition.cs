@@ -22,7 +22,8 @@ namespace FirstPartyAgent.Plugins.Definitions
             [Description("The region of the target Kusto cluster.")] string region,
             [Description("The Kusto query to execute.")] string query)
         {
-            return await _plugin.ExecuteKustoQuery(region, query);
+            var result = await _plugin.ExecuteKustoQuery(region, query);
+            return result.Result;
         }
 
         [KernelFunction(KernelFunctionNames.Kusto.ExecuteFunction)]
@@ -32,7 +33,8 @@ namespace FirstPartyAgent.Plugins.Definitions
             [Description("The region of the Kusto cluster.")] string region,
             Dictionary<string, string> args)
         {
-            return await _plugin.ExecuteFunctionAsync(functionName, region, args);
+            var result = await _plugin.ExecuteFunctionAsync(functionName, region, args);
+            return result.Result;
         }
 
         [KernelFunction(KernelFunctionNames.Kusto.ListKustoFunctions)]
@@ -42,17 +44,6 @@ namespace FirstPartyAgent.Plugins.Definitions
         {
             var funcs = await _plugin.ListFunctionsAsync(region);
             return string.Join("\n", funcs.Select(f => $"- {f.Name}: {f.DocString}"));
-        }
-
-        [KernelFunction(KernelFunctionNames.Kusto.CreateAgentChatMessageForKustoQuery)]
-        [Description("Creates a chat message with the role set to 'Tool' for a Kusto query or function execution. Includes a link to the Azure Data Explorer (ADX) and the query details.")]
-        public Microsoft.Extensions.AI.ChatMessage CreateChatMessage(
-            [Description("The Kusto query to execute.")] string query,
-            [Description("The region of the target Kusto cluster or comlete cluster uri in the format https://{cluster}.kusto.windows.net")] string regionOrClusterUri,
-            [Description("Database name against which to execute Kusto query. Must be non empty if using cluster URI")] string database = null,
-            [Description("The name of the user-defined function to execute instead of the query.")] string functionName = null)
-        {
-            return _plugin.CreateChatMessage(query, regionOrClusterUri, database, functionName);
         }
 
         public Dictionary<string, Func<Task<string>>> GetRegisteredFunctionDelegates()
@@ -65,7 +56,7 @@ namespace FirstPartyAgent.Plugins.Definitions
                 var name = func.Name;
                 var args = new Dictionary<string, string>(); // could be populated dynamically in the future
 
-                map[name] = async () => await _plugin.ExecuteFunctionAsync(name, "eastus", args);
+                map[name] = async () => (await _plugin.ExecuteFunctionAsync(name, "eastus", args)).Result;
             }
 
             return map;
