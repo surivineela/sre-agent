@@ -4,21 +4,48 @@ import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPorta
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
-import { Agent, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
+import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
 import { IncidentManagementNotificationResources, IncidentManagementSaveErrorResources } from '../../../Strings/SREAgentResources';
 import { IncidentManagementFormValues, IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
 import { useSreAgent } from './useSreAgent';
 
+const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
+    switch (agent?.properties?.incidentManagementConfiguration?.type) {
+        case IncidentManagementType.PagerDuty:
+            return IncidentManagementPlatform.PagerDuty;
+        case IncidentManagementType.AzMonitor:
+            return IncidentManagementPlatform.AzMonitor;
+        default:
+            return IncidentManagementPlatform.Disconnected;
+    }
+};
+
 const getInitialValues = (agent?: ArmObj<Agent>): IncidentManagementFormValues => {
-    const platform =
-        agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty
-            ? IncidentManagementPlatform.PagerDuty
-            : IncidentManagementPlatform.Disconnected;
     return {
-        platform,
+        platform: getIncidentManagementPlatform(agent),
         connectionKey: agent?.properties?.incidentManagementConfiguration?.connectionKey,
     };
+};
+
+const generateIncidentManagementConfiguration = (formValues: IncidentManagementFormValues): IncidentManagementConfiguration | null => {
+    switch (formValues.platform) {
+        case IncidentManagementPlatform.Disconnected:
+            return null;
+        case IncidentManagementPlatform.PagerDuty:
+            return {
+                type: IncidentManagementType.PagerDuty,
+                connectionName: 'pagerduty',
+                connectionKey: formValues.connectionKey,
+            };
+        case IncidentManagementPlatform.AzMonitor:
+            return {
+                type: IncidentManagementType.AzMonitor,
+                connectionName: 'azmonitor',
+            };
+        default:
+            throw new Error(`Unknown incident management platform: ${formValues.platform}`);
+    }
 };
 
 export function useIncidentManagement(resourceId: string) {
@@ -30,11 +57,10 @@ export function useIncidentManagement(resourceId: string) {
     const [saving, setSaving] = useState(false);
     const [saveFailure, setSaveFailure] = useState<string>();
 
-    const platform: IncidentManagementPlatform = useMemo(() => {
-        return agent?.properties?.incidentManagementConfiguration?.type === IncidentManagementType.PagerDuty
-            ? IncidentManagementPlatform.PagerDuty
-            : IncidentManagementPlatform.Disconnected;
-    }, [agent?.properties?.incidentManagementConfiguration?.type]);
+    const platform: IncidentManagementPlatform = useMemo(
+        () => getIncidentManagementPlatform(agent),
+        [agent?.properties?.incidentManagementConfiguration?.type]
+    );
 
     const [initialValues, setInitialValues] = useState<IncidentManagementFormValues>(getInitialValues(agent));
 
@@ -55,106 +81,61 @@ export function useIncidentManagement(resourceId: string) {
             setSaving(true);
             setSaveFailure(undefined);
 
-            if (formValues.platform == IncidentManagementPlatform.Disconnected) {
-                azPortalContext.log({
-                    action: 'save-incidentManagement',
-                    actionModifier: 'start',
-                    logLevel: 'info',
-                    resourceId,
-                });
-                SreAgentClient.patchAgent(resourceId, {
-                    properties: {
-                        incidentManagementConfiguration: null,
-                    },
-                }).then(patchResult => {
-                    if (!patchResult.metadata.success) {
-                        azPortalContext.log({
-                            action: 'save-incidentManagement',
-                            actionModifier: 'failed',
-                            logLevel: 'error',
-                            resourceId,
-                            data: { error: patchResult.metadata.error },
-                        });
-                        setSaving(false);
-                        setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.configFailure));
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            false,
-                            intl.formatMessage(IncidentManagementNotificationResources.saveFailed, {
-                                errorMessage: getErrorMessage(patchResult.metadata.error),
-                            })
-                        );
-                    } else {
-                        azPortalContext.log({
-                            action: 'save-incidentManagement',
-                            actionModifier: 'success',
-                            logLevel: 'info',
-                            resourceId,
-                        });
-                        setSaving(false);
-                        setSaveFailure(undefined);
-                        setInitialValues({ platform: formValues.platform });
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            true,
-                            intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
-                        );
-                    }
-                });
-            } else {
-                azPortalContext.log({
-                    action: 'save-incidentManagement',
-                    actionModifier: 'start',
-                    logLevel: 'info',
-                    resourceId,
-                });
-                SreAgentClient.patchAgent(resourceId, {
-                    properties: {
-                        incidentManagementConfiguration: {
-                            type: IncidentManagementType.PagerDuty,
-                            connectionName: 'pagerduty',
-                            connectionKey: formValues.connectionKey,
-                        },
-                    },
-                }).then(patchResult => {
-                    if (!patchResult.metadata.success) {
-                        azPortalContext.log({
-                            action: 'save-incidentManagement',
-                            actionModifier: 'failed',
-                            logLevel: 'error',
-                            resourceId,
-                            data: { error: patchResult.metadata.error },
-                        });
-                        setSaving(false);
-                        setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.configFailure));
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            false,
-                            intl.formatMessage(IncidentManagementNotificationResources.saveFailed, {
-                                errorMessage: getErrorMessage(patchResult.metadata.error),
-                            })
-                        );
-                    } else {
-                        azPortalContext.log({
-                            action: 'save-incidentManagement',
-                            actionModifier: 'success',
-                            logLevel: 'info',
-                            resourceId,
-                        });
-                        setSaving(false);
-                        setSaveFailure(undefined);
-                        setInitialValues({ platform: formValues.platform });
-                        azPortalContext.stopNotification(
-                            notificationId,
-                            true,
-                            intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
-                        );
-                    }
-                });
-            }
+            const additionalInfo = {
+                platform: formValues.platform,
+                previousPlatform: initialValues.platform,
+            };
+
+            azPortalContext.log({
+                action: 'save-incidentManagement',
+                actionModifier: 'start',
+                logLevel: 'info',
+                resourceId,
+                data: additionalInfo,
+            });
+
+            SreAgentClient.patchAgent(resourceId, {
+                properties: {
+                    incidentManagementConfiguration: generateIncidentManagementConfiguration(formValues),
+                },
+            }).then(patchResult => {
+                if (!patchResult.metadata.success) {
+                    azPortalContext.log({
+                        action: 'save-incidentManagement',
+                        actionModifier: 'failed',
+                        logLevel: 'error',
+                        resourceId,
+                        data: { ...additionalInfo, error: patchResult.metadata.error },
+                    });
+                    setSaving(false);
+                    setSaveFailure(intl.formatMessage(IncidentManagementSaveErrorResources.configFailure));
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        false,
+                        intl.formatMessage(IncidentManagementNotificationResources.saveFailed, {
+                            errorMessage: getErrorMessage(patchResult.metadata.error),
+                        })
+                    );
+                } else {
+                    azPortalContext.log({
+                        action: 'save-incidentManagement',
+                        actionModifier: 'success',
+                        logLevel: 'info',
+                        resourceId,
+                        data: additionalInfo,
+                    });
+                    setSaving(false);
+                    setSaveFailure(undefined);
+                    setInitialValues({ platform: formValues.platform });
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(IncidentManagementNotificationResources.saveSucceeded)
+                    );
+                }
+            });
         },
         [
-            intl,
             subscription,
             resourceGroup,
             agent?.name,
@@ -163,6 +144,7 @@ export function useIncidentManagement(resourceId: string) {
             azPortalContext.startNotification,
             azPortalContext.stopNotification,
             intl.formatMessage,
+            initialValues.platform,
         ]
     );
 

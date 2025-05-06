@@ -34,10 +34,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     );
 
     const isDirty = useMemo(() => {
-        if (
-            initialValues.platform === IncidentManagementPlatform.Disconnected &&
-            values.platform === IncidentManagementPlatform.Disconnected
-        ) {
+        if (values.platform !== IncidentManagementPlatform.PagerDuty && initialValues.platform === values.platform) {
             return false;
         }
         return dirty;
@@ -59,7 +56,7 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                     selectedKey={values.platform}
                     onChange={(_event, option, _index) => {
                         setFieldValue('platform', option?.key);
-                        setFieldTouched('platform', true);
+                        setFieldTouched('platform', true, false);
                         if (option?.key !== IncidentManagementPlatform.PagerDuty) {
                             setFieldValue('connectionKey', undefined, false);
                         }

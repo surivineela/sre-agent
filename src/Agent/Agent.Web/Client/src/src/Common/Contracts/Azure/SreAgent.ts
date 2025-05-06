@@ -52,6 +52,7 @@ export interface IncidentManagementConfiguration {
 
 export enum IncidentManagementType {
     PagerDuty = 'PagerDuty',
+    AzMonitor = 'AzMonitor',
 }
 
 export enum IncidentStatus {
