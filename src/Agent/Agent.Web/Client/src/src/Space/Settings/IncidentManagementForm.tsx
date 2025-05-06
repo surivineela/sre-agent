@@ -20,7 +20,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
     saving,
 }: IncidentManagementFormProps) => {
     const styles = useSettingsStyles();
-    const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValidating, isSubmitting, dirty, initialValues } = formikProps;
+    const { setFieldValue, setFieldTouched, submitForm, resetForm, values, isValid, isValidating, isSubmitting, dirty, initialValues } =
+        formikProps;
     const intl = useIntl();
 
     const incidentPlatformDropdownOptions = useMemo(
@@ -114,8 +115,8 @@ const IncidentManagementForm: FC<IncidentManagementFormProps> = ({
                             !isDirty ||
                             saving ||
                             isValidating ||
+                            !isValid ||
                             (values.platform === IncidentManagementPlatform.PagerDuty && !values.connectionKey)
-                            // TODO (andimarc): Add "isValid" check after confirming that the API key validation works on the actual agent site
                         }
                     />
                     <DefaultButton
