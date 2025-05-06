@@ -173,7 +173,7 @@ namespace Agent.Plugins
                 }
                 else
                 {
-                    _logger.LogInternalWarning("[VisualizeAKSMicroserviceTopology] ThreadId is null. Cannot append image to message.");
+                    _logger.LogInternalWarning("[VisualizeAKSMicroserviceTopology] ThreadId is null. Cannot append diagram to message.");
                     return "Error: ThreadId is null. Cannot generate visualization without a valid thread ID.";
                 }
             }
@@ -274,9 +274,8 @@ Input JSON:
                     var mermaidSpec = response.Text;
                     _logger.LogInternalInformation($"Generated Mermaid specification successfully: {mermaidSpec}");
 
-                    var base64EncodedGraph = await GenerateMermaidGraph(mermaidSpec);
-                    _logger.LogInternalInformation($"base64 encoded image: {base64EncodedGraph}");
-                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, $"![Microservice Topology](data:image/png;base64,{base64EncodedGraph})\r\n");
+                    string mermaidMessage = $"```mermaid\n{mermaidSpec}\n```";
+                    await _agentOutboundCommunicationService.AppendAgentImageMessage(threadId.Value, mermaidMessage);
 
                     // Construct the final response string for the LLM, this helps the LLM to further answer questions regarding the topology
                     string llmResponse = $@"I have analyzed the microservice topology starting from '{deploymentName}' in the '{_namespace}' namespace within the cluster '{AKSClusterResourceId}'.
@@ -300,7 +299,7 @@ For reference, here is the raw Mermaid specification used to create the diagram:
                     }
                     else
                     {
-                        _logger.LogInternalError($"[VisualizeAKSMicroserviceTopology] All {maxRetries} attempts to render the image failed. Last error: {ex.Message}");
+                        _logger.LogInternalError($"[VisualizeAKSMicroserviceTopology] All {maxRetries} attempts to generate the diagram failed. Last error: {ex.Message}");
                         throw;
                     }
                 }
