@@ -101,12 +101,15 @@ export const ChatBoxStyles = mergeStyleSets({
     },
     chatContainer: {
         height: '100%',
-        width: '100%',
         overflowX: 'hidden',
         overflowY: 'auto',
         paddingTop: '10px',
         paddingRight: '5px',
         borderRadius: tokens.borderRadiusLarge,
+    },
+    chat: {
+        height: '100%',
+        maxWidth: '1000px',
         margin: 'auto',
     },
     userMessage: {

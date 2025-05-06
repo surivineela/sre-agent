@@ -31,26 +31,28 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
     return (
         <div className={ChatBoxStyles.chatBox}>
             <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                <CopilotChat className={ChatBoxStyles.chatContainer} ref={messagesDivRef} onScroll={handleScroll}>
-                    <div ref={intersectionObserverRef} />
-                    {isLoadingInitialChatHistory && <ChatLoading />}
+                <div className={ChatBoxStyles.chatContainer} ref={messagesDivRef} onScroll={handleScroll}>
+                    <CopilotChat className={ChatBoxStyles.chat}>
+                        <div ref={intersectionObserverRef} />
+                        {isLoadingInitialChatHistory && <ChatLoading />}
 
-                    {isNewAndCleanThread && <ChatSuggestions sendMessage={sendMessage} />}
+                        {isNewAndCleanThread && <ChatSuggestions sendMessage={sendMessage} />}
 
-                    {messages.map((message, index) => (
-                        <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
-                    ))}
+                        {messages.map((message, index) => (
+                            <ChatMessage key={index} message={message} threadId={currentThreadId || ''} />
+                        ))}
 
-                    {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} />}
-                    {agentTypingMessage && (
-                        <ChatMessage
-                            message={agentTypingMessage}
-                            isTyping
-                            threadId={currentThreadId || ''}
-                            cancelResponse={cancelResponse}
-                        />
-                    )}
-                </CopilotChat>
+                        {temporaryUserMessage && <ChatMessage message={temporaryUserMessage} threadId={currentThreadId || ''} />}
+                        {agentTypingMessage && (
+                            <ChatMessage
+                                message={agentTypingMessage}
+                                isTyping
+                                threadId={currentThreadId || ''}
+                                cancelResponse={cancelResponse}
+                            />
+                        )}
+                    </CopilotChat>
+                </div>
                 <NewMessageButton isVisible={showNewMessageButton} onClick={onClickNewMessageButton} />
                 <ChatBoxFooter sendMessage={sendMessage} disableInput={disableInput} />
             </CopilotProvider>
