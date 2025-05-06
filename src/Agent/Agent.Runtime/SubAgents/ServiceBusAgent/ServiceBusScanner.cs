@@ -42,7 +42,7 @@ namespace Agent.Runtime.SubAgents.ServiceBusAgent
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
 
             var ServiceBusStatuses = await _armHelper.GetServiceBusSettings(resources);
-            return ServiceBusStatuses.Where(x => x.LocalAuthEnabled == false)
+            return ServiceBusStatuses.Where(x => x.IsLocalAuthDisabled == false)
                 .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
                 .ToList();
         }

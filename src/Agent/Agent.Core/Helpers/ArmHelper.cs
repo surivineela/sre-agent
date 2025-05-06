@@ -954,7 +954,7 @@ public class ArmHelper
             ResourceId: resourceId,
             Name: eventHubsNamespaceResource.Data.Name,
             Location: eventHubsNamespaceResource.Data.Location,
-            LocalAuthEnabled: eventHubsNamespaceResource.Data.DisableLocalAuth ?? false
+            IsLocalAuthDisabled: eventHubsNamespaceResource.Data.DisableLocalAuth ?? false
             );
     }
 
@@ -965,7 +965,7 @@ public class ArmHelper
             ResourceId: resourceId,
             Name: serviceBusNamespaceResource.Data.Name,
             Location: serviceBusNamespaceResource.Data.Location,
-            LocalAuthEnabled: serviceBusNamespaceResource.Data.DisableLocalAuth ?? false
+            IsLocalAuthDisabled: serviceBusNamespaceResource.Data.DisableLocalAuth ?? false
             );
     }
 

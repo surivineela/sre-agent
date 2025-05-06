@@ -53,7 +53,7 @@ namespace Agent.Runtime.SubAgents.CosmosDbAgent
             : "disable local auth support";
 
         public override string[] ToolNames { get; } = [
-            nameof(IRemediationPlugin.CosmosDbSetLocalAuthSupport),
+            nameof(IRemediationPlugin.CosmosDbSetKeyBasedAuthenticationSupport),
             nameof(ControlFlowPluginDefinition.Wait)
         ];
     }

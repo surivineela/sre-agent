@@ -11,7 +11,7 @@ using Microsoft.SemanticKernel;
 namespace Agent.Runtime.MetaAgent;
 
 public class ServiceBusPlugin
-: SimpleResourceSubAgentPluginBase<ServiceBusAgentFactory, ServiceBusAgent, ServiceBusAgentInput, ServiceBusAgentActivity, ServiceBusAgentActivityInput>
+: SimpleResourceSubAgentPluginBase<ServiceBusAgentFactory, ServiceBusAgent, ServiceBusAgentInput, ServiceBusAgentActivity, ServiceBusAgentActivityInput>, IMetaAgentServiceBusPlugin
 {
     public ServiceBusPlugin(
         DurableTaskClient durableTaskClient,

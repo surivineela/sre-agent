@@ -4,5 +4,5 @@ public sealed record ServiceBusStatus(
     string ResourceId,
     string Name,
     string Location,
-    bool LocalAuthEnabled
+    bool IsLocalAuthDisabled
     );

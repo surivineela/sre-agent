@@ -36,7 +36,7 @@ namespace Agent.Runtime.SubAgents.CosmosDbAgent
         protected override IEnumerable<Expression<Func<Delegate>>> GetToolList()
         {
             var remediationPluginDefinition = new RemediationPluginDefinition(remediationPlugin);
-            yield return () => remediationPluginDefinition.CosmosDbSetLocalAuthSupport;
+            yield return () => remediationPluginDefinition.CosmosDbSetKeyBasedAuthenticationSupport;
 
             var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
             yield return () => recordActionsPluginDefinition.RecordAction;

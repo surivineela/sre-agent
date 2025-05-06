@@ -11,7 +11,7 @@ using Microsoft.SemanticKernel;
 namespace Agent.Runtime.MetaAgent;
 
 public class EventHubPlugin
-: SimpleResourceSubAgentPluginBase<EventHubAgentFactory, EventHubAgent, EventHubAgentInput, EventHubAgentActivity, EventHubAgentActivityInput>
+: SimpleResourceSubAgentPluginBase<EventHubAgentFactory, EventHubAgent, EventHubAgentInput, EventHubAgentActivity, EventHubAgentActivityInput>, IMetaAgentEventHubPlugin
 {
     public EventHubPlugin(
         DurableTaskClient durableTaskClient,

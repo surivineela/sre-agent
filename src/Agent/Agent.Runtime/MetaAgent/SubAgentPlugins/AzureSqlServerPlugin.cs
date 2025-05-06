@@ -11,7 +11,8 @@ using Microsoft.SemanticKernel;
 namespace Agent.Runtime.MetaAgent;
 
 public class AzureSqlServerPlugin
-: SimpleResourceSubAgentPluginBase<AzureSqlServerAgentFactory, AzureSqlServerAgent, AzureSqlServerAgentInput, AzureSqlServerActivity, AzureSqlServerAgentActivityInput>
+: SimpleResourceSubAgentPluginBase<AzureSqlServerAgentFactory, AzureSqlServerAgent, AzureSqlServerAgentInput, AzureSqlServerActivity, AzureSqlServerAgentActivityInput>,
+    IMetaAgentAzureSqlDbPlugin
 {
     public AzureSqlServerPlugin(
         DurableTaskClient durableTaskClient,

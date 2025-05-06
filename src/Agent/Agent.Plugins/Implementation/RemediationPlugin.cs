@@ -331,7 +331,7 @@ namespace Agent.Plugins.Implementation
                 });
         }
 
-        public async Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        public async Task<RemediationResult> CosmosDbSetKeyBasedAuthenticationSupport(string resourceId, FeatureState featureState)
         {
             return await RemediateArmResource(
                 resourceId,

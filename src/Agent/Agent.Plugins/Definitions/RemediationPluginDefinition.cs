@@ -81,14 +81,14 @@ namespace Agent.Plugins.Definitions
         }
 
         [RequiresApproval]
-        [KernelFunction("cosmosdb_set_local_auth_support")]
+        [KernelFunction("cosmosdb_set_key_based_authentication_support")]
         [Description("Sets the key based local auth setting on cosmosdb accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
-        public async Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        public async Task<RemediationResult> CosmosDbSetKeyBasedAuthenticationSupport(string resourceId, FeatureState featureState)
         {
-            return await _remediationPlugin.CosmosDbSetLocalAuthSupport(resourceId, featureState);
+            return await _remediationPlugin.CosmosDbSetKeyBasedAuthenticationSupport(resourceId, featureState);
         }
 
-        [KernelFunction("eventhub_set_local_auth_support")]
+        [KernelFunction("eventhub_set_key_based_access_support")]
         [RequiresApproval]
         [Description("Sets the key based local auth setting on event hub accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> EventHubSetLocalAuthSupport(string resourceId, FeatureState featureState)
@@ -104,7 +104,7 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.ServiceBusSetLocalAuthSupport(resourceId, featureState);
         }
 
-        [KernelFunction("azure_sql_server_set_auth_support")]
+        [KernelFunction("azure_sql_server_set_entra_auth_only_support")]
         [RequiresApproval]
         [Description("Sets the authentication on azure sql server, disabling or enabling local auth support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> AzureSqlServerSetLocalAuthSupport(string resourceId, FeatureState featureState)

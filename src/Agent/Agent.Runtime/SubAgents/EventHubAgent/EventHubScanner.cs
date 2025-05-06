@@ -42,7 +42,7 @@ namespace Agent.Runtime.SubAgents.EventHubAgent
             var resources = queryResults.Select(x => (string)x).OrderBy(resourceId => resourceId.Split("/").Last()).ToList();
             
             var eventHubStatuses = await _armHelper.GetEventHubSettings(resources);
-            return eventHubStatuses.Where(x => x.LocalAuthEnabled == true)
+            return eventHubStatuses.Where(x => x.IsLocalAuthDisabled == false)
                 .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
                 .ToList();
         }

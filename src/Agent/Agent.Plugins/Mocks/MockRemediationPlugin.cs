@@ -85,7 +85,7 @@ namespace Agent.Plugins.Mocks
             ));
         }
 
-        public Task<RemediationResult> CosmosDbSetLocalAuthSupport(string resourceId, FeatureState featureState)
+        public Task<RemediationResult> CosmosDbSetKeyBasedAuthenticationSupport(string resourceId, FeatureState featureState)
         {
             return Task.FromResult(
                 new RemediationResult(
