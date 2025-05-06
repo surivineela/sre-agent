@@ -154,7 +154,7 @@ namespace Agent.Plugins
                     switch (kind.ToLowerInvariant())
                     {
                         case "deployment":
-                            var deploymentPatch = new V1Patch(jsonBody, V1Patch.PatchType.MergePatch);
+                            var deploymentPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await _client.AppsV1.PatchNamespacedDeploymentAsync(
                                 body: deploymentPatch,
                                 name: resourceName,
@@ -162,7 +162,7 @@ namespace Agent.Plugins
                             break;
 
                         case "service":
-                            var servicePatch = new V1Patch(jsonBody, V1Patch.PatchType.MergePatch);
+                            var servicePatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await _client.CoreV1.PatchNamespacedServiceAsync(
                                 body: servicePatch,
                                 name: resourceName,
@@ -170,7 +170,7 @@ namespace Agent.Plugins
                             break;
 
                         case "ingress":
-                            var ingressPatch = new V1Patch(jsonBody, V1Patch.PatchType.MergePatch);
+                            var ingressPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await _client.NetworkingV1.PatchNamespacedIngressAsync(
                                 body: ingressPatch,
                                 name: resourceName,
@@ -178,7 +178,7 @@ namespace Agent.Plugins
                             break;
 
                         case "configmap":
-                            var configMapPatch = new V1Patch(jsonBody, V1Patch.PatchType.MergePatch);
+                            var configMapPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await _client.CoreV1.PatchNamespacedConfigMapAsync(
                                 body: configMapPatch,
                                 name: resourceName,
@@ -186,7 +186,7 @@ namespace Agent.Plugins
                             break;
 
                         case "statefulset":
-                            var statefulSetPatch = new V1Patch(jsonBody, V1Patch.PatchType.MergePatch);
+                            var statefulSetPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await _client.AppsV1.PatchNamespacedStatefulSetAsync(
                                 body: statefulSetPatch,
                                 name: resourceName,
@@ -195,7 +195,7 @@ namespace Agent.Plugins
 
                         default:
                             // Use generic method for other resource types
-                            var patch = new V1Patch(jsonBody, V1Patch.PatchType.MergePatch);
+                            var patch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
                             await _client.CustomObjects.PatchNamespacedCustomObjectAsync(
                                 body: patch,
                                 group: GetApiGroup(apiVersion),

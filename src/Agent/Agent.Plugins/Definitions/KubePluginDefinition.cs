@@ -245,6 +245,7 @@ e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' nam
         [KernelFunction("ApplyKubernetesYaml")]
         [Description(
         @"Applies one Kubernetes YAML object to the specified AKS cluster using server-side apply.
+        When patch for array values, make sure all existing values are included in the YAML object.
 Used whenever user wants to create or update resources in a Kubernetes cluster using YAML.
 eg: please apply this YAML object to my AKS cluster to create a new deployment.
 eg: update my service with this YAML manifest.")]

@@ -328,6 +328,22 @@ namespace Agent.Plugins
             return YamlHelper.Serialize(deploy);
         }
 
+        // get spec and status of a replicaset in a namespace
+        public async Task<string> GetKubeReplicasetSpecStatusAsync(string resourceId, string _namespace, string replicaset)
+        {
+            _client = await GetOrCreateClientAsync(resourceId);
+            // get replicaset in namespace
+            var rs = await _client.AppsV1.ReadNamespacedReplicaSetAsync(replicaset, _namespace);
+            if (rs == null)
+            {
+                return "ReplicaSet not found";
+            }
+
+            // Serialize to YAML
+            return YamlHelper.Serialize(rs);
+        }
+
+
         // get spec and status of a Statefulset in a namespace
         public async Task<string> GetKubeStatefulsetSpecStatusAsync(string resourceId, string _namespace, string deployment)
         {
@@ -861,6 +877,8 @@ namespace Agent.Plugins
                 {
                     case "deployment":
                         return await GetKubeDeploymentSpecStatusAsync(resourceId, _namespace, name);
+                    case "replicaset":
+                        return await GetKubeReplicasetSpecStatusAsync(resourceId, _namespace, name);
                     case "statefulset":
                         return await GetKubeStatefulsetSpecStatusAsync(resourceId, _namespace, name);
                     case "daemonset":
@@ -875,6 +893,57 @@ namespace Agent.Plugins
                             return "Service not found";
                         }
                         return YamlHelper.Serialize(service);
+                    case "configmap":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var configMap = await _client.CoreV1.ReadNamespacedConfigMapAsync(name, _namespace);
+                        if (configMap == null)
+                        {
+                            return "ConfigMap not found";
+                        }
+                        return YamlHelper.Serialize(configMap);
+                    case "persistentvolume":
+                    case "pv":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var pv = await _client.CoreV1.ReadPersistentVolumeAsync(name);
+                        if (pv == null)
+                        {
+                            return "PV not found";
+                        }
+                        return YamlHelper.Serialize(pv);
+                    case "persistentvolumeclaim":
+                    case "pvc":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var pvc = await _client.CoreV1.ReadNamespacedPersistentVolumeClaimAsync(name, _namespace);
+                        if (pvc == null)
+                        {
+                            return "PVC not found";
+                        }
+                        return YamlHelper.Serialize(pvc);
+                    case "ingress":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var ingress = await _client.NetworkingV1.ReadNamespacedIngressAsync(name, _namespace);
+                        if (ingress == null)
+                        {
+                            return "Ingress not found";
+                        }
+                        return YamlHelper.Serialize(ingress);
+                    case "cronjob":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var cronJob = await _client.BatchV1.ReadNamespacedCronJobAsync(name, _namespace);
+                        if (cronJob == null)
+                        {
+                            return "CronJob not found";
+                        }
+                        return YamlHelper.Serialize(cronJob);
+                    case "job":
+                        _client = await GetOrCreateClientAsync(resourceId);
+                        var job = await _client.BatchV1.ReadNamespacedJobAsync(name, _namespace);
+                        if (job == null)
+                        {
+                            return "Job not found";
+                        }
+                        return YamlHelper.Serialize(job);
+                        
                 }
 
                 _client = await GetOrCreateClientAsync(resourceId);
