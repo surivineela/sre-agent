@@ -25,15 +25,13 @@ namespace FirstPartyAgent.Plugins
         private readonly ILogger<KustoPlugin> _logger;
         private readonly KustoClientService _kustoClientService;
         private readonly ITeamsClient _teamsClient;
-        private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
 
         [GeneratedRegex("[^a-zA-Z\\d]")]
         private static partial Regex RegionNormalizationRegex();
 
-        public KustoPlugin(ILogger<KustoPlugin> logger, KustoClientService kustoClientService, ITeamsClient teamsClient, IAgentOutboundCommunicationService agentOutboundCommunicationService)
+        public KustoPlugin(ILogger<KustoPlugin> logger, KustoClientService kustoClientService, ITeamsClient teamsClient)
         {
             _teamsClient = teamsClient;
-            _agentOutboundCommunicationService = agentOutboundCommunicationService;
             _logger = logger;
             _kustoClientService = kustoClientService;
         }
@@ -58,25 +56,12 @@ namespace FirstPartyAgent.Plugins
         [Description("Executes a Kusto query on a regional cluster and returns the result as a JSON string.")]
         public async Task<string> ExecuteKustoQuery(
             [Description("The region of the target Kusto cluster.")] string region,
-            [Description("The Kusto query to execute.")] string query,
-            bool displayQuery = true)
+            [Description("The Kusto query to execute.")] string query
+            )
         {
             try
             {
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
-                if (displayQuery)
-                {
-                    var cluster = _kustoClientService.GetCluster(region);
-                    var uriWithoutHttps = cluster.ClusterUri.Replace("https://", "");
-                    var adxUri = $"https://dataexplorer.azure.com/clusters/{uriWithoutHttps}/{cluster.Database}?query={EncodeQuery(query)}";
-                    var msg = new ChatMessage(ChatRole.Tool, new List<AIContent>()
-                    {
-                        new UriContent(adxUri, "text/html"),
-                        new Microsoft.Extensions.AI.TextContent($"[adx]({adxUri})\nExecuting Kusto query in region {region}:\n```kql\n{query}\n```"),
-                    });
-
-                    await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
-                }
 
                 var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
                 var reader = await _kustoClientService.PerformQueryAsync(query, region);
@@ -101,22 +86,11 @@ namespace FirstPartyAgent.Plugins
             [Description("The name of the target Kusto database.")] string database,
             [Description("The full Kusto query to execute.")] string fullQuery,
             DateTime? NowOverride,
-            Kernel kernel,
-            bool displayQuery = true)
+            Kernel kernel
+            )
         {
             cluster = cluster.Replace(".kusto.windows.net", "");
             cluster = cluster.Replace("https://", "");
-
-            if (displayQuery)
-            {
-                var adxUri = $"https://dataexplorer.azure.com/clusters/{cluster}.kusto.windows.net/databases/{database}?query={EncodeQuery(fullQuery)}";
-                var chatMessage = new List<AIContent>()
-                {
-                    new UriContent(adxUri, "text/html"),
-                    new Microsoft.Extensions.AI.TextContent($"<code>{fullQuery}</code>"),
-                };
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, new ChatMessage(ChatRole.Tool, chatMessage));
-            }
 
             var logMessage = $"[execute_kusto_query_on_cluster][{DateTime.UtcNow}] Invoked with cluster: {cluster}, database: {database}\nquery:\n{fullQuery.Substring(0, Math.Min(100, fullQuery.Length))}...";
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
@@ -175,26 +149,14 @@ namespace FirstPartyAgent.Plugins
         public async Task<string> ExecuteFunctionAsync(
             [Description("The name of the Kusto function to invoke.")] string functionName,
             [Description("The region of the Kusto cluster.")] string region,
-            Dictionary<string, string>? args = null,
-            bool displayQuery = true)
+            Dictionary<string, string>? args = null
+            )
         {
             string argList = args != null && args.Count > 0
                 ? string.Join(", ", args.Select(kvp => $"{kvp.Key}={QuoteIfNeeded(kvp.Value)}"))
                 : "";
 
             var query = string.IsNullOrEmpty(argList) ? $"{functionName}()" : $"{functionName}({argList})";
-
-            if (displayQuery)
-            {
-                var adxUri = $"https://dataexplorer.azure.com/clusters/{region}.kusto.windows.net/databases/{region}?query={EncodeQuery(query)}";
-                var msg = new ChatMessage(ChatRole.Tool, new List<AIContent>()
-                {
-                    new UriContent(adxUri, "text/html"),
-                    new Microsoft.Extensions.AI.TextContent($"[adx]({adxUri})\nExecuting Kusto function `{functionName}` in region {region}:\n```kql\n{query}\n```"),
-                });
-
-                await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
-            }
 
             using var reader = await _kustoClientService.PerformQueryAsync(query, region);
 
@@ -207,6 +169,68 @@ namespace FirstPartyAgent.Plugins
             return output.ToString();
         }
 
+        [KernelFunction("create_agent_chat_message_for_kusto_query")]
+        [Description("Creates a chat message with the role set to 'Tool' for a Kusto query or function execution. Includes a link to the Azure Data Explorer (ADX) and the query details.")]
+        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, string database = null, string functionName = null)
+        {
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                throw new ArgumentNullException(nameof(query));
+            }
+
+            if (string.IsNullOrWhiteSpace(regionOrClusterUri))
+            {
+                throw new ArgumentNullException(regionOrClusterUri, nameof(regionOrClusterUri));
+            }
+
+
+            string adxUri = string.Empty;
+            if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
+            {
+                // Supplied parameter is a region, lookup cluster URI for the region
+                adxUri = _kustoClientService.GetCluster(regionOrClusterUri).ClusterUri;
+                database = _kustoClientService.GetCluster(regionOrClusterUri).Database;
+            }
+            else
+            {
+                // Supplied parameter is a cluster URI, extract the cluster name
+                adxUri = regionOrClusterUri;
+                if (string.IsNullOrWhiteSpace(database))
+                {
+                    throw new ArgumentNullException(nameof(database), "Database name is required when using a full cluster URI.");
+                }
+            }
+
+            adxUri = adxUri.Replace(".kusto.windows.net", "");
+            adxUri = adxUri.Replace("https://", "");
+
+            adxUri = $"https://dataexplorer.azure.com/clusters/{adxUri}/{database}?query={EncodeQuery(query)}";
+
+            string displayText;
+
+            if (!string.IsNullOrWhiteSpace(functionName))
+            {
+                // For function execution
+                displayText = $"[adx]({adxUri})\nExecuting Kusto function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n```kql\n{query}\n```";
+            }
+            else if (!string.IsNullOrWhiteSpace(database))
+            {
+                // For cluster and database-specific queries
+                displayText = $"[adx]({adxUri})\nExecuting Kusto query on cluster '{regionOrClusterUri}' in database '{database}':\n```kql\n{{query}}\n```";
+            }
+            else
+            {
+                // For regional queries
+                displayText = $"[adx]({adxUri})\nExecuting Kusto query in region {regionOrClusterUri}:\n```kql\n{query}\n```";
+            }
+
+            return new ChatMessage(ChatRole.Tool, new List<AIContent>
+                {
+                new UriContent(adxUri, "text/html"),
+                new Microsoft.Extensions.AI.TextContent(displayText)
+            });
+        }
+
         private static string QuoteIfNeeded(string value)
         {
             return  $"\"{value}\"" ;
@@ -214,7 +238,6 @@ namespace FirstPartyAgent.Plugins
 
         public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args)
         {
-            await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, new ChatMessage(ChatRole.Tool, $"Performing Kusto Query `{functionName}`"));
             var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
 
             if (File.Exists(fileName))

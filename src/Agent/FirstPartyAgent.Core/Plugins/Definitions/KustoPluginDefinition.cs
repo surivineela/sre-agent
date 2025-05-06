@@ -44,6 +44,17 @@ namespace FirstPartyAgent.Plugins.Definitions
             return string.Join("\n", funcs.Select(f => $"- {f.Name}: {f.DocString}"));
         }
 
+        [KernelFunction(KernelFunctionNames.Kusto.CreateAgentChatMessageForKustoQuery)]
+        [Description("Creates a chat message with the role set to 'Tool' for a Kusto query or function execution. Includes a link to the Azure Data Explorer (ADX) and the query details.")]
+        public Microsoft.Extensions.AI.ChatMessage CreateChatMessage(
+            [Description("The Kusto query to execute.")] string query,
+            [Description("The region of the target Kusto cluster or comlete cluster uri in the format https://{cluster}.kusto.windows.net")] string regionOrClusterUri,
+            [Description("Database name against which to execute Kusto query. Must be non empty if using cluster URI")] string database = null,
+            [Description("The name of the user-defined function to execute instead of the query.")] string functionName = null)
+        {
+            return _plugin.CreateChatMessage(query, regionOrClusterUri, database, functionName);
+        }
+
         public Dictionary<string, Func<Task<string>>> GetRegisteredFunctionDelegates()
         {
             var map = new Dictionary<string, Func<Task<string>>>();

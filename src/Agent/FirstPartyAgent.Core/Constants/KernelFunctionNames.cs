@@ -45,6 +45,7 @@ namespace FirstPartyAgent.Constants
             public const string ExecuteKustoQuery = "execute_kusto_query";
             public const string ExecuteFunction = "execute_kusto_user_defined_function";
             public const string ListKustoFunctions = "list_kusto_user_defined_functions";
+            public const string CreateAgentChatMessageForKustoQuery = "create_agent_chat_message_for_kusto_query";
         }
 
         public static class Icm
