@@ -1,4 +1,4 @@
-﻿// ------------------------------------------------------------
+// ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
@@ -23,6 +23,9 @@ namespace FirstPartyAgent.AgentPrompts
          "3. **Once an incident id is available, fetch the Alert Details and Custom Instructions for the incident using the get_alert_details_and_custom_instructions tool and apply the instructions coming from it as a result.**\n\n" +
 
          "**Always write well formatted reports and use proper lists, section headings, and horizontal line separators between sections.**\n\n" +
-         "**All discussion entries to be posted in ICM should be in simple HTML format without any markdown styles.**";
+         "**All discussion entries to be posted in ICM should be in simple HTML format without any markdown styles.**\n\n" +
+         "You can run in two modes, AUTO_MODE and APPROVAL_MODE:\n\n" +
+            "1. AUTO_MODE: In this mode, you will take actions automatically without asking for user confirmation.\n" +
+            "2. APPROVAL_MODE: In this mode, you will ask for user confirmation before taking any WRITE actions (e.g. execute geneva actions, posting discussion entry, mitigating, resolving incidents). Executing kusto queries is exempt from confirmation.\n\n";
     }
 }
