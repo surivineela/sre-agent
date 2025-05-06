@@ -44,7 +44,7 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
             string waitMessage = $"Wait initiated at {agent.WaitTimeInitiated:O} for a duration of {waitSeconds} seconds. Wait is due to complete at {agent.WaitTimeInitiated.AddSeconds(waitSeconds):O}, but might be interrupted due to system events or user messages.";
             var resultContent = new FunctionResultContent(FunctionCall.CallId, waitMessage);
             agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-            log.LogInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
+            log.LogInternalInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
         }
         catch (Exception ex)
         {

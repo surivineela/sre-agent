@@ -85,8 +85,8 @@ public sealed class AKSAgentEvals
              .Returns((string id) => _mockKubePlugin.GetKubeNamespacesAsync(id));
         _mockKubePluginWrapper.Setup(x => x.GetKubeDeploymentsAsync(It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string id, string ns) => _mockKubePlugin.GetKubeDeploymentsAsync(id, ns));
-        _mockKubePluginWrapper.Setup(x => x.GetKubeStatefulsetsAsync(It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string id, string ns) => _mockKubePlugin.GetKubeStatefulsetsAsync(id, ns));
+        _mockKubePluginWrapper.Setup(x => x.ListKubeResourcesAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string id, string ns, string kind) => _mockKubePlugin.ListKubeResourcesAsync(id, ns, kind));
         _mockKubePluginWrapper.Setup(x => x.GetRecentlyUpdatedWorkloadsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
             .Returns((string id, string ns, int min) => _mockKubePlugin.GetRecentlyUpdatedWorkloadsAsync(id, ns, min));
         _mockKubePluginWrapper.Setup(x => x.GetKubeResourceEventsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))

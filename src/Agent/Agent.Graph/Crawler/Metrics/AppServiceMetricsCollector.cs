@@ -177,7 +177,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
 
     private async Task<double> GetAverageAvailabilityAsync(string resourceId)
     {
-        _logger.LogInformation($"Getting average availability for App Service: {resourceId}");
+        _logger.LogInternalInformation($"Getting average availability for App Service: {resourceId}");
         try
         {
             // For App Service, we calculate availability as the percentage of successful requests
@@ -209,7 +209,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         }
         catch (Exception ex)
         {
-            _logger.LogWarning(ex, $"Failed to get availability metrics for App Service: {resourceId}. Will return 100% (default).");
+            _logger.LogInternalWarning(ex, $"Failed to get availability metrics for App Service: {resourceId}. Will return 100% (default).");
             return 100;
         }
     }

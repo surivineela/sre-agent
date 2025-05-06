@@ -173,17 +173,28 @@ public class MockKubePlugin : IKubePlugin
         return Task.FromResult("Mock Error: No deployments configured for this key.");
     }
 
-    // GetKubeStatefulsetsAsync: Use configured mock data.
-    public Task<string> GetKubeStatefulsetsAsync(string resourceId, string _namespace) // Parameter name matches interface
+    // ListKubeResourcesAsync: Use configured mock data.
+    public Task<string> ListKubeResourcesAsync(string resourceId, string _namespace, string kind) // Parameter name matches interface
     {
-        var key = $"{resourceId}:{_namespace}";
-        if (_mockStatefulSets.TryGetValue(key, out var statefulSets))
+        switch (kind.ToLowerInvariant())
         {
-            Console.WriteLine($"MockKubePlugin: GetKubeStatefulsetsAsync found for {key}");
-            return Task.FromResult(statefulSets);
+            case "namespace":
+                return GetKubeNamespacesAsync(resourceId);
+            case "deployment":
+                return GetKubeDeploymentsAsync(resourceId, _namespace);
+            case "statefulset":
+                var key = $"{resourceId}:{_namespace}";
+                if (_mockStatefulSets.TryGetValue(key, out var statefulSets))
+                {
+                    Console.WriteLine($"MockKubePlugin: ListKubeResourcesAsync found for {key}");
+                    return Task.FromResult(statefulSets);
+                }
+                Console.WriteLine($"WARN: MockKubePlugin: ListKubeResourcesAsync NOT FOUND for {key}");
+                return Task.FromResult("Mock Error: No stateful sets configured for this key.");
+            default:
+                return Task.FromResult($"Mock Error: Unsupported kind '{kind}' for ListKubeResourcesAsync.");
         }
-        Console.WriteLine($"WARN: MockKubePlugin: GetKubeStatefulsetsAsync NOT FOUND for {key}");
-        return Task.FromResult("Mock Error: No stateful sets configured for this key.");
+
     }
 
     // GetKubePodsAsync: Use configured mock data (_mockPods).

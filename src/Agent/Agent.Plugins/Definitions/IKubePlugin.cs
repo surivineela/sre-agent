@@ -9,7 +9,7 @@ namespace Agent.Plugins
         Task<string> GetAKSClusterResourceIdAsync(string Subscription, string ResourceGroupName, string AKSClusterName);
         Task<string> GetKubeNamespacesAsync(string AKSClusterResourceId);
         Task<string> GetKubeDeploymentsAsync(string AKSClusterResourceId, string _namespace);
-        Task<string> GetKubeStatefulsetsAsync(string AKSClusterResourceId, string _namespace);
+        Task<string> ListKubeResourcesAsync(string AKSClusterResourceId, string _namespace, string kind);
         Task<string> GetKubePodsAsync(string AKSClusterResourceId, string _namespace, string kind, string name);
         Task<string> GetKubePodLogsAsync(string AKSClusterResourceId, string _namespace, string pod, string containerName = "", int lines = 100);
         Task<string> GetKubeResourceSpecStatusAsync(string AKSClusterResourceId, string _namespace, string apiGroup, string kind, string name);

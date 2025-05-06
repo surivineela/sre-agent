@@ -277,9 +277,11 @@ namespace Agent.Plugins
             return await _plugin.GetResourceDetailedProperties(resourceId);
         }
 
-        [Description("Returns the resource ID of an Azure resource. The input should be the name of the resource format. Example: mywebapp")]
+        [Description("Returns the resource ID of an Azure resource. The input should be the name of the resource format and it's corresponding resource type. Example: (mywebapp, microsoft.web/sites), (myakscluster, microsoft.containerservice/managedclusters)" +
+            "Use this tool when you want to get the resource ID of an Azure resource.")]
         public async Task<string> GetResourceIdForResourceName(
-             [Description("Name and type of the resource to fetch the resource ID for. Example: mywebapp")] string resourceName, string resourceType)
+             [Description("Name and type of the resource to fetch the resource ID for. Example: mywebapp")] string resourceName,
+             [Description("Azure Resource Type for this resource.")] string resourceType)
         {
             return await _plugin.GetResourceIdForResourceName(resourceName, resourceType);
         }

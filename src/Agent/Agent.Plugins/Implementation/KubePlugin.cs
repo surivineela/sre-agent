@@ -135,14 +135,70 @@ namespace Agent.Plugins
             return string.Join(", ", deploymentNames);
         }
 
-        // get all statefulsets in a namespace
-        public async Task<string> GetKubeStatefulsetsAsync(string resourceId, string _namespace)
+        // get all resource objects in a namespace with specific kind
+        public async Task<string> ListKubeResourcesAsync(string resourceId, string _namespace, string kind)
         {
             _client = await GetOrCreateClientAsync(resourceId);
-            var statefulSetList = await _client.AppsV1.ListNamespacedStatefulSetAsync(_namespace);
-            var statefulSetNames = statefulSetList.Items.Select(sts => sts.Metadata.Name);
+            if (string.IsNullOrEmpty(kind))
+            {
+                return "Kind cannot be null or empty.";
+            }
+            IEnumerable<string> nameList;
+            switch (kind.ToLowerInvariant())
+            {
+                case "deployment":
+                case "deployments":
+                    return await GetKubeDeploymentsAsync(resourceId, _namespace);
+                case "service":
+                case "services":
+                    var services = await _client.CoreV1.ListNamespacedServiceAsync(_namespace);
+                    nameList = services.Items.Select(service => service.Metadata.Name);
+                    break;
+                case "daemonset":
+                case "daemonsets":
+                    var ds = await _client.AppsV1.ListNamespacedDaemonSetAsync(_namespace);
+                    nameList = ds.Items.Select(ds => ds.Metadata.Name);
+                    break;
+                case "statefulset":
+                case "statefulsets":
+                    var statefulSetList = await _client.AppsV1.ListNamespacedStatefulSetAsync(_namespace);
+                    nameList = statefulSetList.Items.Select(sts => sts.Metadata.Name);
+                    break;
+                case "pod":
+                case "pods":
+                    var pods = await _client.CoreV1.ListNamespacedPodAsync(_namespace);
+                    nameList = pods.Items.Select(pod => pod.Metadata.Name);
+                    break;
+                case "job":
+                case "jobs":
+                    var jobs = await _client.BatchV1.ListNamespacedJobAsync(_namespace);
+                    nameList = jobs.Items.Select(job => job.Metadata.Name);
+                    break;
+                case "configmap":
+                case "configmaps":
+                    var configMaps = await _client.CoreV1.ListNamespacedConfigMapAsync(_namespace);
+                    nameList = configMaps.Items.Select(cm => cm.Metadata.Name);
+                    break;
+                case "secret":
+                case "secrets":
+                    var secrets = await _client.CoreV1.ListNamespacedSecretAsync(_namespace);
+                    nameList = secrets.Items.Select(secret => secret.Metadata.Name);
+                    break;
+                case "ingress":
+                case "ingresses":
+                    var ingresses = await _client.NetworkingV1.ListNamespacedIngressAsync(_namespace);
+                    nameList = ingresses.Items.Select(ingress => ingress.Metadata.Name);
+                    break;
+                case "replicaset":
+                case "replicasets":
+                    var replicaSets = await _client.AppsV1.ListNamespacedReplicaSetAsync(_namespace);
+                    nameList = replicaSets.Items.Select(rs => rs.Metadata.Name);
+                    break;
+                default:
+                    return $"Unsupported kind: {kind}.";
+            }
 
-            return string.Join(", ", statefulSetNames);
+            return string.Join(", ", nameList);
         }
 
         public async Task<string> DiagnoseAKSAppAsync(string resourceId, string _namespace, string kind, string name)

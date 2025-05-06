@@ -41,19 +41,6 @@ Used whenever user want to list namespaces or not specified namespace when askin
             return await _kubePlugin.GetKubeNamespacesAsync(AKSClusterResourceId);
         }
 
-        [KernelFunction("get_kube_deployments")]
-        [Description(
-@"Get all deployments in the specified namespace. Deployments is the most typical workloads in Kubernetes.
-Used whenever user wants to list deployments in a specific namespace. eg: list all deployments in the 'default' namespace.
-It can also be invoked multiple times to list deployments in different namespaces. eg: list all deployments in the 'default' and 'kube-system' namespaces.
-If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubeDeploymentsAsync(
-            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace)
-        {
-            return await _kubePlugin.GetKubeDeploymentsAsync(AKSClusterResourceId, _namespace);
-        }
-
         [KernelFunction("get_kube_pods")]
         [Description(
 @"Get all pods belong to the specific resource and namespace.
@@ -183,17 +170,18 @@ eg: show me all workloads updated in the last 15 minutes.")]
             return await _kubePlugin.GetRecentlyUpdatedWorkloadsAsync(AKSClusterResourceId, _namespace, minutesAgo);
         }
 
-        [KernelFunction("GetKubeStatefulsets")]
+        [KernelFunction("ListKubeResources")]
         [Description(
-@"Get all StatefulSets in the specified namespace. StatefulSets are used for stateful applications in Kubernetes.
-Used whenever user wants to list StatefulSets in a specific namespace. eg: list all StatefulSets in the 'default' namespace.
-It can also be invoked multiple times to list StatefulSets in different namespaces. eg: list all StatefulSets in the 'default' and 'kube-system' namespaces.
+@"Get all Kubernetes resources in the specified namespace with specified kind.
+Used whenever user wants to list Deployment, Service, Statefulset, Pod, Job, Configmap, Secret, Ingress, ReplicaSet or Daemonset objects in a specific namespace. eg: list all deployments in the 'default' namespace.
+It can also be invoked multiple times to list deployments in different namespaces. eg: list all deployments in the 'default' and 'kube-system' namespaces.
 If user didn't specify namespace in the context, try to use 'default' namespace")]
-        public async Task<string> GetKubeStatefulsetsAsync(
+        public async Task<string> ListKubeResourcesAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
-              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace)
+              [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
+              [Description($"Kubernetes resource kind, e.g. 'deployment', 'statefulset', 'service'")] string kind)
         {
-            return await _kubePlugin.GetKubeStatefulsetsAsync(AKSClusterResourceId, _namespace);
+            return await _kubePlugin.ListKubeResourcesAsync(AKSClusterResourceId, _namespace, kind);
         }
 
 

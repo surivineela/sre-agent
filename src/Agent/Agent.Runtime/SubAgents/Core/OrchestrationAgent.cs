@@ -184,7 +184,7 @@ public class OrchestrationAgent
                 TimeStamp = DateTime.UtcNow
             });
     }
-    
+
     public void UpdateOrchestrationStatus()
     {
         string jsonChatHistory = System.Text.Json.JsonSerializer.Serialize(this.ChatHistory, new System.Text.Json.JsonSerializerOptions
@@ -228,7 +228,7 @@ public class OrchestrationAgent
                 try
                 {
                     await agent.WaitTask;
-                    log.LogInformation("[{ThreadId}] waitTask completed", threadId);
+                    log.LogInternalInformation("[{ThreadId}] waitTask completed", threadId);
 
                     if (agent.WaitTask.IsCompletedSuccessfully)
                     {
@@ -273,7 +273,7 @@ public class OrchestrationAgent
 
                     agent.ChatHistory.Add(new ChatMessage(ChatRole.System, interruptMessage));
                 }
-                
+
                 agent.WaitTokenSource.Cancel();
                 agent.WaitTokenSource.Dispose();
                 agent.WaitTokenSource = new CancellationTokenSource();
