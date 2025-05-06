@@ -4,6 +4,7 @@ import { CheckboxVisibility, ConstrainMode, DetailsListLayoutMode, IColumn } fro
 import { Dialog, DialogFooter, DialogType } from '@fluentui/react/lib/Dialog';
 import { Link } from '@fluentui/react/lib/Link';
 import { ShimmeredDetailsList } from '@fluentui/react/lib/ShimmeredDetailsList';
+import isEqual from 'lodash/isEqual';
 import { Dispatch, FC, FormEvent, SetStateAction, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -60,11 +61,16 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     const intl = useIntl();
 
     useEffect(() => {
-        const selected = new Map<string, boolean>();
-        resourceGroupsWithSelection?.forEach(item => {
-            selected.set(item.id, item.selected);
+        setSelectedMap(currentSelected => {
+            const newSelected = new Map<string, boolean>();
+            resourceGroupsWithSelection?.forEach(item => {
+                newSelected.set(item.id, item.selected);
+            });
+            if (!isEqual(currentSelected, newSelected)) {
+                return newSelected;
+            }
+            return currentSelected;
         });
-        setSelectedMap(selected);
     }, [resourceGroupsWithSelection]);
 
     const subscriptionIds = useMemo(() => {
@@ -98,13 +104,18 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
 
     useEffect(() => {
         if (resourceGroupsList) {
-            const mappedRg: ResourceGroupWithSelection[] = resourceGroupsList
-                ?.map(item => ({
-                    ...item,
-                    selected: selectedMap.get(item.id) === true,
-                }))
-                .sort((lhs, rhs) => lhs.name?.localeCompare(rhs.name));
-            setResourceGroupsWithSelection(mappedRg);
+            setResourceGroupsWithSelection(currentResourceGroupsWithSelection => {
+                const newResourceGroupsWithSelection: ResourceGroupWithSelection[] = resourceGroupsList
+                    ?.map(item => ({
+                        ...item,
+                        selected: selectedMap.get(item.id) === true,
+                    }))
+                    .sort((lhs, rhs) => lhs.name?.localeCompare(rhs.name));
+                if (!isEqual(currentResourceGroupsWithSelection, newResourceGroupsWithSelection)) {
+                    return newResourceGroupsWithSelection;
+                }
+                return currentResourceGroupsWithSelection;
+            });
         }
     }, [resourceGroupsList, selectedMap]);
 
