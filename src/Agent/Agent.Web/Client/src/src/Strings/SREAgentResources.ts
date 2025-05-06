@@ -2,10 +2,6 @@ import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
     sreAgent: { defaultMessage: 'SRE Agent', id: '+WRusC' },
-    feedbackDialogTitle: {
-        id: 'Nrc9ba',
-        defaultMessage: 'Thank you for your feedback!',
-    },
     approve: {
         id: 'WCaf5C',
         defaultMessage: 'Approve',
@@ -53,10 +49,6 @@ export const SreAgentResources = defineMessages({
     decisionTime: {
         defaultMessage: 'Decision Time',
         id: 'Q/agzh',
-    },
-    enterFeedbackPlaceholder: {
-        defaultMessage: 'Enter your feedback here...',
-        id: 'dDl4Gl',
     },
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
     actionsCompleted: { defaultMessage: '{numOfActions} actions completed', id: 'RI4Umu' },
@@ -398,4 +390,14 @@ export const GrafanaDashboardResources = defineMessages({
         id: 'ca43CS',
     },
     grafanaResourceName: { defaultMessage: 'Grafana resource name', id: 'a2+0+5' },
+});
+
+export const FeedbackResources = defineMessages({
+    submitFeedbackTitle: { defaultMessage: 'Submit feedback to Microsoft', id: '+FoBRs' },
+    feedbackPlaceholder: { defaultMessage: 'Give as much detail as you can, but do not include any personal information.', id: 'csu0rb' },
+    feedbackContactMe: { defaultMessage: "It's OK to contact me about my feedback.", id: 'E396gv' },
+    feedbackPrivacyStatement: {
+        defaultMessage: 'Data usage, customer rights, and privacy statement if needed. We got it covered.',
+        id: 'OV0MpG',
+    },
 });

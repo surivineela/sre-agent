@@ -1,3 +1,4 @@
+import { FeedbackButtons } from '@fluentui-copilot/react-copilot';
 import {
     CopilotMessageV2 as CopilotMessage,
     CopilotMessageV2Props as CopilotMessageProps,
@@ -19,6 +20,7 @@ import { IChatMessageProps } from '../Contracts/Activities';
 import { useAuthenticatedUserInfo } from '../Hooks/useAuthenticatedUserInfo';
 import { ChatBoxStyles, useChatBoxStyles } from '../Styles/Activities.styles';
 import AgentChart from './Charts';
+import { FeedbackDialog } from './FeedbackDialog';
 import MermaidChart from './Mermaid';
 
 // Initialize mermaid with default configuration
@@ -127,31 +129,12 @@ const renderMarkdownWithImagesAndMermaid = (text: string) => {
     return parts;
 };
 
-const sendMessageFeedback = async (threadId: string, isPositive: boolean, feedbackText: string) => {
-    try {
-        const url = `../api/v1/threads/${threadId}/feedbacks`;
-        await axios.post(
-            url,
-            {
-                isPositive: isPositive,
-                feedbackText: feedbackText,
-            },
-            {
-                headers: getAgentHeaders(),
-            }
-        );
-    } catch {
-        // ToDo: handle error
-        return undefined;
-    }
-};
-
 const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
-    const [showFeedbackPopup, setShowFeedbackPopup] = useState(false); // State to control popup visibility
-    const [feedbackText, setFeedbackText] = useState(''); // State to store feedback text
-    const [isPositiveFeedback, setIsPositiveFeedback] = useState<boolean | null>(null); // State to store thumbs-up/down info
+
+    const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
+    const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
     const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
@@ -186,19 +169,8 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     }, []);
 
     const handleFeedbackClick = (isPositive: boolean) => {
-        setIsPositiveFeedback(isPositive); // Set thumbs-up or thumbs-down
-        setShowFeedbackPopup(true); // Show the feedback popup
-    };
-
-    const handleFeedbackSubmit = async () => {
-        try {
-            await sendMessageFeedback(threadId, isPositiveFeedback!, feedbackText); // Send feedback to the API
-            console.log(`Feedback sent for message ID: ${message.id}, isPositive: ${isPositiveFeedback}, feedbackText: ${feedbackText}`);
-            setShowFeedbackPopup(false); // Hide the popup
-            setFeedbackText(''); // Clear the feedback text
-        } catch (error) {
-            console.error(`Failed to send feedback for message ID: ${message.id}`, error);
-        }
+        setSelectedFeedback(isPositive ? 'positive' : 'negative');
+        setShowFeedbackDialog(true);
     };
 
     // Helper function to extract title from mermaid content
@@ -545,153 +517,14 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                         )}
 
                         {!isTyping && ( // Only show buttons when the agent is not typing
-                            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                                <button
-                                    className="feedback-button"
-                                    style={{
-                                        background: 'transparent', // Transparent background
-                                        border: 'none', // No border
-                                        cursor: 'pointer',
-                                        marginRight: '8px',
-                                        padding: '4px 8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        transition: 'transform 0.1s',
-                                    }}
-                                    onClick={() => handleFeedbackClick(true)} // Thumbs up
-                                >
-                                    <svg
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill={isPositiveFeedback === true ? '#0057b8' : 'none'}
-                                        stroke={isPositiveFeedback === true ? 'black' : '#cccccc'}
-                                        strokeWidth="2"
-                                        onMouseOver={e => {
-                                            e.currentTarget.setAttribute('stroke', 'black');
-                                        }}
-                                        onMouseOut={e => {
-                                            if (isPositiveFeedback !== true) {
-                                                e.currentTarget.setAttribute('stroke', '#cccccc');
-                                            }
-                                        }}
-                                        onMouseDown={e => {
-                                            e.currentTarget.setAttribute('fill', '#003d8f');
-                                        }}
-                                        onMouseUp={e => {
-                                            e.currentTarget.setAttribute('fill', isPositiveFeedback === true ? '#0057b8' : 'none');
-                                        }}
-                                    >
-                                        <path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3H14z"></path>
-                                        <path d="M7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path>
-                                    </svg>
-                                </button>
-                                <button
-                                    className="feedback-button"
-                                    style={{
-                                        background: 'transparent', // Transparent background
-                                        border: 'none', // No border
-                                        cursor: 'pointer',
-                                        padding: '4px 8px',
-                                        display: 'flex',
-                                        alignItems: 'center',
-                                        justifyContent: 'center',
-                                        transition: 'transform 0.1s',
-                                    }}
-                                    onClick={() => handleFeedbackClick(false)} // Thumbs down
-                                >
-                                    <svg
-                                        width="16"
-                                        height="16"
-                                        viewBox="0 0 24 24"
-                                        fill={isPositiveFeedback === false ? '#c01c28' : 'none'}
-                                        stroke={isPositiveFeedback === false ? 'black' : '#cccccc'}
-                                        strokeWidth="2"
-                                        onMouseOver={e => {
-                                            e.currentTarget.setAttribute('stroke', 'black');
-                                        }}
-                                        onMouseOut={e => {
-                                            if (isPositiveFeedback !== false) {
-                                                e.currentTarget.setAttribute('stroke', '#cccccc');
-                                            }
-                                        }}
-                                        onMouseDown={e => {
-                                            e.currentTarget.setAttribute('fill', '#a51419');
-                                        }}
-                                        onMouseUp={e => {
-                                            e.currentTarget.setAttribute('fill', isPositiveFeedback === false ? '#c01c28' : 'none');
-                                        }}
-                                    >
-                                        <path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3H10z"></path>
-                                        <path d="M17 2h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path>
-                                    </svg>
-                                </button>
-                            </div>
-                        )}
-                        {showFeedbackPopup && (
-                            <div
-                                style={{
-                                    position: 'absolute',
-                                    bottom: '10px',
-                                    right: '10px',
-                                    backgroundColor: 'white',
-                                    color: 'black',
-                                    padding: '16px',
-                                    borderRadius: '8px',
-                                    boxShadow: '0px 4px 6px rgba(0, 0, 0, 0.1)',
-                                    zIndex: 1000,
-                                    width: '300px',
-                                }}
-                            >
-                                <h4>
-                                    <FormattedMessage {...SreAgentResources.feedbackDialogTitle} />
-                                </h4>
-                                <textarea
-                                    style={{
-                                        width: '100%',
-                                        height: '60px',
-                                        marginTop: '8px',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid #ccc',
-                                    }}
-                                    placeholder={intl.formatMessage(SreAgentResources.enterFeedbackPlaceholder)}
-                                    value={feedbackText}
-                                    onChange={e => setFeedbackText(e.target.value)}
-                                />
-                                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '8px' }}>
-                                    <button
-                                        style={{
-                                            backgroundColor: '#0078D4',
-                                            color: 'white',
-                                            border: 'none',
-                                            padding: '8px 12px',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                            marginRight: '8px',
-                                        }}
-                                        onClick={handleFeedbackSubmit}
-                                    >
-                                        <FormattedMessage {...SreAgentResources.submit} />
-                                    </button>
-                                    <button
-                                        style={{
-                                            backgroundColor: '#ccc',
-                                            color: 'black',
-                                            border: 'none',
-                                            padding: '8px 12px',
-                                            borderRadius: '4px',
-                                            cursor: 'pointer',
-                                        }}
-                                        onClick={() => setShowFeedbackPopup(false)}
-                                    >
-                                        <FormattedMessage {...SreAgentResources.cancel} />
-                                    </button>
-                                </div>
-                            </div>
+                            <FeedbackButtons
+                                positiveFeedbackButton={{ onClick: () => handleFeedbackClick(true) }}
+                                negativeFeedbackButton={{ onClick: () => handleFeedbackClick(false) }}
+                                selected={selectedFeedback}
+                            />
                         )}
                     </CopilotMessage>
+
                     {isTyping && (
                         <Button
                             icon={<SquareDismissRegular />}
@@ -702,6 +535,13 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                             <FormattedMessage {...SreAgentResources.cancel} />
                         </Button>
                     )}
+
+                    <FeedbackDialog
+                        isOpen={showFeedbackDialog}
+                        setIsOpen={setShowFeedbackDialog}
+                        threadId={threadId}
+                        isPositiveFeedback={selectedFeedback === 'positive'}
+                    />
                 </div>
             );
         default:

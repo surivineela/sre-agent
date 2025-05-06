@@ -11,6 +11,12 @@
       "value": "Step 4: Copy the API key and paste it here"
     }
   ],
+  "+FoBRs": [
+    {
+      "type": 0,
+      "value": "Submit feedback to Microsoft"
+    }
+  ],
   "+WRusC": [
     {
       "type": 0,
@@ -329,6 +335,12 @@
       "value": "Failed to delete logic app"
     }
   ],
+  "E396gv": [
+    {
+      "type": 0,
+      "value": "It's OK to contact me about my feedback."
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -511,12 +523,6 @@
       "value": "Successfully saved incident management configuration"
     }
   ],
-  "Nrc9ba": [
-    {
-      "type": 0,
-      "value": "Thank you for your feedback!"
-    }
-  ],
   "O0WH/+": [
     {
       "type": 0,
@@ -537,6 +543,12 @@
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "OV0MpG": [
+    {
+      "type": 0,
+      "value": "Data usage, customer rights, and privacy statement if needed. We got it covered."
     }
   ],
   "OWBgF9": [
@@ -843,10 +855,10 @@
       "value": "Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads."
     }
   ],
-  "dDl4Gl": [
+  "csu0rb": [
     {
       "type": 0,
-      "value": "Enter your feedback here..."
+      "value": "Give as much detail as you can, but do not include any personal information."
     }
   ],
   "dnXgff": [
