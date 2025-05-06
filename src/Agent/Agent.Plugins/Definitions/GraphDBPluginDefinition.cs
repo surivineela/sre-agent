@@ -165,7 +165,7 @@ namespace Agent.Plugins
             "Returns a count of matching resources and can group by specific properties.")]
         public async Task<dynamic> GetResourceCount(
             [Description("Type of the Azure resource to count (e.g., 'microsoft.app/containerapps' for container apps, 'microsoft.web/sites' for webapps, function apps, 'microsoft.containerservice/managedclusters' for AKS)")] string resourceType,
-            [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroup'). Leave empty for total count.")] string groupBy = "")
+            [Description("Optional. Property to group by for getting counts by specific attribute (currently only allowed 'location', 'resourceGroupName'). Leave empty for total count.")] string groupBy = "")
         {
             return await _plugin.GetResourceCountAsync(resourceType, groupBy);
         }
@@ -218,7 +218,7 @@ namespace Agent.Plugins
             "The output is a list of resource objects with all their properties. " +
             "Each resource includes details like name, location, resource group, and type-specific configuration.")]
         public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.app/containerapps/revisions, 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType,
-            [Description("The property name to filter on. This is optional, if no additional filter is needed, pass an empty string")] string propertyName,
+            [Description("The property name to filter on (for example, resourceGroupName). This is optional, if no additional filter is needed, pass an empty string")] string propertyName,
             [Description("The property value to match. This is optional, if no additional filter is needed, pass an empty string")] string propertyValue)
         {
             return await _plugin.ListResourcesByTypeAsync(resourceType, propertyName, propertyValue);
