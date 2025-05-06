@@ -10,7 +10,6 @@ using Agent.Plugins.Definitions;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
-using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent;
 using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
@@ -24,12 +23,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
     {
         
         private readonly lHelloWorldPlugin _helloWorldPlugin;
-        private readonly IContainerAppEnvoyPlugin _envoyPlugin;
         private readonly IKustoPlugin _kustoPlugin;
         private readonly AgentToolsRegistry _toolsRegistry;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadOrchestrationManager _mappingManager;
-        public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppEnvoyAgentInput);
+        public const string OrchestrationInstanceIdPrefix = nameof(HelloWorldAgentInput);
         public HelloWorldAgentFactory(
             lHelloWorldPlugin helloWorldPlugin,
             IThreadOrchestrationManager mappingManager,

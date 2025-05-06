@@ -13,7 +13,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
     public record ContainerAppEnvoyAgentActivityInput : BaseContainerAppIssueActivityInput 
     {
         [Description("The name of the container app.")]
-        public string ContainerAppName { get; init; } = string.Empty;       
+        public string ContainerAppName { get; init; } = string.Empty;
+        [Description("The resource group name of the container app.")]
+        public string ResourceGroupName { get; init; } = string.Empty;
+        [Description("The subscription ID of the container app.")]
+        public string SubscriptionId { get; init; } = string.Empty;
     }
 
     // [MENDATORY]
@@ -28,13 +32,10 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
             _logger = logger;
         }
 
-        
-        
         public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppEnvoyAgentActivityInput input)
         {
            
             _logger.LogInformation($"ContainerAppRevisionAgentActivity started with input: {JsonSerializer.Serialize(input)}");
-
 
             var systemPrompt = await GetPromptTextAsync(input);
 
@@ -43,6 +44,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
                 new ChatMessage(ChatRole.System, @$"
                     Input information
                     - Container App Name: {input.ContainerAppName}
+                    - Resource Group Name: {input.ResourceGroupName}
+                    - Subscription Id: {input.SubscriptionId}
                     - Region: {input.Region}
                     - From: {input.FromDate:O}
                     - To: {input.ToDate:O}

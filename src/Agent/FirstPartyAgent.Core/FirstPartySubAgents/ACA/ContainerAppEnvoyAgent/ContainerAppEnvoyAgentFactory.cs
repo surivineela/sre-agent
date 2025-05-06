@@ -23,35 +23,36 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
     // [MENDATORY]
     public class ContainerAppEnvoyAgentFactory 
     {
-        private readonly IContainerAppEnvoyPlugin _envoyPlugin;
-        private readonly IKustoPlugin _kustoPlugin;
-        private readonly AgentToolsRegistry _toolsRegistry;
+        private readonly IToolsRepository _toolsRegistry;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadOrchestrationManager _mappingManager;
+        private readonly IReadOnlyList<string> _toolSignatures;
         public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppEnvoyAgentInput);
+
         public ContainerAppEnvoyAgentFactory(
             IContainerAppEnvoyPlugin envoyPlugin,
-            IThreadOrchestrationManager mappingManager,
             IToolsRepository toolsRepository,
-            DurableTaskClient durableTaskClient,
-            IKustoPlugin kustoPlugin
-            )
-            
+            IThreadOrchestrationManager mappingManager,
+            DurableTaskClient durableTaskClient)
         {
-            _envoyPlugin = envoyPlugin;
-            _kustoPlugin = kustoPlugin;
-            _toolsRegistry = new AgentToolsRegistry();
-            _mappingManager = mappingManager;
-            //_toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
-            //_toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
-            _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
-            _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
-            _toolsRegistry.RegisterPlugin<ContainerAppRevisionPluginDefinition>();
-            
+            _toolsRegistry = toolsRepository;
+            var toolSignatures = new List<string>();
+
+            var envoyPluginDefinition = new ContainerAppEnvoyPluginDefinition(envoyPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAbnormalLogs));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyControllerLogs));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyAccessLogs));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetSwiftNetworkingEvents));
+
+            var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            _toolSignatures = toolSignatures;
             _durableTaskClient = durableTaskClient;
-            
-
-
+            _mappingManager = mappingManager;
         }
 
         public async Task<string> StartOrchestration(
@@ -65,7 +66,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
             await _durableTaskClient.ScheduleNewContainerAppEnvoyAgentInstanceAsync(
                 new ContainerAppEnvoyAgentInput(
                     Input: input,
-                    ToolSignatures: _toolsRegistry.ToolSignatures,
+                    ToolSignatures: _toolSignatures,
                     ThreadId: threadId),
                 new StartOrchestrationOptions(InstanceId: instanceId));
 
