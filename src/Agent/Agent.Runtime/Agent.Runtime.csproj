@@ -113,5 +113,7 @@
       <_Parameter1>Agent.Evals</_Parameter1>
     </AssemblyAttribute>
   </ItemGroup>
-
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
+  </ItemGroup>
 </Project>

@@ -209,7 +209,7 @@ public class AzMonitorAlertScanner
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error during alert investigation flow: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error during alert investigation flow: {ex.Message}");
         }
 
         return investigationSummary.ToString();

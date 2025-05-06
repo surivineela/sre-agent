@@ -8,6 +8,7 @@ using System.Text.Json.Serialization;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
+using Agent.Logging;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Azure.Core;
@@ -69,7 +70,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
             {
-                _logger.LogWarning("No agent context found for thread");
+                _logger.LogInternalWarning("No agent context found for thread");
                 return "Failed to get activity log summary for the resource!";
             }
 
@@ -103,7 +104,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error analyzing activity logs: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error analyzing activity logs: {ex.Message}");
 
             // Notify in the thread that an error occurred
             await _repository.AddMessageAsync(alertThread.Id, new Message(
@@ -133,7 +134,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
             {
-                _logger.LogWarning("No agent context found for thread");
+                _logger.LogInternalWarning("No agent context found for thread");
                 return "";
             }
 
@@ -218,7 +219,7 @@ Your assessment should be concise, actionable, and focus on insights that would 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error setting up connected components analysis: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error setting up connected components analysis: {ex.Message}");
 
             // Notify in the thread that an error occurred
             await _repository.AddMessageAsync(alertThread.Id, new Message(
@@ -303,7 +304,7 @@ Your assessment should be concise, actionable, and focus on insights that would 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error during alert investigation flow: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error during alert investigation flow: {ex.Message}");
         }
 
         return "No app health summary available. Use other data points to continue the investigation!";
@@ -328,7 +329,7 @@ Your assessment should be concise, actionable, and focus on insights that would 
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
             {
-                _logger.LogWarning("No agent context found for thread");
+                _logger.LogInternalWarning("No agent context found for thread");
                 return "No metric summary available. Use other data points to continue the investigation!";
             }
 
@@ -350,7 +351,7 @@ Your assessment should be concise, actionable, and focus on insights that would 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error setting up metrics investigation for resource {resourceId}: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error setting up metrics investigation for resource {resourceId}: {ex.Message}");
 
             await _repository.AddMessageAsync(alertThread.Id, new Message(
                 Guid.NewGuid(),
@@ -375,7 +376,7 @@ Your assessment should be concise, actionable, and focus on insights that would 
 
             if (string.IsNullOrEmpty(subscriptionId))
             {
-                _logger.LogWarning("Subscription id cannot be null or empty!");
+                _logger.LogInternalWarning("Subscription id cannot be null or empty!");
                 return "";
             }
 
@@ -391,14 +392,14 @@ Your assessment should be concise, actionable, and focus on insights that would 
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
             {
-                _logger.LogWarning("No agent context found for thread");
+                _logger.LogInternalWarning("No agent context found for thread");
                 return "";
             }
             var agentContext = agentContexts.First();
 
             // Get all saved queries for this subscription
             var savedQueries = await _logQueryService.GetSavedQueriesForSubscriptionAsync(subscriptionId);
-            _logger.LogInformation($"Found {savedQueries.Count()} saved queries from Azure Log Analytics workspace!");
+            _logger.LogInternalInformation($"Found {savedQueries.Count()} saved queries from Azure Log Analytics workspace!");
 
             // Prepare a summary of queries to pass to the LLM
             var querySummaries = savedQueries.Select(q => new
@@ -463,11 +464,11 @@ Limit your selection to the 5 most relevant queries. If none are relevant, retur
             try
             {
                 relevantQueries = JsonSerializer.Deserialize<List<RelevantQuery>>(relevantQueriesJson.Text) ?? new List<RelevantQuery>();
-                _logger.LogInformation($"LLM identified {relevantQueries.Count} relevant queries");
+                _logger.LogInternalInformation($"LLM identified {relevantQueries.Count} relevant queries");
             }
             catch (JsonException ex)
             {
-                _logger.LogError(ex, $"Error parsing LLM response for relevant queries: {ex.Message}");
+                _logger.LogInternalError(ex, $"Error parsing LLM response for relevant queries: {ex.Message}");
                 relevantQueries = new List<RelevantQuery>();
             }
 
@@ -490,13 +491,13 @@ Limit your selection to the 5 most relevant queries. If none are relevant, retur
                 var query = savedQueries.FirstOrDefault(q => q.Id == relevantQuery.Id);
                 if (query == null || string.IsNullOrEmpty(query.Properties?.Body))
                 {
-                    _logger.LogWarning($"Query with ID {relevantQuery.Id} not found or has no body");
+                    _logger.LogInternalWarning($"Query with ID {relevantQuery.Id} not found or has no body");
                     continue;
                 }
 
                 try
                 {
-                    _logger.LogInformation($"Executing query: {query.Properties.DisplayName} (ID: {query.Id})");
+                    _logger.LogInternalInformation($"Executing query: {query.Properties.DisplayName} (ID: {query.Id})");
 
                     // Execute the query - time range is 24 hours before the alert to now
                     var startTime = ParseDateTimeOffset(essentials.StartDateTime).AddHours(-2);
@@ -520,7 +521,7 @@ Limit your selection to the 5 most relevant queries. If none are relevant, retur
                 }
                 catch (Exception ex)
                 {
-                    _logger.LogError(ex, $"Error executing query {query.Properties.DisplayName} (ID: {query.Id}): {ex.Message}");
+                    _logger.LogInternalError(ex, $"Error executing query {query.Properties.DisplayName} (ID: {query.Id}): {ex.Message}");
                 }
             }
 
@@ -588,7 +589,7 @@ Use bullet points for key insights. Include the query display name if available 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error analyzing query packs: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error analyzing query packs: {ex.Message}");
 
             await _repository.AddMessageAsync(alertThread.Id, new Message(
                 Guid.NewGuid(),
@@ -613,7 +614,7 @@ Use bullet points for key insights. Include the query display name if available 
         else
         {
             createdAt = DateTimeOffset.UtcNow;
-            _logger.LogWarning($"Could not parse start time {value}, using current time instead");
+            _logger.LogInternalWarning($"Could not parse start time {value}, using current time instead");
         }
 
         return createdAt;
@@ -661,7 +662,7 @@ Use bullet points for key insights. Include the query display name if available 
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error summarizing content with llm.");
+            _logger.LogInternalError(ex, "Error summarizing content with llm.");
             return $"Error summarizing with LLM: {ex.Message}";
         }
     }

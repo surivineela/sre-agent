@@ -1173,7 +1173,7 @@ namespace Agent.Plugins.Implementation
                 if (listRevisions == null || !listRevisions.Any())
                 {
                     string message = ($"No revisions found for Container App {resourceId}");
-                    _logger.LogWarning(message);
+                    _logger.LogInternalWarning(message);
                     return message;
                 }
 
@@ -1186,21 +1186,21 @@ namespace Agent.Plugins.Implementation
                 if (sortedRevisions.Count < 2)
                 {
                     string message = $"Not enough revisions found for Container App {resourceId} to perform rollback";
-                    _logger.LogWarning(message);
+                    _logger.LogInternalWarning(message);
                     return message;
                 }
 
                 // Skip the first (current) revision and get the second one (previous)
                 var previousRevision = sortedRevisions[1];
 
-                _logger.LogInformation($"Rolling back Container App {resourceId} to revision {previousRevision.RevisionName}");
+                _logger.LogInternalInformation($"Rolling back Container App {resourceId} to revision {previousRevision.RevisionName}");
                 var restartResult = await RestartContainerApp(appResourceId: resourceId, revisionName: previousRevision.RevisionName);
 
                 return restartResult.Equals("Restart succeeded") ? "Rollback succeeded" : "Rollback failed";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error in RollbacToLastRevision for Container App {resourceId}");
+                _logger.LogInternalError(ex, $"Error in RollbacToLastRevision for Container App {resourceId}");
                 return $"Rollback failed due to an exception: {ex.Message}";
             }
         }

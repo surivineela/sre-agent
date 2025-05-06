@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Runtime.SubAgents.Core;
+using Agent.Logging;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -42,7 +43,7 @@ public class KubernetesAgent : GenericAgentOrchestrator<KubernetesAgentInput, st
         }
         catch (Exception ex)
         {
-            log.LogError(ex, "Error in KubernetesAgent: {Message}", ex.Message);
+            log.LogInternalError(ex, "Error in KubernetesAgent: {Message}", ex.Message);
             return $"Error: {ex.Message}";
         }
     }

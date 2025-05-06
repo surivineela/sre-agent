@@ -231,12 +231,12 @@ public class TimerService : IHostedService, IDisposable
         _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
 
-        _logger.LogInformation("Starting Log Flush timer...");
+        _logger.LogInternalInformation("Starting Log Flush timer...");
         StartLogFlushTimer(cancellationToken);
 
         if (_incidentManagementSettings != null && _incidentManagementSettings.Type == IncidentManagementType.AzMonitor)
         {
-            _logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
+            _logger.LogInternalInformation("Starting Azure Monitor Alert Scanner timer ...");
             StartAzMonitorAlertScannerTimer(cancellationToken);
         }
 

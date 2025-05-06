@@ -10,6 +10,7 @@ using Azure.Core;
 using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 using Azure.Monitor.Query;
+using Agent.Logging;
 
 namespace Agent.Core.Services;
 public class LogQueryService : ILogQueryService
@@ -37,7 +38,7 @@ public class LogQueryService : ILogQueryService
             string queryPacksUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.OperationalInsights/queryPacks?api-version=2025-02-01";
             
             var queryPacks = await GetQueryPacksAsync(queryPacksUrl, accessToken);
-            _logger.LogInformation($"Found {queryPacks.Count} query packs in subscription {subscriptionId}");
+            _logger.LogInternalInformation($"Found {queryPacks.Count} query packs in subscription {subscriptionId}");
             
             // For each query pack, get its queries
             foreach (var queryPack in queryPacks)
@@ -45,13 +46,13 @@ public class LogQueryService : ILogQueryService
                 string queryPackId = queryPack.Id;
                 string queryPackName = queryPack.Name;
                 
-                _logger.LogInformation($"Getting queries for query pack: {queryPackName}");
+                _logger.LogInternalInformation($"Getting queries for query pack: {queryPackName}");
                 
                 // Get queries for this query pack
                 string queriesUrl = $"https://management.azure.com{queryPackId}/queries?api-version=2025-02-01";
                 var queries = await GetQueriesForQueryPackAsync(queriesUrl, accessToken);
                 
-                _logger.LogInformation($"Found {queries.Count} queries in query pack {queryPackName}");
+                _logger.LogInternalInformation($"Found {queries.Count} queries in query pack {queryPackName}");
                 
                 // Process each query as needed
                 foreach (var query in queries)
@@ -63,7 +64,7 @@ public class LogQueryService : ILogQueryService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error getting queries for subscription {subscriptionId}");
+            _logger.LogInternalError(ex, $"Error getting queries for subscription {subscriptionId}");
             throw;
         }
 
@@ -74,20 +75,20 @@ public class LogQueryService : ILogQueryService
     {
         if (string.IsNullOrEmpty(subscriptionId))
         {
-            _logger.LogWarning("subscriptionId cannot be null or empty!");
+            _logger.LogInternalWarning("subscriptionId cannot be null or empty!");
             return string.Empty;
         }
 
         try
         {
-            _logger.LogInformation($"Finding workspaces in subscription {subscriptionId} to execute query");
+            _logger.LogInternalInformation($"Finding workspaces in subscription {subscriptionId} to execute query");
 
             string armToken = await GetAccessTokenAsync();
             List<string> workspaceIds = await GetWorkspaceIdsInSubscriptionAsync(subscriptionId, armToken);
             
             if (!workspaceIds.Any())
             {
-                _logger.LogWarning($"No Log Analytics workspaces found in subscription {subscriptionId}");
+                _logger.LogInternalWarning($"No Log Analytics workspaces found in subscription {subscriptionId}");
                 return "No workspaces found";
             }
 
@@ -99,7 +100,7 @@ public class LogQueryService : ILogQueryService
             {
                 try
                 {
-                    _logger.LogInformation($"Executing query against workspace {workspaceId}");
+                    _logger.LogInternalInformation($"Executing query against workspace {workspaceId}");
                     var response = await client.QueryWorkspaceAsync(
                         workspaceId,
                         queryText,
@@ -112,13 +113,13 @@ public class LogQueryService : ILogQueryService
                 {
                     // Log error but continue to next workspace
                     string errorMessage = $"Failed to query workspace {workspaceId}: {ex.Message}";
-                    _logger.LogWarning(ex, errorMessage);
+                    _logger.LogInternalWarning(ex, errorMessage);
                 }
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error executing log query: {ex.Message}");
+            _logger.LogInternalError(ex, $"Error executing log query: {ex.Message}");
         }
 
         // If we get here, all workspaces failed
@@ -148,7 +149,7 @@ public class LogQueryService : ILogQueryService
                 
                 var response = await httpClient.SendAsync(request);
                 
-                _logger.LogInformation($"QueryPacks API response status: {response.StatusCode}");
+                _logger.LogInternalInformation($"QueryPacks API response status: {response.StatusCode}");
                 
                 response.EnsureSuccessStatusCode();
                 
@@ -165,12 +166,12 @@ public class LogQueryService : ILogQueryService
                     
                     if (queryPacksResponse?.Value != null)
                     {
-                        _logger.LogInformation($"Successfully deserialized {queryPacksResponse.Value.Count} query packs");
+                        _logger.LogInternalInformation($"Successfully deserialized {queryPacksResponse.Value.Count} query packs");
                         queryPacks.AddRange(queryPacksResponse.Value);
                     }
                     else
                     {
-                        _logger.LogWarning("Deserialized response successfully but Value property is null or empty");
+                        _logger.LogInternalWarning("Deserialized response successfully but Value property is null or empty");
                     }
                     
                     string nextLink = queryPacksResponse?.NextLink;
@@ -197,16 +198,16 @@ public class LogQueryService : ILogQueryService
                 }
                 catch (JsonException jsonEx)
                 {
-                    _logger.LogError(jsonEx, $"JSON deserialization error: {jsonEx.Message}");
+                    _logger.LogInternalError(jsonEx, $"JSON deserialization error: {jsonEx.Message}");
                 }
             }
             catch (HttpRequestException httpEx)
             {
-                _logger.LogError(httpEx, $"HTTP request error: {httpEx.Message}");
+                _logger.LogInternalError(httpEx, $"HTTP request error: {httpEx.Message}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting query packs: {ex.Message}");
+                _logger.LogInternalError(ex, $"Error getting query packs: {ex.Message}");
             }
         }
         
@@ -226,7 +227,7 @@ public class LogQueryService : ILogQueryService
                 
                 var response = await httpClient.SendAsync(request);
                 
-                _logger.LogInformation($"Queries API response status: {response.StatusCode}");
+                _logger.LogInternalInformation($"Queries API response status: {response.StatusCode}");
                 
                 response.EnsureSuccessStatusCode();
                 
@@ -243,12 +244,12 @@ public class LogQueryService : ILogQueryService
                     
                     if (queriesResponse?.Value != null)
                     {
-                        _logger.LogInformation($"Successfully deserialized {queriesResponse.Value.Count} queries");
+                        _logger.LogInternalInformation($"Successfully deserialized {queriesResponse.Value.Count} queries");
                         queries.AddRange(queriesResponse.Value);
                     }
                     else
                     {
-                        _logger.LogWarning("Deserialized queries response successfully but Value property is null or empty");
+                        _logger.LogInternalWarning("Deserialized queries response successfully but Value property is null or empty");
                     }
                     
                     string nextLink = queriesResponse?.NextLink;
@@ -275,16 +276,16 @@ public class LogQueryService : ILogQueryService
                 }
                 catch (JsonException jsonEx)
                 {
-                    _logger.LogError(jsonEx, $"JSON deserialization error: {jsonEx.Message}");
+                    _logger.LogInternalError(jsonEx, $"JSON deserialization error: {jsonEx.Message}");
                 }
             }
             catch (HttpRequestException httpEx)
             {
-                _logger.LogError(httpEx, $"HTTP request error: {httpEx.Message}");
+                _logger.LogInternalError(httpEx, $"HTTP request error: {httpEx.Message}");
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting queries: {ex.Message}");
+                _logger.LogInternalError(ex, $"Error getting queries: {ex.Message}");
             }
         }
         
@@ -312,7 +313,7 @@ public class LogQueryService : ILogQueryService
                 
                 if (workspacesResponse?.Value != null)
                 {
-                    _logger.LogInformation($"Found {workspacesResponse.Value.Count} Log Analytics workspaces");
+                    _logger.LogInternalInformation($"Found {workspacesResponse.Value.Count} Log Analytics workspaces");
                     foreach (var workspace in workspacesResponse.Value)
                     {
                         // Extract the customerId (actual workspace ID for querying)
@@ -326,7 +327,7 @@ public class LogQueryService : ILogQueryService
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error getting workspaces: {ex.Message}");
+                _logger.LogInternalError(ex, $"Error getting workspaces: {ex.Message}");
             }
         }
         

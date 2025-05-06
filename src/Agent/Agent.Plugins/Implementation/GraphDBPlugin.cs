@@ -1442,7 +1442,7 @@ g.V().has('id', '{deploymentResourceId}')
                 if (result == null || !result.Any())
                 {
                     string message = $"Resource with ID {resourceId} not found in graph database.";
-                    _logger.LogWarning(message);
+                    _logger.LogInternalWarning(message);
                     return message;
                 }
 
@@ -1459,17 +1459,17 @@ g.V().has('id', '{deploymentResourceId}')
                     return FormatHealthInfoMessage(healthInfo, resourceId);
                 }
 
-                _logger.LogInformation($"Resource with ID {resourceId} does not have health information.");
+                _logger.LogInternalInformation($"Resource with ID {resourceId} does not have health information.");
                 return $"Resource with ID {resourceId} does not have health information.";
             }
             catch (FormatException ex)
             {
-                _logger.LogWarning($"Invalid resource id : {resourceId}");
+                _logger.LogInternalWarning($"Invalid resource id : {resourceId}");
                 return $"Invalid resource id : {resourceId}";
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, $"Error retrieving health information for resource {resourceId}: {ex.Message}");
+                _logger.LogInternalError(ex, $"Error retrieving health information for resource {resourceId}: {ex.Message}");
                 return $"Error retrieving health information for resource {resourceId}: {ex.Message}";
             }
         }

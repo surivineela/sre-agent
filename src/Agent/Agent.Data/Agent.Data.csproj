@@ -20,4 +20,7 @@
     <ProjectReference Include="..\Agent.Core\Agent.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
+  </ItemGroup>
 </Project>

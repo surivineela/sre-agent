@@ -31,4 +31,7 @@
     <Exec Command="npm install" WorkingDirectory="Client" />
     <Exec Command="npm run build" WorkingDirectory="Client" />
   </Target>
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
+  </ItemGroup>
 </Project>
