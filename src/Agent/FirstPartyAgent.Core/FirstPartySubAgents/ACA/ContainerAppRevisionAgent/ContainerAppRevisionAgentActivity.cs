@@ -45,6 +45,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
                     Input information
                     - Container App Name: {input.ContainerAppName}
                     - Revision Name: {input.RevisionName}
+                    - Resource Group Name: {input.ResourceGroupName}
+                    - Subscription: {input.SubscriptionId}
                     - Region: {input.Region}
                     - From: {input.FromDate:O}
                     - To: {input.ToDate:O}

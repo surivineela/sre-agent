@@ -46,6 +46,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetEventProcessorEventsWithoutReplica));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.ContainerAppRevisionStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetActiveRevisionSessions));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetASIPageForRevision));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetHpaHeartbeatMetrics));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetHttpScalerEventsForContainerApp));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetInternalEventProcessorEventsForPod));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionSpecChanges));
 
             //var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
             //toolSignatures.Add(_toolsRegistry.GetSignature(() => recordActionsPluginDefinition.RecordAction));

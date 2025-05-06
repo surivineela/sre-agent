@@ -97,6 +97,21 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
         }
 
 
+        [KernelFunction(KernelFunctionNames.ACA.GetASIPageForRevision)]
+        [Description(
+   @"Retrieve ASI page url for revision")]
+        public Task<string> GetASIPageForRevision([Description("Azure region.")] string region,
+            [Description("Start time of the query.")] DateTime fromDate,
+            [Description("End time of the query.")] DateTime toDate,
+            [Description("Name of the container app.")] string containerAppName,
+            [Description("Name of the container app revison.")] string revisionName,
+            [Description("Name of the resource group.")] string resourceGroupName,
+            [Description("Azure subscription ID.")] string subscriptionId)
+        {
+            return _plugin.GetASIPageForRevision( region,  fromDate,  toDate,  containerAppName,  revisionName,  resourceGroupName,  subscriptionId);
+        }
+        
+
         [KernelFunction(KernelFunctionNames.ACA.GetRevisionTrafficWithReplicaCount)]
         [Description(
     @"Retrieve replica counts and HTTP request counts for a revision (or all revisions) over time to diagnose scaling issues.

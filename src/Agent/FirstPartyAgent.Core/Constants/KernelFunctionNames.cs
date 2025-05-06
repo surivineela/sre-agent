@@ -37,6 +37,7 @@ namespace FirstPartyAgent.Constants
             public const string GetEnvoyAbnormalLogs = "get_envoy_abnormal_logs";
             public const string GetEnvoyControllerLogs = "get_envoy_controller_logs";
             public const string GetEnvoyAccessLogs = "get_envoy_access_logs";
+            public const string GetASIPageForRevision = "get_asi_page_for_revision";
 
         }
 

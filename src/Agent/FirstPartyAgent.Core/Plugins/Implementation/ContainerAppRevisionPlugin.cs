@@ -2,9 +2,12 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core;
 using Agent.Core.Interfaces;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
+using Microsoft.Extensions.AI;
+using static Microsoft.Graph.Constants;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
@@ -12,15 +15,16 @@ namespace FirstPartyAgent.Core.Plugins.Implementation;
 public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 {
     private readonly IKustoPlugin _kustoPlugin;
-
-    public ContainerAppRevisionPlugin(IKustoPlugin kustoPlugin)
+    private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
+    public ContainerAppRevisionPlugin(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
     {
         _kustoPlugin = kustoPlugin;
+        _agentOutboundCommunicationService = agentOutboundCommunicationService;
     }
 
-    public Task<string> ListRevisions(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> ListRevisions(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("ListRevisions", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("ListRevisions", region,
         new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -30,9 +34,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
         });
     }
 
-    public Task<string> GetActiveRevisionSessions(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetActiveRevisionSessions(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetActiveRevisionSessions", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetActiveRevisionSessions", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -43,9 +47,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public Task<string> GetHpaHeartbeatMetrics(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetHpaHeartbeatMetrics(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetHpaHeartbeatMetrics", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetHpaHeartbeatMetrics", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -56,9 +60,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public Task<string> GetRevisionSpecChanges(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetRevisionSpecChanges(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionSpecChanges", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionSpecChanges", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -69,9 +73,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public Task<string> GetEventProcessorEventsWithoutReplica(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetEventProcessorEventsWithoutReplica(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorEventsWithoutReplica", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetEventProcessorEventsWithoutReplica", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -82,9 +86,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public Task<string> GetPodHeartbeatStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetPodHeartbeatStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHeartbeatStatus", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHeartbeatStatus", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -95,9 +99,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public Task<string> GetInternalEventProcessorEventsForPod(string region, DateTime fromDate, DateTime toDate, string revisionName, string podName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetInternalEventProcessorEventsForPod(string region, DateTime fromDate, DateTime toDate, string revisionName, string podName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetInternalEventProcessorEventsForPod", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetInternalEventProcessorEventsForPod", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -110,9 +114,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
     }
 
 
-    public Task<string> GetRevisionTrafficWithReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetRevisionTrafficWithReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionReplicaAndTraffic", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionReplicaAndTraffic", region,
             new Dictionary<string, string> {
         { "fromDate", fromDate.ToString() },
         { "toDate", toDate.ToString() },
@@ -122,9 +126,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
         { "subscriptionId", subscriptionId },});
     }
 
-    public Task<string> ContainerAppRevisionStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> ContainerAppRevisionStatus(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionStatus", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetRevisionStatus", region,
             new Dictionary<string, string> {
         { "fromDate", fromDate.ToString() },
         { "toDate", toDate.ToString() },
@@ -134,9 +138,9 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
         { "subscriptionId", subscriptionId },});
     }
 
-    public Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetHttpScalerEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region,
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetHttpScalerEventsForContainerApp", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -146,9 +150,26 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             });
     }
 
-    public Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetASIPageForRevision(string region, DateTime fromDate, DateTime toDate, string containerAppName,string revisionName, string resourceGroupName, string subscriptionId)
     {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("GetKedaOperatorEventsForContainerApp", region,
+        
+        var clusterName= await _kustoPlugin.ExecuteFunctionAsync("GetManagedClusterName", region,
+            new Dictionary<string, string> {
+            { "containerAppNameParam", containerAppName },
+            { "resourceGroupParam", resourceGroupName },
+            { "subscriptionParam", subscriptionId }
+            });
+
+        return $"https://asi.azure.ms/services/ACA%20Azure%20Container%20Apps/pages/Container%20App%20Revision?EnvironmentName={clusterName}&Name={revisionName}&globalFrom={fromDate}&globalTo={toDate}";
+
+    }
+
+
+    public async Task<string> GetKedaOperatorEventsForContainerApp(string region, DateTime fromDate, DateTime toDate, string containerAppName, string resourceGroupName, string subscriptionId)
+    {
+       
+        // await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, new ChatMessage(ChatRole.Tool, $"Performing Kusto Query `{functionName}`"));
+        return await _kustoPlugin.ExecuteLocalFunctionAsync("GetKedaOperatorEventsForContainerApp", region,
             new Dictionary<string, string> {
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
@@ -156,9 +177,12 @@ public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
             { "resourceGroupName", resourceGroupName },
             { "subscriptionId", subscriptionId }
             });
+
+       
+
     }
 
-    public Task<string> GetReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
+    public async Task<string> GetReplicaCount(string region, DateTime fromDate, DateTime toDate, string revisionName, string containerAppName, string resourceGroupName, string subscriptionId)
     {
         string query = $@"
 let startTime = datetime(""{fromDate}"");
@@ -200,7 +224,7 @@ union theSchema, mdmData
 | project Timestamp = TimestampUtc, Revision = revisionName, Max, appArmId
 | where Revision == cappRevisionName
 | order by Timestamp asc, Revision asc;
-";        
-        return _kustoPlugin.ExecuteKustoQuery(region, query);
+";
+        return await _kustoPlugin.ExecuteKustoQuery(region, query);
     }
 }

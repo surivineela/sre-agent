@@ -3,6 +3,11 @@ using System.ComponentModel;
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 public record BaseContainerAppIssueActivityInput
 {
+    [Description("Subscription id")]
+    public string SubscriptionId { get; init; }
+    [Description("Resource Group name")]
+    public string ResourceGroupName { get; init; }
+
     [Description("The start of the time range to analyze.")]
     public DateTime FromDate { get; init; }
 
