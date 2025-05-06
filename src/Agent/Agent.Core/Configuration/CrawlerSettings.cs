@@ -16,7 +16,7 @@ namespace Agent.Core.Configuration
         // or resource id of user assigned managed identity
         public string? Identity { get; set; }
         [Required]
-        public int MaxParallelism { get; set; } = 4096;
+        public int MaxParallelism { get; set; } = 100;
     }
 }
 
