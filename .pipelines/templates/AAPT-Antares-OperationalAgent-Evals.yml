@@ -22,18 +22,6 @@ steps:
 - script: echo Integration Test Pipeline Run $(Build.BuildNumber)!
   displayName: 'Starting Evals run'
 
-- task: AzureCLI@2
-  displayName: Azure CLI
-  inputs:
-    azureSubscription: sreagent-3p-pipe-eval
-    scriptType: bash
-    scriptLocation: inlineScript
-    inlineScript: |
-      echo "Authenticated with Azure"
-      # Optional: Verify environment variables
-      echo "AZURE_CLIENT_ID: $AZURE_CLIENT_ID"
-      echo "AZURE_TENANT_ID: $AZURE_TENANT_ID"
-
 - task: UseDotNet@2
   continueOnError: false
   displayName: '🧰 Setup .NET 9'
