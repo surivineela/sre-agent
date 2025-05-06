@@ -8,7 +8,7 @@ trigger:
 parameters:
 - name: timeoutMinutes
   type: number
-  default: 30
+  default: 60
 
 variables:
   ${{ if eq(variables['Build.Reason'], 'PullRequest') }}:
@@ -75,6 +75,17 @@ steps:
     IterationCount: $(iterationCount)
   timeoutInMinutes: ${{ parameters.timeoutMinutes }}
   displayName: 'Running evals'
+  continueOnError: true
+
+- script: dotnet test --no-restore --logger trx --results-directory $(Build.SourcesDirectory)/TestResults/ --settings evals.runsettings
+  workingDirectory: $(Build.SourcesDirectory)/src/Agent/Agent.Evals
+  env:
+    OpenAIEndpoint: https://sre3ppipe-openai-swedencentral.openai.azure.com/
+    OpenAIKey: $(EvalsOpenAIKey41)
+    OpenAIModel: sre3ppipe-gpt-41
+    IterationCount: $(iterationCount)
+  timeoutInMinutes: ${{ parameters.timeoutMinutes }}
+  displayName: 'Running evals (gpt-4.1)'
   continueOnError: true
 
 - task: PublishTestResults@2

@@ -41,19 +41,17 @@ public class Program
 
             Console.WriteLine(filePath);
 
-            var file = Directory.GetFiles(filePath, "*.trx");
-            if (file == null)
+            var files = Directory.GetFiles(filePath, "*.trx");
+            if (files == null || files.Length == 0)
             {
                 Console.WriteLine("No valid file path found.");
                 return;
             }
 
-            if (file.Length > 1)
+            foreach(var f in files)
             {
-                throw new Exception("Multiple test result files found.");
+                await ProcessFile(f);
             }
-
-            testResultFile = file[0];
         }
         catch (Exception ex)
         {
@@ -61,7 +59,10 @@ public class Program
             Console.Write(warn.ToString());
             return;
         }
+    }
 
+    public static async Task ProcessFile(string testResultFile)
+    { 
         Console.WriteLine($"Try to load {testResultFile}");
         XmlDocument doc = new();
         doc.Load(testResultFile);
