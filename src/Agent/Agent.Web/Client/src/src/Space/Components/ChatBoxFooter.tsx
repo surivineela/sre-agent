@@ -55,7 +55,7 @@ const ChatBoxFooter = ({ sendMessage, disableInput }: IChatBoxFooterProps) => {
                 />
                 <div className={footer}>
                     <Button
-                        icon={<SendRegular style={{ color: tokens.colorBrandForeground1 }} />}
+                        icon={<SendRegular style={{ color: disableInput ? undefined : tokens.colorBrandForeground1 }} />}
                         disabled={disableInput}
                         onClick={chatInputHandleSendClick}
                         shape="circular"
