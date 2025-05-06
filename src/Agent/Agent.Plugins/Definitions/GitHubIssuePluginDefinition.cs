@@ -10,7 +10,8 @@ using Octokit;
 namespace Agent.Plugins;
 
 [Description(@"Note that pull requests are considered issues.
-You can create/ update comments on a PR the same way you would on a regular issue.")]
+You can create/ update comments on a PR the same way you would on a regular issue.
+Note that if there is any auth issue when using any of these methods, call the GenerateLoginLink method and ask the user to follow this link to login")]
 
 public class GitHubIssuePluginDefinition
 {
@@ -22,7 +23,7 @@ public class GitHubIssuePluginDefinition
     }
 
     [KernelFunction("create_github_issue")]
-    [Description("Create an issue on GitHub to track a problem with a web app which you have diagnosed if you have a solution to fix it. Unless this is a sample issue, make the publisher be detailed. If the user requests to set something that isn't supported, let them know.")]
+    [Description("Create an issue on GitHub to track a problem with a web app which you have diagnosed if you have a solution to fix it. Unless this is a sample issue, make the publisher be detailed. If the user requests to set something that isn't supported, let them know. If there are any credential related issues when executing this plugin, call generate_login_link and ask the user to follow a link to login")]
     public async Task<Issue> CreateGithubIssue(
         [Description($"GitHub repository URL, e.g. {GitHubHelper.ExampleUrl}")] string repoUrl,
         [Description("Title of issue")] string title,

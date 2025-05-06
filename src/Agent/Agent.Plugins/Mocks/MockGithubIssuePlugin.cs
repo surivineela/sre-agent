@@ -20,6 +20,11 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
         _githubIssuePluginDependabotVulnerabilities = githubIssuePluginDependabotVulnerabilities;
     }
 
+    public string GenerateLoginLink()
+    {
+        return string.Empty;
+    }
+
     public Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags)
     {
         throw new NotImplementedException();

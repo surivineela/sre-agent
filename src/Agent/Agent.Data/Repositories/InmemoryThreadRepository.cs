@@ -681,6 +681,21 @@ namespace Agent.Data.Repositories
                 .FirstOrDefault();
             return Task.FromResult(action);
         }
+
+        public Task<GitHubAccessToken> GetGitHubAccessTokenAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<GitHubAccessToken> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> DeleteGitHubAccessTokenAsync()
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }

@@ -1629,4 +1629,43 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
     #endregion
+
+    #region GitHubAccessToken Operations
+    public async Task<GitHubAccessToken> GetGitHubAccessTokenAsync()
+    {
+        try
+        {
+            GitHubAccessTokenDocument gitHubAccessTokenDocument = await GetDocumentAsync<GitHubAccessTokenDocument>("GitHubAccessToken", "GitHubAccessToken");
+            return gitHubAccessTokenDocument?.ToDomainModel();
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return null;
+        }
+    }
+
+    public async Task<GitHubAccessToken> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken)
+    {
+        // Create the GitHub access token document
+        GitHubAccessTokenDocument gitHubAccessTokenDoc = GitHubAccessTokenDocument.FromDomainModel(gitHubAccessToken);
+        await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).UpsertItemAsync(gitHubAccessTokenDoc, new PartitionKey(gitHubAccessTokenDoc.PartitionKey));
+        return gitHubAccessToken;
+    }
+
+    public async Task<bool> DeleteGitHubAccessTokenAsync()
+    {
+        try
+        {
+            // Delete the message
+            await _client.GetContainer<GitHubAccessTokenDocument>(_databaseName).DeleteItemAsync<GitHubAccessTokenDocument>("GitHubAccessToken", new PartitionKey("GitHubAccessToken"));
+
+            return true;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            return false;
+        }
+    }
+
+    #endregion
 }

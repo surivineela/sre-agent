@@ -75,4 +75,8 @@ public interface IThreadRepository
     Task<IEnumerable<ApprovalV2>> GetAllApprovalV2sAsync();
     Task<ApprovalV2> CreateApprovalV2Async(ApprovalV2 approvalV2);
     Task<ApprovalV2> UpdateApprovalV2Async(ApprovalV2 approvalV2);
+
+    Task<GitHubAccessToken> GetGitHubAccessTokenAsync();
+    Task<GitHubAccessToken> CreateOrUpdateGitHubAccessTokenAsync(GitHubAccessToken gitHubAccessToken);
+    Task<bool> DeleteGitHubAccessTokenAsync();
 }

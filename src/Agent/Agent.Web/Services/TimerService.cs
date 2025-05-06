@@ -120,6 +120,10 @@ public class TimerService : IHostedService, IDisposable
     private bool _azMonitorAlertScannerTimerIsRunning = false;
     private TimeSpan _azMonitorAlertScannerTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _githubAccessTokenTimer = null;
+    private bool _githubAccessTokenTimerIsRunning = false;
+    private TimeSpan _githubAccessTokenTimerInterval = TimeSpan.FromMinutes(1);
+
     private Timer? _logFlushTimer = null;
     private bool _logFlushTimerIsRunning = false;
     private TimeSpan _logFlushTimerInterval = TimeSpan.FromSeconds(30);
@@ -230,6 +234,13 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
+
+        _logger.LogInternalInformation("Starting GitHub access token timer...");
+        StartGitHubAccessTokenTimer(cancellationToken);
+
+        // Disabling this for now to avoid spamming threads.
+        //_logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
+        //StartAzMonitorAlertScannerTimer(cancellationToken);
 
         _logger.LogInternalInformation("Starting Log Flush timer...");
         StartLogFlushTimer(cancellationToken);
@@ -754,6 +765,42 @@ public class TimerService : IHostedService, IDisposable
                 _feedbackRCATimerIsRunning = false;
             }
         }, null, TimeSpan.Zero, _feedbackRCATimerInterval);
+    }
+
+    public void StartGitHubAccessTokenTimer(CancellationToken cancellationToken)
+    {
+        _githubAccessTokenTimer = new Timer(async _ =>
+        {
+            if (_githubAccessTokenTimerIsRunning)
+            {
+                _logger.LogInternalInformation("GitHub access token is already running. Skip this round.");
+                return;
+            }
+
+            try
+            {
+                _githubAccessTokenTimerIsRunning = true;
+
+                var gitHubAccessToken = await _repository.GetGitHubAccessTokenAsync();
+                if (gitHubAccessToken != null && DateTime.UtcNow > gitHubAccessToken.ExpiresOn)
+                {
+                    _logger.LogInternalInformation("GitHub access token is expired. Skip this round.");
+                    await _repository.DeleteGitHubAccessTokenAsync();
+                }
+                else
+                {
+                    _logger.LogInternalInformation("No github access token to delete");
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error executing github access token.");
+            }
+            finally
+            {
+                _githubAccessTokenTimerIsRunning = false;
+            }
+        }, null, TimeSpan.Zero, _githubAccessTokenTimerInterval);
     }
 
     public void StartLogFlushTimer(CancellationToken cancellationToken)

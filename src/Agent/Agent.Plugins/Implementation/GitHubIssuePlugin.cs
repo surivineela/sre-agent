@@ -12,6 +12,12 @@ using Agent.Core.Configuration;
 using Newtonsoft.Json;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
+using System.Security.Cryptography;
+using System.Text;
+using Agent.Core.Interfaces;
+using Kusto.Data.Common;
 using System.Text;
 
 namespace Agent.Plugins;
@@ -23,9 +29,10 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     private readonly IConfiguration _config;
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
+    private readonly IThreadRepository _threadRepository;
     public Guid? ThreadId { get; set; }
 
-    public GitHubIssuePlugin(GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Models.GitHubClient gitHubClient)
+    public GitHubIssuePlugin(IThreadRepository threadRepository, GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Models.GitHubClient gitHubClient)
     {
         _logger = logger;
         _gitHubSettings = gitHubSettings;
@@ -35,10 +42,10 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         if (!string.IsNullOrEmpty(ghToken))
         {
             _logger.Log(LogLevel.Information, "Setting github token in GithubIssuePlugin");
-            _gitHubSettings.PatOverride = ghToken;
         }
 
         _gitHubClient = gitHubClient.Client;
+        _threadRepository = threadRepository;
     }
 
     public async Task<Issue> CreateGithubIssue(
@@ -71,7 +78,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                     issue.Labels.Add(tag);
                 }
 
-                return await _gitHubClient.Issue.Create(owner, repo, issue);
+                return await SendGitHubCallAsync(() => _gitHubClient.Issue.Create(owner, repo, issue));
             },
             _logger
         );
@@ -88,7 +95,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
 
-                return await _gitHubClient.Issue.Comment.Create(owner, repo, number, commentBody);
+                return await SendGitHubCallAsync(() => _gitHubClient.Issue.Comment.Create(owner, repo, number, commentBody));
             },
             _logger
         );
@@ -110,7 +117,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
 
-                Issue issue = await _gitHubClient.Issue.Get(owner, repo, number);
+                Issue issue = await SendGitHubCallAsync(() => _gitHubClient.Issue.Get(owner, repo, number));
                 var update = issue.ToUpdate();
 
                 update.Title = newTitle ?? issue.Title;
@@ -127,7 +134,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                     update.RemoveLabel(label);
                 }
 
-                return await _gitHubClient.Issue.Update(owner, repo, number, update);
+                return await SendGitHubCallAsync(() => _gitHubClient.Issue.Update(owner, repo, number, update));
             },
             _logger
         );
@@ -144,7 +151,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             async () =>
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
-                return await _gitHubClient.Issue.Comment.Update(owner, repo, id, newCommentBody);
+                return await SendGitHubCallAsync(() => _gitHubClient.Issue.Comment.Update(owner, repo, id, newCommentBody));
             },
             _logger
         );
@@ -183,7 +190,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                     actualFilter.Labels.Add(label);
                 }
 
-                var res = await _gitHubClient.Issue.GetAllForRepository(owner, repo, actualFilter);
+                var res = await SendGitHubCallAsync(() => _gitHubClient.Issue.GetAllForRepository(owner, repo, actualFilter));
 
                 _logger.LogInternalInformation($"Github issues fetched");
 
@@ -205,7 +212,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo, issueNumber) = GitHubHelper.ParseGitHubIssueUrl(issueUrl);
 
-                var res = await _gitHubClient.Issue.Get(owner, repo, issueNumber);
+                Issue res = await SendGitHubCallAsync(() => _gitHubClient.Issue.Get(owner, repo, issueNumber));
 
                 _logger.LogInternalInformation($"GitHub issue with id {issueNumber} fetched from repo {owner}/{repo}");
 
@@ -239,7 +246,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
 
                 var endpoint = new Uri($"repos/{owner}/{repo}/dependabot/alerts", UriKind.Relative);
-                var response = await _gitHubClient.Connection.Get<string>(endpoint, null, "application/vnd.github+json");
+                var response = await SendGitHubCallAsync(() => _gitHubClient.Connection.Get<string>(endpoint, null, "application/vnd.github+json"));
                 var responseObject = JsonConvert.DeserializeObject<DependabotAlert[]>(response.HttpResponse.Body.ToString());
 
                 var dependabotAlerts = new List<DependabotAlert>(responseObject ?? new DependabotAlert[0]);
@@ -269,7 +276,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 var pluginIssueComments = new List<GithubIssuePluginIssueComment>();
                 try
                 {
-                    var comments = await _gitHubClient.Issue.Comment.GetAllForIssue(owner, repo, issueNumber);
+                    var comments = await SendGitHubCallAsync(() => _gitHubClient.Issue.Comment.GetAllForIssue(owner, repo, issueNumber));
 
                     pluginIssueComments = comments.Where(c => !string.IsNullOrWhiteSpace(c?.Body)).Select(c => c.ToGithubIssuePluginIssueComment()).ToList();
 
@@ -306,6 +313,33 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         );
     }
 
+    private string GenerateLoginLink()
+    {
+        string agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? "agent";
+        string agentHostname = Environment.GetEnvironmentVariable("AGENT_HOSTNAME") ?? "localhost";
+        if (agentHostname.StartsWith("https://"))
+        {
+            agentHostname = agentHostname.Substring(8);
+        }
+
+        string agentNameHash = string.Empty;
+        using (SHA256 sha256 = SHA256.Create())
+        {
+            var contentBytes = Encoding.UTF8.GetBytes(agentName);
+            sha256.TransformFinalBlock(contentBytes, 0, contentBytes.Length);
+            agentNameHash = sha256.Hash != null ? Convert.ToHexString(sha256.Hash).ToLower() : string.Empty;
+        }
+
+        var redirectUri = _gitHubSettings.RedirectUriFormat
+            .Replace("{agentName}", agentName)
+            .Replace("{agentHostname}", agentHostname)
+            .Replace("?", "%3F")
+            .Replace("=", "%3D")
+            .Replace("&", "%26");
+
+        return $"https://github.com/login/oauth/authorize?client_id={_gitHubSettings.ClientId}&redirect_uri={redirectUri}&scope=repo&state={agentNameHash}";
+    }
+
     public async Task DeleteGithubIssueComment(
         string repoUrl,
         long id,
@@ -317,7 +351,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             async () =>
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
-                await _gitHubClient.Issue.Comment.Delete(owner, repo, id);
+                await SendGitHubCallAsync(() => _gitHubClient.Issue.Comment.Delete(owner, repo, id));
             },
             _logger
         );
@@ -422,6 +456,70 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         {
             _logger.LogInternalError(ex, "Error extracting image description");
             return string.Empty;
+        }
+    }
+
+    private async Task SendGitHubCallAsync(Func<Task> githubCallFunc)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_gitHubSettings.PatTokenOverride))
+            {
+                var token = await _threadRepository.GetGitHubAccessTokenAsync();
+                if (token == null)
+                {
+                    throw new Exception($"User must login to this link: {GenerateLoginLink()}");
+                }
+
+                _gitHubClient.Credentials = new Credentials(token: token.AccessToken, authenticationType: AuthenticationType.Bearer);
+            }
+            else
+            {
+                _gitHubClient.Credentials = new Credentials(token: _gitHubSettings.PatTokenOverride, authenticationType: AuthenticationType.Bearer);
+            }
+
+            await githubCallFunc();
+        }
+        catch (Octokit.NotFoundException)
+        {
+            throw new Exception($"User must login to this link: {GenerateLoginLink()}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error sending GitHub call");
+            throw;
+        }
+    }
+
+    private async Task<T> SendGitHubCallAsync<T>(Func<Task<T>> githubCallFunc)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(_gitHubSettings.PatTokenOverride))
+            {
+                var token = await _threadRepository.GetGitHubAccessTokenAsync();
+                if (token == null)
+                {
+                    throw new Exception($"User must login to this link: {GenerateLoginLink()}");
+                }
+
+                _gitHubClient.Credentials = new Credentials(token: token.AccessToken, authenticationType: AuthenticationType.Bearer);
+            }
+            else
+            {
+                _gitHubClient.Credentials = new Credentials(token: _gitHubSettings.PatTokenOverride, authenticationType: AuthenticationType.Bearer);
+            }
+
+            return await githubCallFunc();
+        }
+        catch (Octokit.NotFoundException)
+        {
+            throw new Exception($"User must login to this link: {GenerateLoginLink()}");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error sending GitHub call");
+            throw;
         }
     }
 }

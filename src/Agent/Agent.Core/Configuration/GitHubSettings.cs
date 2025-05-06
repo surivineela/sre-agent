@@ -7,11 +7,8 @@ namespace Agent.Core.Configuration
     public class GitHubSettings
     {
         public string ClientId { get; set; }
-        public string PatOverride { get; set; }
-        public string ClientSecret { get; set; }
-        public string CallbackUrl { get; set; }
-        public string OidcAudience { get; set; }
-        public string[] AllowedRepositories { get; set; }
+        public string PatTokenOverride { get; set; }
+        public string RedirectUriFormat { get; set; }
     }
 }
 
