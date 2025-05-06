@@ -2,13 +2,8 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System.Net.Http.Headers;
 using Agent.Core.Helpers;
 using Agent.Core.Models;
-using Azure.Core;
-using Azure.Identity;
-using Azure.ResourceManager.AppService;
-using Azure.ResourceManager;
 using Agent.Core.Models.Charts;
 
 namespace Agent.Plugins

@@ -12,6 +12,7 @@ using Agent.Core.Configuration;
 using Newtonsoft.Json;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel;
+using System.Text;
 
 namespace Agent.Plugins;
 
@@ -22,6 +23,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     private readonly IConfiguration _config;
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
+    public Guid? ThreadId { get; set; }
 
     public GitHubIssuePlugin(GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Models.GitHubClient gitHubClient)
     {
@@ -52,9 +54,16 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
 
+
+                StringBuilder newBody = new(body);
+
+                newBody.AppendLine();
+                string agentDeepLink = $"/threads/{this.ThreadId?.ToString()}";
+                newBody.AppendLine($"Tracked by the SRE agent [here]({agentDeepLink})");
+
                 var issue = new NewIssue(title)
                 {
-                    Body = body
+                    Body = newBody.ToString()
                 };
 
                 foreach (var tag in tags)

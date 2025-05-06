@@ -24,7 +24,7 @@ public sealed class WebAppDownAgentFactory
     public const string OrchestrationInstanceIdPrefix = nameof(WebAppDownAgent);
 
     public WebAppDownAgentFactory(
-        IGithubIssuePlugin githubIssuePlugin,
+        IGithubIssuePlugin githubPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
         ICpuAnalysisPlugin cpuAnalysisPlugin,
         IMetricsPlugin metricsPlugin,
@@ -43,7 +43,7 @@ public sealed class WebAppDownAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetMemoryMetrics));
         toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics)); 
 
-        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
+        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue)); 
 
          var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
@@ -54,7 +54,9 @@ public sealed class WebAppDownAgentFactory
 
         //_toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesDataAsync);
          var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData)); 
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
 
         var appCodeAnalysisPluginDefinition = new AppCodeAnalysisPluginDefinition(appCodeAnalysisPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => appCodeAnalysisPluginDefinition.PerformDeploymentSwapForApp));
@@ -76,7 +78,6 @@ public sealed class WebAppDownAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetMemoryAnalysis));
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
         //toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetGCCPUAnalysis));
-
         //_mappingManager = mappingManager;
         _durableTaskClient = durableTaskClient;
         _toolSignatures = toolSignatures;

@@ -7,6 +7,8 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     private readonly List<string> _reposScanned;
     private readonly List<GithubIssuePluginDependabotVulnerability> _githubIssuePluginDependabotVulnerabilities;
 
+    public Guid? ThreadId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+
     public MockGithubIssuePlugin()
     {
         _reposScanned = new List<string>();

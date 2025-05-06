@@ -263,7 +263,7 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
             }
 
             // Run the dotnet analyzer on the dump file with the appropriate commands. 
-            var result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//{dumpPath}", "C://local//temp");
+            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//{dumpPath}", "C://local//temp");
 
             // Delete dump after analysis to save space.
             try

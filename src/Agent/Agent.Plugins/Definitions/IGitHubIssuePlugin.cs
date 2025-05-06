@@ -9,6 +9,8 @@ namespace Agent.Plugins
 {
     public interface IGithubIssuePlugin
     {
+        public Guid? ThreadId { get; set; }
+
         Task<Issue> CreateGithubIssue(string repoUrl, string title, string body, string[] tags);
         Task<IssueComment> CreateGithubIssueComment(string repoUrl, int number, string commentBody);
         Task DeleteGithubIssueComment(string repoUrl, long id, string newCommentBody);
