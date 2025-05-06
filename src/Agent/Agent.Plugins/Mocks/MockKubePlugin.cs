@@ -615,4 +615,9 @@ public class MockKubePlugin : IKubePlugin
         // Extract kind/name for logging if possible
         return Task.FromResult($"Mock: Successfully applied YAML content.");
     }
+
+    public Task<string> GetNsgRulesForWorkloadAsync(string aksResourceId, string _namespace, string kind, string workloadName)
+    {
+        throw new NotImplementedException();
+    }
 }

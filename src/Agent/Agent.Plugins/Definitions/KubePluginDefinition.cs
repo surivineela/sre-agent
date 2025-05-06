@@ -287,5 +287,22 @@ eg: please give me the cpu usage rate for deployment flask from 2023-03-01T20:10
         {
             return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, step, startTime, endTime);
         }
+
+        [KernelFunction("get_nsg_rules_for_workload")]
+        [Description(
+    @"Gets the Network Security Group (NSG) rules (in JSON format) associated with the subnet(s) used by the node pools where a specific Kubernetes Deployment or StatefulSet is currently running pods.
+    This helps understand the network security posture and connectivity rules applied to a specific application component within the AKS cluster.
+    Only supports 'deployment' and 'statefulset' workload kinds.
+    eg: 'What NSG rules apply to the 'api-gateway' deployment in the 'production' namespace?'
+    eg: 'Show me the network security rules affecting my 'user-database' statefulset in the 'data-services' namespace.'"
+    )]
+        public async Task<string> GetNsgRulesForWorkloadAsync(
+        [Description("The resource ID of the Azure Kubernetes Service (AKS) cluster.")] string AKSClusterResourceId,
+        [Description("Kubernetes namespace where the workload (Deployment or StatefulSet) is located, e.g., 'default', 'production'.")] string _namespace,
+        [Description("The kind of the Kubernetes workload. Supported values are 'deployment' or 'statefulset'.")] string kind,
+        [Description("The name of the Kubernetes Deployment or StatefulSet, e.g., 'frontend-app', 'backend-worker', 'redis-cache'.")] string workloadName)
+        {
+            return await _kubePlugin.GetNsgRulesForWorkloadAsync(AKSClusterResourceId, _namespace, kind, workloadName);
+        }
     }
 }

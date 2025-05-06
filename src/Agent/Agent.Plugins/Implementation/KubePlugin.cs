@@ -9,19 +9,13 @@ using Agent.Core.Helpers;
 using k8s;
 using k8s.Models;
 using System.Text.Json;
-using Newtonsoft.Json;
-using YamlDotNet.Serialization;
-using Newtonsoft.Json.Converters;
-using System.Dynamic;
 using System.Collections.Concurrent;
 using Azure.ResourceManager;
 using Azure.Core;
-using Azure.ResourceManager.ContainerService;
 using System.Text;
 using System.Text.RegularExpressions;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
-using Agent.Core.Models;
 using Microsoft.Extensions.AI;
 using Agent.Prometheus.Services;
 using Agent.Core.Configuration;
@@ -29,6 +23,8 @@ using Agent.Prometheus;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Core.Services;
 using Agent.Logging;
+using Azure.ResourceManager.Network;
+using Azure.ResourceManager.ContainerService;
 
 namespace Agent.Plugins
 {
@@ -37,7 +33,7 @@ namespace Agent.Plugins
         private readonly ILogger? _logger;
         private IKubernetes _client;
         private IChatClient _chatClient;
-
+        private readonly ArmClient _armClient;
         private readonly IAuthenticationService _authService;
         private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
@@ -49,6 +45,8 @@ namespace Agent.Plugins
         private readonly ConcurrentDictionary<string, IKubernetes> _clientCache = new();
         private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(60);
         private readonly ConcurrentDictionary<string, DateTimeOffset> _cacheTimestamps = new();
+        private const string AKSNodePoolLabel = "kubernetes.azure.com/agentpool";
+        private const string LegacyAKSNodePoolLabel = "agentpool";
 
         public KubePlugin(
             IAuthenticationService authenticationService,
@@ -57,6 +55,7 @@ namespace Agent.Plugins
             IAzureMetricsClient azureMetricsClient,
             DashboardSettings dashboardSettings,
             IKubernetesClientFactory kubernetesClientFactory,
+            IArmClientFactory armClientFactory,
             ILogger<KubePlugin>? logger)
         {
             _logger = logger;
@@ -66,6 +65,7 @@ namespace Agent.Plugins
             _dashboardSettings = dashboardSettings;
             _azureMetricsClient = azureMetricsClient;
             _kubernetesClientFactory = kubernetesClientFactory;
+            _armClient = armClientFactory.GetArmClient();
 
             _prometheusQueryEndpoint = _dashboardSettings.PrometheusUrl;
         }
@@ -1475,5 +1475,382 @@ namespace Agent.Plugins
             }
         }
 
+        public async Task<string> GetNsgRulesForWorkloadAsync(
+        string aksResourceId,
+        string _namespace,
+        string kind,
+        string workloadName)
+        {
+            _logger?.LogInformation("[GetNsgRulesForWorkloadAsync] Invoked for Kind: '{Kind}', Name: '{WorkloadName}', Namespace: '{Namespace}', Cluster: '{ResourceId}'",
+                kind, workloadName, _namespace, aksResourceId);
+
+            // 1. Basic Kind Validation
+            if (!kind.Equals("deployment", StringComparison.OrdinalIgnoreCase) && !kind.Equals("statefulset", StringComparison.OrdinalIgnoreCase))
+            {
+                string errorMsg = $"Error: Unsupported workload kind '{kind}' for GetNsgRulesForWorkloadAsync. Supported: Deployment, StatefulSet.";
+                _logger?.LogError(errorMsg);
+                return errorMsg;
+            }
+
+            string noRulesFoundMsg = $"No relevant NSG rules found associated with the node pools for workload '{kind}' '{workloadName}' in namespace '{_namespace}'.";
+            string workloadNotFoundMsg = $"Could not determine node pools for workload '{kind}' '{workloadName}' in namespace '{_namespace}', or no relevant pods are running. Cannot fetch NSG rules.";
+
+
+            try
+            {
+                // 2. Find the node pools for the specific workload
+                _logger?.LogDebug("Step 1: Determining node pools for workload '{WorkloadName}'.", workloadName);
+                // Assuming GetNodePoolsForWorkloadPodsAsync returns IReadOnlyList<string> or similar
+                var nodePools = await GetNodePoolsForWorkloadPodsAsync(aksResourceId, _namespace, kind, workloadName);
+
+                // 3. Check if node pools were found
+                if (nodePools == null || !nodePools.Any())
+                {
+                    _logger?.LogWarning(workloadNotFoundMsg);
+                    return workloadNotFoundMsg; // Return informative string
+                }
+
+                _logger?.LogInformation("Step 2: Found workload '{WorkloadName}' running on node pool(s): {NodePools}. Fetching associated NSG rules...",
+                    workloadName, string.Join(", ", nodePools));
+
+                // 4. Get NSG rules specifically for those node pools
+                // Assuming GetNsgRulesForNodePoolsAsync returns IDictionary<string, IReadOnlyList<SecurityRuleData>>
+                var nsgRulesDict = await GetNsgRulesForNodePoolsAsync(aksResourceId, nodePools);
+
+                // 5. Check if NSG rules were found
+                if (nsgRulesDict == null || !nsgRulesDict.Any())
+                {
+                    _logger?.LogInformation("Successfully retrieved NSG information, but no specific rules were found for the relevant node pools of workload '{WorkloadName}'.", workloadName);
+                    return noRulesFoundMsg; // Return informative string
+                }
+
+                _logger?.LogInformation("Successfully retrieved NSG rules associated with the node pools for workload '{WorkloadName}'. Found {NsgCount} relevant NSG(s). Serializing to JSON...", workloadName, nsgRulesDict.Count);
+
+                // 6. Serialize the result to JSON
+                try
+                {
+                    string jsonResult = System.Text.Json.JsonSerializer.Serialize(nsgRulesDict, new JsonSerializerOptions
+                    {
+                        WriteIndented = true // Makes the output readable
+                    });
+                    return jsonResult; // Return the JSON string
+                }
+                catch (System.Text.Json.JsonException jsonEx)
+                {
+                    _logger?.LogError(jsonEx, "Failed to serialize NSG rules dictionary to JSON for workload '{WorkloadName}'.", workloadName);
+                    return $"Error: Failed to format NSG rule data. {jsonEx.Message}";
+                }
+                catch (NotSupportedException nse) // Can happen with complex unserializable types
+                {
+                    _logger?.LogError(nse, "Failed to serialize NSG rules dictionary to JSON due to unsupported type for workload '{WorkloadName}'.", workloadName);
+                    return $"Error: Failed to format NSG rule data due to an unsupported type. {nse.Message}";
+                }
+            }
+            catch (Exception ex)
+            {
+                // Log the exception with specific details
+                _logger?.LogError(ex, "An unexpected error occurred in GetNsgRulesForWorkloadAsync for Kind: '{Kind}', Name: '{WorkloadName}', Namespace: '{Namespace}'.",
+                    kind, workloadName, _namespace);
+                return $"Error: An unexpected error occurred while fetching NSG rules for '{kind}' '{workloadName}'. {ex.Message}"; // Return error string
+            }
+        }
+
+        public async Task<IReadOnlyList<string>> GetNodePoolsForWorkloadPodsAsync(string resourceId, string _namespace, string kind, string workloadName)
+        {
+            _logger?.LogInformation("[GetNodePoolsForWorkloadPodsAsync] Invoked for Workload '{WorkloadName}' type '{WorkloadType}' in namespace '{Namespace}' on cluster '{ResourceId}'", workloadName, kind, _namespace, resourceId);
+            var nodePools = new HashSet<string>(); // Use HashSet for automatic deduplication
+
+            // Ensure kind is supported
+            if (!kind.Equals("deployment", StringComparison.OrdinalIgnoreCase) && !kind.Equals("statefulset", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger?.LogError("Unsupported workload kind '{Kind}' for node pool lookup. Supported: Deployment, StatefulSet.", kind);
+                return new List<string>().AsReadOnly();
+            }
+
+            try
+            {
+                // 1. Get Kubernetes Client
+                _client = await GetOrCreateClientAsync(resourceId);
+
+                // 2. Get the Deployment/StatefulSet to find its label selector
+                V1ObjectMeta metadata = null;
+                V1LabelSelector selector = null;
+                string workloadKindLogName = CultureInfo.InvariantCulture.TextInfo.ToTitleCase(kind.ToLowerInvariant()); // "Deployment" or "StatefulSet"
+
+                switch (kind.ToLowerInvariant())
+                {
+                    case "deployment":
+                        V1Deployment deploy;
+                        try
+                        {
+                            deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(workloadName, _namespace);
+                            metadata = deploy?.Metadata;
+                            selector = deploy?.Spec?.Selector;
+                            _logger?.LogInformation("Successfully retrieved Deployment '{DeploymentName}'", workloadName);
+                        }
+                        catch (Microsoft.Rest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        {
+                            _logger?.LogWarning("Deployment '{DeploymentName}' not found in namespace '{Namespace}'.", workloadName, _namespace);
+                            return new List<string>().AsReadOnly();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogError(ex, "Error retrieving Deployment '{DeploymentName}' in namespace '{Namespace}'.", workloadName, _namespace);
+                            return new List<string>().AsReadOnly();
+                        }
+                        break;
+                    case "statefulset":
+                        V1StatefulSet sts;
+                        try
+                        {
+                            sts = await _client.AppsV1.ReadNamespacedStatefulSetAsync(workloadName, _namespace);
+                            metadata = sts?.Metadata;
+                            selector = sts?.Spec?.Selector;
+                            _logger?.LogInformation("Successfully retrieved StatefulSet '{StatefulSetName}'", workloadName);
+                        }
+                        catch (Microsoft.Rest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                        {
+                            _logger?.LogWarning("StatefulSet '{StatefulSetName}' not found in namespace '{Namespace}'.", workloadName, _namespace);
+                            return new List<string>().AsReadOnly();
+                        }
+                        catch (Exception ex)
+                        {
+                            _logger?.LogError(ex, "Error retrieving StatefulSet '{StatefulSetName}' in namespace '{Namespace}'.", workloadName, _namespace);
+                            return new List<string>().AsReadOnly();
+                        }
+                        break;
+
+                    default: return new List<string>().AsReadOnly();
+                }
+
+
+                if (selector?.MatchLabels == null || !selector.MatchLabels.Any())
+                {
+                    _logger?.LogWarning("{WorkloadType} '{WorkloadName}' does not have valid spec.selector.matchLabels.", workloadKindLogName, workloadName);
+                    return new List<string>().AsReadOnly();
+                }
+
+                // 3. Construct the label selector string
+                string labelSelectorString = string.Join(",", selector.MatchLabels.Select(kvp => $"{kvp.Key}={kvp.Value}"));
+                _logger?.LogInformation("Using label selector: '{LabelSelector}'", labelSelectorString);
+
+                // 4. List Pods matching the selector
+                V1PodList podList;
+                try
+                {
+                    podList = await _client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: labelSelectorString);
+                }
+                catch (Exception ex)
+                {
+                    _logger?.LogError(ex, "Error listing pods with selector '{LabelSelector}' in namespace '{Namespace}'.", labelSelectorString, _namespace);
+                    return new List<string>().AsReadOnly();
+                }
+
+                // 5. Filter for Running pods and get distinct node names
+                var runningPodNodeNames = podList.Items
+                    .Where(p => p.Status?.Phase == "Running" && !string.IsNullOrEmpty(p.Spec.NodeName))
+                    .Select(p => p.Spec.NodeName)
+                    .Distinct() // Process each node only once
+                    .ToList();
+
+
+                if (!runningPodNodeNames.Any())
+                {
+                    _logger?.LogWarning("No 'Running' pods found for {WorkloadType} '{WorkloadName}' with selector '{LabelSelector}' in namespace '{Namespace}', or none are scheduled.", workloadKindLogName, workloadName, labelSelectorString, _namespace);
+                    return new List<string>().AsReadOnly();
+                }
+
+                _logger?.LogInformation("Found {RunningPodCount} running pod(s) for {WorkloadType} '{WorkloadName}' on {NodeCount} distinct node(s). Checking node pool labels...",
+                    podList.Items.Count(p => p.Status?.Phase == "Running"), workloadKindLogName, workloadName, runningPodNodeNames.Count);
+
+                // 6. Iterate through distinct nodes hosting the pods
+                foreach (var nodeName in runningPodNodeNames)
+                {
+                    _logger?.LogDebug("Checking labels for Node '{NodeName}'", nodeName);
+
+                    try
+                    {
+                        // 7. Get the Node object
+                        var node = await _client.CoreV1.ReadNodeAsync(nodeName);
+
+                        // 8. Extract the node pool label
+                        string? nodePoolName = null;
+                        if (node.Metadata?.Labels != null)
+                        {
+                            if (node.Metadata.Labels.TryGetValue(AKSNodePoolLabel, out nodePoolName) ||
+                                node.Metadata.Labels.TryGetValue(LegacyAKSNodePoolLabel, out nodePoolName))
+                            {
+                                _logger?.LogDebug("Node '{NodeName}' belongs to Node Pool '{NodePoolName}'", nodeName, nodePoolName);
+                                nodePools.Add(nodePoolName); // HashSet handles duplicates
+                            }
+                            else
+                            {
+                                _logger?.LogWarning("Node '{NodeName}' does not have a recognizable node pool label ('{Label1}' or '{Label2}').",
+                                                   nodeName, AKSNodePoolLabel, LegacyAKSNodePoolLabel);
+                            }
+                        }
+                        else
+                        {
+                            _logger?.LogWarning("Node '{NodeName}' has no labels.", nodeName);
+                        }
+                    }
+                    catch (Microsoft.Rest.HttpOperationException ex) when (ex.Response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                    {
+                        _logger?.LogWarning("Node '{NodeName}' not found via Kubernetes API.", nodeName);
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger?.LogError(ex, "Error retrieving or processing Node '{NodeName}'.", nodeName);
+                    }
+                } // End foreach nodeName
+
+                _logger?.LogInformation("Finished processing nodes for {WorkloadType} '{WorkloadName}'. Found {NodePoolCount} distinct node pool(s): {NodePoolList}", workloadKindLogName, workloadName, nodePools.Count, string.Join(", ", nodePools));
+                return nodePools.ToList().AsReadOnly();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, "An unexpected error occurred in GetNodePoolsForWorkloadPodsAsync for Workload '{WorkloadName}' type '{WorkloadType}' in namespace '{Namespace}'.", workloadName, kind, _namespace);
+                return new List<string>().AsReadOnly();
+            }
+        }
+
+        public async Task<IDictionary<string, IReadOnlyList<SecurityRuleData>>> GetNsgRulesForNodePoolsAsync(
+        string aksResourceId,
+        IReadOnlyList<string> targetNodePoolNames)
+        {
+            _logger?.LogInformation("[GetNsgRulesForNodePoolsAsync] Invoked for cluster '{ResourceId}' and Node Pools: {NodePoolNames}",
+                aksResourceId, string.Join(", ", targetNodePoolNames ?? new List<string>()));
+
+            var result = new Dictionary<string, IReadOnlyList<SecurityRuleData>>();
+
+            // Basic input validation
+            if (targetNodePoolNames == null || !targetNodePoolNames.Any())
+            {
+                _logger?.LogWarning("No target node pool names provided. Returning empty NSG rule set.");
+                return result;
+            }
+
+            // Use a HashSet for efficient lookup of target node pool names
+            var targetNodePoolSet = new HashSet<string>(targetNodePoolNames, StringComparer.OrdinalIgnoreCase);
+
+            try
+            {
+                // 1. Get the AKS Managed Cluster Resource
+                var aksClusterResource = _armClient.GetContainerServiceManagedClusterResource(new ResourceIdentifier(aksResourceId));
+                var aksClusterResponse = await aksClusterResource.GetAsync();
+
+                if (!aksClusterResponse.HasValue || aksClusterResponse.Value.Data == null)
+                {
+                    _logger?.LogWarning($"AKS Cluster data not found for resourceId: {aksResourceId}");
+                    return result; // Return empty dictionary
+                }
+                var aksClusterData = aksClusterResponse.Value.Data;
+
+                // 2. Check and Filter Agent Pool Profiles
+                if (aksClusterData.AgentPoolProfiles == null || !aksClusterData.AgentPoolProfiles.Any())
+                {
+                    _logger?.LogWarning($"AKS Cluster {aksResourceId} has no agent pool profiles defined.");
+                    return result;
+                }
+
+                // Filter the agent pools to only those specified in the input list
+                var relevantAgentPools = aksClusterData.AgentPoolProfiles
+                    .Where(pool => pool?.Name != null && targetNodePoolSet.Contains(pool.Name))
+                    .ToList();
+
+                if (!relevantAgentPools.Any())
+                {
+                    _logger?.LogWarning($"No agent pools found in cluster '{aksResourceId}' matching the target names: {string.Join(", ", targetNodePoolNames)}");
+                    return result;
+                }
+
+                _logger?.LogInformation("Found {RelevantPoolCount} relevant agent pool(s) matching target names. Checking their subnets...", relevantAgentPools.Count);
+
+                // 3. Iterate through the *filtered* agent pools
+                foreach (var agentPool in relevantAgentPools)
+                {
+                    // 4. Get Subnet ID
+                    if (agentPool.VnetSubnetId == null || string.IsNullOrEmpty(agentPool.VnetSubnetId.ToString()))
+                    {
+                        _logger?.LogInformation($"Target agent pool '{agentPool.Name}' in AKS Cluster {aksResourceId} does not have a VNet Subnet ID specified or is not VNet integrated.");
+                        continue; // Skip this agent pool
+                    }
+
+                    string subnetId = agentPool.VnetSubnetId.ToString();
+                    _logger?.LogInformation($"Processing subnet '{subnetId}' for target agent pool '{agentPool.Name}'");
+
+                    try
+                    {
+                        // 5. Get the Subnet Resource
+                        var subnetResource = _armClient.GetSubnetResource(new ResourceIdentifier(subnetId));
+                        var subnetResponse = await subnetResource.GetAsync();
+
+                        if (!subnetResponse.HasValue || subnetResponse.Value.Data == null)
+                        {
+                            _logger?.LogWarning($"Could not retrieve data for subnet '{subnetId}' used by agent pool '{agentPool.Name}'. Skipping.");
+                            continue;
+                        }
+                        var subnetData = subnetResponse.Value.Data;
+
+                        // 6. Check if Subnet has an NSG associated
+                        if (subnetData.NetworkSecurityGroup != null && subnetData.NetworkSecurityGroup.Id != null)
+                        {
+                            string nsgId = subnetData.NetworkSecurityGroup.Id.ToString();
+
+                            // 7. Avoid processing the same NSG multiple times (optimization)
+                            if (!result.ContainsKey(nsgId))
+                            {
+                                _logger?.LogInformation($"Found NSG '{nsgId}' associated with subnet '{subnetId}'. Fetching rules...");
+
+                                // 8. Get the NSG Resource and its rules
+                                var nsgResource = _armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
+                                var nsgResponse = await nsgResource.GetAsync();
+
+                                if (!nsgResponse.HasValue || nsgResponse.Value.Data == null)
+                                {
+                                    _logger?.LogWarning($"Could not retrieve data for NSG '{nsgId}'. Skipping NSG rule fetch for this subnet.");
+                                    // Optionally, add the NSG ID with an empty list or some error indicator
+                                    // result.Add(nsgId, new List<SecurityRuleData>().AsReadOnly());
+                                    continue;
+                                }
+                                var nsgData = nsgResponse.Value.Data;
+
+                                if (nsgData.SecurityRules != null)
+                                {
+                                    // Store the rules as a read-only list
+                                    result[nsgId] = nsgData.SecurityRules.ToList().AsReadOnly();
+                                    _logger?.LogInformation($"Added {nsgData.SecurityRules.Count} rules from NSG '{nsgId}'");
+                                }
+                                else
+                                {
+                                    _logger?.LogInformation($"NSG '{nsgId}' found but has no security rules defined.");
+                                    result[nsgId] = new List<SecurityRuleData>().AsReadOnly(); // Add empty list
+                                }
+                            }
+                            else
+                            {
+                                _logger?.LogInformation($"NSG '{nsgId}' associated with subnet '{subnetId}' (Agent Pool '{agentPool.Name}') was already processed.");
+                            }
+                        }
+                        else
+                        {
+                            _logger?.LogInformation($"No NSG found directly associated with subnet '{subnetId}' for agent pool '{agentPool.Name}'.");
+                        }
+                    }
+                    catch (Exception subEx)
+                    {
+                        _logger?.LogError(subEx, $"Error processing subnet '{subnetId}' for agent pool '{agentPool.Name}' in AKS Cluster {aksResourceId}");
+                        // Decide whether to continue with other pools or stop (currently continues)
+                    }
+                } // End foreach agentPool
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogError(ex, $"An unexpected error occurred in GetNsgRulesForNodePoolsAsync for cluster {aksResourceId}");
+                return result; // Return whatever was collected before the error
+            }
+        }
     }
 }
