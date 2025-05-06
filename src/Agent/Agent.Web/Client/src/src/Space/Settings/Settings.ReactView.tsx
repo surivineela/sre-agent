@@ -31,7 +31,7 @@ const Settings: FC = () => {
     const selectedKey = useMemo(() => {
         return (
             Object.values(SettingsKeys).find(settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()) ||
-            SettingsKeys.IncidentManagement
+            SettingsKeys.AgentDetails
         );
     }, [menuItem]);
 
@@ -39,6 +39,16 @@ const Settings: FC = () => {
         () => [
             {
                 links: [
+                    {
+                        name: intl.formatMessage(SettingsTabResources.agentDetails),
+                        url: '',
+                        key: SettingsKeys.AgentDetails,
+                    },
+                    {
+                        name: intl.formatMessage(SettingsTabResources.managedResources),
+                        url: '',
+                        key: SettingsKeys.managedResources,
+                    },
                     {
                         name: intl.formatMessage(SettingsTabResources.incidentManagement),
                         url: '',
@@ -53,16 +63,6 @@ const Settings: FC = () => {
                         name: intl.formatMessage(SettingsTabResources.accessControl),
                         url: '',
                         key: SettingsKeys.AccessControl,
-                    },
-                    {
-                        name: intl.formatMessage(SettingsTabResources.agentDetails),
-                        url: '',
-                        key: SettingsKeys.AgentDetails,
-                    },
-                    {
-                        name: intl.formatMessage(SettingsTabResources.managedResources),
-                        url: '',
-                        key: SettingsKeys.managedResources,
                     },
                 ],
             },
@@ -89,11 +89,11 @@ const Settings: FC = () => {
                     }}
                 />
                 <div style={styles.navPivotContainer}>
+                    {selectedKey === SettingsKeys.AgentDetails && <AgentDetails />}
+                    {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
                     {selectedKey === SettingsKeys.GrafanaInsights && <GrafanaDashboard />}
                     {selectedKey === SettingsKeys.AccessControl && <AccessControl />}
-                    {selectedKey === SettingsKeys.AgentDetails && <AgentDetails />}
-                    {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                 </div>
             </div>
         )

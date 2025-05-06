@@ -1,12 +1,14 @@
 import { DefaultButton } from '@fluentui/react/lib/Button';
 import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
+import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { EnvironmentContext } from '../../Common/AzPortalProxy/Providers/StartupInfoContext';
 import { AccessControlResources, SettingsTabResources } from '../../Strings/SREAgentResources';
 import { useSettingsStyles } from './Styles/Settings.styles';
 
 const AccessControl: FC = () => {
     const { resourceId } = useContext(EnvironmentContext);
+    const az = useContext(AzPortalContext);
     const intl = useIntl();
 
     const styles = useSettingsStyles();
@@ -17,11 +19,16 @@ const AccessControl: FC = () => {
             <div style={styles.accessControlSettingsContainer}>
                 {intl.formatMessage(AccessControlResources.accessControlDescription)}
                 <DefaultButton
-                    iconProps={{ imageProps: { src: './Open.svg', width: 18, height: 18 } }}
                     text={intl.formatMessage(AccessControlResources.openAccessControl)}
                     style={styles.accessControlSettingsButton}
                     onClick={() =>
-                        window.open(`https://portal.azure.com/#view/Microsoft_Azure_AD/AccessControlBlade/scope${resourceId}`, '_blank')
+                        az.openBlade({
+                            extension: 'Microsoft_Azure_AD',
+                            detailBlade: 'AccessControlBlade',
+                            detailBladeInputs: {
+                                scope: resourceId,
+                            },
+                        })
                     }
                 />
             </div>
