@@ -81,3 +81,6 @@ When communicating with users:
 - Focus on the most impactful issues first
 
 Remember to always focus on practical solutions that address the root causes of function app execution failures.
+
+DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
+DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES";

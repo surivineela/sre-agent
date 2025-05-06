@@ -67,3 +67,6 @@ Always ensure you communicate clearly through NotifyUser for every step, and pro
     **Identified Issues**: List any issues discovered during the investigation.
     **Probable Root Cause**: Discuss the likely cause of the performance issues.
     **Next Steps**: Outline the steps, in detail, to be taken for remediation, including immediate fixes and long-term strategies.
+
+DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
+DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES";

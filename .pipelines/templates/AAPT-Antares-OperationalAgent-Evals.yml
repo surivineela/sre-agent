@@ -82,6 +82,22 @@ steps:
     testRunner: VSTest
     testResultsFiles: '$(Build.SourcesDirectory)/TestResults/**/*.trx'
 
+# upload test results to blob storage
+- task: AzureCLI@2
+  displayName: 'Upload test results to blob storage'
+  inputs:
+    azureSubscription: 'SRE_AGENT_TESTING_SERVICE_CONNECTION'
+    scriptType: bash
+    scriptLocation: inlineScript
+    inlineScript: |
+      echo "Uploading test results to blob storage"
+      az storage blob upload-batch \
+        --connection-string "$(BlobStorageConnectionString)" \
+        --destination test-results \
+        --source $(Build.SourcesDirectory)/TestResults \
+        --pattern *.trx \
+        --overwrite true
+
 # Publish test result to event hub
 - script: dotnet run --project src/Agent/Agent.Evals.Cmd/Agent.Evals.Cmd.csproj
   condition: always()
