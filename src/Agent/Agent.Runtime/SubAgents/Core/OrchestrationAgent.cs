@@ -8,9 +8,11 @@ using Agent.Plugins;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents.Core.Steps;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Octokit;
 
 
 namespace Agent.Runtime.SubAgents.Core;
@@ -21,6 +23,8 @@ public class OrchestrationAgent
     public IReadOnlyList<string> ToolSignatures { get; private set; }
     public CancellationTokenSource WaitTokenSource { get; set; } = new CancellationTokenSource();
     public Task? WaitTask { get; set; }
+    public DateTime WaitTimeInitiated { get; set; }
+    public TimeSpan WaitTimeRemaining { get; set; }
     public bool Done { get; set; } = false;
     public bool ResponseFromUserIsPending { get; set; } = false;
     public HashSet<string> PendingApprovals { get; set; } = new();
@@ -161,6 +165,7 @@ public class OrchestrationAgent
         await RecordStateChange(ReasoningState.RunningFunctionCall, $"Running function call: {functionCall.Name}");
 
         var step = OrchestrationAgentStep.CreateStep(functionCall, approvalResult.ApprovalId);
+
         await step.ExecuteAsync(_taskOrchestrationContext, this);
     }
 
@@ -223,7 +228,13 @@ public class OrchestrationAgent
                 try
                 {
                     await agent.WaitTask;
-                    log.LogInternalInformation("[{ThreadId}] waitTask completed", threadId);
+                    log.LogInformation("[{ThreadId}] waitTask completed", threadId);
+
+                    if (agent.WaitTask.IsCompletedSuccessfully)
+                    {
+                        var waitMessage = $"Wait completed at {agent._taskOrchestrationContext.CurrentUtcDateTime:O}.";
+                        agent.ChatHistory.Add(new ChatMessage(ChatRole.System, waitMessage));
+                    }
                 }
                 catch (TaskCanceledException)
                 {
@@ -247,6 +258,22 @@ public class OrchestrationAgent
             }
             else
             {
+                if (agent.WaitTask != null)
+                {
+                    DateTime currentTime = agent._taskOrchestrationContext.CurrentUtcDateTime;
+                    TimeSpan timeWaited = currentTime - agent.WaitTimeInitiated;
+                    double timeRemaining = (agent.WaitTimeRemaining - timeWaited).TotalSeconds;
+
+                    string interruptMessage = @$"Wait was interrupted at {currentTime:O}, this was {timeRemaining} seconds earlier than when the wait was scheduled to finish.
+                        If the reason of interruption was a user message, respond appropriately to the user depending on the scenario:  
+                        Scenario 1: If the user wants to cancel the wait/task entirely, then honor the user's request and cancel the wait without resuming the remainder of the wait that is left. Provide an update to the user saying that their request has been executed.
+                        Scenario 2: If the user does not want to cancel the wait/task entirely, but has still entered a user message, AND there still remains a duration of time to wait, then respond appropriately to the user. Add the following to your response: ""I will provide an update after the remaining duration of time being {timeRemaining} seconds"". After you provide this response, resume the wait task with the time of {timeRemaining} seconds
+
+                        Wait can be interrupted due to various other system events such as the following examples but not limited to: approvals, background operations, etc. For these scenarios, resume the wait task with the time of {timeRemaining} seconds.";
+
+                    agent.ChatHistory.Add(new ChatMessage(ChatRole.System, interruptMessage));
+                }
+                
                 agent.WaitTokenSource.Cancel();
                 agent.WaitTokenSource.Dispose();
                 agent.WaitTokenSource = new CancellationTokenSource();

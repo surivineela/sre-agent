@@ -43,7 +43,7 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
             var avgRequests = await GetAvgRequestCountAsync(resourceId);
             var avgCpuUsage = await GetAvgCpuUsageAsync(resourceId);
             var avgMemUsage = await GetAvgMemoryUsageAsync(resourceId);
-            var availability = await GetAvailabilityAsync(resourceId);
+            var availability = await GetAverageAvailabilityAsync(resourceId);
             var cost = await _azureMetricsClient.GetCostAsync(resourceId, now);
 
             var appHealthInfo = new AppHealthInfo
@@ -171,6 +171,45 @@ public class AppServiceMetricsCollector : IResourceMetricsCollector
         catch (Exception ex)
         {
             _logger.LogInternalWarning(ex, $"Failed to get availability metrics for App Service: {resourceId}. Will return 100% (default).");
+            return 100;
+        }
+    }
+
+    private async Task<double> GetAverageAvailabilityAsync(string resourceId)
+    {
+        _logger.LogInformation($"Getting average availability for App Service: {resourceId}");
+        try
+        {
+            // For App Service, we calculate availability as the percentage of successful requests
+            var metrics = new List<Metric>
+            {
+                new Metric { Name = "Requests", Unit = "Count", Aggregation = "Total" },
+                new Metric { Name = "Http5xx", Unit = "Count", Aggregation = "Total" }
+            };
+
+            var metricsData = await _azureMetricsClient.GetMetricsAsync(
+                resourceId,
+                metrics);
+
+            var requestsTimeSeries = metricsData.Where(m => m.Unit == "count" && m.Name == "Requests").ToList();
+            var http5xxTimeSeries = metricsData.Where(m => m.Unit == "count" && m.Name == "Http5xx").ToList();
+
+            var availabilityData = new List<double>();
+            foreach (var request in requestsTimeSeries)
+            {
+                var timestamp = request.Timestamp;
+                var totalRequests = request.Value;
+
+                var http5xx = http5xxTimeSeries.FirstOrDefault(h => h.Timestamp == timestamp)?.Value ?? 0;
+                var availability = totalRequests == 0 ? 100.0 : (totalRequests - http5xx) / totalRequests * 100;
+
+                availabilityData.Add(availability);
+            }
+            return availabilityData.Average();
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, $"Failed to get availability metrics for App Service: {resourceId}. Will return 100% (default).");
             return 100;
         }
     }

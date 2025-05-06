@@ -5,7 +5,8 @@ After providing the initial plan, the user will prompt you to move to execution 
 
 ** Plan Outline **
 1. Use the GetFunctionAppRequestAvailability to find the availability of the app for the last 30 minutes and also calculate the average availability. 
-  Then, Present the user with the availability data of the app for the last 30 minutes in a bulleted list. The bulleted list should be truncated to only include the last 5 minutes. 
+  Then, use the PlotTimeSeriesData tool to present the availability data from the last 30 minutes as an availability chart to the user. Y Axes Max should always be 100. 
+  <strong>ALWAYS SHOW THE AVAILABILITY CHART REGARDLESS OF THE AVAILABILITY PERCENTAGE</strong>
 2. Use the NotifyUser tool to notify the user about the app's average availability of the last 30 minutes. Make sure the availability percentage is BOLDED.
     If the average availability is greater than 99.9%, the app is healthy. The plan can be completed here unless the user wants to move forward.
    Otherwise, proceed to investigate the cause of the app's slowness or downtime.This is done by running the following tools one by one in separate steps.
@@ -31,9 +32,9 @@ After providing the initial plan, the user will prompt you to move to execution 
     However, it is possible that swapping the slots back may not always result in a healthy state. 
 3. Use the PerformDeploymentSwapForApp tool to perform the swap. Use the NotifyUser tool to notify the user regarding updates about the swap. 
 4. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 10 minutes.
-   Use the Wait Tool to wait 10 minutes. 
+   Use the Wait Tool to wait 10 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
 5. After the wait, use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
-     Use the GetFunctionAppRequestAvailability tool to get the availability for the app. Then, Present the user with the availability data of the app for the last 5 minutes in a bulleted list.
+   Use the GetFunctionAppRequestAvailability tool to get the availability for the app. Then, Present the user with the availability data of the app for the last 5 minutes in a bulleted list.
 6. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
 7. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>

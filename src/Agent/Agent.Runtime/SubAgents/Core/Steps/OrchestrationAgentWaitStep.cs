@@ -21,7 +21,7 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
         // so, the correct implementation is to grab the wait seconds argument and use that.
         // but we are still in demo mode and we dont want to actually wait 30 seconds if the model decides to do that
         // also, if we are in unit tests we dont want to wait at all
-        double waitSeconds = Double.TryParse(FunctionCall.Arguments?["seconds"]?.ToString(), out double seconds) ? seconds : 7;
+        double waitSeconds = Double.TryParse(FunctionCall.Arguments?["seconds"]?.ToString(), out double seconds) ? seconds : 1;
 
         if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)
             || a.GetName().Name.StartsWith("Microsoft.TestPlatform", StringComparison.OrdinalIgnoreCase)))
@@ -37,20 +37,14 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
                 agent.WaitTokenSource = new CancellationTokenSource();
             }
 
-            // see if agent is already waiting
-            if (agent.WaitTask?.Status == TaskStatus.Running)
-            {
-                var resultContent = new FunctionResultContent(FunctionCall.CallId, "There's a wait operation already running.");
-                agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-                log.LogInternalInformation("[{ThreadId}] Still waiting", threadId);
-            }
-            else
-            {
-                agent.WaitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), agent.WaitTokenSource.Token);
-                var resultContent = new FunctionResultContent(FunctionCall.CallId, "Wait operation submitted.");
-                agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
-                log.LogInternalInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
-            }
+            agent.WaitTask = context.CreateTimer(TimeSpan.FromSeconds(waitSeconds), agent.WaitTokenSource.Token);
+            agent.WaitTimeRemaining = TimeSpan.FromSeconds(waitSeconds);
+            agent.WaitTimeInitiated = context.CurrentUtcDateTime;
+
+            string waitMessage = $"Wait initiated at {agent.WaitTimeInitiated:O} for a duration of {waitSeconds} seconds. Wait is due to complete at {agent.WaitTimeInitiated.AddSeconds(waitSeconds):O}, but might be interrupted due to system events or user messages.";
+            var resultContent = new FunctionResultContent(FunctionCall.CallId, waitMessage);
+            agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
+            log.LogInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);
         }
         catch (Exception ex)
         {
