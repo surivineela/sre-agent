@@ -12,6 +12,7 @@ namespace Agent.Core.Configuration
         public GitHubSettings GitHub { get; set; } = new();
         public MCPSettings MCP { get; set; } = new();
         public DashboardSettings Dashboard { get; set; } = new();
+        public IncidentManagementSettings? IncidentManagement { get; set; } = new();
     }
 }
 
