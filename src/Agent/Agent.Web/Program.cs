@@ -545,13 +545,14 @@ void ConfigureLogger()
         }
         else
         {
-            var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? throw new ArgumentNullException("AGENT_NAME", "Environment variable AGENT_NAME is not set.");
+            CommonColumn commonColumn = CommonColumn.Build();
 
             var clientId = GetKustoFirstPartyConfiguration("ClientId");
             var tenantId = "33e01921-4d64-4f8c-a055-5bdaffd5e33d"; // TODO: switch to this when tenant Id is correctly set GetKustoFirstPartyConfiguration("TenantId");
             var certificatePath = GetKustoFirstPartyConfiguration("CertificatePath");
+
             var logger = new AzureDataExplorerLoggerProvider(
-                agentName: agentName,
+                commonColumn: commonColumn,
                 internalKustoClusterUri: internalKustoClusterSettings.ClusterUri,
                 internalKustoDatabaseName: internalKustoClusterSettings.DatabaseName,
                 internalKustoTableName: internalKustoClusterSettings.TableName,

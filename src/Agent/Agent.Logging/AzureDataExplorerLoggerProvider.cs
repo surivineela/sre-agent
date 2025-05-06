@@ -14,12 +14,12 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
     private readonly string? _externalDatabaseName;
     private readonly string? _externalTableName;
 
-    private readonly string _agentName;
+    private readonly CommonColumn _commonColumn;
 
     private AzureDataExplorerLogger _logger;
 
     public AzureDataExplorerLoggerProvider(
-        string agentName,
+        CommonColumn commonColumn,
         string internalKustoClusterUri,
         string internalKustoDatabaseName,
         string internalKustoTableName,
@@ -59,7 +59,7 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
             _externalTableName = externalKustoTableName;
         }
 
-        _agentName = agentName;
+        _commonColumn = commonColumn;
     }
 
     public ILogger CreateLogger(string categoryName)
@@ -77,7 +77,7 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
         if (_externalKustoClient == null)
         {
             _logger = new AzureDataExplorerLogger(
-                agentName: _agentName,
+                commonColumn: _commonColumn,
                 internalKustoClient: _internalKustoClient,
                 internalDatabaseName: _internalDatabaseName,
                 internalTableName: _internalTableName);
@@ -85,7 +85,7 @@ public class AzureDataExplorerLoggerProvider : ILoggerProvider
         else
         {
             _logger = new AzureDataExplorerLogger(
-                agentName: _agentName,
+                commonColumn: _commonColumn,
                 internalKustoClient: _internalKustoClient,
                 internalDatabaseName: _internalDatabaseName,
                 internalTableName: _internalTableName,

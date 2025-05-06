@@ -25,12 +25,12 @@ public class AzureDataExplorerLogger : ILogger
 
     private readonly bool _isExternalKustoClientEnabled;
 
-    private readonly string _agentName;
+    private readonly CommonColumn _commonColumn;
 
     public AzureDataExplorerLogger() { _logBuffer = new LogBuffer(); }
 
     public AzureDataExplorerLogger(
-        string agentName,
+        CommonColumn commonColumn,
         IKustoIngestClient internalKustoClient,
         string internalDatabaseName,
         string internalTableName,
@@ -38,7 +38,7 @@ public class AzureDataExplorerLogger : ILogger
         string? externalDatabaseName = null,
         string? externalTableName = null)
     {
-        _agentName = agentName;
+        _commonColumn = commonColumn ?? new CommonColumn();
 
         _internalKustoClient = internalKustoClient;
         _internalDatabaseName = internalDatabaseName;
@@ -75,7 +75,9 @@ public class AzureDataExplorerLogger : ILogger
             LogLevel = logLevel.ToString(),
             Message = logMessage,
             Exception = exception?.ToString(),
-            AgentName = _agentName
+            AgentName = _commonColumn.AgentName,
+            ContainerImage = _commonColumn.ContainerImage,
+            ContainerGroupName = _commonColumn.ContainerGroupName,
         };
 
         // Determine the logType from the state or scope
