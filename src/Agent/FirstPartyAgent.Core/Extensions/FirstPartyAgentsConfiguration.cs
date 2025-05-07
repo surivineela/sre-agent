@@ -6,8 +6,10 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Models;
+using Agent.Runtime.Communication;
 using Azure.Identity;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
@@ -19,6 +21,7 @@ using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
 using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.SemanticKernel;
@@ -43,6 +46,7 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<KustoServiceClientFactory>();
             services.AddSingleton<IKustoPlugin, KustoPlugin>();
+            services.AddSingleton<KustoPluginSimple>();
             services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
             services.AddSingleton<KustoClientService>();
 
@@ -66,6 +70,11 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
             services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();
             services.AddSingleton<AzureSearchPluginDefinition>();
+
+            var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+            var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
+            services.AddSingleton<IThreadRepository>(threadRepository);
+            services.AddSingleton<SinkService>(sinkService);
             services.AddSingleton<GitHubClient>();
             services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
             services.AddSingleton<GitHubIssuePluginDefinition>();

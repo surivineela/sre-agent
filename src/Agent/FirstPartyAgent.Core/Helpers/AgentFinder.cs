@@ -37,7 +37,7 @@ namespace FirstPartyAgent.Core.Helpers
 
         public static List<string> ListAgentModes()
         {
-            var allowedAgentModes = new List<string>() { "ICMAgent", "Sev2", "ICMSummarizer" };
+            var allowedAgentModes = new List<string>() { "None", "ICMAgent", "Sev2", "ICMSummarizer" };
             return Enum.GetNames(typeof(AgentMode)).Where(x => allowedAgentModes.Contains(x)).ToList();
         }
 

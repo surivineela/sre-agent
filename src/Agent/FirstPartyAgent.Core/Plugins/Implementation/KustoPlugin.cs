@@ -15,6 +15,7 @@ using Microsoft.Extensions.AI;
 using System.Text;
 using System.IO.Compression;
 using System.Web;
+using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -88,7 +89,8 @@ namespace FirstPartyAgent.Plugins
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return KustoQueryResult.Error;
+                var result = new KustoQueryResult(0, "", $"An error occurred while executing Kusto Query: {ex.Message}", null);
+                return result;
             }
         }
 
@@ -165,8 +167,13 @@ namespace FirstPartyAgent.Plugins
             if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
             {
                 // Supplied parameter is a region, lookup cluster URI for the region
-                adxUri = _kustoClientService.GetCluster(regionOrClusterUri).ClusterUri;
-                database = _kustoClientService.GetCluster(regionOrClusterUri).Database;
+                var region = regionOrClusterUri;
+                KustoCluster? cluster = _kustoClientService.GetCluster(region);
+                if (cluster != null)
+                {
+                    adxUri = cluster.ClusterUri;
+                    database = cluster.Database;
+                }
             }
             else
             {

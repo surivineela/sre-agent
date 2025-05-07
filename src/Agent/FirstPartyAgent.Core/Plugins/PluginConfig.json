@@ -13,7 +13,7 @@
   },
   {
     "PluginName": "KustoPlugin",
-    "ServiceIdentifier": "FirstPartyAgent.Plugins.IKustoPlugin"
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.KustoPluginSimple"
   },
   {
     "PluginName": "GenevaActionsPlugin",

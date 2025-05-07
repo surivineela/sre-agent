@@ -34,8 +34,12 @@ public class KustoClientService
         }
     }
 
-    public KustoCluster GetCluster(string region)
+    public KustoCluster? GetCluster(string region)
     {
+        if (string.IsNullOrEmpty(region) || !_regionsToClusters.ContainsKey(region))
+        {
+            return null;
+        }
         return _regionsToClusters[region];
     }
 
