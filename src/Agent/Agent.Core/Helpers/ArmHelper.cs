@@ -946,7 +946,7 @@ public class ArmHelper
             ResourceId: resourceId,
             Name: cosmosDBAccountResource.Data.Name,
             Location: cosmosDBAccountResource.Data.Location,
-            LocalAuthEnabled: cosmosDBAccountResource.Data.DisableLocalAuth ?? false
+            IsLocalAuthEnabled: cosmosDBAccountResource.Data.DisableLocalAuth ?? false
             );
     }
 

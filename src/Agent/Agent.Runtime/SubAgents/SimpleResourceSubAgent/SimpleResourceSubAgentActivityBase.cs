@@ -8,7 +8,25 @@ namespace Agent.Runtime.SubAgents
     /// <summary>
     /// A generic record to store information about a resource we want to act upon
     /// </summary>
-    public record SimpleResourceSubAgentResourceInformation(string ResourceId, string Name, string Location);
+    public record SimpleResourceSubAgentResourceInformation(string ResourceId, string Name, string Location)
+    {
+        /// <summary>
+        /// Returns the resource provider name/type from the resource ID.
+        /// Sample: "microsoft.storage/storageaccounts" from "/subscriptions/fe2ef518-fe95-41c5-9264-467faa5d6182/resourceGroups/avip2-operations-agent-3p-rg/providers/Microsoft.Storage/storageAccounts/avipteststorage/overview"
+        /// </summary>
+        public string ResourceProviderName
+        {
+            get
+            {
+                var split = ResourceId.Split('/');
+                if (split.Length >= 8)
+                {
+                    return $"{split[6]}/{split[7]}".ToLower();
+                }
+                return "unknown";
+            }
+        }
+    }
 
     /// <summary>
     /// The input required by this subagent's planning activity. This is generally the input required to do work, including the

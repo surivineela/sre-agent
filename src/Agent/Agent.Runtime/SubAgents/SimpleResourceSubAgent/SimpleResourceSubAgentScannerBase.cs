@@ -75,61 +75,64 @@ namespace Agent.Runtime.SubAgents
 
         public async Task ScanAsync(CancellationToken cancellationToken)
         {
-            // Before running a new scan, ensure we're not currently mid-scan
-            var agentName = typeof(TAgentType).Name;
-            var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
-            {
-                Statuses = new[] { OrchestrationRuntimeStatus.Running },
-                InstanceIdPrefix = _agentFactory.OrchestrationInstanceIdPrefix
-            }).ToListAsync();
-
-            if (runningAgents.Count > 0)
-            {
-                _logger.LogInternalInformation($"{agentName} agent already running, skipping the scan.");
-                return;
-            }
-
             // Do the scan itself, likely querying graph and/or ARM.
             var appsInViolation = await GetResourcesInViolationAsync();
-
-            // If found any, then send a message to the messaging thread.
-            if (appsInViolation.Count > 0)
+            var groupedAppsInViolation = appsInViolation.GroupBy(x => x.ResourceProviderName).ToList();
+            foreach(var group in groupedAppsInViolation)
             {
-                (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
-                    $"{agentName} found issues",
-                    this.MessageWhenFoundResourcesInViolation,
-                    AgentTypeEnum.DTS
-                );
-
-                // TODO: At first I thought: We don't want to kick off a remediation activity here; that's too aggressive.
-                // But after speaking with Paul, I'm realizing this doesn't have to be a remediation. It's a workflow that
-                // makes a plan, gets authorization, and THEN remediates. So we can kick it off and maybe it stays around
-                // for ages. But this isn't 100% clear yet.
-                // If we do this, we need to make sure that our prompt creates a workflow that does in fact split things
-                // up into these stages, like the TLS workflow.
-
-                var input = GenerateActivityInput(
-                    appsInViolation.Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
-                );
-
-                var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId);
-
-                // work around "bad grpc response 504" error
-                bool completed = false;
-                while (!completed)
+                var resourceProviderName = group.Key; // eg; "microsoft.storage/storageaccounts"
+                if (group.Count() > 0)
                 {
-                    try
+                    var instancePrefixPerProvider = _agentFactory.OrchestrationInstanceIdPrefix + resourceProviderName;
+                    // Before running a new scan, ensure we're not currently mid-scan
+                    var agentName = typeof(TAgentType).Name;
+                    var runningAgents = await _durableTaskClient.GetAllInstancesAsync(new OrchestrationQuery
                     {
-                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
-                        completed = true;
-                    }
-                    catch (RpcException ex)
+                        Statuses = new[] { OrchestrationRuntimeStatus.Running },
+                        InstanceIdPrefix = instancePrefixPerProvider,
+                    }).ToListAsync();
+
+                    if (runningAgents.Count > 0)
                     {
-                        _logger.LogInternalError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
-                        await Task.Delay(1000, cancellationToken);
+                        _logger.LogInternalInformation($"{instancePrefixPerProvider} agent already running, skipping the scan.");
+                        continue;
                     }
+
+                    // TODO: We probably want to reuse threads per-resource provider.
+                    (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
+                        $"{agentName} for {resourceProviderName} found issues",
+                        this.MessageWhenFoundResourcesInViolation,
+                        AgentTypeEnum.DTS
+                    );
+
+                    var input = GenerateActivityInput(
+                        group.Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
+                    );
+
+                    // When starting an orchestration, we're doing so just for this provider (eg; storage, eventhub, etc.).
+                    // Therefore we pass the provider name as the instanceIdSuffix, so that on the next scanner run, it will
+                    // avoid starting a new orchestration if one is already running for that provider.
+                    var instanceId = await _agentFactory.StartOrchestration(input, agentContext.ThreadId, instanceIdSuffix: resourceProviderName);
+
+                    /*
+                    // work around "bad grpc response 504" error
+                    bool completed = false;
+                    while (!completed)
+                    {
+                        try
+                        {
+                            await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, cancellationToken);
+                            completed = true;
+                        }
+                        catch (RpcException ex)
+                        {
+                            _logger.LogInternalError(ex, "Error while waiting for instance completion: {Message}", ex.Message);
+                            await Task.Delay(1000, cancellationToken);
+                        }
+                    }*/
                 }
             }
+            // If found any, then send a message to the messaging thread.
         }
     }
 }

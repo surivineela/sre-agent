@@ -25,6 +25,8 @@ public class Constants
     public const string AzureSQLType = "Microsoft.Sql/servers";
     public const string CosmosDbType = "Microsoft.DocumentDB/databaseAccounts";
     public const string StorageType = "Microsoft.Storage/storageAccounts";
+    public const string EventHubType = "microsoft.eventhub/namespaces";
+    public const string ServiceBusType = "microsoft.servicebus/namespaces";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";

@@ -7,6 +7,7 @@ using Agent.Core.Attributes;
 using Agent.Core.Helpers;
 using Agent.Plugins.Models;
 using Microsoft.SemanticKernel;
+using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
 
 namespace Agent.Plugins.Definitions
 {
@@ -66,7 +67,7 @@ namespace Agent.Plugins.Definitions
 
         [RequiresApproval]
         [KernelFunction("storage_account_set_shared_key_state")]
-        [Description("Enables or disables the use of shared keys for accessing storage accounts. This controls whether callers are forced to use Managed Identities or Delegated Secure Access Token (SAS).")]
+        [Description($"Enables or disables the use of shared keys for accessing storage accounts {ArmConstants.StorageType}. This controls whether callers are forced to use Managed Identities or Delegated Secure Access Token (SAS).")]
         public async Task<RemediationResult> StorageAccountSetSharedKeySupport(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.StorageAccountSetSharedKeySupport(resourceId, featureState);
@@ -74,7 +75,7 @@ namespace Agent.Plugins.Definitions
 
         [RequiresApproval]
         [KernelFunction("storage_account_set_public_containers_access")]
-        [Description("Enables or disables public access to blob containers in the storage account. This controls a security measure that prevents unauthorized access to blobs.")]
+        [Description($"Enables or disables public access to blob containers in the storage account {ArmConstants.StorageType}. This controls a security measure that prevents unauthorized access to blobs.")]
         public async Task<RemediationResult> StorageAccountSetContainerPublicAccess(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.StorageAccountSetContainerPublicAccess(resourceId, featureState);
@@ -82,7 +83,7 @@ namespace Agent.Plugins.Definitions
 
         [RequiresApproval]
         [KernelFunction("cosmosdb_set_key_based_authentication_support")]
-        [Description("Sets the key based local auth setting on cosmosdb accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
+        [Description($"Sets the key based local auth setting on cosmosdb accounts {ArmConstants.CosmosDbType}. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> CosmosDbSetKeyBasedAuthenticationSupport(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.CosmosDbSetKeyBasedAuthenticationSupport(resourceId, featureState);
@@ -90,7 +91,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("eventhub_set_key_based_access_support")]
         [RequiresApproval]
-        [Description("Sets the key based local auth setting on event hub accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
+        [Description($"Sets the key based local auth setting on event hub accounts {ArmConstants.EventHubType}. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> EventHubSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.EventHubSetLocalAuthSupport(resourceId, featureState);
@@ -98,7 +99,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("servicebus_set_local_auth_support")]
         [RequiresApproval]
-        [Description("Sets the key based local auth setting on event hub accounts. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
+        [Description($"Sets the key based local auth setting on service bus accounts {ArmConstants.ServiceBusType}. This forces callers to use non key based authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> ServiceBusSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.ServiceBusSetLocalAuthSupport(resourceId, featureState);
@@ -106,7 +107,7 @@ namespace Agent.Plugins.Definitions
 
         [KernelFunction("azure_sql_server_set_entra_auth_only_support")]
         [RequiresApproval]
-        [Description("Sets the authentication on azure sql server, disabling or enabling local auth support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
+        [Description($"Sets the authentication on azure sql server {ArmConstants.AzureSQLType}, disabling or enabling local auth support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
         public async Task<RemediationResult> AzureSqlServerSetLocalAuthSupport(string resourceId, FeatureState featureState)
         {
             return await _remediationPlugin.AzureSqlServerSetLocalAuthSupport(resourceId, featureState);

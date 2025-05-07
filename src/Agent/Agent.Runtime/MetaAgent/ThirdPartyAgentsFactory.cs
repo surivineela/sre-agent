@@ -199,7 +199,6 @@ $@"## Facts
     private readonly IChartPlugin _chartPlugin;
     private readonly IGraphDBPlugin _graphDbPlugin;
     private readonly IGithubIssuePlugin _githubIssuePlugin;
-    private readonly IMetaAgentStorageAccountPlugin _storageAccountPlugin;
     private readonly IMetaAgentAppReliabilityPlugin _appReliabilityPlugin;
     private readonly IMetaAgentVmRdpInvestigatorPlugin _vmRdpInvestigatorPlugin;
     private readonly IMetaAgentWebAppDownPlugin _webAppDownPlugin;
@@ -231,7 +230,6 @@ $@"## Facts
         IMetaAgentTlsBestPracticesPlugin tlsBestPracticesPlugin,
         //IMetaAgentAppServiceRemediationPlugin appServiceRemediationPlugin,
         IMetaAgentContainerAppsRemediationPlugin containerAppsRemediationPlugin,
-        IMetaAgentStorageAccountPlugin storageAccountPlugin,
         IMetaAgentKubernetesAgentPlugin kubernetesAgentPlugin,
         IAppServicePlugin appServicePlugin,
         IContainerAppPlugin containerAppPlugin,
@@ -265,7 +263,6 @@ $@"## Facts
         //_appServiceRemediationPlugin = appServiceRemediationPlugin;
         _appServicePlugin = appServicePlugin;
         _containerAppsRemediationPlugin = containerAppsRemediationPlugin;
-        _storageAccountPlugin = storageAccountPlugin;
         _kubernetesAgentPlugin = kubernetesAgentPlugin;
         _kubePlugin = kubePlugin;
         _containerAppPlugin = containerAppPlugin;
@@ -296,7 +293,6 @@ $@"## Facts
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
     {
-        _storageAccountPlugin.ThreadId = threadGuid;
         _tlsBestPracticesPlugin.ThreadId = threadGuid;
         _managedIdentityMigrationPlugin.ThreadId = threadGuid;
         //_appServiceRemediationPlugin.ThreadId = threadGuid;

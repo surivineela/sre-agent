@@ -27,10 +27,15 @@ For the purposes of this doc, we are adding a sub-agent called `MyAgent`.
        - Create class `MyAgentScanner`
           - It derives from `SimpleResourceSubAgentScannerBase<MyAgent, MyAgentInput, MyAgenActivity, MyAgenActivityActivityInput>`
   - Under `MetaAgent`
+      - Under `Interfaces` create an interface `IMetaAgentMyAgentPlugin`
       - Under `SubAgentPlugins` create a class `MyAgentPlugin`
         - It derives from `SimpleResourceSubAgentPluginBase<MyAgentFactory, MyAgent, MyAgentInput, MyAgenActivity, MyAgenActivityActivityInput>`
+        - It implements `IMetaAgentMyAgentPlugin`
         - The two methods you implement here should just call their subclass implementations, but
         you must tag them with the `[Description]` and `[KernelFunction]` attributes, providing descriptions
         for the AI to interpret.
       - In `MetaAgent.cs`, modify the main prompt to tell it about your agent.
+- In `Agent.Web`
+   - In `program.cs`
+      - Add a singleton for `IMetaAgentMyAgentPlugin` implmented by `MyAgentPlugin`
 - If you are adding totally new capabilities to the system, you will likely add them under `Agent.Plugins` under the `Definitions` and `Implementations` folders.

@@ -1,12 +1,11 @@
-using Agent.Core.Models.Api.v1;
-using Agent.Runtime.SubAgents.CosmosDbAgent;
+using Agent.Runtime.SubAgents.LocalAuthAgent;
 
 namespace Agent.Runtime.MetaAgent
 {
     /// <summary>
-    /// Interface for CosmosDbPlugin
+    /// Interface for LocalAuthAgent
     /// </summary>
-    public interface IMetaAgentCosmosDbPlugin
+    public interface IMetaAgentLocalAuthPlugin
     {
         /// <summary>
         /// Gets or sets the thread context
@@ -14,16 +13,16 @@ namespace Agent.Runtime.MetaAgent
         public Guid? ThreadId { get; set; }
 
         /// <summary>
-        /// Lists Cosmos DB workflows
+        /// Lists workflows
         /// </summary>
-        /// <returns>List of Cosmos DB workflows</returns>
-        Task<IReadOnlyList<WorkflowMetadata<CosmosDbAgentActivityInput>>> ListWorkflowsAsync();
+        /// <returns>List of workflows for this agent</returns>
+        Task<IReadOnlyList<WorkflowMetadata<LocalAuthAgentActivityInput>>> ListWorkflowsAsync();
 
         /// <summary>
         /// Starts the Cosmos DB Agent
         /// </summary>
         /// <param name="input">The input data for the agent</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartAgentAsync(CosmosDbAgentActivityInput input);
+        Task<string> StartAgentAsync(LocalAuthAgentActivityInput input);
     }
 }

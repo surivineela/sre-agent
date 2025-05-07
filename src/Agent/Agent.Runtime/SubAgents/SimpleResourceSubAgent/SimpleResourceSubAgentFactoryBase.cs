@@ -44,9 +44,10 @@ namespace Agent.Runtime.SubAgents
 
         public string OrchestrationInstanceIdPrefix => typeof(TAgentType).Name;
 
-        public async Task<string> StartOrchestration(TActivityInput input, Guid threadId)
+        public async Task<string> StartOrchestration(TActivityInput input, Guid threadId, string? instanceIdSuffix = null)
         {
-            var instanceId = $"{OrchestrationInstanceIdPrefix}-{Guid.NewGuid()}";
+            instanceIdSuffix ??= string.Empty;
+            var instanceId = $"{OrchestrationInstanceIdPrefix}{instanceIdSuffix}-{Guid.NewGuid()}";
             var threadIdStr = threadId.ToString();
 
             await _mappingManager.AddMappingAsync(threadIdStr, instanceId);
