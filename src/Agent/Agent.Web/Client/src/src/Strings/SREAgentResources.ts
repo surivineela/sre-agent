@@ -2,6 +2,12 @@ import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
     sreAgent: { defaultMessage: 'SRE Agent', id: '+WRusC' },
+    add: { defaultMessage: 'Add', id: '2/2yg+' },
+    new: { defaultMessage: 'New', id: 'bW7B87' },
+    feedbackDialogTitle: {
+        id: 'Nrc9ba',
+        defaultMessage: 'Thank you for your feedback!',
+    },
     approve: {
         id: 'WCaf5C',
         defaultMessage: 'Approve',
@@ -77,7 +83,7 @@ export const SreAgentResources = defineMessages({
     filterMessage: { defaultMessage: 'Showing the first 1000 results. Filter to narrow down the list.', id: 'u64mw7' },
     fieldRequired: { defaultMessage: 'This field is required', id: 'TKmub+' },
     getMoreInfo: { defaultMessage: 'Get more info', id: 'TB6bkn' },
-    grafana: { defaultMessage: 'Grafana', id: '2zwwXY' },
+    azureManagedGrafana: { defaultMessage: 'Azure Managed Grafana', id: 'IF3r+X' },
     incidents: { defaultMessage: 'Incidents', id: 'mtr3R4' },
     location: { defaultMessage: 'Location', id: 'rvirM2' },
     managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },
@@ -338,10 +344,35 @@ export const SettingsTabResources = defineMessages({
 });
 
 export const GrafanaDashboardResources = defineMessages({
-    instructions: {
+    assignedTo: { defaultMessage: 'Assigned to', id: 'ONVN5F' },
+    scope: { defaultMessage: 'Scope', id: 'nso3Mj' },
+    monitoringMetricsPublisher: { defaultMessage: 'Monitoring metrics publisher', id: 'XvrDTb' },
+    grafanaAdmin: { defaultMessage: 'Grafana Admin', id: 'TMZ2Rq' },
+    monitoringReaderRole: { defaultMessage: 'Monitoring Reader Role', id: 'AfbqHj' },
+    monitoringDataReaderRole: { defaultMessage: 'Monitoring Data Reader Role', id: 'Z1VHv1' },
+    dataCollectionRule: { defaultMessage: 'Data Collection Rule', id: '6m5Ba0' },
+    azureManagedGrafana: { defaultMessage: 'Azure Managed Grafana', id: 'IF3r+X' },
+    subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    azureMonitorWorkspace: { defaultMessage: 'Azure Monitor Workspace', id: 'gj6Qc6' },
+    userAssignedManagedIdentity: { defaultMessage: 'User Assigned Managed Identity', id: 'lGIJSX' },
+    user: { defaultMessage: 'User', id: 'EwRIOm' },
+    role: { defaultMessage: 'Role', id: '1ZgrhW' },
+    requiredRoles: {
+        defaultMessage: 'Required roles',
+        id: '/9bvfN',
+    },
+    insufficientPermissions: {
+        defaultMessage: 'You do not have the required roleAssignments/write permissions to set up a Grafana dashboard.',
+        id: 'K8gj8f',
+    },
+    tooltipContent: {
         defaultMessage:
-            'Set up a custom Grafana dashboard to get visual insights into your infrastructure, with daily reports and resource-specific health metrics.',
-        id: 'jUwYmA',
+            'Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard.',
+        id: 'piCpTn',
+    },
+    description: {
+        defaultMessage: `Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data.`,
+        id: 'R1YfDi',
     },
     grafanaCreationTitle: { defaultMessage: 'Provisioning Grafana dashboard', id: 'PzGaVI' },
     grafanaCreationInProgress: { defaultMessage: 'Provisioning of your Grafana dashboard is in progress.', id: 'kWs94j' },

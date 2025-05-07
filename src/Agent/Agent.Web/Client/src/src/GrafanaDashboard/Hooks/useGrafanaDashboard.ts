@@ -1,3 +1,4 @@
+import { IColumn } from '@fluentui/react';
 import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ArmTemplateBuilder } from '../../Common/ArmTemplateBuilder/ArmTemplateBuilder';
@@ -23,9 +24,11 @@ import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import { ProvisioningStates } from '../../Common/Constants/Arm';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
 import { Grafana } from '../../Common/Contracts/Azure/Grafana';
+import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { equals } from '../../Common/Helpers/Strings';
+import { usePermissions } from '../../Space/Settings/Hooks/usePermissions';
 import { useSreAgent } from '../../Space/Settings/Hooks/useSreAgent';
 import { GrafanaDashboardResources } from '../../Strings/SREAgentResources';
 
@@ -36,17 +39,55 @@ const monitoringMetricsPublisherRole = '/providers/Microsoft.Authorization/roleD
 
 export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string) {
     const azPortalContext = useContext(AzPortalContext);
+
     const intl = useIntl();
 
     const { agent, agentLoaded, refresh } = useSreAgent(resourceId);
 
-    const [grafanaResourceName, setGrafanaResourceName] = useState<string>('');
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [progress, setProgress] = useState(false);
     const [deploymentId, setDeploymentId] = useState<string>('');
     const [notificationId, setNotificationId] = useState<string>();
     const [existingGrafanaResourceNames, setExistingGrafanaResourceNames] = useState<string[]>([]);
     const [isDirty, setIsDirty] = useState(false);
+    const [newGrafanaResourceName, setNewGrafanaResourceName] = useState<string>();
+    const [hasRbacWritePermission, setHasRbacWritePermission] = useState(true);
+
+    const grafanaRbacRoles = useMemo(
+        () => [
+            {
+                role: intl.formatMessage(GrafanaDashboardResources.monitoringMetricsPublisher),
+                scope: intl.formatMessage(GrafanaDashboardResources.dataCollectionRule),
+                assignedTo: intl.formatMessage(GrafanaDashboardResources.userAssignedManagedIdentity),
+            },
+            {
+                role: intl.formatMessage(GrafanaDashboardResources.grafanaAdmin),
+                scope: intl.formatMessage(GrafanaDashboardResources.azureManagedGrafana),
+                assignedTo: intl.formatMessage(GrafanaDashboardResources.user),
+            },
+            {
+                role: intl.formatMessage(GrafanaDashboardResources.grafanaAdmin),
+                scope: intl.formatMessage(GrafanaDashboardResources.azureManagedGrafana),
+                assignedTo: intl.formatMessage(GrafanaDashboardResources.userAssignedManagedIdentity),
+            },
+            {
+                role: intl.formatMessage(GrafanaDashboardResources.monitoringReaderRole),
+                scope: intl.formatMessage(GrafanaDashboardResources.subscription),
+                assignedTo: intl.formatMessage(GrafanaDashboardResources.azureManagedGrafana),
+            },
+            {
+                role: intl.formatMessage(GrafanaDashboardResources.monitoringReaderRole),
+                scope: intl.formatMessage(GrafanaDashboardResources.azureMonitorWorkspace),
+                assignedTo: intl.formatMessage(GrafanaDashboardResources.azureManagedGrafana),
+            },
+            {
+                role: intl.formatMessage(GrafanaDashboardResources.monitoringDataReaderRole),
+                scope: intl.formatMessage(GrafanaDashboardResources.azureMonitorWorkspace),
+                assignedTo: intl.formatMessage(GrafanaDashboardResources.azureManagedGrafana),
+            },
+        ],
+        []
+    );
 
     const grafanaEndpoint = useMemo(
         () => agent?.properties?.dashboardConfiguration?.grafanaUrl,
@@ -59,36 +100,18 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
     const resourceGroupId = useMemo(() => `${subscriptionId}/resourceGroups/${resourceGroup}`, [subscriptionId, resourceGroup]);
 
-    const azureMonitorWorkspaceResourceId = useMemo(
-        () => `${resourceGroupId}/providers/Microsoft.Monitor/accounts/${grafanaResourceName}`,
-        [grafanaResourceName, resourceGroupId]
-    );
-
     const existingManagedUserIdentityResourceId = useMemo(
         () => Object.keys(agent?.identity?.userAssignedIdentities ?? {})[0],
         [agent?.identity?.userAssignedIdentities]
     );
 
-    const grafanaResourceId = useMemo(
-        () => `${resourceGroupId}/providers/${ArmServiceType.DashboardGrafana}/${grafanaResourceName}`,
-        [grafanaResourceName, resourceGroupId]
-    );
-
-    const dataCollectionEndpointResourceId = useMemo(() => {
-        return `/subscriptions/${subscription}/resourceGroups/MA_${grafanaResourceName}_${agent?.location}_managed/providers/Microsoft.Insights/dataCollectionEndpoints/${grafanaResourceName}`;
-    }, [agent?.location, subscription, grafanaResourceName]);
-
-    const dataCollectionRuleResourceId = useMemo(() => {
-        return `/subscriptions/${subscription}/resourceGroups/MA_${grafanaResourceName}_${agent?.location}_managed/providers/Microsoft.Insights/dataCollectionRules/${grafanaResourceName}`;
-    }, [agent?.location, subscription, grafanaResourceName]);
-
     const newGrafanaResourceNameErrorMessage = useMemo(() => {
         if (isDirty) {
-            if (existingGrafanaResourceNames.includes(grafanaResourceName ?? '')) {
+            if (existingGrafanaResourceNames.includes(newGrafanaResourceName ?? '')) {
                 return intl.formatMessage(GrafanaDashboardResources.uniqueGrafanaResourceNameError);
             }
 
-            const name = grafanaResourceName ?? '';
+            const name = newGrafanaResourceName ?? '';
             const isValid = name.length >= 2 && name.length <= 23 && /^[A-Za-z][A-Za-z0-9-]*[A-Za-z0-9]$/.test(name);
 
             if (!isValid) {
@@ -97,68 +120,112 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         }
 
         return undefined;
-    }, [intl, existingGrafanaResourceNames, grafanaResourceName]);
+    }, [existingGrafanaResourceNames, intl, isDirty, newGrafanaResourceName]);
 
-    const fetchDataCollectionRuleResource = useCallback(async () => {
-        const response = await DataCollectionRuleClient.getDataCollectionRule(dataCollectionRuleResourceId);
-        if (response.metadata.success) {
-            return response.data;
-        } else {
-            azPortalContext.log({
-                action: 'GetDataCollectionRuleResource',
-                actionModifier: 'failed',
-                resourceId: dataCollectionRuleResourceId,
-                logLevel: 'error',
-                data: response.metadata.error,
-            });
-        }
-    }, [dataCollectionRuleResourceId]);
+    const grafanaRbacColumns: IColumn[] = useMemo(
+        () => [
+            {
+                key: 'role',
+                fieldName: 'role',
+                name: intl.formatMessage(GrafanaDashboardResources.role),
+                minWidth: 200,
+                maxWidth: 300,
+                isResizable: true,
+            },
+            {
+                key: 'scope',
+                fieldName: 'scope',
+                name: intl.formatMessage(GrafanaDashboardResources.scope),
+                minWidth: 200,
+                maxWidth: 300,
+                isResizable: true,
+            },
+            {
+                key: 'assignedTo',
+                fieldName: 'assignedTo',
+                name: intl.formatMessage(GrafanaDashboardResources.assignedTo),
+                minWidth: 200,
+                maxWidth: 300,
+                isResizable: true,
+            },
+        ],
+        [intl]
+    );
 
-    const fetchDataCollectionEndpointResource = useCallback(async () => {
-        const response = await DataCollectionEndpointClient.getDataCollectionEndpoint(dataCollectionEndpointResourceId);
-        if (response.metadata.success) {
-            return response.data;
-        } else {
-            azPortalContext.log({
-                action: 'GetDataCollectionEndpointResource',
-                actionModifier: 'failed',
-                resourceId: dataCollectionEndpointResourceId,
-                logLevel: 'error',
-                data: response.metadata.error,
-            });
-        }
-    }, [dataCollectionEndpointResourceId]);
+    const { permissions, permissionsLoaded } = usePermissions(subscriptionId);
 
-    const fetchAzureMonitorWorkspaceResource = useCallback(async () => {
-        const response = await AzureMonitorWorkspaceClient.getAzureMonitorWorkspace(azureMonitorWorkspaceResourceId);
+    const fetchDataCollectionRuleResource = useCallback(
+        async (resourceId: string) => {
+            const response = await DataCollectionRuleClient.getDataCollectionRule(resourceId);
+            if (response.metadata.success) {
+                return response.data;
+            } else {
+                azPortalContext.log({
+                    action: 'GetDataCollectionRuleResource',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: response.metadata.error,
+                });
+            }
+        },
+        [azPortalContext]
+    );
 
-        if (response.metadata.success) {
-            return response.data;
-        } else {
-            azPortalContext.log({
-                action: 'GetAzureMonitorWorkspaceResource',
-                actionModifier: 'failed',
-                resourceId: azureMonitorWorkspaceResourceId,
-                logLevel: 'error',
-                data: response.metadata.error,
-            });
-        }
-    }, [azureMonitorWorkspaceResourceId]);
+    const fetchDataCollectionEndpointResource = useCallback(
+        async (resourceId: string) => {
+            const response = await DataCollectionEndpointClient.getDataCollectionEndpoint(resourceId);
+            if (response.metadata.success) {
+                return response.data;
+            } else {
+                azPortalContext.log({
+                    action: 'GetDataCollectionEndpointResource',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: response.metadata.error,
+                });
+            }
+        },
+        [azPortalContext]
+    );
 
-    const fetchGrafanaResource = useCallback(async () => {
-        const response = await GrafanaClient.getGrafana(grafanaResourceId);
-        if (response.metadata.success) {
-            return response.data;
-        } else {
-            azPortalContext.log({
-                action: 'GetGrafanaResource',
-                actionModifier: 'failed',
-                resourceId: grafanaResourceId,
-                logLevel: 'error',
-                data: response.metadata.error,
-            });
-        }
-    }, [grafanaResourceName, grafanaResourceId]);
+    const fetchAzureMonitorWorkspaceResource = useCallback(
+        async (resourceId: string) => {
+            const response = await AzureMonitorWorkspaceClient.getAzureMonitorWorkspace(resourceId);
+
+            if (response.metadata.success) {
+                return response.data;
+            } else {
+                azPortalContext.log({
+                    action: 'GetAzureMonitorWorkspaceResource',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: response.metadata.error,
+                });
+            }
+        },
+        [azPortalContext]
+    );
+
+    const fetchGrafanaResource = useCallback(
+        async (resourceId: string) => {
+            const response = await GrafanaClient.getGrafana(resourceId);
+            if (response.metadata.success) {
+                return response.data;
+            } else {
+                azPortalContext.log({
+                    action: 'GetGrafanaResource',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: response.metadata.error,
+                });
+            }
+        },
+        [azPortalContext]
+    );
 
     const fetchManagedUserIdentityResource = useCallback(async () => {
         const response = await IdentityClient.getManagedUserIdentity(existingManagedUserIdentityResourceId);
@@ -173,14 +240,14 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 data: response.metadata.error,
             });
         }
-    }, [existingManagedUserIdentityResourceId]);
+    }, [azPortalContext, existingManagedUserIdentityResourceId]);
 
-    const assignMonitoringMetricsPublisherRoleToCurrentUser = useCallback(
-        async (umiPrincipalId: string) => {
+    const assignMonitoringMetricsPublisherRoleToDataCollectionRule = useCallback(
+        async (scope: string, umiPrincipalId: string) => {
             const response = await IdentityClient.putRoleAssignmentWithScope({
                 name: Guid.newGuid(),
                 properties: {
-                    scope: dataCollectionRuleResourceId,
+                    scope,
                     principalId: umiPrincipalId,
                     roleDefinitionId: monitoringMetricsPublisherRole,
                     principalType: 'ServicePrincipal',
@@ -189,15 +256,15 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
             if (response?.metadata.error) {
                 azPortalContext.log({
-                    action: 'AssignMonitoringMetricsPublisherRoleToCurrentUser',
+                    action: 'AssignMonitoringMetricsPublisherRoleToDataCollectionRule',
                     actionModifier: 'failed',
-                    resourceId: dataCollectionRuleResourceId,
+                    resourceId,
                     logLevel: 'error',
                     data: response.metadata.error,
                 });
             }
         },
-        [dataCollectionRuleResourceId]
+        [azPortalContext, resourceId]
     );
 
     const assignMonitoringReaderRoleToSubscription = useCallback(
@@ -222,15 +289,15 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 });
             }
         },
-        [subscription]
+        [azPortalContext, subscriptionId]
     );
 
-    const assignMonitoringReaderRoleToCurrentUser = useCallback(
-        async (principalId: string) => {
+    const assignMonitoringReaderRoleToAzureMonitorWorkspace = useCallback(
+        async (scope: string, principalId: string) => {
             const response = await IdentityClient.putRoleAssignmentWithScope({
                 name: Guid.newGuid(),
                 properties: {
-                    scope: `${resourceGroupId}/providers/${ArmServiceType.AzureMonitorWorkspace}/${grafanaResourceName}`,
+                    scope: scope,
                     principalId,
                     roleDefinitionId: monitoringReaderRoleDefinition,
                     principalType: 'ServicePrincipal',
@@ -241,21 +308,21 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 azPortalContext.log({
                     action: 'AssignMonitoringReaderRoleToCurrentUser',
                     actionModifier: 'failed',
-                    resourceId: `${resourceGroupId}/providers/${ArmServiceType.AzureMonitorWorkspace}/${grafanaResourceName}`,
+                    resourceId: scope,
                     logLevel: 'error',
                     data: response.metadata.error,
                 });
             }
         },
-        [grafanaResourceName, resourceGroupId]
+        [azPortalContext]
     );
 
-    const assignMonitoringDataReaderRoleToCurrentUser = useCallback(
-        async (principalId: string) => {
+    const assignMonitoringDataReaderRoleToAzureMonitorWorkspace = useCallback(
+        async (scope: string, principalId: string) => {
             const response = await IdentityClient.putRoleAssignmentWithScope({
                 name: Guid.newGuid(),
                 properties: {
-                    scope: azureMonitorWorkspaceResourceId,
+                    scope,
                     principalId,
                     roleDefinitionId: monitoringDataReaderRoleDefinition,
                     principalType: 'ServicePrincipal',
@@ -264,23 +331,23 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
             if (response?.metadata.error) {
                 azPortalContext.log({
-                    action: 'AssignMonitoringDataReaderRoleToCurrentUser',
+                    action: 'assignMonitoringDataReaderRoleToAzureMonitorWorkspace',
                     actionModifier: 'failed',
-                    resourceId: azureMonitorWorkspaceResourceId,
+                    resourceId: scope,
                     logLevel: 'error',
                     data: response.metadata.error,
                 });
             }
         },
-        [azureMonitorWorkspaceResourceId]
+        [azPortalContext]
     );
 
     const assignGrafanaRoleToManagedIdentity = useCallback(
-        async (principalId: string) => {
+        async (scope: string, principalId: string) => {
             const response = await IdentityClient.putRoleAssignmentWithScope({
                 name: Guid.newGuid(),
                 properties: {
-                    scope: grafanaResourceId,
+                    scope,
                     principalId,
                     roleDefinitionId: grafanaRoleDefinition,
                     principalType: 'ServicePrincipal',
@@ -291,39 +358,45 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 azPortalContext.log({
                     action: 'AssignGrafanaRoleToManagedIdentity',
                     actionModifier: 'failed',
-                    resourceId: grafanaResourceId,
+                    resourceId: scope,
                     logLevel: 'error',
                     data: response.metadata.error,
                 });
             }
         },
-        [grafanaResourceId]
+        [azPortalContext]
     );
 
-    const assignGrafanaRoleToCurrentUser = useCallback(async () => {
-        const response = await IdentityClient.putRoleAssignmentWithScope({
-            name: Guid.newGuid(),
-            properties: {
-                scope: grafanaResourceId,
-                principalId: userPrincipalId,
-                roleDefinitionId: grafanaRoleDefinition,
-                principalType: 'User',
-            },
-        });
-
-        if (response?.metadata.error) {
-            azPortalContext.log({
-                action: 'AssignGrafanaRoleToCurrentUser',
-                actionModifier: 'failed',
-                resourceId: grafanaResourceId,
-                logLevel: 'error',
-                data: response.metadata.error,
+    const assignGrafanaRoleToCurrentUser = useCallback(
+        async (scope: string) => {
+            const response = await IdentityClient.putRoleAssignmentWithScope({
+                name: Guid.newGuid(),
+                properties: {
+                    scope,
+                    principalId: userPrincipalId,
+                    roleDefinitionId: grafanaRoleDefinition,
+                    principalType: 'User',
+                },
             });
-        }
-    }, [grafanaResourceId, userPrincipalId]);
+
+            if (response?.metadata.error) {
+                azPortalContext.log({
+                    action: 'AssignGrafanaRoleToCurrentUser',
+                    actionModifier: 'failed',
+                    resourceId: scope,
+                    logLevel: 'error',
+                    data: response.metadata.error,
+                });
+            }
+        },
+        [azPortalContext, userPrincipalId]
+    );
 
     const generateParameters = useCallback(() => {
         const parameters: Record<string, any> = {};
+
+        const dateSuffix = new Date().getTime();
+        const azureMonitorWorkspaceResourceName = `azure-monitor-workspace-${dateSuffix}`;
 
         parameters[ArmTemplateParameterName.SubscriptionId] = {
             value: subscription,
@@ -336,23 +409,23 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         };
 
         parameters[GrafanaParameterName.GrafanaName] = {
-            value: grafanaResourceName,
+            value: newGrafanaResourceName,
         };
 
         parameters[AzureMonitorWorkspaceParameterName.WorkspaceName] = {
-            value: grafanaResourceName,
+            value: azureMonitorWorkspaceResourceName,
         };
 
         parameters[DataCollectionRuleParameterName.DataCollectionRuleName] = {
-            value: grafanaResourceName,
+            value: azureMonitorWorkspaceResourceName,
         };
 
         parameters[DataCollectionRuleParameterName.AzureMonitorWorkspaceId] = {
-            value: azureMonitorWorkspaceResourceId,
+            value: `${resourceGroupId}/providers/${ArmServiceType.AzureMonitorWorkspace}/${azureMonitorWorkspaceResourceName}`,
         };
 
         return parameters;
-    }, [subscription, resourceGroup, agent?.location, grafanaResourceName, grafanaResourceName, azureMonitorWorkspaceResourceId]);
+    }, [subscription, agent?.location, resourceGroup, newGrafanaResourceName, resourceGroupId]);
 
     const generateTemplate = useCallback(async () => {
         const builder = new ArmTemplateBuilder();
@@ -363,9 +436,9 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
         const dataCollectionRuleResource = new DataCollectionRuleTemplateResource(builder);
 
-        builder.addResource(grafanaResource);
         builder.addResource(azureMonitorWorkspaceResource);
         builder.addResource(dataCollectionRuleResource);
+        builder.addResource(grafanaResource);
 
         return builder.getTemplate();
     }, []);
@@ -395,7 +468,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
             setIsUpdating(false);
         },
-        [intl]
+        [azPortalContext, deploymentId, intl]
     );
 
     const deployTemplate = useCallback(
@@ -419,10 +492,16 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     );
 
     const onLinkGrafanaDashboard = useCallback(
-        async (notificationId: string, grafanaResource?: ArmObj<Grafana>) => {
-            const azureMonitorWorkspaceResource = await fetchAzureMonitorWorkspaceResource();
-            const dataCollectionRuleResource = await fetchDataCollectionRuleResource();
-            const dataCollectionEndpointResource = await fetchDataCollectionEndpointResource();
+        async (
+            notificationId: string,
+            dataCollectionRuleResourceId: string,
+            dataCollectionEndpointResourceId: string,
+            parameters?: Record<string, any>,
+            grafanaResource?: ArmObj<Grafana>
+        ) => {
+            const azureMonitorWorkspaceResource = await fetchAzureMonitorWorkspaceResource(parameters?.azureMonitorWorkspaceId.value);
+            const dataCollectionRuleResource = await fetchDataCollectionRuleResource(dataCollectionRuleResourceId);
+            const dataCollectionEndpointResource = await fetchDataCollectionEndpointResource(dataCollectionEndpointResourceId);
 
             const updatedAgentInfo = {
                 properties: {
@@ -441,20 +520,37 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 azPortalContext.stopNotification(
                     notificationId,
                     true,
-                    intl.formatMessage(GrafanaDashboardResources.grafanaCreationSuccess)
+                    intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardSuccess)
                 );
                 refresh();
                 setIsUpdating(false);
             } else {
-                handleFailedDeployment(notificationId, deploymentId, response?.metadata?.error);
+                azPortalContext.stopNotification(
+                    notificationId,
+                    false,
+                    intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardFailed)
+                );
+                azPortalContext.log({
+                    action: 'LinkGrafanaDashboard',
+                    actionModifier: 'failed',
+                    resourceId,
+                    logLevel: 'error',
+                    data: {
+                        error: response?.metadata?.error,
+                    },
+                });
+                setIsUpdating(false);
             }
         },
         [
-            existingManagedUserIdentityResourceId,
             fetchAzureMonitorWorkspaceResource,
-            fetchDataCollectionEndpointResource,
             fetchDataCollectionRuleResource,
+            fetchDataCollectionEndpointResource,
+            existingManagedUserIdentityResourceId,
             resourceId,
+            azPortalContext,
+            intl,
+            refresh,
         ]
     );
 
@@ -475,7 +571,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             resourceId: deploymentResourceId,
             logLevel: 'info',
             data: {
-                grafanaResourceName,
+                newGrafanaResourceName,
                 resourceGroupId,
                 subscriptionId,
                 location: agent?.location,
@@ -493,7 +589,29 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             const parameters = generateParameters();
             return deployTemplate(deploymentResourceId, deploymentName, notificationId, template, parameters);
         }
-    }, [agent?.location, agent?.name, resourceGroup, subscription, deployTemplate, generateParameters, generateTemplate, resourceGroupId]);
+    }, [
+        azPortalContext,
+        intl,
+        resourceGroupId,
+        newGrafanaResourceName,
+        subscriptionId,
+        agent?.location,
+        agent?.name,
+        generateTemplate,
+        generateParameters,
+        deployTemplate,
+    ]);
+
+    useEffect(() => {
+        if (permissionsLoaded) {
+            permissions?.value.forEach(permission => {
+                if (permission?.notActions?.includes(PermissionActions.RbacWrite)) {
+                    setHasRbacWritePermission(false);
+                    return;
+                }
+            });
+        }
+    }, [permissionsLoaded, permissions, setHasRbacWritePermission]);
 
     useEffect(() => {
         if (progress && deploymentId && notificationId) {
@@ -503,16 +621,44 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 if (provisioningState === ProvisioningStates.succeeded) {
                     clearInterval(intervalId);
                     setProgress(false);
-                    const grafanaResource = await fetchGrafanaResource();
+
+                    azPortalContext.stopNotification(
+                        notificationId,
+                        true,
+                        intl.formatMessage(GrafanaDashboardResources.grafanaCreationSuccess)
+                    );
+                    const linkingNotificationId = azPortalContext.startNotification(
+                        intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardTitle),
+                        intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardInProgress)
+                    );
+
+                    const grafanaResourceId = `${resourceGroupId}/providers/${ArmServiceType.DashboardGrafana}/${newGrafanaResourceName}`;
+
+                    const grafanaResource = await fetchGrafanaResource(grafanaResourceId);
                     const umiResource = await fetchManagedUserIdentityResource();
+
+                    const grafanaPrincipalId = grafanaResource?.identity?.principalId ?? '';
+                    const azureMonitorWorkspaceName = response.data.properties?.parameters?.workspaceName.value;
+                    const azureMonitorWorkspaceId = response.data.properties?.parameters?.azureMonitorWorkspaceId.value;
+                    const umiPrincipalId = umiResource?.properties?.principalId ?? '';
+                    const dataCollectionResourceGroupId = `${subscriptionId}/resourceGroups/MA_${azureMonitorWorkspaceName}_${agent?.location}_managed`;
+                    const dataCollectionRuleResourceId = `${dataCollectionResourceGroupId}/providers/${ArmServiceType.DataCollectionRule}/${response.data.properties?.parameters?.dataCollectionRuleName.value}`;
+                    const dataCollectionEndpointResourceId = `${dataCollectionResourceGroupId}/providers/${ArmServiceType.DataCollectionEndpoint}/${response.data.properties?.parameters?.dataCollectionRuleName.value}`;
+
                     await Promise.all([
-                        assignMonitoringReaderRoleToSubscription(grafanaResource?.identity?.principalId ?? ''),
-                        assignMonitoringReaderRoleToCurrentUser(grafanaResource?.identity?.principalId ?? ''),
-                        assignMonitoringDataReaderRoleToCurrentUser(grafanaResource?.identity?.principalId ?? ''),
-                        assignMonitoringMetricsPublisherRoleToCurrentUser(umiResource?.properties?.principalId ?? ''),
-                        assignGrafanaRoleToManagedIdentity(umiResource?.properties?.principalId ?? ''),
-                        assignGrafanaRoleToCurrentUser(),
-                        onLinkGrafanaDashboard(notificationId, grafanaResource),
+                        assignMonitoringReaderRoleToSubscription(grafanaPrincipalId),
+                        assignGrafanaRoleToCurrentUser(grafanaResourceId),
+                        assignGrafanaRoleToManagedIdentity(grafanaResourceId, umiPrincipalId),
+                        assignMonitoringReaderRoleToAzureMonitorWorkspace(azureMonitorWorkspaceId, grafanaPrincipalId),
+                        assignMonitoringDataReaderRoleToAzureMonitorWorkspace(azureMonitorWorkspaceId, grafanaPrincipalId),
+                        assignMonitoringMetricsPublisherRoleToDataCollectionRule(dataCollectionRuleResourceId, umiPrincipalId),
+                        onLinkGrafanaDashboard(
+                            linkingNotificationId,
+                            dataCollectionRuleResourceId,
+                            dataCollectionEndpointResourceId,
+                            response.data.properties?.parameters,
+                            grafanaResource
+                        ),
                     ]);
                 } else if (provisioningState === ProvisioningStates.Failed) {
                     clearInterval(intervalId);
@@ -526,18 +672,25 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             return () => clearInterval(intervalId);
         }
     }, [
+        agent?.location,
+        subscriptionId,
         progress,
         deploymentId,
         notificationId,
+        resourceGroupId,
+        onLinkGrafanaDashboard,
         handleFailedDeployment,
         assignGrafanaRoleToCurrentUser,
         fetchGrafanaResource,
-        assignMonitoringReaderRoleToCurrentUser,
-        assignMonitoringDataReaderRoleToCurrentUser,
+        assignMonitoringMetricsPublisherRoleToDataCollectionRule,
+        assignMonitoringDataReaderRoleToAzureMonitorWorkspace,
         fetchManagedUserIdentityResource,
-        assignMonitoringMetricsPublisherRoleToCurrentUser,
+        assignMonitoringReaderRoleToAzureMonitorWorkspace,
         assignMonitoringReaderRoleToSubscription,
         assignGrafanaRoleToManagedIdentity,
+        azPortalContext,
+        intl,
+        newGrafanaResourceName,
     ]);
 
     useEffect(() => {
@@ -546,7 +699,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             if (!response?.length) {
                 return;
             }
-            const grafanaResourceNames: string[] = [];
+            let grafanaResourceNames: string[] = [];
             response.map(grafanaResource => {
                 if (grafanaResource?.name && grafanaResource?.resourceGroupName === resourceGroup) {
                     grafanaResourceNames.push(grafanaResource.name);
@@ -557,16 +710,20 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         if (agentLoaded && !grafanaEndpoint) {
             fetchGrafanaResources();
         }
-    }, [agentLoaded, grafanaEndpoint, azPortalContext, subscription]);
+    }, [agentLoaded, grafanaEndpoint, azPortalContext, subscription, resourceGroup]);
 
     return {
         grafanaEndpoint,
-        grafanaResourceName,
         isUpdating,
         newGrafanaResourceNameErrorMessage,
         agentLoaded,
+        newGrafanaResourceName,
+        hasRbacWritePermission,
+        permissionsLoaded,
+        grafanaRbacColumns,
+        grafanaRbacRoles,
+        setNewGrafanaResourceName,
         setIsDirty,
         onCreateGrafanaDashboard,
-        setGrafanaResourceName,
     };
 }

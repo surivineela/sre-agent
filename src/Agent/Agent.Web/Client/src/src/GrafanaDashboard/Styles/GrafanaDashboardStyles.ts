@@ -8,8 +8,9 @@ const container: CSSProperties = {
 };
 
 const titleText: CSSProperties = {
-    fontSize: '18px',
-    fontWeight: '400',
+    fontSize: '16px',
+    fontWeight: '500',
+    marginLeft: '-5px',
 };
 
 const linkedContainer: CSSProperties = {
@@ -22,7 +23,7 @@ const rowCenterAlign: CSSProperties = {
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
-    gap: '8px',
+    width: '75%',
 };
 
 const rbacContainer: CSSProperties = {
@@ -46,10 +47,9 @@ const apiKeyRow: CSSProperties = {
     flexDirection: 'row',
     gap: '50px',
     maxWidth: '500px',
-    height: '50px',
 };
 
-const inputFieldLabel: CSSProperties = { columnGap: '50px' };
+const inputFieldLabel: CSSProperties = { height: '50px', width: '600px', columnGap: '40px' };
 
 const displayFieldLabel: CSSProperties = { marginRight: '100px' };
 
@@ -92,6 +92,23 @@ const gridStyle: React.CSSProperties = {
 
 const grafanaUrlContainer: CSSProperties = {
     maxWidth: '1000px',
+    marginTop: '10px',
+};
+
+const grafanaUrlLinkContainer: CSSProperties = {
+    marginLeft: '75px',
+};
+
+const grafanaUrlLabelContainer: CSSProperties = {
+    display: 'flex',
+    flexDirection: 'row',
+    gap: '5px',
+    alignItems: 'center',
+    marginTop: '-4px',
+};
+
+const messageBar: CSSProperties = {
+    width: '75%',
 };
 
 export const useGrafanaDashboardStyles = () =>
@@ -109,8 +126,11 @@ export const useGrafanaDashboardStyles = () =>
         grafanaLogo,
         createContainer,
         gridStyle,
-        inputFieldLabel,
         displayFieldLabel,
+        inputFieldLabel,
         inputTextField,
         grafanaUrlContainer,
+        grafanaUrlLabelContainer,
+        messageBar,
+        grafanaUrlLinkContainer,
     });

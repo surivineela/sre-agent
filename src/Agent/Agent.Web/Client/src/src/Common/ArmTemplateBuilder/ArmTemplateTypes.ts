@@ -55,6 +55,7 @@ export enum ArmServiceType {
     DashboardGrafana = 'Microsoft.Dashboard/grafana',
     AzureMonitorWorkspace = 'Microsoft.Monitor/accounts',
     DataCollectionRule = 'Microsoft.Insights/dataCollectionRules',
+    DataCollectionEndpoint = 'Microsoft.Insights/dataCollectionEndpoints',
 }
 
 export enum GrafanaParameterName {
