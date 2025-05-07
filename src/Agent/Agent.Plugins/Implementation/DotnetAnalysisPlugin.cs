@@ -266,15 +266,15 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
             string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//{dumpPath}", "C://local//temp");
 
             // Delete dump after analysis to save space.
-            try
-            {
-                string _ = await kuduManager.ExecuteCommandAsync($"del C://local//temp//{dumpPath}", "C://local//temp");
-            }
+            //try
+            //{
+            //    string _ = await kuduManager.ExecuteCommandAsync($"del C://local//temp//{dumpPath}", "C://local//temp");
+            //}
 
-            catch (Exception)
-            {
-                Console.WriteLine($"[DotnetAnalysisPlugin] Failed to delete dump: {dumpPath}");
-            }
+            //catch (Exception)
+            //{
+            //    Console.WriteLine($"[DotnetAnalysisPlugin] Failed to delete dump: {dumpPath}");
+            //}
 
             return result;
         }

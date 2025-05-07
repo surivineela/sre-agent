@@ -1756,7 +1756,7 @@ namespace Agent.Plugins.Implementation
             _logger.LogInternalInformation($"Getting memory analysis");
             try
             {
-                string commands = string.Join("; ", await File.ReadAllTextAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-dump-analyze.sh")));
+                string commands = string.Join("; ", await File.ReadAllLinesAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-dump-analyze.sh")));
                 return await InvokeExecCommand(resourceId, commands);
             }
             catch (Exception ex)
@@ -1770,7 +1770,7 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                string commands = string.Join("; ", await File.ReadAllTextAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-detect.sh")));
+                string commands = string.Join("; ", await File.ReadAllLinesAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-detect.sh")));
                 var result = await InvokeExecCommand(resourceId, commands);
                 return result.Any();
             }
