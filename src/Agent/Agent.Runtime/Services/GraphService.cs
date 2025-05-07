@@ -191,7 +191,7 @@ public class GraphService : IGraphService
                     .union(
                         repeat(
                             union(
-                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS').inV(),
+                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE').inV(),
                                 inE('LINKED', 'CONNECTED', 'HOSTED_ON').outV()
                             )
                             .not(has('resourceType', within('resourcegroups', 'subscription')))

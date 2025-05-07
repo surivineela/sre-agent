@@ -36,7 +36,8 @@ public class GithubController(
                 return NotFound($"the resource {request.ResourceId} is not found.");
             }
 
-            string sourceCodeNodeId = request.RepoUrl.ToLower().Replace("/", "_");
+            string displayName = request.RepoUrl.Split('/').Last();
+            string sourceCodeNodeId = request.RepoUrl.ToLower().Replace("/", "_").Replace(":", "_");
             string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository')";
             var sourceCodeNodeResults = await _graphDbClient.Query(checkSourceCodeNodeQuery);
 
@@ -47,7 +48,7 @@ public class GithubController(
                         { "resourceId", request.RepoUrl },
                         { "subscriptionId", "githubrepo-sub" },
                         { "resourceGroupName", "githubrepo-rg" },
-                        { "resourceName", sourceCodeNodeId },
+                        { "resourceName", displayName },
                         { "updateTs", DateTime.UtcNow.Ticks }
                     };
 
