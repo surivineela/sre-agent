@@ -1075,15 +1075,25 @@ public class ArmHelper
         return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    public async Task<bool> PowerOnVirtualMachineAsync(string resourceId)
+    public async Task<bool> PowerOnVirtualMachineAsync(ApprovalContext approval, string resourceId)
     {
-        var armClient = _armClientFactory.GetArmClient();
+        var cred = await _authService.GetArmWriteOperationCredential(approval);
+        if (cred == null)
+        {
+            throw new InvalidOperationException("The action is not approved");
+        }
+
+        var armClient = _armClientFactory.GetArmClient(cred);
         var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
         if (virtualMachineResource == null)
         {
             throw new ArgumentException($"Resource with ID {resourceId} is not a valid Virtual Machine resource.");
         }
         var startOperation = await virtualMachineResource.PowerOnAsync(WaitUntil.Completed);
+
+        if (cred is IDisposable disposable)
+            disposable.Dispose();
+
         return startOperation.HasCompleted;
     }
 

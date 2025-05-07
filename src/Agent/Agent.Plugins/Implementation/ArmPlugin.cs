@@ -94,7 +94,8 @@ namespace Agent.Plugins.Implementation
             string message = "Virtual machine powered on successfully";
             try
             {
-                vmPowerOnResult = await _armHelper.PowerOnVirtualMachineAsync(resourceId);
+                var approvalContext = new ApprovalContext(ToolStatic.AsyncLocalThreadId.Value, ToolStatic.AsyncLocalApprovalId.Value ?? throw new ArgumentNullException("Approval ID is null"));
+                vmPowerOnResult = await _armHelper.PowerOnVirtualMachineAsync(approvalContext, resourceId);
                 if (!vmPowerOnResult)
                 {
                     message = "Failed to power on the virtual machine";

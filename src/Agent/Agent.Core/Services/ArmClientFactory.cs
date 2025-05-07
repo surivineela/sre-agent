@@ -28,6 +28,11 @@ public class ArmClientFactory : IArmClientFactory
         return _armClient.Value;
     }
 
+    public ArmClient GetArmClient(TokenCredential cred)
+    {
+        return ConstructArmClient(cred);
+    }
+
     public ArmClient GetCrawlerArmClient()
     {
         return _crawlerClient.Value;
