@@ -8,8 +8,9 @@ import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentRe
 import { IChatBoxFooterProps } from '../Contracts/Activities';
 import { useChatInputStyles, useChatInputTextStyles } from '../Styles/Activities.styles';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
+import NewMessageButton from './NewMessageButton';
 
-const ChatBoxFooter = ({ sendMessage, disableInput }: IChatBoxFooterProps) => {
+const ChatBoxFooter = ({ sendMessage, disableInput, isNewMessageButtonVisible, onClickNewMessageButton }: IChatBoxFooterProps) => {
     const intl = useIntl();
 
     const [input, setInput] = useState<string>();
@@ -30,6 +31,7 @@ const ChatBoxFooter = ({ sendMessage, disableInput }: IChatBoxFooterProps) => {
         <div className={root}>
             <KnowledgeGraphBuildStatus />
             <div className={mergeStyles(textFieldContainer as IStyle)}>
+                <NewMessageButton isVisible={isNewMessageButtonVisible} onClick={onClickNewMessageButton} />
                 <TextField
                     placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
                     multiline={true}

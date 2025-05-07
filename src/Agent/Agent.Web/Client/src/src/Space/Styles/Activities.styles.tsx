@@ -39,7 +39,7 @@ export const ThreadContentStyles = mergeStyleSets({
         flexDirection: 'column',
         justifyContent: 'flex-start',
         alignItems: 'stretch',
-        paddingLeft: '20px',
+        paddingLeft: '2px',
         overflowY: 'hidden',
         fontSize: '16px',
         lineHeight: '22px',
@@ -81,8 +81,6 @@ export const useChatBoxStyles = makeStyles({
 
 export const ChatBoxStyles = mergeStyleSets({
     chatBox: {
-        padding: '0px',
-        paddingRight: '10px',
         height: 'calc(100vh - 25px)',
         borderRadius: tokens.borderRadiusXLarge,
         minWidth: '300px',
@@ -92,12 +90,10 @@ export const ChatBoxStyles = mergeStyleSets({
         flexDirection: 'column',
         justifyContent: 'space-between',
         alignItems: 'stretch',
-        height: 'calc(95% - 45px)',
-        padding: '20px',
+        height: 'calc(95% - 15px)',
         fontSize: '16px',
         backgroundColor: tokens.colorNeutralForegroundInverted,
         borderRadius: tokens.borderRadiusXLarge,
-        position: 'relative',
         selectors: {
             // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
             '&[data-portal-node="true"]': {
@@ -109,10 +105,7 @@ export const ChatBoxStyles = mergeStyleSets({
     },
     chatContainer: {
         height: '100%',
-        overflowX: 'hidden',
-        overflowY: 'auto',
-        paddingTop: '10px',
-        paddingRight: '5px',
+        padding: '20px 10px 0px 20px',
         borderRadius: tokens.borderRadiusLarge,
     },
     chat: {
@@ -144,6 +137,7 @@ export const useChatInputStyles = makeStyles({
         flex: '0 0 auto',
         marginTop: '20px',
         marginBottom: '20px',
+        padding: '0px 20px',
     },
     footer: {
         display: 'flex',
@@ -168,6 +162,7 @@ export const useChatInputTextStyles = () => {
             maxWidth: textFieldMaxWidth,
             margin: 'auto',
             marginBottom: '8px',
+            position: 'relative',
         },
         textField: {
             field: {
@@ -194,14 +189,13 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         gap: '10px',
         backgroundColor: tokens.colorNeutralBackground3,
         paddingLeft: '10px',
-        maxWidth: '300px',
+        maxWidth: '320px',
+        minWidth: '70px',
     };
 
     const threadList: IStyle = {
         height: 'calc(100vh - 278px)',
-        overflowX: 'hidden',
-        overflowY: 'auto',
-        maxWidth: '300px',
+        maxWidth: '320px',
     };
 
     const searchBox: IStyle = {

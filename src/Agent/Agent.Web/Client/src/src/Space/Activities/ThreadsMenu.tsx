@@ -1,4 +1,13 @@
-import { Button, InputOnChangeData, Radio, RadioGroup, SearchBox, SearchBoxChangeEvent, tokens } from '@fluentui/react-components';
+import {
+    Button,
+    InputOnChangeData,
+    mergeClasses,
+    Radio,
+    RadioGroup,
+    SearchBox,
+    SearchBoxChangeEvent,
+    tokens,
+} from '@fluentui/react-components';
 import {
     AddRegular,
     DismissCircle16Filled,
@@ -13,6 +22,7 @@ import debounce from 'lodash/debounce';
 import { FC, memo, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
+import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadsMenuProps } from '../Contracts/Activities';
 import { useMetrics } from '../Hooks/useMetrics';
@@ -190,9 +200,10 @@ const ThreadsList = memo(
         selectThread: (thread: Thread | null) => void;
     }) => {
         const ThreadMenuStyles = useThreadMenuStyle();
+        const { scrollable } = useScrollableComponentStyles();
 
         return (
-            <div className={ThreadMenuStyles.threadList} role="tree">
+            <div className={mergeClasses(scrollable, ThreadMenuStyles.threadList)} role="tree">
                 {threads.map(thread => {
                     return (
                         <ThreadItem key={thread.id} thread={thread} selectThread={selectThread} isActive={activeThreadId === thread.id} />

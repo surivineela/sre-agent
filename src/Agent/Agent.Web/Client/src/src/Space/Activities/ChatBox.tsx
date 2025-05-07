@@ -1,9 +1,10 @@
 import { CopilotChat, CopilotProvider } from '@fluentui-copilot/react-copilot';
+import { mergeClasses } from '@fluentui/react-components';
 import { memo } from 'react';
+import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import ChatBoxFooter from '../Components/ChatBoxFooter';
 import ChatLoading from '../Components/ChatLoading';
 import ChatMessage from '../Components/ChatMessage';
-import NewMessageButton from '../Components/NewMessageButton';
 import { IChatBoxProps } from '../Contracts/Activities';
 import { useChatBox } from '../Hooks/useChatBox';
 import { ChatBoxStyles } from '../Styles/Activities.styles';
@@ -28,10 +29,12 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
         onClickNewMessageButton,
     } = useChatBox(addThread, threadId);
 
+    const { scrollable } = useScrollableComponentStyles();
+
     return (
         <div className={ChatBoxStyles.chatBox}>
             <CopilotProvider mode="canvas" className={ChatBoxStyles.chatBoxInner}>
-                <div className={ChatBoxStyles.chatContainer} ref={messagesDivRef} onScroll={handleScroll}>
+                <div className={mergeClasses(scrollable, ChatBoxStyles.chatContainer)} ref={messagesDivRef} onScroll={handleScroll}>
                     <CopilotChat className={ChatBoxStyles.chat}>
                         <div ref={intersectionObserverRef} />
                         {isLoadingInitialChatHistory && <ChatLoading />}
@@ -53,8 +56,12 @@ export const ChatBox = ({ addThread, threadId }: IChatBoxProps) => {
                         )}
                     </CopilotChat>
                 </div>
-                <NewMessageButton isVisible={showNewMessageButton} onClick={onClickNewMessageButton} />
-                <ChatBoxFooter sendMessage={sendMessage} disableInput={disableInput} />
+                <ChatBoxFooter
+                    sendMessage={sendMessage}
+                    disableInput={disableInput}
+                    isNewMessageButtonVisible={showNewMessageButton}
+                    onClickNewMessageButton={onClickNewMessageButton}
+                />
             </CopilotProvider>
         </div>
     );

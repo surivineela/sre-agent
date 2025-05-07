@@ -10,8 +10,8 @@ const useNewMessageButtonStyles = makeStyles({
         transition: 'opacity 0.3s ease',
         pointerEvents: 'auto',
         position: 'absolute',
-        right: '50px',
-        bottom: '180px',
+        right: '0px',
+        bottom: '100px',
     },
     hidden: {
         opacity: '0',

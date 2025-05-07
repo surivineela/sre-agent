@@ -51,6 +51,8 @@ export interface IActionsProps {
 export interface IChatBoxFooterProps {
     sendMessage: (message: string) => Promise<void>;
     disableInput: boolean;
+    isNewMessageButtonVisible: boolean;
+    onClickNewMessageButton: () => void;
 }
 
 export class MessagePollingInterval {
