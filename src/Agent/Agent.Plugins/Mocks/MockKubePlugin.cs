@@ -435,7 +435,7 @@ public class MockKubePlugin : IKubePlugin
         throw new NotImplementedException();
     }
 
-    public Task<string> GetKubeResourceMetricsRangeAsync(string resourceId, string _namespace, string kind, string name, string metricsType, string duration, string startTime, string endTime) // Parameter names match interface
+    public Task<string> GetKubeResourceMetricsRangeAsync(string resourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime) // Parameter names match interface
     {
         Console.WriteLine($"WARN: MockKubePlugin: GetKubeResourceMetricsRangeAsync NOT IMPLEMENTED");
         // Simple random implementation if needed for other tests, but prefer explicit configuration

@@ -679,15 +679,37 @@ namespace Agent.Plugins
                 return $"Error listing custom resources: {ex.Message}";
             }
         }
-        // TODO(jianbosun): need to validate and expose to KubePluginDefinition
-        public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string rawDuration, string startTime, string endTime)
+       
+       
+        private static readonly TimeSpan[] SupportedBuckets = new[]
         {
+            TimeSpan.FromMinutes(1),
+            TimeSpan.FromMinutes(5),
+            TimeSpan.FromMinutes(15),
+            TimeSpan.FromMinutes(30),
+            TimeSpan.FromHours(1),
+            TimeSpan.FromHours(6),
+            TimeSpan.FromHours(12),
+            TimeSpan.FromDays(1)
+        };
 
-            // Convert the provided time range into Prometheus-compatible duration format
-            string duration = ParseTimeRangeToDuration(rawDuration);
+        public static TimeSpan CalculateGranularity(DateTime startTime, DateTime endTime)
+        {
+            var duration = endTime - startTime;
+            
+            // Calculate minimum granularity to keep results under 1440 points
+            var minGranularity = TimeSpan.FromTicks(duration.Ticks / 1440);
 
+            // Pick the first supported bucket >= minGranularity
+            var matchingBucket = SupportedBuckets.FirstOrDefault(bucket => bucket >= minGranularity);
+            
+            // If no bucket is large enough, use the largest bucket (1 day)
+            return matchingBucket != default ? matchingBucket : SupportedBuckets.Last();
+        }
+        public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
+        {
             // Build the PromQL query based on the specified metric type
-            string query = BuildPromQuery(metricsType, _namespace, kind, name, duration);
+            string query = BuildPromQuery(metricsType, _namespace, kind, name, "");
 
             if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
             {
@@ -704,11 +726,11 @@ namespace Agent.Plugins
 
             DateTime startDate = ParseDateTime(startTime);
             DateTime endDate = ParseDateTime(endTime);
-            TimeSpan step = ParseTimeSpan(duration);
+            var step = CalculateGranularity(startDate, endDate);
 
             // Query the Prometheus endpoint using the injected service
             var response = await _prometheusQueryService.QueryRangeAsync(_prometheusQueryEndpoint, query, startDate, endDate, step);
-            return FormatPrometheusRangeResponse(response, metricsType, kind, name, startTime, endTime, rawDuration);
+            return FormatPrometheusRangeResponse(response, metricsType, kind, name, startTime, endTime);
         }
 
         // Helper method to parse date strings into DateTime objects
@@ -1151,7 +1173,7 @@ namespace Agent.Plugins
             return sb.ToString().TrimEnd(); // Trim trailing whitespace/newlines
         }
 
-        private static string FormatPrometheusRangeResponse(Response? response, string metricType, string workloadType, string workloadName, string rawDuration, string startTime, string endTime)
+        private static string FormatPrometheusRangeResponse(Response? response, string metricType, string workloadType, string workloadName, string startTime, string endTime)
         {
             if (response == null)
             {
@@ -1184,30 +1206,26 @@ namespace Agent.Plugins
                     {
                         return $"No {metricType} metrics found for workloadType {workloadType} and workloadName {workloadName}.'. Check if the values specified are correct and if metrics are being collected.";
                     }
-                    sb.AppendLine($"## {capitalizedMetricType} Usage for workloadType {workloadType} and workloadName {workloadName} during timestamp from {startTime} to {endTime}");
-                    sb.AppendLine();
+                    
+                    var dataPoints = new List<string>();
 
                     foreach (var resultItem in matrixData.Result)
                     {
-                        // --- Pod Name ---
+                        // Get pod name for reference (optional, not used in final output)
                         string podName = "(unknown pod)";
                         if (resultItem.Metric.TryGetValue("pod", out var podLabel))
                         {
                             podName = podLabel;
                         }
-                        else if (resultItem.Metric.TryGetValue("kubernetes_pod_name", out var k8sPodLabel)) // Alternative label
+                        else if (resultItem.Metric.TryGetValue("kubernetes_pod_name", out var k8sPodLabel))
                         {
                             podName = k8sPodLabel;
                         }
-                        else if (resultItem.Metric.TryGetValue("name", out var nameLabel)) // Another possible label
+                        else if (resultItem.Metric.TryGetValue("name", out var nameLabel))
                         {
                             podName = nameLabel;
                         }
-                        // You might need to add more fallbacks depending on your exact metric labels
 
-                        sb.Append($"**Pod**: `{podName}`");
-
-                        // --- Metric Value ---
                         foreach (var metricItem in resultItem.Values)
                         {
                             double timestamp = metricItem.Item1; // Unix timestamp (seconds)
@@ -1216,29 +1234,15 @@ namespace Agent.Plugins
 
                             if (double.TryParse(rawValue, NumberStyles.Float | NumberStyles.AllowExponent, CultureInfo.InvariantCulture, out double numericValue))
                             {
-                                // Check for NaN or Infinity which Prometheus can return
-                                if (double.IsNaN(numericValue) || double.IsInfinity(numericValue))
-                                {
-                                    sb.AppendLine($"**{capitalizedMetricType} Value**: {rawValue} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
-                                }
-                                // Specific formatting for CPU/Memory (assuming they represent % usage from your queries)
-                                else if (metricType.Equals("cpu", StringComparison.OrdinalIgnoreCase) || metricType.Equals("memory", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    // Your queries calculate percentage, so multiply by 100
-                                    sb.AppendLine($"**{capitalizedMetricType} Usage**: {numericValue:F2}% of limit (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
-                                }
-                                else // Generic numeric value
-                                {
-                                    sb.AppendLine($"**Value**: {numericValue:F4} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
-                                }
-                            }
-                            else // Value wasn't a parsable number
-                            {
-                                sb.AppendLine($"**{capitalizedMetricType} Value**: {rawValue} (at {dateTime:yyyy-MM-dd HH:mm:ss zz})");
+                                // Format: timestamp|value|metricType
+                                var dataPoint = $"{dateTime:yyyy-MM-ddTHH:mm:ss}|{numericValue:F2}|{capitalizedMetricType} Usage";
+                                dataPoints.Add(dataPoint);
                             }
                         }
-                        sb.AppendLine(); // Add a blank line between pod results
                     }
+
+                    // Join all data points with semicolons
+                    return string.Join(";", dataPoints);
 
                     break;
                 default:
@@ -1420,51 +1424,78 @@ namespace Agent.Plugins
         // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
         private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName, string duration)
         {
-            var pod = workloadName;
-            if (!workloadType.Equals("pod", StringComparison.OrdinalIgnoreCase))
+            var podFilter = "";
+            switch (workloadType.ToLowerInvariant())
             {
-                pod = $"{workloadName}-.*";
+                case "deployment":
+                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)(?:-[a-z0-9]+)?$";
+                    break;
+                case "replicaset":
+                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)$";
+                    break;
+                case "daemonset":
+                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)$";
+                    break;
+                case "statefulset":
+                    podFilter = $"^{workloadName}-(?:[a-z0-9]+)$";
+                    break;
+                default:
+                    podFilter = $"^{workloadName}$";
+                    break;
             }
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
                     return $@"
-                            100 *  (
-                                sum by (pod) (
-                                    container_memory_working_set_bytes{{pod=~""{pod}"",namespace=""{_namespace}"",container!=""""}}
-                                )
-                                / on (pod)
-                                min by (pod) (
-                                    (
-                                        kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{pod}"",namespace=""{_namespace}""}}
-                                    )   
-                                    or
-                                    (
-                                        kube_pod_container_resource_limits{{pod=~""{pod}"",namespace=""{_namespace}"", resource=""memory""}}
+                            avg(
+                                100 *  (
+                                    sum by (pod) (
+                                        container_memory_working_set_bytes{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}
                                     )
-                                ) 
+                                    / on (pod)
+                                    min by (pod) (
+                                        (
+                                            kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+                                        )   
+                                        or
+                                        (
+                                            kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
+                                        )
+                                    ) 
+                                )
                             )
                         ";
                 case "cpu":
                     return $@"
+                        avg(
                             100 *  (
                                 sum by (pod) (
-                                    rate(container_cpu_usage_seconds_total{{pod=~""{pod}"",namespace=""{_namespace}"",container!=""""}}[2m])
+                                    rate(container_cpu_usage_seconds_total{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}[2m])
                                 )
                                 / on (pod)
                                 min by (pod) (
                                     (
-                                        kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{pod}"",namespace=""{_namespace}""}}
+                                        kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
                                     )   
                                     or
                                     (
-                                        kube_pod_container_resource_limits{{pod=~""{pod}"",namespace=""{_namespace}"", resource=""cpu""}}
+                                        kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
                                     )
                                 ) 
                             )
+                        )
                         ";
-
-
+                case "availability":
+                    return $@"
+                            100 * (
+                                sum (
+                                    min by (pod) (kube_pod_container_status_ready{{pod=~""{podFilter}"",namespace=""{_namespace}""}})
+                                ) /
+                                sum (
+                                    kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+                                )
+                            )
+                        ";
                 // Default case for custom queries or other unhandled metric types
                 default:
                     _logger?.LogInternalWarning(
@@ -1601,10 +1632,10 @@ namespace Agent.Plugins
         }
 
         public async Task<string> GetNsgRulesForWorkloadAsync(
-        string aksResourceId,
-        string _namespace,
-        string kind,
-        string workloadName)
+            string aksResourceId,
+            string _namespace,
+            string kind,
+            string workloadName)
         {
             _logger?.LogInformation("[GetNsgRulesForWorkloadAsync] Invoked for Kind: '{Kind}', Name: '{WorkloadName}', Namespace: '{Namespace}', Cluster: '{ResourceId}'",
                 kind, workloadName, _namespace, aksResourceId);
@@ -1724,7 +1755,7 @@ namespace Agent.Plugins
                             return new List<string>().AsReadOnly();
                         }
                         break;
-                    case "statefulset":
+                                        case "statefulset":
                         V1StatefulSet sts;
                         try
                         {

@@ -261,9 +261,11 @@ eg: update my service with this YAML manifest.")]
         [KernelFunction("GetKubeResourceMetricsRangeAsync")]
         [Description(
         @"Get the value of specific metric for Kubernetes Workload during a time range.
-The supported metrics include cpu, memory.
+The supported metrics include cpu, memory, availability.
 The supported workload include deployment, statefulset, pod.
-eg: please give me the cpu usage rate for deployment flask from 2023-03-01T20:10:30.781Z to 2023-03-20T20:10:30.781Z.")]
+eg: please give me the cpu usage rate for deployment flask from 2023-03-01T20:10:30.781Z to 2023-03-20T20:10:30.781Z.
+eg: please give me the memory usage rate for deployment checkout for last 1 hour.
+eg: please give me the availability rate for statefulset for last 2 hour.")]
         public async Task<string> GetKubeResourceMetricsRangeAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
@@ -271,10 +273,9 @@ eg: please give me the cpu usage rate for deployment flask from 2023-03-01T20:10
             [Description($"Name of the Kubernetes resource, e.g. 'nginx', 'backend', 'redis'")] string name,
             [Description($"Metric type, e.g. 'cpu', 'memory'")] string metricsType,
             [Description($"Start time of time range, e.g. '2023-03-01T20:10:30.781Z'")] string startTime,
-            [Description($"End time of time range, e.g. '2023-03-20T20:10:30.781Z'")] string endTime,
-            [Description($"Query resolution step width in time range, e.g. '5m', '1h', '2d'")] string step = "2m")
+            [Description($"End time of time range, e.g. '2023-03-20T20:10:30.781Z'")] string endTime)
         {
-            return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, step, startTime, endTime);
+            return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, startTime, endTime);
         }
 
         [KernelFunction("get_nsg_rules_for_workload")]
