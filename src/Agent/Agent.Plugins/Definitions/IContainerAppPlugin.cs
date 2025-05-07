@@ -45,6 +45,8 @@ namespace Agent.Plugins.Definitions
 
         Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null);
 
+        Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId);
+        Task<bool> IsDotnetBased(string resourceId);
         Task<string> RollbackToLastRevision(string resourceId);
     }
 }

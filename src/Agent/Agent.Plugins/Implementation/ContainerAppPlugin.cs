@@ -4,9 +4,12 @@
 
 using System.ComponentModel;
 using System.Net;
+using System.Net.WebSockets;
+using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using System.Web;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -20,6 +23,8 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
+using Microsoft.Diagnostics.Utilities;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using static Agent.Core.Extensions.TaskExtensions;
@@ -81,7 +86,11 @@ namespace Agent.Plugins.Implementation
                     return null;
                 }
 
-                return TranslateNodeToDescriptor(new ContainerAppNode(result.First()));
+                //var isDotnet = await IsDotnetBased(resourceId);
+                //_logger.LogInformation($"IsDotnet: {isDotnet}");
+                //var memoryAnalysis = await GetContainerMemoryAnalysisForDotnet(resourceId);
+                //_logger.LogInformation($"MEMORY ANALYSIS: {memoryAnalysis}");
+                return TranslateNodeToDescriptor(new ContainerAppNode(result.First())); 
             }
             catch (Exception ex)
             {
@@ -1568,6 +1577,209 @@ namespace Agent.Plugins.Implementation
             }
 
             return null;
+        }
+
+        private static async Task SendResize(WebSocket socket, int x, int y, CancellationToken token)
+        {
+            List<byte> bytes = [];
+            bytes.Add(0); //forward byte
+            bytes.Add(4); //resize
+            byte[] message = Encoding.UTF8.GetBytes(FormattableString.Invariant($"{{{{\"Width\": {x}, \"Height\": {y}}}}}"));
+            foreach (byte b in message)
+            {
+                bytes.Add(b);
+            }
+            await socket.SendAsync(bytes.ToArray(), WebSocketMessageType.Text, true, token);
+        }
+
+        private static async Task Write(WebSocket socket, string line, CancellationToken token)
+        {
+            byte[] bytes = [0, 0, 0];
+
+            byte[] message = Encoding.UTF8.GetBytes(line);
+
+            foreach (byte b in message)
+            {
+                bytes[2] = b;
+                await socket.SendAsync(bytes, WebSocketMessageType.Text, true, token);
+            }
+        }
+
+        // Logic is from https://msazure.visualstudio.com/One/_git/AAPT-Antares-AzureFunctionsUx?path=%2Fclient-react%2Fsrc%2Fpages%2Fcontainer-app%2Fconsole%2FConsoleDataLoader.tsx&_a=contents&version=GBmaster
+        private static async Task<bool> Read(WebSocket socket, CancellationToken token, string completionMarker, StringBuilder stdout)
+        {
+            Memory<byte> buffer = new Memory<byte>(new byte[8 * 1024]);
+            var result = await socket.ReceiveAsync(buffer, token);
+
+            var data = buffer[..result.Count].ToArray();
+            var text = string.Empty;
+
+            switch (data[0])
+            {
+                case 0: // forwarded from k8s cluster exec endpoint
+                    if (data[1] == 1 || data[1] == 2 || data[1] == 3)
+                    {
+                        text = Encoding.UTF8.GetString(data, 2, data.Length - 2);
+                        stdout.AppendLine(text);
+
+                        // Check if the completion marker is in the output
+                        if (!string.IsNullOrEmpty(completionMarker) && text.Contains(completionMarker))
+                        {
+                            Console.WriteLine("Execution completed successfully.");
+                            return true; // Signal completion
+                        }
+                    }
+                    else if (data[1] == 4)
+                    {
+                        // terminal resize
+                    }
+                    else
+                    {
+                        throw new Exception($"Unknown Proxy API exec signal {data[1]}");
+                    }
+                    break;
+
+                case 1: // info from Proxy API
+                    text = "INFO: " + Encoding.UTF8.GetString(data, 1, data.Length - 1) + "\r\n";
+                    Console.WriteLine(text);
+                    break;
+
+                case 2: // error from Proxy API
+                    text = "ERROR: " + Encoding.UTF8.GetString(data, 1, data.Length - 1) + "\r\n";
+                    Console.WriteLine(text);
+                    break;
+
+                default:
+                    throw new Exception($"Unknown Proxy API exec signal {data[0]}");
+            }
+
+            return false;
+        }
+
+        private async Task<string> InvokeExecCommand(string resourceId, string command)
+        {
+            try
+            {
+                // Get Container App Details.
+                ResourceIdentifier resourceIdentifer = new ResourceIdentifier(resourceId);
+                string subscriptionId = resourceIdentifer.SubscriptionId;
+                var containerAppResource = _armClient.GetContainerAppResource(resourceIdentifer);
+                var containerApp = await containerAppResource.GetAsync();
+                var activeRevisions = containerAppResource.GetContainerAppRevisions();
+                var firstActiveRevision = activeRevisions.FirstOrDefault(r => r.Data.IsActive == true);
+                var firstReplica = await firstActiveRevision.GetContainerAppReplicas().FirstOrDefault().GetAsync();
+
+                string execEndPoint = firstReplica.Value.Data.Containers.First().ExecEndpoint;
+
+                var uriBuilder = new UriBuilder(execEndPoint);
+                var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+                query.Add("command", "/bin/bash");
+                uriBuilder.Query = query.ToString();
+
+                string token = await _armHelper.GetProxyApiTokenAsync(subscriptionId, resourceIdentifer.ResourceGroupName, containerApp.Value.Data.Name);
+
+                var webSocket = new ClientWebSocket();
+                webSocket.Options.SetRequestHeader("Authorization", $"Bearer {token}");
+                webSocket.Options.HttpVersion = HttpVersion.Version11;
+                webSocket.Options.HttpVersionPolicy = HttpVersionPolicy.RequestVersionExact;
+                webSocket.Options.UseDefaultCredentials = false;
+
+                var resultBuilder = new StringBuilder();
+
+                await webSocket.ConnectAsync(uriBuilder.Uri, CancellationToken.None);
+                _logger.LogInternalInformation("Connected to WebSocket endpoint.");
+
+                await SendResize(webSocket, 80, 24, CancellationToken.None);
+
+                // Define completion marker and create a TaskCompletionSource for synchronization
+                string completionMarker = "COMPLETED ANALYSIS";
+                var completionSource = new TaskCompletionSource<bool>();
+
+                var listeningTask = Task.Run(async () =>
+                {
+                    try
+                    {
+                        while (webSocket.State == WebSocketState.Open)
+                        {
+                            bool isCompleted = await Read(webSocket, CancellationToken.None, completionMarker, resultBuilder);
+                            if (isCompleted)
+                            {
+                                bool setResult = completionSource.TrySetResult(true);
+                                break;
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        completionSource.TrySetException(ex);
+                    }
+                });
+
+                // Setup.
+                await Write(webSocket, command + "\n", CancellationToken.None);
+
+                // Wait for the completion signal or timeout after a reasonable period
+                var timeoutTask = Task.Delay(TimeSpan.FromMinutes(5));
+                var completedTask = await Task.WhenAny(completionSource.Task, timeoutTask);
+
+                if (completedTask == timeoutTask)
+                {
+                    _logger.LogInternalError($"[InvokeCommand] Command execution timed out for {resourceId}.");
+                }
+
+                await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "Closing", CancellationToken.None);
+
+                string result = resultBuilder.ToString();
+                string pattern = @"STARTED ANALYSIS\s*(.*?)\s*COMPLETED ANALYSIS";
+                Match match = Regex.Match(result, pattern, RegexOptions.Singleline);
+
+                if (match.Success)
+                {
+                    string analysisResult = match.Groups[1].Value.Trim();
+                    return analysisResult;
+                }
+                else
+                {
+                    _logger.LogInternalError("No analysis block found.");
+                    return result; // TODO:FIX
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message}");
+                throw;
+            }
+        }
+
+        public async Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId)
+        {
+            _logger.LogInternalInformation($"Getting memory analysis");
+            try
+            {
+                string commands = string.Join("; ", await File.ReadAllTextAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-dump-analyze.sh")));
+                return await InvokeExecCommand(resourceId, commands);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message} for {resourceId}");
+                throw;
+            }
+        }
+
+        public async Task<bool> IsDotnetBased(string resourceId)
+        {
+            try
+            {
+                string commands = string.Join("; ", await File.ReadAllTextAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-detect.sh")));
+                var result = await InvokeExecCommand(resourceId, commands);
+                return result.Any();
+            }
+
+            catch (Exception ex)
+            {
+                _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message} for {resourceId}");
+                throw;
+            }
         }
     }
 }

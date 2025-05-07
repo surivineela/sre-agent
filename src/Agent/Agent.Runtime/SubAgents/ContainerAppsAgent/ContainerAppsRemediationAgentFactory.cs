@@ -46,6 +46,8 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ListRevisionsAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppRequestMetrics));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppMemoryMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerMemoryAnalysisForDotnet));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.IsContainerAppDotnet));
         //toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppCpuMetrics));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppInfoAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetLatestRevisionAsync));

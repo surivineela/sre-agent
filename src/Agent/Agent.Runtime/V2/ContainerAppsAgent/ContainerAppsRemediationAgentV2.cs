@@ -28,6 +28,8 @@ public class ContainerAppsRemediationAgentV2(
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.ListRevisionsAsync);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.GetContainerAppRequestMetrics);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.GetContainerAppMemoryMetrics);
+            toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.GetContainerMemoryAnalysisForDotnet);
+            toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.IsContainerAppDotnet);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.GetContainerAppInfoAsync);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.GetLatestRevisionAsync);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.ListContainerAppsAsync);
@@ -119,6 +121,8 @@ public class ContainerAppsRemediationAgentV2(
         - **GetContainerAppLogsAsync**: Stream last 100 lines of container logs
         - **ScaleContainerApp**: Scale a Container App by adjusting memory and replica count. Use this to resolve performance or availability issues. Provide the resource ID of the container app, the desired memory size (e.g., "2.0Gi"), the minimum number of replicas (e.g., 1), and the maximum number of replicas (e.g., 10). This will update the app's CPU based on valid memory/CPU pairings. (requires approval, do not call this until you call 'AskForUserInput' and get a user message indicating that they approve)
         - **PlotTimeSeriesData**: Generate visualization charts for metrics
+        - **IsContainerAppDotnet**: Check if the container app is .NET based.
+        - **GetContainerMemoryAnalysisForDotnet**: Get memory analysis details for .NET based container apps.
 
         <important>
         **Network Investigation Tips:**

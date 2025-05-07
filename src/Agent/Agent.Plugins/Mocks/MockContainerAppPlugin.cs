@@ -310,6 +310,16 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult(true);
         }
 
+        public Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<bool> IsDotnetBased(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<string> RollbackToLastRevision(string resourceId)
         {
             throw new NotImplementedException();

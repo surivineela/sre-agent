@@ -89,12 +89,33 @@ namespace Agent.Plugins.Definitions
         [KernelFunction("get_containerapp_memory_metrics")]
         [Description(
             "Start a background operation to get the average memory usage of a specific Container App instance at per minute granularity for the past 30 minutes," +
-            " Container App is healthy if over half of the data points is less than 80% memory utilization.")]
+            " Container App is healthy if over half of the data points is less than 20% memory utilization.")]
         public async Task<IReadOnlyList<MemoryUsageTimeSeriesData>> GetContainerAppMemoryMetrics(
             [Description("The resource ID of the ContainerApp resource.")]
             string resourceId)
         {
             return await _containerAppPlugin.GetContainerAppMemoryMetrics(resourceId);
+        }
+
+        [KernelFunction("check_if_containerapp_is_dotnet")]
+        [Description(
+            "Start a background operation to check if the container app is dotnet based.")]
+        public async Task<bool> IsContainerAppDotnet(
+            [Description("The resource ID of the ContainerApp resource.")]
+            string resourceId)
+        {
+            return await _containerAppPlugin.IsDotnetBased(resourceId);
+        }
+
+        [KernelFunction("get_containerapp_memory_analysis_dotnet")]
+        [Description(
+            "Start a background operation to get an in-depth memory analysis for .NET Apps of the App instance." +
+            " This remediation measure is in the case of high memory load or if the user requests it.")]
+        public async Task<string> GetContainerMemoryAnalysisForDotnet(
+            [Description("The resource ID of the ContainerApp resource.")]
+            string resourceId)
+        {
+            return await _containerAppPlugin.GetContainerMemoryAnalysisForDotnet(resourceId);
         }
 
         [KernelFunction("get_containerapp_cpu_metrics")]

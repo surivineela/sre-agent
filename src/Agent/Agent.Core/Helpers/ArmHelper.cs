@@ -7,6 +7,8 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
+using System.Web;
 using Agent.Core.Configuration;
 using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
@@ -14,6 +16,7 @@ using Agent.Core.Models;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
+using Azure.Identity;
 using Azure.ResourceManager;
 using Azure.ResourceManager.AppService;
 using Azure.ResourceManager.AppService.Models;
@@ -1761,7 +1764,7 @@ public class ArmHelper
         return numWorkers;
     }
 
-    public async Task<WebSiteResource> GetWebAppInfoAsync(string resourceId)
+    public async Task<WebSiteResource> GetWebSiteResourceAsync(string resourceId)
     {
         try
         {
@@ -1783,7 +1786,7 @@ public class ArmHelper
         try
         {
             // Retrieve Web App using the provided resourceId
-            var site = await GetWebAppInfoAsync(resourceId);
+            var site = await GetWebSiteResourceAsync(resourceId);
             // Kudu host URL (this will be used for profiling purposes)
             return site.Data.EnabledHostNames.FirstOrDefault(h => h.Contains(".scm."));
         }
@@ -1799,7 +1802,7 @@ public class ArmHelper
         try
         {
             // Retrieve the Web App and determine its OS
-            var site = await GetWebAppInfoAsync(resourceId);
+            var site = await GetWebSiteResourceAsync(resourceId);
             return site.Data.Kind.Contains("linux", StringComparison.OrdinalIgnoreCase) ? "Linux" : "Windows";
         }
         catch (Exception ex)
@@ -1934,6 +1937,41 @@ public class ArmHelper
         }
     }
 
+    private record GetAuthTokenResponseProperties([property: JsonPropertyName("token")] string Token);
+    private record GetAuthTokenResponse([property: JsonPropertyName("properties")] GetAuthTokenResponseProperties Properties);
+    public async Task<string> GetProxyApiTokenAsync(string subscriptionId, string resourceGroup, string appName)
+    {
+        try
+        {
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            // Add the token to the HttpClient's Authorization header
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+
+            var uriBuilder = new UriBuilder($"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.App/containerApps/{appName}/getAuthToken");
+            var query = HttpUtility.ParseQueryString(uriBuilder.Query);
+            query.Add("api-version", "2024-02-02-preview");
+            uriBuilder.Query = query.ToString();
+
+            var client = new HttpClient(); // _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Token);
+            var response = await client.PostAsync(uriBuilder.Uri, null);
+            response.EnsureSuccessStatusCode();
+            var resp = await response.Content.ReadFromJsonAsync<GetAuthTokenResponse>();
+            if (resp == null || resp.Properties == null || string.IsNullOrEmpty(resp.Properties.Token))
+            {
+                throw new Exception("Failed to Proxy get API token");
+            }
+
+            return resp.Properties.Token;
+        }
+        catch (Exception ex)
+        {
+            throw;
+        }
+    }
+
     #region Private Methods
 
     internal async Task<HttpClient> GetAuthenticatedHttpClient()
@@ -1947,6 +1985,7 @@ public class ArmHelper
             // Add the token to the HttpClient's Authorization header
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
             return httpClient;
         }
 

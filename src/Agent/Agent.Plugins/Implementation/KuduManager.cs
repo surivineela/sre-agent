@@ -31,7 +31,7 @@ public sealed class KuduManager
                 throw new ArgumentException("Resource ID cannot be null or empty.", nameof(resourceId));
 
             KuduManager manager = new KuduManager(resourceId, armHelper);
-            WebSiteResource site = await armHelper.GetWebAppInfoAsync(resourceId);
+            WebSiteResource site = await armHelper.GetWebSiteResourceAsync(resourceId);
             manager._kuduHostName = site?.Data?.EnabledHostNames?.FirstOrDefault(h => h.Contains(".scm."));
             manager._os = site.Data.Kind.Contains("linux", StringComparison.OrdinalIgnoreCase) ? "Linux" : "Windows";
             WebSiteConfigResource config = await site.GetWebSiteConfig().GetAsync();
