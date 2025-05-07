@@ -41,12 +41,13 @@ namespace Agent.Plugins.Definitions
 
         Task<bool> VerifyExternalRegistryAsync(string resourceId, string imageReference);
 
-        Task<bool> RollbackToLastWorkingImage(string resourceId);
-
-        Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null);
+        Task<RollbackResult> RollbackToLastKnownWorkingRevision(string resourceId);
 
         Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId);
         Task<bool> IsDotnetBased(string resourceId);
-        Task<string> RollbackToLastRevision(string resourceId);
+        // Task<string> RollbackToLastRevision(string resourceId);
+        Task<ImageUpdateResult> UpdateContainerImage(string resourceId, string newImageReference);
+        
+        Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(string resourceId);
     }
 }

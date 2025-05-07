@@ -240,39 +240,64 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<bool> RollbackToLastWorkingImage(string resourceId)
+        public Task<RollbackResult> RollbackToLastKnownWorkingRevision(string resourceId)
         {
             if (!_containerApps.ContainsKey(resourceId))
             {
-                return Task.FromResult(false);
+                return Task.FromResult(RollbackResult.Failure($"Container app with resourceId {resourceId} not found"));
             }
 
             if (!_previousImageReferences.TryGetValue(resourceId, out var previousImage) || string.IsNullOrEmpty(previousImage))
             {
-                return Task.FromResult(false);
+                return Task.FromResult(RollbackResult.Failure("No previous image reference found to roll back to"));
             }
 
             // Set the current image to the previous one
             _containerImageReferences[resourceId] = previousImage;
 
-            return Task.FromResult(true);
+            // Create mock details dictionary
+            var details = new Dictionary<string, string>
+            {
+                { "AppName", _containerApps[resourceId].Name },
+                { "PreviousImage", _containerImageReferences[resourceId] },
+                { "RolledBackToImage", previousImage },
+                { "MockRevision", "mock-revision-1" }
+            };
+            
+            return Task.FromResult(RollbackResult.Success("mock-revision-1", previousImage, details));
         }
 
-        public Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
+        public Task<ImageUpdateResult> UpdateContainerImage(string resourceId, string newImageReference)
         {
             if (_containerApps.TryGetValue(resourceId, out var containerApp))
             {
-                if (_containerImageReferences.TryGetValue(resourceId, out var currentImage))
+                string currentImage = null;
+                
+                if (_containerImageReferences.TryGetValue(resourceId, out var existingImage))
                 {
+                    currentImage = existingImage;
+                    _previousImageReferences[resourceId] = currentImage;
+                }
+                else if (containerApp.Containers != null && containerApp.Containers.Any())
+                {
+                    currentImage = containerApp.Containers.First().Image;
                     _previousImageReferences[resourceId] = currentImage;
                 }
                 
                 _containerImageReferences[resourceId] = newImageReference;
                 
-                return Task.FromResult(true);
+                var details = new Dictionary<string, string>
+                {
+                    { "AppName", containerApp.Name },
+                    { "ResourceGroup", containerApp.ResourceGroup },
+                    { "Location", containerApp.Location },
+                    { "MockUpdate", "true" }
+                };
+                
+                return Task.FromResult(ImageUpdateResult.Success(currentImage, newImageReference, details));
             }
             
-            return Task.FromResult(false);
+            return Task.FromResult(ImageUpdateResult.Failure($"Container app with resource ID {resourceId} not found"));
         }
 
         public Task<string> GetImageReferenceFromResourceId(string resourceId)
@@ -320,9 +345,26 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<string> RollbackToLastRevision(string resourceId)
+        // public Task<string> RollbackToLastRevision(string resourceId)
+        // {
+        //     throw new NotImplementedException();
+        // }
+        public Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(string resourceId)
         {
-            throw new NotImplementedException();
+            if (_containerApps.ContainsKey(resourceId))
+            {
+                return Task.FromResult(new ContainerAppHealthValidationResult
+                {
+                    IsHealthy = true,
+                    Messages = ["Container app is healthy."]
+                });
+            }
+
+            return Task.FromResult(new ContainerAppHealthValidationResult
+            {
+                IsHealthy = false,
+                Messages = [$"Container app with resource ID {resourceId} not found."]
+            });
         }
     }
 }

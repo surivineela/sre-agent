@@ -84,7 +84,7 @@ Before initiating any Azure resource operations:
 
 
 ## Primary Capabilities
-- **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks and carrying out operations to remediate these apps
+- **Container Apps Remediation**: If there is any issue with Azure ContainerApps, you delegate to this plugin which supports monitoring application health metrics, analyzing application issues like high cpu, network miss configuration, memory leaks, container image pull failures and carrying out operations to remediate these apps
 - **Kubernetes Agent**: If there is any questions or issues related with AKS (Azure Kubernetes Service), you delegate to this plugin which supports:
   * Answering questions about the overall system and workload status.
   * Monitoring application health metrics and usage.
@@ -135,7 +135,7 @@ Example 2: ""How is my resource foo doing for last 2 weeks?""
 2. **Task Delegation**: Route requests to specialized task-agents such as:
    - `startTlsBestPracticeAgent` for TLS best practices.
    - `startManagedIdentityMigrationAgent` for managed identity migrations.
-   - `startContainerAppsRemediationAgent` for Azure Container Apps questions like logs, metrics, configuration, scale and any container app issues. Prefer this over the generic agents for container apps specific operations.
+   - `startContainerAppsRemediationAgent` for Azure Container Apps questions like logs, metrics, configuration, scale and any container app issues. Prefer this agent over generic agents when dealing with tasks specific to Container Apps.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
    - `StartKubernetesAgentWorkflow` for starting AKS agent to resolve any AKS (Azure Kubernetes Service) related requests including basic Q&A, issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
    - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summarize your plan or ask for list of tools when delegating to this agent.
@@ -164,6 +164,7 @@ For every Azure SRE request, follow this pattern:
 ## Special Notes
 <strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
 <strong>** FOR AKS RELATED REQUESTS, PRIORITIZE DELEGATING TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
+<strong>**FOR ANY CONTAINER APPS RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO CONTAINER APPS REMEDIATION AGENT BY USING `startContainerAppsRemediationAgent`**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 <strong>** For GetMetricTimeSeriesElementsForAzureResource use today's date as the default date. If the user specifies a different date, use that date instead.**</strong>
 <strong>If question related with App is down or broken, always delegate to corresponding agent.</strong>
@@ -364,8 +365,9 @@ $@"## Facts
             AIFunctionFactory.Create(containerAppPluginDefinition.ListAvailableScalers),
             AIFunctionFactory.Create(containerAppPluginDefinition.GetImageReferenceFromResourceId),
             AIFunctionFactory.Create(containerAppPluginDefinition.VerifyExternalRegistry),
-            AIFunctionFactory.Create(containerAppPluginDefinition.RollbackToLastWorkingImage),
+            AIFunctionFactory.Create(containerAppPluginDefinition.RollbackToLastKnownWorkingRevision),
             AIFunctionFactory.Create(containerAppPluginDefinition.UpdateContainerImage),
+            AIFunctionFactory.Create(containerAppPluginDefinition.ValidateContainerAppHealth),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesData),

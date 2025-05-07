@@ -699,9 +699,9 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        public async Task<bool> RollbackToLastWorkingImage(string resourceId)
+        public async Task<RollbackResult> RollbackToLastKnownWorkingRevision(string resourceId)
         {
-            _logger.LogInternalInformation($"Rolling back to last known working image for resource: {resourceId}");
+            _logger.LogInternalInformation($"Rolling back to last known working revision for resource: {resourceId}");
 
             try
             {
@@ -709,83 +709,296 @@ namespace Agent.Plugins.Implementation
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, $"Error rolling back resource {resourceId} to last working image");
-                return false;
+                _logger.LogInternalError(ex, $"Error rolling back resource {resourceId} to last known working revision");
+                return RollbackResult.Failure($"Exception during rollback: {ex.Message}");
             }
         }
 
-        public async Task<bool> UpdateContainerImage(string resourceId, string newImageReference, string containerName = null)
+        public async Task<ImageUpdateResult> UpdateContainerImage(string resourceId, string newImageReference)
         {
             _logger.LogInternalInformation($"Updating container image for resource: {resourceId} to {newImageReference}");
 
             try
             {
-                return await UpdateContainerAppImage(resourceId, newImageReference, containerName);
+                return await UpdateContainerAppImage(resourceId, newImageReference);
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error updating container image for resource {resourceId}");
-                return false;
+                return ImageUpdateResult.Failure($"Exception during image update: {ex.Message}");
             }
         }
 
-        private async Task<bool> UpdateContainerAppImage(string resourceId, string newImageReference, string containerName = null)
+        public async Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(string resourceId)
         {
+            _logger.LogInternalInformation($"[ValidateContainerAppHealth] Validating health for container app: {resourceId}");
+
+            var result = new ContainerAppHealthValidationResult
+            {
+                IsHealthy = false,
+                Details = new Dictionary<string, string>(),
+                Messages = new List<string>()
+            };
+
             try
             {
-                // Get the Container App resource
+                // Step 1: Check if the container app resource exists and is provisioned
                 var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
+                if (!containerApp.HasValue)
+                {
+                    result.Messages.Add("Container app resource not found.");
+                    return result;
+                }
+
+                result.Details["ProvisioningState"] = containerApp.Value.Data.ProvisioningState.ToString();
+
+                if (containerApp.Value.Data.ProvisioningState != ContainerAppProvisioningState.Succeeded)
+                {
+                    result.Messages.Add($"Container app is in {containerApp.Value.Data.ProvisioningState} state, not Succeeded.");
+                    return result;
+                }
+
+                // Step 2: Check latest revision status
+                var latestRevisionName = containerApp.Value.Data.LatestRevisionName;
+                result.Details["LatestRevision"] = latestRevisionName;
+
+                if (string.IsNullOrEmpty(latestRevisionName))
+                {
+                    result.Messages.Add("No latest revision found for the container app.");
+                    return result;
+                }
+
+                var revisions = containerAppResource.GetContainerAppRevisions();
+                ContainerAppRevisionResource latestRevision = null;
+
+                await foreach (var revision in revisions.GetAllAsync())
+                {
+                    if (revision.Data.Name == latestRevisionName)
+                    {
+                        latestRevision = revision;
+                        break;
+                    }
+                }
+
+                if (latestRevision == null)
+                {
+                    result.Messages.Add($"Latest revision {latestRevisionName} not found.");
+                    return result;
+                }
+
+                result.Details["RevisionState"] = latestRevision.Data.ProvisioningState.ToString();
+                result.Details["RevisionTrafficWeight"] = (latestRevision.Data.TrafficWeight ?? 0).ToString();
+
+                if (latestRevision.Data.ProvisioningState != ContainerAppRevisionProvisioningState.Provisioned)
+                {
+                    result.Messages.Add($"Latest revision is in {latestRevision.Data.ProvisioningState} state, not Provisioned.");
+                    return result;
+                }
+
+                // Step 3: Check replica status
+                var replicas = await _armHelper.GetRevisionReplicas(latestRevision.Id.ToString());
+                result.Details["ReplicaCount"] = replicas.Count.ToString();
+
+                // Check if the revision is configured to have a minimum of 0 replicas (scale to zero)
+                bool canScaleToZero = latestRevision.Data.Template?.Scale?.MinReplicas == 0;
+                result.Details["CanScaleToZero"] = canScaleToZero.ToString();
+
+                // Count ready replicas
+                int readyReplicas = replicas.Count(r => r?.Properties?.RunningState?.Equals("Running", StringComparison.OrdinalIgnoreCase) == true);
+                result.Details["ReadyReplicas"] = readyReplicas.ToString();
+
+                // Only consider the replica count a problem if the app can't scale to zero
+                if (replicas.Count == 0)
+                {
+                    if (!canScaleToZero)
+                    {
+                        result.Messages.Add("No replicas found for the latest revision (scale to zero is not enabled).");
+                        result.Details["ReplicaIssue"] = "No replicas found";
+                    }
+                    else
+                    {
+                        // This is expected behavior for scale to zero
+                        result.Details["ReplicaStatus"] = "No active replicas (scale to zero is enabled)";
+                    }
+                }
+                else if (readyReplicas == 0)
+                {
+                    result.Messages.Add("No replicas are in the Running state.");
+                    result.Details["ReplicaIssue"] = "No running replicas";
+                }
+                else
+                {
+                    result.Details["ReplicaStatus"] = $"{readyReplicas} of {replicas.Count} replicas are running";
+                }
+
+                // Step 4: Check recent logs for errors
+                var recentLogs = await GetContainerAppLogsAsync(resourceId, latestRevisionName);
+                bool hasErrors = ContainsErrorsInLogs(recentLogs);
+                result.Details["HasErrorsInLogs"] = hasErrors.ToString();
+
+                if (hasErrors)
+                {
+                    result.Messages.Add("Recent logs contain error messages.");
+                }
+
+                // Step 5: If the app has external ingress, check if it's responding
+                if (containerApp.Value.Data.Configuration?.Ingress != null &&
+                    containerApp.Value.Data.Configuration.Ingress.External == true &&
+                    !string.IsNullOrEmpty(containerApp.Value.Data.Configuration.Ingress.Fqdn))
+                {
+                    string fqdn = containerApp.Value.Data.Configuration.Ingress.Fqdn;
+                    result.Details["Hostname"] = fqdn;
+
+                    bool endpointReachable = await IsEndpointReachable(fqdn);
+                    result.Details["EndpointReachable"] = endpointReachable.ToString();
+
+                    if (!endpointReachable)
+                    {
+                        result.Messages.Add($"HTTP endpoint {fqdn} is not reachable.");
+                    }
+                }
+
+                // Step 6: Determine overall health
+                // Consider app healthy if:
+                // - App and revision are properly provisioned
+                // - If app can't scale to zero, it must have running replicas
+                // - External endpoint is reachable (if applicable)
+
+                bool hasValidReplicas = (canScaleToZero && replicas.Count >= 0) || // Zero replicas is acceptable if scale to zero is enabled
+                                       (!canScaleToZero && readyReplicas > 0);    // Otherwise need running replicas
+
+                bool isHealthy =
+                    containerApp.Value.Data.ProvisioningState == ContainerAppProvisioningState.Succeeded &&
+                    latestRevision.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned &&
+                    hasValidReplicas;
+
+                // If app has external ingress, it must also be reachable
+                if (containerApp.Value.Data.Configuration?.Ingress != null &&
+                    containerApp.Value.Data.Configuration.Ingress.External == true)
+                {
+                    isHealthy = isHealthy && bool.TryParse(result.Details["EndpointReachable"], out bool endpointReachable) && endpointReachable;
+                }
+
+                result.IsHealthy = isHealthy;
+
+                // Add summary message
+                if (result.IsHealthy)
+                {
+                    result.Messages.Add($"Container app is healthy.");
+                }
+                else if (result.Messages.Count == 0)
+                {
+                    result.Messages.Add("Container app is unhealthy but the specific reason could not be determined.");
+                }
+
+                return result;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error validating container app health for {resourceId}");
+                result.Messages.Add($"Error validating health: {ex.Message}");
+                return result;
+            }
+        }
+
+        private async Task<ImageUpdateResult> UpdateContainerAppImage(string resourceId, string newImageReference)
+        {
+            var details = new Dictionary<string, string>();
+
+            try
+            {
+                _logger.LogInternalInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
+                
+                // Get the Container App resource
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+                
+                if (!containerApp.HasValue)
+                {
+                    return ImageUpdateResult.Failure($"Container App with resource ID {resourceId} not found");
+                }
+                if (string.IsNullOrWhiteSpace(newImageReference))
+                {
+                    return ImageUpdateResult.Failure("Invalid container image reference format", 
+                        null, newImageReference, details);
+                }
+                
                 // Create a data object for the update
                 ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
                 {
-                    Template = containerApp.Value.Data.Template
+                    Template = containerApp.Value.Data.Template ?? new ContainerAppTemplate()
                 };
-
+                
                 // Check if we have containers in the template
                 if (updateData.Template?.Containers == null || updateData.Template.Containers.Count == 0)
                 {
-                    return false;
+                    return ImageUpdateResult.Failure("No containers found in the Container App template", 
+                        null, newImageReference, details);
                 }
 
-                // Update specific container by name if provided, otherwise update the first container
-                var containerToUpdate = string.IsNullOrEmpty(containerName)
-                    ? updateData.Template.Containers[0]
-                    : updateData.Template.Containers.FirstOrDefault(c => c.Name == containerName);
-
+                // Store the original image for logging
+                string originalImage = updateData.Template.Containers[0].Image ?? "unknown";
+                details["OriginalImage"] = originalImage;
+                details["NewImage"] = newImageReference;
+                
+                var containerToUpdate = updateData.Template.Containers[0];
                 if (containerToUpdate == null)
                 {
-                    return false;
+                    return ImageUpdateResult.Failure("First container in the template is null", 
+                        originalImage, newImageReference, details);
                 }
 
                 // Update the image reference
                 containerToUpdate.Image = newImageReference;
 
                 // Update the Container App with the new template
-                _logger.LogInternalInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
+                _logger.LogInternalInformation($"Applying update to Container App {resourceId}: changing image from {originalImage} to {newImageReference}");
+                
                 var updateOperation = await containerAppResource.UpdateAsync(
-                    WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
-                    updateData,          // The ContainerAppData object to update
-                    CancellationToken.None // Provide a CancellationToken (use CancellationToken.None if no cancellation is needed)
+                    WaitUntil.Completed,
+                    updateData,
+                    CancellationToken.None
                 );
+                
                 var updatedApp = updateOperation.Value;
+                
+                // Verify the update was successful
+                if (updatedApp != null && 
+                    updatedApp.Data.Template?.Containers != null && 
+                    updatedApp.Data.Template.Containers.Count > 0 && 
+                    updatedApp.Data.Template.Containers[0].Image == newImageReference)
+                {
+                    _logger.LogInternalInformation($"Successfully updated Container App {resourceId} image to: {newImageReference}");
 
-                _logger.LogInternalInformation($"Successfully updated Container App {resourceId} to image: {newImageReference}");
-
-                return true;
+                    details["Status"] = "Updated successfully";
+                    details["LatestRevisionName"] = updatedApp.Data.LatestRevisionName ?? "Unknown";
+                    
+                    return ImageUpdateResult.Success(originalImage, newImageReference, details);
+                }
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, $"Error updating Container App {resourceId}");
-                return false;
+                _logger.LogInternalError(ex, $"Error updating Container App {resourceId} with image {newImageReference}");
+                
+                details["ErrorType"] = ex.GetType().Name;
+                details["ErrorMessage"] = ex.Message;
+                return ImageUpdateResult.Failure($"Error updating image: {ex.Message}", 
+                    null, newImageReference, details);
             }
+            
+            _logger.LogInternalError($"Failed to update Container App {resourceId}");
+            return ImageUpdateResult.Failure($"Failed to update Container App image", 
+                null, newImageReference, details);
         }
 
-        private async Task<bool> RollbackContainerApp(string resourceId)
+        private async Task<RollbackResult> RollbackContainerApp(string resourceId)
         {
             try
             {
+                var details = new Dictionary<string, string>();
+                
                 // Get the Container App resource
                 var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
@@ -797,26 +1010,106 @@ namespace Agent.Plugins.Implementation
                 revisions = revisions
                     .OrderByDescending(r => r.Data.CreatedOn)
                     .ToList();
+                    
+                details["TotalRevisions"] = revisions.Count.ToString();
 
                 // We need at least 2 revisions to perform a rollback
                 if (revisions.Count < 2)
                 {
-                    return false;
+                    return RollbackResult.Failure(
+                        "Not enough revisions for rollback", 
+                        details);
                 }
 
                 // Get current active revision name
                 string currentRevisionName = containerApp.Value.Data.LatestRevisionName;
+                details["CurrentRevision"] = currentRevisionName ?? "Unknown";
 
-                // Find the most recent inactive revision that is not the current one and is in a "Ready" state
-                var targetRevision = revisions
-                    .Where(r => r.Data.Name != currentRevisionName)
-                    .Where(r => r.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned)
-                    .FirstOrDefault();
-
+                // Find a healthy revision to roll back to
+                // First, gather more information about each revision
+                var revisionHealthInfo = new List<(ContainerAppRevisionResource Revision, bool IsActive, bool IsHealthy, string HealthReason)>();
+                
+                foreach (var revision in revisions)
+                {
+                    // Skip the current revision
+                    if (revision.Data.Name == currentRevisionName)
+                    {
+                        continue;
+                    }
+                    
+                    bool isActive = (revision.Data.TrafficWeight ?? 0) > 0;
+                    
+                    // Check if this revision was healthy
+                    bool isHealthy = revision.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned;
+                    string healthReason = isHealthy ? "Provisioned state is good" : $"Provisioning state is {revision.Data.ProvisioningState}";
+                    
+                    // Additional health checks if needed
+                    if (isHealthy)
+                    {
+                        // Check if this revision had replicas in the past
+                        var replicas = await _armHelper.GetRevisionReplicas(revision.Id.ToString());
+                        
+                        // Check if the revision is configured to have a minimum of 0 replicas (scale to zero)
+                        var revisionDetails = await _armClient.GetContainerAppRevisionResource(revision.Id).GetAsync();
+                        bool canScaleToZero = revisionDetails.Value.Data.Template?.Scale?.MinReplicas == 0;
+                        
+                        int readyReplicas = replicas.Count(r => r?.Properties?.RunningState?.Equals("Running", StringComparison.OrdinalIgnoreCase) == true);
+                        
+                        // If we have no replicas or no ready replicas, check if it's due to scale to zero
+                        if (replicas.Count == 0 || readyReplicas == 0)
+                        {
+                            if (canScaleToZero)
+                            {
+                                // This is expected behavior for scale to zero, so revision can still be considered healthy
+                                healthReason = "No active replicas (scale to zero is enabled)";
+                            }
+                            else 
+                            {
+                                isHealthy = false;
+                                healthReason = replicas.Count == 0 
+                                    ? "No replicas found (scale to zero is not enabled)" 
+                                    : "No running replicas found";
+                            }
+                        }
+                        else 
+                        {
+                            healthReason = $"{readyReplicas} of {replicas.Count} replicas were running";
+                        }
+                    }
+                    
+                    revisionHealthInfo.Add((revision, isActive, isHealthy, healthReason));
+                }
+                
+                details["EvaluatedRevisions"] = revisionHealthInfo.Count.ToString();
+                details["HealthyRevisions"] = revisionHealthInfo.Count(r => r.IsHealthy).ToString();
+                
+                // First try to find a healthy revision that was active in the past
+                var targetRevision = revisionHealthInfo.FirstOrDefault(r => r.IsHealthy && r.IsActive).Revision;
+                string targetSelectionReason = "Found healthy and previously active revision";
+                
+                // If no healthy and active revision found, try any healthy revision
                 if (targetRevision == null)
                 {
-                    return false;
+                    var healthyRevision = revisionHealthInfo.FirstOrDefault(r => r.IsHealthy);
+                    targetRevision = healthyRevision.Revision;
+                    targetSelectionReason = "Found healthy revision (not previously active)";
                 }
+                
+                // If no healthy revision found, don't fall back to any revision - just return an error
+                if (targetRevision == null)
+                {
+                    _logger.LogInternalWarning("No healthy revisions found for Container App {resourceId}", resourceId);
+                    return RollbackResult.Failure(
+                        "No healthy revisions found to roll back to", 
+                        details);
+                }
+
+                details["TargetRevision"] = targetRevision.Data.Name;
+                details["TargetRevisionSelectionReason"] = targetSelectionReason;
+                
+                // Find the target revision's health info for the log
+                var healthInfo = revisionHealthInfo.First(r => r.Revision.Id == targetRevision.Id);
+                details["TargetRevisionHealth"] = healthInfo.HealthReason;
 
                 // Find the image reference in the target revision
                 string? targetImageReference = null;
@@ -827,8 +1120,14 @@ namespace Agent.Plugins.Implementation
 
                 if (string.IsNullOrEmpty(targetImageReference))
                 {
-                    return false;
+                    return RollbackResult.Failure(
+                        $"No image reference found in target revision {targetRevision.Data.Name}", 
+                        details);
                 }
+                
+                details["TargetImage"] = targetImageReference;
+
+                _logger.LogInternalInformation($"Found healthy previous revision {targetRevision.Data.Name} with image {targetImageReference}");
 
                 // Create a data object for the update
                 ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
@@ -843,26 +1142,31 @@ namespace Agent.Plugins.Implementation
                 }
                 else
                 {
-                    return false;
+                    return RollbackResult.Failure(
+                        $"No containers found in the template for Container App {resourceId}", 
+                        details);
                 }
 
                 // Update the Container App with the new template
-                _logger.LogInternalInformation($"Updating Container App {resourceId} with previous working image: {targetImageReference}");
+                _logger.LogInternalInformation($"Rolling back Container App {resourceId} to image from revision {targetRevision.Data.Name}: {targetImageReference}");
                 var updateOperation = await containerAppResource.UpdateAsync(
-                   WaitUntil.Completed, // Specify the wait behavior (e.g., WaitUntil.Completed or WaitUntil.Started)
-                   updateData,          // The ContainerAppData object to update
-                   CancellationToken.None // Provide a CancellationToken (use CancellationToken.None if no cancellation is needed)
+                   WaitUntil.Completed,
+                   updateData,
+                   CancellationToken.None
                 );
                 var updatedApp = updateOperation.Value;
 
                 _logger.LogInternalInformation($"Successfully rolled back Container App {resourceId} to image: {targetImageReference}");
 
-                return true;
+                return RollbackResult.Success(
+                    targetRevision.Data.Name,
+                    targetImageReference,
+                    details);
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error rolling back Container App {resourceId}");
-                return false;
+                return RollbackResult.Failure($"Exception during rollback: {ex.Message}");
             }
         }
 
@@ -1779,6 +2083,57 @@ namespace Agent.Plugins.Implementation
             {
                 _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message} for {resourceId}");
                 throw;
+            }
+        }
+
+        private bool ContainsErrorsInLogs(string logs)
+        {
+            if (string.IsNullOrEmpty(logs))
+            {
+                return false;
+            }
+            
+            // Common error patterns in logs
+            var errorPatterns = new[]
+            {
+                "error:", 
+                "exception:", 
+                "failed:", 
+                "fatal:", 
+                "crash",
+                "exited with code",
+                "cannot find module",
+                "404 not found",
+                "500 internal server error",
+                "connection refused",
+                "permission denied",
+                "access denied",
+                "startup probe failed"
+            };
+            
+            return errorPatterns.Any(pattern => 
+                logs.Contains(pattern, StringComparison.OrdinalIgnoreCase));
+        }
+
+        private async Task<bool> IsEndpointReachable(string hostname)
+        {
+            try
+            {
+                string url = $"https://{hostname}";
+                var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Add("User-Agent", "ContainerAppHealthCheck/1.0");
+                
+                var response = await _httpClient.SendAsync(request);
+                
+                // Consider any non-server error response as a sign of a working app
+                // 2xx, 3xx, 4xx are all ok - the app is responding
+                // Only 5xx or exceptions are considered unreachable
+                return (int)response.StatusCode < 500;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalWarning(ex, $"Error checking endpoint reachability for {hostname}");
+                return false;
             }
         }
     }

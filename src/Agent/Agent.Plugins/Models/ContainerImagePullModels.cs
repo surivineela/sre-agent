@@ -414,4 +414,145 @@ namespace Agent.Plugins.Models
             Context = new Dictionary<string, string>();
         }
     }
+
+    /// <summary>
+    /// Result of a container app image update operation
+    /// </summary>
+    public class ImageUpdateResult
+    {
+        /// <summary>
+        /// Whether the image update operation was successful
+        /// </summary>
+        public bool IsSuccess { get; set; }
+        
+        /// <summary>
+        /// Reason for failure, if the update was not successful
+        /// </summary>
+        public string FailureReason { get; set; }
+        
+        /// <summary>
+        /// Original image reference before the update
+        /// </summary>
+        public string OriginalImageReference { get; set; }
+        
+        /// <summary>
+        /// New image reference that was applied
+        /// </summary>
+        public string NewImageReference { get; set; }
+        
+        /// <summary>
+        /// Additional details about the update operation
+        /// </summary>
+        public Dictionary<string, string> Details { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Creates a successful image update result
+        /// </summary>
+        public static ImageUpdateResult Success(string originalImage, string newImage, Dictionary<string, string> details = null)
+        {
+            return new ImageUpdateResult
+            {
+                IsSuccess = true,
+                OriginalImageReference = originalImage,
+                NewImageReference = newImage,
+                Details = details ?? new Dictionary<string, string>()
+            };
+        }
+
+        /// <summary>
+        /// Creates a failed image update result
+        /// </summary>
+        public static ImageUpdateResult Failure(string reason, string originalImage = null, string newImage = null, Dictionary<string, string> details = null)
+        {
+            return new ImageUpdateResult
+            {
+                IsSuccess = false,
+                FailureReason = reason,
+                OriginalImageReference = originalImage,
+                NewImageReference = newImage,
+                Details = details ?? new Dictionary<string, string>()
+            };
+        }
+    }
+
+    /// <summary>
+    /// Result of a container app rollback operation
+    /// </summary>
+    public class RollbackResult
+    {
+        /// <summary>
+        /// Whether the rollback operation was successful
+        /// </summary>
+        public bool IsSuccess { get; set; }
+        
+        /// <summary>
+        /// Reason for failure, if the rollback was not successful
+        /// </summary>
+        public string FailureReason { get; set; }
+        
+        /// <summary>
+        /// Name of the revision that was rolled back to, if successful
+        /// </summary>
+        public string TargetRevisionName { get; set; }
+        
+        /// <summary>
+        /// Image reference that was applied in the rollback, if successful
+        /// </summary>
+        public string TargetImageReference { get; set; }
+        
+        /// <summary>
+        /// Additional details about the rollback operation
+        /// </summary>
+        public Dictionary<string, string> Details { get; set; } = new Dictionary<string, string>();
+
+        /// <summary>
+        /// Creates a successful rollback result
+        /// </summary>
+        public static RollbackResult Success(string revisionName, string imageReference, Dictionary<string, string> details = null)
+        {
+            return new RollbackResult
+            {
+                IsSuccess = true,
+                TargetRevisionName = revisionName,
+                TargetImageReference = imageReference,
+                Details = details ?? new Dictionary<string, string>()
+            };
+        }
+
+        /// <summary>
+        /// Creates a failed rollback result
+        /// </summary>
+        public static RollbackResult Failure(string reason, Dictionary<string, string> details = null)
+        {
+            return new RollbackResult
+            {
+                IsSuccess = false,
+                FailureReason = reason,
+                Details = details ?? new Dictionary<string, string>()
+            };
+        }
+    }
+
+    /// <summary>
+    /// Result of validating a Container App's health
+    /// </summary>
+    public class ContainerAppHealthValidationResult
+    {
+        /// <summary>
+        /// Whether the Container App is considered healthy
+        /// </summary>
+        public bool IsHealthy { get; set; }
+        
+        /// <summary>
+        /// Detailed status information
+        /// <summary>
+        /// Detailed status information
+        /// </summary>
+        public Dictionary<string, string> Details { get; set; } = [];
+        
+        /// <summary>
+        /// Descriptive messages about the health status
+        /// </summary>
+        public List<string> Messages { get; set; } = [];
+    }
 }

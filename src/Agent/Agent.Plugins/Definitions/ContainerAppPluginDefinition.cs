@@ -235,35 +235,43 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.VerifyExternalRegistryAsync(resourceId, imageReference);
         }
 
-        [KernelFunction("rollback_to_last_working_image")]
         [RequiresApproval]
-        [Description("Rolls back a Container App or Linux Web App to the last known working image. This is useful when a new image deployment causes pull failures or other issues.")]
-        public async Task<bool> RollbackToLastWorkingImage(
-            [Description("Resource ID of the Container App or Linux Web App to roll back")]
+        [KernelFunction("rollback_to_last_working_image")]
+        [Description("Rolls back a Container App to the last known working revision. This is useful when a new image deployment causes image pull failures. Returns detailed information about the rollback operation including success status, target revision, and reasons for failure if applicable. Note that this tool requires explicit user's approval before it can be used.")]
+        public async Task<RollbackResult> RollbackToLastKnownWorkingRevision(
+            [Description("Resource ID of the Container App whose revision needs to be rolled back")]
             string resourceId)
         {
-            return await _containerAppPlugin.RollbackToLastWorkingImage(resourceId);
+            return await _containerAppPlugin.RollbackToLastKnownWorkingRevision(resourceId);
         }
 
-        [KernelFunction("update_container_image")]
         [RequiresApproval]
-        [Description("Updates the container image for a Container App or Linux Web App. This enables changing to a new image version or completely different image.")]
-        public async Task<bool> UpdateContainerImage(
-            [Description("Resource ID of the Container App or Linux Web App")]
+        [KernelFunction("update_container_image")]
+        [Description("Updates the container image for a Container App. This enables changing to a new image version or completely different image. Returns detailed information about the update operation including success status, original image, new image, and reasons for failure if applicable. Note that this tool requires explicit user's approval before it can be used.")]
+        public async Task<ImageUpdateResult> UpdateContainerImage(
+            [Description("Resource ID of the Container App")]
             string resourceId,
-            [Description("New image reference to use (e.g. myregistry.azurecr.io/myapp:v2)")]
-            string newImageReference,
-            [Description("Optional container name for multi-container apps. If not specified, the first container will be updated.")]
-            string containerName = null)
+            [Description("New image reference provided by the user")]
+            string newImageReference)
         {
-            return await _containerAppPlugin.UpdateContainerImage(resourceId, newImageReference, containerName);
+            return await _containerAppPlugin.UpdateContainerImage(resourceId, newImageReference);
         }
 
-        [Description("Rollback the container app to the last active revision.")]
-        public async Task<string> RollbackToLastRevision(
-            [Description("The resource ID of the Container App instance.")] string resourceId)
+        [KernelFunction("validate_containerapp_health")]
+        [Description("Validates if a Container App is healthy by checking various health indicators including provisioning state, revision status, logs, and endpoint reachability. Use this after making remediation changes to verify the app is working correctly.")]
+        public async Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(
+            [Description("The resource ID of the Container App instance to validate")]
+            string resourceId)
         {
-            return await _containerAppPlugin.RollbackToLastRevision(resourceId); 
+            return await _containerAppPlugin.ValidateContainerAppHealth(resourceId);
         }
+
+        // commented out as it is not working as expected
+        // [Description("Rollback the container app to the last active revision.")]
+        // public async Task<string> RollbackToLastRevision(
+        //     [Description("The resource ID of the Container App instance.")] string resourceId)
+        // {
+        //     return await _containerAppPlugin.RollbackToLastRevision(resourceId); 
+        // }
     }
 }
