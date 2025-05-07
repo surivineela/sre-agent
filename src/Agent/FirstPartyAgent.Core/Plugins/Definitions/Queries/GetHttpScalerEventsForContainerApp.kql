@@ -9,3 +9,4 @@ HttpScalerEvents
 | where EnvironmentName == cappsClusterName
 | where * contains cappsSiteName
 | where msg !has 'the object has been modified; please apply your changes to the latest version and try again'
+| take 100

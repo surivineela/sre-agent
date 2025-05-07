@@ -19,6 +19,41 @@ using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Plugins
 {
+    public class SamplingOptions
+    {
+        public string Technique { get; set; } = "none"; // e.g., "top", "percent", "interval"
+        public int? TopN { get; set; }
+        public int? SamplePercent { get; set; }
+        public int? IntervalMinutes { get; set; }
+
+        public bool HasValue =>
+            (!string.IsNullOrEmpty(Technique) && Technique != "none") &&
+            (TopN.HasValue || SamplePercent.HasValue || IntervalMinutes.HasValue);
+    }
+
+    public static class SamplingParameterHelper
+    {
+        public static void AddSamplingParameters(
+            Dictionary<string, string> parameters,
+            SamplingOptions? sampling)
+        {
+            if (sampling == null || !sampling.HasValue)
+                return;
+
+            if (!string.IsNullOrEmpty(sampling.Technique))
+                parameters["samplingTechnique"] = sampling.Technique;
+
+            if (sampling.TopN.HasValue)
+                parameters["top"] = sampling.TopN.Value.ToString();
+
+            if (sampling.SamplePercent.HasValue)
+                parameters["samplePercent"] = sampling.SamplePercent.Value.ToString();
+
+            if (sampling.IntervalMinutes.HasValue)
+                parameters["intervalMinutes"] = sampling.IntervalMinutes.Value.ToString();
+        }
+    }
+
     public partial class KustoPlugin : IKustoPlugin
     {
         private readonly ILogger<KustoPlugin> _logger;

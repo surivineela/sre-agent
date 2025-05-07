@@ -5,6 +5,7 @@
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using IdentityModel.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 
@@ -15,6 +16,7 @@ namespace FirstPartyAgent.Plugins
         private readonly IKustoPlugin _kustoPlugin;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
         private readonly KustoClientService _kustoClientService;
+        private const int TokenLimit = 2000;
 
         public KustoPluginChat(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService, KustoClientService kustoClientService)
         {
@@ -23,8 +25,9 @@ namespace FirstPartyAgent.Plugins
             _kustoClientService = kustoClientService;
         }
 
-        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args)
+        public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, SamplingOptions? samplingOptions = null)
         {
+            SamplingParameterHelper.AddSamplingParameters(args, samplingOptions);
             var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
             KustoQueryResult queryResult;
 
@@ -48,7 +51,10 @@ namespace FirstPartyAgent.Plugins
                 queryResult = await _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
             }
 
-
+            if (queryResult.RowCount > TokenLimit)
+            {
+                return "Query result row count is over thersholds a user should use sampling";
+            }
             var msg = new ChatMessage(ChatRole.Tool, $"`{functionName}`\n\n" + queryResult.Message?.Text);
             await _agentOutboundCommunicationService.UpdateThreadWithAgentMessageAsync(ToolStatic.AsyncLocalThreadId.Value, string.Empty, msg);
 

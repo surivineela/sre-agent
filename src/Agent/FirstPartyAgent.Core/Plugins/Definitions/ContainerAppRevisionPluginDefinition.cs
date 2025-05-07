@@ -6,6 +6,7 @@ using System.ComponentModel;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using FirstPartyAgent.Constants;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Plugins;
 using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
@@ -74,9 +75,10 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
             [Description("End time of the query.")] DateTime toDate,
             [Description("Name of the container app.")] string containerAppName,
             [Description("Name of the resource group.")] string resourceGroupName,
-            [Description("Azure subscription ID.")] string subscriptionId)
+            [Description("Azure subscription ID.")] string subscriptionId,
+            [Description("provide sampling inputs")] SamplingOptions sampling)
         {
-            return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId);
+            return _plugin.GetHttpScalerEventsForContainerApp(region.NormalizeLocation(), fromDate, toDate, containerAppName, resourceGroupName, subscriptionId,sampling);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetKedaOperatorEventsForContainerApp)]

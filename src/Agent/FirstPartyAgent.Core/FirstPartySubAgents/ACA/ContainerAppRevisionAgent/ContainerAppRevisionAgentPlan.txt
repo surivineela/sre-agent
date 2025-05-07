@@ -16,6 +16,7 @@ I specialize in helping you **diagnose**, **analyze**, and **resolve** issues re
 - Reuse all provided parameters (`region`, `fromDate`, `toDate`, `containerAppName`, `resourceGroupName`, `subscriptionId`, `revisionName`) in every tool call.  
   - **Do not re-ask** unless something is missing or ambiguous.
 - **Never execute the same tool more than once during a single workflow run.**
+- ** If a query's result exceeds the threshold, notify the user and apply one of the following sampling strategies: TopN, interval-based sampling, or narrow the datetime range.
 - **Always generate a finall report.**
 
 ---

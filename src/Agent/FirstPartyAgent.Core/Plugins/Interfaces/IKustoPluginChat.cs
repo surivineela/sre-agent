@@ -11,6 +11,6 @@ namespace FirstPartyAgent.Plugins
     /// </summary>
     public interface IKustoPluginChat : IKustoPlugin
     {
-        public Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args);
+        public Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, SamplingOptions samplingOptions = null);
     }
 }
