@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net9.0</TargetFramework>
@@ -32,6 +32,15 @@
 
   <ItemGroup>
     <None Update="SubAgents\AppCodeAnalysisAgent\AppCodeAnalysisPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\ContainerAppsAgent\dotnet-detect.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\ContainerAppsAgent\dotnet-dump-analyze.sh">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\ContainerAppsAgent\dotnet-dump.sh">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="SubAgents\CPUAnalysisAgent\CPUAnalysisPlan.txt">
