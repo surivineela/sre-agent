@@ -3,8 +3,10 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Azure;
@@ -24,6 +26,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     private readonly ILogger<RoleAssignmentPlugin> _logger;
     private readonly IArmClientFactory _armClientFactory;
     private readonly ArmHelper _armHelper;
+    private readonly IAuthenticationService _authService;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RoleAssignmentPlugin"/> class.
@@ -34,11 +37,13 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     public RoleAssignmentPlugin(
         ILogger<RoleAssignmentPlugin> logger,
         IArmClientFactory armClientFactory,
-        ArmHelper armHelper)
+        ArmHelper armHelper,
+        IAuthenticationService authService)
     {
         _logger = logger;
         _armClientFactory = armClientFactory;
         _armHelper = armHelper;
+        _authService = authService;
     }
 
     /// <summary>
@@ -123,7 +128,15 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 return "ERROR: Invalid principal type. Principal type must be either 'User' or 'ServicePrincipal'.";
             }
 
-            var armClient = _armClientFactory.GetArmClient();
+            // var armClient = _armClientFactory.GetArmClient();
+            var approvalContext = new ApprovalContext(ToolStatic.AsyncLocalThreadId.Value, ToolStatic.AsyncLocalApprovalId.Value ?? throw new ArgumentNullException("Approval ID is null"));
+            var cred = await _authService.GetArmWriteOperationCredential(approvalContext);
+            if (cred == null)
+            {
+                throw new InvalidOperationException("The action is not approved");
+            }
+            var armClient = _armClientFactory.GetArmClient(cred);
+
             var roleDefinitionId = await GetRoleDefinitionIdFromNameAsync(roleName, resourceId);
 
             if (string.IsNullOrEmpty(roleDefinitionId))
@@ -170,6 +183,9 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 WaitUntil.Completed,
                 roleAssignmentId,
                 roleAssignmentData);
+
+            if (cred is IDisposable disposable)
+                disposable.Dispose();
 
             return $"Successfully assigned role '{roleName}' to principal {principalId} on resource {resourceId}.";
         }
