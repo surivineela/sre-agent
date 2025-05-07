@@ -278,7 +278,7 @@ eg: please give me the availability rate for statefulset for last 2 hour.")]
             return await _kubePlugin.GetKubeResourceMetricsRangeAsync(AKSClusterResourceId, _namespace, kind, name, metricsType, startTime, endTime);
         }
 
-        [KernelFunction("get_nsg_rules_for_workload")]
+        [KernelFunction("GetNsgRulesForWorkload")]
         [Description(
     @"Gets the Network Security Group (NSG) rules (in JSON format) associated with the subnet(s) used by the node pools where a specific Kubernetes Deployment or StatefulSet is currently running pods.
     This helps understand the network security posture and connectivity rules applied to a specific application component within the AKS cluster.

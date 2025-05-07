@@ -163,7 +163,7 @@ For every Azure SRE request, follow this pattern:
 
 ## Special Notes
 <strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
-<strong>**FOR ANY AKS RELATED REQUESTS, PRIORITIZE DELEGATING TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
+<strong>** FOR AKS RELATED REQUESTS, PRIORITIZE DELEGATING TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 <strong>** For GetMetricTimeSeriesElementsForAzureResource use today's date as the default date. If the user specifies a different date, use that date instead.**</strong>
 
@@ -349,6 +349,9 @@ $@"## Facts
             AIFunctionFactory.Create(aksPluginDefinition.ListKubeResourcesAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubePodsAsync),
             AIFunctionFactory.Create(aksPluginDefinition.ListCustomResourcesAsync),
+            AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceEventsAsync),
+            AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceSpecStatusAsync),
+            AIFunctionFactory.Create(aksPluginDefinition.GetKubeResourceMetricsRangeAsync),
             //AIFunctionFactory.Create(_containerAppPlugin.ListContainerAppsAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.ListAppServicesAsync),
             //AIFunctionFactory.Create(appServicePluginDefinition.GetAppServiceInfoAsync),
