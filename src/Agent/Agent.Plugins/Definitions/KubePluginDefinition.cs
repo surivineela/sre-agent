@@ -294,5 +294,21 @@ eg: please give me the availability rate for statefulset for last 2 hour.")]
         {
             return await _kubePlugin.GetNsgRulesForWorkloadAsync(AKSClusterResourceId, _namespace, kind, workloadName);
         }
+
+        [KernelFunction("listWorkloadRevisions")]
+        [Description(
+@"List all revisions for a specific Kubernetes workload (Deployment or StatefulSet) and sort by revision number.
+For deployments, it fetches ReplicaSets owned by the deployment.
+For StatefulSets, it fetches ControllerRevision objects.
+Used whenever user wants to check the revision history of a workload.
+eg: show me all revisions of the 'nginx' deployment in the 'default' namespace.")]
+        public async Task<string> ListWorkloadRevisionsAsync(
+            [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
+            [Description($"Kubernetes namespace, e.g. 'default', 'kube-system'")] string _namespace,
+            [Description($"Kubernetes workload kind, e.g. 'deployment', 'statefulset'")] string kind,
+            [Description($"Name of the Kubernetes workload, e.g. 'nginx', 'backend', 'redis'")] string name)
+        {
+            return await _kubePlugin.ListWorkloadRevisions(AKSClusterResourceId, _namespace, kind, name);
+        }
     }
 }

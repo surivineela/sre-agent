@@ -22,6 +22,8 @@ public class MockKubePlugin : IKubePlugin
     private Dictionary<string, (double Cpu, double Mem)> _mockMetrics = new Dictionary<string, (double, double)>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:podName (Simplified key)
     private Dictionary<string, Action<int>> _scalingCallbacks = new Dictionary<string, Action<int>>(StringComparer.OrdinalIgnoreCase); // Key: statefulSetName
     private Dictionary<string, string> _mockRecentlyUpdated = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:minutes
+    private Dictionary<string, string> _mockDeploymentRevisions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
+    private Dictionary<string, string> _mockStatefulSetRevisions = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase); // Key: resourceId:namespace:name
 
     // Property to set the resource ID directly in tests if needed
     public string MockAKSResourceId { get; set; }
@@ -139,6 +141,19 @@ public class MockKubePlugin : IKubePlugin
         Console.WriteLine($"MockKubePlugin configured Scaling Callback for {statefulSetName}");
     }
 
+    public void ConfigureDeploymentRevisions(string resourceId, string _namespace, string name, string revisions)
+    {
+        var key = $"{resourceId}:{_namespace}:{name}";
+        _mockDeploymentRevisions[key] = revisions;
+        Console.WriteLine($"MockKubePlugin configured Deployment Revisions for {key}");
+    }
+
+    public void ConfigureStatefulSetRevisions(string resourceId, string _namespace, string name, string revisions)
+    {
+        var key = $"{resourceId}:{_namespace}:{name}";
+        _mockStatefulSetRevisions[key] = revisions;
+        Console.WriteLine($"MockKubePlugin configured StatefulSet Revisions for {key}");
+    }
 
     // --- IKubePlugin Implementation ---
 
@@ -300,6 +315,36 @@ public class MockKubePlugin : IKubePlugin
         return Task.FromResult($"Mock: No recently updated workloads configured for namespace {_namespace} within {minutesAgo} minutes.");
     }
 
+    public Task<string> ListWorkloadRevisions(string resourceId, string _namespace, string kind, string name)
+    {
+        Console.WriteLine($"MockKubePlugin: ListWorkloadRevisions called for {kind}/{name} in namespace {_namespace}");
+        var key = $"{resourceId}:{_namespace}:{name}";
+
+        switch (kind.ToLowerInvariant())
+        {
+            case "deployment":
+                if (_mockDeploymentRevisions.TryGetValue(key, out var deployRevisions))
+                {
+                    Console.WriteLine($"MockKubePlugin: Found deployment revisions for {key}");
+                    return Task.FromResult(deployRevisions);
+                }
+                Console.WriteLine($"WARN: MockKubePlugin: No deployment revisions found for {key}");
+                return Task.FromResult($"Mock: No revisions found for Deployment '{name}' in namespace '{_namespace}'");
+
+            case "statefulset":
+                if (_mockStatefulSetRevisions.TryGetValue(key, out var stsRevisions))
+                {
+                    Console.WriteLine($"MockKubePlugin: Found statefulset revisions for {key}");
+                    return Task.FromResult(stsRevisions);
+                }
+                Console.WriteLine($"WARN: MockKubePlugin: No statefulset revisions found for {key}");
+                return Task.FromResult($"Mock: No revisions found for StatefulSet '{name}' in namespace '{_namespace}'");
+
+            default:
+                Console.WriteLine($"WARN: MockKubePlugin: Unsupported kind {kind} for ListWorkloadRevisions");
+                return Task.FromResult($"Mock Error: Workload kind '{kind}' is not supported for revision listing. Only Deployment and StatefulSet are supported.");
+        }
+    }
 
     // --- Metrics Methods (Implement using _mockMetrics) ---
     // NOTE: These should ideally be added to the IKubePlugin interface as well.

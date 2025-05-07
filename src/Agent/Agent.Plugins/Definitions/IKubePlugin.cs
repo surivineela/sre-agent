@@ -28,5 +28,6 @@ namespace Agent.Plugins
         Task<string> DiagnoseAKSAppAsync(string AKSClusterResourceId, string _namespace, string kind, string name);
         Task<string> ApplyKubernetesYamlAsync(string resourceId, string yamlContent);
         Task<string> GetNsgRulesForWorkloadAsync(string aksResourceId, string _namespace, string kind, string workloadName);
+        Task<string> ListWorkloadRevisions(string AKSClusterResourceId, string _namespace, string kind, string name);
     }
 }

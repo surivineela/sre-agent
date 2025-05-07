@@ -2008,5 +2008,100 @@ namespace Agent.Plugins
                 return result; // Return whatever was collected before the error
             }
         }
+
+        public async Task<string> ListWorkloadRevisions(string resourceId, string _namespace, string kind, string name)
+        {
+            _client = await GetOrCreateClientAsync(resourceId);
+            var sb = new StringBuilder();
+
+            try
+            {
+                switch (kind.ToLowerInvariant())
+                {
+                    case "deployment":
+                        // For deployments, we need to get all ReplicaSets and filter those owned by our deployment
+                        var deployment = await _client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
+                        if (deployment == null)
+                        {
+                            return $"Deployment '{name}' not found in namespace '{_namespace}'";
+                        }
+
+                        var replicaSets = await _client.AppsV1.ListNamespacedReplicaSetAsync(
+                            _namespace,
+                            labelSelector: string.Join(",", deployment.Spec.Selector.MatchLabels.Select(l => $"{l.Key}={l.Value}")));
+
+                        // Filter ReplicaSets owned by our deployment and sort by revision number
+                        var ownedReplicaSets = replicaSets.Items
+                            .Where(rs => rs.Metadata.OwnerReferences != null &&
+                                       rs.Metadata.OwnerReferences.Any(or => or.Kind == "Deployment" &&
+                                                                          or.Name == name))
+                            .OrderByDescending(rs => int.TryParse(rs.Metadata.Annotations?["deployment.kubernetes.io/revision"], out int rev) ? rev : 0)
+                            .ToList();
+
+                        if (!ownedReplicaSets.Any())
+                        {
+                            return $"No revisions found for Deployment '{name}' in namespace '{_namespace}'";
+                        }
+
+                        foreach (var rs in ownedReplicaSets)
+                        {
+                            string revisionNumber = rs.Metadata.Annotations?["deployment.kubernetes.io/revision"] ?? "unknown";
+                            sb.AppendLine($"## Revision {revisionNumber}");
+                            sb.AppendLine($"Created: {rs.Metadata.CreationTimestamp:yyyy-MM-dd HH:mm:ss}");
+                            sb.AppendLine("```yaml");
+                            sb.AppendLine(YamlHelper.Serialize(rs));
+                            sb.AppendLine("```");
+                            sb.AppendLine();
+                        }
+                        break;
+
+                    case "statefulset":
+                        // For StatefulSets, we use ControllerRevision objects
+                        var statefulSet = await _client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
+                        if (statefulSet == null)
+                        {
+                            return $"StatefulSet '{name}' not found in namespace '{_namespace}'";
+                        }
+
+                        var controllerRevisions = await _client.AppsV1.ListNamespacedControllerRevisionAsync(
+                            _namespace,
+                            labelSelector: string.Join(",", statefulSet.Spec.Selector.MatchLabels.Select(l => $"{l.Key}={l.Value}")));
+
+                        // Filter ControllerRevisions owned by our StatefulSet and sort by revision number
+                        var ownedRevisions = controllerRevisions.Items
+                            .Where(cr => cr.Metadata.OwnerReferences != null &&
+                                       cr.Metadata.OwnerReferences.Any(or => or.Kind == "StatefulSet" &&
+                                                                          or.Name == name))
+                            .OrderByDescending(cr => cr.Revision)
+                            .ToList();
+
+                        if (!ownedRevisions.Any())
+                        {
+                            return $"No revisions found for StatefulSet '{name}' in namespace '{_namespace}'";
+                        }
+
+                        foreach (var revision in ownedRevisions)
+                        {
+                            sb.AppendLine($"## Revision {revision.Revision}");
+                            sb.AppendLine($"Created: {revision.Metadata.CreationTimestamp:yyyy-MM-dd HH:mm:ss}");
+                            sb.AppendLine("```yaml");
+                            sb.AppendLine(YamlHelper.Serialize(revision));
+                            sb.AppendLine("```");
+                            sb.AppendLine();
+                        }
+                        break;
+
+                    default:
+                        return $"Workload kind '{kind}' is not supported for revision listing. Only Deployment and StatefulSet are supported.";
+                }
+
+                return sb.ToString().TrimEnd();
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInternalError(ex, "Error listing revisions for {Kind} '{Name}' in namespace {Namespace}", kind, name, _namespace);
+                return $"Error listing revisions: {ex.Message}";
+            }
+        }
     }
 }
