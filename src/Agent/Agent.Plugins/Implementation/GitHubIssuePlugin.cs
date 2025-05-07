@@ -337,7 +337,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             .Replace("=", "%3D")
             .Replace("&", "%26");
 
-        return $"https://github.com/login/oauth/authorize?client_id={_gitHubSettings.ClientId}&redirect_uri={redirectUri}&scope=repo&state={agentNameHash}";
+        return $"https://github.com/login/oauth/authorize?client_id={_gitHubSettings.ClientId}&redirect_uri={redirectUri}&scope=repo&prompt=consent&state={agentNameHash}";
     }
 
     public async Task DeleteGithubIssueComment(

@@ -18,7 +18,7 @@ public class GithubController : ControllerBase
     [HttpPost("auth/complete")]
     public async Task<IActionResult> CompleteGitHubAuth([FromForm]string accessToken)
     {
-        await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, DateTime.UtcNow.AddMinutes(8)));
+        await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, ExpiresOn: null));
         return Ok();
     }
 }

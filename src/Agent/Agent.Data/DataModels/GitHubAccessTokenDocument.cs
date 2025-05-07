@@ -4,7 +4,7 @@ using Agent.Core.Models.Api.v1;
 namespace Agent.Data.DataModels;
 public record GitHubAccessTokenDocument(
     string AccessToken,
-    DateTime ExpiresOn) : ICosmosDocument
+    DateTime? ExpiresOn) : ICosmosDocument
 {
     public string Id => "GitHubAccessToken";
     public string DocumentType => "GitHubAccessToken";

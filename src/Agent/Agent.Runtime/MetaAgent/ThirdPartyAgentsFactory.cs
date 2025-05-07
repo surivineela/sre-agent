@@ -403,6 +403,10 @@ $@"## Facts
             AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.ListAvailableMetrics),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource),
+            AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssues),
+            AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssueComments),
+            AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
+            AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

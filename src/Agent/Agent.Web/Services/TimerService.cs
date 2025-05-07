@@ -782,7 +782,9 @@ public class TimerService : IHostedService, IDisposable
                 _githubAccessTokenTimerIsRunning = true;
 
                 var gitHubAccessToken = await _repository.GetGitHubAccessTokenAsync();
-                if (gitHubAccessToken != null && DateTime.UtcNow > gitHubAccessToken.ExpiresOn)
+                if (gitHubAccessToken != null
+                    && gitHubAccessToken.ExpiresOn != null
+                    && DateTime.UtcNow > gitHubAccessToken.ExpiresOn)
                 {
                     _logger.LogInternalInformation("GitHub access token is expired. Skip this round.");
                     await _repository.DeleteGitHubAccessTokenAsync();
