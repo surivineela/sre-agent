@@ -20,6 +20,11 @@ public static class ApprovalTitleHelper
     /// <returns></returns>
     public static string GenerateUniqueApprovalTitle(string threadId, string processorId, string operationName, IDictionary<string, object?> arguments)
     {
+        if (operationName == "ApplyKubernetesYaml ") {
+            // The ApplyKubernetesYaml function is a special case where the argument yamlContent is not very stable currently.
+            return $"{threadId}-{processorId}-{operationName}";
+        }
+    
         // calculate SHA256 hash of the arguments
         var orderedArgs = new OrderedDictionary<string, object?>(arguments);
         using var sha256 = SHA256.Create();
