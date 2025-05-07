@@ -15,6 +15,7 @@ const ICON_LOOKUP: Record<string, string> = {
     containerapp: 'ContainerApp.svg',
     containerappjob: 'ContainerAppJob.svg',
     managedenvironment: 'ManagedEnvironment.svg',
+    source: 'github-mark.svg',
 
     // Kubernetes / orchestrators
     aks: 'AKS.svg',

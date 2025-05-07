@@ -110,7 +110,7 @@ const pollResponses = async (messageCount: number, threadId: string, latestMessa
     return [...responses];
 };
 
-export const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null) => {
+export const useChatBox = (addThread: (thread: Thread) => void, threadId?: string | null, _?: string | null) => {
     const intl = useIntl();
 
     const [messages, setMessages] = useState<Message[]>([]);

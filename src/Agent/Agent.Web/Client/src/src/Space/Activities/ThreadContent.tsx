@@ -41,7 +41,7 @@ export const ThreadContent = memo(({ thread, addThread, deleteThread, actionsCol
                     </div>
                 )}
             </div>
-            <ChatBox threadId={thread?.id} addThread={addThread} />
+            <ChatBox threadId={thread?.id} addThread={addThread} threadSource={thread?.source} />
         </div>
     );
 });
