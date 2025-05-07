@@ -27,12 +27,36 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";+FoBRs" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Submit feedback to Microsoft]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[提交意見反應給 Microsoft]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";+WRusC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE 代理程式]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";+uAdUZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resource group]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[資源群組]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";0sIUhe" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[View Alert Details]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -104,6 +128,15 @@
           <Val><![CDATA[Save incident management configuration]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[儲存事件管理設定]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3a5wL8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Active]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[使用中]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -261,6 +294,21 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";6u8zJX" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New Azure Monitor Alert Detected]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";7Nz2Ev" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Monitor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure 監視器]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7cS956" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connected to Teams]]></Val>
@@ -387,11 +435,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ADENR6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[與 Azure 監視器連線以啟用自動事件偵測與回應。SRE 代理程式將自動監控來自您 Azure 資源的警示，而無需額外設定。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";AXAtAX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API key is not valid]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[API 金鑰無效]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BKMqtr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[AI 產生的內容可能不正確，因此請在使用前仔細檢閱。請勿在聊天中包含個人或機密資訊。]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -423,6 +489,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";E396gv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[It's OK to contact me about my feedback.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[可以就此意見反應連絡我。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";EKfWmx" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to load subscriptions.]]></Val>
@@ -446,15 +521,6 @@
           <Val><![CDATA[Incident platform]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[事件平台]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Erci0g" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure SRE Agent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SRE 代理程式]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -518,6 +584,24 @@
           <Val><![CDATA[Provisioning of your Grafana role assignment is in progress.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[佈建 Grafana 角色指派進行中。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FnKIAW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Acknowledged]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已認可]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Fv1ZSz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Closed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已關閉]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -639,12 +723,24 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";MACADd" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide thread actions]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";NEY2T1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Grafana 儀表板完成佈建後，您需要為代理程式產生一個 API 金鑰，以便與其進行通訊。請遵循下列步驟:]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";NV14yw" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Alert Rule]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -666,20 +762,20 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";Nrc9ba" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Thank you for your feedback!]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[謝謝您的寶貴意見!]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";O0WH/+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to create the Grafana role assignment with the error: {errorMessage}]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[無法建立 Grafana 角色指派，錯誤: {errorMessage}]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";O79Wpv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New messages]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[新訊息]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -690,6 +786,24 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[輸入名稱]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";OV0MpG" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Data usage, customer rights, and privacy statement if needed. We got it covered.]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";OWBgF9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Hide thread menu]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";PipPB3" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show thread actions]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -720,6 +834,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Q8Qw5B" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Description]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";QGVI63" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Agent]]></Val>
@@ -744,6 +864,21 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[訂用帳戶]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RI4Umu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{numOfActions} actions completed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已完成 {numOfActions} 個動作]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RSDnlS" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Show thread menu]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -855,6 +990,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";UVS724" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tips on how to chat with the SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[如何與 SRE 代理程式聊天的提示]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";UZMdQH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Managed Identity]]></Val>
@@ -887,6 +1031,15 @@
           <Val><![CDATA[Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[建立]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";W6nSYE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resolved]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已解決]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -936,6 +1089,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";X192re" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monitored Resource]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";XIjgrI" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Step 2: Generate API key]]></Val>
@@ -968,6 +1127,21 @@
           <Val><![CDATA[Failed to create logic app]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[無法建立邏輯應用程式]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";ZbUTXC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resource Group]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Zqa4dQ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Triggered]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[已觸發]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1035,11 +1209,26 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";dDl4Gl" ItemType="0" PsrId="306" Leaf="true">
+      <Item ItemId=";ciMXhP" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
-          <Val><![CDATA[Enter your feedback here...]]></Val>
+          <Val><![CDATA[Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[在此輸入您的意見反應...]]></Val>
+            <Val><![CDATA[正在收集有關您的資源的資訊，這可能需要幾分鐘的時間。當資料載入時，您仍然可以進行其他主題的聊天。]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";csu0rb" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Give as much detail as you can, but do not include any personal information.]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dnXgff" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Mitigated]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[風險已降低]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1170,6 +1359,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ielB5f" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Fired At]]></Val>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";iv1ryQ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[SRE Agent Space]]></Val>
@@ -1212,6 +1407,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[儲存]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";k8ZNgH" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Alert ID]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1383,6 +1584,12 @@
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[無法儲存事件管理設定。錯誤: {errorMessage}]]></Val>
           </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";snEUKZ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Monitor Service]]></Val>
         </Str>
         <Disp Icon="Str" />
       </Item>

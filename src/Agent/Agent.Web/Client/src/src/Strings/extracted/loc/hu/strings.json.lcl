@@ -27,6 +27,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";+WRusC" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[SRE-ügynök]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";+uAdUZ" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Resource group]]></Val>
@@ -104,6 +113,15 @@
           <Val><![CDATA[Save incident management configuration]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidenskezelési konfiguráció mentése]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";3a5wL8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Active]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktív]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -261,6 +279,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";7Nz2Ev" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Monitor]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Monitor]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";7cS956" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Connected to Teams]]></Val>
@@ -387,11 +414,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ADENR6" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Csatlakozzon Azure Monitorral az automatikus incidensészlelés és -reagálás engedélyezéséhez. Az SRE-ügynök automatikusan figyeli az Azure-erőforrások riasztásait; nincs szükség további konfigurálásra.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";AXAtAX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API key is not valid]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Az API-kulcs érvénytelen]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";BKMqtr" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Előfordulhat, hogy az AI által létrehozott tartalom helytelen, ezért használat előtt ellenőrizze. Ne adjon meg személyes vagy bizalmas információt a csevegésben.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -446,15 +491,6 @@
           <Val><![CDATA[Incident platform]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Incidensplatform]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";Erci0g" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Azure SRE Agent]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure SRE-ügynök]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -518,6 +554,24 @@
           <Val><![CDATA[Provisioning of your Grafana role assignment is in progress.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[A Grafana-szerepkör-hozzárendelés kiépítése folyamatban van.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";FnKIAW" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Acknowledged]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Visszaigazolva]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Fv1ZSz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Closed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Lezárva]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -684,6 +738,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";O79Wpv" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[New messages]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Új üzenetek]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";OJ2u8k" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter name]]></Val>
@@ -743,6 +806,15 @@
           <Val><![CDATA[Subscription]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Előfizetés]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";RI4Umu" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[{numOfActions} actions completed]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[{numOfActions} elvégzett művelet]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -855,6 +927,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";UVS724" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Tips on how to chat with the SRE Agent]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Tippek az SRE-ügynökkel való csevegéshez]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";UZMdQH" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Managed Identity]]></Val>
@@ -887,6 +968,15 @@
           <Val><![CDATA[Create]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Létrehozás]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";W6nSYE" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Resolved]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Megoldva]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -972,6 +1062,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";Zqa4dQ" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Triggered]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Aktiválva]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";a2+0+5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana resource name]]></Val>
@@ -1035,11 +1134,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";ciMXhP" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Gathering info about your resources, which might take a few minutes. You can still chat about other topics while the data loads.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Erőforrásadatok összegyűjtése folyamatban; ez eltarthat néhány percig. Az adatok betöltése közben tovább cseveghet más témákról.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";dDl4Gl" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Enter your feedback here...]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ide Írja be a visszajelzést...]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";dnXgff" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Mitigated]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Elhárítva]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
