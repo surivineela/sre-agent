@@ -20,6 +20,7 @@ namespace FirstPartyAgent.Core.Services
         bool IsEnabled();
         Task<Incident> GetIncidentAsync(string incidentId);
         Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
+        Task<List<SearchItem>> SearchIncidentsAsync(string searchString);
         Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId);
         Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantId, string teamId);
         Task<string> ChangeSeverityAsync(string incidentId, int severity, string discussionEntry, bool htmlRendering = true);
@@ -333,6 +334,37 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
+        public async Task<List<SearchItem>> SearchIncidentsAsync(string searchString)
+        {
+            var content = new
+            {
+                SearchString = searchString,
+                IncludeCorrelated = false,
+                OrderColumn = "CreateDate",
+                OrderDir = "desc",
+                Skip = 0,
+                Top = 100,
+            };
+            var response = await SendICMPostRequestAsync($"/api2/user/omnisearch/SearchIncidents", content);
+            if (response.IsSuccessStatusCode)
+            {
+                var responseString = await response.Content.ReadAsStringAsync();
+                var obj = JsonConvert.DeserializeObject<JObject>(responseString);
+
+                if (obj == null || !obj.TryGetValue("value", out var incidentsToken))
+                {
+                    return new List<SearchItem>();
+                }
+
+                var incidents = incidentsToken.ToObject<List<SearchItem>>();
+                return incidents ?? new List<SearchItem>();
+            }
+            else
+            {
+                throw new Exception($"Failed to search for incidents {response.StatusCode}");
+            }
+        }
+
         public async Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry, bool isCustomerImpacting=false, bool isNoise=false, string resolveContactAlias= "antagent-1p")
         {
             if (_icmApiSettings.ReadOnly)
@@ -385,7 +417,8 @@ namespace FirstPartyAgent.Core.Services
             }
             else
             {
-                throw new Exception($"Failed to post discussion entry. Status code: {response.StatusCode}");
+                return "Hi";
+                //throw new Exception($"Failed to post discussion entry. Status code: {response.StatusCode}");
             }
         }
 

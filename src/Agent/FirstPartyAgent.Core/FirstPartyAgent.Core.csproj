@@ -56,6 +56,9 @@
     <None Include="ICMAlertConfigs\0da2f663-321c-47a3-80b7-78dcb9e9a263.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Include="ICMAlertConfigs\000fa255-4323-41ce-ac8a-369e6bfe0284.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
 	  <None Include="Plugins\PluginConfig.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>

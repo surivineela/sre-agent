@@ -50,6 +50,16 @@ namespace FirstPartyAgent.Models
         public string CustomFieldValue { get; set; }
     }
 
+    public class SearchItem
+    {
+        public string Id { get; set; }
+        public string Title { get; set; }
+        public string ResponsibleServiceName { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public string HowFixed { get; set; }
+        public string State { get; set; }
+    }
+
 
     public class ODataResponse<T>
     {

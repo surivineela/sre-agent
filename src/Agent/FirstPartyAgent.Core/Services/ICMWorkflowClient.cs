@@ -366,6 +366,23 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
+        public async Task<List<SearchItem>> SearchIncidentsAsync(string searchString)
+        {
+            var content = new
+            {
+                SearchString = searchString,
+                IncludeCorrelated = false,
+                OrderColumn = "CreateDate",
+                OrderDir = "desc",
+                Skip = 0,
+                Top = 100,
+            };
+
+            //TODO: complete the search string implementation
+
+            return new List<SearchItem>();
+        }
+
         public async Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry)
         {
             if (_icmWorkflowSettings.ReadOnly)

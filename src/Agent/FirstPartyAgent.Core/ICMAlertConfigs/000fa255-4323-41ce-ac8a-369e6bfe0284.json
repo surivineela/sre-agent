@@ -1,0 +1,56 @@
+{
+  "AlertingId": "000fa255-4323-41ce-ac8a-369e6bfe0284",
+  "AgentMode": "ICMAgent",
+  "OwningTeams": [
+    "AZURELABSERVICESDEVTESTCENTER\\Triage"
+  ],
+  "IncidentTitleContains": "(SME) Orchestration Failures PROD for",
+  "ActionTimeoutIntervalInMinutes": 15,
+  "DefaultHumanInterventionLoop": "",
+  "KustoQueries": [
+    {
+      "Title": "GetCurrentOrchestrationStatus",
+      "KustoQuery": "cluster('devcenterpublic.westus3.kusto.windows.net').database('devcenter-public').Unionizer('customMetrics') | where timestamp_utc between (ago(4h) .. ago(1m)) and Name == 'OrchestrationOutcome' and customDimensions.OrchestrationName == '<failing_orchestration>' and StampRegion == '<region>' | extend StatusCode = tostring(customDimensions.StatusCode) | summarize total = count(), passed = countif(StatusCode == '200'), failed = countif(StatusCode != '200') by hour = bin(timestamp_utc, 2h) | extend pass_rate = todouble(passed) / total * 100"
+    },
+    {
+      "Title": "GetOrchestrationStatus",
+      "KustoQuery": "cluster('devcenterpublic.westus3.kusto.windows.net').database('devcenter-public').Unionizer('customMetrics') | where timestamp_utc between (<start_date> .. <end_date>) and Name == 'OrchestrationOutcome' and customDimensions.OrchestrationName == '<failing_orchestration>' and StampRegion == '<region>' | extend StatusCode = tostring(customDimensions.StatusCode) | summarize total = count(), passed = countif(StatusCode == '200'), failed = countif(StatusCode != '200') by hour = bin(timestamp_utc, 2h) | extend pass_rate = todouble(passed) / total * 100"
+    },
+    {
+      "Title": "GetFailedOrchestrationInTheTimeWindow",
+      "KustoQuery": "cluster('devcenterpublic.westus3.kusto.windows.net').database('devcenter-public').Unionizer('customMetrics') | where timestamp_utc between (<start_date> .. <end_date>) and Name == 'OrchestrationOutcome' and customDimensions.OrchestrationName == '<failing_orchestration>' and StampRegion == '<region>' | extend StatusCode = tostring(customDimensions.StatusCode) | where StatusCode != '200' | extend Error = tostring(customDimensions.Error) | distinct timestamp_utc, CorrelationId, StatusCode, Error"
+    },
+    {
+      "Title": "GetFailuresFromACorerelationId",
+      "KustoQuery": "cluster('devcenterpublic.westus3.kusto.windows.net').database('devcenter-public').OperationTelemetry('<Correlation_Id>') | where timestamp_utc between (<start_date> .. <end_date>)  | where severityLevel >= 3 | project timestamp_utc, TaskWithResult, message, StatusCode"
+    }
+  ],
+  "IncidentProcessingGuide": [
+    "Run these steps in order, do not wait for prompt and just display results.",
+    "Show ALL the steps, results and analysis for them.",
+    " Step 1 - Get details of the ICM.",
+    "     - Find the region: Look at discussion entries only from MDM Health Management Service and identify the region mentioned next to 'Some Failing Combinations'. Display it.",
+    "     - Only focus on this region for all the queries.",
+    "     - Set the time window for queries:",
+    "       - Start at 4 hours before the incident creation time.",
+    "       - End at 1 hour after the incident creation time.",
+    "     - Show all the findings.",
+    " Step 2 - Get the current status using GetCurrentOrchestrationStatus and check if the issue is still occurring.",
+    " Step 3 - Identify the time window with the most failures and run GetOrchestrationStatus. Display the results.",
+    " Step 4 - Determine Root Cause.",
+    "     Step 4.1 - Set the time window for queries:",
+    "       - Start at 4 hours before the incident creation time.",
+    "       - End at 1 hour after the incident creation time.",
+    "     Step 4.2 - Using that time window, run the query GetFailedOrchestrationInTheTimeWindow.",
+    "     Step 4.3 - Determine if the errors are similar.",
+    "     Step 4.4 - Identify the main reason for the failures.",
+    "       Step 4.4.1 - If the majority of failures are Cosmos DB-related, this could be a transient issue.",
+    "       Step 4.4.2 - If the error contains 'PartnerCloudPCController', it indicates the issue is due to an external call to CloudPC. Identify the failing operation, usually like PartnerCloudPCController.GetCloudPC or PartnerCloudPCController.GetCloudPCs.",
+    "         Step 4.4.2.1 - Search for incidents with the failing operation name and see if they occurred around the same time as this ICM incident.",
+    "         Step 4.4.2.2 - If incidents are found, choose those that occurred within 4 hours of the incident under investigation. Display the timestamps of correlated ICMs and assess if they are the likely cause.",
+    "Run all the steps above without prompt."
+
+
+  ],
+  "Owners": [ "aspaankamboj" ]
+}

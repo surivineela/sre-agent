@@ -128,6 +128,21 @@ namespace FirstPartyAgent.Core.Plugins
             return customFields;
         }
 
+        [KernelFunction("search_incidents")]
+        [Description("Search for incidents")]
+        public async Task<List<SearchItem>> SearchIncidents(
+            [Description("Search String")] string searchString, Kernel kernel)
+        {
+            var logMessage = $"[search_incidents][{DateTime.UtcNow}] Invoked with searchString {searchString}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+
+            var incidents = _icmApiClient.IsEnabled()
+                ? await _icmApiClient.SearchIncidentsAsync(searchString)
+                : await _icmWorkflowClient.SearchIncidentsAsync(searchString);
+
+            return incidents;
+        }
+
 
         [KernelFunction("get_alerting_discussion_entry")]
         [Description("Get Azure Alerting discussion entry")]
