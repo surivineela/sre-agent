@@ -2,12 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core.Interfaces;
+using Agent.Data.Repositories;
 using Agent.Runtime;
+using Agent.Runtime.Communication;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Logging.Abstractions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,6 +35,11 @@ if (builder.Environment.IsDevelopment())
 
 builder.Services.ConfigureSemanticKernel();
 builder.Services.AddSingleton<IChatService, ChatProcessingService>();
+
+var threadRepository = new InmemoryThreadRepository(new NullLogger<InmemoryThreadRepository>());
+var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
+builder.Services.AddSingleton<IThreadRepository>(threadRepository);
+builder.Services.AddSingleton<SinkService>(sinkService);
 
 // Add services to the container.
 // Register our chat service
