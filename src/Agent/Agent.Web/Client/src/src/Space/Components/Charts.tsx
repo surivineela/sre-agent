@@ -617,7 +617,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                     display: 'flex',
                     flexDirection: 'column',
                     position: 'relative',
-                    // let it size itself by its content; no minHeight “floor”
+                    // let it size itself by its content; no minHeight "floor"
                     overflowX: isZoomedView ? 'auto' : undefined,
                 };
 

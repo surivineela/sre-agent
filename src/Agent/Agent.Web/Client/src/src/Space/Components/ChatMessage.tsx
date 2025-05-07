@@ -12,6 +12,7 @@ import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import DailyReport from '../../Common/Components/DailyReport';
+import IncidentAlert from '../../Common/Components/IncidentAlert';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -229,10 +230,22 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
 
     // Main content rendering function
     const renderContent = (): React.ReactNode => {
+        // Check if the entire message is just a incident-alert block
+        const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
+
+        // Special case 1: if the whole message is an incident alert, render it directly
+        if (typeof message.text === 'string') {
+            const match = message.text.match(incidentAlertRegex);
+
+            if (match && match[1]) {
+                return <IncidentAlert messageText={message.text} />;
+            }
+        }
+
         // Check if the entire message is just a chart-data block
         const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
 
-        // Special case: if the whole message is a chart, render it directly
+        // Special case 2: if the whole message is a chart, render it directly
         if (
             typeof message.text === 'string' &&
             chartRegex.test(message.text) &&

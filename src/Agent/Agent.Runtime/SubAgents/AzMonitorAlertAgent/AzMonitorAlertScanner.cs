@@ -373,41 +373,37 @@ public class AzMonitorAlertScanner
 
         var alertRuleName = new ResourceIdentifier(alertRule);
         var targetResourceId = new ResourceIdentifier(targetResource);
+        var subscription = targetResourceId?.SubscriptionId?.ToString();
+        var resourceGroup = targetResourceId?.ResourceGroupName?.ToString();
+        var targetResourceName = essentials.TargetResourceName;
 
-        var incidentMessage = $"🚨 **New Azure Monitor Alert Detected**\n\n" +
-            $"**Alert ID:** {alertId}\n\n" +
-            $"**Alert Rule:** {alertRule}\n\n" +
-            $"**Description:** {description}\n\n";
+        var alertIdResource = new ResourceIdentifier(alertId);
+        var alertRuleResource = new ResourceIdentifier(alertRule);
 
-        if (!string.IsNullOrEmpty(severity))
+        var encodedAlertId = Uri.EscapeDataString(alertId);
+        var portalUrl = $"https://ms.portal.azure.com/#view/Microsoft_Azure_Monitoring_Alerts/AlertDetails.ReactView/alertId~/{encodedAlertId}/invokedFrom/CopyLinkFeature";
+
+        var alertData = new
         {
-            incidentMessage += $"**Severity:** {severity}\n\n";
-        }
+            alertId = alertIdResource.Name,
+            alertRule = alertRuleResource.Name,
+            description,
+            monitoredResource = targetResourceName,
+            severity,
+            monitorCondition,
+            monitorService,
+            firedAt = startDateTime.ToString(),
+            subscription,
+            resourceGroup,
+            portalUrl 
+        };
 
-        incidentMessage += $"**Monitor Condition:** {monitorCondition}\n\n";
-        incidentMessage += $"**Monitor Service:** {monitorService}\n\n";
-        incidentMessage += $"**Fired At:** {startDateTime}\n\n";
-
-        if (!string.IsNullOrEmpty(targetResource))
-        {
-            incidentMessage += $"**Target Resource:** {targetResource}\n\n";
-        }
-
-        if (string.IsNullOrEmpty(alert.Properties.Essentials.Description))
-        {
-            incidentMessage += "**Additional Context:**\n";
-            incidentMessage += $"Description: {description}\n";
-        }
-
-        incidentMessage += $"Signal Type: {alert.Properties.Essentials.SignalType}\n\n";
-        incidentMessage += $"Resource Group: {alert.Properties.Essentials.TargetResourceGroup}\n\n";
-        incidentMessage += $"Resource Name: {alert.Properties.Essentials.TargetResourceName}\n\n";
-        incidentMessage += $"Resource Type: {alert.Properties.Essentials.TargetResourceType} \n\n";
-
+        var serializedAlertData = System.Text.Json.JsonSerializer.Serialize(alertData);
+        var alertDataBlock = $"```incident-alert\n{serializedAlertData}\n```\n";
 
         (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
             title: $"Incident Alert - [{severity}] [{targetResourceId.Name}] {alertRuleName.Name}",
-            message: incidentMessage,
+            message: alertDataBlock,
             agentTypeEnum: AgentTypeEnum.Meta,
             source: ThreadSource.Incident,
             incidentId: alertId
@@ -416,7 +412,7 @@ public class AzMonitorAlertScanner
         // acknowledge incident
         await _azMonitorAlertService.AcknowledgeAlert(alertId);
 
-        var agentMessage = $"**Acknowledging the alert**. 🔍 Analyzing different data sources to determine what's happening.";
+        var agentMessage = $"**Acknowledging the alert**. 🔍 Starting investigation to determine what's happening.";
 
         await _repository.AddMessageAsync(thread.Id, new Message(
                 Guid.NewGuid(),

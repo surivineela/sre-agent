@@ -29,6 +29,12 @@
       "value": "Resource group"
     }
   ],
+  "0sIUhe": [
+    {
+      "type": 0,
+      "value": "View Alert Details"
+    }
+  ],
   "0wJ7N+": [
     {
       "type": 0,
@@ -191,6 +197,12 @@
     {
       "type": 0,
       "value": "Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources."
+    }
+  ],
+  "6u8zJX": [
+    {
+      "type": 0,
+      "value": "New Azure Monitor Alert Detected"
     }
   ],
   "7Nz2Ev": [
@@ -511,6 +523,12 @@
       "value": "After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:"
     }
   ],
+  "NV14yw": [
+    {
+      "type": 0,
+      "value": "Alert Rule"
+    }
+  ],
   "Nf40QB": [
     {
       "type": 0,
@@ -579,6 +597,12 @@
     {
       "type": 0,
       "value": "Decision Time"
+    }
+  ],
+  "Q8Qw5B": [
+    {
+      "type": 0,
+      "value": "Description"
     }
   ],
   "QGVI63": [
@@ -761,6 +785,12 @@
       "value": "Adding managed resource group(s) in progress"
     }
   ],
+  "X192re": [
+    {
+      "type": 0,
+      "value": "Monitored Resource"
+    }
+  ],
   "XIjgrI": [
     {
       "type": 0,
@@ -783,6 +813,12 @@
     {
       "type": 0,
       "value": "Failed to create logic app"
+    }
+  ],
+  "ZbUTXC": [
+    {
+      "type": 0,
+      "value": "Resource Group"
     }
   ],
   "Zqa4dQ": [
@@ -951,6 +987,12 @@
       "value": "Deny"
     }
   ],
+  "ielB5f": [
+    {
+      "type": 0,
+      "value": "Fired At"
+    }
+  ],
   "iv1ryQ": [
     {
       "type": 0,
@@ -979,6 +1021,12 @@
     {
       "type": 0,
       "value": "Save"
+    }
+  ],
+  "k8ZNgH": [
+    {
+      "type": 0,
+      "value": "Alert ID"
     }
   ],
   "kWs94j": [
@@ -1105,6 +1153,12 @@
     {
       "type": 1,
       "value": "errorMessage"
+    }
+  ],
+  "snEUKZ": [
+    {
+      "type": 0,
+      "value": "Monitor Service"
     }
   ],
   "tshYzs": [

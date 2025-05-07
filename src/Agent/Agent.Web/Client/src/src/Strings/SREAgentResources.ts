@@ -241,6 +241,20 @@ export const IncidentManagementSaveErrorResources = defineMessages({
     logicAppDeleteFailure: { defaultMessage: 'Failed to delete logic app', id: 'DpMYPV' },
     configFailure: { defaultMessage: 'Failed to save incident management configuration', id: 'hX7X4n' },
 });
+
+export const IncidentAlertResources = defineMessages({
+    headerTitle: { defaultMessage: 'New Azure Monitor Alert Detected', id: '6u8zJX' },
+    alertID: { defaultMessage: 'Alert ID', id: 'k8ZNgH' },
+    firedAt: { defaultMessage: 'Fired At', id: 'ielB5f' },
+    monitorService: { defaultMessage: 'Monitor Service', id: 'snEUKZ' },
+    alertRule: { defaultMessage: 'Alert Rule', id: 'NV14yw' },
+    description: { defaultMessage: 'Description', id: 'Q8Qw5B' },
+    monitoredResource: { defaultMessage: 'Monitored Resource', id: 'X192re' },
+    resourceGroup: { defaultMessage: 'Resource Group', id: 'ZbUTXC' },
+    portalUrlLinkText: { defaultMessage: 'View Alert Details', id: '0sIUhe' },
+    subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+});
+
 export const ManagedResourcesStringResources = defineMessages({
     allRegions: { defaultMessage: 'All Regions', id: 'w+XRP2' },
     managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },

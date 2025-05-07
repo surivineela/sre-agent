@@ -6,10 +6,9 @@ using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Agent.Core.Interfaces;
-using Azure.Core;
-using Azure.ResourceManager;
-using Azure.ResourceManager.AlertsManagement.Models;
 using Agent.Logging;
+using Azure.Core;
+using Azure.ResourceManager.AlertsManagement.Models;
 using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
@@ -18,7 +17,6 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     private readonly ILogger<AzMonitorAlertService> _logger;
     private readonly IAuthenticationService _authService;
     private readonly HttpClient _httpClient;
-    private readonly ArmClient _armClient;
 
     public AzMonitorAlertService(
         IArmClientFactory armClientFactory,
@@ -26,7 +24,6 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         ILogger<AzMonitorAlertService> logger)
     {
         _authService = authService;
-        _armClient = armClientFactory.GetArmClient();
         _logger = logger;
         _httpClient = new HttpClient();
     }
@@ -52,7 +49,6 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             // only get the alerts for the last 1hour - then filter in memory
             string timeRange = "1h";
 
-            // Add both time range and monitor condition filters
             apiUrl += $"&timeRange={timeRange}&monitorCondition=Fired";
 
             _logger.LogInternalInformation($"Calling Alert Management API with URL: {apiUrl}");
@@ -79,15 +75,16 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 
                         if (DateTimeOffset.TryParse(essentials.StartDateTime, out var startTime))
                         {
-                            if (essentials.MonitorCondition == "Fired" && startTime >= cutoffTime)
+                            if (essentials.MonitorCondition == "Fired" && 
+                                startTime >= cutoffTime && 
+                                essentials.AlertState == "New")
                             {
-                                _logger.LogInternalInformation($"Adding alert {alertItem.Id} to new alerts list - Rule: {essentials.AlertRule}, Time: {startTime}");
-
+                                _logger.LogInternalInformation($"Adding alert {alertItem.Id} to new alerts list - Rule: {essentials.AlertRule}, Time: {startTime}, State: {essentials.AlertState}");
                                 newAlerts.Add(alertItem);
                             }
                             else
                             {
-                                _logger.LogDebug($"Skipping alert {alertItem.Id} - Condition: {essentials.MonitorCondition}, StartTime: {startTime}, Cutoff: {cutoffTime}");
+                                _logger.LogDebug($"Skipping alert {alertItem.Id} - Condition: {essentials.MonitorCondition}, StartTime: {startTime}, State: {essentials.AlertState}, Cutoff: {cutoffTime}");
                             }
                         }
                         else
