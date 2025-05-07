@@ -1984,6 +1984,7 @@ public class ArmHelper
 
             // Add the token to the HttpClient's Authorization header
             var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            httpClient.Timeout = TimeSpan.FromMinutes(10);
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
             httpClient.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
             return httpClient;
