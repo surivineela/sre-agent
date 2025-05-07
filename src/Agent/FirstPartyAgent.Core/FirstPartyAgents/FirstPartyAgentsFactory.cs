@@ -31,8 +31,8 @@ public class FirstPartyAgentsFactory : IAgentsFactory
         var agentName = GetAgentName();
         string? systemPrompt = null;
         if (string.Equals(agentName, "RCAAgent", StringComparison.InvariantCultureIgnoreCase))
-        {
-            var path = Path.Combine("..", "FirstPartyAgent.Core", nameof(FirstPartyAgents), "ACA", "RCAAgentSystemPrompt.txt");
+        {            
+            var path = Path.Combine(AppContext.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartyAgents), "ACA", "RCAAgentSystemPrompt.txt");
             systemPrompt = File.ReadAllText(path);
         }
         if (string.IsNullOrEmpty(systemPrompt))
