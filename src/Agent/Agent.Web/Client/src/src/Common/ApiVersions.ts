@@ -10,5 +10,6 @@ export class ApiVersions {
     public static readonly userIdentityApiVersion = '2018-11-30';
     public static readonly rbacApiVersion = '2022-04-01';
     public static readonly servicePrincipalRBACApiVersion = '2022-04-01';
+    public static readonly PermissionsApiVersion = '2022-04-01';
     public static readonly argQueryApiVersion20200401Preview = '2020-04-01-preview';
 }

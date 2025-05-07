@@ -1,6 +1,6 @@
 import { useCallback, useContext, useEffect, useState } from 'react';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
-import { PermissionsClient } from '../../../Common/Clients/PermissionsClient';
+import { PermissionClient } from '../../../Common/Clients/PermissionsClient';
 import { PermissionsCheckResponse } from '../../../Common/Contracts/Azure/Permission';
 
 export function usePermissions(resourceId: string) {
@@ -18,7 +18,7 @@ export function usePermissions(resourceId: string) {
         setPermissions(undefined);
         setPermissionsLoaded(false);
 
-        const response = await PermissionsClient.getPermissions(resourceId);
+        const response = await PermissionClient.getInstance().getPermissions(resourceId);
 
         if (response.metadata.success) {
             azPortalContext.log({

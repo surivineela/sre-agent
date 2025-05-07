@@ -699,7 +699,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             if (!response?.length) {
                 return;
             }
-            let grafanaResourceNames: string[] = [];
+            const grafanaResourceNames: string[] = [];
             response.map(grafanaResource => {
                 if (grafanaResource?.name && grafanaResource?.resourceGroupName === resourceGroup) {
                     grafanaResourceNames.push(grafanaResource.name);

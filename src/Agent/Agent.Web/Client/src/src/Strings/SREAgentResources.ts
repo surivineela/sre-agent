@@ -139,6 +139,31 @@ export const SreAgentTabResources = defineMessages({
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
 });
 
+export const ResourcePickerTabResources = defineMessages({
+    selectTabTitle: { defaultMessage: 'Choose resource groups', id: 'zcyAwy' },
+    reviewTabTitle: { defaultMessage: 'Review resource groups', id: 'LPprqA' },
+    assignTabTitle: { defaultMessage: 'Assign roles and permissions', id: '5dWZzT' },
+    assignTabDescription: {
+        defaultMessage:
+            'The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed.',
+        id: 'w3tjx3',
+    },
+    reader: { defaultMessage: 'Reader', id: '3nhWFW' },
+    containerAppsOperator: { defaultMessage: 'Container Apps Operator', id: '/WrP/v' },
+    monitoringReader: { defaultMessage: 'Monitoring Reader', id: 'Sr4IbA' },
+    logAnalyticsReader: { defaultMessage: 'Log Analytics Reader', id: 'sI+CCC' },
+    kubernetesReader: { defaultMessage: 'Azure Kubernetes Service RBAC Reader', id: 'RrsyUh' },
+    websiteContributor: { defaultMessage: 'Website Contributor/Operator', id: 'UV4Dx5' },
+    writerOperator: { defaultMessage: 'Writer/Operator', id: 'oUbzA/' },
+    permissionsForRoleAssignment: { defaultMessage: 'Permissions to assign roles', id: 'ob9EPi' },
+    resourceGroupPermissionError: {
+        defaultMessage:
+            'Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions.',
+        id: 'E60v6W',
+    },
+    resourceGroupMaxError: { defaultMessage: 'You can choose a maximum of 20 resource groups that the agent will manage.', id: '6tlKgy' },
+});
+
 export const ActionsResources = defineMessages({
     actions: { defaultMessage: 'Actions', id: 'wL7VAE' },
     allStatuses: { defaultMessage: 'All statuses', id: 'fvK8Qi' },
@@ -284,6 +309,8 @@ export const ManagedResourcesStringResources = defineMessages({
     selectResourceGroupsToMonitor: { defaultMessage: 'Select resource groups to monitor', id: 'CfGC/2' },
     cancel: { defaultMessage: 'Cancel', id: '47FYwb' },
     save: { defaultMessage: 'Save', id: 'jvo0vs' },
+    next: { defaultMessage: 'Next', id: '9+Ddtu' },
+    back: { defaultMessage: 'Back', id: 'cyR7Kh' },
     search: { defaultMessage: 'Search', id: 'xmcVZ0' },
     resourceGroupName: { defaultMessage: 'Resource group name', id: 'xVPoso' },
     location: { defaultMessage: 'Location', id: 'rvirM2' },

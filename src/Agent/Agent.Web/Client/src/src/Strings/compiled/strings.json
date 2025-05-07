@@ -29,6 +29,18 @@
       "value": "Resource group"
     }
   ],
+  "/9bvfN": [
+    {
+      "type": 0,
+      "value": "Required roles"
+    }
+  ],
+  "/WrP/v": [
+    {
+      "type": 0,
+      "value": "Container Apps Operator"
+    }
+  ],
   "0sIUhe": [
     {
       "type": 0,
@@ -53,6 +65,12 @@
       "value": "Step 1: Open Cloud Shell"
     }
   ],
+  "1ZgrhW": [
+    {
+      "type": 0,
+      "value": "Role"
+    }
+  ],
   "1dOMiz": [
     {
       "type": 0,
@@ -65,16 +83,16 @@
       "value": "This will permanently delete the chat and all actions in this thread."
     }
   ],
+  "2/2yg+": [
+    {
+      "type": 0,
+      "value": "Add"
+    }
+  ],
   "2WxP2i": [
     {
       "type": 0,
       "value": "Delete thread"
-    }
-  ],
-  "2zwwXY": [
-    {
-      "type": 0,
-      "value": "Grafana"
     }
   ],
   "35UE1s": [
@@ -87,6 +105,12 @@
     {
       "type": 0,
       "value": "Active"
+    }
+  ],
+  "3nhWFW": [
+    {
+      "type": 0,
+      "value": "Reader"
     }
   ],
   "40YXE1": [
@@ -141,6 +165,12 @@
     {
       "type": 0,
       "value": "Start Time"
+    }
+  ],
+  "5dWZzT": [
+    {
+      "type": 0,
+      "value": "Assign roles and permissions"
     }
   ],
   "5kp1Ie": [
@@ -199,6 +229,18 @@
       "value": "Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources."
     }
   ],
+  "6m5Ba0": [
+    {
+      "type": 0,
+      "value": "Data Collection Rule"
+    }
+  ],
+  "6tlKgy": [
+    {
+      "type": 0,
+      "value": "You can choose a maximum of 20 resource groups that the agent will manage."
+    }
+  ],
   "6u8zJX": [
     {
       "type": 0,
@@ -239,6 +281,12 @@
     {
       "type": 0,
       "value": "All subscriptions"
+    }
+  ],
+  "9+Ddtu": [
+    {
+      "type": 0,
+      "value": "Next"
     }
   ],
   "94Fg25": [
@@ -323,6 +371,12 @@
       "value": "API key is not valid"
     }
   ],
+  "AfbqHj": [
+    {
+      "type": 0,
+      "value": "Monitoring Reader Role"
+    }
+  ],
   "BKMqtr": [
     {
       "type": 0,
@@ -353,6 +407,12 @@
       "value": "It's OK to contact me about my feedback."
     }
   ],
+  "E60v6W": [
+    {
+      "type": 0,
+      "value": "Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions."
+    }
+  ],
   "EKfWmx": [
     {
       "type": 0,
@@ -369,6 +429,12 @@
     {
       "type": 0,
       "value": "Incident platform"
+    }
+  ],
+  "EwRIOm": [
+    {
+      "type": 0,
+      "value": "User"
     }
   ],
   "Ez5ZJg": [
@@ -461,6 +527,12 @@
       "value": "- completed"
     }
   ],
+  "IF3r+X": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana"
+    }
+  ],
   "IS+F5v": [
     {
       "type": 0,
@@ -511,6 +583,18 @@
       "value": " deleted successfully"
     }
   ],
+  "K8gj8f": [
+    {
+      "type": 0,
+      "value": "You do not have the required roleAssignments/write permissions to set up a Grafana dashboard."
+    }
+  ],
+  "LPprqA": [
+    {
+      "type": 0,
+      "value": "Review resource groups"
+    }
+  ],
   "MACADd": [
     {
       "type": 0,
@@ -541,6 +625,12 @@
       "value": "Successfully saved incident management configuration"
     }
   ],
+  "Nrc9ba": [
+    {
+      "type": 0,
+      "value": "Thank you for your feedback!"
+    }
+  ],
   "O0WH/+": [
     {
       "type": 0,
@@ -561,6 +651,12 @@
     {
       "type": 0,
       "value": "Enter name"
+    }
+  ],
+  "ONVN5F": [
+    {
+      "type": 0,
+      "value": "Assigned to"
     }
   ],
   "OV0MpG": [
@@ -623,6 +719,12 @@
       "value": "Subscription"
     }
   ],
+  "R1YfDi": [
+    {
+      "type": 0,
+      "value": "Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data."
+    }
+  ],
   "RI4Umu": [
     {
       "type": 1,
@@ -643,6 +745,12 @@
     {
       "type": 0,
       "value": "Summary"
+    }
+  ],
+  "RrsyUh": [
+    {
+      "type": 0,
+      "value": "Azure Kubernetes Service RBAC Reader"
     }
   ],
   "S1VBUm": [
@@ -675,6 +783,12 @@
       "value": "This operation is being executed using the approver's credentials."
     }
   ],
+  "Sr4IbA": [
+    {
+      "type": 0,
+      "value": "Monitoring Reader"
+    }
+  ],
   "T7WpWs": [
     {
       "type": 0,
@@ -691,6 +805,12 @@
     {
       "type": 0,
       "value": "This field is required"
+    }
+  ],
+  "TMZ2Rq": [
+    {
+      "type": 0,
+      "value": "Grafana Admin"
     }
   ],
   "TXP5xs": [
@@ -717,6 +837,12 @@
     {
       "type": 0,
       "value": "Saving incident management configuration"
+    }
+  ],
+  "UV4Dx5": [
+    {
+      "type": 0,
+      "value": "Website Contributor/Operator"
     }
   ],
   "UVS724": [
@@ -797,6 +923,18 @@
       "value": "Step 2: Generate API key"
     }
   ],
+  "XvrDTb": [
+    {
+      "type": 0,
+      "value": "Monitoring metrics publisher"
+    }
+  ],
+  "Z1VHv1": [
+    {
+      "type": 0,
+      "value": "Monitoring Data Reader Role"
+    }
+  ],
   "Z26C+l": [
     {
       "type": 0,
@@ -855,6 +993,12 @@
       "value": "title"
     }
   ],
+  "bW7B87": [
+    {
+      "type": 0,
+      "value": "New"
+    }
+  ],
   "bi05ZL": [
     {
       "type": 0,
@@ -895,6 +1039,12 @@
     {
       "type": 0,
       "value": "Give as much detail as you can, but do not include any personal information."
+    }
+  ],
+  "cyR7Kh": [
+    {
+      "type": 0,
+      "value": "Back"
     }
   ],
   "dnXgff": [
@@ -949,6 +1099,12 @@
     {
       "type": 0,
       "value": "All statuses"
+    }
+  ],
+  "gj6Qc6": [
+    {
+      "type": 0,
+      "value": "Azure Monitor Workspace"
     }
   ],
   "gjBiyj": [
@@ -1011,12 +1167,6 @@
       "value": "Grafana resource must be unique within the resource group."
     }
   ],
-  "jUwYmA": [
-    {
-      "type": 0,
-      "value": "Set up a custom Grafana dashboard to get visual insights into your infrastructure, with daily reports and resource-specific health metrics."
-    }
-  ],
   "jvo0vs": [
     {
       "type": 0,
@@ -1039,6 +1189,12 @@
     {
       "type": 0,
       "value": "Are you sure you would like to unregister the selected resource group(s) from being managed by your agent?"
+    }
+  ],
+  "lGIJSX": [
+    {
+      "type": 0,
+      "value": "User Assigned Managed Identity"
     }
   ],
   "ljmS5P": [
@@ -1077,6 +1233,18 @@
       "value": "No"
     }
   ],
+  "oUbzA/": [
+    {
+      "type": 0,
+      "value": "Writer/Operator"
+    }
+  ],
+  "ob9EPi": [
+    {
+      "type": 0,
+      "value": "Permissions to assign roles"
+    }
+  ],
   "ol51Ez": [
     {
       "type": 0,
@@ -1087,6 +1255,12 @@
     {
       "type": 0,
       "value": "Managed resources"
+    }
+  ],
+  "piCpTn": [
+    {
+      "type": 0,
+      "value": "Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard."
     }
   ],
   "q/uwLT": [
@@ -1145,6 +1319,12 @@
       "value": "Location"
     }
   ],
+  "sI+CCC": [
+    {
+      "type": 0,
+      "value": "Log Analytics Reader"
+    }
+  ],
   "slxYbm": [
     {
       "type": 0,
@@ -1195,6 +1375,12 @@
     {
       "type": 0,
       "value": "All Regions"
+    }
+  ],
+  "w3tjx3": [
+    {
+      "type": 0,
+      "value": "The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed."
     }
   ],
   "wL7VAE": [
@@ -1287,6 +1473,12 @@
     {
       "type": 0,
       "value": "Total threads"
+    }
+  ],
+  "zcyAwy": [
+    {
+      "type": 0,
+      "value": "Choose resource groups"
     }
   ]
 }

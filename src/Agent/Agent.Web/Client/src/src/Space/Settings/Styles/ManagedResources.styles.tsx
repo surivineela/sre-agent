@@ -1,4 +1,5 @@
 import { makeStyles } from '@fluentui/react-components';
+import { IDetailsListStyles } from '@fluentui/react/lib/DetailsList';
 
 export const useManagedResourcesStyles = makeStyles({
     pillsContainer: { display: 'flex', flexDirection: 'row', gap: '5px', marginTop: '10px' },
@@ -15,11 +16,11 @@ export const useManagedResourcesStyles = makeStyles({
         width: '100%',
         flexDirection: 'row',
         gap: '5px',
+        paddingTop: '5px',
     },
     row: {
         display: 'flex',
         alignItems: 'center',
-        paddingTop: '6px',
     },
     statusRow: {
         display: 'flex',
@@ -49,6 +50,7 @@ export const useManagedResourcesStyles = makeStyles({
         flexDirection: 'column',
         height: '100%',
         gap: '10px',
+        overflowY: 'hidden',
     },
     itemDescription: {
         fontSize: '13px',
@@ -97,4 +99,19 @@ export const useManagedResourcesStyles = makeStyles({
     footerButtonDiv: {
         marginRight: '5px',
     },
+    iconRow: {
+        display: 'flex',
+        flexDirection: 'row',
+        justifyContent: 'flex-start',
+        alignItems: 'center',
+        gap: '4px',
+    },
 });
+
+export const detailsListStyles: Partial<IDetailsListStyles> = {
+    root: {
+        width: '100%',
+        maxHeight: '365px',
+        overflowX: 'hidden',
+    },
+};
