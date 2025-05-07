@@ -1,0 +1,14 @@
+let fromTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+let cappSubscription = "##subscriptionId##";
+let cappResourceGroup = "##resourceGroupName##";
+let cappName = "##containerAppName##";
+ContainerAppsAdminEvents
+| where PreciseTimeStamp between (fromTime .. endTime)
+| where EventId == 2
+| where statusCode != -1
+| where requestMethod != "GET"
+| where subscription =~ cappSubscription
+| where resourceGroup =~ cappResourceGroup
+| where resourceName =~ cappName 
+| project PreciseTimeStamp,requestMethod,requestPath,statusCode,requestBody

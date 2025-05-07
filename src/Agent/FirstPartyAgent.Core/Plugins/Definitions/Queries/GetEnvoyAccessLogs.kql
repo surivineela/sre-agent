@@ -1,17 +1,10 @@
 let startTime = datetime("##fromDate##");
 let endTime = datetime("##toDate##");
-let cappSubscription = "##subscriptionId##";
-let cappResourceGroup = "##resourceGroupName##";
-let cappName = "##containerAppName##";
-let clusterName = toscalar (ContainerAppDBState
-| where TIMESTAMP between (startTime .. endTime)
-| where subscription == cappSubscription
-| where resourceGroup == cappResourceGroup
-| where containerAppName == cappName
-| summarize  max(TIMESTAMP) by managedClusterName);
+let managedClusterName = "##managedClusterName##";
 EnvoyFrontEndLogsTable
 | where TIMESTAMP between (startTime .. endTime)
-| where EnvironmentName == clusterName
-| project StartTime, Authority, Method, Path, Protocol, Status, ResponseFlags, ResponseCodeDetails, GrpcStatus, GrpcStatusNumber, RequestDuration, UpstreamHost, UpstreamCluster, UpstreamRequestAttemptCount, BytesRecieved, BytesSent, RevisionName, UserAgent, Role
-| order by StartTime asc
-| limit 200
+| where EnvironmentName == managedClusterName
+//| project StartTime, Authority, Method, Path, Protocol, Status, ResponseFlags, ResponseCodeDetails, GrpcStatus, GrpcStatusNumber, RequestDuration, UpstreamHost, UpstreamCluster, UpstreamRequestAttemptCount, BytesRecieved, BytesSent, RevisionName, UserAgent, Role
+| summarize FirstSeen=min(StartTime),LastSeen=max(StartTime),max(RequestDuration),count() by Authority, Method, Path, Protocol, Status, ResponseCodeDetails
+| project FirstSeen,LastSeen,max_RequestDuration,Count=count_,Authority, Method, Path, Protocol, Status, ResponseCodeDetails
+| order by FirstSeen asc 
