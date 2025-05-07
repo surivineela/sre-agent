@@ -22,5 +22,7 @@ namespace Agent.Plugins
         Task<IssueComment> UpdateGithubIssueComment(string repoUrl, long id, string newCommentBody);
         Task<IEnumerable<string>> GetUserOrganizations(string username);
         Task<string> ExtractTextFromImageInGitHubIssue(string imageUrl, Kernel kernel);
+
+        string GenerateLoginLink();
     }
 }

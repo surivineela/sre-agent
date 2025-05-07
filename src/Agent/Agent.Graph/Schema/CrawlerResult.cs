@@ -4,6 +4,12 @@
 
 namespace Agent.Graph.Schema
 {
+
+    public record CrawlProgress(
+        int CrawledCount,
+        int TotalResources
+    );
+
     public class CrawlerResult
     {
         public bool IsCrawling { get; set; }
@@ -11,5 +17,7 @@ namespace Agent.Graph.Schema
         public int CrawledCount { get; set; }
         public int TotalVisibleResources { get; set; }
         public IDictionary<string, object> Properties { get; set; }
+
+        public IDictionary<string, CrawlProgress> ProgressByResourceType { get; set; }
     }
 }

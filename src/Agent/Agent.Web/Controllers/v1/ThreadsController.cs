@@ -9,7 +9,6 @@ using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
-using Agent.Runtime.MetaAgent;
 using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
@@ -18,7 +17,9 @@ using Action = Agent.Core.Models.Api.v1.Action;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 using Agent.Runtime.MetaAgent.Interfaces;
 using Microsoft.DurableTask.Client;
-using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Web.Models.WelcomeMessage;
+using Agent.Plugins;
+using Agent.Runtime.Services;
 
 namespace Agent.Web.Controllers.v1
 {
@@ -39,7 +40,10 @@ namespace Agent.Web.Controllers.v1
         IThreadRepository repository,
         IChatClient chatClient,
         DurableTaskClient durableTaskClient,
-        ILogger<ThreadsController> logger) : ControllerBase
+        ILogger<ThreadsController> logger,
+        IGraphService graphService,
+        IConnectedIntegrationsPlugin connectedIntegrationsPlugin,
+        IGithubIssuePlugin githubIssuePlugin) : ControllerBase
     {
         // By default, returns threads ordered by timestamp in ascending order.
         // Pagination can be achieve by using `top` and `skip` query options. https://learn.microsoft.com/en-us/odata/client/pagination#client-driven-paging
@@ -312,6 +316,70 @@ namespace Agent.Web.Controllers.v1
             var actions = await repository.GetActionsAsync(threadId, queryOptions);
 
             return Ok(new PagedResponse<Action>(actions));
+        }
+
+        [HttpGet("{threadId}/welcomeMessage")]
+        public async Task<ActionResult<WelcomeMessage>> GetWelcomeMessage(Guid threadId)
+        {
+            // First check if thread exists
+            var thread = await repository.GetThreadAsync(threadId);
+
+            if (thread is null)
+            {
+                return NotFound();
+            }
+
+            if (thread.Source != ThreadSource.WelcomeMessage)
+            {
+                return BadRequest("Thread is not a welcome message thread.");
+            }
+
+            var crawlStatus = await graphService.GetGraphProgressAsync();
+            var knowledgeGraphStatus = new KnowledgeGraphStatus(
+                Status: crawlStatus.IsCrawling ? KnowledgeGraphStatusEnum.InProgress : KnowledgeGraphStatusEnum.Completed,
+                CrawlProgress: new OverallCrawlProgress(
+                    Crawled: (uint)crawlStatus.CrawledCount,
+                    TotalResources: (uint)crawlStatus.TotalVisibleResources,
+                    FinishedInitialCrawl: crawlStatus.HasCompletedInitialGraphCrawl
+                ),
+                CrawlProgressByResourceType: crawlStatus.ProgressByResourceType.ToDictionary(
+                    kvp => kvp.Key,
+                    kvp => new CrawlProgressByResourceType(
+                        Crawled: (uint)kvp.Value.CrawledCount,
+                        TotalResources: (uint)kvp.Value.TotalResources
+                    )
+                )
+            );
+
+            var integrations = connectedIntegrationsPlugin.GetAllActiveIntegrations();
+
+            var appGroupsWithRepo = await graphService.GetAppGroupsWithRepo();
+
+            var githubAccessToken = await repository.GetGitHubAccessTokenAsync();
+
+            var githubAccessTokenConfigured = githubAccessToken != null && !string.IsNullOrEmpty(githubAccessToken.AccessToken) && (githubAccessToken.ExpiresOn is null || githubAccessToken.ExpiresOn > DateTime.UtcNow);
+
+            var loginUrl = githubIssuePlugin.GenerateLoginLink();
+            
+            var logicalApplications = appGroupsWithRepo.Select(appGroup =>
+            {
+                var sourceCodeLinkageStatus = (githubAccessTokenConfigured, appGroup.RepoUrl) switch
+                {
+                    (false, string repo) when !string.IsNullOrEmpty(repo) => new SourceCodeLinkageStatus(SourceCodeLinkageStatusEnum.RequiresAuth, repo, appGroup.LinkedTimestamp, loginUrl),
+                    (true, string repo) when !string.IsNullOrEmpty(repo) => new SourceCodeLinkageStatus(SourceCodeLinkageStatusEnum.Linked, repo, appGroup.LinkedTimestamp, null),
+                    _ => new SourceCodeLinkageStatus(SourceCodeLinkageStatusEnum.NotLinked, null, null, null)
+                };
+
+                return new LogicalApplication(appGroup.ResourceId, sourceCodeLinkageStatus);
+            }).ToList();
+
+            var welcomeMessage = new WelcomeMessage(
+                KnowledgeGraphStatus: knowledgeGraphStatus,
+                Integrations: integrations,
+                LogicalApplications: logicalApplications
+            );
+
+            return Ok(welcomeMessage);
         }
 
         [HttpDelete("{threadId}")]

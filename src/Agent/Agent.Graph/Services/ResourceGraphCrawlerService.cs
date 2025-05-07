@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.Collections;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using Agent.Core.Configuration;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -14,10 +15,15 @@ using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.Monitor.Models;
 using Microsoft.Extensions.Logging;
-using OpenTelemetry.Resources;
-using static Kusto.Data.Net.Http.OneApiError;
 
 namespace Agent.Graph.Services;
+
+internal class CrawlProgressCounter(int crawledCount, int crawlingCount, int pendingCount)
+{
+    public int CrawledCount = crawledCount;
+    public int CrawlingCount = crawlingCount;
+    public int PendingCount = pendingCount;
+}
 
 public class ResourceGraphCrawlerService : ICrawlerService
 {
@@ -30,7 +36,9 @@ public class ResourceGraphCrawlerService : ICrawlerService
     private bool _isCrawling = false;
     private bool _hasCompletedInitialGraphCrawl = false;
     private int _crawledCount = 0;
-    private int _totalVisibleResources = 0; // Based on current visible nodes. Will not be an accurate count of total resources.
+    private int _crawlingCount = 0;
+    private int _pendingCount = 0;
+    private readonly ConcurrentDictionary<string, CrawlProgressCounter> _progressByResourceType = new();
 
     public ResourceGraphCrawlerService(ILogger<ResourceGraphCrawlerService> logger, CrawlerSettings crawlerSettings, ArmResourceCrawlerFactory factory, IGraphDatabaseClient graphDbClient, IActivityLogService activityLogService)
     {
@@ -73,7 +81,10 @@ public class ResourceGraphCrawlerService : ICrawlerService
             IsCrawling = _isCrawling,
             HasCompletedInitialGraphCrawl = _hasCompletedInitialGraphCrawl,
             CrawledCount = _crawledCount,
-            TotalVisibleResources = _totalVisibleResources,
+            TotalVisibleResources = _crawledCount + _crawlingCount + _pendingCount,
+            ProgressByResourceType = _progressByResourceType
+                .Select(kvp => new KeyValuePair<string, CrawlProgress>(kvp.Key, new CrawlProgress(CrawledCount: kvp.Value.CrawledCount, TotalResources: kvp.Value.CrawledCount + kvp.Value.CrawlingCount + kvp.Value.PendingCount)))
+                .ToDictionary(),
         });
     }
 
@@ -134,7 +145,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
                             _logger.LogDebug($"Crawling on event: {eventData.HttpRequest.Method} {eventData.ResourceId}.");
                             var startTS = DateTime.UtcNow.Ticks;
                             var crawler = _factory.CreateFromNode(node);
-                            await foreach (var _ in crawler.Crawl(node)){ }
+                            await foreach (var _ in crawler.Crawl(node)) { }
 
                             _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
                             await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
@@ -155,9 +166,11 @@ public class ResourceGraphCrawlerService : ICrawlerService
             Queue toCrawl = Queue.Synchronized(queue);
             IList<Task> tasks = new List<Task>();
 
-            int crawledCount = 0;
-            int crawlingCount = 0;
-            int pendingCount = 0;
+            _crawledCount = 0;
+            _crawlingCount = 0;
+            _pendingCount = 0;
+
+            _progressByResourceType.Clear();
 
             var startTS = DateTime.UtcNow.Ticks;
             var sw = new Stopwatch();
@@ -168,7 +181,15 @@ public class ResourceGraphCrawlerService : ICrawlerService
                 if (filters == null || FilterResourceType(filters, node))
                 {
                     toCrawl.Enqueue(node);
-                    Interlocked.Increment(ref pendingCount);
+                    Interlocked.Increment(ref _pendingCount);
+
+                    _progressByResourceType.AddOrUpdate(node.GetNodeLabel(),
+                        (resouceType) => new CrawlProgressCounter(0, 0, 1),
+                        (resourceType, progress) =>
+                        {
+                            Interlocked.Increment(ref progress.PendingCount);
+                            return progress;
+                        });
                 }
             }
 
@@ -178,10 +199,10 @@ public class ResourceGraphCrawlerService : ICrawlerService
             {
                 while (!linkedCts.IsCancellationRequested)
                 {
-                    _logger.LogInternalInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+                    _logger.LogInternalInformation($"Crawling progress: crawling: {_crawlingCount}, pending: {_pendingCount}, crawled: {_crawledCount}");
                     await Task.Delay(5 * 1000);
                 }
-                _logger.LogInternalInformation($"Crawling progress: crawling: {crawlingCount}, pending: {pendingCount}, crawled: {crawledCount}");
+                _logger.LogInternalInformation($"Crawling progress: crawling: {_crawlingCount}, pending: {_pendingCount}, crawled: {_crawledCount}");
             });
 
             while (toCrawl.Count > 0 || tasks.Count > 0)
@@ -189,23 +210,31 @@ public class ResourceGraphCrawlerService : ICrawlerService
                 while (toCrawl.Count > 0 && tasks.Count < _crawlerSettings.MaxParallelism)
                 {
                     var node = toCrawl.Dequeue() as GraphNode;
-                    Interlocked.Decrement(ref pendingCount);
-                    Interlocked.Increment(ref crawlingCount);
+                    var resourceType = node is null ? string.Empty : node.GetNodeLabel();
+                    var progressByResourceType = _progressByResourceType.GetOrAdd(resourceType, 
+                        (resourceType) => new CrawlProgressCounter(0, 0, 0));
+                    Interlocked.Decrement(ref _pendingCount);
+                    Interlocked.Decrement(ref progressByResourceType.PendingCount);
+                    Interlocked.Increment(ref _crawlingCount);
+                    Interlocked.Increment(ref progressByResourceType.CrawlingCount);
                     if (node == null)
                     {
-                        Interlocked.Decrement(ref crawlingCount);
-                        Interlocked.Increment(ref crawledCount);
+                        Interlocked.Decrement(ref _crawlingCount);
+                        Interlocked.Decrement(ref progressByResourceType.CrawlingCount);
+                        Interlocked.Increment(ref _crawledCount);
+                        Interlocked.Increment(ref progressByResourceType.CrawledCount);
                         continue;
                     }
 
+
                     if (crawled.Contains(node.GetHashString()))
                     {
-                        Interlocked.Decrement(ref crawlingCount);
-                        Interlocked.Increment(ref crawledCount);
+                        Interlocked.Decrement(ref _crawlingCount);
+                        Interlocked.Decrement(ref progressByResourceType.CrawlingCount);
+                        Interlocked.Increment(ref _crawledCount);
+                        Interlocked.Increment(ref progressByResourceType.CrawledCount);
                         continue;
                     }
-                    _totalVisibleResources = Math.Max(_totalVisibleResources, crawledCount + crawlingCount + pendingCount);
-                    _crawledCount = Math.Max(_crawledCount, crawledCount);
 
                     crawled.Add(node.GetHashString());
 
@@ -219,7 +248,14 @@ public class ResourceGraphCrawlerService : ICrawlerService
                                 if (cascade && (filters == null || FilterResourceType(filters, n)))
                                 {
                                     toCrawl.Enqueue(n);
-                                    Interlocked.Increment(ref pendingCount);
+                                    Interlocked.Increment(ref _pendingCount);
+                                    var progressByType = _progressByResourceType.AddOrUpdate(n.GetNodeLabel(),
+                                        (resourceType) => new CrawlProgressCounter(0, 0, 1),
+                                        (resourceType, progress) =>
+                                        {
+                                            Interlocked.Increment(ref progress.PendingCount);
+                                            return progress;
+                                        });
                                 }
                             }
 
@@ -228,8 +264,10 @@ public class ResourceGraphCrawlerService : ICrawlerService
                         }
                         finally
                         {
-                            Interlocked.Decrement(ref crawlingCount);
-                            Interlocked.Increment(ref crawledCount);
+                            Interlocked.Decrement(ref _crawlingCount);
+                            Interlocked.Decrement(ref progressByResourceType.CrawlingCount);
+                            Interlocked.Increment(ref _crawledCount);
+                            Interlocked.Increment(ref progressByResourceType.CrawledCount);
                         }
                     }));
                 }

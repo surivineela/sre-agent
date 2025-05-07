@@ -6,6 +6,7 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
 using Agent.Logging;
@@ -87,6 +88,41 @@ public class GraphService : IGraphService
         };
 
         return new ResultSet<dynamic>(resourceTypes, new Dictionary<string, object>());
+    }
+
+    public async Task<List<IGraphService.AppGroupWithRepo>> GetAppGroupsWithRepo()
+    {
+        _logger.LogInternalInformation("Querying app groups with repositories from graph database");
+        string query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}'))
+                         .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp')
+                         .by(coalesce(values('resourceId'), constant('')))
+                         .by(coalesce(values('resourceName'), constant('')))
+                         .by(label())
+                         .by(
+                                coalesce(
+                                    out('{ArmConstants.Relationships.ServesCode}').values('resourceId'),
+                                    constant('')
+                                )
+                         )
+                         .by(
+                                coalesce(
+                                    out('{ArmConstants.Relationships.ServesCode}').values('updateTs'),
+                                    constant(0)
+                                )
+                         )";
+
+        var azureResourceApps = await _graphDatabaseClient.Query<Dictionary<string, object>>(query);
+        _logger.LogInternalInformation("Found {count} app groups with repositories", azureResourceApps.Count);
+        return azureResourceApps.Select(item =>
+        {
+            var resourceId = item["resourceId"]?.ToString() ?? string.Empty;
+            string name = item["name"]?.ToString() ?? string.Empty;
+            string type = item["type"]?.ToString() ?? string.Empty;
+            string repoUrl = item["repo"]?.ToString() ?? string.Empty;
+            long linkedTimestamp = Convert.ToInt64(item["linkedTimestamp"] ?? 0);
+
+            return new IGraphService.AppGroupWithRepo(resourceId, name, type, repoUrl, linkedTimestamp == 0 ? null : new DateTime(linkedTimestamp, DateTimeKind.Utc));
+        }).ToList();
     }
 
     public async Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId, string? resourceType = null)

@@ -313,7 +313,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         );
     }
 
-    private string GenerateLoginLink()
+    public string GenerateLoginLink()
     {
         string agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? "agent";
         string agentHostname = Environment.GetEnvironmentVariable("AGENT_HOSTNAME") ?? "localhost";
