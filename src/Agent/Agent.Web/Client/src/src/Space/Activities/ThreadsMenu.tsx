@@ -42,7 +42,7 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
     const [selectedTime, setSelectedTime] = useState<SelectedTimes>(SelectedTimes.OneDay);
     const [threadMode, setThreadMode] = useState<ThreadMode>(ThreadMode.threads);
     const [threadActionFilter, setThreadActionFilter] = useState<ThreadActionFilter>(ThreadActionFilter.all);
-    const [collapsed, setCollapsed] = useState(true);
+    const [collapsed, setCollapsed] = useState(false);
     const ThreadMenuStyles = useThreadMenuStyle(collapsed);
     const intl = useIntl();
 
