@@ -316,7 +316,7 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     public string GenerateLoginLink()
     {
         string agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? "agent";
-        string agentHostname = Environment.GetEnvironmentVariable("AGENT_HOSTNAME") ?? "localhost";
+        string agentHostname = Environment.GetEnvironmentVariable("AGENT_ENDPOINT") ?? "localhost";
         if (agentHostname.StartsWith("https://"))
         {
             agentHostname = agentHostname.Substring(8);
