@@ -1,0 +1,41 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_m2YxeXnOH0uIgVMkhZ7dUo6Q",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "execution-thread",
+            "title": "TLS update for app2 completed successfully",
+            "toolName": "SetMinimumTlsVersion",
+            "status": "Completed",
+            "severity": "Critical"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMFlkxdrDB3ghfM3RUzDBwmZ7AWV",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-06T23:44:41+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5249,
+    "outputTokenCount": 43,
+    "totalTokenCount": 5292,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 4864,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

@@ -1,6 +1,6 @@
-using System.Reflection;
 using System.Text.Json.Serialization;
 using Agent.Core.Attributes;
+using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
@@ -8,11 +8,9 @@ using Agent.Plugins;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents.Core.Steps;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Octokit;
 
 
 namespace Agent.Runtime.SubAgents.Core;
@@ -200,6 +198,9 @@ public class OrchestrationAgent
         OrchestrationAgent agent = this;
         string threadId = this.ThreadId.ToString();
 
+        // We don't let tests do a full wait, and we don't have the necessary manual clock adjustments to make the timestamps line up, so change the wait messages when testing to be less specific.
+        bool isTestContext = AppDomain.CurrentDomain.IsTestingContext();
+
         // If there's an active wait task, the agent is not driving the task forward.
         // However they still need to be responsive to user questions. Answering these questions might take multiple conversation turns (because of tool calls).
         // So in that case, we don't want to block on the pending wait task.
@@ -233,6 +234,12 @@ public class OrchestrationAgent
                     if (agent.WaitTask.IsCompletedSuccessfully)
                     {
                         var waitMessage = $"Wait completed at {agent._taskOrchestrationContext.CurrentUtcDateTime:O}.";
+
+                        if(isTestContext)
+                        {
+                            waitMessage = "Wait completed.";
+                        }
+
                         agent.ChatHistory.Add(new ChatMessage(ChatRole.System, waitMessage));
                     }
                 }
@@ -270,6 +277,11 @@ public class OrchestrationAgent
                         Scenario 2: If the user does not want to cancel the wait/task entirely, but has still entered a user message, AND there still remains a duration of time to wait, then respond appropriately to the user. Add the following to your response: ""I will provide an update after the remaining duration of time being {timeRemaining} seconds"". After you provide this response, resume the wait task with the time of {timeRemaining} seconds
 
                         Wait can be interrupted due to various other system events such as the following examples but not limited to: approvals, background operations, etc. For these scenarios, resume the wait task with the time of {timeRemaining} seconds.";
+
+                    if (isTestContext)
+                    {
+                        interruptMessage = "Wait was interrupted.";
+                    }
 
                     agent.ChatHistory.Add(new ChatMessage(ChatRole.System, interruptMessage));
                 }

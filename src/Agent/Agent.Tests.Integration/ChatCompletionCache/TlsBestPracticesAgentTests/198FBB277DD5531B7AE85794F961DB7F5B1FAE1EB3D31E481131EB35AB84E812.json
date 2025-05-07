@@ -1,0 +1,41 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_1QVFEHMuvMcifDu02hzgz8W9",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "execution-thread",
+            "title": "Update minimum TLS version to 1.2 for app5",
+            "toolName": "SetMinimumTlsVersion",
+            "status": "Pending",
+            "severity": "Critical"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMYDFWMwyQoFyCY78Omus8YomOjI",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-07T00:03:45+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 9827,
+    "outputTokenCount": 48,
+    "totalTokenCount": 9875,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 3200,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

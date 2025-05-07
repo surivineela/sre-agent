@@ -3,6 +3,7 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Agent.Core.Extensions;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 
@@ -23,8 +24,8 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
         // also, if we are in unit tests we dont want to wait at all
         double waitSeconds = Double.TryParse(FunctionCall.Arguments?["seconds"]?.ToString(), out double seconds) ? seconds : 1;
 
-        if (AppDomain.CurrentDomain.GetAssemblies().Any(a => a.GetName().Name.StartsWith("xunit", StringComparison.OrdinalIgnoreCase)
-            || a.GetName().Name.StartsWith("Microsoft.TestPlatform", StringComparison.OrdinalIgnoreCase)))
+        bool isTestContext = AppDomain.CurrentDomain.IsTestingContext();
+        if (isTestContext)
         {
             waitSeconds = 0.1;
         }
@@ -42,6 +43,12 @@ public class OrchestrationAgentWaitStep : OrchestrationAgentStep
             agent.WaitTimeInitiated = context.CurrentUtcDateTime;
 
             string waitMessage = $"Wait initiated at {agent.WaitTimeInitiated:O} for a duration of {waitSeconds} seconds. Wait is due to complete at {agent.WaitTimeInitiated.AddSeconds(waitSeconds):O}, but might be interrupted due to system events or user messages.";
+
+            if(isTestContext)
+            {
+                waitMessage = "Wait initiated.";
+            }
+
             var resultContent = new FunctionResultContent(FunctionCall.CallId, waitMessage);
             agent.ChatHistory.Add(new ChatMessage(ChatRole.Tool, new[] { resultContent }));
             log.LogInternalInformation("[{ThreadId}] Waiting for {WaitSeconds} seconds", threadId, waitSeconds);

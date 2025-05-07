@@ -1,0 +1,41 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_MKYpSXUK65CRC1GVN9wplKOo",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "execution-thread",
+            "title": "Rollback TLS version for app2 to 1.0 due to anomaly",
+            "toolName": "SetMinimumTlsVersion",
+            "status": "Pending",
+            "severity": "Critical"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMMOK1YdYoE2iP6h0XMqsgZuVUVR",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-06T23:51:32+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5601,
+    "outputTokenCount": 50,
+    "totalTokenCount": 5651,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 5376,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

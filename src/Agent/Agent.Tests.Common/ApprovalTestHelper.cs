@@ -12,10 +12,16 @@ public class ApprovalTestHelper
         IThreadRepository threadRepository,
         Guid threadId,
         ILogger? logger,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        TimeProvider? timeProvider = null)
     {
         using var timeoutCts = new CancellationTokenSource(TimeSpan.FromMinutes(7));
         using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken);
+
+        if (timeProvider == null)
+        {
+            timeProvider = TimeProvider.System;
+        }
 
         while (true)
         {
@@ -34,7 +40,7 @@ public class ApprovalTestHelper
                     var updated = approval with
                     {
                         Status = ApprovalDecision.Approved,
-                        DecisionTimestamp = DateTime.UtcNow,
+                        DecisionTimestamp = timeProvider.GetUtcNow().DateTime,
                         DecisionUser = new Author(Role.User, "TestUser", "TestUserId")
                     };
 
@@ -42,8 +48,8 @@ public class ApprovalTestHelper
 
                     var approvalStatus = new ApprovalStatus(
                         updated.Id.ToString(),
-                        StartTime: DateTime.UtcNow,
-                        ApprovedTime: DateTime.UtcNow,
+                        StartTime: timeProvider.GetUtcNow().DateTime,
+                        ApprovedTime: timeProvider.GetUtcNow().DateTime,
                         DecisionMaker: updated.DecisionUser?.DisplayName,
                         ProcessedTime: null,
                         OboToken: updated.OboToken
@@ -66,13 +72,19 @@ public class ApprovalTestHelper
         Guid threadId,
         ILogger? logger,
         CancellationToken cancellationToken,
+        TimeProvider? timeProvider = null,
         Func<Task>? customAction = null)
     {
         OrchestrationMetadata? orchestrationMetadata = null;
 
+        if (timeProvider == null)
+        {
+            timeProvider = TimeProvider.System;
+        }
+
         while (orchestrationMetadata == null || orchestrationMetadata.IsRunning)
         {
-            await Task.Delay(TimeSpan.FromSeconds(5), cancellationToken);
+            await Task.Delay(TimeSpan.FromMilliseconds(500), cancellationToken);
             var approvals = await threadRepository.GetApprovalsAsync(threadId);
 
             foreach (var approval in approvals)
@@ -82,7 +94,7 @@ public class ApprovalTestHelper
                     var updated = approval with
                     {
                         Status = ApprovalDecision.Approved,
-                        DecisionTimestamp = DateTime.UtcNow,
+                        DecisionTimestamp = timeProvider.GetUtcNow().DateTime,
                         DecisionUser = new Author(Role.User, "TestUser", "TestUserId")
                     };
 
@@ -90,8 +102,8 @@ public class ApprovalTestHelper
 
                     var approvalStatus = new ApprovalStatus(
                         updated.Id.ToString(),
-                        StartTime: DateTime.UtcNow,
-                        ApprovedTime: DateTime.UtcNow,
+                        StartTime: timeProvider.GetUtcNow().DateTime,
+                        ApprovedTime: timeProvider.GetUtcNow().DateTime,
                         DecisionMaker: updated.DecisionUser?.DisplayName,
                         ProcessedTime: null,
                         OboToken: updated.OboToken

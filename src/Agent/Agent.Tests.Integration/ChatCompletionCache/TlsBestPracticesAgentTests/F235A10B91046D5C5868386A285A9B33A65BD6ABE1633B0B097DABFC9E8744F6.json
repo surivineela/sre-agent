@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_NLHvgiWQtEd7Q0PuaCeTkGXd",
+          "name": "Wait",
+          "arguments": {
+            "seconds": 30
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMHs3OFb5fcB5PRAVzRSQhVXMuri",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-06T23:46:52+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 9204,
+    "outputTokenCount": 14,
+    "totalTokenCount": 9218,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 8704,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

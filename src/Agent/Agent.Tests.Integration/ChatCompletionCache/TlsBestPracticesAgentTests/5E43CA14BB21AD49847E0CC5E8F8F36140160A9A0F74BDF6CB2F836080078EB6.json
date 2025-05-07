@@ -1,0 +1,41 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_N4abQd40IBttc50NcY3UkqKl",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "execution-thread",
+            "title": "Monitor traffic for app1 after TLS update",
+            "toolName": "GetSuccessfulRequestVolume",
+            "status": "Pending",
+            "severity": "Warning"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMXBf2jvoLZSc7YoKsPPEkWLbocv",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-07T00:02:41+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 4036,
+    "outputTokenCount": 44,
+    "totalTokenCount": 4080,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 0,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

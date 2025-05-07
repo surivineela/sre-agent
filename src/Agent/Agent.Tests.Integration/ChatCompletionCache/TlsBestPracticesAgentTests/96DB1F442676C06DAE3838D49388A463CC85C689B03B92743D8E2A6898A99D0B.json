@@ -1,0 +1,41 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_DnOlTI0FWt7OOyoGwGLC6Nh0",
+          "name": "RecordAction",
+          "arguments": {
+            "threadId": "execution-thread",
+            "title": "Rollback for app2 completed successfully",
+            "toolName": "SetMinimumTlsVersion",
+            "status": "Completed",
+            "severity": "Critical"
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMFtX21WsYsWZ1ukWVLJty494m8t",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-06T23:44:49+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 5973,
+    "outputTokenCount": 42,
+    "totalTokenCount": 6015,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 5632,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

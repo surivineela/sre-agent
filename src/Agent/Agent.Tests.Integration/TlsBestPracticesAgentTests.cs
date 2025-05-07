@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Agent.Core;
 using Agent.Core.Configuration;
 using Agent.Core.Extensions;
 using Agent.Core.Interfaces;
@@ -13,15 +14,18 @@ using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
 using Agent.Runtime;
 using Agent.Runtime.Communication;
+using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
 using Agent.Runtime.SubAgents.TlsBestPractices;
 using Agent.Tests.Common;
 using Agent.Tests.Common.Mocks;
+using Agent.Tests.Common.ScenarioTestHelpers;
 using Agent.Tests.Integration.Fixtures;
 using Agent.Tests.Integration.Helpers;
 using Azure.AI.OpenAI;
+using DurableTask.Core.Tracking;
 using Microsoft.DurableTask.Client;
 using Microsoft.DurableTask.Client.AzureManaged;
 using Microsoft.DurableTask.Worker;
@@ -31,6 +35,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
+using Moq;
 using Xunit.Abstractions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
@@ -39,21 +44,12 @@ namespace Agent.Tests.Integration
     [Collection(nameof(CombinedTestCollection))]
     public class TlsBestPracticesAgentTests : IAsyncLifetime
     {
-        private TimeProvider _timeProvider;
         private ILogger _logger;
         private IHost _host;
         private DurableTaskClient _durableTaskClient;
         private TlsBestPracticeAgentFactory _agentFactory;
         private const string BaseResourceId = "/subscriptions/29e3378b-0aaf-45da-b3c6-6fd0eea164e4/resourceGroups/my-resource-group/providers/Microsoft.Web/sites";
-
-        private MockRecordActionsPlugin _mockRecordActionsPlugin;
-        private MockArmPlugin _mockArmPlugin;
-        private MockMetricsPlugin _mockMetricsPlugin;
-        private MockGithubWorkflowTriggerPlugin _mockGithubPlugin;
-        private MockTimePlugin _mockTimePlugin;
-        private MockMIConfigurationCheckPlugin _mockMIConfigurationCheckPlugin;
-        private MockAppIdentityUpdatePlugin _mockAppIdentityUpdatePlugin;
-        private MockCommunicationService _mockCommunicationService;
+        private BasicMockSetup _mocks;
         private IThreadRepository _mockThreadRepository;
 
         private List<TlsStatus> _testApps = new List<TlsStatus>
@@ -72,12 +68,16 @@ namespace Agent.Tests.Integration
 
             builder.LoadAppSettings();
             builder.ValidateAndRegisterAppSettings<AppSettings>();
+            builder.ConfigureDurable();
             builder.Services.ConfigureAzureOpenAIClient();
 
             _logger = testOutputHelper.ToLogger<ILogger>();
-            _timeProvider = new FakeTimeProvider(DateTimeOffset.Parse("2025-02-24T01:00:00Z"));
+            _mocks = new BasicMockSetup(DateTimeOffset.Parse("2025-02-24T01:00:00Z"), _logger);
+            _mocks.ArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
+            services.AddMockServices(_mocks);
 
             var cacheDir = Path.GetFullPath(Path.Combine(Environment.CurrentDirectory, "..\\..\\..", "ChatCompletionCache", nameof(TlsBestPracticesAgentTests)));
+            var diskCache = new TestCachingChatClientBuilderExtensions.DiskCache(cacheDir);
 
             services.AddLogging(builder =>
             {
@@ -88,12 +88,6 @@ namespace Agent.Tests.Integration
             });
 
             string llmDeploymentName = builder.Configuration["AppSettings:Core:Azure:OpenAI:LLMDeploymentName"];
-            // var openAISettings = config.AzureSettings.OpenAI;
-
-
-            var diskCache = new TestCachingChatClientBuilderExtensions.DiskCache(cacheDir);
-
-            string durableConnectionString = builder.ResolveDtsConnectionString();
 
             services.AddChatClient(serviceProvider => serviceProvider.GetRequiredService<AzureOpenAIClient>().AsChatClient(llmDeploymentName), ServiceLifetime.Singleton)
                 .UseAgenticLogging()
@@ -105,45 +99,17 @@ namespace Agent.Tests.Integration
                 .UseDistributedCache(diskCache)
                 .UseFunctionInvocation();
 
-            _mockArmPlugin = new MockArmPlugin(_timeProvider);
-            _mockArmPlugin.ConfigureTlsStatus(_testApps.ToDictionary(x => x.ResourceId));
-            _mockMetricsPlugin = new MockMetricsPlugin(_timeProvider);
-            _mockTimePlugin = new MockTimePlugin(_timeProvider);
-            _mockCommunicationService = new MockCommunicationService(testOutputHelper.ToLogger<MockCommunicationService>());
-            _mockRecordActionsPlugin = new MockRecordActionsPlugin(_timeProvider, testOutputHelper.ToLogger<MockRecordActionsPlugin>());
-
-            services.AddSingleton<TimeProvider>(_timeProvider);
-            services.AddSingleton<IRecordActionsPlugin>(_mockRecordActionsPlugin);
-            services.AddSingleton<IArmPlugin>(_mockArmPlugin);
-            services.AddSingleton<IMetricsPlugin>(_mockMetricsPlugin);
-            services.AddSingleton<ITimePlugin>(_mockTimePlugin);
-            services.AddSingleton<IAgentOutboundCommunicationService>(_mockCommunicationService);
-
-            services.AddSingleton<MetricsPluginDefinition>();
-            services.AddSingleton<ArmPluginDefinition>();
-            services.AddSingleton<RecordActionsPluginDefinition>();
-            services.AddSingleton<ControlFlowPluginDefinition>();
-
             services.AddSingleton<IThreadOrchestrationManager, InMemoryThreadOrchestrationManager>();
-            services.AddSingleton<IToolsRepository, ToolsRepository>();
             services.AddSingleton<IThreadRepository, InmemoryThreadRepository>();
+            services.AddSingleton<IInstanceManagementRepository, InMemoryInstanceManagementRepository>();
+            services.AddSingleton<ThreadService>();
+            services.AddSingleton<SinkService>();
+            services.AddSingleton(sp => new Mock<IPostToTeamsPlugin>().Object);
 
+            services.AddSingleton<IToolsRepository, ToolsRepository>();
             services.AddSingleton<TlsBestPracticeAgentFactory>();
 
-            services.AddDurableTaskWorker(durableBuilder =>
-            {
-                durableBuilder.AddTasks(r =>
-                {
-                    DurableHelper.AddAllGeneratedTasks(r);
-                });
-
-                durableBuilder.UseDurableTaskScheduler(durableConnectionString);
-            });
-
-            services.AddDurableTaskClient(durableBuilder =>
-            {
-                durableBuilder.UseDurableTaskScheduler(durableConnectionString);
-            });
+            TlsTestHelpers.AddPluginDefinitions(services);
 
             _host = builder.Build();
 
@@ -180,13 +146,16 @@ namespace Agent.Tests.Integration
             {
                 var threadId = Guid.NewGuid();
                 instanceID = await _agentFactory.StartOrchestration(input, threadId);
-                await Helper.DoApproval(
+
+                var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                     _durableTaskClient,
+                    instanceID,
                     _mockThreadRepository,
                     threadId,
-                    tokenSource.Token);
+                    _logger,
+                    tokenSource.Token,
+                    _mocks.TimeProvider);
 
-                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
@@ -196,7 +165,7 @@ namespace Agent.Tests.Integration
 
                 foreach (var app in _testApps)
                 {
-                    Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(app.ResourceId));
+                    Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(app.ResourceId));
                 }
             }
             catch (Grpc.Core.RpcException ex)
@@ -220,7 +189,7 @@ namespace Agent.Tests.Integration
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
+            _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps[1].ResourceId);
 
             var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
             string? instanceID = "";
@@ -229,24 +198,26 @@ namespace Agent.Tests.Integration
             {
                 var threadId = Guid.NewGuid();
                 instanceID = await _agentFactory.StartOrchestration(input, threadId);
-                await Helper.DoApproval(
+                var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                     _durableTaskClient,
+                    instanceID,
                     _mockThreadRepository,
                     threadId,
-                    tokenSource.Token);
+                    _logger,
+                    tokenSource.Token,
+                    _mocks.TimeProvider);
 
-                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
-                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
+                Assert.Equal("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
             }
             catch (Grpc.Core.RpcException ex)
             {
@@ -270,7 +241,7 @@ namespace Agent.Tests.Integration
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
+            _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
 
             var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
             string? instanceID = "";
@@ -286,24 +257,26 @@ namespace Agent.Tests.Integration
                     "If any apps become unhealthy then complete the rollback for the unhealthy app, but then do not proceed with any more updates."
                 ));
 
-                await Helper.DoApproval(
+                var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                     _durableTaskClient,
+                    instanceID,
                     _mockThreadRepository,
                     threadId,
-                    tokenSource.Token);
+                    _logger,
+                    tokenSource.Token,
+                    _mocks.TimeProvider);
 
-                var orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
-                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
-                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
-                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
-                Assert.Equal("1.0", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
+                Assert.Equal("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
+                Assert.Equal("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
+                Assert.Equal("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
+                Assert.Equal("1.0", _mocks.ArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
             }
             catch (Grpc.Core.RpcException ex)
             {
@@ -326,7 +299,7 @@ namespace Agent.Tests.Integration
             var tokenSource = new CancellationTokenSource();
             tokenSource.CancelAfter(TimeSpan.FromMinutes(5));
 
-            _mockMetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
+            _mocks.MetricsPlugin.UnhealthyResourceIds.Add(_testApps.Single(x => x.Name == "app2").ResourceId);
 
             var input = new TlsBestPracticesInput { AppsInViolation = _testApps, DesiredVersion = "1.2", };
             string? instanceID = "";
@@ -342,56 +315,49 @@ namespace Agent.Tests.Integration
                     "If any apps become unhealthy, I want you to ask me for confirmation on whether I want to proceed with the rollback, or leave the app as is. Specifically use the word confirmation when you request it."
                 ));
 
-                await Helper.DoApproval(
+                bool shouldCheckForRollbackMessage = true;
+                var orchestrationMetadata = await ApprovalTestHelper.WaitForCompletionWithAutomaticApprovals(
                     _durableTaskClient,
+                    instanceID,
                     _mockThreadRepository,
                     threadId,
-                    tokenSource.Token);
-
-                OrchestrationMetadata? orchestrationMetadata = null;
-
-                while (true)
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(500), tokenSource.Token);
-
-                    var last = _mockCommunicationService.Messages.Last();
-
-                    // Wait for the model to ask us whether it should perform a rollback.
-                    if (last != null
-                        && last.Contains("back", StringComparison.InvariantCultureIgnoreCase)
-                        && last.Contains("confirm", StringComparison.InvariantCultureIgnoreCase)
-                        && last.Contains("?"))
+                    _logger,
+                    tokenSource.Token,
+                    _mocks.TimeProvider,
+                    customAction: async () =>
                     {
-                        // simulate the user taking a while to respond.
-                        await Task.Delay(TimeSpan.FromSeconds(5));
+                        var last = _mocks.CommunicationService.Messages.LastOrDefault();
 
-                        await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
-                        (
-                            ChatRole.User,
-                            "I checked the app myself, a rollback is not necessary. You can leave the app as is and proceed."
-                        ));
-                        break;
-                    }
+                        // Wait for the model to ask us whether it should perform a rollback.
+                        if (shouldCheckForRollbackMessage
+                            && last != null
+                            && last.Contains("back", StringComparison.InvariantCultureIgnoreCase)
+                            && last.Contains("confirm", StringComparison.InvariantCultureIgnoreCase)
+                            && last.Contains("?"))
+                        {
+                            // simulate the user taking a while to respond.
+                            await Task.Delay(TimeSpan.FromSeconds(5));
 
-                    orchestrationMetadata = await _durableTaskClient.GetInstanceAsync(instanceID, tokenSource.Token);
-                    if (orchestrationMetadata.IsCompleted)
-                    {
-                        Assert.Fail("Orchestration completed before we could respond to the rollback confirmation.");
-                    }
-                }
+                            await _durableTaskClient.RaiseEventAsync(instanceID, "NewChatMessage", new ChatMessage
+                            (
+                                ChatRole.User,
+                                "I checked the app myself, a rollback is not necessary. You can leave the app as is and proceed."
+                            ));
+                            shouldCheckForRollbackMessage = false;
+                        }
+                    });
 
-                orchestrationMetadata = await _durableTaskClient.WaitForInstanceCompletionAsync(instanceID, getInputsAndOutputs: true, tokenSource.Token);
                 if (orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Failed)
                 {
                     Assert.Fail(orchestrationMetadata.FailureDetails.ToString());
                 }
 
                 Assert.True(orchestrationMetadata.RuntimeStatus == OrchestrationRuntimeStatus.Completed);
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
-                Assert.Equal("1.2", _mockArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[0].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[1].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[2].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[3].ResourceId));
+                Assert.Equal("1.2", _mocks.ArmPlugin.GetTlsStatus(_testApps[4].ResourceId));
             }
             catch (Grpc.Core.RpcException ex)
             {

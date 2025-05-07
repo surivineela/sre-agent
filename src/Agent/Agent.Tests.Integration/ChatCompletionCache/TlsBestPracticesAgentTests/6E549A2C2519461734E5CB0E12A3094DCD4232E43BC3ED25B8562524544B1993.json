@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_C4zt5n5bTKzMrKm3LIZ8T0HH",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "✅ Traffic for app5 remains stable after TLS update to 1.2. All updates completed successfully."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMYWcInPrufBbxEQAAGQg28SMzlK",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-07T00:04:04+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 11453,
+    "outputTokenCount": 35,
+    "totalTokenCount": 11488,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 10880,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}

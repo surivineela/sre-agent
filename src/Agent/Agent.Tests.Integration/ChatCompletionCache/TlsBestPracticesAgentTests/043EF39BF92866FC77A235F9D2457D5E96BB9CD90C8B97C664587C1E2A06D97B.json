@@ -1,0 +1,37 @@
+{
+  "messages": [
+    {
+      "role": "assistant",
+      "contents": [
+        {
+          "$type": "functionCall",
+          "callId": "call_IC4fB5jmU6GlcMvAqZrySVRJ",
+          "name": "NotifyUser",
+          "arguments": {
+            "message": "\uD83D\uDD04 Rollback completed for app2 at 2025-02-24T01:00:00Z due to traffic anomaly. No further updates will be performed as per updated plan."
+          }
+        }
+      ]
+    }
+  ],
+  "responseId": "chatcmpl-BUMFu1uc8pljOCtPFRUDPSDgMjoC7",
+  "modelId": "gpt-4o-2024-11-20",
+  "createdAt": "2025-05-06T23:44:50+00:00",
+  "finishReason": "tool_calls",
+  "usage": {
+    "inputTokenCount": 6090,
+    "outputTokenCount": 53,
+    "totalTokenCount": 6143,
+    "additionalCounts": {
+      "InputTokenDetails.AudioTokenCount": 0,
+      "InputTokenDetails.CachedTokenCount": 5888,
+      "OutputTokenDetails.ReasoningTokenCount": 0,
+      "OutputTokenDetails.AudioTokenCount": 0,
+      "OutputTokenDetails.AcceptedPredictionTokenCount": 0,
+      "OutputTokenDetails.RejectedPredictionTokenCount": 0
+    }
+  },
+  "additionalProperties": {
+    "SystemFingerprint": "fp_ee1d74bde0"
+  }
+}
