@@ -36,7 +36,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
     }
 
     public async Task<IReadOnlyList<MetricTimeSeriesElement>> QueryMetricValuesForAzureResource(
-        string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime)
+        string resourceId, string metricNamespace, string metricName, DateTimeOffset startTime, DateTimeOffset endTime, string dimensionFilter = null)
     {
         var duration = endTime - startTime;
 
@@ -50,7 +50,7 @@ public class AzureMonitorMetricsPlugin : IAzureMonitorMetricsPlugin
             : supportedBuckets.Last(); // fallback to 1 day if all buckets are smaller
 
         var metricsQueryResult = await _azureMonitorMetricsHelper.QueryResourceMetricAsync(
-            resourceId, metricNamespace, metricName, startTime, endTime, roundedGranularity);
+            resourceId, metricNamespace, metricName, startTime, endTime, roundedGranularity, dimensionFilter);
 
         return metricsQueryResult.Metrics[0].TimeSeries;
     }

@@ -45,22 +45,29 @@ public class AzureMonitorMetricsHelper
         string metricName,
         DateTimeOffset startTime,
         DateTimeOffset endTime,
-        TimeSpan granularity)
+        TimeSpan granularity,
+        string dimensionFilter = null)
     {
         var client = new MetricsQueryClient(_authService.GetArmOperationCredential());
+
+        var options = new MetricsQueryOptions
+        {
+            TimeRange = new QueryTimeRange(startTime, endTime),
+            Granularity = granularity,
+            Aggregations = { MetricAggregationType.Average },
+            MetricNamespace = metricNamespace
+        };
+
+        if (!string.IsNullOrEmpty(dimensionFilter))
+        {
+            options.Filter = dimensionFilter;
+        }
 
         // TODO: Limit resource metrics data
         var response = await client.QueryResourceAsync(
             resourceId,
-            new[] { metricName },
-            new MetricsQueryOptions
-            {
-                TimeRange = new QueryTimeRange(startTime, endTime),
-                Granularity = granularity,
-                Aggregations = { MetricAggregationType.Average }, // TOOD: Take as input
-                MetricNamespace = metricNamespace,
-                // TODO: Filter by dimensions
-            });
+            [metricName],
+            options);
 
         return response.Value;
     }
