@@ -75,6 +75,8 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 targetFunction,
                 input.FunctionCall.Arguments ?? new Dictionary<string, object?>());
 
+            _logger.LogInternalInformation("Checking approval for threadId: {ThreadId}, function: {FunctionName}, title: {Title}, instanceId {instanceId}, arguments {arguments}", input.ThreadId, targetFunction, approvalTitle, context.InstanceId, input.FunctionCall.Arguments);
+
             var approval = await _threadRepository.GetApprovalAsync(Guid.Parse(input.ThreadId), approvalTitle);
 
             if (approval == null ||
@@ -109,6 +111,8 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                     Guid.Parse(input.ThreadId),
                     newApproval);
 
+                _logger.LogInternalInformation("Created new approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status ToolApprovalStatus.Pending", newApproval.Id, input.ThreadId, newApproval.Title);
+
                 return new CheckApprovalActivityOutput()
                 {
                     ApprovalId = newApproval.Id,
@@ -117,6 +121,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
             }
             else
             {
+                _logger.LogInternalInformation("Found existing approval document: {ApprovalId}, threadId: {ThreadId}, title: {Title}, status {Status}", approval.Id, input.ThreadId, approval.Title, approval.Status);
                 return new CheckApprovalActivityOutput()
                 {
                     ApprovalId = approval.Id,

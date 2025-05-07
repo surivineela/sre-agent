@@ -35,13 +35,15 @@ The user will provide the resources that your plan should operate on, otherwise 
 12. **NEVER STOP IF ISSUE NOT RESOLVED, TRY TO KEEP DIAGNOSE OR REMIND USER TO CONFIRM with provided options.**
 13. After issue mitigated, use Wait tool to wait 5 minutes before completing the plan.
 
-**MITIGATION: Application Errors**
+**MITIGATION: Application Errors, Image/Configuration Errors**
 1. Use the NotifyUser tool to tell the user that I will be performing mitigation now.
 2. If there were any revision correlated with the downtime: Use the NotifyUser tool to tell the user that I will revert the app back to the specific revision to recover the application back to a healthy state.
     However, it is possible that revert by applying the YAML back may not always result in a healthy state.
-3. Use the ApplyKubernetesYaml tool to perform the revert. Use the NotifyUser tool to notify the user regarding updates about this app including workload status, logs.
-4. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
-   Use the Wait Tool to wait up to 5 minutes (e.g. invoke 5 times of 1 minute wait), in the middle of wait, check the availability of the app using GetKubeResourceMetricsRange (with metricsType=availability, last 5 minutes) tool, use PlotTimeSeriesData to draw a Chart and use NotifyUser tool to show the progress of the app.
+3. Revert the workload by:
+   Use the GetWorkloadRevisions tool to compare the previous revision with current one. Use the NotifyUser tool to notify the user about the YAML difference for revert.
+   Use the ApplyKubernetesYaml tool to revert difference only. Use the NotifyUser tool to notify the user regarding the revert results including the workload status, logs and related metrics.
+4. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes.
+   Use the Wait Tool to wait 5 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
 5. After the wait, use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
    Use the GetKubeResourceMetricsRange (with metricsType=availability) tool to get the availability for the app. Then, Present the user with the availability data of the app for the last 10 minutes in a bulleted list.
 6. If the availability of the app has recovered to 99.9%, use the PlotTimeSeriesData tool to draw a Chart and use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
@@ -57,8 +59,7 @@ The user will provide the resources that your plan should operate on, otherwise 
 4. If a potential blocking rule is found, use the NotifyUser tool to notify the user of this NSG rule including its direction(outbound/inbound), priority, name and source/destination range.
 5. Use the RemoveNSGRuleAsync tool to remove the blocking rule. Use the NotifyUser tool to notify the user regarding removal results.
 6. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes.
-   <strong>Make sure to ALWAYS perform this step to provide an update </strong>
-    Use the Wait Tool to wait up to 5 minutes (e.g. invoke 5 times of 1 minute wait), in the middle of wait, check the availability of the app using GetKubeResourceMetricsRange (with metricsType=availability, last 5 minutes) tool, use PlotTimeSeriesData to draw a Chart and use NotifyUser tool to show the progress of the app.
+   Use the Wait Tool to wait 5 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
 7. Use the NotifyUser tool to notify the user of the average availability and the logs to the blocked app.
 8. If the availability of the app has recovered to 99.9% and the connection error logs are gone, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to notify user with the result and start a new plan for other solution.
@@ -70,8 +71,7 @@ The user will provide the resources that your plan should operate on, otherwise 
    use the NotifyUser tool to notify the user regarding the current state information.
 3. Use appropriate tools to do actions to mitigate the issue, use the NotifyUser tool to notify the user regarding updates about this app including workload status, events, logs, metrics.
 4. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update in 5 minutes, keep observing availability, metrics, logs.
-    <strong>Make sure to ALWAYS perform this step to provide an update </strong>
-    Repeat the these two steps 5 times: step1, Use the Wait Tool to wait 1 minutes. step2, check the availability of the app using GetKubeResourceMetricsRange (with metricsType=availability) tool, use PlotTimeSeriesData to draw a Chart and use NotifyUser tool to show the progress of the app.
+    Use the Wait Tool to wait 5 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
 5. Use the NotifyUser tool to notify the user of the average availability and other signals such as metrics, logs and status. Use PlotTimeSeriesData to draw a Chart for metrics.
 6. If the metrics meet the success criteria, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
    Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to notify user with the result and start a new plan for other solution.

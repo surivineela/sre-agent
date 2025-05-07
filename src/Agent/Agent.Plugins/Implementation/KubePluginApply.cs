@@ -52,8 +52,12 @@ namespace Agent.Plugins
                 var yamlObject = yamlDeserializer.Deserialize(yaml);
 
                 // Convert to dictionary for metadata extraction
-                var jsonString = Newtonsoft.Json.JsonConvert.SerializeObject(yamlObject);
-                var tempObj = Newtonsoft.Json.JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString);
+                var jsonSettings = new JsonSerializerSettings
+                {
+                    Converters = new List<JsonConverter> { new StringPreservingConverter() }
+                };
+                var jsonString = JsonConvert.SerializeObject(yamlObject, jsonSettings);
+                var tempObj = JsonConvert.DeserializeObject<Dictionary<string, object>>(jsonString, jsonSettings);
 
                 if (tempObj == null || !tempObj.ContainsKey("kind") || !tempObj.ContainsKey("apiVersion"))
                 {
@@ -115,6 +119,7 @@ namespace Agent.Plugins
                 // Convert the already parsed YAML object to JSON with proper numeric handling
                 var jsonSerializer = new Newtonsoft.Json.JsonSerializer();
                 jsonSerializer.Converters.Add(new StringEnumConverter());
+                jsonSerializer.Converters.Add(new StringPreservingConverter());
                 jsonSerializer.NullValueHandling = NullValueHandling.Ignore;
 
                 var stringWriter = new StringWriter();
@@ -339,6 +344,30 @@ namespace Agent.Plugins
                 "namespace" => "namespaces",
                 _ => kind.ToLowerInvariant() + "s" // Simple pluralization for unknown kinds
             };
+        }
+
+        /// <summary>
+        /// Custom JSON converter to preserve string values that might be interpreted as numbers
+        /// </summary>
+        private class StringPreservingConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType)
+            {
+                // Only process string values
+                return objectType == typeof(string);
+            }
+
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+            {
+                // Return the raw value as a string
+                return reader.Value?.ToString();
+            }
+
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+            {
+                // Always write strings as strings, even if they look like numbers
+                writer.WriteValue(value.ToString());
+            }
         }
     }
 }
