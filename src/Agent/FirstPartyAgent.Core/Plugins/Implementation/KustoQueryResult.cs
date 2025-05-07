@@ -12,10 +12,13 @@ namespace FirstPartyAgent.Plugins
     {
         public int RowCount;
         public string Query = string.Empty;
-        public string Result = string.Empty;
+        public string Result { get; set; } = string.Empty;
+
         public ChatMessage? Message;
 
-        public static KustoQueryResult Error = new KustoQueryResult(0, "", "An error occurred while executing query.", null);
+        public KustoQueryResult()
+        {
+        }
 
         public KustoQueryResult(IDataReader reader, string query)
         {

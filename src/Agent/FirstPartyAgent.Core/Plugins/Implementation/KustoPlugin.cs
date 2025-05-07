@@ -55,7 +55,12 @@ namespace FirstPartyAgent.Plugins
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
-                return KustoQueryResult.Error;
+                return new KustoQueryResult()
+                {
+                    Query = query,
+                    Result = $"An error occurred while executing Kusto Query: {ex.Message}",
+                    RowCount = 0,
+                };
             }
         }
 
@@ -89,8 +94,12 @@ namespace FirstPartyAgent.Plugins
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Query: {ex.Message}");
-                var result = new KustoQueryResult(0, "", $"An error occurred while executing Kusto Query: {ex.Message}", null);
-                return result;
+                return new KustoQueryResult()
+                {
+                    Query = fullQuery,
+                    Result = $"An error occurred while executing Kusto Query: {ex.Message}",
+                    RowCount = 0,
+                };
             }
         }
 
@@ -141,7 +150,12 @@ namespace FirstPartyAgent.Plugins
             catch (Exception ex)
             {
                 _logger.LogError($"An error occurred while executing Kusto Function {functionName}: {ex.Message}");
-                return KustoQueryResult.Error;
+                return new KustoQueryResult()
+                {
+                    Query = query,
+                    Result = $"An error occurred while executing Kusto Function {functionName}: {ex.Message}",
+                    RowCount = 0,
+                };
             }
         }
 
@@ -163,7 +177,7 @@ namespace FirstPartyAgent.Plugins
             }
 
 
-            string adxUri = string.Empty;
+            string adxUri = regionOrClusterUri;
             if (regionOrClusterUri.IndexOf(".kusto.", StringComparison.OrdinalIgnoreCase) < 0)
             {
                 // Supplied parameter is a region, lookup cluster URI for the region
@@ -191,7 +205,6 @@ namespace FirstPartyAgent.Plugins
             adxUri = $"https://dataexplorer.azure.com/clusters/{adxUri}/{database}?query={EncodeQuery(query)}";
 
             string displayText;
-
             if (!string.IsNullOrWhiteSpace(functionName))
             {
                 // For function execution
