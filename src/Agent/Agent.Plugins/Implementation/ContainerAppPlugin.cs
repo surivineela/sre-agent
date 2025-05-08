@@ -254,7 +254,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<IReadOnlyList<MemoryUsageTimeSeriesData>> GetContainerAppMemoryMetrics(string resourceId)
         {
-            Console.WriteLine($"[get_containerapp_memory_metrics] Invoked with resourceId: {resourceId}]");
+            _logger.LogInternalInformation($"[get_containerapp_memory_metrics] Invoked with resourceId: {resourceId}]");
 
             var metrics = new List<Metric>
             {
@@ -2063,48 +2063,50 @@ namespace Agent.Plugins.Implementation
                 if (match.Success)
                 {
                     string analysisResult = match.Groups[1].Value.Trim();
+                    _logger.LogInternalError($"[InvokeExecCommand] InvokeExecCommand for command: {command} - {analysisResult}.");
                     return analysisResult;
                 }
                 else
                 {
-                    _logger.LogInternalError("No analysis block found.");
+                    _logger.LogInternalError($"[InvokeExecCommand] No Analysis found: {command}.");
                     return result; // TODO:FIX
                 }
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message}");
+                _logger.LogInternalError($"[InvokeExecCommand] Error executing command: {command}: {ex.Message}");
                 throw;
             }
         }
 
         public async Task<string> GetContainerMemoryAnalysisForDotnet(string resourceId)
         {
-            _logger.LogInternalInformation($"Getting memory analysis");
+            _logger.LogInternalInformation($"[GetContainerMemoryAnalysisForDotnet] Getting memory analysis for {resourceId}");
             try
             {
-                string commands = string.Join("; ", await File.ReadAllLinesAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-dump-analyze.sh")));
+                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-dump-analyze.sh -o dotnet-dump-analyze.sh; chmod +x ./dotnet-dump-analyze.sh; sh ./dotnet-dump-analyze.sh";
                 return await InvokeExecCommand(resourceId, commands);
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message} for {resourceId}");
+                _logger.LogInternalError($"[GetContainerMemoryAnalysisForDotnet] Error executing command: {ex.Message} for {resourceId}");
                 throw;
             }
         }
 
         public async Task<bool> IsDotnetBased(string resourceId)
         {
+            _logger.LogInternalInformation($"[IsDotnetBased] Checking if .NET Based {resourceId}");
             try
             {
-                string commands = string.Join("; ", await File.ReadAllLinesAsync(Path.Combine("..", "Agent.Runtime", "SubAgents", "ContainerAppsAgent", "dotnet-detect.sh")));
+                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-detect.sh -o dotnet-detect.sh; chmod +x ./dotnet-detect.sh; sh ./dotnet-detect.sh";
                 var result = await InvokeExecCommand(resourceId, commands);
                 return result.Any();
             }
 
             catch (Exception ex)
             {
-                _logger.LogInternalError($"Error executing command via WebSocket: {ex.Message} for {resourceId}");
+                _logger.LogInternalError($"[IsDotnetBased] Error executing command: {ex.Message} for {resourceId}");
                 throw;
             }
         }
