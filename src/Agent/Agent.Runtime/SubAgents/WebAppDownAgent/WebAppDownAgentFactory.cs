@@ -44,9 +44,10 @@ public sealed class WebAppDownAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetThreadMetrics)); 
 
         var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue)); 
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FindConnectedRepo));
 
-         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
+        var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
