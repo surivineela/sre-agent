@@ -1,0 +1,20 @@
+{
+  "AlertingId": "d3d66242-7588-46d9-95af-52a04d86d87c",
+  "AgentMode": "ICMAgent",
+  "IncidentTitle": "[FlexConsumption][Http] Http Organic Traffic Failures (> 5 subs impacted in last hour)",
+  "ActionTimeoutIntervalInMinutes": 180,
+  "DefaultHumanInterventionLoop": "App Service (Web Apps)/Antares Functions FlexConsumption Loop",
+  "KustoQueries": [
+  ],
+  "MitigationInstructions": [
+    "1. Find the timestamp when incident is fired.",
+    "2. Use the Kusto Primary Query provided in the Incident discussion entries to check the current failures.",
+    "   2a) To run the primary query, Use Kusto cluster name from the incident discussion entries in primary kusto query result except for flexConsumptionStamps variable in query.",
+    "3. Run this primary kusto query every hour after incident is created for 3 Iterations by updating _endTime Variable in kusto query. For example: If Incident is created at 8 AM, _endTime variable will be for 3 iterations 9 AM, 10 AM and 11 AM and follow below logic to execute query",
+    "   3a) If current time is more than 3 hours from Incident Created Date, execute all 3 iterations together",
+    "   3b) Otherwise run kusto query every hour from Incident Creation",
+    "4. If no result is found in all 3 iterations, then mark the incident as Mitigated with the summary of your findings along with _endTime Value, SubscriptionImpacted, CorelationId and update ICM fields How fixed as Transient",
+    "5. If results are found, then post the details of your findings in the ICM incident in tabular format and transfer the incident for Human Intervention."
+  ],
+  "Owners": [ "ajsharm", "adid", "shgup" ]
+}
