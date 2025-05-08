@@ -9,14 +9,9 @@ using Microsoft.SemanticKernel;
 
 namespace Agent.Plugins.Definitions
 {
-    public class FunctionAppExecutionFailuresPluginDefinition
+    public class FunctionAppExecutionFailuresPluginDefinition(IFunctionAppExecutionFailuresPlugin functionAppExecutionFailuresPlugin)
     {
-        private readonly IFunctionAppExecutionFailuresPlugin _functionAppExecutionFailuresPlugin;
-
-        public FunctionAppExecutionFailuresPluginDefinition(IFunctionAppExecutionFailuresPlugin functionAppExecutionFailuresPlugin)
-        {
-            _functionAppExecutionFailuresPlugin = functionAppExecutionFailuresPlugin;
-        }
+        private readonly IFunctionAppExecutionFailuresPlugin _functionAppExecutionFailuresPlugin = functionAppExecutionFailuresPlugin;
 
         [KernelFunction("get_function_app_execution_failures")]
         [Description("Gets a summary of execution failures for an Azure Function App")]
@@ -62,6 +57,24 @@ namespace Agent.Plugins.Definitions
             [Description("Optional end time for the query (defaults to current time)")] DateTime? endTime = null)
         {
             return await _functionAppExecutionFailuresPlugin.GetHostRuntimeErrorEvents(resourceId, startTime, endTime);
+        }
+
+        [KernelFunction("is_function_app")]
+        [Description("Checks if a resource is a Function App by verifying its 'kind' property contains 'functionapp'")]
+        public async Task<bool> IsFunctionApp(
+            [Description("The full Azure resource ID to check")] string resourceId)
+        {
+            return await _functionAppExecutionFailuresPlugin.IsFunctionApp(resourceId);
+        }
+
+        [KernelFunction("has_host_runtime_errors")]
+        [Description("Checks if a Function App has host runtime related errors in its activity logs")]
+        public async Task<bool> HasHostRuntimeErrors(
+            [Description("The full Azure resource ID of the Function App to check")] string resourceId,
+            [Description("Optional start time for the query (defaults to 1 hour ago)")] DateTime? startTime = null,
+            [Description("Optional end time for the query (defaults to current time minus 15 minutes)")] DateTime? endTime = null)
+        {
+            return await _functionAppExecutionFailuresPlugin.HasHostRuntimeErrors(resourceId, startTime, endTime);
         }
     }
 }

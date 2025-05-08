@@ -24,6 +24,7 @@ using Agent.Runtime.Communication;
 using Agent.Runtime.ContextManagement;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
+using Agent.Runtime.MetaAgent.SubAgentPlugins;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.AppCodeAnalysisAgent;
@@ -36,7 +37,9 @@ using Agent.Runtime.SubAgents.CPUAnalysisAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
+using Agent.Runtime.SubAgents.FunctionAppConfigurationCheck;
 using Agent.Runtime.SubAgents.FunctionAppConnectivityAgent;
+using Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent;
 using Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent;
 using Agent.Runtime.SubAgents.KubernetesAgent;
 using Agent.Runtime.SubAgents.ManagedIdentityMigration;
@@ -141,6 +144,13 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<SqlDbQueryPerfAgentFactory>()
         .AddSingleton<IMetaAgentSqlDbQueryPerfPlugin, SqlDbQueryPerfPlugin>()
 
+        .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
+        .AddSingleton<FunctionAppDiagnosticsAgentFactory>()
+
+        .AddSingleton<FunctionAppConfigurationCheckAgentFactory>()
+        .AddSingleton<IFunctionAppConfigurationChecksPlugin, FunctionAppConfigurationChecksPlugin>()
+        .AddSingleton<IMetaAgentFunctionAppConfigurationCheckAgentPlugin, FunctionAppConfigurationCheckPlugin>()
+
         .AddTransient<MetricsPluginDefinition>()
         .AddTransient<ChartPluginDefinition>()
         .AddTransient<RecordActionsPluginDefinition>()
@@ -165,6 +175,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddTransient<RoleAssignmentPluginDefinition>()
         .AddTransient<IncidentPluginDefinition>()
         .AddTransient<FunctionAppExecutionFailuresPluginDefinition>()
+        .AddTransient<FunctionAppConfigurationChecksPluginDefinition>()
 
         .AddTransient<IMetaAgentContainerAppsRemediationPlugin, ContainerAppsRemediationPlugin>()
         .AddTransient<IMetaAgentManagedIdentityMigrationPlugin, ManagedIdentityMigrationPlugin>()
@@ -225,7 +236,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<ICpuAnalysisPlugin, CpuAnalysisPlugin>()
         .AddSingleton<IAppCodeAnalysisPlugin, AppCodeAnalysisPlugin>()
         .AddSingleton<IDotnetAnalysisPlugin, DotnetAnalysisPlugin>()
-
+        .AddSingleton<IMetaAgentFunctionAppDiagnosticsPlugin, FunctionAppDiagnosticsPlugin>()
 
         // Register the communication activities
         .AddSingleton<UpdateThreadWithAgentMessageActivity>()

@@ -18,7 +18,7 @@ namespace Agent.Runtime.SubAgents.FunctionAppExecutionFailuresAgent
         public async override Task<List<ChatMessage>> RunAsync(TaskActivityContext context, FunctionAppExecutionFailuresAgentInput input)
         {
             var functionAppDetails = $@"Investigate the execution failures of my function app: {input.FunctionAppResourceId}";
-            var path = Path.Combine("..", "Agent.Runtime", "SubAgents", "FunctionAppExecutionFailuresAgent", "FunctionAppExecutionFailuresAgentPlan.txt");
+            var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SubAgents", "FunctionAppExecutionFailuresAgent", "FunctionAppExecutionFailuresAgentPlan.txt");
             var systemPrompt = string.Empty;
             try
             {

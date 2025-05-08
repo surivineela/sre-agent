@@ -109,6 +109,18 @@
     <None Update="V2\PromptStubs\ApprovalsPromptStub.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="SubAgents\FunctionAppExecutionFailuresAgent\FunctionAppExecutionFailuresAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\FunctionAppDiagnosticsAgent\FunctionAppDiagnosticsAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\FunctionAppDiagnosticsAgent\FunctionAppDiagnosticsExtractResultPrompt.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="SubAgents\FunctionAppConfigurationCheckAgent\FunctionAppConfigurationCheckAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

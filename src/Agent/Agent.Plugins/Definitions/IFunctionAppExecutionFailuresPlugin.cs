@@ -49,5 +49,21 @@ namespace Agent.Plugins.Definitions
         /// <param name="endTime">Optional end time for the query (defaults to current time)</param>
         /// <returns>A summary of host runtime error events</returns>
         Task<string> GetHostRuntimeErrorEvents(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
+
+        /// <summary>
+        /// Checks if a resource is a Function App by verifying its 'kind' property contains 'functionapp'
+        /// </summary>
+        /// <param name="resourceId">The Azure resource ID to check</param>
+        /// <returns>True if the resource is a Function App, false otherwise</returns>
+        Task<bool> IsFunctionApp(string resourceId);
+
+        /// <summary>
+        /// Checks if a Function App has host runtime related errors in its activity logs
+        /// </summary>
+        /// <param name="resourceId">The Azure resource ID of the Function App</param>
+        /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago)</param>
+        /// <param name="endTime">Optional end time for the query (defaults to current time minus 15 minutes)</param>
+        /// <returns>True if host runtime errors are detected, false otherwise</returns>
+        Task<bool> HasHostRuntimeErrors(string resourceId, DateTime? startTime = null, DateTime? endTime = null);
     }
 }

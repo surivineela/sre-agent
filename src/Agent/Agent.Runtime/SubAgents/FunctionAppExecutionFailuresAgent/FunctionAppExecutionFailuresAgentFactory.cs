@@ -26,7 +26,8 @@ public sealed class FunctionAppExecutionFailuresAgentFactory
         IFunctionAppsPlugin functionAppsPlugin,
         IGithubIssuePlugin githubPlugin,
         IAppCodeAnalysisPlugin appCodeAnalysisPlugin,
-        IMetricsPlugin metricsPlugin
+        IMetricsPlugin metricsPlugin,
+        ChartPluginV2 chartPlugin
         )
     {
         _logger = logger;
@@ -58,6 +59,10 @@ public sealed class FunctionAppExecutionFailuresAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedRequestsPerFunction));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetHostRuntimeErrorEvents));
+
+        // Add chart plotting capabilities
+        var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

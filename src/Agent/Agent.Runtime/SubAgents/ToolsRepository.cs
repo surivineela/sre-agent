@@ -86,6 +86,7 @@ public class ToolsRepository : IToolsRepository
         RegisterPlugin<RoleAssignmentPluginDefinition>();
         RegisterPlugin<FunctionAppsPluginDefinition>();
         RegisterPlugin<FunctionAppExecutionFailuresPluginDefinition>();
+        RegisterPlugin<FunctionAppConfigurationChecksPluginDefinition>();
         RegisterPlugin<IncidentPluginDefinition>();
 
         // Not all tools were registered, so registering individually

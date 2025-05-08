@@ -217,6 +217,7 @@ $@"## Facts
     private readonly IIncidentPlugin _incidentPlugin;
     private readonly IMetaAgentFunctionAppExecutionFailuresAgentPlugin _functionAppExecutionFailuresAgentPlugin;
     private readonly IAzureMonitorMetricsPlugin _azureMonitorMetricsPlugin;
+    private readonly IMetaAgentFunctionAppDiagnosticsPlugin _functionAppDiagnosticsPlugin;
 
 
     private readonly InstanceManagementSettings _instanceManagementSettings;
@@ -253,7 +254,8 @@ $@"## Facts
         InstanceManagementSettings instanceManagementSettings,
         IIncidentPlugin incidentPlugin,
         IMetaAgentFunctionAppExecutionFailuresAgentPlugin functionAppExecutionFailuresAgentPlugin,
-        IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin
+        IAzureMonitorMetricsPlugin azureMonitorMetricsPlugin,
+        IMetaAgentFunctionAppDiagnosticsPlugin functionAppDiagnosticsPlugin
         )
     {
         _mcpToolsRepository = mcpToolsRepository;
@@ -291,6 +293,7 @@ $@"## Facts
         _incidentPlugin = incidentPlugin;
 
         _instanceManagementSettings = instanceManagementSettings;
+        _functionAppDiagnosticsPlugin = functionAppDiagnosticsPlugin;
     }
 
     public List<AITool> GetSubAgentsAITools(Guid threadGuid, AgentContext context)
@@ -308,6 +311,7 @@ $@"## Facts
         _sqlDbQueryPerfPlugin.ThreadId = threadGuid;
         _chartPlugin.ThreadId = threadGuid;
         _functionAppExecutionFailuresAgentPlugin.ThreadId = threadGuid;
+        _functionAppDiagnosticsPlugin.ThreadId = threadGuid;
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
 
@@ -406,6 +410,7 @@ $@"## Facts
             AIFunctionFactory.Create(_functionAppExecutionFailuresAgentPlugin.StartFunctionAppExecutionFailuresAgent),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.ListAvailableMetrics),
             AIFunctionFactory.Create(azureMonitorMetricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource),
+            AIFunctionFactory.Create(_functionAppDiagnosticsPlugin.StartFunctionAppDiagnosticsAgent),
             AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssues),
             AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssueComments),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),

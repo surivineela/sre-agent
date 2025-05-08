@@ -44,6 +44,7 @@ public class OperationDetail
     public string ResourceId { get; set; } = string.Empty;
     public string Caller { get; set; } = string.Empty;
     public string? ErrorMessage { get; set; }
+    public string? StatusMessage { get; set; } // Add new property for the full status message JSON
     public bool IsSuccessful { get; set; }  // Indicates if the operation was successful
 }
 
@@ -726,16 +727,12 @@ public class ArmHelper
 
     public async Task<string> GetDetectorResponse(string resourceId, string detectorId)
     {
-        // Construct the request URL to get the Detector URL
-        // may need to add startTime and endTime query params
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/detectors/{detectorId}");
 
-
-        // Prepare the HTTP request
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        request.Headers.UserAgent.ParseAdd("SREAgent");
 
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-        // Send the request
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -744,7 +741,6 @@ public class ArmHelper
             throw new Exception($"Failed to retrieve detector details. Status Code: {response.StatusCode}, Response: {responseBody}");
         }
 
-        // Deserialize the response to extract the SKU and instance count
         string jsonResponse = await response.Content.ReadAsStringAsync();
         return jsonResponse;
     }
@@ -761,19 +757,14 @@ public class ArmHelper
     /// <exception cref="ArgumentException">Thrown when the time range exceeds 3 days</exception>
     public async Task<string> GetDetectorResponseWithTime(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
     {
-        // Set default time range to the last hour if not specified
         startTime ??= DateTime.UtcNow.AddHours(-1);
-
-        // Always set end time to current time minus 15 minutes, ignoring any provided endTime
         endTime = DateTime.UtcNow.AddMinutes(-15);
 
-        // Ensure start time is before end time
         if (startTime > endTime)
         {
             throw new ArgumentException("Start time must be before end time");
         }
 
-        // Enforce maximum query duration of 3 days
         TimeSpan maxDuration = TimeSpan.FromDays(3);
         TimeSpan actualDuration = endTime.Value - startTime.Value;
 
@@ -782,25 +773,26 @@ public class ArmHelper
             throw new ArgumentException($"Time range cannot exceed 3 days. Requested: {actualDuration.TotalDays:F1} days");
         }
 
-        // Format dates in the required format (yyyy-MM-dd HH:mm)
         string formattedStartTime = startTime.Value.ToString("yyyy-MM-dd HH:mm");
         string formattedEndTime = endTime.Value.ToString("yyyy-MM-dd HH:mm");
 
-        // Construct the request URL to get the Detector URL with time parameters
         var requestUrl = new Uri(new Uri("https://management.azure.com"),
             $"{resourceId}/detectors/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
 
-        var cred = _authService.GetArmReadOperationCredential();
-        var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
-
-        // Prepare the HTTP request
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-
-        // Attach the token to the request  
-        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+        try
+        {
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            request.Headers.UserAgent.ParseAdd("SREAgent");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve authentication token.", ex);
+        }
 
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
-        // Send the request
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -809,7 +801,66 @@ public class ArmHelper
             throw new Exception($"Failed to retrieve detector details. Status Code: {response.StatusCode}, Response: {responseBody}");
         }
 
-        // Return the JSON response
+        string jsonResponse = await response.Content.ReadAsStringAsync();
+        return jsonResponse;
+    }
+
+    /// <summary>
+    /// Gets the analysis response for a resource with specified start time, enforcing a maximum time range of 3 days.
+    /// The end time is always set to current time minus 15 minutes.
+    /// </summary>
+    /// <param name="resourceId">The Azure resource ID for which to get analysis data</param>
+    /// <param name="detectorId">The ID of the analysis to query</param>
+    /// <param name="startTime">Optional start time for the query (defaults to 1 hour ago if not specified)</param>
+    /// <param name="endTime">Optional end time parameter (ignored - always uses current time minus 15 minutes)</param>
+    /// <returns>The analysis response as a JSON string</returns>
+    /// <exception cref="ArgumentException">Thrown when the time range exceeds 3 days</exception>
+    public async Task<string> GetAnalysisWithTime(string resourceId, string detectorId, DateTime? startTime = null, DateTime? endTime = null)
+    {
+        startTime ??= DateTime.UtcNow.AddHours(-1);
+        endTime = DateTime.UtcNow.AddMinutes(-15);
+
+        if (startTime > endTime)
+        {
+            throw new ArgumentException("Start time must be before end time");
+        }
+
+        TimeSpan maxDuration = TimeSpan.FromDays(3);
+        TimeSpan actualDuration = endTime.Value - startTime.Value;
+
+        if (actualDuration > maxDuration)
+        {
+            throw new ArgumentException($"Time range cannot exceed 3 days. Requested: {actualDuration.TotalDays:F1} days");
+        }
+
+        string formattedStartTime = startTime.Value.ToString("yyyy-MM-dd HH:mm");
+        string formattedEndTime = endTime.Value.ToString("yyyy-MM-dd HH:mm");
+
+        var requestUrl = new Uri(new Uri("https://management.azure.com"),
+            $"{resourceId}/analysis/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        try
+        {
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            request.Headers.UserAgent.ParseAdd("SREAgent");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve authentication token.", ex);
+        }
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        HttpResponseMessage response = await httpClient.SendAsync(request);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            string responseBody = await response.Content.ReadAsStringAsync();
+            throw new Exception($"Failed to retrieve analysis details. Status Code: {response.StatusCode}, Response: {responseBody}");
+        }
+
         string jsonResponse = await response.Content.ReadAsStringAsync();
         return jsonResponse;
     }
@@ -1064,14 +1115,14 @@ public class ArmHelper
         }
 
         GenericArmResourceModel armRes = new GenericArmResourceModel(
-            resourceData.Data.Id,
-            resourceData.Data.Name,
-            resourceData.Data.ResourceType,
-            resourceData.Data.Location,
-            resourceData.Data.Kind ?? string.Empty,
-            properties,
-            resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
-            managedIdentities
+            id: resourceData.Data.Id,
+            name: resourceData.Data.Name,
+            type: resourceData.Data.ResourceType,
+            kind: resourceData.Data.Kind ?? string.Empty,
+            location: resourceData.Data.Location,            
+            properties: properties,
+            tags: resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
+            IdentityModels: managedIdentities
         );
 
         // Return the formatted JSON
@@ -1493,6 +1544,7 @@ public class ArmHelper
                 var operationName = evt["operationName"]?["value"]?.ToString();
                 var status = evt["properties"]?["statusCode"]?.ToString() ?? string.Empty;
                 var message = evt["properties"]?["message"]?.ToString() ?? string.Empty;
+                var statusMessage = evt["properties"]?["statusMessage"]?.ToString();
                 var isSuccessful = status.Contains("Succeeded", StringComparison.OrdinalIgnoreCase);
 
                 var detail = new OperationDetail
@@ -1503,6 +1555,7 @@ public class ArmHelper
                     ResourceId = evt["resourceId"]?.ToString() ?? string.Empty,
                     Caller = evt["caller"]?.ToString() ?? string.Empty,
                     ErrorMessage = message,
+                    StatusMessage = statusMessage,
                     IsSuccessful = isSuccessful
                 };
 
