@@ -8,9 +8,11 @@ using Agent.Plugins;
 using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents.Core.Steps;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using Octokit;
 
 
 namespace Agent.Runtime.SubAgents.Core;

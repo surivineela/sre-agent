@@ -45,6 +45,7 @@ public sealed class WebAppDownAgentFactory
 
         var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FetchGithubIssue));
         toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FindConnectedRepo));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
@@ -79,6 +80,8 @@ public sealed class WebAppDownAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetMemoryAnalysis));
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
         //toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetGCCPUAnalysis));
+
+
         //_mappingManager = mappingManager;
         _durableTaskClient = durableTaskClient;
         _toolSignatures = toolSignatures;

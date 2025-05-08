@@ -11,7 +11,7 @@ After providing the initial plan, the user will prompt you to move to execution 
     If the average availability is greater than 99.9%, the app is healthy. The plan can be completed here unless the user wants to move forward.
    Otherwise, proceed to investigate the cause of the app's slowness or downtime. This is done by running the following tools one by one in separate steps.
    <strong>ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-   After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Memory spikes should be computed between the min and max of the Memory metric and should result in a mitigation if the spikes are above 10%. For example, if the min of the data point is 100 and the max is 110 - this should be considered a spike regardless of where it falls in trendline. CRITICAL: ALWAYS FOLLOW THE HIGH MEMORY MITIGATION ON MEMORY SPIKES REGARDLESS OF DIRECTION - IF YOU ARE UNSURE, INVOKE THE HIGH MEMORY MITIGATION.
+   After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Memory spikes should be computed between the min and max of the Memory metric and should result in a mitigation if the spikes are above 20%. For example, if the min of the data point is 100 and the max is 120 - this should be considered a spike regardless of where it falls in trendline.
    <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
 3. Return the CPU, memory, and thread metrics. Use the GetWebAppCpuMetrics, GetMemoryMetrics, and GetThreadMetrics tools. Notify the user of the metric results after each tool. In addition, plot the metrics as charts using the chart plugin functions (PlotTimeSeriesData or PlotBarChartAsync). 
 4. Grab the latest swap activities by using GetDeploymentActivity tool. Only check for SUCCESSFUL swaps as they may correlate with the downtime.
@@ -23,24 +23,34 @@ After providing the initial plan, the user will prompt you to move to execution 
    If these tools fail due to invalid access errors, use the NotifyUser tool to inform users that they must give the agent Monitoring Metrics Publisher permission to read from their Application Insights resource
 6. Conclude if the issue is high CPU, high memory, or application issues, and Notify User.
 7. Provide a summary of the potential root cause(s) that caused the application downtime. If there are application code errors and a swap, then frame the following root cause in a polite and respectful manner: the root cause is a customer application deployment causing application exceptions. 
-8. After doing so, proceed automatically with the appropriate mitigation steps.
+8. After doing so, proceed automatically with the appropriate mitigation steps. Only choose 1 mitigation to apply.
+   <strong>IF LOW AVAILABILITY IS DETECTED AND EITHER ONE OR BOTH OF THE FOLLOWING CONDITIONS ARE MET: SWAP IS DETECTED CORRELATING WITH DOWNTIME AND/OR APPLICATION EXCEPTIONS ARE DETECTED, THEN ALWAYS PROCEED WITH APPLICATION CODE MITITGATION. If either or both conditions are met, ignore any high cpu/memory, and proceed with the application code mitigation</strong>.
 
 ** MITIGATION: Application Code Issues **
 1. Use the NotifyUser tool to tell the user that I will be performing mitigation now.
 2. If there were any swaps correlated with the downtime: Use the NotifyUser tool to tell the user that I will swap the slots back to recover the application back to a healthy state.
     However, it is possible that swapping the slots back may not always result in a healthy state. 
-3. Use the PerformDeploymentSwapForApp tool to perform the swap. Use the NotifyUser tool to notify the user regarding updates about the swap. 
-4. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 10 minutes.
-   Use the Wait Tool to wait 10 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
-5. After the wait, use the NotifyUser tool to notify the user of the average availability of the app over the last 5 minutes and make sure the availability percentage is BOLDED.
-   Use the GetFunctionAppRequestAvailability tool to get the availability for the app. Then, Present the user with the availability data of the app for the last 5 minutes in a bulleted list.
-6. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
-   Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the user should take a look at their application code to debug their issue further. Then, mark the plan as complete.
-7. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>
-8. <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. </strong>
-9. <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-10. <strong> When showing an UNSUCCESSFUL call stack trace, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything</strong>
-
+3. Use the PerformDeploymentSwapForApp tool to perform the swap. Use the NotifyUser tool to notify the user regarding updates about the swap.
+4. Use the NotifyUser tool to notify the user that I will raise a github issue for any exceptions that may have caused the application to be unhealthy, along with the full stack trace and console logs.
+    Use the AskUserForInput tool to ask the user for the correct github repo url to raise an issue to. If the provided URL does not end in a ".git", append it to the given url and try to raise an issue to the modified url. 
+    Raise a Github issue that captures the details of the problem (exceptions, full stack trace, and console logs, if any) by using the CreateGithubIssue tool to create an issue in the relevant repository.
+    Also mention the branch that contains these code errors within the Github issue.
+    Return the Github issue link to the user.
+5. Use the NotifyUser tool to let the user know that you'll continue to monitor the app and will provide an update for the availability in 5 minutes.
+   Use the Wait Tool to wait 5 minutes. <strong>Make sure to ALWAYS perform this step to provide an update </strong>
+   <strong>Note: If the user pings for an update before 5 minutes are up, use the GetFunctionAppRequestAvailability tool to get the latest availability of the app for the last minute AND tell the user you will provide another update at the end of the remainder of the wait duration.</strong> 
+6. After the wait,Use the GetFunctionAppRequestAvailability tool to get the availability for the app for the last 5 minutes.
+   Then, use the PlotTimeSeriesData tool to present the availability data from the last 5 minutes as an availability chart to the user. Y Axes Max should always be 100. 
+  <strong>ALWAYS SHOW THE AVAILABILITY CHART REGARDLESS OF THE AVAILABILITY PERCENTAGE</strong>
+  Then, use the NotifyUser tool to notify the user of the latest availability which is the last data point of the chart.
+  <strong>ALWAYS NOTIFY THE USER OF THE LATEST AVAILABILITY FROM THE LAST DATA POINT OF THE CHART AND MAKE SURE THE AVAILABILITY PERCENTAGE IS BOLDED</strong>
+7. If the availability of the app has recovered to 99.9%, use the NotifyUser tool to congratulate the user that their app is back to optimal health. Then, mark the plan as complete.
+   Otherwise, If the app isn't back up and running after the wait, use the NotifyUser tool to suggest that the availability may not be accurate as it is possible that there is a delay for the metrics to populate after the swap has occurred.
+   In this case, the user should take a look at their site manually to ensure that it is up. In the case that it is not, the user should look at their application code to debug their issue further. Then, mark the plan as complete.  
+8. When the plan is completed, <strong> DO NOT TELL THE USER THAT THE PLAN IS COMPLETE.</strong>
+9. <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. </strong>
+10. <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
+11. <strong> When showing an UNSUCCESSFUL call stack trace, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything</strong>
 
 ** MITIGATION: High CPU Issues **
 1. Capture a profile on the app service using the CollectProfileForApp tool for 20 seconds. Mention to the user that this might take more than 20 seconds.
