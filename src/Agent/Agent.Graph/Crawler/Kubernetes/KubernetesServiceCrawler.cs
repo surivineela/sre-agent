@@ -10,6 +10,7 @@ using Agent.Graph.Crawler;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Gremlin.Net.Process.Traversal;
+using Agent.Logging;
 
 namespace Agent.Graph.Crawler.Kubernetes;
 public class KubernetesServiceCrawler : IResourceCrawler
@@ -52,25 +53,49 @@ public class KubernetesServiceCrawler : IResourceCrawler
             _logger.LogDebug($"No pods found for service: {serviceNode.GetNodeId()}");
             yield break;
         }
-        switch (pod.OwnerReferences().FirstOrDefault()?.Kind.ToLowerInvariant())
+
+        // Add logging for owner references
+        var ownerRef = pod.OwnerReferences().FirstOrDefault();
+        if (ownerRef == null)
+        {
+            _logger.LogDebug($"No owner references found for pod in service: {serviceNode.GetNodeId()}");
+            yield break;
+        }
+
+
+        switch (ownerRef.Kind.ToLowerInvariant())
         {
             case "replicaset":
-                var replicaSet = await _k8sService.GetReplicaSetAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, pod.OwnerReferences().FirstOrDefault()?.Name);
-                if (replicaSet == null)
+                try
                 {
-                    _logger.LogDebug($"No replicaset found for service: {serviceNode.GetNodeId()}");
-                    yield break;
+                    var replicaSet = await _k8sService.GetReplicaSetAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, ownerRef.Name);
+                    if (replicaSet == null)
+                    {
+                        _logger.LogDebug($"No replicaset found for service: {serviceNode.GetNodeId()}");
+                        yield break;
+                    }
+
+                    var replicaSetOwnerRef = replicaSet.OwnerReferences().FirstOrDefault();
+                    if (replicaSetOwnerRef == null)
+                    {
+                        _logger.LogDebug($"ReplicaSet has no owner references for service: {serviceNode.GetNodeId()}");
+                        yield break;
+                    }
+
+                    var deploymentNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, replicaSetOwnerRef.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesDeploymentType);
+                    await _graphDbClient.AddOrUpdateNodeAsync(deploymentNode);
+                    var edge = new ArmResourceEdge(serviceNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.Connected);
+                    edge.AddNetworkIngressEdgeProperties();
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+                    var edge1 = new ArmResourceEdge(deploymentNode.GetNodeId(), serviceNode.GetNodeId(), Constants.Relationships.Linked);
+                    await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
+                    _logger.LogDebug($"Found deployment {replicaSetOwnerRef.Name} for service: {serviceNode.GetNodeId()}");
                 }
-
-                var deploymentNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, replicaSet.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesDeploymentType);
-                await _graphDbClient.AddOrUpdateNodeAsync(deploymentNode);
-                var edge = new ArmResourceEdge(serviceNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.Connected);
-                edge.AddNetworkIngressEdgeProperties();
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-
-                var edge1 = new ArmResourceEdge(deploymentNode.GetNodeId(), serviceNode.GetNodeId(), Constants.Relationships.Linked);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
-                _logger.LogDebug($"Found deployment {replicaSet.OwnerReferences().FirstOrDefault()?.Name} for service: {serviceNode.GetNodeId()}");
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Error processing replicaset for service: {serviceNode.GetNodeId()}");
+                }
                 break;
             case "statefulset":
                 var statefulSetNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, pod.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType);

@@ -243,6 +243,23 @@ public class GraphService : IGraphService
                     .by(label())
                     .by(valueMap())";
 
+        // If it's a Kubernetes resource, we should use a simplified query that only includes
+        // direct outgoing relationships to reduce complexity and improve performance
+        if (resourceId.Contains("microsoft.containerservice_managedclusters"))
+        {
+            query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
+                    .union(
+                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES').inV()
+                        .not(has('resourceType', within('resourcegroups', 'subscription')))
+                    )
+                    .dedup()
+                    .project('id', 'name', 'type', 'properties')
+                    .by(id())
+                    .by(coalesce(values('resourceName'), constant('')))
+                    .by(label())
+                    .by(valueMap())";
+        }
+
         var resultSet = await _graphDatabaseClient.Query(query);
         return resultSet;
     }

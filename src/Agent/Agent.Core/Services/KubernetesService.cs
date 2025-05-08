@@ -69,7 +69,7 @@ public abstract class KubernetesService : IKubernetesService
     {
         var client = await GetKubernetesClient(resourceId);
 
-        var rs = await client.AppsV1.ReadNamespacedReplicaSetAsync(ns, name);
+        var rs = await client.AppsV1.ReadNamespacedReplicaSetAsync(name, ns);
         return rs;
     }
 
