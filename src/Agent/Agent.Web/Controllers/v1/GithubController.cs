@@ -19,7 +19,37 @@ public class GithubController(
     public async Task<IActionResult> CompleteGitHubAuth([FromForm]string accessToken)
     {
         await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, ExpiresOn: null));
-        return Ok();
+
+        // Return an HTML response with a thank-you message
+        var htmlResponse = @"
+        <!DOCTYPE html>
+        <html lang='en'>
+        <head>
+            <meta charset='UTF-8'>
+            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+            <title>GitHub Authentication Complete</title>
+            <style>
+                body {
+                    font-family: Arial, sans-serif;
+                    text-align: left;
+                    margin-top: 50px;
+                }
+                h1 {
+                    color:rgb(0, 0, 0);
+                }
+                p {
+                    font-size: 16px;
+                    color: #555;
+                }
+            </style>
+        </head>
+        <body>
+            <h1>You are now logged into your GitHub account!</h1>
+            <p>Thank you for logging in. You can now close this tab and return to your chat.</p>
+        </body>
+        </html>";
+
+        return Content(htmlResponse, "text/html");
     }
 
     [HttpPost("link")]
