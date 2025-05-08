@@ -59,8 +59,8 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
 
         // Curl command on the machine to collect the dump.
         int pid = await _armHelper.GetDefaultProcessIdForWebAppAsync(resourceId, kuduManager.OS, kuduManager.KuduHostName);
-        string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://local//temp//{memoryDumpFile}";
-        string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://local//temp");
+        string command = $"C://devtools//sysinternals//procdump.exe -ma {pid} -accepteula C://local//{memoryDumpFile}";
+        string commandResult = await _armHelper.ExecuteKuduCommandAsync(kuduManager.KuduHostName, command, "C://local//");
         return $"The memory dump for {resourceId} has been collected:\n{memoryDumpFile}";
     }
 

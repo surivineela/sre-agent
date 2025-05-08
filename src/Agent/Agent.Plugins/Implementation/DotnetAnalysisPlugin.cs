@@ -254,16 +254,16 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
         {
             if (kuduManager.Is32Bit)
             {
-                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//temp");
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//");
             }
 
             else
             {
-                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//temp");
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//");
             }
 
             // Run the dotnet analyzer on the dump file with the appropriate commands. 
-            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//temp//{dumpPath}", "C://local//temp");
+            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//{dumpPath}", "C://local//");
 
             // Delete dump after analysis to save space.
             //try
