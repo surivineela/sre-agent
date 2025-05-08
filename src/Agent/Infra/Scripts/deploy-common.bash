@@ -71,7 +71,8 @@ registerFeature() {
     # Wait for the feature to be registered
     while true; do
         state=$(az feature show --namespace Microsoft.DurableTask --name PrivatePreview --query "properties.state" -o tsv)
-        if [[ "$state" == "Registered" ]]; then
+        state_trimmed=$(echo "$state" | tr -d '\r\n')
+        if [[ "$state_trimmed" == "Registered" ]]; then
             echo "Feature 'PrivatePreview' is now registered."
             break
         else
@@ -90,7 +91,8 @@ registerProvider() {
     # Wait for the provider to be registered
     while true; do
         state=$(az provider show -n Microsoft.DurableTask --query "registrationState" -o tsv)
-        if [[ "$state" == "Registered" ]]; then
+        state_trimmed=$(echo "$state" | tr -d '\r\n')
+        if [[ "$state_trimmed" == "Registered" ]]; then
             echo "Provider 'Microsoft.DurableTask' is now registered."
             break
         else
