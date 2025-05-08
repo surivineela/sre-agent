@@ -14,5 +14,4 @@ public interface IIcmPlugin
     public Task<List<DiscussionEntry>?> GetDiscussionEntries(string incidentId, DateTimeOffset queryFrom);
     public Task<bool> AddDiscussionEntry(string incidentId, string text);
     public Task<bool> AddTag(string incidentId, string tag);
-    public Task<string> SummarizeICM(string incidentId);
 }

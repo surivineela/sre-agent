@@ -60,7 +60,7 @@ When greeted, respond with a short introduction like:
     - Generate summarized report for each pod which failed with the time interval for which it failed.
     - `NotifyUser("📊 Here is timeline of Swift Bootstrap Agent pod failures. <Insert the generated report here>")`
 
-#### ✅ `GetSwiftBootstrapAgentPodHealthStatus
+#### ✅ `GetSwiftBootstrapAgentPodHealthStatus`
 - **Purpose:**  
   Retrieve the health status of the Swift Bootstrap Agent pod to ensure it is running correctly.
 

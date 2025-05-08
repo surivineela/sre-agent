@@ -7,8 +7,8 @@ using Agent.Core;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
-using FirstPartyAgent.Core.Plugins.Definitions;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
@@ -27,7 +27,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
         public ContainerAppIcmAgentFactory(
         IMetricsPlugin metricsPlugin,
         ITimePlugin timePlugin,
-        IIcmPlugin IcmPlugin,
+        IContainerAppIcMPlugin containerAppIcMPlugin,
+        IContainerAppsPlugin containerAppsPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -36,8 +37,26 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
             _toolsRegistry = toolsRepository;
             var toolSignatures = new List<string>();
 
-            var icmPluginDefinition = new IcmPluginDefinition(IcmPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.SummarizeICM));
+            var timePluginDefinition = new TimePluginDefinition(timePlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => timePluginDefinition.GetCurrentUtcTime));
+
+            var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(containerAppsPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionDetail));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionUsage));
+
+            var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
+            // READ operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync));
+
+            // keep it disabled to minimize the model context
+            // Instead of these two mthods, we have a single method `GetInitialInvestigationReportAsync` which fetches both incident and discussion entries
+            //toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetIncidentInfo));
+            //toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetDiscussionEntries));
+
+            // WRITE operations
+            //toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.MitigateIncident));
+            //toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.ResolveIncident));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.AddDiscussionEntry));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));

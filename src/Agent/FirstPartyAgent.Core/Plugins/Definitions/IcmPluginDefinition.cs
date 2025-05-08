@@ -16,7 +16,7 @@ namespace FirstPartyAgent.Plugins.Definitions
 
         [KernelFunction(KernelFunctionNames.Icm.IcmGetIncidentInfo)]
         [Description("Get ICM incident information. Returns an Incident with IncidentId, IncidentType, CloudInstance, Slice, HitCount, ParentIncidentId, Environment, CreatedBy, ImpactStartDate, CreatedDate, ModifiedDate, Status, OwningService, OwningServiceId, OwningTeam, OwningTeamName, Owner,Severity, DiscussionEntry, MonitoringRole, MonitoringSlice, Tags, Title and Summary.")]
-        public async Task<Incident?> GetIncidentInfo(
+        public virtual async Task<Incident?> GetIncidentInfo(
             [Description("Incident ID")] string incidentId)
         {
             return await _plugin.GetIncidentInfo(incidentId);
@@ -33,7 +33,7 @@ Input parameters:
 The operation will mark the given incident as mitigated.
 The return value is a boolean value for indicating if the operation is successful.
 ")]
-        public async Task<bool> MitigateIncident(
+        public virtual async Task<bool> MitigateIncident(
             [Description("Id of the incident")] string incidentId,
             [Description("The comment for mitigation action")] string reason)
         {
@@ -48,7 +48,7 @@ Input parameters:
 
 The operation will mark the given incident as resolved. The return value is a boolean value for indicating if the operation is successful.
 ")]
-        public async Task<bool> ResolveIncident(
+        public virtual async Task<bool> ResolveIncident(
             [Description("Id of the incident")] string incidentId,
             [Description("comment/reason for resolution action")] string reason)
         {
@@ -68,7 +68,7 @@ The return value is a list of discussion entries of the given IcM Incident. Each
 - TimeStamp: The timestamp of the discussion entry.
 - ChangedBy: The user who created this discussion entry.
 ")]
-        public async Task<List<DiscussionEntry>?> GetDiscussionEntries(
+        public virtual async Task<List<DiscussionEntry>?> GetDiscussionEntries(
            [Description("Incident ID")] string incidentId,
            [Description("From time of the query")] DateTimeOffset queryFrom)
         {
@@ -86,25 +86,11 @@ input parameters:
 The operation will add a discussion entry to the given incident.
 The return value is a boolean value for indicating if the operation is successful.
 ")]
-        public async Task<bool> AddDiscussionEntry(
+        public virtual async Task<bool> AddDiscussionEntry(
             [Description("Incident ID")] string incidentId,
             [Description("Discussion entry text")] string text)
         {
             return await _plugin.AddDiscussionEntry(incidentId, text);
-        }
-
-        [KernelFunction(KernelFunctionNames.Icm.IcmSummarizeIncident)]
-        [Description(@"Summarize an ICM incident
-This operation will summarize the given IcM Incident and extract the key information from it in a well-defined format.
-Input parameters:
-- incidentId: The Id of the IcM incident. It is usually a integer number.
-
-The operation will summarize the given incident and return the summary in a markdown format.
-")]
-        public async Task<string> SummarizeICM(
-            [Description("Incident ID")] string incidentId)
-        {
-            return await _plugin.SummarizeICM(incidentId);
         }
     }
 }

@@ -7,7 +7,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Content Include="aca-kusto.json">
+	  <Content Include="aca-appsettings.json">
 	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -65,12 +65,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <None Update="FirstPartySubAgents\ACA\ContainerAppICMAgent\ContainerAppIcmAgentPlan.txt">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="FirstPartySubAgents\ACA\ContainerAppRevisionAgent\ContainerAppRevisionAgentPlan.txt">
-	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-	  </None>
 	  <None Update="ICMAlertConfigs\5a77158c-8385-49f8-8f96-019a641df17b.json">
 	    <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 	  </None>
@@ -103,6 +97,9 @@
     <None Update="FirstPartySubAgents\ACA\HelloWorldAgent\HelloWorldAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="FirstPartySubAgents\ACA\ContainerAppRevisionAgent\ContainerAppRevisionAgentPlan.txt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppsQuotaAgent\ContainerAppsQuotaAgent.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -110,6 +107,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="FirstPartySubAgents\ACA\ContainerAppCorednsAgent\ContainerAppCorednsAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FirstPartySubAgents\ACA\ContainerAppICMAgent\ContainerAppIcmAgentPlan.txt">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="FirstPartySubAgents\ACA\ContainerAppICMAgent\ContainerAppIcmSummarizationPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

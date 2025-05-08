@@ -99,11 +99,6 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
                 }
             });
         }
-
-        public Task<string> SummarizeICM(string incidentId)
-        {
-            return Task.FromResult("This is a mock incident summary");
-        }
     }
 
 }

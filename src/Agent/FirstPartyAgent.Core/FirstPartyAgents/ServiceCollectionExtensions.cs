@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
+using System.Text.Json;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -33,16 +34,18 @@ public static class ServiceCollectionExtensions
         builder.Services.RegisterFirstPartyPluginDependencies();
         builder.Services.RegisterFirstPartySubAgentPluginImplementationDependencies();
         builder.RegisterFirstPartySubAgents();
-        builder.Configuration.AddJsonFile("aca-kusto.json", optional: false, reloadOnChange: true); //load base settings
     }
 
     private static void ValidateAndRegisterFirstPartyAppSettings(this IHostApplicationBuilder builder)
     {
-        // We will read from 'firstPartyConfiguration' setting passed from Control plane resource and load those config sections dynamically
-        // TODO: automatically inject these DI for all kind of required 1P settings in next iteration
-        //builder.Services.AddOptionsWithValidateOnStart<HelloWorldSettings>()
-        //    .BindConfiguration("AppSettings:Core:External.HelloWorldSettings")
-        //    .ValidateDataAnnotations();
+        // Load static appsettings which are applicable for ACA 1P RCA Agent.
+        builder.Configuration.AddJsonFile("aca-appsettings.json", optional: false, reloadOnChange: true); //load base settings
+
+        // TODO: Load config dynamically
+        // 1. Read AppSettings:Core:External.*.* environment variables. Example:  "AppSettings__Core__External__ICMWorkflows__UserToken" : "keyVaultSecretUri"
+        // 2. Override specified properties with resolving AKV secret value if config key's value is AKV secret ID
+        var secretResolvedEnvConfig = new { };
+        builder.Configuration.AddJsonStream(new MemoryStream(JsonSerializer.SerializeToUtf8Bytes(secretResolvedEnvConfig)));
 
         // ADD hard coded settings for now with keeping default in context of ACA for easy local testing and deployment.
         builder.Services.AddSingleton(new HelloWorldSettings());
@@ -61,10 +64,21 @@ public static class ServiceCollectionExtensions
         //.BindConfiguration("AppSettings:FirstPartyAgent:ICMWorkflowSettings")
         //.ValidateDataAnnotations();
         builder.Services.AddOptionsWithValidateOnStart<KustoSettings>()
-                .BindConfiguration("AppSettings:External:Kusto")
+                .BindConfiguration("AppSettings:Core:External:Kusto")
                 .ValidateDataAnnotations();
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<ICMWorkflowSettings>>().Value);
-        builder.Services.AddSingleton(sp => sp.GetRequiredService<IOptions<KustoSettings>>().Value);
+
+        // keep multiple lines for better debugging
+        builder.Services.AddSingleton(sp =>
+        {
+            var icmWorkflowSettings = sp.GetRequiredService<IOptions<ICMWorkflowSettings>>();
+            return icmWorkflowSettings.Value;
+        });
+
+        builder.Services.AddSingleton(sp =>
+        {
+            var kustoSettings = sp.GetRequiredService<IOptions<KustoSettings>>();
+            return kustoSettings.Value;
+        });
     }
 
     private static void RegisterFirstPartyPluginDependencies(this IServiceCollection services)
@@ -92,8 +106,10 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppCorednsAgentFactory>();
 
         services.AddSingleton<IIcmPlugin, IcmPlugin>();
+        services.AddSingleton<IContainerAppIcMPlugin, ContainerAppIcMPlugin>();
         services.AddSingleton<ContainerAppIcmAgentPlugin>();
         services.AddSingleton<IcmPluginDefinition>();
+        services.AddSingleton<ContainerAppIcMPluginDefinition>();
         services.AddSingleton<ContainerAppIcmAgentFactory>();
 
 

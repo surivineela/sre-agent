@@ -8,6 +8,7 @@ namespace FirstPartyAgent.Constants
     {
         public static class ACA
         {
+            public const string GetInitialInvestigationSummaryReport = "get_initial_investigation_summary_report";
             public const string GetSubscriptionDetail = "get_subscription_detail";
             public const string GetSubscriptionUsage = "get_subscription_usage";
             public const string SetSubscriptionQuota = "set_subscription_quota";
@@ -43,7 +44,6 @@ namespace FirstPartyAgent.Constants
             public const string GetContainerAppStatus = "get_container_app_status";
             public const string GetContainerAppAdminEvents = "get_container_app_admin_events";
             public const string GetASIPageForRevision = "get_asi_page_for_revision";
-
         }
 
         public static class Kusto
@@ -57,7 +57,7 @@ namespace FirstPartyAgent.Constants
         public static class Icm
         {
             public const string GetIncidentDetails = "get_icm_incident_details";
-
+            
             public const string IcmGetIncidentInfo = "icm_get_incident_info";
             public const string IcmGetIncidentsByTeam = "icm_get_incidents_by_team";
             public const string IcmMitigateIncident = "icm_mitigate_incident";
@@ -65,7 +65,6 @@ namespace FirstPartyAgent.Constants
             public const string IcmAddTag = "icm_add_tag";
             public const string IcmGetDisscussionEntries = "icm_get_discussion_entries";
             public const string IcmAddDiscussionEntry = "icm_add_discussion_entry";
-            public const string IcmSummarizeIncident = "icm_summarize_incident";
         }
 
         public static class AzureSearch

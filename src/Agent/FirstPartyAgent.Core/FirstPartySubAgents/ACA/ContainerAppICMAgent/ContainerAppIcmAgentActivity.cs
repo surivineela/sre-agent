@@ -56,8 +56,16 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
         public async Task<string> GetPromptTextAsync(ContainerAppIcmAgentActivityInput input)
         {
             var path = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, nameof(FirstPartySubAgents), "ACA", nameof(ContainerAppIcmAgent), "ContainerAppIcmAgentPlan.txt");
-            var systemPrompt = File.ReadAllText(path);
-            return systemPrompt;
+            try
+            {
+                var systemPrompt = File.ReadAllText(path);
+                return systemPrompt;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to read system prompt from file at path: {Path}", path);
+                throw;
+            }
         }
     }
 }
