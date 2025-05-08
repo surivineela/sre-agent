@@ -1,0 +1,42 @@
+{
+  "alertingId": "614bb35c-96b0-4e5d-825d-5f2a5c6d9a8a",
+  "incidentTitle": "DataRole: Low GetWorkersForHostName Availability !",
+  "owningTeams": [],
+  "allowedGenevaActions": [],
+  "kustoQueries": [
+    {
+      "title": "Kusto_Cluster_Identifier",
+      "kustoQuery": "let stampName = <STAMP_NAME>;cluster('wawscus').database('wawsprod').GetRegions | parse stampName with 'waws-prod-' AntaresAbbreviation1:string '-' * | where Cloud == 'Azure' | where AntaresAbbreviation == AntaresAbbreviation1 | project KustoCluster"
+    },
+    {
+      "title": "Last_hour_average_availability",
+      "kustoQuery": "cluster('kusto_cluster_arg').database('wawsprod').AntaresDataServiceApiTransactions | where TIMESTAMP > ago(90m) | where EventStampName == 'stamp_name_arg' | where OperationName =~ 'GetWorkersForHostName' | where EventId == 65401 | parse RequestUrl with 'https://' DataRoleIP ':' * '/hostnames/' HostName '/webworkers?' * | extend Available=iff(StatusCode in (200, 307) and LatencyInMilliseconds < 1500, 1.0, 0.0) | summarize Availability=avg(Available)*100 by bin(PreciseTimeStamp, 5m)"
+    },
+    {
+      "title": "Availability_per_client",
+      "kustoQuery": "cluster('kusto_cluster_arg').database('wawsprod').AntaresDataServiceApiTransactions | where PreciseTimeStamp >= ago(90m) | where EventPrimaryStampName =~ 'stamp_name_arg' | where OperationName =~ 'GetWorkersForHostName' | where Role != 'DataRole' | extend Available=iff(StatusCode in (200, 307) and LatencyInMilliseconds < 1500, 1.0, 0.0) | summarize Availability=avg(Available)*100 by RoleInstance | order by RoleInstance asc"
+    },
+    {
+      "title": "Availability_per_datarole",
+      "kustoQuery": "cluster('kusto_cluster_arg').database('wawsprod').AntaresDataServiceApiTransactions | where PreciseTimeStamp >= ago(90m) | where EventPrimaryStampName =~ 'stamp_name_arg' | where OperationName =~ 'GetWorkersForHostName' | where Role == 'DataRole' | extend Available=iff(StatusCode in (200, 307) and LatencyInMilliseconds < 1500, 1.0, 0.0) | summarize Availability=avg(Available)*100 by RoleInstance | order by RoleInstance asc"
+    }
+  ],
+  "owners": [
+    "alias1",
+    "alias2"
+  ],
+  "actionTimeoutIntervalInMinutes": 30,
+  "defaultHumanInterventionLoop": "App Service (Web Apps)/DataRoleTeam Business Hours Only",
+  "incidentProcessingGuide": [
+    "Create an EXECUTION_PLAN using the below guidelines",
+    "- Identify the stamp name STAMP_NAME that has been impacted.",
+    "- Identify the KUSTO_CLUSTER that we will use for all subsequent queries. Do this by running the query Kusto_Cluster_Identifier. In this query you will find the string 'stamp_name_arg'. Replace the string stamp_name_arg with the impacted STAMP_NAME calculated in the previous step before executing the query. The output of this query should be a table with one column 'KustoCluster'. Take the first row value of this table. That is the KUSTO_CLUSTER which we will use for subsequent queries. Note this in the incident discussion.",
+    "- Identify the AVERAGE_AVAILABILITY over the last hour using the Last_hour_average_availability query, replacing kusto_cluster_arg with KUSTO_CLUSTER and stamp_name_arg with STAMP_NAME.",
+    "- Post a discussion entry in the ICM incident that says: The stamp STAMP_NAME in cluster KUSTO_CLUSTER has been impacted.",
+    "- Post a discussion entry with the results of the AVERAGE_AVAILABILITY over the last hour. In this discussion post, note whether the availability is consistently high, consistently low, or seems to have recovered.",
+    "- Identify the average availability per client using the Availability_per_client query, replacing kusto_cluster_arg with KUSTO_CLUSTER and stamp_name_arg with STAMP_NAME. If any one client seems to have lower availabilty than the others, note that in a discussion post.",
+    "- Identify the average availability per DataRole using the Availability_per_datarole query, replacing kusto_cluster_arg with KUSTO_CLUSTER and stamp_name_arg with STAMP_NAME. If any one DataRole seems to have lower availabilty than the others, note that in a discussion post."
+  ],
+  "teamId": 83120,
+  "severity": 2
+}
