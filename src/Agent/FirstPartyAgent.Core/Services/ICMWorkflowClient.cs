@@ -7,6 +7,7 @@ using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using Agent.Core.Helpers;
 using FirstPartyAgent.Core.Configuration;
+using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace FirstPartyAgent.Core.Services
-{
+{    
     public class ICMWorkflowClient
     {
         private readonly bool IsDevelopment;
@@ -366,21 +367,150 @@ namespace FirstPartyAgent.Core.Services
             }
         }
 
-        public async Task<List<SearchItem>> SearchIncidentsAsync(string searchString)
+        private async Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(int lookbackPeriodInDays, int resultLimit, List<IncidentAdvancedSearchFilter> filters)
         {
-            var content = new
+            // Enforce a max limit to avoid getting blocked on ICM Kusto cluster
+            if (lookbackPeriodInDays > 30)
             {
-                SearchString = searchString,
-                IncludeCorrelated = false,
-                OrderColumn = "CreateDate",
-                OrderDir = "desc",
-                Skip = 0,
-                Top = 100,
-            };
+                lookbackPeriodInDays = 30;
+                _logger.LogInformation("Lookback period capped at 30 days to prevent overloading ICM Kusto cluster");
+            }
+            if (resultLimit > 10)
+            {
+                resultLimit = 10;
+                _logger.LogInformation("Result limit capped at 10 to prevent overloading ICM Kusto cluster");
+            }
 
-            //TODO: complete the search string implementation
+            // Build the basic Kusto query structure
+            var queryBuilder = new StringBuilder();
+            queryBuilder.AppendLine($"let lookbackPeriod = ago({lookbackPeriodInDays}d);");
+            queryBuilder.AppendLine($"let resultLimit = {resultLimit};");
+            queryBuilder.AppendLine("Incidents");
+            
+            // Add the lookback period filter
+            queryBuilder.AppendLine("| where CreateDate > lookbackPeriod");
+            
+            // Add each custom filter with AND logic
+            if (filters != null && filters.Count > 0)
+            {
+                foreach (var filter in filters)
+                {
+                    if (!string.IsNullOrWhiteSpace(filter.ColumnName) && !string.IsNullOrWhiteSpace(filter.Operator))
+                    {
+                        queryBuilder.AppendLine($"| where {filter.ToKustoFilterExpression()}");
+                    }
+                }
+            }
 
-            return new List<SearchItem>();
+            // Add the standard projection and result limit
+            queryBuilder.AppendLine("| summarize arg_max(ModifiedDate, *) by IncidentId");
+            queryBuilder.AppendLine("| extend ResponsibleServiceName = OwningTenantName");
+            queryBuilder.AppendLine("| extend Id=IncidentId, Title, ResponsibleServiceName, Severity, CreatedDate = CreateDate, State = Status, MitigateDate, ResolveDate, HowFixed");
+            queryBuilder.AppendLine("| take resultLimit");
+
+            var query = queryBuilder.ToString();
+            _logger.LogInformation($"Executing Kusto query: {query}");
+            
+            var payload = JsonConvert.SerializeObject(new { query });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.IncidentLookupWorkflowName, payload);
+            
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var searchResults = JsonConvert.DeserializeObject<List<IncidentAdvancedSearchResultItem>>(content);
+                return searchResults;
+            }
+            else
+            {
+                string errorMessage = $"Failed to search incidents with custom filters. Status code: {response.StatusCode}";
+                _logger.LogError(errorMessage);
+                return new List<IncidentAdvancedSearchResultItem> { new IncidentAdvancedSearchResultItem { Id = errorMessage } };
+            }
+        }
+
+        /// <summary>
+        /// Convenience overload that creates IncidentFilter objects from the provided parameters
+        /// </summary>
+        /// <param name="columnNames">Names of the columns to filter on</param>
+        /// <param name="operators">Operators to use for filtering (e.g., "==", "contains", ">", etc.)</param>
+        /// <param name="values">Values to filter for</param>
+        /// <param name="lookbackPeriodInDays">Number of days to look back</param>
+        /// <param name="resultLimit">Maximum number of results to return</param>
+        /// <returns>List of search results matching the criteria</returns>
+        public async Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
+            int lookbackPeriodInDays,
+            int resultLimit,
+            List<string> columnNames,
+            List<string> operators,
+            List<string> values)
+        {
+            if (columnNames == null || operators == null || values == null)
+            {
+                throw new ArgumentNullException("columnNames, operators, and values cannot be null");
+            }
+
+            if (columnNames.Count != operators.Count || columnNames.Count != values.Count)
+            {
+                throw new ArgumentException("columnNames, operators, and values must have the same number of items");
+            }
+
+            List<IncidentAdvancedSearchResultItem> result = new List<IncidentAdvancedSearchResultItem>();
+            try
+            {
+                var filters = new List<IncidentAdvancedSearchFilter>();
+                for (int i = 0; i < columnNames.Count; i++)
+                {
+                    if (!string.IsNullOrWhiteSpace(columnNames[i]) && !string.IsNullOrWhiteSpace(operators[i]))
+                    {
+                        filters.Add(new IncidentAdvancedSearchFilter(columnNames[i], operators[i], values[i]));
+                    }
+                }
+                result = await SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, filters);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError($"Error while searching incidents with parameters: {ex.Message}");
+                result.Add(new IncidentAdvancedSearchResultItem { Id = $"Error: {ex.Message}" });
+            }
+
+            return result;
+        }
+
+        public async Task<List<SearchItem>> SearchIncidentsAsync(string searchString, int lookbackPeriodInDays, int resultLimit)
+        {
+            // Enforce a max limit to avoid getting blocked on ICM Kusto cluster
+            if (lookbackPeriodInDays > 90)
+            {
+                lookbackPeriodInDays = 90;
+            }
+            if (resultLimit > 100)
+            {
+                resultLimit = 100;
+            }
+
+            var query = $@"let searchString = '{searchString}';
+let lookbackPeriod = ago({lookbackPeriodInDays}d);
+let resultLimit = {resultLimit};
+Incidents
+| where CreateDate > lookbackPeriod
+| where Title contains searchString
+| extend ResponsibleServiceName = OwningTenantName
+| summarize arg_max(ModifiedDate, *) by IncidentId
+| project Id=IncidentId, Severity, Title, State=Status, ResponsibleServiceName, CreateDate, MitigateDate, ResolveDate, HowFixed
+| take resultLimit";
+            var payload = JsonConvert.SerializeObject(new { query });
+            var response = await SendICMWorkflowRequest(_icmWorkflowSettings.IncidentLookupWorkflowName, payload);
+            if (response.IsSuccessStatusCode)
+            {
+                var content = await response.Content.ReadAsStringAsync();
+                var searchResults = JsonConvert.DeserializeObject<List<SearchItem>>(content);
+                return searchResults;
+            }
+            else
+            {
+                string errorMessage = $"Failed to search incidents with searchString: {searchString}";
+                return new List<SearchItem> { new SearchItem { Id = errorMessage } };
+            }
         }
 
         public async Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry)

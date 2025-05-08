@@ -60,6 +60,27 @@ namespace FirstPartyAgent.Models
         public string State { get; set; }
     }
 
+    public class IncidentAdvancedSearchResultItem: SearchItem
+    {
+        public string CorrelationId { get; set; }
+        public string OccurringEnvironment { get; set; }
+        public string OccurringDatacenter { get; set; }
+        public string OccurringDeviceGroup { get; set; }
+        public string OccurringDeviceName { get; set; }
+        public string OccurringServiceInstanceId { get; set; }
+        public string IncidentType { get; set; }
+        public string Keywords { get; set; }
+        public DateTime ModifiedDate { get; set; }
+        public string OwningTeamId { get; set; }
+        public string OwningTenantId { get; set; }
+        public string OwningContactAlias { get; set; }
+        public string ParentIncidentId { get; set; }
+        public string RoutingId { get; set; }
+        public string Severity { get; set; }
+        public Guid SourceIncidentId { get; set; }
+        public string SourceId { get; set; }
+    }
+
 
     public class ODataResponse<T>
     {

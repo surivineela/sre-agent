@@ -48,6 +48,7 @@ namespace FirstPartyAgent.Core.Configuration
         public string SubscriptionUsageWorkflowName { get; set; } = string.Empty;
         public string RestartWebAppWorkflowName { get; set; } = string.Empty;
         public string RebootWorkerWorkflowName { get; set; } = string.Empty;
+        public string IncidentLookupWorkflowName { get; set; } = string.Empty;
         public string RedisTenantId { get; set; } = string.Empty;
         public string RedisDeploymentDetailsWorkflowName { get; set; } = string.Empty;
         public string RedisDeploymentHistoryWorkflowName { get; set; } = string.Empty;

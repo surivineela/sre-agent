@@ -4,6 +4,7 @@
 
 using FirstPartyAgent.Core.Constants;
 using FirstPartyAgent.Core.Extensions;
+using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Helpers;
 using FirstPartyAgent.Models;
@@ -131,15 +132,44 @@ namespace FirstPartyAgent.Core.Plugins
         [KernelFunction("search_incidents")]
         [Description("Search for incidents")]
         public async Task<List<SearchItem>> SearchIncidents(
-            [Description("Search String")] string searchString, Kernel kernel)
+            [Description("Search String")] string searchString,
+            [Description("Lookback Period in Days")] int lookbackPeriodInDays,
+            [Description("Limit on result count")] int resultCountLimit,
+            Kernel kernel)
         {
             var logMessage = $"[search_incidents][{DateTime.UtcNow}] Invoked with searchString {searchString}";
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
 
             var incidents = _icmApiClient.IsEnabled()
                 ? await _icmApiClient.SearchIncidentsAsync(searchString)
-                : await _icmWorkflowClient.SearchIncidentsAsync(searchString);
+                : await _icmWorkflowClient.SearchIncidentsAsync(searchString, lookbackPeriodInDays, resultCountLimit);
 
+            return incidents;
+        }
+
+        [KernelFunction("get_queryable_columns_for_incidents")]
+        [Description("Get queryable columns for advanced incident search")]
+        public async Task<Dictionary<string, List<string>>> GetQueryableColumnsForIncidentLookup(Kernel kernel)
+        {
+            var logMessage = $"[get_queryable_columns_for_incidents][{DateTime.UtcNow}]";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var searchableColumns = IncidentAdvancedSearchFilter.GetQueryableIncidentProperties();
+            return searchableColumns;
+        }
+
+        [KernelFunction("advanced_search_for_incidents")]
+        [Description("Advanced search for incidents. Use get_queryable_columns_for_incidents to get list of queryable properties for help with constructing filters")]
+        public async Task<List<IncidentAdvancedSearchResultItem>> AdvancedSearchIncidents(
+            [Description("Lookback Period in Days")] int lookbackPeriodInDays,
+            [Description("Limit on result count. Maximum 10 search results returned.")] int resultLimit,
+            [Description("List of column names to search")] List<string> columnNames,
+            [Description("Operator to apply on each column")] List<string> operators,
+            [Description("Filter to apply on each column")] List<string> filterValues,
+            Kernel kernel)
+        {
+            var logMessage = $"[advanced_search_for_incidents][{DateTime.UtcNow}] Invoked with lookbackPeriodInDays {lookbackPeriodInDays}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var incidents = await _icmWorkflowClient.SearchIncidentsWithParametersAsync(lookbackPeriodInDays, resultLimit, columnNames, operators, filterValues);
             return incidents;
         }
 
