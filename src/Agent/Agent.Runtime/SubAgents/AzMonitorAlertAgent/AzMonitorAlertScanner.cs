@@ -138,12 +138,19 @@ public class AzMonitorAlertScanner
                         }
                     )));
 
+            await _repository.AddMessageAsync(thread.Id, new Message(
+                    Guid.NewGuid(),
+                    DateTime.UtcNow,
+                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                    ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Recommendations", investigationSummary, isCollapsed: false)
+                ));
+
             // Signal the agent to start investigating with all the context summaries
             await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
                ThreadId: thread.Id,
                AgentContextId: agentContext.Id,
                MessageId: thread.StartMessage.Id,
-               Message: investigationSummary,
+               Message: $"Now I will pass on this context to a specialized agent to continue investigation and remediation for the alert. Context : {investigationSummary}",
                UserId: "incident-system",
                DisplayName: "Azure Monitor Investigation Summary",
                Timestamp: DateTime.UtcNow
@@ -179,18 +186,45 @@ public class AzMonitorAlertScanner
 
             var alertDetails = GetAlertInfoAsPrompt(alert);
 
-            string summarizePrompt = @$"You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert. 
+            string summarizePrompt = @$"
+TASK:
+
+You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert. 
 The following context contains the results of an automated investigation into an Azure Monitor alert.This includes details about the alert itself, the health of the affected application, relevant metrics,
 recent activity logs, analysis of connected components, and results from relevant log queries.
 
+Analyze recent exceptions, metrics, activity logs, and application topology given below to identify potential root causes for the alert specified. Consider code bugs, deployment changes, resource constraints, and topology gaps. Provide a clear hypothesis with supporting evidence and recommended next steps. Think Step by Step
+Examples:
+Example 1: Missing Topology IssueHypothesis: The alert was triggered by missing service connections in application topology. Evidence: Exception logs show connection timeouts to ServiceB, but ServiceB doesn't appear in application map for the last 6 hours. Activity logs show no recent changes to connection strings. Next steps: Verify ServiceB health and check if telemetry instrumentation is working properly in ServiceB code.
+Example 2: Thread Deadlock After DeploymentHypothesis: Recent deployment introduced a deadlock in the order processing workflow. Evidence: Thread dump shows 12 blocked threads in OrderProcessor waiting for resources held by PaymentVerifier threads, which are waiting for DatabaseConnection threads. CPU utilization spiked to 95% but processing throughput dropped to near zero after deployment at 14:30. Request queue length growing consistently. Application topology shows normal connections but transaction completion rate is 0. Next steps: Roll back to previous version or investigate synchronization changes in the Order/Payment components, focusing on lock acquisition order and shared resource access patterns.
+Example 3: Insufficient Resource Hypothesis: Database connection pool exhaustion due to increased traffic. Evidence: 500% increase in request metrics coincides with connection timeout exceptions. Database connection metrics show 95% utilization vs normal 60%. No recent deployments or code changes. Next steps: Increase connection pool size or scale up database resources to handle the current traffic pattern.
+Example 4: Cascading Microservice Failure Hypothesis: A configuration change in the authentication service is causing cascading failures across the application ecosystem. Evidence: Exception logs show 401 errors in ServiceC started at 09:15, followed by connection timeouts in ServiceD at 09:17, and data processing exceptions in ServiceE at 09:22. Activity logs show a configuration update to Azure AD B2C at 09:10. Application map shows normal traffic patterns to auth service but 80% reduction in successful transactions across downstream services. CPU and memory metrics remain normal across all services. Next steps: Rollback Azure AD B2C configuration change and verify token validation logic in ServiceC to ensure proper handling of auth challenges.
+
+BAD EXAMPLES:
+The resource /iot-dashboard is missing from the graph database, suggesting potential misconfiguration or deletion.
+No error or exception logs were found in the queried timeframe, indicating possible logging misconfiguration.
+Recent deployment or configuration changes are suspected but not confirmed due to lack of deployment logs.
+
+-----------------------
+
+GOAL
+
 Based on the following investigation summaries, provide:
 
-1. A concise summary of key findings across all areas (max 5 bullet points)
-2. 1-3 hypotheses about the root cause, each with:
-   - Clear description of the potential cause
+1. A concise summary of key findings across all areas (max 2-3 bullet points)
+2. 1-2 hypotheses about the root cause, each with:
+   - Clear description of the potential cause (one liner is good enough)
    - Supporting evidence from the summaries
    - Confidence score (0-100%)
 3. Rank hypotheses by confidence score (highest first)
+
+Now build hypothesis on this, you are unsure about any points/there is missing data you can ignore it. Only provide the most reliable, concise, actionable hypothesis which can be derived from the data below. If there is no possible root cause you can reply with 'Could not derive a hypothesis on this issue'
+** CRITICAL ** If any summaries are missing data or logs are missing for an application, or graph database is missing the resource, DO NOT include that information in the summary and hypothesis. Your job is to not tell user about the best practices at this moment. You just need to figure out relevant root cause for the alert based on the information your were able to get.
+** CRITICAL ** Try your best reasoning. If you are not sure about the findings, it's okay to just say you could not find relevant data points. There is no shame in that!
+
+-----------------------
+
+DATA ABOUT ALERT AND LOGS, METRICS, TOPOLOGY etc
 
 ### ALERT DETAILS
 {alertDetails}

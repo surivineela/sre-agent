@@ -638,27 +638,21 @@ Be concise and focus on the most relevant findings. Avoid generic root causes.";
 
 Your task is to produce a Markdown-formatted investigation report that includes:
 
-1. ## Summary  
-   In 1-2 sentences, capture the most critical insight.
-
-2. ## Observations  
+## Observations
+   - In 1-2 sentences, capture the most critical insight.
    - Bullet the key patterns, anomalies, or data points that matter.
 
-3. ## Hypotheses  
-   For each hypothesis (up to three):  
+## Hypotheses  
+   For each hypothesis (2-3 max):  
    - **Hypothesis:** A one-sentence statement.  
    - **Rationale:** Brief explanation.  
    - **Confidence:** High / Medium / Low.
 
-4. ## Next Steps  
-   List 2-3 concrete investigative actions or data sources to confirm/refute your hypotheses. DO NOT just give generic suggestions.
-
-5. ## Chained Context  
-   At the end, summarize your findings in a concise markdown format - make it catchy with emojis (but don't overdo it).
-   Do not include the Alert details in the output. Just the summary of the current step.
+ DO NOT just give generic suggestions.
 
 ** CRITICAL ** Use self-reasoning loops and contextual information to rank the relevance of findings before summarizing the final output.
 ** CRITICAL ** If you encounter errors while calling any tool, print a concise message explaining the error.
+** CRITICAL ** Keep the text concise. Users don't like seeing too much text. Maybe use some emojis to make it colorful.
 ";
 
     #endregion
