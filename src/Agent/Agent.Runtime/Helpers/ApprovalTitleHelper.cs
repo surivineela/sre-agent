@@ -20,9 +20,9 @@ public static class ApprovalTitleHelper
     /// <returns></returns>
     public static string GenerateUniqueApprovalTitle(string threadId, string processorId, string operationName, IDictionary<string, object?> arguments)
     {
-        if (operationName.Equals("ApplyKubernetesYaml", StringComparison.OrdinalIgnoreCase))
+        if (operationName.Equals("PatchKubernetesYaml", StringComparison.OrdinalIgnoreCase))
         {
-            // The ApplyKubernetesYaml function is a special case where the argument yamlContent is not very stable currently.
+            // The PatchKubernetesYaml function is a special case where the argument yamlContent is not very stable currently.
             return $"{threadId}-{processorId}-{operationName}-abcdefg";
         }
 

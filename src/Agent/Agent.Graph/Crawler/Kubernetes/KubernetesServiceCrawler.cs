@@ -46,41 +46,44 @@ public class KubernetesServiceCrawler : IResourceCrawler
         {
             podList = await _k8sService.GetPodsAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, selector);
         }
-
-        _logger.LogDebug($"Found {podList.Items?.Count} backend pods for service: {serviceNode.GetNodeId()}");
-        foreach (var pod in podList.Items ?? new List<V1Pod>())
+        var pod = podList.Items?.FirstOrDefault();
+        if (pod == null)
         {
-            _logger.LogDebug($"Pod: {pod.Name()} for service: {serviceNode.GetNodeId()}");
-            var podNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, pod.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPodType);
-            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-            var edge = new ArmResourceEdge(serviceNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.BackedBy);
-            edge.AddNetworkIngressEdgeProperties();
-            bool ready = false;
-            if (pod.Status?.Conditions != null)
-            {
-
-                foreach (var condition in pod.Status.Conditions)
-                {
-                    if (condition.Type == "Ready" && condition.Status == "True")
-                    {
-                        ready = true;
-                        break;
-                    }
-                }
-            }
-
-            if (ready)
-            {
-                edge.AddBackendStatusReadyProperties();
-            }
-            else
-            {
-                edge.AddBackendStatusNotReadyProperties();
-            }
-
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-            yield return podNode;
+            _logger.LogDebug($"No pods found for service: {serviceNode.GetNodeId()}");
+            yield break;
         }
+        switch (pod.OwnerReferences().FirstOrDefault()?.Kind.ToLowerInvariant())
+        {
+            case "replicaset":
+                var replicaSet = await _k8sService.GetReplicaSetAsync(serviceNode.ClusterResourceId, serviceNode.Namespace, pod.OwnerReferences().FirstOrDefault()?.Name);
+                if (replicaSet == null)
+                {
+                    _logger.LogDebug($"No replicaset found for service: {serviceNode.GetNodeId()}");
+                    yield break;
+                }
+
+                var deploymentNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, replicaSet.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesDeploymentType);
+                await _graphDbClient.AddOrUpdateNodeAsync(deploymentNode);
+                var edge = new ArmResourceEdge(serviceNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.Connected);
+                edge.AddNetworkIngressEdgeProperties();
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
+
+                var edge1 = new ArmResourceEdge(deploymentNode.GetNodeId(), serviceNode.GetNodeId(), Constants.Relationships.Linked);
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge1);
+                _logger.LogDebug($"Found deployment {replicaSet.OwnerReferences().FirstOrDefault()?.Name} for service: {serviceNode.GetNodeId()}");
+                break;
+            case "statefulset":
+                var statefulSetNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, pod.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType);
+                await _graphDbClient.AddOrUpdateNodeAsync(statefulSetNode);
+                var edge2 = new ArmResourceEdge(serviceNode.GetNodeId(), statefulSetNode.GetNodeId(), Constants.Relationships.Connected);
+                edge2.AddNetworkIngressEdgeProperties();
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
+                var edge3 = new ArmResourceEdge(statefulSetNode.GetNodeId(), serviceNode.GetNodeId(), Constants.Relationships.Linked);
+                await _graphDbClient.AddOrUpdateEdgeAsync(edge3);
+                _logger.LogDebug($"Found statefulset {pod.OwnerReferences().FirstOrDefault()?.Name} for service: {serviceNode.GetNodeId()}");
+                break;
+        }
+
         yield break;
     }
 }

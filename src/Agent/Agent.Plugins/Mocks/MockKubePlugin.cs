@@ -663,9 +663,9 @@ public class MockKubePlugin : IKubePlugin
         }
     }
 
-    public Task<string> ApplyKubernetesYamlAsync(string resourceId, string yamlContent)
+    public Task<string> PatchKubernetesYamlAsync(string resourceId, string yamlContent)
     {
-        Console.WriteLine($"MockKubePlugin: ApplyKubernetesYamlAsync called for resourceId {resourceId}");
+        Console.WriteLine($"MockKubePlugin: PatchKubernetesYamlAsync called for resourceId {resourceId}");
         // Basic validation and success message like before
         try { /* ... validation logic ... */ } catch { /* ... error handling ... */ }
         // Extract kind/name for logging if possible

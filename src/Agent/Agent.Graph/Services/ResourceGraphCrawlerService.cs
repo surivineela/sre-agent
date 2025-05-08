@@ -211,7 +211,7 @@ public class ResourceGraphCrawlerService : ICrawlerService
                 {
                     var node = toCrawl.Dequeue() as GraphNode;
                     var resourceType = node is null ? string.Empty : node.GetNodeLabel();
-                    var progressByResourceType = _progressByResourceType.GetOrAdd(resourceType, 
+                    var progressByResourceType = _progressByResourceType.GetOrAdd(resourceType,
                         (resourceType) => new CrawlProgressCounter(0, 0, 0));
                     Interlocked.Decrement(ref _pendingCount);
                     Interlocked.Decrement(ref progressByResourceType.PendingCount);

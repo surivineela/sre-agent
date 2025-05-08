@@ -65,7 +65,7 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
                             // continue match on values
                         }
 
-                        // chck env value
+                        // check env value
                         // match sql connection string
                         var sqlNode = await env.TryMatchAndLinkSqlResourcesAsync(daemonSetNode, _sqlHelper, _graphDbClient, "daemonset", _logger);
                         if (sqlNode != null)
@@ -103,30 +103,5 @@ public class KubernetesDaemonSetCrawler : IResourceCrawler
             }
         }
 
-        // connect pods
-        var selector = daemonSet.Spec.Selector.ToSelectorString();
-        var podList = new V1PodList();
-        if (!string.IsNullOrEmpty(selector))
-        {
-            podList = await _k8sService.GetPodsAsync(daemonSetNode.ClusterResourceId, daemonSetNode.Namespace, selector);
-        }
-        foreach (var pod in podList.Items ?? new List<V1Pod>())
-        {
-            var podNode = new KubernetesNamespacedResourceNode(
-                pod,
-                daemonSetNode.ClusterResourceId,
-                daemonSetNode.Namespace,
-                daemonSetNode.SubscriptionId,
-                daemonSetNode.ResourceGroupName,
-                pod.Name(),
-                Constants.KubernetesCoreGroup,
-                Constants.KubernetesV1Version,
-                Constants.KubernetesPodType);
-            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-            var edge = new ArmResourceEdge(daemonSetNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-
-            yield return podNode;
-        }
     }
 }

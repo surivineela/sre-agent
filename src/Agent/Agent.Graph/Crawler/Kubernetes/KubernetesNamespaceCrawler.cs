@@ -6,6 +6,7 @@ using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
+using Agent.Logging;
 using k8s.Models;
 using Microsoft.Extensions.Logging;
 
@@ -29,20 +30,7 @@ namespace Agent.Graph.Crawler.Kubernetes
             var nsNode = (KubernetesResourceNode)node;
             _logger.LogDebug($"Crawling Kubernetes namespace: {nsNode.GetNodeId()}");
 
-            long startTs = DateTime.Now.Ticks;
-
-            // list all pods
-            var pods = await _k8sService.GetPodsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);
-            _logger.LogDebug($"Found {pods.Items?.Count} pods in namespace: {nsNode.GetNodeId()}");
-            foreach (var pod in pods.Items)
-            {
-                _logger.LogDebug($"Pod: {pod.Name()} in namespace: {nsNode.GetNodeId()}");
-                var podNode = new KubernetesNamespacedResourceNode(pod, nsNode.ClusterResourceId, nsNode.ResourceName, nsNode.SubscriptionId, nsNode.ResourceGroupName, pod.Name(), Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesPodType, pod.Annotations(), pod.Labels());
-                await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-                var edge = new ArmResourceEdge(nsNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
-                await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-                yield return podNode;
-            }
+            long startTs = DateTime.UtcNow.Ticks;
 
             // list all deployments
             var deployments = await _k8sService.GetDeploymentsAsync(nsNode.ClusterResourceId, nsNode.ResourceName);

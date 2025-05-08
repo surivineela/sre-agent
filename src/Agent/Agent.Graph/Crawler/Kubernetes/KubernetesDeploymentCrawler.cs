@@ -62,7 +62,7 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
                             // continue match on values
                         }
 
-                        // chck env value
+                        // check env value
                         // match sql connection string
                         var sqlNode = await env.TryMatchAndLinkSqlResourcesAsync(deploymentNode, _sqlHelper, _graphDbClient, "deployment", _logger);
                         if (sqlNode != null)
@@ -100,33 +100,6 @@ public class KubernetesDeploymentCrawler : IResourceCrawler
             }
         }
 
-        // connect pods
-        var selector = deployment.Spec.Selector.ToSelectorString();
-        var podList = new V1PodList();
-        if (!string.IsNullOrEmpty(selector))
-        {
-            podList = await _k8sService.GetPodsAsync(deploymentNode.ClusterResourceId, deploymentNode.Namespace, selector);
-        }
-        foreach (var pod in podList.Items ?? new List<V1Pod>())
-        {
-            var podNode = new KubernetesNamespacedResourceNode(
-                pod,
-                deploymentNode.ClusterResourceId,
-                deploymentNode.Namespace,
-                deploymentNode.SubscriptionId,
-                deploymentNode.ResourceGroupName,
-                pod.Name(),
-                Constants.KubernetesCoreGroup,
-                Constants.KubernetesV1Version,
-                Constants.KubernetesPodType);
-            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-            var edge = new ArmResourceEdge(deploymentNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-            var edge2 = new ArmResourceEdge(podNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.OwnedBy);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
-
-            yield return podNode;
-        }
     }
 }
 

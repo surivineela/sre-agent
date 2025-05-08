@@ -105,32 +105,5 @@ public class KubernetesStatefulSetCrawler : IResourceCrawler
             }
         }
 
-        // connect pods
-        var selector = statefulSet.Spec.Selector.ToSelectorString();
-        var podList = new V1PodList();
-        if (!string.IsNullOrEmpty(selector))
-        {
-            podList = await _k8sService.GetPodsAsync(statefulSetNode.ClusterResourceId, statefulSetNode.Namespace, selector);
-        }
-        foreach (var pod in podList.Items ?? new List<V1Pod>())
-        {
-            var podNode = new KubernetesNamespacedResourceNode(
-                pod,
-                statefulSetNode.ClusterResourceId,
-                statefulSetNode.Namespace,
-                statefulSetNode.SubscriptionId,
-                statefulSetNode.ResourceGroupName,
-                pod.Name(),
-                Constants.KubernetesCoreGroup,
-                Constants.KubernetesV1Version,
-                Constants.KubernetesPodType);
-            await _graphDbClient.AddOrUpdateNodeAsync(podNode);
-            var edge = new ArmResourceEdge(statefulSetNode.GetNodeId(), podNode.GetNodeId(), Constants.Relationships.Contains);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
-            var edge2 = new ArmResourceEdge(podNode.GetNodeId(), statefulSetNode.GetNodeId(), Constants.Relationships.OwnedBy);
-            await _graphDbClient.AddOrUpdateEdgeAsync(edge2);
-
-            yield return podNode;
-        }
     }
 }

@@ -242,7 +242,7 @@ e.g.: check what's wrong with my 'redis' statefulset in the 'databse-system' nam
             return await _kubePlugin.DiagnoseAKSAppAsync(AKSClusterResourceId, _namespace, kind, name);
         }
 
-        [KernelFunction("ApplyKubernetesYaml")]
+        [KernelFunction("PatchKubernetesYaml")]
         [Description(
         @"Applies one Kubernetes YAML object to the specified AKS cluster using server-side apply.
         When patch for array values, make sure all existing values are included in the YAML object.
@@ -250,11 +250,11 @@ Used whenever user wants to create or update resources in a Kubernetes cluster u
 eg: please apply this YAML object to my AKS cluster to create a new deployment.
 eg: update my service with this YAML manifest.")]
         [RequiresApproval("Requires approval to apply Kubernetes YAML.")]
-        public async Task<string> ApplyKubernetesYamlAsync(
+        public async Task<string> PatchKubernetesYamlAsync(
             [Description("The resource ID of the Azure Kubernetes Service.")] string AKSClusterResourceId,
             [Description("The YAML manifest content to apply to the cluster")] string yamlContent)
         {
-            return await _kubePlugin.ApplyKubernetesYamlAsync(AKSClusterResourceId, yamlContent);
+            return await _kubePlugin.PatchKubernetesYamlAsync(AKSClusterResourceId, yamlContent);
         }
 
 

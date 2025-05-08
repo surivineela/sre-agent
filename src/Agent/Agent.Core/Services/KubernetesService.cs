@@ -58,6 +58,20 @@ public abstract class KubernetesService : IKubernetesService
         var deployments = await client.AppsV1.ListNamespacedDeploymentAsync(ns, labelSelector: labelSelector);
         return deployments;
     }
+    public async Task<V1ReplicaSetList> GetReplicaSetsAsync(string resourceId, string ns, string? labelSelector = null)
+    {
+        var client = await GetKubernetesClient(resourceId);
+
+        var rss = await client.AppsV1.ListNamespacedReplicaSetAsync(ns, labelSelector: labelSelector);
+        return rss;
+    }
+    public async Task<V1ReplicaSet> GetReplicaSetAsync(string resourceId, string ns, string name)
+    {
+        var client = await GetKubernetesClient(resourceId);
+
+        var rs = await client.AppsV1.ReadNamespacedReplicaSetAsync(ns, name);
+        return rs;
+    }
 
     public async Task<V1Namespace?> GetNamespaceAsync(string resourceId, string name)
     {

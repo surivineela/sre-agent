@@ -222,7 +222,14 @@ const AppHealthInfo = memo(({ resource }: { resource?: ResourceExtended }) => {
                 />
                 <SummaryField
                     label={'Average memory usage'}
-                    value={!isNullOrUndefined(appHealthInfo.AvgMemoryUsage) ? `${appHealthInfo.AvgMemoryUsage} bytes` : undefined}
+                    value={
+                        !isNullOrUndefined(appHealthInfo.AvgMemoryUsage)
+                            ? getPropertyValue(resource?.properties?.resourceType) === 'k8s/apps/v1/deployments' ||
+                              getPropertyValue(resource?.properties?.resourceType) === 'k8s/apps/v1/statefulsets'
+                                ? `${appHealthInfo.AvgMemoryUsage}%`
+                                : `${appHealthInfo.AvgMemoryUsage} bytes`
+                            : undefined
+                    }
                 />
                 <SummaryField
                     label={'Average CPU usage'}

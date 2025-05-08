@@ -32,6 +32,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
         protected GraphNode(IDictionary<string, object> properties)
         {
             SetNodeProperties(properties);
+            UpdateTs = DateTime.UtcNow.Ticks;
         }
 
         public virtual IDictionary<string, object> GetNodeProperties()

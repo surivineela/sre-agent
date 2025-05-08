@@ -22,7 +22,7 @@ namespace Agent.Plugins
         /// <param name="resourceId">The AKS cluster resource ID</param>
         /// <param name="yamlContent">The YAML content to apply</param>
         /// <returns>A string indicating the result of the operation</returns>
-        public async Task<string> ApplyKubernetesYamlAsync(string resourceId, string yamlContent)
+        public async Task<string> PatchKubernetesYamlAsync(string resourceId, string yamlContent)
         {
             if (string.IsNullOrWhiteSpace(resourceId))
             {

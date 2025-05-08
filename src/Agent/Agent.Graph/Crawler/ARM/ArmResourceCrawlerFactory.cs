@@ -102,11 +102,6 @@ public class ArmResourceCrawlerFactory
                 return new KubernetesNamespaceCrawler(_loggerFactory.CreateLogger<KubernetesNamespaceCrawler>(), _k8sService, _graphDbClient);
             }
 
-            if (Constants.KubernetesPodType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
-            {
-                return new KubernetesPodCrawler(_loggerFactory.CreateLogger<KubernetesPodCrawler>(), _k8sService, _graphDbClient);
-            }
-
             if (Constants.KubernetesDeploymentType.Equals(k8sNode.Kind, StringComparison.OrdinalIgnoreCase))
             {
                 return new KubernetesDeploymentCrawler(_loggerFactory.CreateLogger<KubernetesDeploymentCrawler>(), _graphDbClient, armClient, _k8sService);

@@ -15,6 +15,9 @@ public interface IKubernetesService
     public Task<V1Service?> GetServiceAsync(string resourceId, string ns, string name);
     public Task<V1DeploymentList> GetDeploymentsAsync(string resourceId, string ns, string? labelSelector = null);
     public Task<V1Deployment?> GetDeploymentAsync(string resourceId, string ns, string name);
+
+    public Task<V1ReplicaSetList> GetReplicaSetsAsync(string resourceId, string ns, string? labelSelector = null);
+    public Task<V1ReplicaSet?> GetReplicaSetAsync(string resourceId, string ns, string name);
     public Task<V1PersistentVolumeList> GetPersistentVolumesAsync(string resourceId, string? labelSelector = null);
     public Task<V1PersistentVolume> GetPersistentVolumeAsync(string resourceId, string ns, string name);
     public Task<V1PersistentVolumeClaimList> GetPersistentVolumeClaimsAsync(string resourceId, string ns, string? labelSelector = null);
