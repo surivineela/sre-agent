@@ -81,6 +81,25 @@ export interface Thread {
     incidentSource?: any;
     source?: ThreadSource;
 }
+
+export interface ThreadContext {
+    isThreadActive: boolean;
+    orchestrationState: {
+        orchestrationInstanceId: string;
+        reasoningState: ThreadOrchestrationReasoningState;
+    };
+}
+
+export enum ThreadOrchestrationReasoningState {
+    NotStarted = 'NotStarted',
+    OrchestrationInitialized = 'OrchestrationInitialized',
+    Waiting = 'Waiting',
+    PlanningNextAction = 'PlanningNextAction',
+    RunningFunctionCall = 'RunningFunctionCall',
+    OrchestrationCompleted = 'OrchestrationCompleted',
+    Error = 'Error',
+}
+
 export interface AgentStatus {
     actionsStatus?: {
         hasCriticalActions: boolean;

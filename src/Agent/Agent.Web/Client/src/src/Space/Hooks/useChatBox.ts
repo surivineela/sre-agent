@@ -2,9 +2,10 @@ import axios from 'axios';
 import debounce from 'lodash/debounce';
 import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
-import { Message, Thread } from '../../Common/Contracts/Azure/SreAgent';
+import { Message, Thread, ThreadContext, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
 import { SreAgentResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
@@ -23,6 +24,15 @@ const getMessages = async (threadId: string, skip: number, top: number, signal?:
         // ToDo: handle error
         return [];
     }
+};
+
+const getThreadContext = async (threadId: string, signal: AbortSignal): Promise<ThreadContext | undefined> => {
+    const url = `../api/v1/threads/${threadId}/context`;
+    const { data } = await axios.get(url, {
+        headers: getAgentHeaders(),
+        signal,
+    });
+    return data ?? undefined;
 };
 
 const sendMessage = async (
@@ -197,6 +207,19 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         latestMessageRef.current = newMessages[0];
     };
 
+    const pollReasoningStateUntilComplete = async (threadId: string, signal: AbortSignal) => {
+        const threadContext = await getThreadContext(threadId, signal);
+        if (threadContext) {
+            const reasoningState = threadContext.orchestrationState?.reasoningState;
+            if (!reasoningState || equals(reasoningState, ThreadOrchestrationReasoningState.NotStarted, AntUxStringComparison.IgnoreCase)) {
+                return;
+            } else {
+                await new Promise(resolve => setTimeout(resolve, 3000));
+                await pollReasoningStateUntilComplete(threadId, signal);
+            }
+        }
+    };
+
     const sendMessageHandler = useCallback(
         async (message: string) => {
             if (abortControllerRef.current) {
@@ -225,6 +248,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
                 const threadId = currentThreadId || newThread?.id;
 
                 if (threadId) {
+                    await pollReasoningStateUntilComplete(threadId, signal);
                     // poll answers by getting all messages from the most recent one to the lastest message reference
                     answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal);
                 }
