@@ -4,6 +4,7 @@
 
 using System.Net;
 using System.Text;
+using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
@@ -93,7 +94,7 @@ public class AzMonitorAlertScanner
             foreach (var subscription in subscriptions)
             {
                 _logger.LogInternalInformation($"Checking for alerts in subscription: {subscription}");
-                var newAlerts = await _azMonitorAlertService.PollNewAlertsBySubscriptionId(subscription, 1);
+                var newAlerts = await _azMonitorAlertService.PollNewAlertsBySubscriptionId(subscription, 5);
 
                 int alertCount = newAlerts.Count();
                 _logger.LogInternalInformation($"Found {alertCount} alerts in subscription {subscription}");
@@ -126,6 +127,16 @@ public class AzMonitorAlertScanner
 
             // Start investigating workflow
             var investigationSummary = await StartInvestigationFlow(alert, thread);
+
+            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                        Guid.NewGuid(),
+                        agentContext.Id,
+                        ReasoningMessageRoleEnum.System,
+                        JsonSerializer.Serialize(new
+                        {
+                            investigationSummary,
+                        }
+                    )));
 
             // Signal the agent to start investigating with all the context summaries
             await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
@@ -166,29 +177,48 @@ public class AzMonitorAlertScanner
             // Analyze saved queries from Azure Log Analytics workspace / App Insights
             var logQuerySummary = await _azMonitorInvestigationService.AnalyzeLogQueries(alert, alertThread);
 
+            var alertDetails = GetAlertInfoAsPrompt(alert);
 
-            investigationSummary.AppendLine("# ALERT INVESTIGATION SUMMARY!");
-            investigationSummary.AppendLine();
-            investigationSummary.AppendLine("The following context contains the results of an automated investigation into an Azure Monitor alert. " +
-                                    "This includes details about the alert itself, the health of the affected application, relevant metrics, " +
-                                    "recent activity logs, analysis of connected components, and results from relevant log queries. " +
-                                    "This information should be used to determine the root cause of the alert and provide recommendations for resolution.");
-            investigationSummary.AppendLine();
-            investigationSummary.AppendLine("# Alert Information");
-            investigationSummary.AppendLine($"- Alert ID: {alert.Id}");
-            investigationSummary.AppendLine($"- Alert Name: {alert.Name}");
-            investigationSummary.AppendLine($"- Severity: {alert.Properties.Essentials.Severity}");
-            investigationSummary.AppendLine($"- Monitor Condition: {alert.Properties.Essentials.MonitorCondition}");
-            investigationSummary.AppendLine($"- Alert Rule: {alert.Properties.Essentials.AlertRule}");
-            investigationSummary.AppendLine($"- Description: {alert.Properties.Essentials.Description}");
-            investigationSummary.AppendLine($"- Target Resource: {alert.Properties.Essentials.TargetResource}");
-            investigationSummary.AppendLine($"- Resource Type: {alert.Properties.Essentials.TargetResourceType}");
-            investigationSummary.AppendLine($"- Fired At: {alert.Properties.Essentials.StartDateTime}");
-            investigationSummary.AppendLine();
+            string summarizePrompt = @$"You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert. 
+The following context contains the results of an automated investigation into an Azure Monitor alert.This includes details about the alert itself, the health of the affected application, relevant metrics,
+recent activity logs, analysis of connected components, and results from relevant log queries.
 
-            investigationSummary.AppendLine("# Application Health Summary");
-            investigationSummary.AppendLine(healthSummary);
-            investigationSummary.AppendLine();
+Based on the following investigation summaries, provide:
+
+1. A concise summary of key findings across all areas (max 5 bullet points)
+2. 1-3 hypotheses about the root cause, each with:
+   - Clear description of the potential cause
+   - Supporting evidence from the summaries
+   - Confidence score (0-100%)
+3. Rank hypotheses by confidence score (highest first)
+
+### ALERT DETAILS
+{alertDetails}
+
+### APPLICATION HEALTH SUMMARY
+{healthSummary}
+
+### ACTIVITY LOG ANALYSIS
+{activityLogSummary}
+
+### RELATED RESOURCE ANALYSIS
+{kgSummary}
+
+### LOG QUERY ANALYSIS
+{logQuerySummary}
+
+Keep your response concise, factual, and focused on the most likely causes. Format your response as:
+
+## Summary of Findings
+- Key finding 1
+- Key finding 2...
+
+## Hypotheses
+### Hypothesis 1 (Confidence: 85%)
+[Description and supporting evidence]
+
+### Hypothesis 2 (Confidence: 65%)
+[Description and supporting evidence]";
 
             // NOTE: ignore for now.
             // TODO: Enable this when metrics plugin is added.
@@ -196,16 +226,10 @@ public class AzMonitorAlertScanner
             //investigationSummary.AppendLine(metricsSummary);
             //investigationSummary.AppendLine();
 
-            investigationSummary.AppendLine("# Activity Log Analysis");
-            investigationSummary.AppendLine(activityLogSummary);
-            investigationSummary.AppendLine();
 
-            investigationSummary.AppendLine("# Related Resource Analysis");
-            investigationSummary.AppendLine(kgSummary);
-            investigationSummary.AppendLine();
+            var finalSummary = await SummarizeWithLLM(summarizePrompt);
 
-            investigationSummary.AppendLine("# Log Query Analysis");
-            investigationSummary.AppendLine(logQuerySummary);
+            return finalSummary;
         }
         catch (Exception ex)
         {
@@ -395,7 +419,7 @@ public class AzMonitorAlertScanner
             firedAt = startDateTime.ToString(),
             subscription,
             resourceGroup,
-            portalUrl 
+            portalUrl
         };
 
         var serializedAlertData = System.Text.Json.JsonSerializer.Serialize(alertData);
@@ -412,7 +436,7 @@ public class AzMonitorAlertScanner
         // acknowledge incident
         await _azMonitorAlertService.AcknowledgeAlert(alertId);
 
-        var agentMessage = $"**Acknowledging the alert**. 🔍 Starting investigation to determine what's happening.";
+        var agentMessage = $"**Acknowledging the alert**. Starting initial investigation to determine what's happening.";
 
         await _repository.AddMessageAsync(thread.Id, new Message(
                 Guid.NewGuid(),
@@ -437,6 +461,55 @@ public class AzMonitorAlertScanner
         catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
         {
             return default;
+        }
+    }
+
+    // TODO: Duplicate method. Move to a common helper class.
+    private string GetAlertInfoAsPrompt(AlertItem alert)
+    {
+        if (alert == null)
+        {
+            return "Alert information unavailable";
+        }
+
+        var essentials = alert.Properties?.Essentials;
+
+        // Is Unknown the best fallback?
+        return $@"Azure Monitor Alert Details:
+                ID: {alert.Id ?? "Unknown"}
+                Name: {alert.Name ?? "Unknown"}
+                Rule: {essentials?.AlertRule ?? "Unknown"}
+                Severity: {essentials?.Severity ?? "Unknown"}
+                Condition: {essentials?.MonitorCondition ?? "Unknown"}
+                Description: {essentials?.Description ?? "Unknown"}
+                Resource: {essentials?.TargetResourceName ?? essentials?.TargetResource ?? "Unknown"}
+                Type: {essentials?.TargetResourceType ?? "Unknown"}
+                Time: {essentials?.StartDateTime ?? "Unknown"}";
+    }
+
+    // TODO: Duplicate method. Move to a common helper class.
+    private async Task<string> SummarizeWithLLM(string prompt)
+    {
+        try
+        {
+            var message = new ChatMessage(ChatRole.System, prompt);
+
+            var options = new ChatOptions
+            {
+                Temperature = (float)0.1,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    ["response_format"] = "text"
+                }
+            };
+
+            var response = await _chatClient.GetResponseAsync(new List<ChatMessage> { message }, options);
+            return response.Text;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error summarizing content with llm.");
+            return $"Error summarizing with LLM: {ex.Message}";
         }
     }
 }

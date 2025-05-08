@@ -20,14 +20,11 @@ using Agent.Runtime.SubAgents.AzMonitorAlertAgent;
 using Agent.Runtime.SubAgents.CVEAgent;
 using Agent.Runtime.SubAgents.DailyReportSummary;
 using Agent.Runtime.SubAgents.FeedbackRCAAgent;
+using Agent.Runtime.SubAgents.PagerDutyAgent;
 using Agent.Runtime.SubAgents.SourceCodeAgent;
 using Agent.Runtime.SubAgents.TlsBestPracticesAgent;
 using Agent.Runtime.SubAgents.WebAppDownAgent;
 using Microsoft.Extensions.AI;
-using Newtonsoft.Json;
-using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
-using Agent.Runtime.SubAgents.PagerDutyAgent;
-using Agent.Logging;
 
 namespace Agent.Web.Services;
 
@@ -238,10 +235,6 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInternalInformation("Starting GitHub access token timer...");
         //StartGitHubAccessTokenTimer(cancellationToken);
-
-        // Disabling this for now to avoid spamming threads.
-        //_logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
-        //StartAzMonitorAlertScannerTimer(cancellationToken);
 
         _logger.LogInternalInformation("Starting Log Flush timer...");
         StartLogFlushTimer(cancellationToken);

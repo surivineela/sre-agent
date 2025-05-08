@@ -137,7 +137,7 @@ namespace Agent.Plugins
         /// <param name="daysBack">Number of days of logs to retrieve and analyze. Default is 30.</param>
         /// <param name="threadId">Optional threadId for the current conversation.</param>
         /// <returns>A summary of the activity logs with key insights and potential issues.</returns>
-        Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 30, Guid? threadId = null);
+        Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 1, Guid? threadId = null);
 
         /// <summary>
         /// Gets a count of Azure resources of a specified type, optionally grouped by a property.

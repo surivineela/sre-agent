@@ -13,6 +13,7 @@ import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
+import InvestigationSummary from '../../Common/Components/InvestigationSummary';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -233,19 +234,27 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         // Check if the entire message is just a incident-alert block
         const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
 
+        // Check if the entire message is just a investigation-summary block
+        const investigationSummaryRegex = /```investigation-summary\s+([\s\S]*?)```/;
+
         // Special case 1: if the whole message is an incident alert, render it directly
         if (typeof message.text === 'string') {
-            const match = message.text.match(incidentAlertRegex);
-
-            if (match && match[1]) {
+            const incidentMatch = message.text.match(incidentAlertRegex);
+            if (incidentMatch && incidentMatch[1]) {
                 return <IncidentAlert messageText={message.text} />;
+            }
+
+            // Special case 2: if the whole message is an investigation summary, render it directly
+            const investigationMatch = message.text.match(investigationSummaryRegex);
+            if (investigationMatch) {
+                return <InvestigationSummary messageText={message.text} />;
             }
         }
 
         // Check if the entire message is just a chart-data block
         const chartRegex = /```chart-data\n([\s\S]*?)\n```/;
 
-        // Special case 2: if the whole message is a chart, render it directly
+        // Special case 3: if the whole message is a chart, render it directly
         if (
             typeof message.text === 'string' &&
             chartRegex.test(message.text) &&

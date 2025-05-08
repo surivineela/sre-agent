@@ -9,7 +9,6 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Core.Services;
 using Agent.Logging;
-using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins;
 using Azure.Core;
 using Microsoft.Extensions.AI;
@@ -51,15 +50,6 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         {
             var resourceId = alert.Properties.Essentials.TargetResource;
 
-            await _repository.AddMessageAsync(
-                alertThread.Id,
-                new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    "📜 Analyzing recent activity logs to understand configuration changes and operations..."
-                ));
-
             // Fetch and summarize activity logs using the existing GraphDBPlugin method
             var activityLogSummary = await _graphDBPlugin.FetchAndSummarizeActivityLogs(
                 resourceId,
@@ -76,19 +66,25 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             var agentContext = agentContexts.First();
 
-            // Store the activity log summary in the agent's reasoning context
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-                Guid.NewGuid(),
-                agentContext.Id,
-                ReasoningMessageRoleEnum.System,
-                JsonSerializer.Serialize(new
-                {
-                    title = "Activity Log Analysis",
-                    resourceId,
-                    activityLogSummary,
-                    instructions = "Review this activity log summary and correlate it with the metrics and health data analyzed previously. Look for any configuration changes, deployments, or operations that might be related to the alert. Provide a concise summary focusing on relevant findings."
-                })
-            ));
+            string alertDetails = GetAlertInfoAsPrompt(alert);
+            
+            // Custom prompt for analyzing activity logs
+            string activityLogInstructions = @"Review the following activity logs for this resource and analyze:
+                                            - Look for configuration changes or operations that occurred before the alert
+                                            - Note patterns of administrative actions that might affect resource behavior
+                                            - Identify deployments or updates that could have introduced issues
+                                            - Consider correlations between activity timing and the alert condition";
+
+            string promptWithPlaceholders = ChainPrompt
+                .Replace("{{AlertDetails}}", alertDetails)
+                .Replace("{{ContentAnalysisInstructions}}", activityLogInstructions)
+                .Replace("{{ContentToAnalyze}}", activityLogSummary);
+
+            string llmSummary = await SummarizeWithLLM(promptWithPlaceholders);
+
+            string title = "Analyzing resource's activity logs for recent configuration changes and operations";
+
+            string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage(title, llmSummary);
 
             // Update the thread with the summary
             await _repository.AddMessageAsync(
@@ -97,10 +93,10 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                     Guid.NewGuid(),
                     DateTime.UtcNow,
                     new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    $"I've analyzed the activity logs for the affected resource and found the following:\n\n{activityLogSummary}\n\nContinuing investigation... correlating more data points to identify patterns that may explain this alert."
+                    investigationSummary
                 ));
 
-            return activityLogSummary;
+            return llmSummary;
         }
         catch (Exception ex)
         {
@@ -123,13 +119,6 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
         try
         {
             var resourceId = alert.Properties.Essentials.TargetResource;
-
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                "🔄 Crawling the knowledge graph to identify and analyze connected components that might be impacting this resource..."
-            ));
 
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
             if (agentContexts == null || !agentContexts.Any())
@@ -171,51 +160,53 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                 }
             }
 
-            string prompt = @"
-You are analyzing health data for an Azure resource and its connected components in response to an alert. 
+            string healthAnalysisInstructions = @"
+                You are analyzing health data for an Azure resource and its connected components in response to an alert. 
 
-Analyze and create a comprehensive summary of your findings, being sure to include:
-1. Overall assessment of the primary resource's health state
-2. Potential issues identified in any component, focusing on:
-   - Unusual or critical values in availability, CPU, memory usage, or latency
-   - Components that are inactive but should be active
-   - Performance degradation patterns across multiple components
-3. Correlation between the observed metrics and the current alert
-4. Possible root causes based on the health data patterns
+                Analyze and create a comprehensive summary of your findings, being sure to include:
+                1. Overall assessment of the primary resource's health state
+                2. Potential issues identified in any component, focusing on:
+                   - Unusual or critical values in availability, CPU, memory usage, or latency
+                   - Components that are inactive but should be active
+                   - Performance degradation patterns across multiple components
+                3. Correlation between the observed metrics and the current alert
+                4. Possible root causes based on the health data patterns
 
-Important notes:
-- Some components may not have health data available - this is normal and should not be treated as an anomaly
-- Focus on significant deviations from normal metrics
-- Prioritize findings based on severity and relevance to the alert
-- Consider relationships between components when identifying potential cascading failures
+                Important notes:
+                - Some components may not have health data available - this is normal and should not be treated as an anomaly
+                - Focus on significant deviations from normal metrics
+                - Prioritize findings based on severity and relevance to the alert
+                - Consider relationships between components when identifying potential cascading failures
 
-Your assessment should be concise, actionable, and focus on insights that would help resolve the alert condition.";
+                Your assessment should be concise, actionable, and focus on insights that would help resolve the alert condition. Form a concise hypothesis about the issue that
+                will help with the further investigation";
 
-            var llmHealthSummary = await SummarizeWithLLM(prompt, healthSummary.ToString());
+
+            string alertDetails = GetAlertInfoAsPrompt(alert);
+            
+            
+            string healthPromptWithPlaceholders = ChainPrompt
+                .Replace("{{AlertDetails}}", alertDetails)
+                .Replace("{{ContentAnalysisInstructions}}", healthAnalysisInstructions)
+                .Replace("{{ContentToAnalyze}}", healthSummary.ToString());
+            
+            var llmHealthSummary = await SummarizeWithLLM(healthPromptWithPlaceholders);
 
             var agentContext = agentContexts.First();
 
-            // Create a reasoning message to prompt the agent to analyze connected components
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-                Guid.NewGuid(),
-                agentContext.Id,
-                ReasoningMessageRoleEnum.System,
-                JsonSerializer.Serialize(new
-                {
-                    title = "Connected Components Analysis Instructions",
-                    resourceId,
-                    instructions = $"Health summary of the affected resource and it's components: {llmHealthSummary}"
-                })
-            ));
+            string title = "Identifying and analyzing connected components in the knowledge graph that might be impacting this resource";
+
+            string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage(title, llmHealthSummary);
 
             // Add a message to the thread indicating the agent is analyzing connected components
             await _repository.AddMessageAsync(alertThread.Id, new Message(
                 Guid.NewGuid(),
                 DateTime.UtcNow,
                 new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                 $"I've analyzed the connected components and their health status. Here is the summary of what I found:\n\n{llmHealthSummary}"
+                investigationSummary
             ));
 
+            return llmHealthSummary;
         }
         catch (Exception ex)
         {
@@ -242,14 +233,6 @@ Your assessment should be concise, actionable, and focus on insights that would 
 
         try
         {
-            // Get general app health info
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                "📊 Checking the resource's health scorecard..."
-            ));
-
             var appHealthInfo = await _graphDBPlugin.GetApplicationHealthInfoAsync(targetResource);
 
             // If health info is available, add it to the thread
@@ -269,24 +252,30 @@ Your assessment should be concise, actionable, and focus on insights that would 
                         timestamp = DateTime.UtcNow
                     });
 
-                    await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-                        Guid.NewGuid(),
-                        agentContext.Id,
-                        ReasoningMessageRoleEnum.System,
-                        serializedHealthInfo
-                    ));
                 }
 
-                string prompt = $"You are an SRE Agent investigating an alert. Here are the details about the alert: {GetAlertInfoAsPrompt(alert)}. " +
-                    $"Using this prompt as context, correlate the findings with this alert and summarize your findings for the following health summary of an application.";
+                string alertDetailsForAppHealth = GetAlertInfoAsPrompt(alert);
+                
+                string appHealthAnalysisInstructions = @"Analyze the following application health information:
+                    - Focus on metrics that show significant deviation from baseline
+                    - Identify performance bottlenecks or resource constraints
+                    - Correlate health patterns with the alert condition
+                    - Consider how the application's health might impact user experience or business functions";
+                
+                string appHealthPromptWithPlaceholders = ChainPrompt
+                    .Replace("{{AlertDetails}}", alertDetailsForAppHealth)
+                    .Replace("{{ContentAnalysisInstructions}}", appHealthAnalysisInstructions)
+                    .Replace("{{ContentToAnalyze}}", appHealthInfo);
+                
+                var llmSummary = await SummarizeWithLLM(appHealthPromptWithPlaceholders);
 
-                var llmSummary = await SummarizeWithLLM(prompt, appHealthInfo);
+                string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage("Analyzing health metrics and forming initial hypothesis", llmSummary);
 
                 await _repository.AddMessageAsync(alertThread.Id, new Message(
                     Guid.NewGuid(),
                     DateTime.UtcNow,
                     new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    llmSummary
+                    investigationSummary
                 ));
 
                 return llmSummary;
@@ -310,64 +299,12 @@ Your assessment should be concise, actionable, and focus on insights that would 
         return "No app health summary available. Use other data points to continue the investigation!";
     }
 
-    public async Task<string> GetMetricsForResource(AlertItem alert, Thread alertThread)
-    {
-        var resourceId = alert.Properties.Essentials.TargetResource;
-
-        var resourceType = alert.Properties.Essentials.TargetResourceType;
-
-        try
-        {
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                "📈 Analyzing relevant metrics for this resource..."
-            ));
-
-            // Get agent context
-            var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
-            if (agentContexts == null || !agentContexts.Any())
-            {
-                _logger.LogInternalWarning("No agent context found for thread");
-                return "No metric summary available. Use other data points to continue the investigation!";
-            }
-
-            var agentContext = agentContexts.First();
-
-            // Create a reasoning message for the agent to decide which metrics to retrieve
-            // we already have container app and web app plugins - let the agent figure out which is the best tool to call.
-            var alertDetails = JsonSerializer.Serialize(new
-            {
-                alertRule = alert.Properties.Essentials.AlertRule,
-                description = alert.Properties.Essentials.Description,
-                severity = alert.Properties.Essentials.Severity,
-                resourceId,
-                resourceType,
-                signalType = alert.Properties.Essentials.SignalType,
-                monitorCondition = alert.Properties.Essentials.MonitorCondition
-            });
-
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, $"Error setting up metrics investigation for resource {resourceId}: {ex.Message}");
-
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                $"❌ Encountered an error while setting up metrics analysis. Continuing with the investigation using other data sources."
-            ));
-        }
-
-        return "No metric summary available. Use other data points to continue the investigation!";
-    }
-
     public async Task<string> AnalyzeLogQueries(AlertItem alert, Thread alertThread)
     {
         try
         {
+            string title = "Examining Log Analytics queries and correlating results with alert patterns";
+
             var essentials = alert.Properties.Essentials;
             var alertRule = essentials.AlertRule;
             var targetResource = essentials.TargetResource;
@@ -379,14 +316,6 @@ Your assessment should be concise, actionable, and focus on insights that would 
                 _logger.LogInternalWarning("Subscription id cannot be null or empty!");
                 return "";
             }
-
-            // Add a message to the thread indicating we're analyzing saved queries
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                "🔍 Analyzing saved queries from Log Analytics to find patterns relevant to this alert..."
-            ));
 
             // Get agent context
             var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
@@ -412,53 +341,49 @@ Your assessment should be concise, actionable, and focus on insights that would 
             }).ToList();
 
             // Ask the LLM to identify relevant queries
-            string alertDetails = JsonSerializer.Serialize(new
-            {
-                alertId = alert.Id,
-                alertRule = essentials.AlertRule,
-                description = essentials.Description,
-                severity = essentials.Severity,
-                monitorService = essentials.MonitorService,
-                targetResource = essentials.TargetResource,
-                resourceType = essentials.TargetResourceType,
-                resourceName = essentials.TargetResourceName,
-                signalType = essentials.SignalType,
-                monitorCondition = essentials.MonitorCondition
-            });
+            string alertDetails = GetAlertInfoAsPrompt(alert);
 
             string queriesInfo = JsonSerializer.Serialize(querySummaries);
 
             // Create the prompt for the LLM
             string relevantQueriesPrompt = $@"
-You are an Azure SRE Agent investigating an alert. Your task is to identify saved queries that might help understand this alert.
+                You are an Azure SRE Agent investigating an alert. Your task is to identify saved queries that might help understand this alert.
 
-# Alert Details
-```json
-{alertDetails}
-```
+                # Alert Details
+                ```
+                {alertDetails}
+                ```
 
-# Available Saved Queries
-```json
-{queriesInfo}
-```
+                # Available Saved Queries
+                ```json
+                {queriesInfo}
+                ```
 
-Please identify the queries that are most relevant to understanding this alert. Consider:
-1. Queries that target similar resource types
-2. Queries that look for errors, failures, or performance issues
-3. Queries with tags or descriptions that match the alert's context
+                Please identify the queries that are most relevant to understanding this alert. Consider:
+                1. Queries that target similar resource types. ** CRITICAL ** Pick at most 5 relevant queries.
+                2. Queries that look for errors, failures, or performance issues
+                3. Queries with tags or descriptions that match the alert's context
 
-Return ONLY a JSON array of the selected query IDs with a brief explanation for each. Format:
-[
-  {{
-    ""id"": ""query-id-1""
-  }},
-  ...
-]
-DONOT Add any other text or else my JSON deserialization is going to fail. 
-Limit your selection to the 5 most relevant queries. If none are relevant, return an empty array.";
+                Return ONLY a JSON array of the selected query IDs with a brief explanation for each. Format:
+                [
+                  {{
+                    ""id"": ""query-id-1""
+                  }},
+                  ...
+                ]
+                DONOT Add any other text or else my JSON deserialization is going to fail. 
+                Limit your selection to the 5 most relevant queries. If none are relevant, return an empty array.";
 
             _logger.LogDebug($"Sending prompt to LLM to identify relevant queries");
-            var relevantQueriesJson = await _chatClient.GetResponseAsync(relevantQueriesPrompt);
+
+            var options = new ChatOptions
+            {
+                Temperature = (float)0.1
+            };
+
+            var relevantQueriesJson = await _chatClient.GetResponseAsync(
+                relevantQueriesPrompt,
+                options);
 
             List<RelevantQuery> relevantQueries;
             try
@@ -478,9 +403,9 @@ Limit your selection to the 5 most relevant queries. If none are relevant, retur
                     Guid.NewGuid(),
                     DateTime.UtcNow,
                     new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    "No relevant saved queries were found for this alert. Continuing with other investigation methods."
+                    ChatMessageService.SerializeInvestigationSummaryMessage(title, "No relevant saved queries were found for this alert. Continuing with other investigation methods.")
                 ));
-                return "";
+                return "No relevant saved queries were found for this alert. Continuing with other investigation methods.";
             }
 
             // Execute the relevant queries
@@ -531,61 +456,45 @@ Limit your selection to the 5 most relevant queries. If none are relevant, retur
                     Guid.NewGuid(),
                     DateTime.UtcNow,
                     new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    "I found potentially relevant queries but was unable to execute them successfully. Continuing with other investigation methods."
+                     ChatMessageService.SerializeInvestigationSummaryMessage(title, "I found potentially relevant queries but was unable to execute them successfully. Continuing with other investigation methods.")
                 ));
-                return "No relevant log queries found!";
+                return "I found potentially relevant queries but was unable to execute them successfully. Continuing with other investigation methods.";
             }
 
             // Create the analysis prompt
             string queryResultsJson = JsonSerializer.Serialize(queryResults);
 
-            string analysisPrompt = $@"
-You are an Azure SRE Agent investigating an alert. You have executed relevant queries and now need to analyze the results.
-
-# Alert Details
-```json
-{alertDetails}
-```
-
-# Query Results
-```json
-{queryResultsJson}
-```
-
-Analyze these query results in relation to the alert. Focus on:
+            string alertDetailsForLogQueries = GetAlertInfoAsPrompt(alert);
+            
+            // Custom instructions for log query analysis
+            string logQueryAnalysisInstructions = @"Analyze these query results in relation to the alert. Focus on:
 1. Patterns or anomalies that might explain the alert
 2. Correlation between the alert timing and any spikes in errors or performance issues
 3. Evidence that confirms or contradicts the alert's significance
 4. Potential root causes based on the query data
 
-Provide a concise summary of your findings that would help in understanding and resolving the alert.
-Use bullet points for key insights. Include the query display name if available when summarizing the results. Include specific metrics or logs when relevant.";
+Look for specific metrics or log entries that stand out. Include query names when referencing results.
+Be concise and focus on the most relevant findings. Avoid generic root causes.";
+
+            string queryPromptWithPlaceholders = ChainPrompt
+                .Replace("{{AlertDetails}}", alertDetailsForLogQueries)
+                .Replace("{{ContentAnalysisInstructions}}", logQueryAnalysisInstructions)
+                .Replace("{{ContentToAnalyze}}", queryResultsJson);
 
             _logger.LogDebug($"Sending prompt to LLM to analyze query results");
-            var analysisResult = await _chatClient.GetResponseAsync(analysisPrompt);
+            var analysisResult = await SummarizeWithLLM(queryPromptWithPlaceholders);
 
-            // Add the analysis to the agent's reasoning context and thread
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-                Guid.NewGuid(),
-                agentContext.Id,
-                ReasoningMessageRoleEnum.System,
-                JsonSerializer.Serialize(new
-                {
-                    title = "Log Query Analysis",
-                    alertDetails,
-                    queryResults = queryResultsJson,
-                    analysis = analysisResult,
-                    instructions = "Use this analysis of log query results to help inform your investigation of the alert. Consider these findings when formulating recommendations and next steps."
-                })
-            ));
+            string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage(title, analysisResult);
 
             // Add a summary message to the thread
             await _repository.AddMessageAsync(alertThread.Id, new Message(
                 Guid.NewGuid(),
                 DateTime.UtcNow,
                 new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                $"📊 **Log Query Analysis**\n\n{analysisResult}"
+                investigationSummary
             ));
+
+            return analysisResult;
         }
         catch (Exception ex)
         {
@@ -600,6 +509,54 @@ Use bullet points for key insights. Include the query display name if available 
         }
 
         return "";
+    }
+
+    public async Task<string> GetMetricsForResource(AlertItem alert, Thread alertThread)
+    {
+        var resourceId = alert.Properties.Essentials.TargetResource;
+
+        var resourceType = alert.Properties.Essentials.TargetResourceType;
+
+        try
+        {
+
+            // Get agent context
+            var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
+            if (agentContexts == null || !agentContexts.Any())
+            {
+                _logger.LogInternalWarning("No agent context found for thread");
+                return "No metric summary available. Use other data points to continue the investigation!";
+            }
+
+            var agentContext = agentContexts.First();
+
+            // Create a reasoning message for the agent to decide which metrics to retrieve
+            // we already have container app and web app plugins - let the agent figure out which is the best tool to call.
+            var alertDetails = JsonSerializer.Serialize(new
+            {
+                alertRule = alert.Properties.Essentials.AlertRule,
+                description = alert.Properties.Essentials.Description,
+                severity = alert.Properties.Essentials.Severity,
+                resourceId,
+                resourceType,
+                signalType = alert.Properties.Essentials.SignalType,
+                monitorCondition = alert.Properties.Essentials.MonitorCondition
+            });
+
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error setting up metrics investigation for resource {resourceId}: {ex.Message}");
+
+            await _repository.AddMessageAsync(alertThread.Id, new Message(
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                $"❌ Encountered an error while setting up metrics analysis. Continuing with the investigation using other data sources."
+            ));
+        }
+
+        return "No metric summary available. Use other data points to continue the investigation!";
     }
 
     #region Helper Methods
@@ -622,43 +579,43 @@ Use bullet points for key insights. Include the query display name if available 
 
     private string GetAlertInfoAsPrompt(AlertItem alert)
     {
-        StringBuilder investigationSummary = new();
+        if (alert == null)
+        {
+            return "Alert information unavailable";
+        }
 
-        investigationSummary.AppendLine("# Alert Information");
-        investigationSummary.AppendLine($"- Alert ID: {alert.Id}");
-        investigationSummary.AppendLine($"- Alert Name: {alert.Name}");
-        investigationSummary.AppendLine($"- Severity: {alert.Properties.Essentials.Severity}");
-        investigationSummary.AppendLine($"- Monitor Condition: {alert.Properties.Essentials.MonitorCondition}");
-        investigationSummary.AppendLine($"- Alert Rule: {alert.Properties.Essentials.AlertRule}");
-        investigationSummary.AppendLine($"- Description: {alert.Properties.Essentials.Description}");
-        investigationSummary.AppendLine($"- Target Resource: {alert.Properties.Essentials.TargetResource}");
-        investigationSummary.AppendLine($"- Resource Type: {alert.Properties.Essentials.TargetResourceType}");
-        investigationSummary.AppendLine($"- Fired At: {alert.Properties.Essentials.StartDateTime}");
+        var essentials = alert.Properties?.Essentials;
 
-        return investigationSummary.ToString();
+        // Is Unknown the best fallback?
+        return $@"Azure Monitor Alert Context:
+                ID: {alert.Id ?? "Unknown"}
+                Name: {alert.Name ?? "Unknown"}
+                Rule: {essentials?.AlertRule ?? "Unknown"}
+                Severity: {essentials?.Severity ?? "Unknown"}
+                Condition: {essentials?.MonitorCondition ?? "Unknown"}
+                Description: {essentials?.Description ?? "Unknown"}
+                Resource: {essentials?.TargetResourceName ?? essentials?.TargetResource ?? "Unknown"}
+                Type: {essentials?.TargetResourceType ?? "Unknown"}
+                Time: {essentials?.StartDateTime ?? "Unknown"}";
     }
 
-    private async Task<string> SummarizeWithLLM(string prompt, string content)
+    private async Task<string> SummarizeWithLLM(string prompt)
     {
         try
         {
-            var messages = new List<ChatMessage>();
-            messages.Add(new ChatMessage(ChatRole.System, prompt));
-            messages.Add(new ChatMessage(ChatRole.System, prompt));
-
+            var message = new ChatMessage(ChatRole.System, prompt);
+            
             var options = new ChatOptions
             {
-                Temperature = (float)0.2,
+                Temperature = (float)0.1,
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     ["response_format"] = "text"
                 }
             };
 
-            var response = await _chatClient.GetResponseAsync(messages, options);
-            string summary = response.Text;
-
-            return summary;
+            var response = await _chatClient.GetResponseAsync(new List<ChatMessage> { message }, options);
+            return response.Text;
         }
         catch (Exception ex)
         {
@@ -666,6 +623,43 @@ Use bullet points for key insights. Include the query display name if available 
             return $"Error summarizing with LLM: {ex.Message}";
         }
     }
+
+    private readonly string ChainPrompt =
+        @"You are an Azure SRE Agent investigating an alert. Here are the alert details:
+---
+{{AlertDetails}}
+---
+
+{{ContentAnalysisInstructions}}
+
+---
+{{ContentToAnalyze}}
+---
+
+Your task is to produce a Markdown-formatted investigation report that includes:
+
+1. ## Summary  
+   In 1-2 sentences, capture the most critical insight.
+
+2. ## Observations  
+   - Bullet the key patterns, anomalies, or data points that matter.
+
+3. ## Hypotheses  
+   For each hypothesis (up to three):  
+   - **Hypothesis:** A one-sentence statement.  
+   - **Rationale:** Brief explanation.  
+   - **Confidence:** High / Medium / Low.
+
+4. ## Next Steps  
+   List 2-3 concrete investigative actions or data sources to confirm/refute your hypotheses. DO NOT just give generic suggestions.
+
+5. ## Chained Context  
+   At the end, summarize your findings in a concise markdown format - make it catchy with emojis (but don't overdo it).
+   Do not include the Alert details in the output. Just the summary of the current step.
+
+** CRITICAL ** Use self-reasoning loops and contextual information to rank the relevance of findings before summarizing the final output.
+** CRITICAL ** If you encounter errors while calling any tool, print a concise message explaining the error.
+";
 
     #endregion
 }

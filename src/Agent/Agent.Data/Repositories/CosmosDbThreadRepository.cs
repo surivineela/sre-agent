@@ -2,9 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
 using System.Net;
-using System.Threading;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
@@ -1666,6 +1664,5 @@ public class CosmosDbThreadRepository : IThreadRepository
             return false;
         }
     }
-
     #endregion
 }
