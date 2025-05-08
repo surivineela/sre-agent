@@ -445,6 +445,19 @@ namespace Agent.Plugins.Implementation
 
             try
             {
+                return await GetContainerAppLogs(resourceId, true, revisionName);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"Error in GetRevisionLogsAsync with resourceId {resourceId}, revisionName {revisionName}");
+                return null;
+            }
+        }
+
+        private async Task<string> GetContainerAppLogs(string resourceId, bool summarizeLogs, string? revisionName = null)
+        {
+            try
+            {
                 var containerApp = await _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId)).GetAsync();
                 if (!containerApp.HasValue)
                 {
@@ -480,15 +493,22 @@ namespace Agent.Plugins.Implementation
                     }.IgnoreAndFilterFailures(_logger)).SelectMany(i => i)
                 };
 
-                return await SummarizeLogs(JsonSerializer.Serialize(logs, new JsonSerializerOptions { WriteIndented = true }));
+                var logsJson = JsonSerializer.Serialize(logs, new JsonSerializerOptions { WriteIndented = true });
+
+                if(!summarizeLogs)
+                {
+                    return logsJson;
+                }
+
+                return await SummarizeLogs(logsJson);
             }
             catch (Exception ex)
             {
-                _logger.LogInternalError(ex, $"Error in GetRevisionLogsAsync with resourceId {resourceId}, revisionName {revisionName}");
+                _logger.LogInternalError(ex, $"Error in GetContainerAppLogs with resourceId {resourceId}, revisionName {revisionName}");
                 return null;
             }
         }
-
+        
         private async Task<string> SummarizeLogs(string logs)
         {
             _logger.LogInternalInformation("Summarizing logs");
@@ -834,8 +854,8 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Step 4: Check recent logs for errors
-                var recentLogs = await GetContainerAppLogsAsync(resourceId, latestRevisionName);
-                bool hasErrors = ContainsErrorsInLogs(recentLogs);
+                var recentLogs = await GetContainerAppLogs(resourceId, false, latestRevisionName);
+                bool hasErrors = await ContainsErrorsInLogs(recentLogs);
                 result.Details["HasErrorsInLogs"] = hasErrors.ToString();
 
                 if (hasErrors)
@@ -843,10 +863,12 @@ namespace Agent.Plugins.Implementation
                     result.Messages.Add("Recent logs contain error messages.");
                 }
 
-                // Step 5: If the app has external ingress, check if it's responding
+                // Step 5: If the app has external ingress and transport is not tcp, check if it's responding
                 if (containerApp.Value.Data.Configuration?.Ingress != null &&
                     containerApp.Value.Data.Configuration.Ingress.External == true &&
-                    !string.IsNullOrEmpty(containerApp.Value.Data.Configuration.Ingress.Fqdn))
+                    !string.IsNullOrEmpty(containerApp.Value.Data.Configuration.Ingress.Fqdn) &&
+                    (containerApp.Value.Data.Configuration.Ingress.Transport == null ||
+                     !containerApp.Value.Data.Configuration.Ingress.Transport.ToString().Equals("tcp", StringComparison.OrdinalIgnoreCase)))
                 {
                     string fqdn = containerApp.Value.Data.Configuration.Ingress.Fqdn;
                     result.Details["Hostname"] = fqdn;
@@ -864,19 +886,20 @@ namespace Agent.Plugins.Implementation
                 // Consider app healthy if:
                 // - App and revision are properly provisioned
                 // - If app can't scale to zero, it must have running replicas
-                // - External endpoint is reachable (if applicable)
+                // - External HTTP endpoint is reachable (if applicable)
 
-                bool hasValidReplicas = (canScaleToZero && replicas.Count >= 0) || // Zero replicas is acceptable if scale to zero is enabled
-                                       (!canScaleToZero && readyReplicas > 0);    // Otherwise need running replicas
+                bool hasValidReplicas = (canScaleToZero && replicas.Count >= 0) || (!canScaleToZero && readyReplicas > 0);    // Otherwise need running replicas
 
                 bool isHealthy =
                     containerApp.Value.Data.ProvisioningState == ContainerAppProvisioningState.Succeeded &&
                     latestRevision.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned &&
                     hasValidReplicas;
 
-                // If app has external ingress, it must also be reachable
+                // If app has external HTTP ingress, it must also be reachable
                 if (containerApp.Value.Data.Configuration?.Ingress != null &&
-                    containerApp.Value.Data.Configuration.Ingress.External == true)
+                    containerApp.Value.Data.Configuration.Ingress.External == true && 
+                    (containerApp.Value.Data.Configuration.Ingress.Transport == null || 
+                     !containerApp.Value.Data.Configuration.Ingress.Transport.ToString().Equals("tcp", StringComparison.OrdinalIgnoreCase)))
                 {
                     isHealthy = isHealthy && bool.TryParse(result.Details["EndpointReachable"], out bool endpointReachable) && endpointReachable;
                 }
@@ -2086,49 +2109,80 @@ namespace Agent.Plugins.Implementation
             }
         }
 
-        private bool ContainsErrorsInLogs(string logs)
+        private async Task<bool> ContainsErrorsInLogs(string logs)
         {
             if (string.IsNullOrEmpty(logs))
             {
                 return false;
             }
             
-            // Common error patterns in logs
-            var errorPatterns = new[]
+            const string prompt = "You are a log analyzer specialized in container applications. " +
+                                 "Analyze these application logs and determine if they contain any errors or issues. " +
+                                 "Focus on critical problems that would affect application functionality, such as: " +
+                                 "- Exceptions or crashes" +
+                                 "- Failed startup or health probes" +
+                                 "- Network connectivity problems" +
+                                 "- Permission/authentication errors" +
+                                 "- Application runtime errors" +
+                                 "- Service unavailability" +
+                                 "- Resource allocation failures" +
+                                 "Your response should be exactly 'true' if errors are detected or 'false' if no significant errors are found.";
+
+            var messages = new[]
             {
-                "error:", 
-                "exception:", 
-                "failed:", 
-                "fatal:", 
-                "crash",
-                "exited with code",
-                "cannot find module",
-                "404 not found",
-                "500 internal server error",
-                "connection refused",
-                "permission denied",
-                "access denied",
-                "startup probe failed"
+                new ChatMessage(ChatRole.System, prompt),
+                new ChatMessage(ChatRole.User, logs)
             };
-            
-            return errorPatterns.Any(pattern => 
-                logs.Contains(pattern, StringComparison.OrdinalIgnoreCase));
+
+            var options = new ChatOptions
+            {
+                Temperature = (float)0.0,
+                AdditionalProperties = new AdditionalPropertiesDictionary
+                {
+                    ["response_format"] = "text"
+                }
+            };
+
+            try
+            {
+                var response = await _chatClient.GetResponseAsync(messages, options);
+                string result = response.Text.Trim().ToLowerInvariant();
+                
+                return result == "true";  
+            }
+            catch (Exception ex)
+            {
+                return false;
+            }
         }
 
         private async Task<bool> IsEndpointReachable(string hostname)
         {
             try
             {
-                string url = $"https://{hostname}";
+                if (string.IsNullOrEmpty(hostname))
+                {
+                    return false;
+                }
+
+                using var httpClient = new HttpClient();
+                var url = $"https://{hostname}";
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
-                request.Headers.Add("User-Agent", "ContainerAppHealthCheck/1.0");
-                
-                var response = await _httpClient.SendAsync(request);
-                
-                // Consider any non-server error response as a sign of a working app
-                // 2xx, 3xx, 4xx are all ok - the app is responding
-                // Only 5xx or exceptions are considered unreachable
-                return (int)response.StatusCode < 500;
+
+                var response = await httpClient.SendAsync(request);
+
+                // Log the status code for debugging
+                _logger.LogInternalInformation($"Endpoint {url} returned status code {(int)response.StatusCode} ({response.StatusCode})");
+
+                // Consider endpoint reachable if:
+                // - 2xx Success codes
+                // - 3xx Redirect codes
+                // - 401 Unauthorized (indicating the endpoint is protected but reachable)
+                bool isReachable = response.IsSuccessStatusCode ||
+                                   (int)response.StatusCode >= 300 && (int)response.StatusCode < 400 ||
+                                   response.StatusCode == HttpStatusCode.Unauthorized;
+
+                return isReachable;
             }
             catch (Exception ex)
             {
