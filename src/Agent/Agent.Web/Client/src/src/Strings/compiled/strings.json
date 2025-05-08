@@ -59,6 +59,12 @@
       "value": "Managed resource group(s) added successfully"
     }
   ],
+  "14xQ4i": [
+    {
+      "type": 0,
+      "value": "Azure Monitor added"
+    }
+  ],
   "19YPdI": [
     {
       "type": 0,
@@ -217,12 +223,6 @@
       "value": "Approved"
     }
   ],
-  "6YuyUQ": [
-    {
-      "type": 0,
-      "value": "Automate incident response with AI-powered monitoring and resolution.."
-    }
-  ],
   "6dWeUs": [
     {
       "type": 0,
@@ -271,6 +271,12 @@
       "value": "Building knowledge graph"
     }
   ],
+  "8kVGbB": [
+    {
+      "type": 0,
+      "value": "Disconnect from PagerDuty?"
+    }
+  ],
   "8quEg9": [
     {
       "type": 0,
@@ -299,12 +305,6 @@
     {
       "type": 0,
       "value": "Completed"
-    }
-  ],
-  "9Gaw/4": [
-    {
-      "type": 0,
-      "value": "Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention."
     }
   ],
   "9RgE6Y": [
@@ -359,12 +359,6 @@
       "value": "errorMessage"
     }
   ],
-  "ADENR6": [
-    {
-      "type": 0,
-      "value": "Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration."
-    }
-  ],
   "AXAtAX": [
     {
       "type": 0,
@@ -377,10 +371,22 @@
       "value": "Monitoring Reader Role"
     }
   ],
+  "AuFOi8": [
+    {
+      "type": 0,
+      "value": "REST API access key"
+    }
+  ],
   "BKMqtr": [
     {
       "type": 0,
       "value": "AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat."
+    }
+  ],
+  "CQF3U+": [
+    {
+      "type": 0,
+      "value": "Edit key"
     }
   ],
   "CfGC/2": [
@@ -515,10 +521,22 @@
       "value": "Add resource group"
     }
   ],
+  "HafgWq": [
+    {
+      "type": 0,
+      "value": "Integrate an incident management platform with the SRE Agent to automate routine incident tasks, manage alerts, and get data-driven insights."
+    }
+  ],
   "HbTFJf": [
     {
       "type": 0,
       "value": "Pending approvals"
+    }
+  ],
+  "HsGdXO": [
+    {
+      "type": 0,
+      "value": "Disconnect from Azure Monitor?"
     }
   ],
   "I03XmI": [
@@ -789,6 +807,12 @@
       "value": "Monitoring Reader"
     }
   ],
+  "Sw/LL9": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect from PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?"
+    }
+  ],
   "T7WpWs": [
     {
       "type": 0,
@@ -869,6 +893,12 @@
       "value": "Create agent"
     }
   ],
+  "UvQLwV": [
+    {
+      "type": 0,
+      "value": "You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section."
+    }
+  ],
   "VzzYJk": [
     {
       "type": 0,
@@ -933,6 +963,12 @@
     {
       "type": 0,
       "value": "Monitoring metrics publisher"
+    }
+  ],
+  "Y1qw19": [
+    {
+      "type": 0,
+      "value": "This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?"
     }
   ],
   "Z1VHv1": [
@@ -1077,12 +1113,6 @@
       "value": "Logic App name"
     }
   ],
-  "fSinmO": [
-    {
-      "type": 0,
-      "value": "PagerDuty API Key"
-    }
-  ],
   "ftfFhS": [
     {
       "type": 0,
@@ -1141,6 +1171,12 @@
     {
       "type": 0,
       "value": "Deny"
+    }
+  ],
+  "i0mHNo": [
+    {
+      "type": 0,
+      "value": "PagerDuty added"
     }
   ],
   "ielB5f": [
@@ -1287,6 +1323,12 @@
     {
       "type": 0,
       "value": " managed resource group(s) to your SRE Agent"
+    }
+  ],
+  "qj1uhz": [
+    {
+      "type": 0,
+      "value": "Disconnect"
     }
   ],
   "qw8pxr": [

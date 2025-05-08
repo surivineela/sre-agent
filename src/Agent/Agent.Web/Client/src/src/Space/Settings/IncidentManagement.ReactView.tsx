@@ -9,7 +9,9 @@ import { validateIncidentManagement } from './ValidationHelper';
 const IncidentManagement: FC = () => {
     const environmentContext = useContext(EnvironmentContext);
 
-    const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save } = useIncidentManagement(environmentContext.resourceId);
+    const { loading, loaded, loadFailure, saving, saveFailure, initialValues, save, disconnect } = useIncidentManagement(
+        environmentContext.resourceId
+    );
 
     return (
         <Formik<IncidentManagementFormValues>
@@ -27,6 +29,7 @@ const IncidentManagement: FC = () => {
                         loadFailure={loadFailure}
                         saving={saving}
                         saveFailure={saveFailure}
+                        disconnect={disconnect}
                     />
                 );
             }}

@@ -77,6 +77,7 @@ export const SreAgentResources = defineMessages({
     create: { defaultMessage: 'Create', id: 'VzzYJk' },
     delete: { defaultMessage: 'Delete', id: 'K3r6DQ' },
     discard: { defaultMessage: 'Discard', id: 'nmpevl' },
+    disconnect: { defaultMessage: 'Disconnect', id: 'qj1uhz' },
     endpoint: { defaultMessage: 'Endpoint', id: 'ljmS5P' },
     enterName: { defaultMessage: 'Enter name', id: 'OJ2u8k' },
     failed: { defaultMessage: 'Failed', id: 'vXCeIi' },
@@ -247,8 +248,9 @@ export const ActionsStatusResources = defineMessages({
 export const IncidentManagementResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     incidentManagementDescription: {
-        defaultMessage: 'Automate incident response with AI-powered monitoring and resolution..',
-        id: '6YuyUQ',
+        defaultMessage:
+            'Integrate an incident management platform with the SRE Agent to automate routine incident tasks, manage alerts, and get data-driven insights.',
+        id: 'HafgWq',
     },
     incidentPlatform: { defaultMessage: 'Incident platform', id: 'EZBG/A' },
 });
@@ -346,20 +348,30 @@ export const IncidentManagementValidationResources = defineMessages({
 });
 
 export const PagerDutyResources = defineMessages({
-    pagerDutyDescription: {
+    pagerDutyApiKey: { defaultMessage: 'REST API access key', id: 'AuFOi8' },
+    pagerDutyApiKeyDescription: {
         defaultMessage:
-            'Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.',
-        id: '9Gaw/4',
+            "You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section.",
+        id: 'UvQLwV',
     },
-    pagerDutyApiKey: { defaultMessage: 'PagerDuty API Key', id: 'fSinmO' },
+    editKey: { defaultMessage: 'Edit key', id: 'CQF3U+' },
+    disconnectConfirmationTitle: { defaultMessage: 'Disconnect from PagerDuty?', id: '8kVGbB' },
+    disconnectConfirmationMessage: {
+        defaultMessage:
+            'This will permanently disconnect from PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?',
+        id: 'Sw/LL9',
+    },
+    connectedMessage: { defaultMessage: 'PagerDuty added', id: 'i0mHNo' },
 });
 
 export const AzMonitorResources = defineMessages({
-    azMonitorDescription: {
+    disconnectConfirmationTitle: { defaultMessage: 'Disconnect from Azure Monitor?', id: 'HsGdXO' },
+    disconnectConfirmationMessage: {
         defaultMessage:
-            'Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration.',
-        id: 'ADENR6',
+            'This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?',
+        id: 'Y1qw19',
     },
+    connectedMessage: { defaultMessage: 'Azure Monitor added', id: '14xQ4i' },
 });
 
 export const SettingsTabResources = defineMessages({

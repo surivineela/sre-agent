@@ -13,6 +13,7 @@ export interface IncidentManagementFormValues {
 
 export interface IncidentManagementFormProps {
     formikProps: FormikProps<IncidentManagementFormValues>;
+    disconnect: () => void;
     loading?: boolean;
     loaded?: boolean;
     loadFailure?: string;

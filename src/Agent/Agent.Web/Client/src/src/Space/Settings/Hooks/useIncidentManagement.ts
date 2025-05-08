@@ -148,6 +148,10 @@ export function useIncidentManagement(resourceId: string) {
         ]
     );
 
+    const disconnect = useCallback(() => {
+        save({ platform: IncidentManagementPlatform.Disconnected, connectionKey: undefined });
+    }, [save]);
+
     return {
         loading: agentLoading,
         loaded: agentLoaded,
@@ -157,5 +161,6 @@ export function useIncidentManagement(resourceId: string) {
         platform,
         initialValues,
         save,
+        disconnect,
     };
 }

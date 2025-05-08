@@ -1,5 +1,5 @@
 import { FontWeights } from '@fluentui/react';
-import { tokens } from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 import type { Theme } from '@fluentui/theme';
 import { CSSProperties } from 'react';
 
@@ -80,9 +80,17 @@ const navPivotContainer: CSSProperties = {
 
 const incidentManagementDescriptionStyle: CSSProperties = { marginTop: 20, marginBottom: 20 };
 
-const pagerDutyLogoStyle: CSSProperties = { display: 'block', height: 20, marginTop: 20, marginBottom: 20 };
+const pagerDutyWrapperStyle: CSSProperties = { display: 'flex', alignItems: 'center', marginTop: 20, marginBottom: 20 };
+const pagerDutyLogoStyle: CSSProperties = { display: 'block', height: 20, marginTop: 10, marginBottom: 10 };
 
-const azMonitorLogoStyle: CSSProperties = { display: 'block', height: 30, marginTop: 10, marginBottom: 10 };
+const azMonitorWrapperStyle: CSSProperties = { display: 'flex', alignItems: 'center', marginTop: 20, marginBottom: 20 };
+const azMonitorLogoStyle: CSSProperties = { display: 'block', height: 30, marginRight: 10 };
+const azMonitorNameStyle: CSSProperties = { fontWeight: 'bold' };
+
+const connectedWrapperStyle: CSSProperties = { display: 'flex', alignItems: 'center', marginTop: 20, marginBottom: 20 };
+const connectedImageStyle: CSSProperties = { display: 'block', height: 15, marginRight: 10 };
+
+const buttonsWrapperStyle: CSSProperties = { marginTop: 30 };
 
 export const useSettingsStyles = () => {
     return {
@@ -102,11 +110,30 @@ export const useSettingsStyles = () => {
         accessControlSettingsButton,
         navPivotContainer,
         incidentManagementDescriptionStyle,
+        pagerDutyWrapperStyle,
         pagerDutyLogoStyle,
+        azMonitorWrapperStyle,
         azMonitorLogoStyle,
+        azMonitorNameStyle,
+        connectedWrapperStyle,
+        connectedImageStyle,
+        buttonsWrapperStyle,
         getNavContainerStyles,
     };
 };
+
+export const useDialogStyles = makeStyles({
+    dangerButton: {
+        backgroundColor: tokens.colorStatusDangerBackground3,
+        color: `${tokens.colorNeutralForegroundInverted} !important`,
+        ':hover': {
+            backgroundColor: tokens.colorStatusDangerBackground3Hover,
+        },
+        ':active': {
+            backgroundColor: tokens.colorStatusDangerBackground3Pressed,
+        },
+    },
+});
 
 export const commandBarStyles = {
     root: {
