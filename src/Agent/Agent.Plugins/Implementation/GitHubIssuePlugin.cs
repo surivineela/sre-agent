@@ -17,8 +17,9 @@ using Microsoft.AspNetCore.Mvc;
 using System.Security.Cryptography;
 using System.Text;
 using Agent.Core.Interfaces;
-using Kusto.Data.Common;
-using System.Text;
+using Agent.Graph.Crawler.ARM;
+using Azure.Core;
+using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Plugins;
 
@@ -30,19 +31,18 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
     private readonly GitHubSettings _gitHubSettings;
     private Octokit.GitHubClient _gitHubClient;
     private readonly IThreadRepository _threadRepository;
+    private readonly IGraphDatabaseClient _graphDatabaseClient;
     public Guid? ThreadId { get; set; }
 
-    public GitHubIssuePlugin(IThreadRepository threadRepository, GitHubSettings gitHubSettings, ILogger<GitHubIssuePlugin> logger, Models.GitHubClient gitHubClient)
+    public GitHubIssuePlugin(IThreadRepository threadRepository,
+        GitHubSettings gitHubSettings,
+        IGraphDatabaseClient graphDatabaseClient,
+        ILogger<GitHubIssuePlugin> logger, Models.GitHubClient gitHubClient)
     {
         _logger = logger;
         _gitHubSettings = gitHubSettings;
 
-        // TODO; Remove this post 3/31 demo
-        string? ghToken = Environment.GetEnvironmentVariable("ghtoken");
-        if (!string.IsNullOrEmpty(ghToken))
-        {
-            _logger.Log(LogLevel.Information, "Setting github token in GithubIssuePlugin");
-        }
+        _graphDatabaseClient = graphDatabaseClient;
 
         _gitHubClient = gitHubClient.Client;
         _threadRepository = threadRepository;
@@ -61,11 +61,11 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             {
                 var (owner, repo) = GitHubHelper.ParseGitHubUrl(repoUrl);
 
-
                 StringBuilder newBody = new(body);
 
                 newBody.AppendLine();
-                string agentDeepLink = $"/threads/{this.ThreadId?.ToString()}";
+                string agentHost = Environment.GetEnvironmentVariable("AGENT_ENDPOINT") ?? "https://localhost";
+                string agentDeepLink = $"{agentHost}/static/views/activities/threads/{this.ThreadId?.ToString()}";
                 newBody.AppendLine($"Tracked by the SRE agent [here]({agentDeepLink})");
 
                 var issue = new NewIssue(title)
@@ -83,6 +83,61 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             _logger
         );
     }
+
+    public async Task<string> FindConnectedRepo(string resourceId)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(resourceId))
+            {
+                _logger.LogInternalError("Resource ID cannot be null or empty");
+                throw new ArgumentException("Resource ID cannot be null or empty", nameof(resourceId));
+            }
+
+            if (!ResourceIdentifier.TryParse(resourceId, out _))
+            {
+                _logger.LogInternalError("Not a valid resource id, must be in form /subscriptions/<>/resourceGroups/<>/providers/<provider-name>/<resource-type>/<resource-name>");
+                throw new ArgumentException("Resource ID cannot be null or empty", nameof(resourceId));
+            }
+
+            var resourceNodeId = resourceId.ToLower().Replace("/", "_");
+            string nodeExistsQuery = $"g.V().hasId('{resourceNodeId}')";
+            var nodeExistsResults = await _graphDatabaseClient.Query(nodeExistsQuery);
+
+            if (nodeExistsResults == null || !nodeExistsResults.Any())
+            {
+                _logger.LogInternalInformation($"Resource node not found for resource ID: {resourceId}");
+                throw new Exception($"Resource with ID '{resourceId}' not found in the graph database. Please verify the resource exists.");
+            }
+
+            string query = $"g.V().hasId('{resourceNodeId}').outE('{Constants.Relationships.ServesCode}').inV().values('resourceId')";
+
+            var results = await _graphDatabaseClient.Query<string>(query);
+
+            if (results == null || !results.Any())
+            {
+                _logger.LogInternalInformation($"No connected repository found for resource ID: {resourceId}");
+                throw new Exception($"No GitHub repository is connected to resource '{resourceId}'. Please link a repository using the LinkSourceCode functionality first.");
+            }
+
+            string repoUrl = results.FirstOrDefault()?.ToString() ?? string.Empty;
+
+            if (string.IsNullOrEmpty(repoUrl))
+            {
+                _logger.LogInternalError($"Found empty repository URL for resource ID: {resourceId}");
+                throw new Exception($"Empty GitHub repository URL found for resource '{resourceId}'. The link may be corrupted.");
+            }
+
+            _logger.LogInternalInformation($"Found connected repository: {repoUrl} for resource ID: {resourceId}");
+            return repoUrl;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, $"Error finding connected repository for resource ID: {resourceId}");
+            throw;
+        }
+    }
+
     public async Task<IssueComment> CreateGithubIssueComment(
         string repoUrl,
         int number,
@@ -759,4 +814,3 @@ public static class GithubIssuePluginExtensions
         );
     }
 }
-

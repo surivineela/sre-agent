@@ -409,6 +409,7 @@ $@"## Facts
             AIFunctionFactory.Create(_githubIssuePlugin.FetchGithubIssueComments),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssue),
             AIFunctionFactory.Create(_githubIssuePlugin.CreateGithubIssueComment),
+            AIFunctionFactory.Create(_githubIssuePlugin.FindConnectedRepo),
         ];
 
         if (!_instanceManagementSettings.ProcessingEnabled)

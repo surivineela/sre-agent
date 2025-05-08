@@ -932,7 +932,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                     <span className="good-status-icon">✓ </span>
                                     <span className="status-message-text" style={{ marginLeft: '4px' }}>
                                         {' '}
-                                        All app groups are healthy
+                                        All logical app are healthy
                                     </span>
                                 </div>
                             ) : (
@@ -945,7 +945,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                         <strong>
                                             {data.Overview.HealthAndPerformance.Unhealthy + data.Overview.HealthAndPerformance.Degraded}
                                         </strong>{' '}
-                                        app groups require attention
+                                        Logical apps require attention
                                     </span>
                                 </div>
                             )}
@@ -1377,7 +1377,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                             marginRight: '8px',
                                                         }}
                                                     ></span>
-                                                    Unhealthy App Groups ({unhealthyResources.length})
+                                                    Unhealthy Logical App ({unhealthyResources.length})
                                                 </h4>
                                                 <div className="resources-grid">{renderResourceCards(unhealthyResources, true)}</div>
                                             </div>
@@ -1407,7 +1407,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                             marginRight: '8px',
                                                         }}
                                                     ></span>
-                                                    Degraded App Groups ({degradedResources.length})
+                                                    Degraded Logical Apps ({degradedResources.length})
                                                 </h4>
                                                 <div className="resources-grid">{renderResourceCards(degradedResources, true)}</div>
                                             </div>
@@ -1437,7 +1437,7 @@ const DailyReport: React.FC<SREDailyFormatProps> = ({ data, timestamp }) => {
                                                             marginRight: '8px',
                                                         }}
                                                     ></span>
-                                                    Healthy App Groups ({healthyResources.length})
+                                                    Healthy Logical Apps ({healthyResources.length})
                                                 </h4>
                                                 <div className="resources-grid" style={{ gridTemplateColumns: 'repeat(2, 1fr)' }}>
                                                     {renderResourceCards(healthyResources, false)}

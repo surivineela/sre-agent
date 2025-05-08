@@ -91,4 +91,9 @@ public class MockGithubIssuePlugin : IGithubIssuePlugin
     {
         throw new NotImplementedException();
     }
+
+    public Task<string> FindConnectedRepo(string resourceId)
+    {
+        throw new NotImplementedException();
+    }
 }

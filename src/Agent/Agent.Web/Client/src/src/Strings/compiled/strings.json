@@ -887,16 +887,16 @@
       "value": "Approve"
     }
   ],
-  "WRFrUO": [
-    {
-      "type": 0,
-      "value": "Grafana dashboard creation succeeded"
-    }
-  ],
   "WTrOy3": [
     {
       "type": 0,
       "value": "Chat"
+    }
+  ],
+  "WY8nWe": [
+    {
+      "type": 0,
+      "value": "Grafana dashboard created successfully"
     }
   ],
   "Wf6bDe": [
@@ -915,6 +915,12 @@
     {
       "type": 0,
       "value": "Monitored Resource"
+    }
+  ],
+  "XEso9C": [
+    {
+      "type": 0,
+      "value": "Linking Grafana dashboard"
     }
   ],
   "XIjgrI": [
@@ -1051,12 +1057,6 @@
     {
       "type": 0,
       "value": "Mitigated"
-    }
-  ],
-  "dqHwfQ": [
-    {
-      "type": 0,
-      "value": "Link Grafana dashboard"
     }
   ],
   "eFKqV0": [

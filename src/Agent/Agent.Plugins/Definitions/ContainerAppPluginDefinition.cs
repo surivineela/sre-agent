@@ -147,7 +147,6 @@ namespace Agent.Plugins.Definitions
 
         #endregion
 
-        [RequiresApproval]
         [KernelFunction("scale_container_app")]
         [Description(
             "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]

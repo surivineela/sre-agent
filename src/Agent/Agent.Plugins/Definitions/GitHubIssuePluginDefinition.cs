@@ -161,5 +161,12 @@ resolved
     {
         return await _gitHubIssuePlugin.ExtractTextFromImageInGitHubIssue(imageUrl, kernel);
     }
-}
 
+    [KernelFunction("find_connected_repo")]
+    [Description("Find the GitHub repository URL where source code for an Azure resource like webapp, container app, aks pod etc is hosted. This helps identify the correct repository for creating GitHub issues related to code problems such as memory leaks, deadlocks, performance issues, or bugs discovered in Azure resources. The function uses a graph database to trace the relationship between deployed resources and their source code repositories.")]
+    public async Task<string> FindConnectedRepo(
+    [Description("The Azure resource ID for which to find the connected repository. Must be in the format '/subscriptions/{subId}/resourceGroups/{rgName}/providers/{provider}/{resourceType}/{resourceName}' or a unique identifier for the resource in your environment.")] string resourceId)
+    {
+        return await _gitHubIssuePlugin.FindConnectedRepo(resourceId);
+    }
+}

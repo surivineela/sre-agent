@@ -20,6 +20,7 @@ public sealed class ContainerAppsRemediationAgentFactory
     private readonly DurableTaskClient _durableTaskClient;
     private readonly IToolsRepository _toolsRepository;
     private readonly IThreadOrchestrationManager _mappingManager;
+    private readonly IGithubIssuePlugin _githubIssuePlugin;
 
     public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsRemediationAgent);
 
@@ -32,6 +33,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         IGraphDBPlugin graphDbPlugin,
         IChartPlugin chartPlugin,
         INSGRulePlugin nSGRulePlugin,
+        IGithubIssuePlugin githubIssuePlugin,
         IThreadOrchestrationManager mappingManager,
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
@@ -88,6 +90,10 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
         toolSignatures.Add(_toolsRepository.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+        var githubIssuePluginDefinition = new GitHubIssuePluginDefinition(githubIssuePlugin);
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.CreateGithubIssue));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => githubIssuePluginDefinition.FindConnectedRepo));
 
         _toolSignatures = toolSignatures;
         _durableTaskClient = durableTaskClient;

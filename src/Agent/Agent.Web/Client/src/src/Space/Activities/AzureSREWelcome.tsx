@@ -338,12 +338,21 @@ const useStyles = makeStyles({
             color: tokens.colorNeutralForeground2,
         },
     },
+    reAuthRequired: {
+        backgroundColor: tokens.colorPaletteYellowBackground1,
+        color: tokens.colorPaletteYellowForeground1,
+        ...shorthands.padding('2px', '8px'),
+        borderRadius: '12px',
+        fontSize: tokens.fontSizeBase100,
+        fontWeight: tokens.fontWeightSemibold,
+        marginLeft: tokens.spacingHorizontalS,
+    },
 });
 
 /* ────────────────────────────────  TYPES  ──────────────────────────────── */
 
 // Source-code linking
-export type SourceCodeLinkStatus = 'Linked' | 'RequiresAuth' | 'NotLinked';
+export type SourceCodeLinkStatus = 'Linked' | 'RequiresAuth' | 'NotLinked' | 'RequiresReAuth';
 export type ResourceHealth = 'Healthy' | 'Warning' | 'Critical' | 'Unknown';
 
 export interface SourceCodeLinkageStatus {
@@ -489,11 +498,21 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
     const [logicalApps, setLogicalApps] = useState<LogicalApplication[]>([]);
     const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
     const [selectedAppIndex, setSelectedAppIndex] = useState(0);
+
+    // Collapsible sections state
     const [isAnalysisCollapsed, setIsAnalysisCollapsed] = useState(false);
-    const hasAutoCollapsed = useRef(false);
+    const [isAppsCollapsed, setIsAppsCollapsed] = useState(false);
+    const [isIntegrationsCollapsed, setIsIntegrationsCollapsed] = useState(false);
+
+    const hasAutoCollapsed = useRef({
+        analysis: false,
+        apps: false,
+        integrations: false,
+    });
 
     // GitHub linking dialog state
     const [linkDialogOpen, setLinkDialogOpen] = useState(false);
+    const [reAuthDialogOpen, setReAuthDialogOpen] = useState(false);
     const [repoUrl, setRepoUrl] = useState('');
     const [repoUrlError, setRepoUrlError] = useState<string | null>(null);
     const [isLinking, setIsLinking] = useState(false);
@@ -524,15 +543,23 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                         setKnowledgeGraphStatus(data.knowledgeGraphStatus);
 
                         // Auto-collapse analysis section if knowledge graph is complete
-                        if (data.knowledgeGraphStatus.status === 'Completed') {
+                        if (data.knowledgeGraphStatus.status === 'Completed' && !hasAutoCollapsed.current.analysis) {
                             setIsAnalysisCollapsed(true);
-                            hasAutoCollapsed.current = true;
+                            hasAutoCollapsed.current.analysis = true;
                         }
                     }
 
                     // Update integrations
                     if (data.integrations) {
                         setIntegrations(data.integrations);
+
+                        // Auto-collapse integrations section if all are active
+                        const allIntegrationsActive =
+                            data.integrations.length > 0 && data.integrations.every(integration => integration.isActive);
+                        if (allIntegrationsActive && !hasAutoCollapsed.current.integrations) {
+                            setIsIntegrationsCollapsed(true);
+                            hasAutoCollapsed.current.integrations = true;
+                        }
                     }
 
                     // Update logical applications with enhanced information
@@ -557,6 +584,14 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                         });
 
                         setLogicalApps(enhancedApps);
+
+                        // Auto-collapse applications section if all repos are linked
+                        const allReposLinked =
+                            enhancedApps.length > 0 && enhancedApps.every(app => app.sourceCodeLinkageStatus?.status === 'Linked');
+                        if (allReposLinked && !hasAutoCollapsed.current.apps) {
+                            setIsAppsCollapsed(true);
+                            hasAutoCollapsed.current.apps = true;
+                        }
                     }
                 }
             } catch (err) {
@@ -582,7 +617,10 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
     };
 
     const remainingRepos = logicalApps.filter(
-        a => a.sourceCodeLinkageStatus?.status === 'NotLinked' || a.sourceCodeLinkageStatus?.status === 'RequiresAuth'
+        a =>
+            a.sourceCodeLinkageStatus?.status === 'NotLinked' ||
+            a.sourceCodeLinkageStatus?.status === 'RequiresAuth' ||
+            a.sourceCodeLinkageStatus?.status === 'RequiresReAuth'
     ).length;
 
     /* --------------------------------------------------------------------- */
@@ -608,10 +646,21 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
         if (idx !== -1) setSelectedAppIndex(idx);
     };
 
+    const handleOpenReAuthDialog = (resourceId: string) => {
+        setReAuthDialogOpen(true);
+        // store the resourceId in state via selectedAppIndex
+        const idx = logicalApps.findIndex(a => a.resourceId === resourceId);
+        if (idx !== -1) setSelectedAppIndex(idx);
+    };
+
     const handleCloseLinkDialog = () => {
         setLinkDialogOpen(false);
         setRepoUrl('');
         setRepoUrlError(null);
+    };
+
+    const handleCloseReAuthDialog = () => {
+        setReAuthDialogOpen(false);
     };
 
     const handleLinkRepo = async () => {
@@ -681,8 +730,25 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
         }
     };
 
+    const handleReAuth = async () => {
+        // Make sure we have a valid selectedApp before proceeding
+        const selectedApp = logicalApps[selectedAppIndex];
+        if (!selectedApp || !selectedApp.sourceCodeLinkageStatus.loginCallbackUrl) {
+            console.error('No valid application or login URL for re-authentication');
+            return;
+        }
+
+        // Open the authentication window
+        window.open(selectedApp.sourceCodeLinkageStatus.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+
+        setReAuthDialogOpen(false);
+    };
+
+    // Toggle section collapses
     const toggleFeature = (feature: string) => setExpandedFeature(expandedFeature === feature ? null : feature);
     const toggleAnalysisSection = () => setIsAnalysisCollapsed(prev => !prev);
+    const toggleAppsSection = () => setIsAppsCollapsed(prev => !prev);
+    const toggleIntegrationsSection = () => setIsIntegrationsCollapsed(prev => !prev);
 
     // Calculate resource counts from knowledgeGraphStatus
     const getResourceCounts = () => {
@@ -908,184 +974,231 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
             {/* Logical Applications section */}
             <Card className={styles.sectionCard}>
                 <div className={styles.sectionHeader}>
-                    <GridDots24Regular className={styles.sectionHeaderIcon} />
-                    <Text weight="semibold" size={500}>
-                        Logical Applications
-                    </Text>
-                </div>
-                <div className={styles.sectionContent}>
-                    {/* Show spinner if still loading */}
-                    {logicalApps.length === 0 && (
-                        <div style={{ padding: tokens.spacingVerticalL, display: 'flex', justifyContent: 'center' }}>
-                            <Spinner label="Loading applications" />
-                        </div>
-                    )}
-                    {logicalApps.length > 0 && remainingRepos > 0 && (
-                        <div
-                            className={styles.reposRemainingTag}
-                            style={{
-                                marginBottom: tokens.spacingVerticalM,
-                                display: 'inline-flex',
-                            }}
-                        >
-                            <Link16Regular />
-                            <Text size={200}>
-                                {remainingRepos} repo{remainingRepos > 1 ? 's' : ''} remaining
+                    <div className={styles.collapsibleHeader} onClick={toggleAppsSection}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <GridDots24Regular className={styles.sectionHeaderIcon} />
+                            <Text weight="semibold" size={500}>
+                                Logical Applications
                             </Text>
+                            {/* Show completed status icon when all repos are linked */}
+                            {logicalApps.length > 0 && remainingRepos === 0 && (
+                                <CheckmarkCircle24Regular className={styles.statusCompleteIcon} />
+                            )}
                         </div>
-                    )}
-                    {/* Application List */}
-                    {logicalApps.length > 0 && (
-                        <div className={styles.applicationList}>
-                            {logicalApps.map((app, index) => (
-                                <div key={index} className={styles.applicationCard}>
-                                    <div className={styles.applicationCardLeft}>
-                                        {/* Updated to use resource type icon */}
-                                        <div className={styles.applicationIcon}>
-                                            {app.properties?.type ? (
-                                                <img
-                                                    src={resolveIcon(app.properties.type)}
-                                                    alt={getFriendlyName(app.properties.type)}
-                                                    width={24}
-                                                    height={24}
-                                                />
-                                            ) : (
-                                                <AppGeneric24Regular />
-                                            )}
-                                        </div>
-                                        <div className={styles.applicationInfo}>
-                                            <Text className={styles.applicationName}>{app.name || 'Resource'}</Text>
-                                            <Text className={styles.applicationSubtext}>{getFriendlyName(app.properties?.type)}</Text>
-
-                                            {/* Repository Link Status */}
-                                            {app.sourceCodeLinkageStatus?.status === 'Linked' &&
-                                                app.sourceCodeLinkageStatus?.repositoryUrl && (
-                                                    <div className={styles.linkStatus}>
-                                                        <div
-                                                            className={styles.statusDot}
-                                                            style={{
-                                                                backgroundColor:
-                                                                    app.sourceCodeLinkageStatus.status === 'Linked'
-                                                                        ? tokens.colorPaletteGreenForeground1
-                                                                        : tokens.colorPaletteYellowForeground1,
-                                                            }}
-                                                        />
-                                                        <Link
-                                                            href={app.sourceCodeLinkageStatus.repositoryUrl}
-                                                            target="_blank"
-                                                            style={{ fontSize: tokens.fontSizeBase300 }}
-                                                        >
-                                                            <FaGithub style={{ marginRight: '4px' }} />
-                                                            {app.sourceCodeLinkageStatus.repositoryUrl}
-                                                        </Link>
-                                                    </div>
+                        {isAppsCollapsed ? <ChevronRight20Regular /> : <ChevronDown20Regular />}
+                    </div>
+                </div>
+                <Collapse visible={!isAppsCollapsed}>
+                    <div className={styles.sectionContent}>
+                        {/* Show spinner if still loading */}
+                        {logicalApps.length === 0 && (
+                            <div style={{ padding: tokens.spacingVerticalL, display: 'flex', justifyContent: 'center' }}>
+                                <Spinner label="Loading applications" />
+                            </div>
+                        )}
+                        {logicalApps.length > 0 && remainingRepos > 0 && (
+                            <div
+                                className={styles.reposRemainingTag}
+                                style={{
+                                    marginBottom: tokens.spacingVerticalM,
+                                    display: 'inline-flex',
+                                }}
+                            >
+                                <Link16Regular />
+                                <Text size={200}>
+                                    {remainingRepos} repo{remainingRepos > 1 ? 's' : ''} remaining
+                                </Text>
+                            </div>
+                        )}
+                        {/* Application List */}
+                        {logicalApps.length > 0 && (
+                            <div className={styles.applicationList}>
+                                {logicalApps.map((app, index) => (
+                                    <div key={index} className={styles.applicationCard}>
+                                        <div className={styles.applicationCardLeft}>
+                                            {/* Updated to use resource type icon */}
+                                            <div className={styles.applicationIcon}>
+                                                {app.properties?.type ? (
+                                                    <img
+                                                        src={resolveIcon(app.properties.type)}
+                                                        alt={getFriendlyName(app.properties.type)}
+                                                        width={24}
+                                                        height={24}
+                                                    />
+                                                ) : (
+                                                    <AppGeneric24Regular />
                                                 )}
-                                        </div>
-                                    </div>
-                                    <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalL }}>
-                                        {/* Link Repository Button */}
-                                        {app.sourceCodeLinkageStatus?.status === 'NotLinked' && (
-                                            <Button
-                                                appearance="primary"
-                                                size="medium"
-                                                icon={<Link16Regular />}
-                                                onClick={() => handleOpenLinkDialog(app.resourceId)}
-                                            >
-                                                Link Repository
-                                            </Button>
-                                        )}
+                                            </div>
+                                            <div className={styles.applicationInfo}>
+                                                <Text className={styles.applicationName}>{app.name || 'Resource'}</Text>
+                                                <Text className={styles.applicationSubtext}>{getFriendlyName(app.properties?.type)}</Text>
 
-                                        {/* Authentication Required Button */}
-                                        {app.sourceCodeLinkageStatus?.status === 'RequiresAuth' &&
-                                            app.sourceCodeLinkageStatus?.loginCallbackUrl && (
-                                                <>
-                                                    {app.sourceCodeLinkageStatus.repositoryUrl && (
-                                                        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
-                                                            <FaGithub style={{ margin: '0 4px 0 0' }} />
-                                                            <a
+                                                {/* Repository Link Status */}
+                                                {app.sourceCodeLinkageStatus?.status === 'Linked' &&
+                                                    app.sourceCodeLinkageStatus?.repositoryUrl && (
+                                                        <div className={styles.linkStatus}>
+                                                            <div
+                                                                className={styles.statusDot}
+                                                                style={{
+                                                                    backgroundColor:
+                                                                        app.sourceCodeLinkageStatus.status === 'Linked'
+                                                                            ? tokens.colorPaletteGreenForeground1
+                                                                            : tokens.colorPaletteYellowForeground1,
+                                                                }}
+                                                            />
+                                                            <Link
                                                                 href={app.sourceCodeLinkageStatus.repositoryUrl}
                                                                 target="_blank"
-                                                                rel="noopener noreferrer"
+                                                                style={{ fontSize: tokens.fontSizeBase300 }}
                                                             >
+                                                                <FaGithub style={{ marginRight: '4px' }} />
                                                                 {app.sourceCodeLinkageStatus.repositoryUrl}
-                                                            </a>
+                                                            </Link>
                                                         </div>
                                                     )}
 
-                                                    <Button
-                                                        appearance="primary"
-                                                        size="medium"
-                                                        icon={<ArrowRight16Regular />}
-                                                        onClick={() =>
-                                                            window.open(
-                                                                app.sourceCodeLinkageStatus.loginCallbackUrl!,
-                                                                'githubAuth',
-                                                                'width=600,height=700'
-                                                            )
-                                                        }
-                                                    >
-                                                        Authenticate
-                                                    </Button>
-                                                </>
+                                                {/* Repository Re-Auth Required Status */}
+                                                {app.sourceCodeLinkageStatus?.status === 'RequiresReAuth' && (
+                                                    <div className={styles.linkStatus}>
+                                                        <div
+                                                            className={styles.statusDot}
+                                                            style={{ backgroundColor: tokens.colorPaletteYellowForeground1 }}
+                                                        />
+                                                        <Text size={200} style={{ color: tokens.colorPaletteYellowForeground1 }}>
+                                                            Authentication expired
+                                                        </Text>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalL }}>
+                                            {/* Link Repository Button */}
+                                            {app.sourceCodeLinkageStatus?.status === 'NotLinked' && (
+                                                <Button
+                                                    appearance="primary"
+                                                    size="medium"
+                                                    icon={<Link16Regular />}
+                                                    onClick={() => handleOpenLinkDialog(app.resourceId)}
+                                                >
+                                                    Link Repository
+                                                </Button>
                                             )}
+
+                                            {/* Re-Authentication Required Button */}
+                                            {app.sourceCodeLinkageStatus?.status === 'RequiresReAuth' && (
+                                                <Button
+                                                    appearance="primary"
+                                                    size="medium"
+                                                    icon={<ArrowRight16Regular />}
+                                                    onClick={() => handleOpenReAuthDialog(app.resourceId)}
+                                                >
+                                                    Re-Authenticate
+                                                </Button>
+                                            )}
+
+                                            {/* Authentication Required Button */}
+                                            {app.sourceCodeLinkageStatus?.status === 'RequiresAuth' &&
+                                                app.sourceCodeLinkageStatus?.loginCallbackUrl && (
+                                                    <>
+                                                        {app.sourceCodeLinkageStatus.repositoryUrl && (
+                                                            <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+                                                                <FaGithub style={{ margin: '0 4px 0 0' }} />
+                                                                <a
+                                                                    href={app.sourceCodeLinkageStatus.repositoryUrl}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                >
+                                                                    {app.sourceCodeLinkageStatus.repositoryUrl}
+                                                                </a>
+                                                            </div>
+                                                        )}
+
+                                                        <Button
+                                                            appearance="primary"
+                                                            size="medium"
+                                                            icon={<ArrowRight16Regular />}
+                                                            onClick={() =>
+                                                                window.open(
+                                                                    app.sourceCodeLinkageStatus.loginCallbackUrl!,
+                                                                    'githubAuth',
+                                                                    'width=600,height=700'
+                                                                )
+                                                            }
+                                                        >
+                                                            Login to allow access
+                                                        </Button>
+                                                    </>
+                                                )}
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
-                        </div>
-                    )}
-                </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </Collapse>
             </Card>
 
             {/* Active Integrations Section */}
             <Card className={styles.sectionCard}>
                 <div className={styles.sectionHeader}>
-                    <ArrowSync24Regular className={styles.sectionHeaderIcon} />
-                    <Text weight="semibold" size={500}>
-                        Active Integrations
-                    </Text>
-                    {integrations.length > 0 && (
-                        <div className={styles.reposRemainingTag} style={{ marginLeft: tokens.spacingHorizontalM }}>
-                            <ArrowSync24Regular style={{ fontSize: '14px' }} />
-                            <Text size={200}>
-                                {integrations.filter(i => i.isActive).length}/{integrations.length} active
+                    <div className={styles.collapsibleHeader} onClick={toggleIntegrationsSection}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                            <ArrowSync24Regular className={styles.sectionHeaderIcon} />
+                            <Text weight="semibold" size={500}>
+                                Active Integrations
                             </Text>
-                        </div>
-                    )}
-                </div>
-                <div className={styles.sectionContent}>
-                    {integrations.length === 0 ? (
-                        <div style={{ padding: tokens.spacingVerticalM, textAlign: 'center' }}>
-                            <Text>No integrations configured</Text>
-                        </div>
-                    ) : (
-                        integrations.map((integration, index) => (
-                            <div key={index} className={styles.integrationCard}>
-                                <div className={styles.integrationHeader}>
-                                    <Text weight="semibold" size={300}>
-                                        {integration.name}
+                            {integrations.length > 0 && (
+                                <div className={styles.reposRemainingTag} style={{ marginLeft: tokens.spacingHorizontalM }}>
+                                    <ArrowSync24Regular style={{ fontSize: '14px' }} />
+                                    <Text size={200}>
+                                        {integrations.filter(i => i.isActive).length}/{integrations.length} active
                                     </Text>
-                                    <div className={integration.isActive ? styles.activeBadge : styles.inactiveBadge}>
-                                        {integration.isActive ? 'Active' : 'Inactive'}
+                                </div>
+                            )}
+                            {/* Show completed status icon when all integrations are active */}
+                            {integrations.length > 0 && integrations.every(i => i.isActive) && (
+                                <CheckmarkCircle24Regular className={styles.statusCompleteIcon} />
+                            )}
+                        </div>
+                        {isIntegrationsCollapsed ? <ChevronRight20Regular /> : <ChevronDown20Regular />}
+                    </div>
+                </div>
+                <Collapse visible={!isIntegrationsCollapsed}>
+                    <div className={styles.sectionContent}>
+                        {integrations.length === 0 ? (
+                            <div style={{ padding: tokens.spacingVerticalM, textAlign: 'center' }}>
+                                <Text>No integrations configured</Text>
+                            </div>
+                        ) : (
+                            integrations.map((integration, index) => (
+                                <div key={index} className={styles.integrationCard}>
+                                    <div className={styles.integrationHeader}>
+                                        <Text weight="semibold" size={300}>
+                                            {integration.name}
+                                        </Text>
+                                        <div className={integration.isActive ? styles.activeBadge : styles.inactiveBadge}>
+                                            {integration.isActive ? 'Active' : 'Inactive'}
+                                        </div>
+                                    </div>
+                                    <div className={styles.integrationDetails}>
+                                        <Text size={200} color="subtle">
+                                            {integration.details}
+                                        </Text>
+                                    </div>
+                                    <div className={styles.integrationAction}>
+                                        <Button
+                                            appearance={integration.isActive ? 'primary' : 'secondary'}
+                                            size="small"
+                                            icon={<ArrowRight16Regular />}
+                                        >
+                                            {integration.isActive ? 'View Dashboard' : 'Configure'}
+                                        </Button>
                                     </div>
                                 </div>
-                                <div className={styles.integrationDetails}>
-                                    <Text size={200} color="subtle">
-                                        {integration.details}
-                                    </Text>
-                                </div>
-                                <div className={styles.integrationAction}>
-                                    <Button
-                                        appearance={integration.isActive ? 'primary' : 'secondary'}
-                                        size="small"
-                                        icon={<ArrowRight16Regular />}
-                                    >
-                                        {integration.isActive ? 'View Dashboard' : 'Configure'}
-                                    </Button>
-                                </div>
-                            </div>
-                        ))
-                    )}
-                </div>
+                            ))
+                        )}
+                    </div>
+                </Collapse>
             </Card>
 
             {/* GitHub Link Dialog */}
@@ -1133,6 +1246,55 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                 icon={isLinking ? <Spinner size="tiny" /> : null}
                             >
                                 {isLinking ? 'Linking…' : 'Link Repository'}
+                            </Button>
+                        </DialogActions>
+                    </DialogBody>
+                </DialogSurface>
+            </Dialog>
+
+            {/* GitHub Re-Authentication Dialog */}
+            <Dialog
+                open={reAuthDialogOpen}
+                onOpenChange={(_, data) => {
+                    if (!data.open) handleCloseReAuthDialog();
+                }}
+            >
+                <DialogSurface>
+                    <DialogBody>
+                        <div className={styles.dialogHeader}>
+                            <div className={styles.dialogTitle}>
+                                <FaGithub className={styles.dialogTitleIcon} />
+                                <DialogTitle>Re-Authenticate GitHub</DialogTitle>
+                            </div>
+                            <button className={styles.dialogCloseButton} onClick={handleCloseReAuthDialog} aria-label="Close">
+                                <Dismiss24Regular />
+                            </button>
+                        </div>
+                        <DialogContent>
+                            <Text>
+                                Your GitHub authentication has expired or been revoked. You need to re-authenticate to continue accessing
+                                the repository.
+                            </Text>
+                            {selectedAppIndex !== -1 && logicalApps[selectedAppIndex]?.sourceCodeLinkageStatus?.repositoryUrl && (
+                                <div style={{ marginTop: tokens.spacingVerticalM }}>
+                                    <Text weight="semibold">Repository:</Text>
+                                    <Link
+                                        href={logicalApps[selectedAppIndex].sourceCodeLinkageStatus.repositoryUrl ?? undefined}
+                                        target="_blank"
+                                        style={{ display: 'flex', alignItems: 'center', marginTop: tokens.spacingVerticalXS }}
+                                    >
+                                        <FaGithub style={{ marginRight: '4px' }} />
+                                        {logicalApps[selectedAppIndex].sourceCodeLinkageStatus.repositoryUrl}
+                                    </Link>
+                                </div>
+                            )}
+                        </DialogContent>
+                        <DialogActions>
+                            <Button appearance="secondary" onClick={handleCloseReAuthDialog}>
+                                Cancel
+                            </Button>
+                            <Button appearance="primary" onClick={handleReAuth}>
+                                Re-Authenticate
                             </Button>
                         </DialogActions>
                     </DialogBody>
