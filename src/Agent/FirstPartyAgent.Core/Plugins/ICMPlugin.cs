@@ -11,6 +11,7 @@ using FirstPartyAgent.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
+using Newtonsoft.Json;
 using System.ComponentModel;
 
 namespace FirstPartyAgent.Core.Plugins
@@ -130,8 +131,8 @@ namespace FirstPartyAgent.Core.Plugins
         }
 
         [KernelFunction("search_incidents")]
-        [Description("Search for incidents")]
-        public async Task<List<SearchItem>> SearchIncidents(
+        [Description("Search for incidents and returns matching incidents with details like CreatedDateTime, Id, Title etc.")]
+        public async Task<string> SearchIncidents(
             [Description("Search String")] string searchString,
             [Description("Lookback Period in Days")] int lookbackPeriodInDays,
             [Description("Limit on result count")] int resultCountLimit,
@@ -144,7 +145,7 @@ namespace FirstPartyAgent.Core.Plugins
                 ? await _icmApiClient.SearchIncidentsAsync(searchString)
                 : await _icmWorkflowClient.SearchIncidentsAsync(searchString, lookbackPeriodInDays, resultCountLimit);
 
-            return incidents;
+            return JsonConvert.SerializeObject(incidents);
         }
 
         [KernelFunction("get_queryable_columns_for_incidents")]

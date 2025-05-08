@@ -494,9 +494,8 @@ let resultLimit = {resultLimit};
 Incidents
 | where CreateDate > lookbackPeriod
 | where Title contains searchString
-| extend ResponsibleServiceName = OwningTenantName
 | summarize arg_max(ModifiedDate, *) by IncidentId
-| project Id=IncidentId, Severity, Title, State=Status, ResponsibleServiceName, CreateDate, MitigateDate, ResolveDate, HowFixed
+| project Id=IncidentId, Severity, Title, State=Status, ResponsibleServiceName=OwningTenantName, CreatedDate=CreateDate, MitigatedDate=MitigateDate, ResolvedDate=ResolveDate, HowFixed
 | take resultLimit";
             var payload = JsonConvert.SerializeObject(new { query });
             var response = await SendICMWorkflowRequest(_icmWorkflowSettings.IncidentLookupWorkflowName, payload);

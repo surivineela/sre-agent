@@ -31,6 +31,7 @@ namespace FirstPartyAgent.Models
         public string DiscussionEntry { get; set; }
         public string MonitoringRole { get; set; }
         public string MonitoringSlice { get; set; }
+        public string SubscriptionId { get; set; }
         public string[] Tags { get; set; } = Array.Empty<string>();
     }
 
@@ -56,6 +57,8 @@ namespace FirstPartyAgent.Models
         public string Title { get; set; }
         public string ResponsibleServiceName { get; set; }
         public DateTime CreatedDate { get; set; }
+        public DateTime? MitigatedDate { get; set; }
+        public DateTime? ResolvedDate { get; set; }
         public string HowFixed { get; set; }
         public string State { get; set; }
     }

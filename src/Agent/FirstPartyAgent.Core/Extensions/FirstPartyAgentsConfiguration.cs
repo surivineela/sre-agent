@@ -6,6 +6,7 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Data.Repositories;
 using Agent.Plugins;
 using Agent.Plugins.Models;
@@ -74,6 +75,7 @@ namespace FirstPartyAgent.Core.Extensions
             var sinkService = new SinkService(threadRepository, new NullLogger<SinkService>());
             services.AddSingleton<IThreadRepository>(threadRepository);
             services.AddSingleton<SinkService>(sinkService);
+            services.AddSingleton<IGraphDatabaseClient, NullableGraphDatabaseClient>();
             services.AddSingleton<GitHubClient>();
             services.AddSingleton<IGithubIssuePlugin, GitHubIssuePlugin>();
             services.AddSingleton<GitHubIssuePluginDefinition>();
