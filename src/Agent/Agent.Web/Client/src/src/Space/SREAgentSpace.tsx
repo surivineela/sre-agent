@@ -11,6 +11,7 @@ import { WorkspaceClient } from '../Common/Clients/WorkspaceClient';
 import { ArmResourceDescriptor } from '../Common/Helpers/ResourceDescriptors';
 import { SreAgentTabResources } from '../Strings/SREAgentResources';
 import Activities from './Activities/Activities.ReactView';
+import { SreAgentContext } from './Contracts/Context';
 import Graph from './Graph/Graph';
 import { useSreAgent } from './Settings/Hooks/useSreAgent';
 import Settings from './Settings/Settings.ReactView';
@@ -135,8 +136,23 @@ const TabsListWrapper: FC = () => {
 };
 
 const SREAgentSpace: FC = () => {
+    const [isGrafanaUpdating, setIsGrafanaUpdating] = useState(false);
+    const [deploymentId, setDeploymentId] = useState<string>('');
+    const [notificationId, setNotificationId] = useState<string>('');
+
     return (
-        <div>
+        <SreAgentContext.Provider
+            value={{
+                grafana: {
+                    isGrafanaUpdating,
+                    deploymentId,
+                    notificationId,
+                    setNotificationId,
+                    setIsGrafanaUpdating,
+                    setDeploymentId,
+                },
+            }}
+        >
             <BrowserRouter basename="/static">
                 <TabsListWrapper />
                 <Routes>
@@ -148,7 +164,7 @@ const SREAgentSpace: FC = () => {
                     <Route path="*" element={<Activities />} />
                 </Routes>
             </BrowserRouter>
-        </div>
+        </SreAgentContext.Provider>
     );
 };
 

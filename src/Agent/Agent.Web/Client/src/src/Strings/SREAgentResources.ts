@@ -403,7 +403,7 @@ export const GrafanaDashboardResources = defineMessages({
     },
     grafanaCreationTitle: { defaultMessage: 'Provisioning Grafana dashboard', id: 'PzGaVI' },
     grafanaCreationInProgress: { defaultMessage: 'Provisioning of your Grafana dashboard is in progress.', id: 'kWs94j' },
-    grafanaCreationSuccess: { defaultMessage: 'Grafana dashboard creation succeeded', id: 'WRFrUO' },
+    grafanaCreationSuccess: { defaultMessage: 'Grafana dashboard created successfully', id: 'WY8nWe' },
     grafanaCreationFailed: {
         defaultMessage: 'Failed to create the Grafana dashboard with the error: {errorMessage}',
         id: 'ACfSSZ',
@@ -437,7 +437,7 @@ export const GrafanaDashboardResources = defineMessages({
     },
     stepFourTitle: { defaultMessage: 'Step 4: Copy the API key and paste it here', id: '+7umUn' },
     apiKey: { defaultMessage: 'API Key', id: '4dZi3Y' },
-    linkGrafanaDashboardTitle: { defaultMessage: 'Link Grafana dashboard', id: 'dqHwfQ' },
+    linkGrafanaDashboardTitle: { defaultMessage: 'Linking Grafana dashboard', id: 'XEso9C' },
     linkGrafanaDashboardInProgress: { defaultMessage: 'Linking Grafana dashboard to SRE Agent in progress', id: '40YXE1' },
     linkGrafanaDashboardSuccess: { defaultMessage: 'Grafana dashboard linked successfully', id: 'FDJdmL' },
     linkGrafanaDashboardFailed: { defaultMessage: 'Failed to link Grafana dashboard', id: 'S1VBUm' },

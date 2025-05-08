@@ -37,6 +37,7 @@ const GrafanaDashboard: FC = () => {
         permissionsLoaded,
         grafanaRbacColumns,
         grafanaRbacRoles,
+        isGrafanaUpdating,
         setNewGrafanaResourceName,
         setIsDirty,
         onCreateGrafanaDashboard,
@@ -107,7 +108,7 @@ const GrafanaDashboard: FC = () => {
                                     }}
                                     value={newGrafanaResourceName}
                                     placeholder={intl.formatMessage(GrafanaDashboardResources.grafanaResourceName)}
-                                    disabled={isUpdating || !hasRbacWritePermission}
+                                    disabled={isUpdating || !hasRbacWritePermission || isGrafanaUpdating}
                                     className={styles.inputTextField}
                                 />
                             </Field>

@@ -28,6 +28,7 @@ import { PermissionActions } from '../../Common/Contracts/Azure/Permission';
 import { Guid } from '../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { equals } from '../../Common/Helpers/Strings';
+import { SreAgentContext } from '../../Space/Contracts/Context';
 import { usePermissions } from '../../Space/Settings/Hooks/usePermissions';
 import { useSreAgent } from '../../Space/Settings/Hooks/useSreAgent';
 import { GrafanaDashboardResources } from '../../Strings/SREAgentResources';
@@ -40,14 +41,16 @@ const monitoringMetricsPublisherRole = '/providers/Microsoft.Authorization/roleD
 export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string) {
     const azPortalContext = useContext(AzPortalContext);
 
+    const {
+        grafana: { isGrafanaUpdating, deploymentId, notificationId, setNotificationId, setIsGrafanaUpdating, setDeploymentId },
+    } = useContext(SreAgentContext);
+
     const intl = useIntl();
 
     const { agent, agentLoaded, refresh } = useSreAgent(resourceId);
 
     const [isUpdating, setIsUpdating] = useState<boolean>(false);
     const [progress, setProgress] = useState(false);
-    const [deploymentId, setDeploymentId] = useState<string>('');
-    const [notificationId, setNotificationId] = useState<string>();
     const [existingGrafanaResourceNames, setExistingGrafanaResourceNames] = useState<string[]>([]);
     const [isDirty, setIsDirty] = useState(false);
     const [newGrafanaResourceName, setNewGrafanaResourceName] = useState<string>();
@@ -467,8 +470,9 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             );
 
             setIsUpdating(false);
+            setIsGrafanaUpdating(false);
         },
-        [azPortalContext, deploymentId, intl]
+        [azPortalContext, deploymentId, intl, setIsGrafanaUpdating, setIsUpdating]
     );
 
     const deployTemplate = useCallback(
@@ -523,7 +527,6 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                     intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardSuccess)
                 );
                 refresh();
-                setIsUpdating(false);
             } else {
                 azPortalContext.stopNotification(
                     notificationId,
@@ -539,8 +542,9 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                         error: response?.metadata?.error,
                     },
                 });
-                setIsUpdating(false);
             }
+            setIsUpdating(false);
+            setIsGrafanaUpdating(false);
         },
         [
             fetchAzureMonitorWorkspaceResource,
@@ -548,14 +552,17 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             fetchDataCollectionEndpointResource,
             existingManagedUserIdentityResourceId,
             resourceId,
+            setIsGrafanaUpdating,
             azPortalContext,
             intl,
             refresh,
+            setIsUpdating,
         ]
     );
 
     const onCreateGrafanaDashboard = useCallback(async () => {
         setIsUpdating(true);
+        setIsGrafanaUpdating(true);
 
         const notificationId = azPortalContext.startNotification(
             intl.formatMessage(GrafanaDashboardResources.grafanaCreationTitle),
@@ -579,8 +586,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             },
         });
 
-        setDeploymentId(deploymentResourceId);
         setNotificationId(notificationId);
+        setDeploymentId(deploymentResourceId);
         setProgress(true);
 
         const template = await generateTemplate();
@@ -590,6 +597,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             return deployTemplate(deploymentResourceId, deploymentName, notificationId, template, parameters);
         }
     }, [
+        setIsUpdating,
+        setIsGrafanaUpdating,
         azPortalContext,
         intl,
         resourceGroupId,
@@ -597,6 +606,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         subscriptionId,
         agent?.location,
         agent?.name,
+        setDeploymentId,
+        setNotificationId,
         generateTemplate,
         generateParameters,
         deployTemplate,
@@ -614,7 +625,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     }, [permissionsLoaded, permissions, setHasRbacWritePermission]);
 
     useEffect(() => {
-        if (progress && deploymentId && notificationId) {
+        if ((progress || isGrafanaUpdating) && deploymentId && notificationId) {
             const fetchDeploymentStatus = async () => {
                 const response = await DeploymentClient.getDeployment(deploymentId);
                 const provisioningState = response?.data?.properties?.provisioningState || '';
@@ -632,7 +643,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                         intl.formatMessage(GrafanaDashboardResources.linkGrafanaDashboardInProgress)
                     );
 
-                    const grafanaResourceId = `${resourceGroupId}/providers/${ArmServiceType.DashboardGrafana}/${newGrafanaResourceName}`;
+                    const grafanaResourceId = `${resourceGroupId}/providers/${ArmServiceType.DashboardGrafana}/${response.data.properties?.parameters?.grafanaName.value}`;
 
                     const grafanaResource = await fetchGrafanaResource(grafanaResourceId);
                     const umiResource = await fetchManagedUserIdentityResource();
@@ -675,9 +686,10 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         agent?.location,
         subscriptionId,
         progress,
-        deploymentId,
         notificationId,
         resourceGroupId,
+        isGrafanaUpdating,
+        isUpdating,
         onLinkGrafanaDashboard,
         handleFailedDeployment,
         assignGrafanaRoleToCurrentUser,
@@ -690,7 +702,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         assignGrafanaRoleToManagedIdentity,
         azPortalContext,
         intl,
-        newGrafanaResourceName,
+        deploymentId,
     ]);
 
     useEffect(() => {
@@ -714,7 +726,6 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
 
     return {
         grafanaEndpoint,
-        isUpdating,
         newGrafanaResourceNameErrorMessage,
         agentLoaded,
         newGrafanaResourceName,
@@ -722,6 +733,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         permissionsLoaded,
         grafanaRbacColumns,
         grafanaRbacRoles,
+        isGrafanaUpdating,
+        isUpdating,
         setNewGrafanaResourceName,
         setIsDirty,
         onCreateGrafanaDashboard,
