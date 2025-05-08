@@ -543,7 +543,7 @@ public class MetaAgentEvals
              A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: AKS-Orchestration-0236eab7-7166-43b5-9424-48ee43ef04f6-2025-04-30-12-13-45, thread id is: 0236eab7-7166-43b5-9424-48ee43ef04f6.
             """;
 
-        var userMsg = "Can you show me the AKS APIServer status? cluster name is `prod-shopping-c1`, subscription id is `ea2aa16c-c257-4359-aaea-ff2b0f3b3d10`, resource group name is `rg`";
+        var userMsg = "My AKS app checkout is not responding, please help! cluster name is `prod-shopping-c1`, subscription id is `ea2aa16c-c257-4359-aaea-ff2b0f3b3d10`, resource group name is `rg`";
         var threadMsgs = new List<Message>
         {
             new Message(Guid.Parse(testRunGuid), DateTime.UtcNow, new Author(Role.User, testRunGuid, "testUser"), userMsg),

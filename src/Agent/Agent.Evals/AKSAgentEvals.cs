@@ -239,7 +239,7 @@ public sealed class AKSAgentEvals
                     hasHighMatch = true;
                 }
             }
-            Assert.AreEqual(_mockKubePlugin.AksClusterResourceId, FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName), ignoreCase: true, $"AKS cluster resource ID is not as expected.");
+            Assert.AreEqual(FormatAKSResourceId(_subscriptionId, _resourceGroupName, _aksClusterName), _mockKubePlugin.AksClusterResourceId, ignoreCase: true, $"AKS cluster resource ID is not as expected.");
             if (!hasHighMatch)
             {
                 Assert.Fail("No any high equivalency result match in the chat history, indicates the test failed.");

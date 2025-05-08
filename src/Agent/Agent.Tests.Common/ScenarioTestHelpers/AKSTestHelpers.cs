@@ -27,6 +27,9 @@ public static class AKSTestHelpers
                 .AddSingleton<ContainerAppPluginDefinition>()
                 .AddSingleton(sp => new Mock<IContainerAppPlugin>().Object)
                 .AddSingleton<ReliabilityPluginDefinition>()
-                .AddSingleton(sp => new Mock<IReliabilityPlugin>().Object);
+                .AddSingleton(sp => new Mock<IReliabilityPlugin>().Object)
+                .AddSingleton<IncidentPluginDefinition>()
+                .AddSingleton(sp => new Mock<IIncidentPlugin>().Object);
+
     }
 }
