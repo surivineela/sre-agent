@@ -384,13 +384,14 @@ export const GrafanaDashboardResources = defineMessages({
     userAssignedManagedIdentity: { defaultMessage: 'User Assigned Managed Identity', id: 'lGIJSX' },
     user: { defaultMessage: 'User', id: 'EwRIOm' },
     role: { defaultMessage: 'Role', id: '1ZgrhW' },
-    requiredRoles: {
-        defaultMessage: 'Required roles',
-        id: '/9bvfN',
+    roleAssignments: {
+        defaultMessage: 'Role assignments',
+        id: 'A/xTHO',
     },
     insufficientPermissions: {
-        defaultMessage: 'You do not have the required roleAssignments/write permissions to set up a Grafana dashboard.',
-        id: 'K8gj8f',
+        defaultMessage:
+            'You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard.',
+        id: 'vkNGfn',
     },
     tooltipContent: {
         defaultMessage:

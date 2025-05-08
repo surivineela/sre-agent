@@ -10,5 +10,5 @@ export interface PermissionsCheckResponse {
 }
 
 export enum PermissionActions {
-    RbacWrite = 'Microsoft.Authorization/*/Write',
+    RbacWrite = 'Microsoft.Authorization/roleAssignments/write',
 }

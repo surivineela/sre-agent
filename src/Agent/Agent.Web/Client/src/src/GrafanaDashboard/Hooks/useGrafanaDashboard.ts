@@ -20,6 +20,7 @@ import { DataCollectionRuleClient } from '../../Common/Clients/DataCollectionRul
 import { DeploymentClient } from '../../Common/Clients/DeploymentClient';
 import { GrafanaClient } from '../../Common/Clients/GrafanaClient';
 import { IdentityClient } from '../../Common/Clients/IdentityClient';
+import { PermissionClient } from '../../Common/Clients/PermissionsClient';
 import SreAgentClient from '../../Common/Clients/SreAgentClient';
 import { ProvisioningStates } from '../../Common/Constants/Arm';
 import { ArmObj } from '../../Common/Contracts/Azure/ArmObj';
@@ -29,7 +30,6 @@ import { Guid } from '../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../Common/Helpers/ResourceDescriptors';
 import { equals } from '../../Common/Helpers/Strings';
 import { SreAgentContext } from '../../Space/Contracts/Context';
-import { usePermissions } from '../../Space/Settings/Hooks/usePermissions';
 import { useSreAgent } from '../../Space/Settings/Hooks/useSreAgent';
 import { GrafanaDashboardResources } from '../../Strings/SREAgentResources';
 
@@ -54,7 +54,8 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
     const [existingGrafanaResourceNames, setExistingGrafanaResourceNames] = useState<string[]>([]);
     const [isDirty, setIsDirty] = useState(false);
     const [newGrafanaResourceName, setNewGrafanaResourceName] = useState<string>();
-    const [hasRbacWritePermission, setHasRbacWritePermission] = useState(true);
+    const [permissionsLoaded, setPermissionsLoaded] = useState(false);
+    const [hasRbacWritePermission, setHasRbacWritePermission] = useState<boolean>(false);
 
     const grafanaRbacRoles = useMemo(
         () => [
@@ -154,8 +155,6 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         ],
         [intl]
     );
-
-    const { permissions, permissionsLoaded } = usePermissions(subscriptionId);
 
     const fetchDataCollectionRuleResource = useCallback(
         async (resourceId: string) => {
@@ -613,16 +612,11 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         deployTemplate,
     ]);
 
-    useEffect(() => {
-        if (permissionsLoaded) {
-            permissions?.value.forEach(permission => {
-                if (permission?.notActions?.includes(PermissionActions.RbacWrite)) {
-                    setHasRbacWritePermission(false);
-                    return;
-                }
-            });
-        }
-    }, [permissionsLoaded, permissions, setHasRbacWritePermission]);
+    const fetchPermissions = useCallback(async () => {
+        const response = await PermissionClient.getInstance().hasPermission(resourceGroupId, [PermissionActions.RbacWrite]);
+        setHasRbacWritePermission(response);
+        setPermissionsLoaded(true);
+    }, [resourceGroupId]);
 
     useEffect(() => {
         if ((progress || isGrafanaUpdating) && deploymentId && notificationId) {
@@ -632,6 +626,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
                 if (provisioningState === ProvisioningStates.succeeded) {
                     clearInterval(intervalId);
                     setProgress(false);
+                    setIsGrafanaUpdating(false);
 
                     azPortalContext.stopNotification(
                         notificationId,
@@ -690,6 +685,7 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
         resourceGroupId,
         isGrafanaUpdating,
         isUpdating,
+        setIsGrafanaUpdating,
         onLinkGrafanaDashboard,
         handleFailedDeployment,
         assignGrafanaRoleToCurrentUser,
@@ -723,6 +719,12 @@ export function useGrafanaDashboard(resourceId: string, userPrincipalId?: string
             fetchGrafanaResources();
         }
     }, [agentLoaded, grafanaEndpoint, azPortalContext, subscription, resourceGroup]);
+
+    useEffect(() => {
+        if (!permissionsLoaded) {
+            fetchPermissions();
+        }
+    }, [permissionsLoaded, fetchPermissions]);
 
     return {
         grafanaEndpoint,

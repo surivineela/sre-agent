@@ -45,7 +45,7 @@ const GrafanaDashboard: FC = () => {
 
     return (
         <div className={styles.container}>
-            {!hasRbacWritePermission && permissionsLoaded && agentLoaded && (
+            {!hasRbacWritePermission && permissionsLoaded && agentLoaded && !grafanaEndpoint && (
                 <MessageBar intent="warning" className={styles.messageBar}>
                     <MessageBarBody>{intl.formatMessage(GrafanaDashboardResources.insufficientPermissions)}</MessageBarBody>
                 </MessageBar>
@@ -82,7 +82,7 @@ const GrafanaDashboard: FC = () => {
                         <>
                             <Accordion collapsible>
                                 <AccordionItem value="1">
-                                    <AccordionHeader>{intl.formatMessage(GrafanaDashboardResources.requiredRoles)}</AccordionHeader>
+                                    <AccordionHeader>{intl.formatMessage(GrafanaDashboardResources.roleAssignments)}</AccordionHeader>
                                     <AccordionPanel>
                                         <DetailsList
                                             columns={grafanaRbacColumns}
