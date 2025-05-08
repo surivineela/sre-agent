@@ -40,7 +40,7 @@ import {
     Screenshot24Regular,
 } from '@fluentui/react-icons';
 import { Collapse } from '@fluentui/react-motion-components-preview';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { FaGithub } from 'react-icons/fa';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
 
@@ -294,6 +294,18 @@ const useStyles = makeStyles({
         border: `1px solid ${tokens.colorNeutralStroke2}`,
         fontSize: tokens.fontSizeBase200,
     },
+    reposRemainingTag: {
+        backgroundColor: tokens.colorNeutralBackground4,
+        color: tokens.colorNeutralForeground2,
+        ...shorthands.padding('2px', '10px'),
+        borderRadius: '12px',
+        fontSize: tokens.fontSizeBase200,
+        fontWeight: tokens.fontWeightSemibold,
+        marginLeft: tokens.spacingHorizontalS,
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalXS,
+    },
     healthDot: {
         width: '8px',
         height: '8px',
@@ -478,6 +490,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
     const [expandedFeature, setExpandedFeature] = useState<string | null>(null);
     const [selectedAppIndex, setSelectedAppIndex] = useState(0);
     const [isAnalysisCollapsed, setIsAnalysisCollapsed] = useState(false);
+    const hasAutoCollapsed = useRef(false);
 
     // GitHub linking dialog state
     const [linkDialogOpen, setLinkDialogOpen] = useState(false);
@@ -513,6 +526,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                         // Auto-collapse analysis section if knowledge graph is complete
                         if (data.knowledgeGraphStatus.status === 'Completed') {
                             setIsAnalysisCollapsed(true);
+                            hasAutoCollapsed.current = true;
                         }
                     }
 
@@ -566,6 +580,10 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
         const githubUrlRegex = /^https:\/\/github\.com[/:][\w.-]+\/[\w.-]+\.?(?:git)?$/;
         return githubUrlRegex.test(url);
     };
+
+    const remainingRepos = logicalApps.filter(
+        a => a.sourceCodeLinkageStatus?.status === 'NotLinked' || a.sourceCodeLinkageStatus?.status === 'RequiresAuth'
+    ).length;
 
     /* --------------------------------------------------------------------- */
     /*  4.  EVENT HANDLERS                                                   */
@@ -848,14 +866,26 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                         )}
                         <div className={styles.progressContainer}>
                             <div className={styles.progressHeader}>
-                                <Text size={300} weight="medium">
-                                    Knowledge Graph: {knowledgeGraphStatus?.status || 'Building...'}
+                                <Text
+                                    size={300}
+                                    weight="medium"
+                                    style={{
+                                        color:
+                                            knowledgeGraphStatus?.status === 'Completed' ? tokens.colorPaletteGreenForeground1 : undefined,
+                                    }}
+                                >
+                                    Status: {knowledgeGraphStatus?.status || 'Building...'}
                                 </Text>
                                 <Text size={300} weight="medium">
                                     {scanProgress}%
                                 </Text>
                             </div>
-                            <ProgressBar value={scanProgress / 100} color="brand" thickness="large" style={{ height: '8px' }} />
+                            <ProgressBar
+                                value={scanProgress / 100}
+                                color={knowledgeGraphStatus?.status === 'Completed' ? 'success' : 'brand'}
+                                thickness="large"
+                                style={{ height: '8px' }}
+                            />
                         </div>
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
@@ -890,7 +920,20 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                             <Spinner label="Loading applications" />
                         </div>
                     )}
-
+                    {logicalApps.length > 0 && remainingRepos > 0 && (
+                        <div
+                            className={styles.reposRemainingTag}
+                            style={{
+                                marginBottom: tokens.spacingVerticalM,
+                                display: 'inline-flex',
+                            }}
+                        >
+                            <Link16Regular />
+                            <Text size={200}>
+                                {remainingRepos} repo{remainingRepos > 1 ? 's' : ''} remaining
+                            </Text>
+                        </div>
+                    )}
                     {/* Application List */}
                     {logicalApps.length > 0 && (
                         <div className={styles.applicationList}>
@@ -920,7 +963,12 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                                     <div className={styles.linkStatus}>
                                                         <div
                                                             className={styles.statusDot}
-                                                            style={{ backgroundColor: tokens.colorPaletteGreenForeground1 }}
+                                                            style={{
+                                                                backgroundColor:
+                                                                    app.sourceCodeLinkageStatus.status === 'Linked'
+                                                                        ? tokens.colorPaletteGreenForeground1
+                                                                        : tokens.colorPaletteYellowForeground1,
+                                                            }}
                                                         />
                                                         <Link
                                                             href={app.sourceCodeLinkageStatus.repositoryUrl}
@@ -935,26 +983,6 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                         </div>
                                     </div>
                                     <div style={{ display: 'flex', alignItems: 'center', gap: tokens.spacingHorizontalL }}>
-                                        {/* Health Status */}
-                                        <div className={styles.healthTag}>
-                                            <div
-                                                className={styles.healthDot}
-                                                style={{
-                                                    backgroundColor:
-                                                        app.properties?.health === 'Healthy'
-                                                            ? tokens.colorPaletteGreenForeground1
-                                                            : app.properties?.health === 'Warning'
-                                                              ? tokens.colorPaletteYellowForeground1
-                                                              : app.properties?.health === 'Critical'
-                                                                ? tokens.colorPaletteRedForeground1
-                                                                : tokens.colorNeutralForeground3,
-                                                }}
-                                            />
-                                            <Text size={200} weight="semibold" style={{ color: tokens.colorNeutralForeground2 }}>
-                                                {app.properties?.health || 'Unknown'}
-                                            </Text>
-                                        </div>
-
                                         {/* Link Repository Button */}
                                         {app.sourceCodeLinkageStatus?.status === 'NotLinked' && (
                                             <Button
@@ -970,14 +998,35 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                         {/* Authentication Required Button */}
                                         {app.sourceCodeLinkageStatus?.status === 'RequiresAuth' &&
                                             app.sourceCodeLinkageStatus?.loginCallbackUrl && (
-                                                <Button
-                                                    appearance="primary"
-                                                    size="medium"
-                                                    icon={<ArrowRight16Regular />}
-                                                    href={app.sourceCodeLinkageStatus.loginCallbackUrl}
-                                                >
-                                                    Authenticate with GitHub
-                                                </Button>
+                                                <>
+                                                    {app.sourceCodeLinkageStatus.repositoryUrl && (
+                                                        <div style={{ marginBottom: '8px', display: 'flex', alignItems: 'center' }}>
+                                                            <FaGithub style={{ margin: '0 4px 0 0' }} />
+                                                            <a
+                                                                href={app.sourceCodeLinkageStatus.repositoryUrl}
+                                                                target="_blank"
+                                                                rel="noopener noreferrer"
+                                                            >
+                                                                {app.sourceCodeLinkageStatus.repositoryUrl}
+                                                            </a>
+                                                        </div>
+                                                    )}
+
+                                                    <Button
+                                                        appearance="primary"
+                                                        size="medium"
+                                                        icon={<ArrowRight16Regular />}
+                                                        onClick={() =>
+                                                            window.open(
+                                                                app.sourceCodeLinkageStatus.loginCallbackUrl!,
+                                                                'githubAuth',
+                                                                'width=600,height=700'
+                                                            )
+                                                        }
+                                                    >
+                                                        Authenticate
+                                                    </Button>
+                                                </>
                                             )}
                                     </div>
                                 </div>
@@ -994,6 +1043,14 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                     <Text weight="semibold" size={500}>
                         Active Integrations
                     </Text>
+                    {integrations.length > 0 && (
+                        <div className={styles.reposRemainingTag} style={{ marginLeft: tokens.spacingHorizontalM }}>
+                            <ArrowSync24Regular style={{ fontSize: '14px' }} />
+                            <Text size={200}>
+                                {integrations.filter(i => i.isActive).length}/{integrations.length} active
+                            </Text>
+                        </div>
+                    )}
                 </div>
                 <div className={styles.sectionContent}>
                     {integrations.length === 0 ? (

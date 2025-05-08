@@ -124,6 +124,8 @@ public class TimerService : IHostedService, IDisposable
     private bool _githubAccessTokenTimerIsRunning = false;
     private TimeSpan _githubAccessTokenTimerInterval = TimeSpan.FromMinutes(1);
 
+    private Timer? _pagerDutyWelcomeTimer;
+
     private Timer? _logFlushTimer = null;
     private bool _logFlushTimerIsRunning = false;
     private TimeSpan _logFlushTimerInterval = TimeSpan.FromSeconds(30);
@@ -131,7 +133,6 @@ public class TimerService : IHostedService, IDisposable
     private List<ScannerTimerInformation> GenericSubAgentScannerTimers = new();
 
     private bool _pagerDutyWelcomeSent = false;
-    private Timer? _pagerDutyWelcomeTimer = null;
 
 
     public TimerService(
@@ -207,6 +208,9 @@ public class TimerService : IHostedService, IDisposable
 
         StartCrawlerTimer(cancellationToken);
 
+        _logger.LogInternalInformation("Starting Send Welcome Message timer...");
+        SendWelcomeMessageTimer(cancellationToken);
+
         _logger.LogInternalInformation($"Starting TLS timer...");
         StartTlsTimer(cancellationToken);
 
@@ -214,7 +218,7 @@ public class TimerService : IHostedService, IDisposable
         StartDailyReportTimer(cancellationToken);
 
         _logger.LogInternalInformation($"Starting Source Code timer...");
-        StartSourceCodeTimer(cancellationToken);
+        //StartSourceCodeTimer(cancellationToken);
 
         _logger.LogInternalInformation($"Starting CVE timer...");
         StartCVETimer(cancellationToken);
@@ -229,14 +233,11 @@ public class TimerService : IHostedService, IDisposable
 
         _logger.LogInternalInformation($"Finished starting background services");
 
-        _logger.LogInternalInformation("Starting Send Welcome Message timer...");
-        SendWelcomeToPagerDutyMessageTimer(cancellationToken);
-
         _logger.LogInternalInformation("Starting Feedback RCA timer...");
         StartFeedbackRCATimer(cancellationToken);
 
         _logger.LogInternalInformation("Starting GitHub access token timer...");
-        StartGitHubAccessTokenTimer(cancellationToken);
+        //StartGitHubAccessTokenTimer(cancellationToken);
 
         // Disabling this for now to avoid spamming threads.
         //_logger.LogInformation("Starting Azure Monitor Alert Scanner timer ...");
@@ -338,7 +339,7 @@ public class TimerService : IHostedService, IDisposable
             {
                 _tlsTimerIsRunning = false;
             }
-        }, null, TimeSpan.Zero, _tlsTimerInterval);
+        }, null, TimeSpan.FromMinutes(5), _tlsTimerInterval);
 
     }
 
@@ -402,7 +403,7 @@ public class TimerService : IHostedService, IDisposable
             {
                 _cveCrawlerTimerIsRunning = false;
             }
-        }, null, TimeSpan.Zero, _cveCrawlerTimerInterval);
+        }, null, TimeSpan.FromMinutes(5), _cveCrawlerTimerInterval);
 
     }
 
@@ -436,7 +437,7 @@ public class TimerService : IHostedService, IDisposable
                 {
                     scanner.IsRunning = false;
                 }
-            }, null, TimeSpan.Zero, scanner.Interval);
+            }, null, TimeSpan.FromMinutes(5), scanner.Interval);
         }
     }
 
@@ -468,7 +469,7 @@ public class TimerService : IHostedService, IDisposable
             {
                 _dailyReportTimerIsRunning = false;
             }
-        }, null, TimeSpan.Zero, _dailyReportTimerInterval);
+        }, null, TimeSpan.FromMinutes(5), _dailyReportTimerInterval);
     }
 
     public void StartScoreCardTimer(CancellationToken cancellationToken)
@@ -527,24 +528,18 @@ public class TimerService : IHostedService, IDisposable
         }, null, TimeSpan.Zero, _appServiceTimerInterval);
     }
 
-    public void SendWelcomeToPagerDutyMessageTimer(CancellationToken cancellationToken)
+    public void SendWelcomeMessageTimer(CancellationToken cancellationToken)
     {
         _pagerDutyWelcomeTimer = new Timer(async _ =>
         {
             if (_pagerDutyWelcomeSent)
             {
-                _logger.LogInternalInformation("PagerDuty welcome message already sent, skipping.");
+                _logger.LogInternalInformation("Welcome message already sent, skipping.");
                 return;
             }
 
             try
             {
-                if (!_crawlerFinishedOnce)
-                {
-                    _logger.LogInternalInformation("Waiting for first crawler run to complete before sending PagerDuty welcome message.");
-                    return;
-                }
-
                 var welcomeThreads = await _repository.GetThreadsBySourceAsync(null, ThreadSource.WelcomeMessage);
                 if (welcomeThreads.Any())
                 {
@@ -553,7 +548,7 @@ public class TimerService : IHostedService, IDisposable
                 }
 
                 var messageBuilder = new StringBuilder();
-                messageBuilder.AppendLine("\"I've shared some important updates above. Do you have any questions about these changes, or is there anything specific about your system reliability I can help with today? Feel free to ask about monitoring, incident response, performance optimization, or any other reliability concerns.");
+                messageBuilder.AppendLine("I've shared some important updates above. Do you have any questions about these changes, or is there anything specific about your system reliability I can help with today? Feel free to ask about monitoring, incident response, performance optimization, or any other reliability concerns.");
                 var title = "Hi There! I'm here to keep your systems running smoothly";
 
                 (var _, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
@@ -570,7 +565,7 @@ public class TimerService : IHostedService, IDisposable
             {
                 _logger.LogInternalError(ex, "Error sending PagerDuty welcome message.");
             }
-        }, null, TimeSpan.Zero, TimeSpan.FromMinutes(2));
+        }, null, TimeSpan.Zero, TimeSpan.FromSeconds(10));
     }
 
     public void StartFeedbackRCATimer(CancellationToken cancellationToken)
