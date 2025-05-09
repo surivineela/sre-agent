@@ -341,6 +341,15 @@ public class InboundCommunicationService : IAgentInboundCommunicationService
 
         await AddNewDiscussionsToIncidentThread(thread.Id, discussions);
 
+        // add reasoning logic
+        var reasoningMessage = "I would now investigate the issue and take necessary actions to automatically remediate issues accepting all next steps. I would try to be as autonomous as possible.";
+        await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            Guid.NewGuid(),
+            agentContext.Id,
+            ReasoningMessageRoleEnum.System,
+            reasoningMessage
+        ));
+
         var agentMessage = $"**Detected the incident**. I'm starting to investigate and see how I can help.";
         await _repository.AddMessageAsync(thread.Id, new Message(Guid.NewGuid(), DateTime.UtcNow, new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"), agentMessage));
 
