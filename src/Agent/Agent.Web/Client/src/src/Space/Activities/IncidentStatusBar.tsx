@@ -20,13 +20,19 @@ const IncidentStatusBar = (props: IncidentStatusBarProps) => {
     return (
         <div className={styles.container}>
             <TimeDropdown selectedTime={selectedTime} setSelectedTime={setSelectedTime} />
-            <StatusItem active={true} count={incidentMetrics?.activeCount ?? 0} label={intl.formatMessage(MetricsResources.active)} />
-            <StatusItem
-                active={false}
-                count={incidentMetrics?.mitigatedCount ?? 0}
-                label={intl.formatMessage(MetricsResources.mitigated)}
-            />
-            <StatusItem active={false} count={incidentMetrics?.resolvedCount ?? 0} label={intl.formatMessage(MetricsResources.resolved)} />
+            <div className={styles.innerContainerNoBorder}>
+                <StatusItem active={true} count={incidentMetrics?.activeCount ?? 0} label={intl.formatMessage(MetricsResources.active)} />
+                <StatusItem
+                    active={false}
+                    count={incidentMetrics?.mitigatedCount ?? 0}
+                    label={intl.formatMessage(MetricsResources.mitigated)}
+                />
+                <StatusItem
+                    active={false}
+                    count={incidentMetrics?.resolvedCount ?? 0}
+                    label={intl.formatMessage(MetricsResources.resolved)}
+                />
+            </div>
         </div>
     );
 };

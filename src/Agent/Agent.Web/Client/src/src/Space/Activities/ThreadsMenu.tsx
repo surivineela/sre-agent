@@ -19,7 +19,7 @@ import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { Text } from '@fluentui/react/lib/Text';
 import debounce from 'lodash/debounce';
-import { FC, memo, useContext, useMemo, useState } from 'react';
+import { FC, memo, useCallback, useContext, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { IncidentStatus, Thread, ThreadSource } from '../../Common/Contracts/Azure/SreAgent';
 import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
@@ -55,6 +55,27 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
     const [collapsed, setCollapsed] = useState(false);
     const ThreadMenuStyles = useThreadMenuStyle(collapsed);
     const intl = useIntl();
+
+    const [isCriticalClicked, setIsCriticalClicked] = useState<boolean>(false);
+    const [isWarningClicked, setIsWarningClicked] = useState<boolean>(false);
+
+    const handleCriticalClick = useCallback(() => {
+        setIsCriticalClicked(prev => {
+            const next = !prev;
+            setIsWarningClicked(false);
+            setThreadActionFilter(next ? ThreadActionFilter.critical : ThreadActionFilter.all);
+            return next;
+        });
+    }, [setIsCriticalClicked, setThreadActionFilter, setIsWarningClicked]);
+
+    const handleWarningClick = useCallback(() => {
+        setIsWarningClicked(prev => {
+            const next = !prev;
+            setIsCriticalClicked(false);
+            setThreadActionFilter(next ? ThreadActionFilter.warning : ThreadActionFilter.all);
+            return next;
+        });
+    }, [setIsCriticalClicked, setThreadActionFilter, setIsWarningClicked]);
 
     const { actionSeverityMetrics, incidentMetrics, actionStatusMetrics } = useMetrics(selectedTime);
 
@@ -116,6 +137,7 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                     maxWidth: 'fit-content',
                     marginLeft: '10px',
                     marginTop: '-10px',
+                    marginRight: '10px',
                 }}
                 icon={<AddRegular />}
                 disabled={!threadsInitialized}
@@ -143,6 +165,8 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                     maxWidth: 'fit-content',
                     marginLeft: '10px',
                     marginTop: '-10px',
+                    marginRight: '10px',
+                    minWidth: 'unset',
                 }}
                 icon={<AddRegular />}
                 disabled={!threadsInitialized}
@@ -165,6 +189,7 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                 }}
                 layout="horizontal"
                 disabled={!threadsInitialized}
+                style={{ flexWrap: 'wrap' }}
             >
                 <Radio value={ThreadMode.threads} label={intl.formatMessage(SreAgentResources.allThreads)} />
                 <Radio value={ThreadMode.incidents} label={intl.formatMessage(SreAgentResources.incidents)} />
@@ -176,8 +201,10 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
                     setThreadActionFilter={setThreadActionFilter}
                     actionSeverityMetrics={actionSeverityMetrics}
                     actionStatusMetrics={actionStatusMetrics}
-                    onWarningClick={clicked => setThreadActionFilter(clicked ? ThreadActionFilter.warning : ThreadActionFilter.all)}
-                    onCriticalClick={clicked => setThreadActionFilter(clicked ? ThreadActionFilter.critical : ThreadActionFilter.all)}
+                    isWarningClicked={isWarningClicked}
+                    onWarningClick={handleWarningClick}
+                    isCriticalClicked={isCriticalClicked}
+                    onCriticalClick={handleCriticalClick}
                 />
             ) : (
                 <IncidentStatusBar selectedTime={selectedTime} setSelectedTime={setSelectedTime} incidentMetrics={incidentMetrics} />

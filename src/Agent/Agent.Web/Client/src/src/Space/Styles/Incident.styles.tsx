@@ -9,6 +9,7 @@ export const useActionsStatusBarStyles = makeStyles({
         paddingTop: 0,
         gap: '10px',
         borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
+        flexWrap: 'wrap',
     },
     containerNoBorder: {
         display: 'flex',
@@ -17,6 +18,13 @@ export const useActionsStatusBarStyles = makeStyles({
         padding: '0px',
         gap: '10px',
         marginTop: '-5px',
+        flexWrap: 'wrap',
+    },
+    innerContainerNoBorder: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: '10px',
+        flexWrap: 'wrap',
     },
     statusGroup: {
         display: 'flex',

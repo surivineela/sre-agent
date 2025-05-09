@@ -201,7 +201,6 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
     const searchBox: IStyle = {
         margin: '0px 10px',
         borderRadius: tokens.borderRadiusLarge,
-        width: '280px',
     };
 
     const threadItem: IStyle = {
