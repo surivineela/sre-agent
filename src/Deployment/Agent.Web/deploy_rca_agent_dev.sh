@@ -5,8 +5,9 @@ set -e
 subscription=${1:-""}
 region=${2:-""}
 resourceGroup=${3:-""}
-acrName=${4:-""}
-includeFirstPartyConfiguration=${5:-""}
+agentName=${4:-""}
+acrName=${5:-""}
+includeFirstPartyConfiguration=${6:-""}
 
 # Prompt for subscription, region, and resource group
 if [ -z "$subscription" ]; then
@@ -19,6 +20,10 @@ fi
 
 if [ -z "$resourceGroup" ]; then
     read -p "Enter the Azure resource group name: " resourceGroup
+fi
+
+if [ -z "$agentName" ]; then
+    read -p "Enter the SRE Agent name: " agentName
 fi
 
 # Set the subscription
@@ -137,6 +142,7 @@ az deployment group create \
                  managedIdentitySubscriptionId="$managedIdentitySubscription" \
                  managedIdentityNameForKustoAccess="$managedIdentityName" \
                  managedIdentityResourceGroupName="$managedIdentityResourceGroup" \
+                 agentName="$agentName" \
                  agentImage="$imageName" \
                  registryUserName="$registryUserName" \
                  registryPassword="$registryPassword"\

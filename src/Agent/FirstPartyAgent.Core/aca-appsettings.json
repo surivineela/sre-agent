@@ -1,6 +1,14 @@
 {
   "AppSettings": {
     "Core": {
+      "Azure": {
+        "OpenSupportTickets": false,
+        "AppInsights": {
+          "ConnectionString": "",
+          "AppId": "",
+          "ApiKey": ""
+        }
+      },
       "External": {
         "ICMWorkflows": {
           "Enabled": true,
@@ -269,12 +277,12 @@
             }
           ],
           "Auth": {
-            "AuthenticationType": "User",
+            "AuthenticationType": "UAMI",
             "Authority": "",
             "AuthorityHost": "",
             "ApplicationClientId": "",
             "ApplicationCertificate": "",
-            "ManagedIdentityClientId": ""
+            "ManagedIdentityClientId": "5cc4f734-a234-443c-9092-04e06a2b80c2"
           }
         }
       }

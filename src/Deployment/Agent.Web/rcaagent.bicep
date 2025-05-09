@@ -16,7 +16,7 @@ param managedIdentitySubscriptionId string = 'be8d491e-109c-4ee1-aaee-dc7615af0a
 param logAnalyticsWorkspaceName string = 'RCAAgent-log-analytics'
 
 @description('The name of the RCA agent.')
-param agentName string = 'RCAAgent'
+param agentName string
 
 @description('The container image for the RCA agent.')
 param agentImage string

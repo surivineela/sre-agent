@@ -1,0 +1,14 @@
+{
+  "AppSettings": {
+    "Core": {
+      "External": {
+        "Kusto": {
+          "Auth": {
+            "AuthenticationType": "User",
+            "ManagedIdentityClientId": ""
+          }
+        }
+      }
+    }
+  }
+}

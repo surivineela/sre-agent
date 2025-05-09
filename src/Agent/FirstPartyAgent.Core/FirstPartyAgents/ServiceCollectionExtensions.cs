@@ -40,6 +40,11 @@ public static class ServiceCollectionExtensions
     {
         // Load static appsettings which are applicable for ACA 1P RCA Agent.
         builder.Configuration.AddJsonFile("aca-appsettings.json", optional: false, reloadOnChange: true); //load base settings
+        // load development setting if env is local
+        if (builder.Environment.IsDevelopment())
+        {
+            builder.Configuration.AddJsonFile("aca-appsettings.development.json", optional: false, reloadOnChange: true);
+        }
 
         // TODO: Load config dynamically
         // 1. Read AppSettings:Core:External.*.* environment variables. Example:  "AppSettings__Core__External__ICMWorkflows__UserToken" : "keyVaultSecretUri"

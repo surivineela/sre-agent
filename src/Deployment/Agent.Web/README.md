@@ -121,13 +121,20 @@ Example `Auth` configuration:
 
 - Use the following command to publish the .NET application and build the Docker image:
   ```bash
-  ./deploy_rca_agent_dev.sh <subscriptionId> <location> <rg name> <acr name> <includeFirstPartyConfig>
+  ./deploy_rca_agent_dev.sh <subscriptionId> <location> <rg name> <sre agent name> <acr name> <includeFirstPartyConfig>
   ```
 
   **Example Command**:
+  - Private Test
   ```bash
-  ./deploy_rca_agent_dev.sh 79ab50cf-1b41-4b24-a33f-26c8940f4469 swedencentral tdarolyrcaagentrg rcaagentacrtdaroly true
+  ./deploy_rca_agent_dev.sh 79ab50cf-1b41-4b24-a33f-26c8940f4469 swedencentral tdarolyrcaagentrg tdarolyrcaagent rcaagentacrtdaroly true
   ```
+
+  - Dogfood environment
+  ```bash
+  ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgentDogfood-rg RCAAgentDogfood rcaagentacrdogfood true
+  ```
+  
 
   **Error Scenario**:
   If the agent creation fails with the following error:
@@ -158,12 +165,12 @@ Example `Auth` configuration:
   **Example Commands**:
   - First Run (to bypass validation):
     ```bash
-    ./deploy_rca_agent_dev.sh 79ab50cf-1b41-4b24-a33f-26c8940f4469 swedencentral tdarolyrcaagentrg rcaagentacrtdaroly false
+    ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent rcaagentacr false
     ```
 
   - Subsequent Runs (after validation):
     ```bash
-    ./deploy_rca_agent_dev.sh 79ab50cf-1b41-4b24-a33f-26c8940f4469 swedencentral tdarolyrcaagentrg rcaagentacrtdaroly true
+    ./deploy_rca_agent_dev.sh be8d491e-109c-4ee1-aaee-dc7615af0a42 swedencentral ACA1PAgent-rg RCAAgent rcaagentacr true
     ```
 
 ---
@@ -171,15 +178,5 @@ Example `Auth` configuration:
 ### 4. Modifying the First Party Configuration
 
 The Bicep template used to create and deploy this agent is `rcaagent.bicep`. Note that to include the custom image, these fields need to be populated.
-
-**Example Configuration**:
-```json
-"firstPartyConfiguration": {
-  "agentImageConfiguration": {
-    "imageName": "rcaagentacr.azurecr.io/rcaagent/agent:v2.4",
-    "registryUserName": "rcaagentacr", 
-    "registryPassword": "redacted"
-  }
-}
 
 ---
