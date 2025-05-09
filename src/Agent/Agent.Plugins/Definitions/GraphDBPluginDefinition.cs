@@ -212,16 +212,23 @@ namespace Agent.Plugins
 
         [KernelFunction("ListResourcesByType")]
         [Description("Returns a list of Azure resources of a specified type with their property details as recorded in the knowledge graph. You can optionally specify one addtional filter condition " +
-            "This function is useful when you need to: 1) Get an inventory of resources of a specific type and any additional filter on property, " +
+            "This function is useful when you need to: " +
+            "1) Get an inventory of resources of a specific type and any additional filter on property, " +
             "2) Examine tracked configuration properties of resources, " +
             "3) Gather metadata for resources across your Azure environment, or " +
             "The output is a list of resource objects with all their properties. " +
-            "Each resource includes details like name, location, resource group, and type-specific configuration.")]
-        public async Task<List<Dictionary<string, object>>> ListResourcesByType([Description("The Azure resource type to query (e.g., 'microsoft.app/containerapps', 'microsoft.app/containerapps/revisions, 'microsoft.compute/virtualmachines', 'microosft.web/sites' for webapps/app serivce")] string resourceType,
-            [Description("The property name to filter on (for example, resourceGroupName). This is optional, if no additional filter is needed, pass an empty string")] string propertyName,
-            [Description("The property value to match. This is optional, if no additional filter is needed, pass an empty string")] string propertyValue)
+            "Each resource includes details like name, location, resource group, and type-specific configuration." +
+            "Use pagination with 'skip' and 'take'. If user asked for listing all resources, set 'take' to a negative number like -1 to return all resources without pagination." +
+            "If the total number of matching resources is large, only the first 50 will be returned." +
+            "The agent should inform the user that the list is partial if more resources exist, and offer to retrieve more if needed.")]
+        public async Task<List<Dictionary<string, object>>> ListResourcesByType(
+            [Description("The Azure resource type to query (e.g., 'microsoft.compute/virtualmachines')")] string resourceType,
+            [Description("Property name to filter on (e.g., 'resourceGroupName'). Optional.")] string propertyName,
+            [Description("Value of the property to filter on. Optional.")] string propertyValue,
+            [Description("Number of results to skip for pagination. Default is 0.")] int skip = 0,
+            [Description("Number of results to return. Use 0 or negative to return all. Default is 50.")] int take = 50)
         {
-            return await _plugin.ListResourcesByTypeAsync(resourceType, propertyName, propertyValue);
+            return await _plugin.ListResourcesByTypeAsync(resourceType, propertyName, propertyValue, skip, take);
         }
 
         [Description("Returns a general dashboard provided as daily reports for Resource Counts recorded in the knowledge graph. " +

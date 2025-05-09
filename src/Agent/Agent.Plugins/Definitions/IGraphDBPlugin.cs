@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 
 namespace Agent.Plugins
@@ -157,7 +156,7 @@ namespace Agent.Plugins
         /// </summary>
         /// <param name="resourceType">The type of resource to query (e.g., 'microsoft.app/containerapps')</param>
         /// <returns>A list of dictionaries containing all properties for each resource of the specified type.</returns>
-        Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName = "", string propertyValue = "");
+        Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50);
 
         /// <summary>
         /// Retrieves comprehensive information about all managed Azure resources.

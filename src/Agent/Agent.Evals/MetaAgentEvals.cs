@@ -239,10 +239,10 @@ public class MetaAgentEvals
 
         var mockGraphDbPlugin = new Mock<IGraphDBPlugin>();
         // when filters are passed, return empty to force it go throught list+get mode
-        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
+        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), 0, -1)).
             ReturnsAsync([]);
         // return all function apps in graph
-        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), "", "")).
+        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), "", "", 0, -1)).
             ReturnsAsync(
             [
                 // web app
@@ -351,8 +351,8 @@ public class MetaAgentEvals
 
         await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
 
-        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.AtLeastOnce);
-        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), "", ""), Times.Once);
+        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), 0, -1), Times.AtLeastOnce);
+        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), "", "", 0, -1), Times.Once);
         mockGraphDbPlugin.Verify(s => s.GetResourceDetailedProperties(It.IsAny<string>()), Times.AtLeastOnce);
 
     }
@@ -481,10 +481,10 @@ public class MetaAgentEvals
 
         var mockGraphDbPlugin = new Mock<IGraphDBPlugin>();
         // when filters are passed, return empty to force it go throught list+get mode
-        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).
+        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), 0, -1)).
             ReturnsAsync([]);
         // return all function apps in graph
-        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), "", "")).
+        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), "", "", 0, -1)).
             ReturnsAsync(
             [
                 // the correct name
@@ -522,8 +522,8 @@ public class MetaAgentEvals
 
         await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
 
-        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()), Times.AtLeastOnce);
-        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), "", ""), Times.Once);
+        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), 0, -1), Times.AtLeastOnce);
+        mockGraphDbPlugin.Verify(s => s.ListResourcesByTypeAsync(It.IsAny<string>(), "", "", 0, -1), Times.Once);
     }
 
     [TestMethod]

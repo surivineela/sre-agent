@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Text.Json;
-using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Graph.Schema;
 using Gremlin.Net.Driver;
@@ -170,7 +169,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue)
+        public Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
         {
             throw new NotImplementedException();
         }

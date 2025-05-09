@@ -909,22 +909,30 @@ g.V().has('id', '{deploymentResourceId}')
             return $"Dashboard URL: {_dashboardSettings.GrafanaUrl}/d/azure-sre-resources/sre-azure-resource-overview?orgId=1&refresh=1m";
         }
 
-        public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(string resourceType, string propertyName, string propertyValue)
+        public async Task<List<Dictionary<string, object>>> ListResourcesByTypeAsync(
+            string resourceType, string propertyName, string propertyValue, int skip = 0, int take = 50)
         {
             try
             {
-                // only return basic properties
                 string query = $@"g.V().hasLabel('{resourceType.ToLower()}')";
 
                 if (!string.IsNullOrEmpty(propertyName) && !string.IsNullOrEmpty(propertyValue))
                 {
                     query += $".has('{propertyName}', '{propertyValue}')";
                 }
+
                 query += @".project('subscriptionId', 'resourceGroupName', 'resourceName', 'resourceType')
                     .by(coalesce(values('subscriptionId'), constant('')))
                     .by(coalesce(values('resourceGroupName'), constant('')))
                     .by(coalesce(values('resourceName'), constant('')))
                     .by(coalesce(values('resourceType'), constant('')))";
+
+                // Add skip and take only if take > 0
+                if (take > 0)
+                {
+                    query += $".skip({skip}).limit({take})";
+                    _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, resourceType);
+                }
 
                 var result = await GraphDbClient.Query(query);
                 var resources = new List<Dictionary<string, object>>();
@@ -933,13 +941,11 @@ g.V().has('id', '{deploymentResourceId}')
                 {
                     // Create a new dictionary for each resource
                     var propertyBag = new Dictionary<string, object>();
-
                     // Add label
                     propertyBag["subscriptionId"] = item["subscriptionId"]?.ToString();
                     propertyBag["resourceGroupName"] = item["resourceGroupName"]?.ToString();
                     propertyBag["resourceName"] = item["resourceName"]?.ToString();
                     propertyBag["resourceType"] = item["resourceType"]?.ToString();
-
                     resources.Add(propertyBag);
                 }
 
