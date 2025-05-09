@@ -555,6 +555,10 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
         var subscriptionId = Environment.GetEnvironmentVariable("AGENT_SUBSCRIPTION_ID") ?? string.Empty;
         var resourceGroup = Environment.GetEnvironmentVariable("AGENT_RESOURCE_GROUP") ?? string.Empty;
         var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? string.Empty;
+        if (agentName.Contains("--"))
+        {
+            agentName = agentName.Substring(0, agentName.LastIndexOf("--"));
+        }
 
         var flags = string.Empty;
         flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=canary&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D";
