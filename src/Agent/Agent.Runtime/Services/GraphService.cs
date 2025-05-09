@@ -94,7 +94,7 @@ public class GraphService : IGraphService
     {
         _logger.LogInternalInformation("Querying app groups with repositories from graph database");
         string query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}'))
-                         .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp')
+                         .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp', 'clusterResourceId')
                          .by(coalesce(values('resourceId'), constant('')))
                          .by(coalesce(values('resourceName'), constant('')))
                          .by(label())
@@ -109,7 +109,8 @@ public class GraphService : IGraphService
                                     out('{ArmConstants.Relationships.ServesCode}').values('updateTs'),
                                     constant(0)
                                 )
-                         )";
+                         )
+                         .by(coalesce(values('clusterResourceId'), constant('')))";
 
         var azureResourceApps = await _graphDatabaseClient.Query<Dictionary<string, object>>(query);
         _logger.LogInternalInformation("Found {count} app groups with repositories", azureResourceApps.Count);
@@ -120,6 +121,12 @@ public class GraphService : IGraphService
             string type = item["type"]?.ToString() ?? string.Empty;
             string repoUrl = item["repo"]?.ToString() ?? string.Empty;
             long linkedTimestamp = Convert.ToInt64(item["linkedTimestamp"] ?? 0);
+
+            if (type == ArmConstants.AzureKubernetesServiceDeploymentType.ToLower() || type == ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower())
+            {
+                // For Kubernetes resources, use the clusterResourceId
+                resourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
+            }
 
             return new IGraphService.AppGroupWithRepo(resourceId, name, type, repoUrl, linkedTimestamp == 0 ? null : new DateTime(linkedTimestamp, DateTimeKind.Utc));
         }).ToList();

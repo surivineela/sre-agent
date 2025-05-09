@@ -46,8 +46,10 @@ public record SourceCodeLinkageStatus(
     [property: JsonPropertyName("loginCallbackUrl")] string? LoginCallbackUrl // present if status is RequiresAuth
 );
 public record LogicalApplication(
+    [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("resourceId")] string ResourceId,
-    [property: JsonPropertyName("sourceCodeLinkageStatus")] SourceCodeLinkageStatus SourceCodeLinkageStatus
+    [property: JsonPropertyName("sourceCodeLinkageStatus")] SourceCodeLinkageStatus SourceCodeLinkageStatus,
+    [property: JsonPropertyName("subType")] string SubType
 );
 
 public record WelcomeMessage(

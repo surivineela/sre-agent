@@ -365,6 +365,7 @@ export interface SourceCodeLinkageStatus {
 export interface LogicalApplication {
     resourceId: string;
     name?: string;
+    subType: string;
     properties?: {
         type?: string;
         health?: ResourceHealth;
@@ -446,7 +447,7 @@ const resolveIcon = (azureType?: string): string => {
 };
 
 // Get friendly name for resource type (copied from GraphCard.tsx)
-const getFriendlyName = (azureType?: string): string => {
+const getFriendlyName = (azureType?: string, subType?: string): string => {
     if (!azureType) return 'Resource';
     const FRIENDLY_NAMES: Record<string, string> = {
         containerapp: 'Container App',
@@ -471,6 +472,14 @@ const getFriendlyName = (azureType?: string): string => {
         nsg: 'Network Security Group',
         networksecuritygroup: 'Network Security Group',
     };
+
+    if (subType == 'k8s/apps/v1/deployments') {
+        return 'Kubernetes Deployment';
+    }
+    if (subType == 'k8s/apps/v1/statefulsets') {
+        return 'Kubernetes StatefulSet';
+    }
+
     const t = azureType.toLowerCase();
     const match = Object.keys(FRIENDLY_NAMES).find(k => t.includes(k));
     if (match) return FRIENDLY_NAMES[match];
@@ -567,7 +576,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                         const enhancedApps = data.logicalApplications.map((app, _) => {
                             // Extract application name from resourceId
                             const resourceParts = app.resourceId.split('/');
-                            const name = resourceParts[resourceParts.length - 1];
+                            const name = app.name;
 
                             // Extract resource type from resourceId
                             const resourceType = resourceParts[resourceParts.length - 2];
@@ -578,6 +587,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                 name: name,
                                 properties: {
                                     type: resourceType,
+                                    subType: app.subType,
                                     health: 'Unknown' as ResourceHealth,
                                 },
                             };
@@ -1021,7 +1031,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                                 {app.properties?.type ? (
                                                     <img
                                                         src={resolveIcon(app.properties.type)}
-                                                        alt={getFriendlyName(app.properties.type)}
+                                                        alt={getFriendlyName(app.properties.type, app.subType)}
                                                         width={24}
                                                         height={24}
                                                     />
@@ -1031,7 +1041,9 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                             </div>
                                             <div className={styles.applicationInfo}>
                                                 <Text className={styles.applicationName}>{app.name || 'Resource'}</Text>
-                                                <Text className={styles.applicationSubtext}>{getFriendlyName(app.properties?.type)}</Text>
+                                                <Text className={styles.applicationSubtext}>
+                                                    {getFriendlyName(app.properties?.type, app.subType)}
+                                                </Text>
 
                                                 {/* Repository Link Status */}
                                                 {app.sourceCodeLinkageStatus?.status === 'Linked' &&

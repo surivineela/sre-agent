@@ -370,7 +370,7 @@ namespace Agent.Web.Controllers.v1
                     _ => new SourceCodeLinkageStatus(SourceCodeLinkageStatusEnum.NotLinked, null, null, null)
                 };
 
-                return new LogicalApplication(appGroup.ResourceId, sourceCodeLinkageStatus);
+                return new LogicalApplication(appGroup.Name, appGroup.ResourceId, sourceCodeLinkageStatus, appGroup.Type);
             }).ToList();
 
             var welcomeMessage = new WelcomeMessage(
