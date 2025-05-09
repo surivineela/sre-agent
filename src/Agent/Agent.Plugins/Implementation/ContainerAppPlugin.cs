@@ -367,7 +367,7 @@ namespace Agent.Plugins.Implementation
                     return false;
                 }
 
-                var credential = _authService.GetArmReadOperationCredential();
+                var credential = _authService.GetArmOperationCredential();
                 var armClient = new ArmClient(credential);
 
                 // Get the Container App
