@@ -64,8 +64,11 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
                 StringBuilder newBody = new(body);
 
                 newBody.AppendLine();
-                string agentHost = Environment.GetEnvironmentVariable("AGENT_ENDPOINT") ?? "https://localhost";
-                string agentDeepLink = $"{agentHost}/static/views/activities/threads/{this.ThreadId?.ToString()}";
+                newBody.AppendLine("---");
+                string agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? "SRE Agent";
+                newBody.AppendLine($"*This issue was created by {agentName}*");
+
+                string agentDeepLink = GenerateThreadLink(this.ThreadId?.ToString());
                 newBody.AppendLine($"Tracked by the SRE agent [here]({agentDeepLink})");
 
                 var issue = new NewIssue(title)
@@ -544,6 +547,21 @@ public class GitHubIssuePlugin : IGithubIssuePlugin
             _logger.LogInternalError(ex, "Error sending GitHub call");
             throw;
         }
+    }
+
+    private string GenerateThreadLink(string threadId)
+    {
+        var agentHost = "https://portal.azure.com/";
+        var subscriptionId = Environment.GetEnvironmentVariable("AGENT_SUBSCRIPTION_ID") ?? string.Empty;
+        var resourceGroup = Environment.GetEnvironmentVariable("AGENT_RESOURCE_GROUP") ?? string.Empty;
+        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? string.Empty;
+
+        var flags = string.Empty;
+        flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=canary&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D";
+
+        var resourcePath = $"%2Fsubscriptions%2F{subscriptionId}%2FresourceGroups%2F{resourceGroup}%2Fproviders%2FMicrosoft.App%2Fagents%2F{agentName}";
+
+        return $"{agentHost}?Microsoft_Azure_PaasServerless_srelink=/views/activities/threads/{threadId}{flags}#view/Microsoft_Azure_PaasServerless/AgentFrameBlade/id/{resourcePath}";
     }
 
     private async Task<T> SendGitHubCallAsync<T>(Func<Task<T>> githubCallFunc)
