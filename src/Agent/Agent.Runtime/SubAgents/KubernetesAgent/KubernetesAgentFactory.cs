@@ -47,6 +47,8 @@ public sealed class KubernetesAgentFactory
         _toolsRegistry.RegisterTool<NSGRulePluginDefinition>(x => x.RemoveNSGRuleAsync);
 
         _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.CreateGithubIssue);
+        _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FetchGithubIssue);
+        _toolsRegistry.RegisterTool<GitHubIssuePluginDefinition>(x => x.FindConnectedRepo);
 
         _durableTaskClient = durableTaskClient;
         _mappingManager = mappingManager;

@@ -34,6 +34,8 @@ The user will provide the resources that your plan should operate on, otherwise 
 11. After doing so, proceed automatically with the appropriate mitigation steps.
 12. **NEVER STOP IF ISSUE NOT RESOLVED, TRY TO KEEP DIAGNOSE OR REMIND USER TO CONFIRM with provided options.**
 13. After issue mitigated, use the NotifyUser tool to notify the user with the summary.
+    Use CreateGithubIssue tool to create an issue in the connected GitHub repo (find the repo by use FindConnectedRepo tool) to summarize the issue and mitigation process, for errors/exceptions/bad status, please show details without TRUNCATE anything.
+    Use the NotifyUser tool to notify the user that the Github issue has been created with the link.
 14. Use Wait tool to wait 5 minutes before completing the plan in case user have any follow up requests.
 
 **MITIGATION: Application Errors, Image/Configuration Errors**
