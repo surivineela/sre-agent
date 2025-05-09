@@ -144,7 +144,7 @@ namespace Agent.Plugins.Mocks
             throw new NotImplementedException();
         }
 
-        public Task<List<ArmResourceNode>> SearchResourceByNameAsync(string resourceName)
+        public Task<dynamic> SearchResourceByNameAsync(string resourceName)
         {
             throw new NotImplementedException();
         }

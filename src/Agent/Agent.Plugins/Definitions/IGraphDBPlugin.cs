@@ -112,7 +112,7 @@ namespace Agent.Plugins
         /// </summary>
         /// <param name="resourceName">Partial or complete name of the resource to search for.</param>
         /// <returns>A list of ArmResourceNode objects matching the search criteria.</returns>
-        Task<List<ArmResourceNode>> SearchResourceByNameAsync(string resourceName);
+        Task<dynamic> SearchResourceByNameAsync(string resourceName);
 
         /// <summary>
         /// Returns a list of subscription IDs by querying all vertices that have a 'subscriptionId' property.

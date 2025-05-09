@@ -1010,7 +1010,7 @@ g.V().has('id', '{deploymentResourceId}')
         /// <summary>
         /// Searches for resources by a partial resource name.
         /// </summary>
-        public async Task<List<ArmResourceNode>> SearchResourceByNameAsync(string resourceName)
+        public async Task<dynamic> SearchResourceByNameAsync(string resourceName)
         {
             try
             {
@@ -1018,34 +1018,70 @@ g.V().has('id', '{deploymentResourceId}')
                 string query = $@"
                 g.V()
                 .where(values('resourceName').is(containing('{modifiedResourceName}')))
-                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId')
+                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId', 'namespace', 'clusterResourceId', 'group', 'apiVersion', 'kind')
                 .by(id())
                 .by(values('resourceName'))
                 .by(label())
-                .by(values('subscriptionId'))
-                .by(values('resourceGroupName'))
+                .by(coalesce(values('subscriptionId'), constant('')))
+                .by(coalesce(values('resourceGroupName'), constant('')))
                 .by(coalesce(values('location'), constant('')))
-                .by(values('resourceId'))
+                .by(coalesce(values('resourceId'), constant('')))
+                .by(coalesce(values('namespace'), constant('')))
+                .by(coalesce(values('clusterResourceId'), constant('')))
+                .by(coalesce(values('group'), constant('')))
+                .by(coalesce(values('apiVersion'), constant('')))
+                .by(coalesce(values('kind'), constant('')))
 ";
 
+                // Use the raw result directly
                 var result = await GraphDbClient.Query(query);
-                var resources = new List<ArmResourceNode>();
+
+                // Convert to a more generic list that won't lose information
+                var resources = new List<object>();
 
                 foreach (var item in result)
                 {
-                    var node = new ArmResourceNode
-                    {
-                        ResourceName = item["resourceName"]?.ToString() ?? string.Empty,
-                        ResourceType = item["resourceType"]?.ToString() ?? string.Empty,
-                        SubscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty,
-                        ResourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty,
-                        Location = item["location"]?.ToString() ?? string.Empty,
-                        ResourceId = item["resourceId"]?.ToString() ?? string.Empty
-                    };
+                    // Determine if this is a Kubernetes resource by checking if the resourceType starts with "k8s/"
+                    string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
+                    string namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
+                    string clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
 
-                    resources.Add(node);
+                    // Check if this is a Kubernetes namespaced resource
+                    if (resourceType.StartsWith("k8s/") && !string.IsNullOrEmpty(namespaceValue) && !string.IsNullOrEmpty(clusterResourceId))
+                    {
+                        var k8sNode = new KubernetesNamespacedResourceNode(
+                            null,
+                            clusterResourceId,
+                            namespaceValue,
+                            item["subscriptionId"]?.ToString() ?? string.Empty,
+                            item["resourceGroupName"]?.ToString() ?? string.Empty,
+                            item["resourceName"]?.ToString() ?? string.Empty,
+                            item["group"]?.ToString() ?? string.Empty,
+                            item["apiVersion"]?.ToString() ?? string.Empty,
+                            item["kind"]?.ToString() ?? string.Empty
+                        );
+
+                        k8sNode.Location = item["location"]?.ToString() ?? string.Empty;
+
+                        resources.Add(k8sNode);
+                    }
+                    else
+                    {
+                        var node = new ArmResourceNode
+                        {
+                            ResourceName = item["resourceName"]?.ToString() ?? string.Empty,
+                            ResourceType = item["resourceType"]?.ToString() ?? string.Empty,
+                            SubscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty,
+                            ResourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty,
+                            Location = item["location"]?.ToString() ?? string.Empty,
+                            ResourceId = item["resourceId"]?.ToString() ?? string.Empty
+                        };
+
+                        resources.Add(node);
+                    }
                 }
 
+                // Return as dynamic to preserve all data
                 return resources;
             }
             catch (Exception ex)
