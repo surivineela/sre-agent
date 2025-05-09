@@ -550,7 +550,7 @@ public class ArmHelper
 
     public async Task<bool> RestartContainerAppAsync(string appResourceId, string revisionName)
     {
-        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/revisions/{revisionName}/restart?api-version=2024-04-01");
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/revisions/{revisionName}/restart?api-version=2025-01-01");
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
@@ -1119,7 +1119,7 @@ public class ArmHelper
             name: resourceData.Data.Name,
             type: resourceData.Data.ResourceType,
             kind: resourceData.Data.Kind ?? string.Empty,
-            location: resourceData.Data.Location,            
+            location: resourceData.Data.Location,
             properties: properties,
             tags: resourceData.Data.Tags?.ToDictionary(kvp => kvp.Key, kvp => kvp.Value.ToString()) ?? new Dictionary<string, string>(),
             IdentityModels: managedIdentities
@@ -1711,7 +1711,7 @@ public class ArmHelper
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
-        // Fetch existing app settings  
+        // Fetch existing app settings
         var existingAppSettingsResponse = await httpClient.PostAsync(resourceId + "/config/appsettings/list?api-version=2024-04-01", null);
         if (!existingAppSettingsResponse.IsSuccessStatusCode)
             throw new Exception($"Failed to fetch existing app settings. Status Code: {existingAppSettingsResponse.StatusCode}");
@@ -1719,20 +1719,20 @@ public class ArmHelper
         var existingAppSettingsJson = await existingAppSettingsResponse.Content.ReadAsStringAsync();
         var existingAppSettings = JsonSerializer.Deserialize<Dictionary<string, string>>(JObject.Parse(existingAppSettingsJson)["properties"]?.ToString() ?? "{}");
 
-        // Merge new app settings with existing ones  
+        // Merge new app settings with existing ones
         foreach (var kvp in appSettings)
         {
             existingAppSettings[kvp.Key] = kvp.Value;
         }
 
-        // Prepare the request body  
+        // Prepare the request body
         var requestBody = new
         {
             properties = existingAppSettings
         };
         string jsonBody = JsonSerializer.Serialize(requestBody);
 
-        // Send the update request  
+        // Send the update request
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, resourceId + "/config/appsettings?api-version=2024-04-01")
         {
             Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")

@@ -12,6 +12,7 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Core.JsonConverters;
 using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
@@ -44,6 +45,19 @@ namespace Agent.Plugins.Implementation
         private readonly ILogAnalyticsService _logAnalyticsService;
         private readonly IChatClient _chatClient;
 
+        // ContainerAppData from Azure SDK can't be serialized directly to JSON because it contains
+        // IPAddress and IPEndPoint properties, which throw ISocketException when serialized.
+        // So we need to create a custom serialization options with custom converters for these types.
+        private static readonly JsonSerializerOptions _containerAppSerializationOptions = new JsonSerializerOptions
+        {
+            WriteIndented = true,
+            Converters =
+            {
+                new IPEndPointConverter(),
+                new IPAddressConverter(),
+            }
+        };
+
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
             ILogger<ContainerAppPlugin> logger,
@@ -63,39 +77,21 @@ namespace Agent.Plugins.Implementation
             _chatClient = chatClient;
         }
 
-        public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
+        public async Task<string> GetContainerAppInfoAsync(string resourceId)
         {
             _logger.LogInternalInformation($"[get_container_app_info] Invoked with resourceId: {resourceId}");
 
             try
             {
-                string cappResourceId = resourceId.ToLower().Replace("/", "_");
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
 
-                string query = $@"
-                    g.V().has('id', '{cappResourceId}')
-                    .hasLabel('{Graph.Crawler.ARM.Constants.ContainerAppType.ToLower()}')
-                    .project('properties')
-                    .by(properties().group().by(key()).by(value()))
-                    .select('properties')";
-
-                var result = await _databaseClient.Query<Dictionary<string, object>>(query);
-
-                if (result == null || !result.Any())
-                {
-                    _logger.LogInternalWarning($"Container App with ID '{resourceId}' not found in graph database.");
-                    return null;
-                }
-
-                //var isDotnet = await IsDotnetBased(resourceId);
-                //_logger.LogInformation($"IsDotnet: {isDotnet}");
-                //var memoryAnalysis = await GetContainerMemoryAnalysisForDotnet(resourceId);
-                //_logger.LogInformation($"MEMORY ANALYSIS: {memoryAnalysis}");
-                return TranslateNodeToDescriptor(new ContainerAppNode(result.First())); 
+                var containerApp = await containerAppResource.GetAsync();
+                return JsonSerializer.Serialize(containerApp.Value.Data, _containerAppSerializationOptions);
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error in GetContainerAppInfoAsync with resourceId {resourceId}");
-                return null;
+                return string.Empty;
             }
         }
 
@@ -506,7 +502,7 @@ namespace Agent.Plugins.Implementation
 
                 var logsJson = JsonSerializer.Serialize(logs, new JsonSerializerOptions { WriteIndented = true });
 
-                if(!summarizeLogs)
+                if (!summarizeLogs)
                 {
                     return logsJson;
                 }
@@ -519,7 +515,7 @@ namespace Agent.Plugins.Implementation
                 return null;
             }
         }
-        
+
         private async Task<string> SummarizeLogs(string logs)
         {
             _logger.LogInternalInformation("Summarizing logs");
@@ -908,8 +904,8 @@ namespace Agent.Plugins.Implementation
 
                 // If app has external HTTP ingress, it must also be reachable
                 if (containerApp.Value.Data.Configuration?.Ingress != null &&
-                    containerApp.Value.Data.Configuration.Ingress.External == true && 
-                    (containerApp.Value.Data.Configuration.Ingress.Transport == null || 
+                    containerApp.Value.Data.Configuration.Ingress.External == true &&
+                    (containerApp.Value.Data.Configuration.Ingress.Transport == null ||
                      !containerApp.Value.Data.Configuration.Ingress.Transport.ToString().Equals("tcp", StringComparison.OrdinalIgnoreCase)))
                 {
                     isHealthy = isHealthy && bool.TryParse(result.Details["EndpointReachable"], out bool endpointReachable) && endpointReachable;
@@ -944,31 +940,31 @@ namespace Agent.Plugins.Implementation
             try
             {
                 _logger.LogInternalInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
-                
+
                 // Get the Container App resource
                 var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
-                
+
                 if (!containerApp.HasValue)
                 {
                     return ImageUpdateResult.Failure($"Container App with resource ID {resourceId} not found");
                 }
                 if (string.IsNullOrWhiteSpace(newImageReference))
                 {
-                    return ImageUpdateResult.Failure("Invalid container image reference format", 
+                    return ImageUpdateResult.Failure("Invalid container image reference format",
                         null, newImageReference, details);
                 }
-                
+
                 // Create a data object for the update
                 ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
                 {
                     Template = containerApp.Value.Data.Template ?? new ContainerAppTemplate()
                 };
-                
+
                 // Check if we have containers in the template
                 if (updateData.Template?.Containers == null || updateData.Template.Containers.Count == 0)
                 {
-                    return ImageUpdateResult.Failure("No containers found in the Container App template", 
+                    return ImageUpdateResult.Failure("No containers found in the Container App template",
                         null, newImageReference, details);
                 }
 
@@ -976,11 +972,11 @@ namespace Agent.Plugins.Implementation
                 string originalImage = updateData.Template.Containers[0].Image ?? "unknown";
                 details["OriginalImage"] = originalImage;
                 details["NewImage"] = newImageReference;
-                
+
                 var containerToUpdate = updateData.Template.Containers[0];
                 if (containerToUpdate == null)
                 {
-                    return ImageUpdateResult.Failure("First container in the template is null", 
+                    return ImageUpdateResult.Failure("First container in the template is null",
                         originalImage, newImageReference, details);
                 }
 
@@ -989,41 +985,41 @@ namespace Agent.Plugins.Implementation
 
                 // Update the Container App with the new template
                 _logger.LogInternalInformation($"Applying update to Container App {resourceId}: changing image from {originalImage} to {newImageReference}");
-                
+
                 var updateOperation = await containerAppResource.UpdateAsync(
                     WaitUntil.Completed,
                     updateData,
                     CancellationToken.None
                 );
-                
+
                 var updatedApp = updateOperation.Value;
-                
+
                 // Verify the update was successful
-                if (updatedApp != null && 
-                    updatedApp.Data.Template?.Containers != null && 
-                    updatedApp.Data.Template.Containers.Count > 0 && 
+                if (updatedApp != null &&
+                    updatedApp.Data.Template?.Containers != null &&
+                    updatedApp.Data.Template.Containers.Count > 0 &&
                     updatedApp.Data.Template.Containers[0].Image == newImageReference)
                 {
                     _logger.LogInternalInformation($"Successfully updated Container App {resourceId} image to: {newImageReference}");
 
                     details["Status"] = "Updated successfully";
                     details["LatestRevisionName"] = updatedApp.Data.LatestRevisionName ?? "Unknown";
-                    
+
                     return ImageUpdateResult.Success(originalImage, newImageReference, details);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogInternalError(ex, $"Error updating Container App {resourceId} with image {newImageReference}");
-                
+
                 details["ErrorType"] = ex.GetType().Name;
                 details["ErrorMessage"] = ex.Message;
-                return ImageUpdateResult.Failure($"Error updating image: {ex.Message}", 
+                return ImageUpdateResult.Failure($"Error updating image: {ex.Message}",
                     null, newImageReference, details);
             }
-            
+
             _logger.LogInternalError($"Failed to update Container App {resourceId}");
-            return ImageUpdateResult.Failure($"Failed to update Container App image", 
+            return ImageUpdateResult.Failure($"Failed to update Container App image",
                 null, newImageReference, details);
         }
 
@@ -1032,7 +1028,7 @@ namespace Agent.Plugins.Implementation
             try
             {
                 var details = new Dictionary<string, string>();
-                
+
                 // Get the Container App resource
                 var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
@@ -1044,14 +1040,14 @@ namespace Agent.Plugins.Implementation
                 revisions = revisions
                     .OrderByDescending(r => r.Data.CreatedOn)
                     .ToList();
-                    
+
                 details["TotalRevisions"] = revisions.Count.ToString();
 
                 // We need at least 2 revisions to perform a rollback
                 if (revisions.Count < 2)
                 {
                     return RollbackResult.Failure(
-                        "Not enough revisions for rollback", 
+                        "Not enough revisions for rollback",
                         details);
                 }
 
@@ -1062,7 +1058,7 @@ namespace Agent.Plugins.Implementation
                 // Find a healthy revision to roll back to
                 // First, gather more information about each revision
                 var revisionHealthInfo = new List<(ContainerAppRevisionResource Revision, bool IsActive, bool IsHealthy, string HealthReason)>();
-                
+
                 foreach (var revision in revisions)
                 {
                     // Skip the current revision
@@ -1070,25 +1066,25 @@ namespace Agent.Plugins.Implementation
                     {
                         continue;
                     }
-                    
+
                     bool isActive = (revision.Data.TrafficWeight ?? 0) > 0;
-                    
+
                     // Check if this revision was healthy
                     bool isHealthy = revision.Data.ProvisioningState == ContainerAppRevisionProvisioningState.Provisioned;
                     string healthReason = isHealthy ? "Provisioned state is good" : $"Provisioning state is {revision.Data.ProvisioningState}";
-                    
+
                     // Additional health checks if needed
                     if (isHealthy)
                     {
                         // Check if this revision had replicas in the past
                         var replicas = await _armHelper.GetRevisionReplicas(revision.Id.ToString());
-                        
+
                         // Check if the revision is configured to have a minimum of 0 replicas (scale to zero)
                         var revisionDetails = await _armClient.GetContainerAppRevisionResource(revision.Id).GetAsync();
                         bool canScaleToZero = revisionDetails.Value.Data.Template?.Scale?.MinReplicas == 0;
-                        
+
                         int readyReplicas = replicas.Count(r => r?.Properties?.RunningState?.Equals("Running", StringComparison.OrdinalIgnoreCase) == true);
-                        
+
                         // If we have no replicas or no ready replicas, check if it's due to scale to zero
                         if (replicas.Count == 0 || readyReplicas == 0)
                         {
@@ -1097,30 +1093,30 @@ namespace Agent.Plugins.Implementation
                                 // This is expected behavior for scale to zero, so revision can still be considered healthy
                                 healthReason = "No active replicas (scale to zero is enabled)";
                             }
-                            else 
+                            else
                             {
                                 isHealthy = false;
-                                healthReason = replicas.Count == 0 
-                                    ? "No replicas found (scale to zero is not enabled)" 
+                                healthReason = replicas.Count == 0
+                                    ? "No replicas found (scale to zero is not enabled)"
                                     : "No running replicas found";
                             }
                         }
-                        else 
+                        else
                         {
                             healthReason = $"{readyReplicas} of {replicas.Count} replicas were running";
                         }
                     }
-                    
+
                     revisionHealthInfo.Add((revision, isActive, isHealthy, healthReason));
                 }
-                
+
                 details["EvaluatedRevisions"] = revisionHealthInfo.Count.ToString();
                 details["HealthyRevisions"] = revisionHealthInfo.Count(r => r.IsHealthy).ToString();
-                
+
                 // First try to find a healthy revision that was active in the past
                 var targetRevision = revisionHealthInfo.FirstOrDefault(r => r.IsHealthy && r.IsActive).Revision;
                 string targetSelectionReason = "Found healthy and previously active revision";
-                
+
                 // If no healthy and active revision found, try any healthy revision
                 if (targetRevision == null)
                 {
@@ -1128,19 +1124,19 @@ namespace Agent.Plugins.Implementation
                     targetRevision = healthyRevision.Revision;
                     targetSelectionReason = "Found healthy revision (not previously active)";
                 }
-                
+
                 // If no healthy revision found, don't fall back to any revision - just return an error
                 if (targetRevision == null)
                 {
                     _logger.LogInternalWarning("No healthy revisions found for Container App {resourceId}", resourceId);
                     return RollbackResult.Failure(
-                        "No healthy revisions found to roll back to", 
+                        "No healthy revisions found to roll back to",
                         details);
                 }
 
                 details["TargetRevision"] = targetRevision.Data.Name;
                 details["TargetRevisionSelectionReason"] = targetSelectionReason;
-                
+
                 // Find the target revision's health info for the log
                 var healthInfo = revisionHealthInfo.First(r => r.Revision.Id == targetRevision.Id);
                 details["TargetRevisionHealth"] = healthInfo.HealthReason;
@@ -1155,10 +1151,10 @@ namespace Agent.Plugins.Implementation
                 if (string.IsNullOrEmpty(targetImageReference))
                 {
                     return RollbackResult.Failure(
-                        $"No image reference found in target revision {targetRevision.Data.Name}", 
+                        $"No image reference found in target revision {targetRevision.Data.Name}",
                         details);
                 }
-                
+
                 details["TargetImage"] = targetImageReference;
 
                 _logger.LogInternalInformation($"Found healthy previous revision {targetRevision.Data.Name} with image {targetImageReference}");
@@ -1177,7 +1173,7 @@ namespace Agent.Plugins.Implementation
                 else
                 {
                     return RollbackResult.Failure(
-                        $"No containers found in the template for Container App {resourceId}", 
+                        $"No containers found in the template for Container App {resourceId}",
                         details);
                 }
 
@@ -2128,7 +2124,7 @@ namespace Agent.Plugins.Implementation
             {
                 return false;
             }
-            
+
             const string prompt = "You are a log analyzer specialized in container applications. " +
                                  "Analyze these application logs and determine if they contain any errors or issues. " +
                                  "Focus on critical problems that would affect application functionality, such as: " +
@@ -2160,8 +2156,8 @@ namespace Agent.Plugins.Implementation
             {
                 var response = await _chatClient.GetResponseAsync(messages, options);
                 string result = response.Text.Trim().ToLowerInvariant();
-                
-                return result == "true";  
+
+                return result == "true";
             }
             catch (Exception ex)
             {
@@ -2202,6 +2198,129 @@ namespace Agent.Plugins.Implementation
                 _logger.LogInternalWarning(ex, $"Error checking endpoint reachability for {hostname}");
                 return false;
             }
+        }
+
+        public async Task<bool> ModifyContainerAppScaleRuleAsync(string resourceId, string ruleName, string modificationType, string scaleRuleType, IDictionary<string, string> metadata)
+        {
+            _logger.LogInternalInformation($"[{nameof(ModifyContainerAppScaleRuleAsync)}] Invoked with {resourceId}, {ruleName}, {modificationType}, {scaleRuleType}");
+
+            try
+            {
+                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var containerApp = await containerAppResource.GetAsync();
+                var data = containerApp.Value.Data;
+
+                var newRule = CreateNewScaleRuleWithType(ruleName, scaleRuleType, metadata);
+                if (TryCreateNewScaleRules(data.Template.Scale, newRule, modificationType, out var effectiveRules))
+                {
+                    _logger.LogInternalInformation($"[{nameof(ModifyContainerAppScaleRuleAsync)}] Scale rule {ruleName} modified successfully.");
+                    data.Template.Scale = effectiveRules;
+                    await containerAppResource.UpdateAsync(WaitUntil.Completed, data);
+                }
+                else
+                {
+                    _logger.LogInternalWarning($"[{nameof(ModifyContainerAppScaleRuleAsync)}] Scale rule {ruleName} not found for modification.");
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, $"[{nameof(ModifyContainerAppScaleRuleAsync)}] Error retrieving Container App {resourceId}");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Tries to compile new scale rules based on the current rules and the new rule to be added or updated.
+        /// </summary>
+        /// <param name="currentRules">The current scale rules.</param>
+        /// <param name="newRule">The new scale rule to be added or updated.</param>
+        /// <param name="modificationType">The type of modification (add, remove, update).</param>
+        /// <param name="effectiveRules">The effective rules after modification.</param>
+        /// <returns>True if the modification was successful; otherwise, false.</returns>
+        private bool TryCreateNewScaleRules(ContainerAppScale? currentRules, ContainerAppScaleRule newRule, string modificationType, out ContainerAppScale effectiveRules)
+        {
+            effectiveRules = new ContainerAppScale
+            {
+                CooldownPeriod = currentRules?.CooldownPeriod,
+                MinReplicas = currentRules?.MinReplicas,
+                MaxReplicas = currentRules?.MaxReplicas,
+                PollingInterval = currentRules?.PollingInterval,
+            };
+
+            switch (modificationType.ToLowerInvariant())
+            {
+                case "add":
+                    foreach (var existingRule in currentRules?.Rules ?? [])
+                    {
+                        effectiveRules.Rules.Add(existingRule);
+                    }
+
+                    effectiveRules.Rules.Add(newRule);
+                    return true;
+                case "remove":
+                case "delete":
+                    foreach (var existingRule in currentRules?.Rules ?? [])
+                    {
+                        if (!existingRule.Name.Equals(newRule.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            effectiveRules.Rules.Add(existingRule);
+                        }
+                    }
+                    return true;
+                case "update":
+                    foreach (var existingRule in currentRules?.Rules ?? [])
+                    {
+                        if (existingRule.Name.Equals(newRule.Name, StringComparison.OrdinalIgnoreCase))
+                        {
+                            effectiveRules.Rules.Add(newRule);
+                        }
+                        else
+                        {
+                            effectiveRules.Rules.Add(existingRule);
+                        }
+                    }
+                    return true;
+                default:
+                    _logger.LogInternalWarning($"[{nameof(ModifyContainerAppScaleRuleAsync)}] Invalid modification type: {modificationType}");
+                    return false;
+            }
+        }
+
+        /// <summary>
+        /// Constructs a new scale rule object based on the provided type and metadata.
+        /// It'll copy the metadata to the appropriate scale rule type.
+        /// </summary>
+        private ContainerAppScaleRule CreateNewScaleRuleWithType(string ruleName, string scaleRuleType, IDictionary<string, string> metadata)
+        {
+            var rule = new ContainerAppScaleRule { Name = ruleName };
+            switch (scaleRuleType.ToLowerInvariant())
+            {
+                case "http":
+                    rule.Http = new ContainerAppHttpScaleRule();
+                    foreach (var p in metadata)
+                    {
+                        rule.Http.Metadata.Add(p.Key, p.Value);
+                    }
+                    break;
+                case "tcp":
+                    rule.Tcp = new ContainerAppTcpScaleRule();
+                    foreach (var p in metadata)
+                    {
+                        rule.Tcp.Metadata.Add(p.Key, p.Value);
+                    }
+                    break;
+                default:
+                    rule.Custom = new ContainerAppCustomScaleRule { CustomScaleRuleType = scaleRuleType };
+                    foreach (var p in metadata)
+                    {
+                        rule.Custom.Metadata.Add(p.Key, p.Value);
+                    }
+                    break;
+            }
+
+            return rule;
         }
     }
 }

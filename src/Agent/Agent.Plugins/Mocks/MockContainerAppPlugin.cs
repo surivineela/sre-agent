@@ -2,6 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Text.Json;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
@@ -146,11 +147,11 @@ namespace Agent.Plugins.Mocks
             return Task.FromResult<IReadOnlyList<CpuUsageTimeSeriesData>>(cpuMetrics.AsReadOnly());
         }
 
-        public Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId)
+        public Task<string> GetContainerAppInfoAsync(string resourceId)
         {
             if (_containerApps.TryGetValue(resourceId, out var containerAppDescriptor))
             {
-                return Task.FromResult(containerAppDescriptor);
+                return Task.FromResult(JsonSerializer.Serialize(containerAppDescriptor));
             }
 
             throw new ArgumentException($"Resource {resourceId} not found");
@@ -263,7 +264,7 @@ namespace Agent.Plugins.Mocks
                 { "RolledBackToImage", previousImage },
                 { "MockRevision", "mock-revision-1" }
             };
-            
+
             return Task.FromResult(RollbackResult.Success("mock-revision-1", previousImage, details));
         }
 
@@ -272,7 +273,7 @@ namespace Agent.Plugins.Mocks
             if (_containerApps.TryGetValue(resourceId, out var containerApp))
             {
                 string currentImage = null;
-                
+
                 if (_containerImageReferences.TryGetValue(resourceId, out var existingImage))
                 {
                     currentImage = existingImage;
@@ -283,9 +284,9 @@ namespace Agent.Plugins.Mocks
                     currentImage = containerApp.Containers.First().Image;
                     _previousImageReferences[resourceId] = currentImage;
                 }
-                
+
                 _containerImageReferences[resourceId] = newImageReference;
-                
+
                 var details = new Dictionary<string, string>
                 {
                     { "AppName", containerApp.Name },
@@ -293,10 +294,10 @@ namespace Agent.Plugins.Mocks
                     { "Location", containerApp.Location },
                     { "MockUpdate", "true" }
                 };
-                
+
                 return Task.FromResult(ImageUpdateResult.Success(currentImage, newImageReference, details));
             }
-            
+
             return Task.FromResult(ImageUpdateResult.Failure($"Container app with resource ID {resourceId} not found"));
         }
 
@@ -306,14 +307,14 @@ namespace Agent.Plugins.Mocks
             {
                 return Task.FromResult(imageReference);
             }
-            
-            if (_containerApps.TryGetValue(resourceId, out var containerApp) && 
-                containerApp.Containers != null && 
+
+            if (_containerApps.TryGetValue(resourceId, out var containerApp) &&
+                containerApp.Containers != null &&
                 containerApp.Containers.Any())
             {
                 return Task.FromResult(containerApp.Containers.First().Image);
             }
-            
+
             return Task.FromResult<string>(null);
         }
 
@@ -326,12 +327,12 @@ namespace Agent.Plugins.Mocks
             {
                 isAccessible = true;
             }
-            
+
             if (!isAccessible)
             {
                 return Task.FromResult(false);
             }
-            
+
             return Task.FromResult(true);
         }
 
@@ -365,6 +366,11 @@ namespace Agent.Plugins.Mocks
                 IsHealthy = false,
                 Messages = [$"Container app with resource ID {resourceId} not found."]
             });
+        }
+
+        public Task<bool> ModifyContainerAppScaleRuleAsync(string resourceId, string ruleName, string modificationType, string scaleRuleType, IDictionary<string, string> metadata)
+        {
+            throw new NotImplementedException();
         }
     }
 }

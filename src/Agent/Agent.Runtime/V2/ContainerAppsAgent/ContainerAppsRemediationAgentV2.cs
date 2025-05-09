@@ -38,6 +38,7 @@ public class ContainerAppsRemediationAgentV2(
             toolsRegistry.RegisterTool<NSGRulePluginDefinition>(x => x.CreateOrUpdateNSGRuleAsync);
             toolsRegistry.RegisterTool<NSGRulePluginDefinition>(x => x.RemoveNSGRuleAsync);
             toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.ScaleContainerApp);
+            toolsRegistry.RegisterTool<ContainerAppPluginDefinition>(x => x.ModifyContainerAppScaleRule);
             toolsRegistry.RegisterTool<GraphDBPluginDefinition>(x => x.FindAllNetworkConnectedResources);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotTimeSeriesData);
             toolsRegistry.RegisterTool<ChartPluginDefinition>(x => x.PlotPieChartAsync);
@@ -120,6 +121,7 @@ public class ContainerAppsRemediationAgentV2(
         - **CreateOrUpdateNSGRuleAsync**: Create or Update a NSG rule. Use the NSG rules from **get_containerapp_nsg_rules** as a template to build the new NSG rule (Source, SourcePortRanges, Destination, Service, DestinationPortRanges, Protocol(Any, TCP, UDP etc.), Action (Allow, Deny),  Priority, Name, Description) (requires approval, do not call this until you call 'AskForUserInput' and get a user message indicating that they approve)
         - **GetContainerAppLogsAsync**: Stream last 100 lines of container logs
         - **ScaleContainerApp**: Scale a Container App by adjusting memory and replica count. Use this to resolve performance or availability issues. Provide the resource ID of the container app, the desired memory size (e.g., "2.0Gi"), the minimum number of replicas (e.g., 1), and the maximum number of replicas (e.g., 10). This will update the app's CPU based on valid memory/CPU pairings. (requires approval, do not call this until you call 'AskForUserInput' and get a user message indicating that they approve)
+        - **ModifyContainerAppScaleRule**: Modify the scale rule of a container app. This is used to change the scaling rules of a container app. Provide the resource ID of the container app, the name of the scale rule, and the new scale rule configuration. (requires approval, do not call this until you call 'AskForUserInput' and get a user message indicating that they approve)
         - **PlotTimeSeriesData**: Generate visualization charts for metrics
         - **IsContainerAppDotnet**: Check if the container app is .NET based.
         - **GetContainerMemoryAnalysisForDotnet**: Get memory analysis details for .NET based container apps.

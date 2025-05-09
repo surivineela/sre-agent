@@ -57,6 +57,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.RestartContainerApp));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetAllNSGRulesForContainerAppAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ScaleContainerApp));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.ModifyContainerAppScaleRule));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetRevisionLogsAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.GetContainerAppLogsAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => containerAppPluginDefinition.UpdateTargetPort));

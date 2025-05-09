@@ -1,0 +1,12 @@
+{
+  "recommendations": [
+    "ms-vscode.csharp",
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.csharp-devkit",
+    "GitHub.copilot",
+    "GitHub.copilot-labs",
+    "GitHub.copilot-chat",
+    "ms-azuretools.vscode-bicep",
+    "EditorConfig.EditorConfig"
+  ]
+}

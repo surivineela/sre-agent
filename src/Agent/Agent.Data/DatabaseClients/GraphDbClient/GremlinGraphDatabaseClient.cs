@@ -31,7 +31,7 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
 
     public class GremlinGraphDatabaseClient : IGraphDatabaseClient
     {
-        private static GremlinClient? _gremlinClient;
+        public static GremlinClient? _gremlinClient;
         private static readonly object _lock = new object();
         private readonly GraphSettings _graphSettings;
         private readonly ILogger<GremlinGraphDatabaseClient> _logger;
@@ -112,17 +112,17 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             var sanitizedNodeId = GetSanitizedCosmosDBId(nodeId);
 
             // NOTE: This is a temporary workaround to avoid the crawler from overwriting these properties
-            if (properties.ContainsKey("appHealthInfo") && 
-                (properties["appHealthInfo"] == null || 
-                 properties["appHealthInfo"].ToString() == "null" || 
+            if (properties.ContainsKey("appHealthInfo") &&
+                (properties["appHealthInfo"] == null ||
+                 properties["appHealthInfo"].ToString() == "null" ||
                  string.IsNullOrEmpty(properties["appHealthInfo"].ToString())))
             {
                 properties.Remove("appHealthInfo");
             }
 
-            if (properties.ContainsKey("remarks") && 
-                (properties["remarks"] == null || 
-                 properties["remarks"].ToString() == "null" || 
+            if (properties.ContainsKey("remarks") &&
+                (properties["remarks"] == null ||
+                 properties["remarks"].ToString() == "null" ||
                  string.IsNullOrEmpty(properties["remarks"].ToString())))
             {
                 properties.Remove("remarks");

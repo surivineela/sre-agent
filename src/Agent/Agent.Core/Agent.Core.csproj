@@ -1,94 +1,95 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
-	<PropertyGroup>
-		<TargetFramework>net9.0</TargetFramework>
-		<ImplicitUsings>enable</ImplicitUsings>
-		<Nullable>enable</Nullable>
-	</PropertyGroup>
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
 
-	<ItemGroup>
-		<PackageReference Include="Azure.AI.OpenAI" />
-		<PackageReference Include="Azure.Identity" />
-		<PackageReference Include="Azure.Monitor.Query" />
-		<PackageReference Include="Azure.ResourceManager" />
-		<PackageReference Include="Azure.ResourceManager.AlertsManagement" />
-		<PackageReference Include="Azure.ResourceManager.AppService" />
-		<PackageReference Include="Azure.ResourceManager.Compute" />
-		<PackageReference Include="Azure.ResourceManager.ContainerService" />
-		<PackageReference Include="Azure.ResourceManager.CosmosDB" />
-		<PackageReference Include="Azure.ResourceManager.EventHubs" />
-		<PackageReference Include="Azure.ResourceManager.Monitor" />
-		<PackageReference Include="Azure.ResourceManager.ServiceBus" />
-		<PackageReference Include="Azure.ResourceManager.Sql" />
-		<PackageReference Include="Azure.ResourceManager.Storage" />
-		<PackageReference Include="Azure.ResourceManager.Support" />
-		<PackageReference Include="Azure.Search.Documents" />
+  <ItemGroup>
+    <PackageReference Include="Azure.AI.OpenAI" />
+    <PackageReference Include="Azure.Identity" />
+    <PackageReference Include="Azure.Monitor.Query" />
+    <PackageReference Include="Azure.ResourceManager" />
+    <PackageReference Include="Azure.ResourceManager.AlertsManagement" />
+    <PackageReference Include="Azure.ResourceManager.AppService" />
+    <PackageReference Include="Azure.ResourceManager.Compute" />
+    <PackageReference Include="Azure.ResourceManager.ContainerService" />
+    <PackageReference Include="Azure.ResourceManager.CosmosDB" />
+    <PackageReference Include="Azure.ResourceManager.EventHubs" />
+    <PackageReference Include="Azure.ResourceManager.Monitor" />
+    <PackageReference Include="Azure.ResourceManager.ServiceBus" />
+    <PackageReference Include="Azure.ResourceManager.Sql" />
+    <PackageReference Include="Azure.ResourceManager.Storage" />
+    <PackageReference Include="Azure.ResourceManager.Support" />
+    <PackageReference Include="Azure.Search.Documents" />
     <PackageReference Include="Azure.Security.KeyVault.Certificates" />
     <PackageReference Include="Azure.Security.KeyVault.Secrets" />
-		<PackageReference Include="Microsoft.AspNetCore.OData" />
-		<PackageReference Include="Microsoft.Data.SqlClient" />
-		<PackageReference Include="Microsoft.Extensions.AI" />
-		<PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
-		<PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" />
-		<PackageReference Include="Microsoft.Extensions.Hosting" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
-		<PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
-		<PackageReference Include="Microsoft.Internal.AntiSSRF" />
-		<PackageReference Include="Microsoft.SemanticKernel" />
-		<PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
-		<PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
-		<PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
-		<PackageReference Include="NCrontab" />
-		<PackageReference Include="Newtonsoft.Json" />
-		<PackageReference Include="Octokit" />
-		<PackageReference Include="OpenTelemetry.Exporter.Console" />
-		<PackageReference Include="ScottPlot" />
-		<PackageReference Include="System.Linq.Async" />
-		<PackageReference Include="System.Runtime.Caching" />
-		<PackageReference Include="KubernetesClient" />
-		<PackageReference Include="Microsoft.Bot.Builder" />
-		<PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
-		<PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" />
-		<PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" />
-		<PackageReference Include="YamlDotNet" />
-		<PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />
-	</ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.OData" />
+    <PackageReference Include="Microsoft.Data.SqlClient" />
+    <PackageReference Include="Microsoft.Extensions.AI" />
+    <PackageReference Include="Microsoft.Extensions.AI.OpenAI" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Hosting" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" />
+    <PackageReference Include="Microsoft.Internal.AntiSSRF" />
+    <PackageReference Include="Microsoft.SemanticKernel" />
+    <PackageReference Include="Microsoft.SemanticKernel.Abstractions" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureOpenAI" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" />
+    <PackageReference Include="NCrontab" />
+    <PackageReference Include="Newtonsoft.Json" />
+    <PackageReference Include="Octokit" />
+    <PackageReference Include="OpenTelemetry.Exporter.Console" />
+    <PackageReference Include="ScottPlot" />
+    <PackageReference Include="System.Linq.Async" />
+    <PackageReference Include="System.Runtime.Caching" />
+    <PackageReference Include="KubernetesClient" />
+    <PackageReference Include="Microsoft.Bot.Builder" />
+    <PackageReference Include="Microsoft.Bot.Builder.Integration.AspNet.Core" />
+    <PackageReference Include="Microsoft.DurableTask.Client.AzureManaged" />
+    <PackageReference Include="Microsoft.DurableTask.Worker.AzureManaged" />
+    <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Microsoft.DurableTask.Generators" OutputItemType="Analyzer" />
+    <PackageReference Include="Microsoft.Recognizers.Text.DateTime" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
-	</ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Agent.Logging\Agent.Logging.csproj" />
+  </ItemGroup>
 
-	<ItemGroup>
-	  <None Update="Helpers\SupportProductMetadata\2340ae8b-c745-572f-6ea8-661d68c08bd7\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\6f16735c-b0ae-b275-ad3a-03479cfa1396\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\95412dd5-f222-a91f-98a6-144a84418c66\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\98e5cec8-2650-28c1-92e8-0ecaa232eec0\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\cddd3eb5-1830-b494-44fd-782f691479dc\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\de8937fc-74cc-daa7-2639-e1fe433dcb87\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\e9e31931-21fa-d50a-e6e7-e37d5d784591\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\f66fac5c-01e5-e8db-2ef8-e1a98a88e214\SupportProblemClassification.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	  <None Update="Helpers\SupportProductMetadata\SupportProductsFromArm.json">
-	    <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-	  </None>
-	</ItemGroup>
-  
+  <ItemGroup>
+    <None Update="Helpers\SupportProductMetadata\2340ae8b-c745-572f-6ea8-661d68c08bd7\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\6f16735c-b0ae-b275-ad3a-03479cfa1396\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\95412dd5-f222-a91f-98a6-144a84418c66\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\98e5cec8-2650-28c1-92e8-0ecaa232eec0\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\cddd3eb5-1830-b494-44fd-782f691479dc\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\de8937fc-74cc-daa7-2639-e1fe433dcb87\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\e9e31931-21fa-d50a-e6e7-e37d5d784591\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\f66fac5c-01e5-e8db-2ef8-e1a98a88e214\SupportProblemClassification.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Helpers\SupportProductMetadata\SupportProductsFromArm.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\Agent.Analyzers\Agent.Analyzers.csproj" OutputItemType="Analyzer" />
   </ItemGroup>

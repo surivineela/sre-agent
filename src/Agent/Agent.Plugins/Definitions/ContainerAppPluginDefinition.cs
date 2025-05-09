@@ -25,7 +25,7 @@ namespace Agent.Plugins.Definitions
             "Returns a ContainerAppDescriptor with resource ID, name, location, state, workload profile, FQDN, AppHealthInfo, and environment details. " +
             "Always use this specialized method for Container Apps instead of generic resource search functions for more complete and accurate information." +
             "For the AppHealthInfo information (such requests, cpu, and memory metrics, cost etc. format the output in markdown tabular format.")]
-        public async Task<ContainerAppDescriptor> GetContainerAppInfoAsync(
+        public async Task<string> GetContainerAppInfoAsync(
             [Description(
                 "The full Azure resource ID of the Container App (format: /subscriptions/{subId}/resourceGroups/{rgName}/providers/Microsoft.App/containerApps/{appName}).")]
             string resourceId)
@@ -147,7 +147,7 @@ namespace Agent.Plugins.Definitions
 
         #endregion
 
-        [KernelFunction("scale_container_app")]
+        [RequiresApproval]
         [Description(
             "Scales a Container App by adjusting its memory allocation and replica count. Use this to resolve performance or availability issues by increasing resources or scaling out the application.")]
         public async Task<bool> ScaleContainerApp(
@@ -167,6 +167,29 @@ namespace Agent.Plugins.Definitions
             }
 
             return await _containerAppPlugin.ScaleContainerApp(resourceId, desiredMemory, minReplicas, maxReplicas);
+        }
+
+        [RequiresApproval]
+        [Description("Adds a new scaling rule to a Container App. Use this to define custom scaling behavior based on CPU, HTTP traffic, Azure Queue length, or any scaler from the scaler list.")]
+        public async Task<bool> ModifyContainerAppScaleRule(
+            [Description("Azure resource ID of the Container App to add the scale rule to")]
+            string resourceId,
+            [Description("Name of the scaling rule (must be unique within the Container App)")]
+            string ruleName,
+            [Description("Modification type (e.g., 'add', 'update', 'delete')")]
+            string modificationType,
+            [Description("Type of the scaling rule (e.g., 'cpu', 'http', 'azure-queue')")]
+            string scaleRuleType,
+            [Description("Metadata for the scaling rule (key-value pairs specific to the rule type). Check GetScalerDetails for details per type.")]
+            IDictionary<string, string> metadata)
+        {
+            // Basic validation, more specific validation might be needed in the plugin implementation
+            if (string.IsNullOrWhiteSpace(resourceId) || string.IsNullOrWhiteSpace(ruleName) || string.IsNullOrWhiteSpace(scaleRuleType) || metadata == null || metadata.Count == 0)
+            {
+                throw new ArgumentException("Invalid input parameters for adding a scale rule.");
+            }
+
+            return await _containerAppPlugin.ModifyContainerAppScaleRuleAsync(resourceId, ruleName, modificationType, scaleRuleType, metadata);
         }
 
         [Description("Get the logs of a specific revision of a Container App instance.")]
@@ -212,7 +235,7 @@ namespace Agent.Plugins.Definitions
         {
             return await _containerAppPlugin.GetScalerDetails(scalerName);
         }
-    
+
         [KernelFunction("get_image_reference")]
         [Description("Gets the container image reference from a resource ID")]
         public async Task<string> GetImageReferenceFromResourceId(
@@ -270,7 +293,7 @@ namespace Agent.Plugins.Definitions
         // public async Task<string> RollbackToLastRevision(
         //     [Description("The resource ID of the Container App instance.")] string resourceId)
         // {
-        //     return await _containerAppPlugin.RollbackToLastRevision(resourceId); 
+        //     return await _containerAppPlugin.RollbackToLastRevision(resourceId);
         // }
     }
 }

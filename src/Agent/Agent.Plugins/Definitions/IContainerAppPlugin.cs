@@ -9,7 +9,7 @@ namespace Agent.Plugins.Definitions
 {
     public interface IContainerAppPlugin
     {
-        Task<ContainerAppDescriptor> GetContainerAppInfoAsync(string resourceId);
+        Task<string> GetContainerAppInfoAsync(string resourceId);
 
         Task<RevisionInfo?> GetLatestRevisionAsync(string resourceId);
 
@@ -47,7 +47,9 @@ namespace Agent.Plugins.Definitions
         Task<bool> IsDotnetBased(string resourceId);
         // Task<string> RollbackToLastRevision(string resourceId);
         Task<ImageUpdateResult> UpdateContainerImage(string resourceId, string newImageReference);
-        
+
         Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(string resourceId);
+
+        Task<bool> ModifyContainerAppScaleRuleAsync(string resourceId, string ruleName, string modificationType, string scaleRuleType, IDictionary<string, string> metadata);
     }
 }
