@@ -85,7 +85,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
         {
             // Usually this is because some properties linked some non-ARM resources
             // Remove the logs to avoid noises
-            _logger.LogDebug($"Invalid node resource type: {armNode.ResourceId}, {ex}");
+            _logger.LogTrace($"Invalid node resource type: {armNode.ResourceId}, {ex}");
             yield break;
         }
         catch (Exception ex)
@@ -145,7 +145,7 @@ public class GenericArmResourceCrawler : IResourceCrawler
             var jsonObj = JsonSerializer.Deserialize<JsonElement>(resp.Value.Data.Properties);
             foreach (var link in Traverse(jsonObj, "."))
             {
-                _logger.LogDebug($"Find linked resource: {link.ResourceId}");
+                _logger.LogTrace($"Find linked resource: {link.ResourceId}");
                 await _graphDbClient.AddOrUpdateNodeAsync(link);
 
                 var edge = new ArmResourceEdge(node.GetNodeId(), link.GetNodeId(), Constants.Relationships.Linked);
