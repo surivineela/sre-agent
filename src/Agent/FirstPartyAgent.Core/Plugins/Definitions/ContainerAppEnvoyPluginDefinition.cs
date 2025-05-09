@@ -61,25 +61,16 @@ Projects:
         [KernelFunction(KernelFunctionNames.ACA.GetEnvoyAccessLogs)]
         [Description(@"Retrieve Container Apps Envoy Access Logs
 Projects:
-  - StartTime: Envoy access log timestamp.
+  - FirstSeen: Start time of the current kind of envoy access log.
+  - LastSeen: End time of the current kind of envoy access log.
+  - max_RequestDuration: maximum request duration of this kind of envoy access log.
+  - Count: count of this kind of envoy access log.
   - Authority: Request access domain name.
   - Method: HTTP request methods.
   - Path: Request access path.
   - Protocol: Internet protocol.
   - Status: HTTP response status(e.g., 200, 503).
-  - ResponseFlags: Response flags.
   - ResponseCodeDetails: Response code details.
-  - GrpcStatus: Grpc response status.
-  - GrpcStatusNumber: Grpc response status number.
-  - RequestDuration: Request duration.
-  - UpstreamHost: Upstream host address.
-  - UpstreamCluster: Upstream cluster.
-  - UpstreamRequestAttemptCount: Upstream request attempt count.
-  - BytesRecieved: Bytes received.
-  - BytesSent: Bytes sent.
-  - RevisionName: Container App Revision name.
-  - UserAgent: User agent.
-  - Role: Cluster Node Id.
 ")]
         public Task<string> GetEnvoyAccessLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName)
         {
