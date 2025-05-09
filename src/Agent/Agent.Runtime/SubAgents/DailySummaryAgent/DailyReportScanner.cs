@@ -174,9 +174,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var now = DateTime.UtcNow;
             var todayReportTime = new DateTime(now.Year, now.Month, now.Day, 7, 0, 0, DateTimeKind.Utc); // 7 AM UTC
 
-            //Skip if it's not time yet for the daily report
+            // Skip if it's not time yet for the daily report
+            // we will only send the daily reports at 7 utc
             // the daily report timer interval is 1 hour, so this will evaluate to false if the current hour is 7
-            if (now.Hour != todayReportTime.Hour && didItOnce)
+            if (now.Hour != todayReportTime.Hour)
             {
                 _logger.LogDebug("Not time for daily report yet. Current hour: {CurrentHour}, Target hour: {TargetHour}",
                     now.Hour, todayReportTime.Hour);
@@ -188,8 +189,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                 return null;
             }
-
-            didItOnce = true;
 
             var cveSummary = await GetCVESummary();
             var incidentsSummary = await GetIncidentsSummary();
@@ -247,7 +246,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             (var thread, var agentContext) = await _agentInboundCommunicationService.CreateAgentThread(
                 $"Daily Resources Report - {dateFormatted}\n\n",
                 report,
-                agentTypeEnum: AgentTypeEnum.DTS,
+                agentTypeEnum: AgentTypeEnum.Meta,
                 ThreadSource.Agent,
                 isDailyReport: true);
 

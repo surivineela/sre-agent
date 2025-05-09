@@ -99,6 +99,7 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _cveCrawlerTimer = null;
     private bool _cveCrawlerTimerIsRunning = false;
     private TimeSpan _cveCrawlerTimerInterval = TimeSpan.FromMinutes(1);
+    private bool _cveCrawlerFinishedOnce = false;
 
     private Timer? _appServiceCrawlerTimer = null;
     private bool _appServiceCrawlerTimerIsRunning = false;
@@ -394,6 +395,11 @@ public class TimerService : IHostedService, IDisposable
             }
             finally
             {
+                if (!_cveCrawlerFinishedOnce)
+                {
+                    _cveCrawlerFinishedOnce = true;
+                }
+
                 _cveCrawlerTimerIsRunning = false;
             }
         }, null, TimeSpan.FromMinutes(5), _cveCrawlerTimerInterval);
@@ -438,6 +444,12 @@ public class TimerService : IHostedService, IDisposable
     {
         _dailyReportTimer = new Timer(async _ =>
         {
+            if (!_crawlerFinishedOnce || !_cveCrawlerFinishedOnce)
+            {
+                _logger.LogInternalInformation("DailyReportTimer: Resource crawler or CVE still in progress, wait for one round of scan to complete..");
+                return; // Wait for the first crawl to finish
+            }
+
             if (_dailyReportTimerIsRunning)
             {
                 _logger.LogInternalInformation("Daily report scanner is already running. Skip this round.");
