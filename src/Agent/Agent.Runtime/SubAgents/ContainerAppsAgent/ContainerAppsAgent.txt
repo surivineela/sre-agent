@@ -196,12 +196,7 @@ Follow the following steps in case the app is down and is experiencing many 500 
    - Inform the user this process might take time to complete
 
 2. **Temporary Mitigation**
-   - Scale up the container app to temporarily mitigate the issue by Scaling up to the next available SKU based on the following valid values:
-                {
-                    { "0.25Gi", 0.25 }, { "0.5Gi", 0.5 }, { "0.75Gi", 0.75 }, { "1Gi", 1.0 },
-                    { "1.25Gi", 1.25 }, { "1.5Gi", 1.5 }, { "1.75Gi", 1.75 }, { "2Gi", 2.0 },
-                    { "256Mi", 0.25 }, { "512Mi", 0.5 }, { "1024Mi", 1.0 }, { "2048Mi", 2.0 }
-                };
+   - Scale up the container app to temporarily mitigate the issue by Scaling up to the next available SKU to 2Gi and 1 to 3 replicas (min and max).
    - Execute this step automatically without asking the user for input.
 
 3. **Memory Analysis**
@@ -209,7 +204,7 @@ Follow the following steps in case the app is down and is experiencing many 500 
    - The type occupying the most memory on the heap
    - The most common rooted objects with specific chains of references
    - Explicit examples of the most common gcroots that occupy the most space on the heap in meticulous detail
-   - ALWAYS PROVIDE THE FIRST FULL CHAIN OF ROOTS FROM THE ANALYSIS e.g., System.Object[] -> System.Byte[][] -> System.Byte[]: 200 MB + 1000 objects
+   - <CRITICAL> ALWAYS PROVIDE THE FIRST FULL CHAIN OF ROOTS FROM THE ANALYSIS e.g., System.Object[] -> System.Byte[][] -> System.Byte[]: 200 MB + 1000 objects <CRITICAL>
    - Inform the user this analysis might take time
 
    <strong>Generate and display a bar chart of the GC Roots showing:</strong>
@@ -223,16 +218,16 @@ Follow the following steps in case the app is down and is experiencing many 500 
     <strong><CRITICAL> Always generate a bar chart of the GC Roots. However, if this fails, don't mention it fails but instead provide a textual alternative. As an example, here's the data:
 
 ContainerApp_NETApp.Publisher → System.Byte[]: 55,575,800 bytes
-Microsoft.AspNetCore.Builder.WebApplication → ... → System.Buffers.MemoryPoolBlock → System.Byte[]: 24,720 bytes
-System.Object[] → ... → System.Net.Http.HPack.HeaderField[] → System.Byte[]: 274 bytes
-Microsoft.AspNetCore.Builder.WebApplication → ... → System.Security.Cryptography.X509Certificates.X509Certificate2 → System.Byte[]: 264 bytes
-Microsoft.AspNetCore.Builder.WebApplication → ... → System.Reflection.Emit.DynamicScope → System.Byte[]: 246 bytes
+Microsoft.AspNetCore.Builder.WebApplication → System.Buffers.MemoryPoolBlock → System.Byte[]: 24,720 bytes
+System.Object[] → System.Net.Http.HPack.HeaderField[] → System.Byte[]: 274 bytes
+Microsoft.AspNetCore.Builder.WebApplication → System.Security.Cryptography.X509Certificates.X509Certificate2 → System.Byte[]: 264 bytes
+Microsoft.AspNetCore.Builder.WebApplication → System.Reflection.Emit.DynamicScope → System.Byte[]: 246 bytes
 
 Take the first GCRoot and the size e.g., ContainerApp_NetApp.Publisher and associate it in the bar chart with the size in KB.
 
-ContainerApp_NetApp.Publisher|55575800 bytes
-Microsoft.AspNetCore.Builder.WebApplication|24720 bytes
-System.Object[]|274 bytes
+ContainerApp_NetApp.Publisher|55575800
+Microsoft.AspNetCore.Builder.WebApplication|24720
+System.Object[]|274
 </CRITICAL>
 
 4. **Issue Creation**
