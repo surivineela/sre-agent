@@ -12,9 +12,7 @@
 
   <ItemGroup>
     <Content Remove="appsettings.Development.json" />
-  </ItemGroup>
-
-	<ItemGroup>
+  </ItemGroup>	<ItemGroup>
 		<PackageReference Include="Markdig" />
 		<PackageReference Include="Serilog" />
 		<PackageReference Include="Serilog.Extensions.Hosting" />
@@ -38,4 +36,10 @@
     </None>
   </ItemGroup>
 
+
+  <Target Name="BuildReactApp" BeforeTargets="Build">
+    <Exec Command="mkdir wwwroot" Condition="!Exists('wwwroot')" />
+    <Exec Command="npm install" WorkingDirectory="Client" />
+    <Exec Command="npm run build" WorkingDirectory="Client" />
+  </Target>
 </Project>

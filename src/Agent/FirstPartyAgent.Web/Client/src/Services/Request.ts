@@ -1,0 +1,139 @@
+import axios, { AxiosRequestConfig, Method } from "axios";
+import { AgentDeployment, AlertInfo, AlertStreamPostBody, DeployAgentPostBody, GenerateInstructionsRequest, IcmIncident, IcmTeamInfo, Location, ResourceGroup, Subscription, TeamConfig } from "../Models/Response";
+import { ICMAlertConfig } from "../Models/ICMAlertConfig";
+import { getAgentHeaders } from "../Helpers/Headers";
+
+
+const makeRequest = async<T>(apiPath: string, method: Method, data: any = null): Promise<T | null> => {
+    let url = "";
+    if (apiPath.startsWith("/")) {
+        url = `${apiPath}`;
+    } else {
+        url = `/${apiPath}`;
+    }
+
+    const request: AxiosRequestConfig = {
+        method: method,
+        url: url,
+        data: data,
+        headers: getAgentHeaders(),
+    };
+    const response = await axios.request(request);
+    return response.data;
+}
+
+const get = async<T>(apiPath: string): Promise<T | null> => {
+    return await makeRequest<T>(apiPath, "GET");
+}
+
+const post = async<T>(apiPath: string, data: any): Promise<T | null> => {
+    return await makeRequest<T>(apiPath, "POST", data);
+}
+
+export const isHotsiteAgentConfigEnabled = async (): Promise<boolean> => {
+    const path = `api/icm/isFeatureEnabled`;
+    const res = await get(path);
+    return res == "true";
+}
+
+export const getOnboardedLoops = async () => {
+    return await get<any>('api/icm/getOnboardedLoops');
+}
+
+export const getLoops = async () => {
+    return await get<TeamConfig[]>('api/icm/loops');
+}
+
+export const getLoopAlertInfo = async (loopId: string) => {
+    return await get<AlertInfo[]>(`api/icm/getLoopAlerts/${loopId}`);
+}
+
+export const getLoopAlertConfigs = async (loopId?: string) => {
+    const url = loopId ? `api/icm/getLoopAlertConfigs/${loopId}` : 'api/icm/getLoopAlertConfigs';
+    return await get<ICMAlertConfig[]>(url);
+}
+
+export const getAlertConfig = async (loopId: string, alertId: string) => {
+    return await get<any>(`api/icm/getAlertConfig/${loopId}/${alertId}`);
+}
+
+export const updateAlertConfig = async (loopId: number, alertId: string, config: ICMAlertConfig) => {
+    return await post<any>(`api/icm/updateAlertConfig/${loopId}/${alertId}`, config);
+}
+
+export const createAlertConfig = async (config: ICMAlertConfig) => {
+    return await post<any>(`api/icm/createAlertConfig`, config)
+}
+
+export const getAlertDefinitions = async () => {
+    return await get<AlertInfo[]>('api/icm/alerts');
+}
+
+export const getIcmTeams = async () => {
+    return await get<IcmTeamInfo[]>('api/icm/icmTeams');
+}
+
+// Method to get Geneva configuration
+export const getGenevaConfig = async (loopId: string) => {
+    return await get(`api/icm/getGenevaConfig?loopId=${loopId}`);
+}
+
+export const saveGenevaConfig = async (config: any) => {
+    return await post(`api/icm/saveGenevaConfig`, config);
+}
+
+// New methods for deploy agent feature
+export const getSubscriptions = async () => {
+    return await get<Subscription[]>('api/icm/subscriptions');
+}
+
+export const getResourceGroups = async (subscriptionId: string) => {
+    return await get<ResourceGroup[]>(`api/icm/subscriptions/${subscriptionId}/resourceGroups`);
+}
+
+export const getLocations = async (subscriptionId: string) => {
+    return await get<Location[]>(`api/icm/subscriptions/${subscriptionId}/locations`);
+}
+
+export const getAgentDeployments = async (loopId: number) => {
+    return await get<AgentDeployment[]>(`api/icm/getAgentDeployments/${loopId}`);
+}
+
+export const createAgent = async (createConfig: DeployAgentPostBody) => {
+    return await post<DeployAgentPostBody>('api/icm/createAgent', createConfig)
+}
+
+export const deployAgent = async (deployConfig: any) => {
+    return await post<any>('api/icm/deployAgent', deployConfig);
+}
+
+export const getAgentFactoryConfig = async (configName: string) => {
+    return await get<any>(`api/icm/agentFactoryConfig/${configName}`);
+}
+
+export const getAgentFactoryConfigs = async () => {
+    return await get<string[]>('api/icm/agentFactoryConfigs');
+}
+
+export const saveAgentFactoryConfig = async (config: any) => {
+    return await post<any>('api/icm/agentFactoryConfig', config);
+}
+
+export const getIncidents = async (teamId: number, title: string, numOfDays: number = 30) => {
+    return await get<IcmIncident[]>(`api/icm/getIncidents?loopId=${teamId}&numOfDays=${numOfDays}&title=${title}`);
+}
+
+export const generateInstructions = async (request: GenerateInstructionsRequest) => {
+    return await post<string>('api/icm/generateInstructions', request);
+    // return await generateInstructionsMock(request);
+}
+
+export const getRequestForAlertStream = (postBody: AlertStreamPostBody): AxiosRequestConfig<AlertStreamPostBody> => {
+    const url = `/api/icm/ProcessAlertStream`;
+    return {
+        method: "POST",
+        url: url,
+        data: postBody,
+        headers: getAgentHeaders(),
+    };
+}

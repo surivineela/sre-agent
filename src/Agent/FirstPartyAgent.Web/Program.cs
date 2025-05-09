@@ -66,10 +66,14 @@ if (!app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 // Serve static files from wwwroot
+app.UseDefaultFiles();
 app.UseStaticFiles();
 app.UseRouting();
 
+// Map controllers for API endpoints
 app.MapControllers();
+
+// Map Blazor components
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

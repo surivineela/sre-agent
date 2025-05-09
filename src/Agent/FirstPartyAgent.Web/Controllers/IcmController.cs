@@ -481,7 +481,6 @@ public class IcmController : Controller
 
             // Wait for the subscription task to complete
             await task;
-
         }
         catch (Exception ex)
         {

@@ -255,6 +255,15 @@ extends:
             failTaskOnFailedTests: true
             testRunTitle: 'UX_UnitTests'
 
+        
+        
+        #  Need to run npmAuthenticate again for the FirstPartyAgent.Web project first
+        #  Due to Client React app also build during whole solution build phase
+        - task: npmAuthenticate@0
+          displayName: 'FirstPartyAgent.Web - Auth'
+          inputs:
+            workingFile: '$(Build.SourcesDirectory)\src\Agent\FirstPartyAgent.Web\Client\.npmrc'
+
         #
         # Build Solution
         #
