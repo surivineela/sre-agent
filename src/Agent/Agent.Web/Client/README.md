@@ -16,7 +16,7 @@
 
 1. Register your subscription (probably not needed post-BUILD?): `az feature register -n SREAgentPreview --namespace Microsoft.App`
 1. Links:
-    - [Local Paas SRE Agent Home/Browse](https://portal.azure.com/? Microsoft_Azure_PaasServerless_clientoptimizations=false&feature.customportal=false&feature.canmodifyextensions=true#view/Microsoft_Azure_PaasServerless/SreAgentHome.ReactView?testExtensions=%7B%22Microsoft_Azure_PaasServerless%22:%22https://localhost:1338/paasserverless%22%7D)
+    - [Local Paas SRE Agent Home/Browse](https://portal.azure.com/?Microsoft_Azure_PaasServerless_clientoptimizations=false&feature.customportal=false&feature.canmodifyextensions=true#view/Microsoft_Azure_PaasServerless/SreAgentHome.ReactView?testExtensions=%7B%22Microsoft_Azure_PaasServerless%22:%22https://localhost:1338/paasserverless%22%7D)
     - https://aka.ms/sreagent
     - https://aka.ms/sreagent-local (local agent site in canary(?) Paas)
 
