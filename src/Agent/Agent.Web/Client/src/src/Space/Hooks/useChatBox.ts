@@ -207,16 +207,21 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         latestMessageRef.current = newMessages[0];
     };
 
-    const pollReasoningStateUntilComplete = async (threadId: string, signal: AbortSignal) => {
-        const threadContext = await getThreadContext(threadId, signal);
-        if (threadContext) {
-            const reasoningState = threadContext.orchestrationState?.reasoningState;
-            if (!reasoningState || equals(reasoningState, ThreadOrchestrationReasoningState.NotStarted, AntUxStringComparison.IgnoreCase)) {
-                return;
-            } else {
-                await new Promise(resolve => setTimeout(resolve, 3000));
-                await pollReasoningStateUntilComplete(threadId, signal);
-            }
+    const pollReasoningStateUntilComplete = async (threadId: string, signal: AbortSignal, latestMessage?: Message) => {
+        const [threadContext, messages] = await Promise.all([getThreadContext(threadId, signal), getMessages(threadId, 0, 2, signal)]);
+
+        const reasoningState = threadContext?.orchestrationState?.reasoningState;
+        const isAnswerAvailable = messages.length >= 2 && !messages.some(message => message.id === latestMessage?.id);
+        if (
+            !reasoningState ||
+            equals(reasoningState, ThreadOrchestrationReasoningState.Error, AntUxStringComparison.IgnoreCase) ||
+            equals(reasoningState, ThreadOrchestrationReasoningState.OrchestrationCompleted, AntUxStringComparison.IgnoreCase) ||
+            isAnswerAvailable
+        ) {
+            return;
+        } else {
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            await pollReasoningStateUntilComplete(threadId, signal, latestMessage);
         }
     };
 
@@ -248,7 +253,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
                 const threadId = currentThreadId || newThread?.id;
 
                 if (threadId) {
-                    await pollReasoningStateUntilComplete(threadId, signal);
+                    await pollReasoningStateUntilComplete(threadId, signal, latestMessageRef.current);
                     // poll answers by getting all messages from the most recent one to the lastest message reference
                     answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal);
                 }
