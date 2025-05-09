@@ -112,6 +112,7 @@ namespace FirstPartyAgent.Core.Plugins
             await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
             var incident = _icmApiClient.IsEnabled()? await _icmApiClient.GetIncidentAsync(incidentId): await _icmWorkflowClient.GetIncidentAsync(incidentId);
             incident.Summary = await ProcessComplexICMContent(incident.Summary, kernel, !_icmWorkflowClient.ProcessImages);
+            incident.DiscussionEntry = await ProcessComplexICMContent(incident.DiscussionEntry, kernel, !_icmWorkflowClient.ProcessImages);
             return incident;
         }
 

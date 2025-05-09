@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core;
+using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Models;
@@ -45,11 +46,12 @@ public class ChatProcessingService : IChatService
     private readonly AsyncReaderWriterLock _lock = new();
     private readonly ILogger<ChatProcessingService> _logger;
     private readonly IKernelService _kernelService;
-    private readonly Kernel _kernel;
+    private readonly Kernel _emptyKernel;
     private readonly ISessionMessageService _sessionMessageService;
     private readonly MarkdownPipeline _markdownPipeline;
     private readonly ITeamsClient _teamsClient;
     private Dictionary<string, SessionInformation> _sessionCollection;
+    private readonly int backoffPeriodInSeconds = 60;
 
     public ChatProcessingService(IConfiguration config, ILogger<ChatProcessingService> logger, IKernelService kernelService, ITeamsClient teamsClient, Kernel kernel, ISessionMessageService sessionMessageService)
     {
@@ -62,7 +64,7 @@ public class ChatProcessingService : IChatService
             .UseAdvancedExtensions()
             .DisableHtml()           // Disable HTML parsing
             .Build();
-        _kernel = kernel;
+        _emptyKernel = kernel;
         _sessionMessageService = sessionMessageService;
     }
 
@@ -119,7 +121,7 @@ public class ChatProcessingService : IChatService
 
         clonedHistory.Add(statusPrompt);
 
-        var chatCompletionService = _kernel.GetRequiredService<IChatCompletionService>();
+        var chatCompletionService = _emptyKernel.GetRequiredService<IChatCompletionService>();
         var promptExecutionSettings = new AzureOpenAIPromptExecutionSettings()
         {
             FunctionChoiceBehavior = FunctionChoiceBehavior.None(),
@@ -135,7 +137,7 @@ public class ChatProcessingService : IChatService
         var chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
             clonedHistory,
             executionSettings: promptExecutionSettings,
-            kernel: _kernel);
+            kernel: _emptyKernel);
 
         return chatCompletionResult.Content;
     }
@@ -149,7 +151,10 @@ public class ChatProcessingService : IChatService
         var userMessage = new ChatMessageContent()
         {
             Role = AuthorRole.User,
-            Content = "Take a deep look at all the chat history and determine if the Agent has fulfilled the query and provided an appropriate response. If yes, then respond with 'YES' otherwise respond with 'NO'. If the user is greeting the agent, then the agent should be responding with a greeting and a summary of its capabilities."
+            Content = $@"Take a deep look at all the chat history and determine if the Agent has fulfilled the query and provided an appropriate response. If yes, then respond with 'YES' otherwise respond with 'NO'.
+            - If the user is greeting the agent, then the agent should be responding with a greeting and a summary of its capabilities.
+            - If the agent is processing an incident, then it should have carried out all the tasks planned unless it needs confirmation.
+            - Remember the Agent does not run background tasks. So an answer like 'I will now proceed with doing XYZ' is not acceptable. It should actually carry out the tasks planned and only send response once everything is done (unless it's seeking user confirmation)."
         };
         sessionInfo.ChatHistory.Add(userMessage);
         var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString());
@@ -166,10 +171,33 @@ public class ChatProcessingService : IChatService
             promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.Medium;
         }
 
-        var chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+        ChatMessageContent chatCompletionResult = null;
+
+        try
+        {
+            chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
             sessionInfo.ChatHistory,
             executionSettings: promptExecutionSettings,
             kernel: _kernel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error running IsAgentDone: {ex.Message}. sessionId: {sessionInfo.SessionId}");
+            if ((ex.Message?.Contains("HTTP 429") == true) || (ex.InnerException?.Message?.Contains("HTTP 429") == true))
+            {
+                string statusMessage = "OpenAI quota was hit. Backing off for a few seconds to try again.";
+                await _kernel.LogInformation(statusMessage, _logger, _teamsClient, _sessionMessageService);
+                await Task.Delay(backoffPeriodInSeconds * 1000);
+                chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+                    sessionInfo.ChatHistory,
+                    executionSettings: promptExecutionSettings,
+                    kernel: _kernel);
+            }
+            else
+            {
+                throw;
+            }
+        }
         var isAgentDone = false;
         if (chatCompletionResult.Content != null && chatCompletionResult.Content.Contains("YES"))
         {
@@ -188,8 +216,9 @@ public class ChatProcessingService : IChatService
 
         var _kernel = _kernelService.GetKernelForAgentMode(sessionInfo.AgentMode.ToString()).Clone();
         _kernel.Data["sessionId"] = sessionInfo.SessionId;
+        _kernel.Data["agentMode"] = sessionInfo.AgentMode.ToString();
 
-        if(sessionInfo.Data != null)
+        if (sessionInfo.Data != null)
         {
             foreach (var key in sessionInfo.Data.Keys)
             {
@@ -211,10 +240,40 @@ public class ChatProcessingService : IChatService
             promptExecutionSettings.ReasoningEffort = OpenAI.Chat.ChatReasoningEffortLevel.High;
         }
 
-        chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
-            sessionInfo.ChatHistory,
-            executionSettings: promptExecutionSettings,
-            kernel: _kernel);
+        try
+        {
+
+            chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+                sessionInfo.ChatHistory,
+                executionSettings: promptExecutionSettings,
+                kernel: _kernel);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, $"Error running the chat service: {ex.Message}. sessionId: {sessionInfo.SessionId}");
+            if ((ex.Message?.Contains("context_length_exceeded")==true) || (ex.InnerException?.Message?.Contains("context_length_exceeded") == true))
+            {
+                return new ChatMessageContent()
+                {
+                    Role = AuthorRole.Assistant,
+                    Content = $"An error occurred while processing the request: Model context length exceeded. Please 'clear state' and try again. If this happens again after clearing state, there is too much information in the task that you're trying to process."
+                };
+            }
+            else if ((ex.Message?.Contains("HTTP 429") == true) || (ex.InnerException?.Message?.Contains("HTTP 429") == true))
+            {
+                string statusMessage = "OpenAI quota was hit. Backing off for a few seconds to try again.";
+                await _kernel.LogInformation(statusMessage, _logger, _teamsClient, _sessionMessageService);
+                await Task.Delay(backoffPeriodInSeconds * 1000);
+                chatCompletionResult = await chatCompletionService.GetChatMessageContentAsync(
+                    sessionInfo.ChatHistory,
+                    executionSettings: promptExecutionSettings,
+                    kernel: _kernel);
+            }
+            else
+            {
+                throw;
+            }
+        }
 
         sessionInfo.ChatHistory.AddMessage(chatCompletionResult.Role, chatCompletionResult.Content ?? string.Empty);
 
@@ -227,6 +286,7 @@ public class ChatProcessingService : IChatService
             _logger.LogInformation($"ChatProcessingService:RunAgentLoop - isAgentDone = {isAgentDone}.");
             if (!isAgentDone)
             {
+                sessionInfo.ChatHistory.AddUserMessage("proceed");
                 chatCompletionResult = await RunAgentLoop(sessionInfo, retryLimit - 1);
             }
         }
@@ -343,16 +403,21 @@ public class ChatProcessingService : IChatService
             catch (Exception ex)
             {
                 sessionInfo.AgentLoopRunning = false;
-                _logger.LogError(ex, "Error running the chat service");
                 throw;
             }
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error processing message");
+            _logger.LogError(ex, $"Error processing message: {ex.Message}");
+            string errorMessage = "An error occurred while processing the request. Please 'clear state' and try again.";
+            if (_teamsClient.IsEnabled())
+            {
+                _logger.LogInformation($"Posting message to Teams: {errorMessage}");
+                await _teamsClient.PostMessageOnTeams(errorMessage, message.AgentMode);
+            }
             return new ChatMessage()
             {
-                Message = $"Error processing message: {ex.Message}",
+                Message = errorMessage,
                 Timestamp = DateTime.Now
             };
         }

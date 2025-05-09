@@ -3,6 +3,7 @@
   "AgentMode": "ICMAgent",
   "IncidentTitle": "[Public] [FlexConsumption] [Hot]SLA Site Ping Failures",
   "ActionTimeoutIntervalInMinutes": 180,
+  "UseCorrelationIdForKustoQuery": true,
   "DefaultHumanInterventionLoop": "App Service (Web Apps)/Antares Functions FlexConsumption Loop",
   "KustoQueries": [
   ],

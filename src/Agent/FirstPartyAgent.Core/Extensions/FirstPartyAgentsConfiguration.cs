@@ -52,20 +52,11 @@ namespace FirstPartyAgent.Core.Extensions
 
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();
+            services.AddSingleton<TeamsChartPlugin>();
             services.AddSingleton<IAlertProcessingService, AlertProcessingService>();
 
-            services.AddSingleton<ObserverClientService>();
-            services.AddSingleton<IICMAPIClient, ICMAPIClient>();
-            services.AddSingleton<ICMWorkflowClient, ICMWorkflowClient>();
-            services.AddSingleton<ICMPlugin>();
-            services.AddSingleton<GenevaActionsPlugin>();
             services.AddSingleton<RedisGenevaActionsPlugin>();
-
-            services.AddSingleton<KustoClientService>();
-
             services.AddSingleton<ColdStartPlugin>();
-            services.AddSingleton<ITeamsClient, TeamsClient>();
-            services.AddSingleton<TeamsPlugin>();
 
             services.AddSingleton<FirstPartyAgent.Core.Services.IAzureSearchClient, FirstPartyAgent.Core.Services.AzureSearchClient>();
             services.AddSingleton<IAzureSearchPlugin, AzureSearchPlugin>();

@@ -32,6 +32,10 @@
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.ICMChartPlugin"
   },
   {
+    "PluginName": "TeamsChartPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.TeamsChartPlugin"
+  },
+  {
     "PluginName": "WebAppPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.WebAppPlugin"
   },

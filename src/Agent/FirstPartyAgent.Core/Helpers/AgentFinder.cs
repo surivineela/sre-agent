@@ -23,7 +23,7 @@ namespace FirstPartyAgent.Core.Helpers
             { "MFP", new List<string>(){ "IcmPlugin", "GenevaActionsPlugin", "KustoPlugin", "TeamsPlugin" } },
             { "GithubIssueTagger", new List<string>() { "GitHubIssuePlugin", "AzureSearchPlugin" } },
             { "ICMSummarizer", new List<string>(){ "IcmPlugin" } },
-            { "ColdStart", new List<string>(){ "ColdStartPlugin" } },
+            { "ColdStart", new List<string>(){ "ColdStartPlugin", "TeamsChartPlugin" } },
         };
 
         public static Dictionary<string, List<string>> AgentDataParsingConfig = new Dictionary<string, List<string>>()

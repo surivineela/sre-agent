@@ -3,6 +3,7 @@
   "AgentMode": "ICMAgent",
   "IncidentTitle": "[FlexConsumption][Http] Http Organic Traffic Failures (> 5 subs impacted in last hour)",
   "ActionTimeoutIntervalInMinutes": 180,
+  "UseCorrelationIdForKustoQuery": true,
   "DefaultHumanInterventionLoop": "App Service (Web Apps)/Antares Functions FlexConsumption Loop",
   "KustoQueries": [
   ],
