@@ -7,6 +7,7 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
+using Agent.Core.Models.Api.v1;
 
 namespace Agent.Runtime.SubAgents.Core.Steps;
 public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
@@ -38,6 +39,9 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
             ApprovalId: ApprovalId,
             FunctionCallContent: updatedFunctionCall,
             ToolSignatures: agent.ToolSignatures);
+
+        await agent.RecordActionIfNeeded(FunctionCall, ActionStatus.InProgress);
+
         var executionResult = await context.CallGenericExecuteActionActivityAsync(execInput);
         agent.ChatHistory.Add(executionResult.ChatMessage);
 
@@ -46,5 +50,7 @@ public class OrchestrationAgentGenericExecuteStep : OrchestrationAgentStep
             agent.Pending202Activities.Add(context.CallGenericExecute202ActionActivityAsync(execInput));
             log.LogInternalInformation("[{ThreadId}] 202 activity submitted: {ChatMessage}", threadId, executionResult.ChatMessage.ToString());
         }
+
+        await agent.RecordActionIfNeeded(FunctionCall, executionResult.Succeeded ? ActionStatus.Completed : ActionStatus.Failed);
     }
 }

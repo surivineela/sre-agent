@@ -8,5 +8,6 @@ namespace Agent.Runtime.SubAgents.Core;
 
 public sealed record ExecuteActionOutput(
     ChatMessage ChatMessage,
+    bool Succeeded,
     bool Is202Submit);
 

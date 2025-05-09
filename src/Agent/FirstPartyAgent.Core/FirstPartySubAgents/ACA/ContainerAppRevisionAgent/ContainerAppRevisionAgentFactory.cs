@@ -53,7 +53,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetRevisionSpecChanges));
 
             //var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-            //toolSignatures.Add(_toolsRegistry.GetSignature(() => recordActionsPluginDefinition.RecordAction));
             //toolSignatures.Add(_toolsRegistry.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();

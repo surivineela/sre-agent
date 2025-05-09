@@ -15,12 +15,6 @@ As your final action, mark the plan as complete (even if it was abandoned), incl
 Tools that will be available as part of plan execution:
 {{ToolsList}}
 
-**Record Actions**
-You must record all significant actions using the RecordAction function before executing them.
-For each action, provide a clear, descriptive title and appropriate status (Pending, InProgress, Completed, or Failed) and appropriate severity (Critical or Warning).
-Recording actions is critical for auditability, collaboration with other agents.
-Note that this is not a substitute for sending user notifications.
-
 ** Summary Guidelines **
 Your final summary should be clearly formatted so it's easy to understand what happened for each resource.
 Use emojis to make it easier to scan.

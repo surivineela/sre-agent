@@ -60,8 +60,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
             var matchingTool = aiFunctions.Single(x => x.ToolFunction.Name == targetFunction);
 
             // Check if requiers approval
-            var attribute = matchingTool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
-            if (attribute == null)
+            if (!ApprovalHelper.ToolRequiresApproval(matchingTool))
             {
                 return new CheckApprovalActivityOutput()
                 {
@@ -69,7 +68,7 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
-            var approvalTitle = ApprovalTitleHelper.GenerateUniqueApprovalTitle(
+            var approvalTitle = ApprovalHelper.GenerateUniqueApprovalTitle(
                 input.ThreadId,
                 context.InstanceId,
                 targetFunction,
@@ -84,12 +83,15 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 // TODO: get rid of hostEnvironment check. Make it something like actionMode: OBO/Agent check
                 (!_hostEnvironment.IsDevelopment() && approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken)))
             {
-                var description = attribute.DisplayMessage ?? string.Empty;
+                var description = ApprovalHelper.GetToolDefaultApprovalMessage(matchingTool);
                 // Try get latest action with the function call name
-                var action = await _threadRepository.GetLatestToolCallAction(Guid.Parse(input.ThreadId), targetFunction);
-                if (action != null)
+                if (input.ActionCorrelationId != Guid.Empty)
                 {
-                    description = action.Title;
+                    var action = await _threadRepository.GetLastActionByCorrelationIdAsync(Guid.Parse(input.ThreadId), input.ActionCorrelationId);
+                    if (action != null)
+                    {
+                        description = action.Title;
+                    }
                 }
 
                 // Create a new approval document
@@ -137,28 +139,5 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 ApprovalStatus = ToolApprovalStatus.Pending,
             };
         }
-    }
-
-    private string GenerateUniqueApprovalTitle(string threadId, string orchstrationId, string operationName, IDictionary<string, object?> arguments)
-    {
-        // model may hallucinate these IDs causing unstable hash for same action
-        if (arguments.ContainsKey("threadId"))
-        {
-            arguments.Remove("threadId");
-        }
-
-        if (arguments.ContainsKey("approvalId"))
-        {
-            arguments.Remove("approvalId");
-        }
-
-        // calculate SHA256 hash of the arguments
-        var orderedArgs = new OrderedDictionary<string, object?>(arguments);
-        using var sha256 = SHA256.Create();
-        var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(orderedArgs)));
-        var hashString = BitConverter.ToString(hash).Replace("-", "").ToLowerInvariant();
-        var truncatedHash = hashString.Substring(0, Math.Min(16, hashString.Length));
-
-        return $"{threadId}-{orchstrationId}-{operationName}-{truncatedHash}";
     }
 }

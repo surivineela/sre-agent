@@ -12,4 +12,5 @@ public class CheckApprovalActivityInput
     public string ThreadId { get; set; } = string.Empty;
     public string OrchestrationId { get; set; } = string.Empty;
     public FunctionCallContent? FunctionCall { get; set; }
+    public Guid ActionCorrelationId { get; set; } = Guid.Empty;
 }

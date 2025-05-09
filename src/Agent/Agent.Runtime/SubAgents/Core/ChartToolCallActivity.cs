@@ -59,6 +59,7 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
             // Return successful result
             return new ExecuteActionOutput(
                 ChatMessage: new ChatMessage(ChatRole.Tool, [result]),
+                Succeeded: true,
                 Is202Submit: false);
         }
         catch (Exception ex)
@@ -79,6 +80,7 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
 
             return new ExecuteActionOutput(
                 ChatMessage: new ChatMessage(ChatRole.Tool, [errorResult]),
+                Succeeded: false,
                 Is202Submit: false);
         }
     }

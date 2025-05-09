@@ -13,16 +13,6 @@ namespace Agent.Plugins.Definitions
     public interface IRecordActionsPlugin
     {
         /// <summary>
-        /// Records an important action taken by the agent
-        /// </summary>
-        /// <param name="threadId">The thread ID this action is associated with</param>
-        /// <param name="title">Title describing the action being recorded</param>
-        /// <param name="status">Current status of the action</param>
-        /// <param name="severity">severity of the action</param>
-        /// <returns>The recorded action</returns>
-        Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning);
-
-        /// <summary>
         /// Gets details about a specific action
         /// </summary>
         /// <param name="threadId">The thread ID this action is associated with</param>

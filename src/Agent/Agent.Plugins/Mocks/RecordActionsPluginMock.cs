@@ -30,7 +30,7 @@ namespace Agent.Plugins.Mocks
         /// <summary>
         /// Records a new action
         /// </summary>
-        public Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning)
+        public Task<Action> RecordAction(Guid threadId, Guid correlationId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning)
         {
             _logger?.LogInternalInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
                 threadId, title, status);
@@ -41,6 +41,7 @@ namespace Agent.Plugins.Mocks
             // Create action with new ID
             var action = new Action(
                 Id: new Guid(guidBytes),
+                CorrelationId: correlationId,
                 Title: title,
                 ToolName: toolName,
                 TimeStamp: _timeProvider.GetUtcNow().DateTime,

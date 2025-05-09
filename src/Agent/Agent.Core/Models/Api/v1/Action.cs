@@ -7,6 +7,9 @@ namespace Agent.Core.Models.Api.v1;
 public enum ActionStatus
 {
     Pending,
+    PendingApproval,
+    Approved,
+    Rejected,
     InProgress,
     Completed,
     Failed
@@ -20,6 +23,7 @@ public enum ActionSeverity
 
 public record Action(
     Guid Id,
+    Guid CorrelationId,
     string Title,
     string ToolName,
     DateTime TimeStamp, // created timestamp

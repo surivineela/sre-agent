@@ -646,7 +646,7 @@ public class ArmHelper
             throw new InvalidOperationException("The action is not approved");
         }
 
-        var token = await cred.GetTokenAsync(new TokenRequestContext(), CancellationToken.None);
+        var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
         httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
         var response = await httpClient.SendAsync(request);

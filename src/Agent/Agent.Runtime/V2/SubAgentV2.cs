@@ -11,6 +11,7 @@ using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Runtime.Helpers;
 using Agent.Runtime.SubAgents;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
@@ -86,8 +87,7 @@ public class SubAgentV2<TDefinition, TInput> : ISubAgentV2 where TDefinition : I
                 continue;
             }
 
-            var attribute = underlyingMethod.GetCustomAttribute<RequiresApprovalAttribute>();
-            if (attribute != null)
+            if (ApprovalHelper.ToolRequiresApproval(aiFunction))
             {
                 // the interceptor wraps the AI function call to check for approval
                 var approvalInterceptor = new ApprovalInterceptor(

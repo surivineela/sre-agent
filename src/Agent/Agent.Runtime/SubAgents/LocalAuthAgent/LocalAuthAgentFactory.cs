@@ -40,7 +40,6 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
         yield return () => remediationPluginDefinition.StorageAccountSetContainerPublicAccess;
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        yield return () => recordActionsPluginDefinition.RecordAction;
         yield return () => recordActionsPluginDefinition.GetActionDetails;
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();

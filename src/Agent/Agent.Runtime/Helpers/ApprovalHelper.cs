@@ -2,13 +2,16 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using System.Reflection;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
+using Agent.Core.Attributes;
+using Agent.Runtime.SubAgents;
 
 namespace Agent.Runtime.Helpers;
 
-public static class ApprovalTitleHelper
+public static class ApprovalHelper
 {
     /// <summary>
     /// Generates a unique title for the approval request based on the thread ID, processor ID, operation name, and arguments.
@@ -34,5 +37,19 @@ public static class ApprovalTitleHelper
         var truncatedHash = hashString.Substring(0, Math.Min(16, hashString.Length));
 
         return $"{threadId}-{processorId}-{operationName}-{truncatedHash}";
+    }
+
+    public static bool ToolRequiresApproval(IToolFunction tool)
+    {
+        var attribute = tool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
+
+        return attribute != null;
+    }
+
+    public static string GetToolDefaultApprovalMessage(IToolFunction tool)
+    {
+        var attribute = tool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
+
+        return attribute?.DisplayMessage ?? string.Empty;
     }
 }

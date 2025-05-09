@@ -1,19 +1,15 @@
 using System.Text.Json.Serialization;
-using Agent.Core.Attributes;
 using Agent.Core.Extensions;
 using Agent.Core.Models;
 using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins;
-using Agent.Plugins.Attributes;
 using Agent.Plugins.Definitions;
 using Agent.Runtime.SubAgents.Core.Steps;
-using Microsoft.AspNetCore.Authentication;
 using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Octokit;
-
+using ActionStatus = Agent.Core.Models.Api.v1.ActionStatus;
 
 namespace Agent.Runtime.SubAgents.Core;
 public class OrchestrationAgent
@@ -30,6 +26,7 @@ public class OrchestrationAgent
     public HashSet<string> PendingApprovals { get; set; } = new();
     public List<Task<ChatMessage>> Pending202Activities { get; set; } = new();
     public Guid ThreadId { get; set; }
+    public Guid CurrentActionCorrelationId { get; set; }
 
     ThreadContext? ThreadContext { get; set; }
 
@@ -94,13 +91,13 @@ public class OrchestrationAgent
 
         log.LogInternalInformation("[{ThreadId}] Next action received: {ChatMessage}", threadId, reasoningResult.ToString());
 
-
         var functionCalls = reasoningResult.ChatMessages.Last().Contents.OfType<FunctionCallContent>();
-
 
         log.LogInternalInformation("[{ThreadId}] Function calls found: {FunctionCalls}", threadId, string.Join(", ", functionCalls.Select(f => f.Name)));
         // Extract the function call (assumes a single function call in the message)
         var functionCall = functionCalls.Single();
+
+        await RecordActionIfNeeded(functionCall, ActionStatus.Pending);
 
         var checkApprovalActivityInput = new CheckApprovalActivityInput()
         {
@@ -108,6 +105,7 @@ public class OrchestrationAgent
             FunctionCall = functionCall,
             ThreadId = threadId,
             OrchestrationId = _taskOrchestrationContext.InstanceId,
+            ActionCorrelationId = CurrentActionCorrelationId,
         };
 
         await RecordStateChange(ReasoningState.RunningFunctionCall, $"Checking approval for function call: {functionCall.Name}");
@@ -132,6 +130,7 @@ public class OrchestrationAgent
             else if (approvalResult.ApprovalStatus == ToolApprovalStatus.Approved)
             {
                 log.LogInternalInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
+                await RecordActionIfNeeded(functionCall, ActionStatus.Approved);
                 if (approvalResult.ApprovalId != null)
                 {
                     PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
@@ -142,6 +141,7 @@ public class OrchestrationAgent
             else
             {
                 log.LogInternalInformation("[{ThreadId}] function call to {FunctionCall} is rejected", threadId, functionCall.Name);
+                await RecordActionIfNeeded(functionCall, ActionStatus.Rejected);
                 if (approvalResult.ApprovalId != null)
                 {
                     PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
@@ -183,6 +183,32 @@ public class OrchestrationAgent
                 StateMessage = message,
                 TimeStamp = DateTime.UtcNow
             });
+    }
+
+    public async Task RecordActionIfNeeded(FunctionCallContent? functionCall, ActionStatus status)
+    {
+        var action = await _taskOrchestrationContext.CallRecordActionActivityAsync(
+            new RecordActionInput(
+                CorrelationId: this.CurrentActionCorrelationId,
+                ThreadId: this.ThreadId,
+                ChatMessages: this.ChatHistory,
+                FunctionCall: functionCall,
+                ToolSignatures: this.ToolSignatures,
+                Status: status
+                )
+        );
+
+        if (action != null)
+        {
+            if (action.Status == ActionStatus.Completed || action.Status == ActionStatus.Failed)
+            {
+                this.CurrentActionCorrelationId = Guid.Empty;
+            }
+            else
+            {
+                this.CurrentActionCorrelationId = action.CorrelationId;
+            }   
+        }
     }
 
     public void UpdateOrchestrationStatus()
@@ -237,7 +263,7 @@ public class OrchestrationAgent
                     {
                         var waitMessage = $"Wait completed at {agent._taskOrchestrationContext.CurrentUtcDateTime:O}.";
 
-                        if(isTestContext)
+                        if (isTestContext)
                         {
                             waitMessage = "Wait completed.";
                         }
@@ -392,7 +418,6 @@ public class OrchestrationAgent
 [JsonPolymorphic(TypeDiscriminatorPropertyName = "$type")]
 [JsonDerivedType(typeof(OrchestrationAgentCompleteStep), "CompleteStep")]
 [JsonDerivedType(typeof(OrchestrationAgentWaitStep), "WaitStep")]
-[JsonDerivedType(typeof(OrchestrationAgentRecordActionStep), "RecordActionStep")]
 [JsonDerivedType(typeof(OrchestrationAgentGetActionDetailsStep), "GetActionDetailsStep")]
 [JsonDerivedType(typeof(OrchestrationAgentUserCommunicationStep), "UserCommunicationStep")]
 [JsonDerivedType(typeof(OrchestrationAgentVisualizeAppComponentsStep), "VisualizeAppComponentsStep")]
@@ -411,10 +436,6 @@ public abstract class OrchestrationAgentStep
         else if (functionCall.Name == nameof(ControlFlowPluginDefinition.Wait))
         {
             return new OrchestrationAgentWaitStep { FunctionCall = functionCall };
-        }
-        else if (functionCall.Name == nameof(RecordActionsPluginDefinition.RecordAction))
-        {
-            return new OrchestrationAgentRecordActionStep { FunctionCall = functionCall };
         }
         else if (functionCall.Name == nameof(RecordActionsPluginDefinition.GetActionDetails))
         {

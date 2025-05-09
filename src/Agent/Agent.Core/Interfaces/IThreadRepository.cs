@@ -35,7 +35,8 @@ public interface IThreadRepository
     Task<Action> AddActionAsync(Guid threadId, Action action);
     Task<IEnumerable<string>> GetThreadIdsWithActionSeverityAsync(ActionSeverity? severity);
     Task<IEnumerable<Action>> GetAllActionsAsync();
-    Task<Action> GetLatestToolCallAction(Guid threadId, string toolName);
+    Task<IEnumerable<Action>> GetActionsByCorrelationIdAsync(Guid threadId, Guid correlationId);
+    Task<Action> GetLastActionByCorrelationIdAsync(Guid threadId, Guid correlationId);
 
     Task<MessageFeedback> GetMessageFeedbackAsync(Guid threadId, Guid messageFeedbackId);
     Task<IEnumerable<MessageFeedback>> GetMessageFeedbacksAsync(Guid threadId, ODataQueryOptions? queryOptions = null);

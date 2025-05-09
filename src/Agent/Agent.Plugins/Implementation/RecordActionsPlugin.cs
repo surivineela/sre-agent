@@ -23,35 +23,6 @@ namespace Agent.Plugins
             _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         }
 
-        public async Task<Action> RecordAction(Guid threadId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning)
-        {
-            // Check if thread exists
-            var thread = await _repository.GetThreadAsync(threadId);
-            if (thread == null)
-            {
-                _logger.LogInternalWarning("Attempted to record action for non-existent thread: {ThreadId}", threadId);
-                throw new ArgumentException($"Thread with ID {threadId} does not exist", nameof(threadId));
-            }
-
-            // Create new action
-            var action = new Action(
-                Id: Guid.NewGuid(),
-                Title: title,
-                ToolName: toolName,
-                TimeStamp: DateTime.UtcNow,
-                Status: status,
-                Severity: severity
-            );
-
-            // Store the action
-            await _repository.AddActionAsync(threadId, action);
-
-            _logger.LogInternalInformation("Recorded action: {ActionId} - {Title} for thread {ThreadId}",
-                action.Id, action.Title, threadId);
-
-            return action;
-        }
-
         public async Task<Action> GetAction(Guid threadId, Guid actionId)
         {
             var action = await _repository.GetActionAsync(threadId, actionId);

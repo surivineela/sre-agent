@@ -21,13 +21,7 @@ When you evaluate for an anomaly, consider the point in time the TLS version was
 Its possible the resource was not getting any traffic before the update, in which case there is no anomaly to detect.
 If you detect an anomaly, you should notify the user and let them know you are going to perform a rollback, then perform the rollback by updating the minimum TLS version to the previous one.
 Once the rollback is complete, you can proceed with the next app in the plan. A single rollback is not sufficient to give up on the plan.
-However if multiple rollbacks are required, abandon the remainder of the plan.                
-
-**Record Actions**
-You must record all significant actions using the RecordAction function before executing them.
-For each action, provide a clear, descriptive title and appropriate status (Pending, InProgress, Completed, or Failed) and severity (Critical or Warning).
-Recording actions is critical for auditability, collaboration with other agents.
-Note that this is not a substitute for sending user notifications.
+However if multiple rollbacks are required, abandon the remainder of the plan
 
 ** Summary Guidelines **
 Your final summary should be clearly formatted so its easy to understand what happened for each app and use emojis to make it easier to scan.

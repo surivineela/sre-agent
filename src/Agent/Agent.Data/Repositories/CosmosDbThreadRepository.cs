@@ -802,14 +802,45 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
     }
 
-    public async Task<Action> GetLatestToolCallAction(Guid threadId, string toolName)
+    public async Task<IEnumerable<Action>> GetActionsByCorrelationIdAsync(Guid threadId, Guid correlationId)
     {
         string threadIdStr = threadId.ToString();
+        string correlationIdStr = correlationId.ToString();
 
         try
         {
             var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
-                .Where(d => d.DocumentType == "Action" && d.ThreadId == threadIdStr)
+                .Where(d => d.DocumentType == "Action" && d.ThreadId == threadIdStr && d.CorrelationId == correlationIdStr);
+
+            var actions = new List<Action>();
+            using var iterator = query.ToFeedIterator();
+
+            while (iterator.HasMoreResults)
+            {
+                foreach (var actionDoc in await iterator.ReadNextAsync())
+                {
+                    actions.Add(actionDoc.ToDomainModel());
+                }
+            }
+
+            return actions;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error retrieving actions with correlationId {CorrelationId} for thread {ThreadId}", correlationId, threadId);
+            throw;
+        }
+    }
+
+    public async Task<Action> GetLastActionByCorrelationIdAsync(Guid threadId, Guid correlationId)
+    {
+        string threadIdStr = threadId.ToString();
+        string correlationIdStr = correlationId.ToString();
+
+        try
+        {
+            var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
+                .Where(d => d.DocumentType == "Action" && d.ThreadId == threadIdStr && d.CorrelationId == correlationIdStr)
                 .OrderByDescending(d => d.TimeStamp)
                 .Take(1);
 
@@ -835,7 +866,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
         catch (Exception ex)
         {
-            _logger.LogInternalError(ex, "Error retrieving action with tool call {ToolName} for thread {ThreadId}", toolName, threadId);
+            _logger.LogInternalError(ex, "Error retrieving action with correlation id {ActionCorrelationId} for thread {ThreadId}", correlationId, threadId);
             throw;
         }
     }

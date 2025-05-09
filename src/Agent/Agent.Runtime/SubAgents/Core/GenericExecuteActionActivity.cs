@@ -50,6 +50,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
             // Return successful result
             return new ExecuteActionOutput(
                 ChatMessage: new ChatMessage(ChatRole.Tool, [result]),
+                Succeeded: true,
                 Is202Submit: matchingTool is IToolFunction202);
         }
         catch (Exception ex)
@@ -70,6 +71,7 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
 
             return new ExecuteActionOutput(
                 ChatMessage: new ChatMessage(ChatRole.Tool, [errorResult]),
+                Succeeded: false,
                 Is202Submit: false);
         }
     }

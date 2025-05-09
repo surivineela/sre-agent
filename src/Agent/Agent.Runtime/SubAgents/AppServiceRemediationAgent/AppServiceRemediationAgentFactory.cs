@@ -60,7 +60,6 @@ public sealed class AppServiceRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => remediationPluginDefinition.CollectMemoryDump));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
-        toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.RecordAction));
         toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));
 
         var controlFlowPluginDefinition = new ControlFlowPluginDefinition();

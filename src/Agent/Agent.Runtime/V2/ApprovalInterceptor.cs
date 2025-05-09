@@ -65,7 +65,7 @@ public class ApprovalInterceptor : AIFunction
         _logger.LogInternalInformation("[{ThreadId}] Checking approval for operation: {OperationName}",
             _context.ThreadId, operationName);
 
-        var approvalTitle = ApprovalTitleHelper.GenerateUniqueApprovalTitle(
+        var approvalTitle = ApprovalHelper.GenerateUniqueApprovalTitle(
             _context.ThreadId.ToString(),
             _context.Id.ToString(),
             operationName,

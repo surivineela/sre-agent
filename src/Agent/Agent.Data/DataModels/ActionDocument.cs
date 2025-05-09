@@ -10,6 +10,7 @@ namespace Agent.Data.DataModels;
 // Extended Action model for Cosmos DB
 public record ActionDocument(
     string Id,
+    string CorrelationId, // correlates same action
     string ThreadId,
     string Title,
     string ToolName,
@@ -27,6 +28,7 @@ public record ActionDocument(
     public static ActionDocument FromDomainModel(Action action, string threadId) =>
         new ActionDocument(
             action.Id.ToString(),
+            action.CorrelationId.ToString(),
             threadId,
             action.Title,
             action.ToolName,
@@ -38,6 +40,7 @@ public record ActionDocument(
     public Action ToDomainModel() =>
         new Action(
             Guid.Parse(Id),
+            string.IsNullOrEmpty(CorrelationId) ? Guid.Empty : Guid.Parse(CorrelationId),
             Title,
             ToolName,
             TimeStamp,
