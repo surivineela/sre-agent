@@ -29,12 +29,6 @@
       "value": "Resource group"
     }
   ],
-  "/9bvfN": [
-    {
-      "type": 0,
-      "value": "Required roles"
-    }
-  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -343,6 +337,12 @@
       "value": "Overview"
     }
   ],
+  "A/xTHO": [
+    {
+      "type": 0,
+      "value": "Role assignments"
+    }
+  ],
   "A3Wps1": [
     {
       "type": 0,
@@ -599,12 +599,6 @@
     {
       "type": 0,
       "value": " deleted successfully"
-    }
-  ],
-  "K8gj8f": [
-    {
-      "type": 0,
-      "value": "You do not have the required roleAssignments/write permissions to set up a Grafana dashboard."
     }
   ],
   "LPprqA": [
@@ -1411,6 +1405,12 @@
     {
       "type": 0,
       "value": "Failed"
+    }
+  ],
+  "vkNGfn": [
+    {
+      "type": 0,
+      "value": "You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard."
     }
   ],
   "w+XRP2": [

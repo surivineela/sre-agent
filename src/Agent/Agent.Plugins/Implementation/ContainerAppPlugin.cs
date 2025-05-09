@@ -387,6 +387,17 @@ namespace Agent.Plugins.Implementation
 
                 // Patch request
                 var containerAppUpdateData = containerApp.Data;
+                var secrets = containerApp.Data.Configuration.Secrets;
+                await foreach(var v in containerAppResource.GetSecretsAsync())
+                {
+                    var secret = secrets.FirstOrDefault(secrets => secrets.Name == v.Name); 
+                    if (secret != null)
+                    {
+                        secret.KeyVaultUri = v.KeyVaultUri;
+                        secret.Value = v.Value;
+                        secret.Identity = v.Identity;
+                    }
+                }
 
                 // Update all containers' resources
                 foreach (var container in containerAppUpdateData.Template.Containers)
@@ -425,7 +436,7 @@ namespace Agent.Plugins.Implementation
                     containerAppUpdateData.Template.Scale.MaxReplicas = maxReplicas;
                 }
 
-                // Apply the update
+                // Apply the update 1. List Secrets
                 _logger.LogInternalInformation("Applying container app scale update...");
                 await containerAppResource.UpdateAsync(WaitUntil.Completed, containerAppUpdateData);
 
