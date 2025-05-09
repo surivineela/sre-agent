@@ -21,11 +21,13 @@ namespace Agent.Plugins.Implementation;
 
 public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
 {
-    private ArmHelper _armHelper;
+    private readonly ArmHelper _armHelper;
+    private readonly IMetricsPlugin _metricsPlugin;
 
-    public DotnetAnalysisPlugin(ArmHelper armHelper)
+    public DotnetAnalysisPlugin(ArmHelper armHelper, IMetricsPlugin metricsPlugin)
     {
         _armHelper = armHelper;
+        _metricsPlugin = metricsPlugin;
     }
 
     public async Task<string> GetCPUAnalysis(string profilePath, int pid)
@@ -231,6 +233,84 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
         {
             return $"An unexpected error occurred: {ex.Message}";
         }
+    }
+
+    public async Task<bool> ShouldTriggerMemoryDump(string resourceId, double spikeThreshold = 0.2, double endWindowFraction = 0.1, double sustainedDropLength = 3)
+    {
+        var memorySeries = await _metricsPlugin.GetMemoryMetrics(resourceId);
+        if (memorySeries == null || memorySeries.Count < 5)
+            return false;
+
+        bool HasRecentSpike(List<double> values)
+        {
+            int windowSize = (int)(values.Count * endWindowFraction);
+            windowSize = Math.Max(windowSize, 3);
+
+            if (values.Count < windowSize + 1)
+                return false;
+
+            double baseline = values[values.Count - windowSize - 1];
+
+            for (int i = values.Count - windowSize; i < values.Count; i++)
+            {
+                double change = (values[i] - baseline) / baseline;
+                if (change >= spikeThreshold)
+                    return true;
+            }
+
+            return false;
+        }
+
+        // Extract values for easier processing
+        List<double> values = memorySeries.Select(m => m.AverageMemoryInBytes).ToList();
+
+        int dropStartIndex = FindSustainedDropStartIndex(values);
+
+        // Slice the original time series data, not just the values
+        var dataToEvaluate = dropStartIndex >= 0
+            ? memorySeries.ToList().GetRange(dropStartIndex, memorySeries.Count - dropStartIndex)
+            : memorySeries;
+
+        var evalValues = dataToEvaluate.Select(d => d.AverageMemoryInBytes).ToList();
+
+        bool IsMonotonicallyIncreasing(List<double> values)
+        {
+            int increaseCount = 0;
+            for (int i = 1; i < values.Count; i++)
+            {
+                if (values[i] > values[i - 1])
+                    increaseCount++;
+            }
+
+            double increaseRatio = (double)increaseCount / (values.Count - 1);
+            return increaseRatio > 0.8;
+        }
+
+        int FindSustainedDropStartIndex(List<double> values)
+        {
+            int dropCount = 0;
+
+            for (int i = values.Count - 1; i > 0; i--)
+            {
+                if (values[i] < values[i - 1])
+                    dropCount++;
+                else
+                    dropCount = 0;
+
+                if (dropCount >= sustainedDropLength)
+                    return i;
+            }
+
+            return -1;
+        }
+
+        if (IsMonotonicallyIncreasing(evalValues))
+            return true;
+
+        if (HasRecentSpike(evalValues))
+            return true;
+
+        return false;
     }
 
     public async Task<string> GetMemoryAnalysis(string resourceId, string dumpPath)

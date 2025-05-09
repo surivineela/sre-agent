@@ -37,4 +37,12 @@ public sealed class DotnetAnalysisPluginDefinition
     {
         return await _dotnetAnalysisPlugin.GetMemoryAnalysis(resourceId, dumpPath);
     }
+
+    [KernelFunction("should_trigger_memory_dump")]
+    [Description("Decides if a memory dump should be triggered based on the slope of the memory time series data.")] 
+    public async Task<bool> ShouldTriggerMemoryDump(string resourceId)
+    {
+        return await _dotnetAnalysisPlugin.ShouldTriggerMemoryDump(resourceId, 0.2, 0.1, 3);
+    }
+
 }

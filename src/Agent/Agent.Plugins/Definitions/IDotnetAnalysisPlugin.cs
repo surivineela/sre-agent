@@ -6,6 +6,7 @@ namespace Agent.Plugins.Definitions;
 
 public interface IDotnetAnalysisPlugin
 {
+    public Task<bool> ShouldTriggerMemoryDump(string resourceId, double spikeThreshold, double endWindowFraction, double sustainedDropLength);
     public Task<string> GetCPUAnalysis(string profilePath, int pid);
     public Task<string> GetGCCPUAnalysis(string profilePath, int pid);
     public Task<string> GetThreadpoolStarvationAnalysis(string profilePath, int pid);

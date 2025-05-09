@@ -79,8 +79,7 @@ public sealed class WebAppDownAgentFactory
         var dotnetAnalysisPluginDefinition = new DotnetAnalysisPluginDefinition(dotnetAnalysisPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetMemoryAnalysis));
         toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetCPUAnalysis));
-        //toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.GetGCCPUAnalysis));
-
+        toolSignatures.Add(_toolsRepository.GetSignature(() => dotnetAnalysisPluginDefinition.ShouldTriggerMemoryDump));
 
         //_mappingManager = mappingManager;
         _durableTaskClient = durableTaskClient;
