@@ -1,14 +1,4 @@
-import {
-    Button,
-    Dialog,
-    DialogActions,
-    DialogBody,
-    DialogContent,
-    DialogSurface,
-    DialogTitle,
-    Text,
-    Textarea,
-} from '@fluentui/react-components';
+import { Button, Dialog, DialogActions, DialogBody, DialogContent, DialogSurface, DialogTitle, Textarea } from '@fluentui/react-components';
 import axios from 'axios';
 import { useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
@@ -81,7 +71,7 @@ export const FeedbackDialog = (props: FeedbackDialogProps) => {
                         />
                         */}
 
-                        <Text block>{intl.formatMessage(FeedbackResources.feedbackPrivacyStatement)}</Text>
+                        {/* TODO: Awaiting proper text <Text block>{intl.formatMessage(FeedbackResources.feedbackPrivacyStatement)}</Text>*/}
                     </DialogContent>
 
                     <DialogActions>
