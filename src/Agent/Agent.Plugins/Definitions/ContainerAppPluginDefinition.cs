@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using System.ComponentModel;
+using System.Text.Json;
 using Agent.Core.Attributes;
 using Agent.Plugins.Models;
 using Azure.ResourceManager.Network;
@@ -180,16 +181,25 @@ namespace Agent.Plugins.Definitions
             string modificationType,
             [Description("Type of the scaling rule (e.g., 'cpu', 'http', 'azure-queue')")]
             string scaleRuleType,
-            [Description("Metadata for the scaling rule (key-value pairs specific to the rule type). Check GetScalerDetails for details per type.")]
-            IDictionary<string, string> metadata)
+            [Description("Metadata for the scaling rule (key-value pairs specific to the rule type). A JSON encoded string of a Record<string, string> of the keda scaler metadata. Check GetScalerDetails for details per type.")]
+            string metadata)
         {
             // Basic validation, more specific validation might be needed in the plugin implementation
-            if (string.IsNullOrWhiteSpace(resourceId) || string.IsNullOrWhiteSpace(ruleName) || string.IsNullOrWhiteSpace(scaleRuleType) || metadata == null || metadata.Count == 0)
+            if (string.IsNullOrWhiteSpace(resourceId) ||
+                string.IsNullOrWhiteSpace(ruleName) ||
+                string.IsNullOrWhiteSpace(scaleRuleType) ||
+                string.IsNullOrWhiteSpace(metadata))
             {
                 throw new ArgumentException("Invalid input parameters for adding a scale rule.");
             }
 
-            return await _containerAppPlugin.ModifyContainerAppScaleRuleAsync(resourceId, ruleName, modificationType, scaleRuleType, metadata);
+            var parsedMetadata = JsonSerializer.Deserialize<Dictionary<string, string>>(metadata);
+            if (parsedMetadata == null)
+            {
+                throw new ArgumentException($"{nameof(metadata)} must be a valid JSON string.", nameof(metadata));
+            }
+
+            return await _containerAppPlugin.ModifyContainerAppScaleRuleAsync(resourceId, ruleName, modificationType, scaleRuleType, parsedMetadata);
         }
 
         [Description("Get the logs of a specific revision of a Container App instance.")]
