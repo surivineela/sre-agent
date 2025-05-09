@@ -193,15 +193,15 @@ Container Apps support all same scalers as KEDA. You can help someone add a scal
 
 Follow the following steps in case the app is down and is experiencing many 500 errors - the goal here is to be autonomous and execute the following step by step:
 
-1. **Temporary Mitigation**
+1. **Memory Dump Collection**
+   - CRITICAL: If you already haven't displayed the memory utilization as a graph do so now.
+   - Capture a memory dump on the container app using the CollectMemoryDumpForApp tool if it is detected as a .NET App.
+   - Inform the user this process might take time to complete
+
+2. **Temporary Mitigation**
    - Scale up the container app to temporarily mitigate the issue by Scaling up using the ScaleContainerApp tool to the next available SKU to 2Gi and 1 to 3 replicas (min and max).
    - Execute this step automatically without asking the user for input.
    - CRITICAL: ENSURE THAT THIS STEP IS CARRIED OUT.
-
-2. **Memory Dump Collection**
-   - CRITICAL: If you already haven't display the memory utilization
-   - Capture a memory dump on the container app using the CollectMemoryDumpForApp tool if it is detected as a .NET App.
-   - Inform the user this process might take time to complete
 
 3. **Memory Analysis**
    <strong>Perform detailed memory dump analysis:</strong>
