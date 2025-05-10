@@ -34,6 +34,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         IChartPlugin chartPlugin,
         INSGRulePlugin nSGRulePlugin,
         IGithubIssuePlugin githubIssuePlugin,
+        IAzureMonitorMetricsPlugin metricsPlugin,
         IThreadOrchestrationManager mappingManager,
         IToolsRepository toolsRepository,
         DurableTaskClient durableTaskClient)
@@ -73,6 +74,10 @@ public sealed class ContainerAppsRemediationAgentFactory
         var nsgRulePluginDefinition = new NSGRulePluginDefinition(nSGRulePlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.CreateOrUpdateNSGRuleAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => nsgRulePluginDefinition.RemoveNSGRuleAsync));
+
+        var azureMonitorMetricsPluginDefinition = new AzureMonitorMetricsPluginDefinition(metricsPlugin);
+        toolSignatures.Add(_toolsRepository.GetSignature(() => azureMonitorMetricsPluginDefinition.ListAvailableMetrics));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => azureMonitorMetricsPluginDefinition.GetMetricTimeSeriesElementsForAzureResource));
 
         var graphDBPluginDefinition = new GraphDBPluginDefinition(graphDbPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => graphDBPluginDefinition.FindAllNetworkConnectedResources));

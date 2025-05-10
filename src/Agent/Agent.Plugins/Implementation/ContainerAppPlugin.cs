@@ -528,7 +528,7 @@ namespace Agent.Plugins.Implementation
                                   $"Some Logs insights: \n" +
                                   $"A startup probe is just a check that the application is able to start successfully. Liveliness and readiness probes are checks that the application is running and able to serve traffic. " +
                                   $"Sometimes probes are misconfigured, but usually a probe failing means look elsewhere for the problem. " +
-                                  $"Some problems include: Image pull errors, port mismatch, application startup errors/exceptions, timeouts, etc.";
+                                  $"Some problems include: Image pull errors, port mismatch, application startup errors/exceptions, timeouts, etc. Include full stack traces for the logs";
 
             var messages = new[]
             {

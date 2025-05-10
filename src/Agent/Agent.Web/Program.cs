@@ -152,6 +152,7 @@ builder.ValidateAndRegisterAppSettings<AppSettings>();
         .AddSingleton<IMetaAgentFunctionAppConfigurationCheckAgentPlugin, FunctionAppConfigurationCheckPlugin>()
 
         .AddTransient<MetricsPluginDefinition>()
+        .AddTransient<AzureMonitorMetricsPluginDefinition>()
         .AddTransient<ChartPluginDefinition>()
         .AddTransient<RecordActionsPluginDefinition>()
         .AddTransient<GrafanaPluginDefinition>()

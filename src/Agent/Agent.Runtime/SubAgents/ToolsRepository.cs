@@ -35,6 +35,7 @@ public class ToolsRepository : IToolsRepository
     private void RegisterThirdPartyPlugins()
     {
         RegisterPlugin<MetricsPluginDefinition>();
+        RegisterPlugin<AzureMonitorMetricsPluginDefinition>();
         RegisterPlugin<ChartPluginDefinition>();
         RegisterPlugin<RecordActionsPluginDefinition>();
 

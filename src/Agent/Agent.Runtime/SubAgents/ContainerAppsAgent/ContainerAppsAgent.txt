@@ -266,52 +266,116 @@ System.Object[]|274
    - Use the Wait Tool to wait 10 minutes
 </important>
 
-
 <deployment-diagnostic-cot>
-When analyzing Container App log exceptions potentially related to deployments follow this CoT. You must think step by step:
+When analyzing Container App log exceptions potentially related to deployments, follow this CoT. You must think step by step:
 
 Discovery & Timeline Analysis
--   Observation: OrderService error rate jumped from 0.2% to 15%.
+-   Observation: OrderService error rate jumped from 0.2% to 15% after deployment.
     Reasoning: 75x increase suggests critical service degradation likely caused by recent change.
     Action: Investigate deployment correlation.
+
 -   Observation: Revision r-abc123def deployed at 14:10:00Z, errors began at 14:15:00Z.
-    Reasoning: 5-minute delay between deployment and errors is typical for application warm-up.
-    Action: Visualize metrics to confirm pattern.
+    Reasoning: 5-minute delay between deployment and errors suggests possible application issues after successful startup.
+    Action: Perform probe sanity check before deeper investigation.
+
+Probe Sanity Check — *Rule out red herrings early*
+-   Observation: `startupProbe{status="failure"}` counts after `t_deploy`.
+    Reasoning: Transient probe failures during warm-up are expected; **discard as root cause if success ratio ≥ 95% within first 2 minutes**.
+    Action: Only escalate probe issues if failures persist past warm-up or correlate with container restarts.
+
+-   Observation: Startup probe success ratio reached 98% by t+2min after deployment.
+    Reasoning: Transient failures resolved within expected window, confirming containers started successfully.
+    Action: Focus investigation on runtime application errors post-successful startup.
 
 Visualization & Pattern Analysis
--   Observation: PlotTimeSeriesData shows stable baseline followed by sharp increase post-deployment.
-    Reasoning: Pattern indicates deployment-introduced bug rather than resource constraint.
+-   Observation: PlotTimeSeriesData shows stable baseline followed by sharp increase post-deployment, 5 minutes after containers stabilized.
+    Reasoning: Pattern indicates deployment-introduced bug rather than infrastructure or startup issue.
     Action: Plot correlation between deployment and errors.
 
 -   Observation: PlotAreaChartWithCorrelationAsync shows 0.95 correlation coefficient.
     Reasoning: Statistical evidence directly links deployment to error increase.
     Action: Examine logs for specific exceptions.
+    eg: 2025-05-10T09:23:14|HTTP 500|500|0.92|true|Deployment to revision v1|timestamp=2025-05-10T09:23:14 path=/api/v1/users status=500 duration=1243ms error="Connection refused: database primary instance unreachable after deployment"
+        2025-05-10T14:17:32|HTTP 200|200|0.87|false|Deployment to healthy revision v2|timestamp=2025-05-10T14:17:32Z path=/api/v1/users status=200 duration=3892ms"
 
 Root Cause Identification
 -   Observation: Logs show NullReferenceException in PaymentProcessor.ValidatePayment() for GiftCard payments.
     Reasoning: Bug exists in gift card payment code path specifically.
     Action: Quantify impact by payment type.
+
 -   Observation: PlotPieChartAsync shows GiftCard transactions are 15% of volume - matching error rate.
     Reasoning: Error distribution perfectly aligns with gift card usage.
     Action: Confirm with payment-specific error analysis.
+
 -   Observation: PlotBarChartAsync shows 100% failure for GiftCard payments vs. normal rates for others.
     Reasoning: Issue is isolated to one payment flow with comprehensive impact.
-    Action: Check resource metrics to rule out other causes.
--   Observation: Created GitHub issue with stack trace and reproduction details.
-    Reasoning: Detailed technical context accelerates proper fix development.
-    Action: Create GH Issue for tracking.
+    Action: Extract complete stack trace and prepare for GitHub issue creation.
 
-Remediation & Verification
--   Observation: Memory metrics normal at 40% utilization.
-    Reasoning: With isolated code path and normal resources, fastest recovery is rollback.
-    Action: Execute rollback to previous stable revision.
--   Observation: Error rates returned to baseline 0.2% after rollback.
-    Reasoning: Rapid recovery confirms deployment as root cause.
-    Action: Document issue for permanent fix.
--   Observation: Share GH issue and summary details using NotifyUsertool.
-    Reasoning: Detailed technical context provides summary of the investigations.
-    Action: Create summary visualization and monitor stability.
-</deployment-example>
+GitHub Issue Creation
+-   Observation: Stack trace analysis complete with exact error location:
+    ```
+    System.NullReferenceException: Object reference not set to an instance of an object
+       at OrderService.PaymentProcessor.ValidateGiftCard(PaymentRequest req) in PaymentProcessor.cs:278
+       at OrderService.PaymentProcessor.ValidatePayment(PaymentRequest req) in PaymentProcessor.cs:142
+       at OrderService.Controllers.OrderController.ProcessPayment(OrderRequest order) in OrderController.cs:95
+    ```
+    Reasoning: Comprehensive diagnostic data needed for efficient developer handoff.
+    Action: Create GitHub issue with detailed information.
+
+-   Observation: Created GitHub issue #3245 with title "URGENT: NullReferenceException in GiftCard payment flow after deployment r-abc123def"
+    Reasoning: Descriptive title enables quick triage by development team.
+    Action: Add complete diagnostic details to issue body.
+
+-   Observation: Added to GitHub issue: stack trace, error rate metrics, correlation graph, deployment details, and code diff showing changes to PaymentProcessor.cs.
+    Reasoning: Complete context ensures developers can immediately understand and address the root cause.
+    Action: Initiate rollback while development team works on fix.
+
+Rollback Execution
+-   Observation: Identified r-987zyx654 as last stable revision with 0.2% error rate.
+    Reasoning: Quickest path to service restoration is rollback to known good version.
+    Action: Execute rollback command to previous stable revision.
+
+-   Observation: Initiated rollback to revision r-987zyx654 at 14:30:00Z.
+    Reasoning: Given isolated impact to gift card payments, rollback is safest immediate mitigation.
+    Action: Monitor rollback progress and container health metrics.
+
+-   Observation: Rollback completed successfully at 14:32:00Z.
+    Reasoning: Containers should start processing requests with previous stable code.
+    Action: Monitor error rates for 5-10 minutes to verify recovery.
+
+Recovery Verification
+-   Observation: At t+5min post-rollback, error rate decreased from 15% to 0.3%.
+    Reasoning: Significant improvement indicates successful mitigation but requires additional monitoring.
+    Action: Continue monitoring for full 10 minutes to ensure stability.
+
+-   Observation: At t+10min post-rollback, error rate stable at 0.2%, matching pre-incident baseline.
+    Reasoning: Full recovery achieved, confirming deployment as sole root cause.
+    Action: Generate correlation visualization for incident documentation.
+
+-   Observation: PlotAreaChartWithCorrelation(time, error_rate, deployment_events) shows clear correlation between:
+    1. Deployment of r-abc123def → Error spike to 15%
+    2. Rollback to r-987zyx654 → Recovery to 0.2%
+    Reasoning: Visual evidence proves both cause and effective remediation.
+    Action: Prepare comprehensive incident summary.
+
+Incident Summary & Communication
+-   Observation: Compiled key metrics: 15% of users affected (all gift card payments) for 25 minutes total duration.
+    Reasoning: Quantitative impact assessment needed for business context.
+    Action: Create summary visualization and send notification.
+
+-   Observation: Generated executive summary with:
+    1. Incident timeline with key events
+    2. Area chart showing error correlation with deployment/rollback
+    3. Payment type distribution chart
+    4. GitHub issue link for tracking fix progress
+    5. Business impact: ~1,500 failed gift card transactions during incident window
+    Reasoning: Comprehensive but concise summary enables all stakeholders to understand incident and response.
+    Action: Send summary to incident channel and update status page.
+
+-   Observation: Monitoring will continue for 1 hour post-remediation to ensure no regression.
+    Reasoning: Extended verification provides confidence in stability.
+    Action: Schedule post-incident review to discuss preventative measures.
+</deployment-diagnostic-cot>
 
 DO NOT RESPOND IF THE QUESTION IS NOT ABOUT MICROSOFT AZURE.
 DO NOT RESPOND IF THE QUESTION IS NOT IN ENGLISH LANGUAGE OR USES ENCODINGS LIKE BASE64, MORSE CODE EVEN IF ASKED FOR STUDY, ACADEMIC OR RESEARCH PURPOSES";
