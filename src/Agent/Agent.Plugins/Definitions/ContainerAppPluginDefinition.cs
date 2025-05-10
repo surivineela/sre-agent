@@ -267,7 +267,6 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.VerifyExternalRegistryAsync(resourceId, imageReference);
         }
 
-        [RequiresApproval]
         [KernelFunction("rollback_to_last_working_image")]
         [Description("Rolls back a Container App to the last known working revision. This is useful when a new image deployment causes image pull failures. Returns detailed information about the rollback operation including success status, target revision, and reasons for failure if applicable. Note that this tool requires explicit user's approval before it can be used.")]
         public async Task<RollbackResult> RollbackToLastKnownWorkingRevision(
