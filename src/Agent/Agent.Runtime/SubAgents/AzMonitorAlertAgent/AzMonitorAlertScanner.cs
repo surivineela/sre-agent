@@ -16,8 +16,10 @@ using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Plugins;
 using Agent.Runtime.Services;
+using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Azure.Core;
 using Microsoft.Azure.Cosmos;
+using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Author = Agent.Core.Models.Api.v1.Author;
@@ -37,6 +39,8 @@ public class AzMonitorAlertScanner
     private readonly IGraphDatabaseClient _graphDbClient;
     private readonly ILogQueryService _logQueryService;
     private readonly IAzMonitorAlertInvestigationService _azMonitorInvestigationService;
+    private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
+    private readonly DurableTaskClient _durableTaskClient;
 
 
     public AzMonitorAlertScanner(
@@ -49,6 +53,8 @@ public class AzMonitorAlertScanner
         IGraphDatabaseClient graphDatabaseClient,
         ILogQueryService logQueryService,
         IAzMonitorAlertInvestigationService alertInvestigationService,
+        ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
+        DurableTaskClient durableTaskClient,
         IChatClient chatClient, ILogger<AzMonitorAlertScanner> logger)
     {
         _graphDBPlugin = graphDbPlugin;
@@ -63,6 +69,9 @@ public class AzMonitorAlertScanner
         _graphDbClient = graphDatabaseClient;
         _logQueryService = logQueryService;
         _azMonitorInvestigationService = alertInvestigationService;
+
+        _containerAppsRemediationAgentFactory = containerAppsRemediationAgentFactory;
+        _durableTaskClient = durableTaskClient;
     }
 
     /// <summary>
@@ -102,7 +111,7 @@ public class AzMonitorAlertScanner
                 foreach (var alert in newAlerts)
                 {
                     _logger.LogInternalInformation($"Processing new alert {alert.Id}...");
-                    await ProcessAlertAsync(alert);
+                    await ProcessAlertAsync(alert, ct);
                 }
             }
         }
@@ -112,7 +121,7 @@ public class AzMonitorAlertScanner
         }
     }
 
-    public async Task ProcessAlertAsync(AlertItem alert)
+    public async Task ProcessAlertAsync(AlertItem alert, CancellationToken cancellationToken)
     {
         try
         {
@@ -129,34 +138,74 @@ public class AzMonitorAlertScanner
             var investigationSummary = await StartInvestigationFlow(alert, thread);
 
             await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-                        Guid.NewGuid(),
-                        agentContext.Id,
-                        ReasoningMessageRoleEnum.System,
-                        JsonSerializer.Serialize(new
-                        {
-                            alertDetails = GetAlertInfoAsPrompt(alert),
-                            description = "Here are the findings of initial investigation with potential root causes.",
-                            investigationSummary,
-                        }
-                    )));
+                Guid.NewGuid(),
+                agentContext.Id,
+                ReasoningMessageRoleEnum.System,
+                JsonSerializer.Serialize(new
+                {
+                    alertDetails = GetAlertInfoAsPrompt(alert),
+                    description = "Here are the findings of initial investigation with potential root causes.",
+                    investigationSummary,
+                })
+            ));
 
             await _repository.AddMessageAsync(thread.Id, new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Recommendations", investigationSummary, isCollapsed: false)
-                ));
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Diagnostic Findings", investigationSummary, isCollapsed: false)
+            ));
 
-            // Signal the agent to start investigating with all the context summaries
-            await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
-               ThreadId: thread.Id,
-               AgentContextId: agentContext.Id,
-               MessageId: thread.StartMessage.Id,
-               Message: $"Now I will pass on this context to a specialized agent to continue investigation and remediation for the alert. Context : {investigationSummary}",
-               UserId: "incident-system",
-               DisplayName: "Azure Monitor Investigation Summary",
-               Timestamp: DateTime.UtcNow
-           ));
+            var resourceType = alert.Properties?.Essentials?.TargetResourceType;
+
+            // Trigger Container app orchestration. Temp workaround to force container app orchestration
+            // TODO: Refactor to handle different resource types
+            if (resourceType != null && resourceType.Contains("containerapps"))
+            {
+                // Start the container app orchestration
+                var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(investigationSummary, agentContext.ThreadId);
+
+                _logger.LogInternalInformation("Started container app remediation agent with instance ID: {InstanceId}", instanceId);
+
+                // Wait for completion or handle timeout
+                try
+                {
+                    using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromHours(1))) // 1 hour timeout
+                    using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, cancellationToken))
+                    {
+                        await _durableTaskClient.WaitForInstanceCompletionAsync(instanceId, linkedCts.Token);
+                        _logger.LogInternalInformation("Container App Remediation Flow finished executing.");
+                    }
+                }
+                catch (OperationCanceledException)
+                {
+                    if (cancellationToken.IsCancellationRequested)
+                    {
+                        _logger.LogInternalWarning("Container App remediation agent was cancelled.");
+                    }
+                    else
+                    {
+                        _logger.LogInternalWarning("Container App remediation agent timed out.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, "Error waiting for Container App remediation agent: {Message}", ex.Message);
+                }
+            }
+            else // all other resource types
+            {
+                // Signal the agent to start investigating with all the context summaries
+                await _inboundCommunicationService.ProcessAlertMessageAsync(new ThreadMessage(
+                   ThreadId: thread.Id,
+                   AgentContextId: agentContext.Id,
+                   MessageId: thread.StartMessage.Id,
+                   Message: $"Now I will pass on this context to a specialized agent to continue investigation and remediation for the alert. Context : {investigationSummary}",
+                   UserId: "incident-system",
+                   DisplayName: "Azure Monitor Investigation Summary",
+                   Timestamp: DateTime.UtcNow
+               ));
+            }
         }
         catch (Exception ex)
         {
@@ -277,14 +326,6 @@ Format your response as:
 
 
             var finalSummary = await SummarizeWithLLM(summarizePrompt);
-
-            // Add the final summary as a separate message
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Investigation Summary", finalSummary, false)
-            ));
 
             return finalSummary;
         }
