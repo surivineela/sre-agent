@@ -2,6 +2,7 @@ import { toPng } from 'html-to-image';
 import React, { useMemo, useRef, useState } from 'react';
 import {
     Area,
+    AreaChart,
     Bar,
     BarChart,
     CartesianGrid,
@@ -21,11 +22,12 @@ import {
 } from 'recharts';
 
 interface ChartData {
-    type: 'line' | 'bar' | 'pie' | 'scatter' | 'heatmap';
+    type: 'line' | 'bar' | 'pie' | 'scatter' | 'heatmap' | 'areaCorrelation';
     title: string;
     data: any[];
     xAxisLabel?: string;
     yAxisLabel?: string;
+    y2AxisLabel?: string;
     yAxisMin?: number | 'auto';
     yAxisMax?: number | 'auto';
     xField?: string;
@@ -33,15 +35,28 @@ interface ChartData {
     valueField?: string;
     colorLabel?: string;
 }
+
 interface PieDataPoint {
     label: string;
     value: number;
 }
+
 interface ScatterDataPoint {
     x: number;
     y: number;
     label: string;
 }
+
+interface AreaDataPoint {
+    category: string;
+    value1: number;
+    value2: number;
+    correlation: number;
+    isHighlight?: boolean;
+    highlightLabel?: string;
+    additionalInfo?: string;
+}
+
 interface AgentChartProps {
     messageText: string;
 }
@@ -235,7 +250,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
     };
 
     const renderChart = (isZoomedView = false) => {
-        const { type, title, data, xAxisLabel, yAxisLabel, yAxisMin, yAxisMax } = chartData;
+        const { type, title, data, xAxisLabel, yAxisLabel, y2AxisLabel, yAxisMin, yAxisMax } = chartData;
         const ref = isZoomedView ? zoomedChartRef : chartRef;
 
         const tooltipStyle = {
@@ -953,6 +968,390 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                 );
             }
 
+            // New area chart type implementation
+            case 'areaCorrelation': {
+                const typedData = data as AreaDataPoint[];
+
+                // Custom tooltip component for area chart
+                const CustomTooltip = ({ active, payload }: any) => {
+                    if (active && payload && payload.length) {
+                        const dataPoint = payload[0].payload;
+                        const isHighlight = dataPoint.isHighlight;
+
+                        // Calculate total and percentages
+                        const total = dataPoint.value1 + dataPoint.value2;
+                        const percent1 = ((dataPoint.value1 / total) * 100).toFixed(1);
+                        const percent2 = ((dataPoint.value2 / total) * 100).toFixed(1);
+
+                        return (
+                            <div
+                                style={{
+                                    backgroundColor: 'white',
+                                    padding: '1rem',
+                                    border: '1px solid #E5E7EB',
+                                    boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
+                                    borderRadius: '0.5rem',
+                                    fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                }}
+                            >
+                                <p style={{ fontWeight: 'bold', color: '#1F2937', marginBottom: '0.5rem' }}>{dataPoint.category}</p>
+                                {isHighlight && (
+                                    <div
+                                        style={{
+                                            backgroundColor: 'rgba(249, 115, 22, 0.1)',
+                                            color: '#C2410C',
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '0.375rem',
+                                            fontSize: '0.875rem',
+                                            fontWeight: 'bold',
+                                            marginBottom: '0.5rem',
+                                        }}
+                                    >
+                                        {dataPoint.highlightLabel || 'Highlighted Point'}
+                                    </div>
+                                )}
+                                <p
+                                    style={{
+                                        color: '#3B82F6',
+                                        fontWeight: '600',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '0.25rem',
+                                    }}
+                                >
+                                    <span>{y2AxisLabel || yAxisLabel}:</span>
+                                    <span>
+                                        {dataPoint.value1.toFixed(2)} ({percent1}%)
+                                    </span>
+                                </p>
+                                <p
+                                    style={{
+                                        color: '#8B5CF6',
+                                        fontWeight: '600',
+                                        display: 'flex',
+                                        justifyContent: 'space-between',
+                                        marginBottom: '0.25rem',
+                                    }}
+                                >
+                                    <span>{y2AxisLabel || 'Value 2'}:</span>
+                                    <span>
+                                        {dataPoint.value2.toFixed(2)} ({percent2}%)
+                                    </span>
+                                </p>
+                                <div
+                                    style={{
+                                        marginTop: '0.5rem',
+                                        paddingTop: '0.5rem',
+                                        borderTop: '1px solid #E5E7EB',
+                                    }}
+                                >
+                                    <p
+                                        style={{
+                                            color: '#1F2937',
+                                            fontWeight: 'bold',
+                                            fontSize: '0.875rem',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                            marginBottom: '0.25rem',
+                                        }}
+                                    >
+                                        <span>Total:</span>
+                                        <span>{total.toFixed(2)}</span>
+                                    </p>
+                                    <p
+                                        style={{
+                                            color: '#1F2937',
+                                            fontWeight: 'bold',
+                                            fontSize: '0.875rem',
+                                            display: 'flex',
+                                            justifyContent: 'space-between',
+                                        }}
+                                    >
+                                        <span>Correlation:</span>
+                                        <span>{dataPoint.correlation.toFixed(2)}</span>
+                                    </p>
+                                    {dataPoint.additionalInfo && (
+                                        <p
+                                            style={{
+                                                color: '#6B7280',
+                                                fontSize: '0.875rem',
+                                                marginTop: '0.25rem',
+                                            }}
+                                        >
+                                            {dataPoint.additionalInfo}
+                                        </p>
+                                    )}
+                                </div>
+                            </div>
+                        );
+                    }
+                    return null;
+                };
+
+                // Calculate positions for highlight markers
+                const getPositionX = (index: number) => {
+                    const containerWidth = 100; // Percentage width
+                    const margin = 10; // Percentage margin
+                    const availableWidth = containerWidth - 2 * margin;
+                    const step = availableWidth / (typedData.length - 1 || 1);
+                    return margin + index * step + '%';
+                };
+
+                return (
+                    <div
+                        ref={ref}
+                        style={{
+                            ...containerStyle,
+                            backgroundColor: '#F9FAFB',
+                        }}
+                        onClick={!isZoomedView ? toggleZoom : undefined}
+                    >
+                        {!isZoomedView && screenshotButton}
+                        <div style={chartTitleStyle}>{title}</div>
+                        <div style={{ height: isZoomedView ? 500 : 380 }}>
+                            <ResponsiveContainer width="100%" height="100%">
+                                <AreaChart data={typedData} margin={{ top: 20, right: 30, left: 20, bottom: 30 }}>
+                                    <defs>
+                                        <linearGradient
+                                            id={`colorValue1-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2} />
+                                        </linearGradient>
+                                        <linearGradient
+                                            id={`colorValue2-${isZoomedView ? 'zoomed' : 'normal'}`}
+                                            x1="0"
+                                            y1="0"
+                                            x2="0"
+                                            y2="1"
+                                        >
+                                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                                        </linearGradient>
+                                        <filter id="shadow" height="200%">
+                                            <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.3" />
+                                        </filter>
+                                    </defs>
+                                    <CartesianGrid strokeDasharray="3 3" opacity={0.6} />
+                                    <XAxis dataKey="category" stroke="#666" tick={axisTickConfig}>
+                                        <Label value={xAxisLabel} offset={-5} position="insideBottom" fill="#666" />
+                                    </XAxis>
+                                    <YAxis stroke="#666" tick={axisTickConfig}>
+                                        <Label
+                                            value={`${yAxisLabel}${y2AxisLabel ? ` / ${y2AxisLabel}` : ''}`}
+                                            angle={-90}
+                                            position="insideLeft"
+                                            fill="#666"
+                                        />
+                                    </YAxis>
+                                    <Tooltip content={<CustomTooltip />} />
+                                    <Legend
+                                        verticalAlign="top"
+                                        height={36}
+                                        iconType="circle"
+                                        iconSize={10}
+                                        wrapperStyle={{
+                                            fontSize: 12,
+                                            fontWeight: 'bold',
+                                            fontFamily:
+                                                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                        }}
+                                    />
+
+                                    {/* Area charts */}
+                                    <Area
+                                        type="monotone"
+                                        dataKey="value1"
+                                        stroke="#3b82f6"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill={`url(#colorValue1-${isZoomedView ? 'zoomed' : 'normal'})`}
+                                        name={yAxisLabel || 'Value 1'}
+                                        animationDuration={1500}
+                                    />
+                                    <Area
+                                        type="monotone"
+                                        dataKey="value2"
+                                        stroke="#8b5cf6"
+                                        strokeWidth={3}
+                                        fillOpacity={1}
+                                        fill={`url(#colorValue2-${isZoomedView ? 'zoomed' : 'normal'})`}
+                                        name={y2AxisLabel || 'Value 2'}
+                                        animationDuration={1500}
+                                    />
+                                </AreaChart>
+                            </ResponsiveContainer>
+                        </div>
+
+                        {/* Highlight indicators */}
+                        <div style={{ position: 'relative', height: '2rem', marginTop: '0.5rem' }}>
+                            {typedData.map(
+                                (entry, index) =>
+                                    entry.isHighlight && (
+                                        <div
+                                            key={`highlight-${index}`}
+                                            style={{
+                                                position: 'absolute',
+                                                left: getPositionX(index),
+                                                transform: 'translateX(-50%)',
+                                            }}
+                                        >
+                                            <div
+                                                style={{
+                                                    width: '1rem',
+                                                    height: '1rem',
+                                                    borderRadius: '9999px',
+                                                    backgroundColor: '#f97316',
+                                                    margin: '0 auto',
+                                                }}
+                                            ></div>
+                                            <div
+                                                style={{
+                                                    fontSize: '0.75rem',
+                                                    fontWeight: 'bold',
+                                                    color: '#ea580c',
+                                                    marginTop: '0.25rem',
+                                                    textAlign: 'center',
+                                                }}
+                                            >
+                                                {entry.highlightLabel || '!'}
+                                            </div>
+                                        </div>
+                                    )
+                            )}
+                        </div>
+
+                        {/* Analysis section */}
+                        {!isZoomedView && (
+                            <div
+                                style={{
+                                    marginTop: '1.5rem',
+                                    padding: '1rem',
+                                    backgroundColor: 'white',
+                                    borderRadius: '0.5rem',
+                                    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)',
+                                    border: '1px solid #f0f2f5',
+                                }}
+                            >
+                                <h3
+                                    style={{
+                                        fontSize: '1.125rem',
+                                        fontWeight: 'bold',
+                                        color: '#1F2937',
+                                        marginBottom: '0.5rem',
+                                        fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                    }}
+                                >
+                                    Correlation Analysis
+                                </h3>
+                                <div
+                                    style={{
+                                        display: 'flex',
+                                        flexDirection: isZoomedView ? 'row' : 'column',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'flex-start',
+                                    }}
+                                >
+                                    <div
+                                        style={{
+                                            width: '100%',
+                                            marginBottom: '1rem',
+                                            fontFamily:
+                                                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                        }}
+                                    >
+                                        <p style={{ color: '#4B5563', marginBottom: '0.5rem' }}>
+                                            This chart shows the relationship between {yAxisLabel || 'Value 1'} and{' '}
+                                            {y2AxisLabel || 'Value 2'} over time. The correlation values indicate how strongly these two
+                                            metrics influence each other.
+                                        </p>
+                                        <p style={{ color: '#4B5563' }}>
+                                            Highlighted points indicate significant events or anomalies in the data that warrant attention.
+                                        </p>
+                                        {typedData.some(d => d.isHighlight) && (
+                                            <p style={{ color: '#ea580c', fontWeight: 'bold', marginTop: '0.5rem' }}>
+                                                Note: There are {typedData.filter(d => d.isHighlight).length} highlighted point(s) in this
+                                                chart that may require attention.
+                                            </p>
+                                        )}
+                                    </div>
+                                    <div
+                                        style={{
+                                            width: '100%',
+                                            backgroundColor: '#F9FAFB',
+                                            padding: '0.75rem',
+                                            borderRadius: '0.5rem',
+                                            border: '1px solid #E5E7EB',
+                                            fontFamily:
+                                                '-apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif',
+                                        }}
+                                    >
+                                        <h4 style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#1F2937', marginBottom: '0.5rem' }}>
+                                            Legend
+                                        </h4>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.25rem' }}>
+                                            <div
+                                                style={{
+                                                    width: '1rem',
+                                                    height: '1rem',
+                                                    borderRadius: '0.25rem',
+                                                    backgroundColor: '#3b82f6',
+                                                    marginRight: '0.5rem',
+                                                }}
+                                            ></div>
+                                            <span style={{ fontSize: '0.875rem', color: '#4B5563' }}>{yAxisLabel || 'Value 1'}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.25rem' }}>
+                                            <div
+                                                style={{
+                                                    width: '1rem',
+                                                    height: '1rem',
+                                                    borderRadius: '0.25rem',
+                                                    backgroundColor: '#8b5cf6',
+                                                    marginRight: '0.5rem',
+                                                }}
+                                            ></div>
+                                            <span style={{ fontSize: '0.875rem', color: '#4B5563' }}>{y2AxisLabel || 'Value 2'}</span>
+                                        </div>
+                                        <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.75rem' }}>
+                                            <div
+                                                style={{
+                                                    width: '1rem',
+                                                    height: '1rem',
+                                                    borderRadius: '9999px',
+                                                    backgroundColor: '#f97316',
+                                                    marginRight: '0.5rem',
+                                                }}
+                                            ></div>
+                                            <span style={{ fontSize: '0.875rem', fontWeight: 'bold', color: '#4B5563' }}>
+                                                Highlight Point
+                                            </span>
+                                        </div>
+                                        <div
+                                            style={{
+                                                marginTop: '0.75rem',
+                                                padding: '0.5rem',
+                                                backgroundColor: '#EFF6FF',
+                                                border: '1px solid #DBEAFE',
+                                                borderRadius: '0.25rem',
+                                                fontSize: '0.75rem',
+                                                color: '#1E40AF',
+                                            }}
+                                        >
+                                            <strong>Info:</strong> Correlation ranges from -1 (inverse) to 1 (direct)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+                    </div>
+                );
+            }
+
             default:
                 return <div>Unsupported chart type: {type}</div>;
         }
@@ -978,7 +1377,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                 </div>
             )}
 
-            {/* Zoom Mohdal */}
+            {/* Zoom Modal */}
             {isZoomed && (
                 <div style={modalOverlayStyle as React.CSSProperties} onClick={toggleZoom}>
                     <div

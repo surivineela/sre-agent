@@ -366,6 +366,110 @@ namespace Agent.Plugins
             return result;
         }
 
+        public async Task<string> PlotAreaChartWithCorrelationAsync(
+            string chartTitle,
+            string xAxisLabel,
+            string y1AxisLabel,
+            string y2AxisLabel,
+            string dataPoints,
+            string description)
+        {
+            var areaChartData = ParseAreaChartCorrelationData(dataPoints);
+
+            if (!areaChartData.Any())
+            {
+                return "ERROR: Could not parse any valid area chart data from 'dataPoints'.";
+            }
+
+            var chartData = new
+            {
+                type = "areaCorrelation",
+                title = chartTitle,
+                xAxisLabel = xAxisLabel,
+                y1AxisLabel = y1AxisLabel,
+                y2AxisLabel = y2AxisLabel,
+                data = areaChartData.Select(d => new {
+                    category = d.Category,
+                    value1 = d.Value1,
+                    value2 = d.Value2,
+                    correlation = d.Correlation,
+                    isHighlight = d.IsHighlight,
+                    highlightLabel = d.HighlightLabel,
+                    additionalInfo = d.AdditionalInfo
+                }).ToList()
+            };
+
+            return await SaveAndPostChartData(chartData, description);
+        }
+
+        /// <summary>
+        /// Parses area chart with correlation data from string input
+        /// Format: "Category|Value1|Value2|Correlation|IsHighlight|HighlightLabel|AdditionalInfo;"
+        /// </summary>
+        private List<AreaChartCorrelationData> ParseAreaChartCorrelationData(string dataPoints)
+        {
+            var areaChartData = new List<AreaChartCorrelationData>();
+            if (string.IsNullOrWhiteSpace(dataPoints)) return areaChartData;
+
+            var entries = dataPoints.Split(';', StringSplitOptions.RemoveEmptyEntries);
+            foreach (var entry in entries)
+            {
+                var parts = entry.Split('|', StringSplitOptions.RemoveEmptyEntries);
+                if (parts.Length < 4) continue; // Need at least category, value1, value2, correlation
+
+                if (!double.TryParse(parts[1].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double value1))
+                    continue;
+
+                if (!double.TryParse(parts[2].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double value2))
+                    continue;
+
+                if (!double.TryParse(parts[3].Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out double correlation))
+                    continue;
+
+                bool isHighlight = false;
+                if (parts.Length > 4)
+                {
+                    bool.TryParse(parts[4].Trim(), out isHighlight);
+                }
+
+                string highlightLabel = "";
+                if (parts.Length > 5)
+                {
+                    highlightLabel = parts[5].Trim();
+                }
+
+                string additionalInfo = "";
+                if (parts.Length > 6)
+                {
+                    additionalInfo = parts[6].Trim();
+                }
+
+                areaChartData.Add(new AreaChartCorrelationData
+                {
+                    Category = parts[0].Trim(),
+                    Value1 = value1,
+                    Value2 = value2,
+                    Correlation = correlation,
+                    IsHighlight = isHighlight,
+                    HighlightLabel = highlightLabel,
+                    AdditionalInfo = additionalInfo
+                });
+            }
+
+            return areaChartData;
+        }
+
+        public class AreaChartCorrelationData
+        {
+            public string? Category { get; set; }
+            public double Value1 { get; set; }
+            public double Value2 { get; set; }
+            public double Correlation { get; set; }
+            public bool IsHighlight { get; set; }
+            public string? HighlightLabel { get; set; }
+            public string? AdditionalInfo { get; set; }
+        }
+
         /// <summary>
         /// Saves and posts chart data to the thread
         /// </summary>

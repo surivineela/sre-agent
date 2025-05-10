@@ -46,6 +46,13 @@ namespace Agent.Plugins
             string yAxisLabel,
             string dataPoints,
             string description);
+
+        Task<string> PlotAreaChartWithCorrelationAsync(
+            string chartTitle,
+            string xAxisLabel,
+            string y1AxisLabel,
+            string y2AxisLabel,
+            string dataPoints,
+            string description);
     }
 }
-

@@ -303,5 +303,10 @@ namespace Agent.Plugins
         {
             throw new NotImplementedException();
         }
+
+        public Task<string> PlotAreaChartWithCorrelationAsync(string chartTitle, string xAxisLabel, string y1AxisLabel, string y2AxisLabel, string dataPoints, string description)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

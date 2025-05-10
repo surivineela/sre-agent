@@ -95,6 +95,35 @@ description: A short message to summarize the image.")]
             return await _chartPlugin.PlotScatterAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
 
+        [KernelFunction("plot_area_chart_correlation")]
+        [Description(@"Generates an area chart with correlation data between two metrics.
+Parameters:
+chartTitle: The title displayed at the top of the chart.
+xAxisLabel: Label for the X-axis.
+y1AxisLabel: Label for the first Y-axis metric.
+y2AxisLabel: Label for the second Y-axis metric.
+dataPoints: Semicolon-separated items in format 'category|value1|value2|correlation|isHighlight|highlightLabel|additionalInfo',
+e.g.: 'Jan|120|15|-0.75|true|Product Launch|New release;Feb|145|12|-0.62|false||'
+where:
+  - category is the x-axis label
+  - value1 is the first metric value
+  - value2 is the second metric value
+  - correlation is the correlation coefficient (-1 to 1)
+  - isHighlight flags significant data points (true/false)
+  - highlightLabel is a label for highlights (optional)
+  - additionalInfo shows in tooltips (optional)
+description: A short message to summarize the chart.")]
+        public async Task<string> PlotAreaChartWithCorrelationAsync(
+    [Description("Chart title")] string chartTitle,
+    [Description("X-axis label")] string xAxisLabel,
+    [Description("First Y-axis label")] string y1AxisLabel,
+    [Description("Second Y-axis label")] string y2AxisLabel,
+    [Description("Semicolon-separated data points")] string dataPoints,
+    [Description("Optional text to describe the chart")] string description)
+        {
+            return await _chartPlugin.PlotAreaChartWithCorrelationAsync(chartTitle, xAxisLabel, y1AxisLabel, y2AxisLabel, dataPoints, description);
+        }
+
         [KernelFunction("plot_heatmap")]
         [Description(@"Generates a heatmap chart from the provided data and returns (or posts) it.
 Parameters:
