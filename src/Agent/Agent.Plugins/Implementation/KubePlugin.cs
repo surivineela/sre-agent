@@ -708,29 +708,41 @@ namespace Agent.Plugins
         }
         public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
-            // Build the PromQL query based on the specified metric type
-            string query = BuildPromQuery(metricsType, _namespace, kind, name, "");
-
-            if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
-            {
-                var errorResponse = $"Failed to build a valid PromQL query for metric type '{metricsType}' in namespace '{_namespace}', workload type '{kind}', and workload name '{name}'";
-                _logger?.LogInternalWarning(
-                   errorResponse,
-                    metricsType, _namespace, kind, name);
-                return errorResponse;
-            }
-
-            _logger?.LogInternalInformation(
-                "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
-                _prometheusQueryEndpoint, query);
-
+            // Build the PromQL queries based on the specified metric type
+            string[] queries = BuildPromQueries(metricsType, _namespace, kind, name, "");
             DateTime startDate = ParseDateTime(startTime);
             DateTime endDate = ParseDateTime(endTime);
             var step = CalculateGranularity(startDate, endDate);
 
-            // Query the Prometheus endpoint using the injected service
-            var response = await _prometheusQueryService.QueryRangeAsync(_prometheusQueryEndpoint, query, startDate, endDate, step);
-            return FormatPrometheusRangeResponse(response, metricsType, kind, name, startTime, endTime);
+            string? lastError = null;
+            foreach (var query in queries)
+            {
+                if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
+                {
+                    lastError = $"Failed to build a valid PromQL query for metric type '{metricsType}' in namespace '{_namespace}', workload type '{kind}', and workload name '{name}'";
+                    _logger?.LogInternalWarning(lastError, metricsType, _namespace, kind, name);
+                    continue;
+                }
+
+                _logger?.LogInternalInformation(
+                    "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
+                    _prometheusQueryEndpoint, query);
+
+                // Query the Prometheus endpoint using the injected service
+                var response = await _prometheusQueryService.QueryRangeAsync(_prometheusQueryEndpoint, query, startDate, endDate, step);
+
+                // Check if response has metric data
+                if (response is SuccessMatrixResponse successMatrix && successMatrix.Data != null && successMatrix.Data.Result != null && successMatrix.Data.Result.Any())
+                {
+                    return FormatPrometheusRangeResponse(response, metricsType, kind, name, startTime, endTime);
+                }
+                else if (response is ErrorResponse errorResponse)
+                {
+                    lastError = $"Error from Prometheus: {errorResponse.ErrorType} - {errorResponse.Error}";
+                }
+            }
+            // If no query returned data, return the last error or a generic message
+            return lastError ?? $"No {metricsType} metrics found for workloadType {kind} and workloadName {name}. Check if the values specified are correct and if metrics are being collected.";
         }
 
         // Helper method to parse date strings into DateTime objects
@@ -1028,7 +1040,8 @@ namespace Agent.Plugins
                 string duration = ParseTimeRangeToDuration(timeRange);
 
                 // Build the PromQL query based on the specified metric type
-                string query = BuildPromQuery(metricType, _namespace, workloadType, workloadName, duration);
+                string[] queries = BuildPromQueries(metricType, _namespace, workloadType, workloadName, duration);
+                string query = queries.FirstOrDefault() ?? string.Empty;
 
                 if (string.IsNullOrEmpty(query) || query.StartsWith("No query", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1422,7 +1435,7 @@ namespace Agent.Plugins
         }
 
         // Requires Azure Monitor for Prometheus addon to be enabled on AKS.
-        private string BuildPromQuery(string metricType, string _namespace, string workloadType, string workloadName, string duration)
+        private string[] BuildPromQueries(string metricType, string _namespace, string workloadType, string workloadName, string duration)
         {
             var podFilter = "";
             switch (workloadType.ToLowerInvariant())
@@ -1446,63 +1459,72 @@ namespace Agent.Plugins
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
-                    return $@"
-                            avg(
-                                100 *  (
-                                    sum by (pod) (
-                                        container_memory_working_set_bytes{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}
-                                    )
-                                    / on (pod)
-                                    min by (pod) (
-                                        (
-                                            kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-                                        )   
-                                        or
-                                        (
-                                            kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
-                                        )
-                                    ) 
-                                )
-                            )
-                        ";
+                    return new[] {
+$@"avg(
+    100 *  (
+        sum by (pod) (
+            container_memory_working_set_bytes{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}
+        )
+        / on (pod)
+        min by (pod) (
+            (
+                kube_node_status_allocatable{{resource=""memory""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+            )   
+            or
+            (
+                kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""memory""}}
+            )
+        ) 
+    )
+)"
+                    };
                 case "cpu":
-                    return $@"
-                        avg(
-                            100 *  (
-                                sum by (pod) (
-                                    rate(container_cpu_usage_seconds_total{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}[2m])
-                                )
-                                / on (pod)
-                                min by (pod) (
-                                    (
-                                        kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-                                    )   
-                                    or
-                                    (
-                                        kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
-                                    )
-                                ) 
-                            )
-                        )
-                        ";
+                    return new[] {
+$@"avg(
+    100 *  (
+        sum by (pod) (
+            rate(container_cpu_usage_seconds_total{{pod=~""{podFilter}"",namespace=""{_namespace}"",container!=""""}}[2m])
+        )
+        / on (pod)
+        min by (pod) (
+            (
+                kube_node_status_allocatable{{resource=""cpu""}} * on (node) group_right kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+            )   
+            or
+            (
+                kube_pod_container_resource_limits{{pod=~""{podFilter}"",namespace=""{_namespace}"", resource=""cpu""}}
+            )
+        ) 
+    )
+)"
+                    };
                 case "availability":
-                    return $@"
-                            100 * (
-                                sum (
-                                    min by (pod) (kube_pod_container_status_ready{{pod=~""{podFilter}"",namespace=""{_namespace}""}})
-                                ) /
-                                sum (
-                                    kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
-                                )
-                            )
-                        ";
+                    return new[] {
+$@"
+100 * sum (
+        rate(rpc_server_requests_per_rpc_count{{rpc_grpc_status_code=""0"", rpc_service=~""{workloadName}""}}[2m])
+    ) by (rpc_service) 
+    / 
+    sum (
+        rate(rpc_server_requests_per_rpc_count{{rpc_service=~""{workloadName}""}}[2m])
+    ) by (rpc_service)
+",
+$@"100 * (
+    sum (
+        min by (pod) (kube_pod_container_status_ready{{pod=~""{podFilter}"",namespace=""{_namespace}""}})
+    ) /
+    sum (
+        kube_pod_info{{pod=~""{podFilter}"",namespace=""{_namespace}""}}
+    )
+)"
+                  };
                 // Default case for custom queries or other unhandled metric types
                 default:
                     _logger?.LogInternalWarning(
                         "No query configured for metric type '{MetricType}' in namespace '{Namespace}', workload type '{WorkloadType}', and workload name '{WorkloadName}'.",
                         metricType, _namespace, workloadType, workloadName);
 
-                    return $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'.";
+                    return new[] { $"No query configured for metric type '{metricType}' in namespace '{_namespace}', workload type '{workloadType}', and workload name '{workloadName}'." };
 
             }
         }
