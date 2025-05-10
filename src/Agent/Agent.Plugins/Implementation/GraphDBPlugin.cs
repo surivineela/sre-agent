@@ -1019,7 +1019,7 @@ g.V().has('id', '{deploymentResourceId}')
                 string query = $@"
                 g.V()
                 .where(values('resourceName').is(containing('{modifiedResourceName}')))
-                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId', 'namespace', 'clusterResourceId', 'group', 'apiVersion', 'kind')
+                .project('id', 'resourceName', 'resourceType', 'subscriptionId', 'resourceGroupName', 'location', 'resourceId', 'namespace', 'clusterResourceId', 'group', 'apiVersion', 'kind', 'updateTs')
                 .by(id())
                 .by(values('resourceName'))
                 .by(label())
@@ -1032,15 +1032,50 @@ g.V().has('id', '{deploymentResourceId}')
                 .by(coalesce(values('group'), constant('')))
                 .by(coalesce(values('apiVersion'), constant('')))
                 .by(coalesce(values('kind'), constant('')))
+                .by(coalesce(values('updateTs'), constant(0)))
 ";
 
                 // Use the raw result directly
                 var result = await GraphDbClient.Query(query);
 
+                // Create a composite key for each resource considering multiple dimensions
+                // Resources are unique if they differ by any of: subscription, resource group, resource type,
+                // namespace, or cluster (for k8s resources)
+                var uniqueResources = result
+                    .GroupBy(item =>
+                    {
+                        string resourceName = item["resourceName"]?.ToString() ?? string.Empty;
+                        string subscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty;
+                        string resourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty;
+                        string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
+                        string namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
+                        string clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
+
+                        // Create a composite key from these properties
+                        return (resourceName, subscriptionId, resourceGroupName, resourceType, namespaceValue, clusterResourceId);
+                    })
+                    .ToDictionary(
+                        group => group.Key,
+                        group => group.OrderByDescending(item =>
+                           {
+                               if (item["updateTs"] is long updateTsLong)
+                               {
+                                   return updateTsLong;
+                               }
+                               else if (item["updateTs"] is string updateTsString && long.TryParse(updateTsString, out long parsedValue))
+                               {
+                                   return parsedValue;
+                               }
+                               return 0;
+                           }
+                        ).First() // Take the one with latest updateTs
+                    );
+
                 // Convert to a more generic list that won't lose information
                 var resources = new List<object>();
 
-                foreach (var item in result)
+                // Use the filtered unique resources
+                foreach (var item in uniqueResources.Values)
                 {
                     // Determine if this is a Kubernetes resource by checking if the resourceType starts with "k8s/"
                     string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
