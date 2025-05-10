@@ -2,6 +2,7 @@ using System.Text.Json;
 using Agent.Core;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Implementation;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
@@ -29,6 +30,7 @@ public sealed class FunctionAppConfigurationCheckAgentFactory
         DurableTaskClient durableTaskClient,
         IArmPlugin armPlugin,
         IFunctionAppConfigurationChecksPlugin functionAppConfigurationChecksPlugin,
+        IFunctionAppExecutionFailuresPlugin functionAppExecutionFailuresPlugin,
         IMetricsPlugin metricsPlugin)
     {
         _toolsRepository = toolsRepository;
@@ -49,6 +51,9 @@ public sealed class FunctionAppConfigurationCheckAgentFactory
 
         var functionAppConfigurationChecksPluginDefinition = new FunctionAppConfigurationChecksPluginDefinition(functionAppConfigurationChecksPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => functionAppConfigurationChecksPluginDefinition.GetFunctionAppConfigurationChecks));
+
+        var functionAppExecutionFailuresPluginDefinition = new FunctionAppExecutionFailuresPluginDefinition(functionAppExecutionFailuresPlugin);
+        toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
 
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));

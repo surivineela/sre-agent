@@ -59,6 +59,7 @@ public sealed class FunctionAppExecutionFailuresAgentFactory
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedRequestsPerFunction));
         toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetHostRuntimeErrorEvents));
+        toolSignatures.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetTop3ExceptionsPerFunction));
 
         // Add chart plotting capabilities
         var chartPluginDefinition = new ChartPluginDefinition(chartPlugin);

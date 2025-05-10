@@ -98,11 +98,11 @@ namespace Agent.Runtime.SubAgents.FunctionAppDiagnosticsAgent
                         response = "unknown";
                         break;
                 }
-                //var configResult2 = await context.CallFunctionAppConfigurationCheckAgentAsync(
-                //new FunctionAppConfigurationCheck.FunctionAppConfigurationCheckAgentInput(
-                //    agentInput.FunctionAppResourceId,
-                //    configurationCheckToolSignatures,
-                //    agentInput.ThreadId));
+                var configResult2 = await context.CallFunctionAppConfigurationCheckAgentAsync(
+                new FunctionAppConfigurationCheck.FunctionAppConfigurationCheckAgentInput(
+                    agentInput.FunctionAppResourceId,
+                    configurationCheckToolSignatures,
+                    agentInput.ThreadId));
                 return response;
             }
             catch (Exception ex)

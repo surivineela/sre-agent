@@ -833,13 +833,103 @@ public class ArmHelper
             throw new ArgumentException($"Time range cannot exceed 3 days. Requested: {actualDuration.TotalDays:F1} days");
         }
 
-        string formattedStartTime = startTime.Value.ToString("yyyy-MM-dd HH:mm");
-        string formattedEndTime = endTime.Value.ToString("yyyy-MM-dd HH:mm");
+        // First get the analysis response
+        string analysisResponse = await GetDetectorResponseWithTime(resourceId, detectorId, startTime, endTime);
+        
+        try
+        {
+            // Parse the JSON response to extract detector IDs
+            using JsonDocument document = JsonDocument.Parse(analysisResponse);
+            var root = document.RootElement;
+            
+            // Create a list to store all detector responses
+            List<string> allDetectorResponses = new List<string> { analysisResponse };
+            
+            // Check if properties exists in the response
+            if (root.TryGetProperty("properties", out JsonElement properties))
+            {
+                // Check if dataset exists in properties
+                if (properties.TryGetProperty("dataset", out JsonElement dataset) && 
+                    dataset.ValueKind == JsonValueKind.Array)
+                {
+                    // Iterate through each item in the dataset array
+                    foreach (JsonElement datasetItem in dataset.EnumerateArray())
+                    {
+                        // Look for renderingProperties which contains detectorIds
+                        if (datasetItem.TryGetProperty("renderingProperties", out JsonElement renderingProps))
+                        {
+                            if (renderingProps.TryGetProperty("detectorIds", out JsonElement detectorIdsElement) &&
+                                detectorIdsElement.ValueKind == JsonValueKind.Array)
+                            {
+                                // Extract each detector ID and make a call to GetDetectorResponseWithTime
+                                foreach (JsonElement detectorIdElement in detectorIdsElement.EnumerateArray())
+                                {
+                                    string subDetectorId = detectorIdElement.GetString();
+                                    if (!string.IsNullOrEmpty(subDetectorId))
+                                    {
+                                        try
+                                        {
+                                            // Call GetDetectorResponseWithTime for this detector ID
+                                            string detectorResponse = await GetDetectorResponseWithTime(resourceId, subDetectorId, startTime, endTime);
+                                            allDetectorResponses.Add(detectorResponse);
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            // Log the error but continue with other detector IDs
+                                            Console.WriteLine($"Failed to get detector response for {subDetectorId}: {ex.Message}");
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // Deserialize each response and add to a list
+            var combinedResponses = new List<JsonElement>();
+            foreach (var response in allDetectorResponses)
+            {
+                try
+                {
+                    using JsonDocument doc = JsonDocument.Parse(response);
+                    combinedResponses.Add(doc.RootElement.Clone());
+                }
+                catch (JsonException ex)
+                {
+                    Console.WriteLine($"Failed to parse detector response: {ex.Message}. Skipping this response.");
+                }
+            }
 
-        var requestUrl = new Uri(new Uri("https://management.azure.com"),
-            $"{resourceId}/analysis/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
+            // Serialize the list into a JSON array
+            return JsonSerializer.Serialize(combinedResponses);
+        }
+        catch (JsonException ex)
+        {
+            // If JSON parsing fails, just return the original response
+            return $"Failed to parse detector response: {ex.Message}. Original response: {analysisResponse}";
+        }
+        catch (Exception ex)
+        {
+            throw new Exception($"Failed to process analysis response: {ex.Message}", ex);
+        }
+    }
 
-        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+    /// <summary>
+    /// Sends a POST request to synchronize a Function App's host.
+    /// This can be used to detect host runtime errors.
+    /// </summary>
+    /// <param name="resourceId">The Azure resource ID of the Function App</param>
+    /// <returns>The JSON response as a string. If the host has runtime errors, this will contain error details.</returns>
+    public async Task<string> SyncFunctionAppHost(string resourceId)
+    {
+        if (string.IsNullOrWhiteSpace(resourceId))
+            throw new ArgumentException("Resource ID is required");
+
+        var requestUrl = new Uri(new Uri("https://management.azure.com"), 
+            $"{resourceId}/host/default/sync?api-version=2022-03-01");
+
+        HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
+
         try
         {
             var cred = _authService.GetArmOperationCredential();
@@ -855,12 +945,8 @@ public class ArmHelper
         var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
-        if (!response.IsSuccessStatusCode)
-        {
-            string responseBody = await response.Content.ReadAsStringAsync();
-            throw new Exception($"Failed to retrieve analysis details. Status Code: {response.StatusCode}, Response: {responseBody}");
-        }
-
+        // Always return the content, even for error status codes
+        // This is important because we're looking for specific error messages
         string jsonResponse = await response.Content.ReadAsStringAsync();
         return jsonResponse;
     }

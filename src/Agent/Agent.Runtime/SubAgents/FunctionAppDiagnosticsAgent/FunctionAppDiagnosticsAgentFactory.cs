@@ -82,7 +82,6 @@ public sealed class FunctionAppDiagnosticsAgentFactory
             toolsRepository.GetSignature(() => armPluginDefinition.UpdateAppSettingsAsync)
         };
 
-        // Add chart plotting capabilities to connectivity agent
         connectivityAgentTools.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
 
         var roleAssignmentPluginDefinition = new RoleAssignmentPluginDefinition(roleAssignmentPlugin);
@@ -117,15 +116,14 @@ public sealed class FunctionAppDiagnosticsAgentFactory
         var metricsPluginDefinition = new MetricsPluginDefinition(metricsPlugin);
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
 
-        // Add chart plotting capabilities to execution failures agent
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
 
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppExecutionFailures));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFailedRequestsPerFunction));
         executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetHostRuntimeErrorEvents));
+        executionFailuresAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetTop3ExceptionsPerFunction));
 
-        // Add FunctionAppExecutionFailuresAgent tools to dictionary
         toolSignaturesDictionary[FunctionAppExecutionFailuresAgentKey] = executionFailuresAgentTools;
 
         // Create tool signatures for FunctionAppConfigurationCheckAgent
@@ -143,9 +141,10 @@ public sealed class FunctionAppDiagnosticsAgentFactory
         var functionAppConfigurationChecksPluginDefinition = new FunctionAppConfigurationChecksPluginDefinition(functionAppConfigurationChecksPlugin);
         configurationCheckAgentTools.Add(toolsRepository.GetSignature(() => functionAppConfigurationChecksPluginDefinition.GetFunctionAppConfigurationChecks));
 
+        configurationCheckAgentTools.Add(toolsRepository.GetSignature(() => functionAppExecutionFailuresPluginDefinition.GetFunctionAppCallStacks));
+
         configurationCheckAgentTools.Add(toolsRepository.GetSignature(() => metricsPluginDefinition.GetFunctionAppRequestAvailability));
 
-        // Add chart plotting capabilities to configuration check agent
         configurationCheckAgentTools.Add(toolsRepository.GetSignature(() => chartPluginDefinition.PlotTimeSeriesData));
 
         // Add FunctionAppConfigurationCheckAgent tools to dictionary

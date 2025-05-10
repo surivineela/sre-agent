@@ -2,10 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using System;
 using System.ComponentModel;
-using System.Linq;
-using System.Threading.Tasks;
 using Agent.Core.Helpers;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
@@ -268,6 +265,59 @@ namespace Agent.Plugins.Implementation
 
             try
             {
+                const string hostRuntimeErrorMessage = "Encountered an error (InternalServerError) from host runtime";
+
+                // First, try synchronizing the function app host to check for runtime errors
+                _logger.LogInternalInformation("Attempting to sync Function App host to check for runtime errors");
+                string syncResponse = await _armHelper.SyncFunctionAppHost(resourceId);
+
+                // Check if the sync response contains the specific host runtime error message
+                if (!string.IsNullOrEmpty(syncResponse))
+                {
+                    try
+                    {
+                        var syncResponseObj = JObject.Parse(syncResponse);
+
+                        // Check if the response contains the error message we're looking for
+                        if (syncResponseObj["responses"] is JArray responses && responses.Count > 0)
+                        {
+                            foreach (var response in responses)
+                            {
+                                if (response["content"] is JObject content)
+                                {
+                                    string message = content["Message"]?.ToString() ?? string.Empty;
+
+                                    if (message.Contains(hostRuntimeErrorMessage, StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        _logger.LogInternalInformation("Found host runtime error from sync response: {message}", message);
+                                        return true;
+                                    }
+
+                                    // Also check for the error in Details array
+                                    if (content["Details"] is JArray details)
+                                    {
+                                        foreach (var detail in details)
+                                        {
+                                            string detailMessage = detail["Message"]?.ToString() ?? string.Empty;
+                                            if (detailMessage.Contains(hostRuntimeErrorMessage, StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                _logger.LogInternalInformation("Found host runtime error in details: {message}", detailMessage);
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        _logger.LogInternalWarning(ex, "Error parsing sync response JSON, falling back to checking activity logs");
+                    }
+                }
+
+                // If no host runtime errors found in sync response, proceed with checking activity logs
+
                 // Get the host runtime errors
                 var hostRuntimeErrorsJson = await GetHostRuntimeErrorEvents(resourceId, startTime, endTime);
 
