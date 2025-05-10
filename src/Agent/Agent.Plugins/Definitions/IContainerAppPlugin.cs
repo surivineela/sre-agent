@@ -51,5 +51,6 @@ namespace Agent.Plugins.Definitions
         Task<ContainerAppHealthValidationResult> ValidateContainerAppHealth(string resourceId);
 
         Task<bool> ModifyContainerAppScaleRuleAsync(string resourceId, string ruleName, string modificationType, string scaleRuleType, IDictionary<string, string> metadata);
+        Task<List<DateTimeOffset>> GetDeploymentTimes(string resourceId);
     }
 }

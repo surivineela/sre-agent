@@ -139,6 +139,15 @@ namespace Agent.Plugins
         Task<string> FetchAndSummarizeActivityLogs(string resourceId, int daysBack = 1, Guid? threadId = null);
 
         /// <summary>
+        /// Fetches activity logs and components for a specific resource. 
+        /// </summary>
+        /// <param name="resourceId"></param>
+        /// <param name="daysBack"></param>
+        /// <param name="threadId"></param>
+        /// <returns></returns>
+        Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int daysBack = 1, Guid? threadId = null);
+
+        /// <summary>
         /// Gets a count of Azure resources of a specified type, optionally grouped by a property.
         /// </summary>
         /// <param name="resourceType">Type of the Azure resource to count (e.g., 'microsoft.app/containerapps', 'microsoft.storage/storageaccounts')</param>

@@ -412,6 +412,7 @@ $@"## Facts
             AIFunctionFactory.Create(containerAppPluginDefinition.RollbackToLastKnownWorkingRevision),
             AIFunctionFactory.Create(containerAppPluginDefinition.UpdateContainerImage),
             AIFunctionFactory.Create(containerAppPluginDefinition.ValidateContainerAppHealth),
+            AIFunctionFactory.Create(containerAppPluginDefinition.GetDeploymentTimes),
             AIFunctionFactory.Create(chartPluginDefinition.PlotPieChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotBarChartAsync),
             AIFunctionFactory.Create(chartPluginDefinition.PlotTimeSeriesData),

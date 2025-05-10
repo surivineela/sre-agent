@@ -298,6 +298,15 @@ namespace Agent.Plugins.Definitions
             return await _containerAppPlugin.ValidateContainerAppHealth(resourceId);
         }
 
+        [KernelFunction("get_containerapp_deployment_times")]
+        [Description("Get the deployment times of a Container App instance.")]
+        public async Task<List<DateTimeOffset>> GetDeploymentTimes(
+            [Description("The resource ID of the Container App instance.")]
+            string resourceId)
+        {
+            return await _containerAppPlugin.GetDeploymentTimes(resourceId);
+        }
+
         // commented out as it is not working as expected
         // [Description("Rollback the container app to the last active revision.")]
         // public async Task<string> RollbackToLastRevision(

@@ -372,6 +372,11 @@ namespace Agent.Plugins.Mocks
         {
             throw new NotImplementedException();
         }
+
+        public Task<List<DateTimeOffset>> GetDeploymentTimes(string resourceId)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
 

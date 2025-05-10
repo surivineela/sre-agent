@@ -24,10 +24,9 @@ using Azure.ResourceManager;
 using Azure.ResourceManager.AppContainers;
 using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
-using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
-using Microsoft.Diagnostics.Utilities;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
+using OpenAI.Chat;
 using static Agent.Core.Extensions.TaskExtensions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -38,6 +37,7 @@ namespace Agent.Plugins.Implementation
     {
         private readonly ArmHelper _armHelper;
         private readonly IGraphDatabaseClient _databaseClient;
+        private readonly IGraphDBPlugin _graphDbPlugin;
         private readonly ILogger<ContainerAppPlugin> _logger;
         private readonly ArmClient _armClient;
         private readonly IAuthenticationService _authService;
@@ -60,6 +60,7 @@ namespace Agent.Plugins.Implementation
 
         public ContainerAppPlugin(ArmHelper armHelper,
             IGraphDatabaseClient graphDbClient,
+            IGraphDBPlugin graphDBPlugin,
             ILogger<ContainerAppPlugin> logger,
             IArmClientFactory armClientFactory,
             IAuthenticationService authService,
@@ -69,6 +70,7 @@ namespace Agent.Plugins.Implementation
         {
             _armClient = armClientFactory.GetArmClient();
             _databaseClient = graphDbClient;
+            _graphDbPlugin = graphDBPlugin;
             _armHelper = armHelper;
             _logger = logger;
             _authService = authService;
@@ -80,6 +82,7 @@ namespace Agent.Plugins.Implementation
         public async Task<string> GetContainerAppInfoAsync(string resourceId)
         {
             _logger.LogInternalInformation($"[get_container_app_info] Invoked with resourceId: {resourceId}");
+            var getDeploymentTimes = await GetDeploymentTimes(resourceId);
 
             try
             {
@@ -2321,6 +2324,66 @@ namespace Agent.Plugins.Implementation
             }
 
             return rule;
+        }
+
+        private async Task<string> GetContainerUpdateDeploymentInformation(string logsJson, string availabilityJson)
+        {
+            try
+            {
+                var prompt = @$"
+You are a cloud operations analyst. I will provide you with Azure activity logs for a resource group of a container app. Follow these steps to find
+
+1. I want you to get me all the successful deployment times or whenever the containerapp has been created / deployed and has been updated and put into production.
+
+Each log entry contains:
+- resourceId: The Azure resource identifier
+- resourceName: The name of the resource
+- resourceType: The type of Azure resource
+- eventTimestamp: When the activity occurred
+- operationName: What action was performed
+- caller: The user or service principal that performed the action
+- callerIpAddress: The IP address of the caller
+- status: Success or failure of the operation
+- correlationId: Unique identifier to track related activities
+- category: Type of activity (Administrative, Security, etc.)
+- properties: Additional details about the activity
+
+Here are the logs in JSON format:
+
+{logsJson}";
+
+                var response = await _chatClient.GetResponseAsync(prompt);
+                return response.Text;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogInternalError(ex, "Error summarizing logs with LLM");
+                return $"Error summarizing logs: {ex.Message}";
+            }
+        }
+
+
+        public async Task<List<DateTimeOffset>> GetDeploymentTimes(string resourceId)
+        {
+            ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
+            string containerAppName = resourceIdentifier.Name;
+
+            var logsAndComponents = await _graphDbPlugin.FetchActivityLogsAndComponents(resourceId);
+            var logs = logsAndComponents.ActivityLogs;
+            var successfulDeployments =
+                                 logs.Where(l => l.TryGetValue("operationName", out var operationName)      &&
+                                            l.TryGetValue("authorizationScope", out var authorizationScope) &&
+                                            l.TryGetValue("status", out var status)                         &&
+                                            //operationName.ToString().Contains("containerApps/write", StringComparison.OrdinalIgnoreCase) &&
+                                            status.ToString().Equals("Succeeded", StringComparison.OrdinalIgnoreCase) &&
+                                            authorizationScope.ToString().Contains(containerAppName, StringComparison.OrdinalIgnoreCase));
+            var times = successfulDeployments 
+                      .Select(log => DateTimeOffset.Parse(log["eventTimestamp"].ToString()))
+                      .OrderByDescending(t => t)
+                      .ToList();
+            var s = JsonSerializer.Serialize(times, new JsonSerializerOptions { WriteIndented = true });
+            var d = await GetContainerUpdateDeploymentInformation(s, "");
+            return times;
         }
     }
 }

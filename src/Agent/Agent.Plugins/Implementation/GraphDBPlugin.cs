@@ -24,6 +24,7 @@ using Microsoft.Rest.Azure;
 using Microsoft.Rest.Azure.OData;
 using Microsoft.SemanticKernel;
 using Agent.Logging;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Agent.Plugins
 {
@@ -1327,17 +1328,9 @@ g.V().has('id', '{deploymentResourceId}')
             }
         }
 
-        /// <summary>
-        /// Retrieves and summarizes activity logs for an azure resource and its dependent resources.
-        /// </summary>
-        [KernelFunction("GetActivityLogsSummary")]
-        [Description("Retrieves and summarizes activity logs for an azure resource and its dependent resources")]
-        public async Task<string> FetchAndSummarizeActivityLogs(
-            string resourceId,
-            int daysBack = 1,
-            Guid? threadId = null)
+        public async Task<(List<Dictionary<string, object>> ActivityLogs, List<Node> Components)> FetchActivityLogsAndComponents(string resourceId, int daysBack = 1, Guid? threadId = null)
         {
-            _logger.LogInternalInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
+            _logger.LogInternalInformation($"[FetchActivityLogs] Invoked with resourceId: {resourceId}");
 
             if (string.IsNullOrWhiteSpace(resourceId))
             {
@@ -1375,7 +1368,7 @@ g.V().has('id', '{deploymentResourceId}')
                     if (components.Count == 0)
                     {
                         _logger.LogInternalWarning($"No components found for resourceId: {resourceId}");
-                        return $"No components found for resourceId: {resourceId}. Was the correct resource ID provided? Alternatively, the Knowledge Graph may not have been built for this component.";
+                        throw new ArgumentException($"No components found for resourceId: {resourceId}. Was the correct resource ID provided? Alternatively, the Knowledge Graph may not have been built for this component.");
                     }
 
                     var resourceIds = components.Select(c => c.Id).ToList();
@@ -1387,6 +1380,9 @@ g.V().has('id', '{deploymentResourceId}')
                     foreach (var id in rgs)
                     {
                         var logs = await FetchActivityLogsForResource(id.Replace("_", "/"), daysBack);
+                        var distinctLogs = logs.Where(l => l["operationName"].ToString().Contains("deployments/write")).ToList();
+                        var distinct = logs.Select(l => l["operationName"].ToString()).Distinct().ToList();
+
                         if (logs.Count > 0)
                         {
                             allActivityLogs.AddRange(logs);
@@ -1396,7 +1392,7 @@ g.V().has('id', '{deploymentResourceId}')
 
                     if (allActivityLogs.Count == 0)
                     {
-                        return "No activity logs found for the specified resource and its dependencies in the last " + daysBack + " days.";
+                        throw new ArgumentException("No activity logs found for the specified resource and its dependencies in the last " + daysBack + " days.");
                     }
 
                     allActivityLogs = allActivityLogs
@@ -1407,11 +1403,7 @@ g.V().has('id', '{deploymentResourceId}')
                         .ToList();
 
                     _logger.LogInternalInformation($"Total activity logs collected: {allActivityLogs.Count}");
-
-                    var logsJson = JsonSerializer.Serialize(allActivityLogs, new JsonSerializerOptions { WriteIndented = true });
-                    var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString());
-
-                    return summary;
+                    return (allActivityLogs, components);
                 }
                 catch (Exception ex)
                 {
@@ -1428,7 +1420,24 @@ g.V().has('id', '{deploymentResourceId}')
                 }
             }
 
-            return "Error: Unexpected execution path in fetching and summarizing activity logs";
+            throw new ArgumentException("Error: Unexpected execution path in fetching and summarizing activity logs");
+        }
+
+        /// <summary>
+        /// Retrieves and summarizes activity logs for an azure resource and its dependent resources.
+        /// </summary>
+        [KernelFunction("GetActivityLogsSummary")]
+        [Description("Retrieves and summarizes activity logs for an azure resource and its dependent resources")]
+        public async Task<string> FetchAndSummarizeActivityLogs(
+            string resourceId,
+            int daysBack = 1,
+            Guid? threadId = null)
+        {
+            _logger.LogInternalInformation($"[FetchAndSummarizeActivityLogs] Invoked with resourceId: {resourceId}");
+            (List<Dictionary<string, object>> allActivityLogs, List<Node> components) = await FetchActivityLogsAndComponents(resourceId, daysBack, threadId);
+            var logsJson = JsonSerializer.Serialize(allActivityLogs, new JsonSerializerOptions { WriteIndented = true });
+            var summary = await SummarizeLogsWithLLM(logsJson, components?.ToString());
+            return summary;
         }
 
         public HashSet<string> ExtractUniqueResourceGroups(IEnumerable<string> resourceIds)
