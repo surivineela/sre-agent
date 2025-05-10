@@ -334,6 +334,96 @@ namespace FirstPartyAgent.Core.Plugins
             await AddTagToIncident(incidentId, "SREAgent_Processing", kernel);
             return result;
         }
+
+        #region RelatedIncidents operation methods
+        [KernelFunction("get_linked_related_incidents_info")]
+        [Description("​Gets basic info for all the linked incidents maked as related and associated with the given incident id")]
+        public async Task<List<string>> GetLinkedRelatedIncidentInfo(
+            [Description("Incident ID used to fetch and return basic information about the related incidents associated with it.")] long incidentId, Kernel kernel)
+        {
+            var logMessage = $"[get_related_incidents][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var relatedIncidents = await _icmApiClient.GetLinkedRelatedIncidentInfoAsync(incidentId);
+            return relatedIncidents;
+        }
+
+        [KernelFunction("add_related_incidents_link")]
+        [Description("Adds a related incident link to the given incident id")]
+        public async Task<string> AddRelatedIncidentLink(
+            [Description("Incident ID to assign a related incident to")] long incidentId,
+            [Description("Incident ID to assign as a related incident")] long relatedIncidentId,
+            Kernel kernel)
+        {
+            var logMessage = $"[add_related_incidents_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var result = await _icmApiClient.AddRelatedIncidentLinkAsync(incidentId, relatedIncidentId);
+            return result;
+        }
+
+        [KernelFunction("remove_related_incidents_link")]
+        [Description("Removes a related incident link from the given incident id")]
+        public async Task<string> RemoveRelatedIncidentLink(
+            [Description("Incident ID to remove the related incident from")] long incidentId,
+            [Description("Incident ID to remove as a related incident")] long relatedIncidentId,
+            Kernel kernel)
+        {
+            var logMessage = $"[remove_related_incidents_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and relatedIncidentId {relatedIncidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var result = await _icmApiClient.RemoveRelatedIncidentLinkAsync(incidentId, relatedIncidentId);
+            return result;
+        }
+
+
+        #endregion
+
+        #region ParentIncident operation methods
+        [KernelFunction("get_parent_incident_info")]
+        [Description("​Gets basic info of the parent incident associated with the given incident id")]
+        public async Task<string> GetParentIncidentInfo(
+            [Description("Incident ID used to fetch and return basic information about the parent incident ID associated with it.")] long incidentId, Kernel kernel)
+        {
+            var logMessage = $"[get_parent_incident][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var parentIncidentInfo = await _icmApiClient.GetParentIncidentInfoAsync(incidentId);
+            return parentIncidentInfo;
+        }
+
+        [KernelFunction("add_parent_incident_link")]
+        [Description("Adds a parent incident link to the given incident id")]
+        public async Task<string> AddParentIncidentLink(
+            [Description("Incident ID to assign a parent to")] long incidentId,
+            [Description("Incident ID to assign as a parent")] long parentIncidentId,
+            Kernel kernel)
+        {
+            var logMessage = $"[add_parent_incident_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId} and parentIncidentId {parentIncidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var result = await _icmApiClient.AddParentIncidentLinkAsync(incidentId, parentIncidentId);
+            return result;
+        }
+
+        [KernelFunction("remove_parent_incident_link")]
+        [Description("Removes a parent incident link from the given incident id")]
+        public async Task<string> RemoveParentIncidentLink(
+            [Description("Incident ID to remove the parent from")] long incidentId,
+            Kernel kernel)
+        {
+            var logMessage = $"[remove_parent_incident_link][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var result = await _icmApiClient.RemoveParentIncidentLinkAsync(incidentId);
+            return result;
+        }
+        #endregion
+
+        [KernelFunction("get_child_incidents_info")]
+        [Description("​Gets basic info for all the child incidents associated with the given incident id")]
+        public async Task<List<string>> GetChildIncidentsInfo(
+            [Description("Incident ID used to fetch and return basic information about the child incidents associated with it.")] long incidentId, Kernel kernel)
+        {
+            var logMessage = $"[get_child_incidents][{DateTime.UtcNow}] Invoked with incidentId {incidentId}";
+            await kernel.LogInformation(logMessage, _logger, _teamsClient, _sessionMessageService);
+            var childIncidents = await _icmApiClient.GetChildIncidentsInfoAsync(incidentId);
+            return childIncidents;
+        }
     }
 }
 
