@@ -32,8 +32,12 @@ public static class ChartHelper
         return Path.Combine(tempPath, fileName);
     }
 
-    public static string GenerateChartBase64String(ChartImageInput chartImageInput)
+    public static string GenerateChartBase64String(ChartImageInput chartImageInput, Tuple<int, int, double> sizeParameters = null)
     {
+        if (sizeParameters == null)
+        {
+            sizeParameters = new Tuple<int, int, double>(600, 400, 1.0);
+        }
         if (chartImageInput.TimeSeries == null || !chartImageInput.TimeSeries.Any())
             return string.Empty;
 
@@ -66,7 +70,9 @@ public static class ChartHelper
         if (File.Exists(imageFile))
             File.Delete(imageFile);
 
-        var savedImage = plt.SavePng(imageFile, 600, 400);
+        plt.ScaleFactor = sizeParameters.Item3;
+
+        var savedImage = plt.SavePng(imageFile, sizeParameters.Item1, sizeParameters.Item2);
         string base64 = ConvertImageToBase64String(imageFile);
         File.Delete(imageFile);
 

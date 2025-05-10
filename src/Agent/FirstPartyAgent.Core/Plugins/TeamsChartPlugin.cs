@@ -124,7 +124,8 @@ Kernel kernel)
 
             try
             {
-                // Generate the chart as a base64 string  
+                // Generate the chart as a base64 string
+                var sizeParameters = new Tuple<int, int, double>(300, 200, 1.0);
                 var base64Image = ChartHelper.GenerateChartBase64String(input);
                 if (string.IsNullOrWhiteSpace(base64Image))
                 {
