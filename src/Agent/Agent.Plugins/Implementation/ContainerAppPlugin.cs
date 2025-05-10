@@ -526,7 +526,8 @@ namespace Agent.Plugins.Implementation
                                   $"This summary will be used to determine if there any potential issues with the application. " +
                                   $"Make sure it's complete, detailed, and references any particular numbers, error messages, error codes verbatim in case they are relevant for debugging" +
                                   $"Some Logs insights: \n" +
-                                  $"A startup probe is just a check that the application is able to start successfully. Liveliness and readiness probes are checks that the application is running and able to serve traffic. " +
+                                  $"A startup probe is just a check that the application is able to start successfully. " +
+                                  $"Transient failures during startup are expected and acceptable since http server can take time to be responsive. Unless persistent probe failures lead to degraded app state, revision provisioning fails then probes need to be looked at. Liveliness and readiness probes are checks that the application is running and able to serve traffic. " +
                                   $"Sometimes probes are misconfigured, but usually a probe failing means look elsewhere for the problem. " +
                                   $"Some problems include: Image pull errors, port mismatch, application startup errors/exceptions, timeouts, etc. Include full stack traces for the logs";
 
@@ -1086,28 +1087,31 @@ namespace Agent.Plugins.Implementation
                         var revisionDetails = await _armClient.GetContainerAppRevisionResource(revision.Id).GetAsync();
                         bool canScaleToZero = revisionDetails.Value.Data.Template?.Scale?.MinReplicas == 0;
 
-                        int readyReplicas = replicas.Count(r => r?.Properties?.RunningState?.Equals("Running", StringComparison.OrdinalIgnoreCase) == true);
-
-                        // If we have no replicas or no ready replicas, check if it's due to scale to zero
-                        if (replicas.Count == 0 || readyReplicas == 0)
+                        if (containerApp.Value?.Data?.Configuration?.ActiveRevisionsMode != ContainerAppActiveRevisionsMode.Single)
                         {
-                            if (canScaleToZero)
+                            int readyReplicas = replicas.Count(r => r?.Properties?.RunningState?.Equals("Running", StringComparison.OrdinalIgnoreCase) == true);
+
+                            // If we have no replicas or no ready replicas, check if it's due to scale to zero
+                            if (replicas.Count == 0 || readyReplicas == 0)
                             {
-                                // This is expected behavior for scale to zero, so revision can still be considered healthy
-                                healthReason = "No active replicas (scale to zero is enabled)";
+                                if (canScaleToZero)
+                                {
+                                    // This is expected behavior for scale to zero, so revision can still be considered healthy
+                                    healthReason = "No active replicas (scale to zero is enabled)";
+                                }
+                                else
+                                {
+                                    isHealthy = false;
+                                    healthReason = replicas.Count == 0
+                                        ? "No replicas found (scale to zero is not enabled)"
+                                        : "No running replicas found";
+                                }
                             }
                             else
                             {
-                                isHealthy = false;
-                                healthReason = replicas.Count == 0
-                                    ? "No replicas found (scale to zero is not enabled)"
-                                    : "No running replicas found";
+                                healthReason = $"{readyReplicas} of {replicas.Count} replicas were running";
                             }
-                        }
-                        else
-                        {
-                            healthReason = $"{readyReplicas} of {replicas.Count} replicas were running";
-                        }
+                        }  
                     }
 
                     revisionHealthInfo.Add((revision, isActive, isHealthy, healthReason));

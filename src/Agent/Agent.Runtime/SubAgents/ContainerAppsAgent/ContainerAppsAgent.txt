@@ -191,7 +191,7 @@ Container Apps support all same scalers as KEDA. You can help someone add a scal
 </important>
 
 <important>
-**App Down / 500 Errors - Conduct Memory Analysis**
+**App Down / 500 Errors with High Memory - Conduct Memory Analysis**
 
 Follow the following steps in case the app is down and is experiencing many 500 errors - the goal here is to be autonomous and execute the following step by step:
 
@@ -272,31 +272,36 @@ When analyzing Container App log exceptions potentially related to deployments, 
 Discovery & Timeline Analysis
 -   Observation: OrderService error rate jumped from 0.2% to 15% after deployment.
     Reasoning: 75x increase suggests critical service degradation likely caused by recent change.
-    Action: Investigate deployment correlation.
+    Action: Investigate deployment correlation. Visualize Metric "Response" with Filter "statusCode eq '500'". Remember to use quotes around '500'
 
 -   Observation: Revision r-abc123def deployed at 14:10:00Z, errors began at 14:15:00Z.
     Reasoning: 5-minute delay between deployment and errors suggests possible application issues after successful startup.
     Action: Perform probe sanity check before deeper investigation.
 
 Probe Sanity Check — *Rule out red herrings early*
--   Observation: `startupProbe{status="failure"}` counts after `t_deploy`.
-    Reasoning: Transient probe failures during warm-up are expected; **discard as root cause if success ratio ≥ 95% within first 2 minutes**.
-    Action: Only escalate probe issues if failures persist past warm-up or correlate with container restarts.
+-   Observation: Review all logs for actual application exceptions FIRST before assuming probe issues.
+    Reasoning: Distinguish between transient probe failures (expected during startup) vs actual application errors.
+    Action: Extract and prioritize any Exception, Error, or stack trace patterns in logs.
 
--   Observation: Startup probe success ratio reached 98% by t+2min after deployment.
-    Reasoning: Transient failures resolved within expected window, confirming containers started successfully.
-    Action: Focus investigation on runtime application errors post-successful startup.
+-   Observation: `startupProbe{status="failure"}` counts after `t_deploy`.
+    Reasoning: Transient probe failures during warm-up are expected; **discard as root cause if the container actually started**.
+    Action: Only escalate probe issues if failures persist past warm-up or correlate with container restarts.
 
 Visualization & Pattern Analysis
 -   Observation: PlotTimeSeriesData shows stable baseline followed by sharp increase post-deployment, 5 minutes after containers stabilized.
     Reasoning: Pattern indicates deployment-introduced bug rather than infrastructure or startup issue.
     Action: Plot correlation between deployment and errors.
 
--   Observation: PlotAreaChartWithCorrelationAsync shows 0.95 correlation coefficient.
-    Reasoning: Statistical evidence directly links deployment to error increase.
-    Action: Examine logs for specific exceptions.
-    eg: 2025-05-10T09:23:14|HTTP 500|500|0.92|true|Deployment to revision v1|timestamp=2025-05-10T09:23:14 path=/api/v1/users status=500 duration=1243ms error="Connection refused: database primary instance unreachable after deployment"
-        2025-05-10T14:17:32|HTTP 200|200|0.87|false|Deployment to healthy revision v2|timestamp=2025-05-10T14:17:32Z path=/api/v1/users status=200 duration=3892ms"
+-   Observation: Plot correlation between deployment time and error increase using PlotAreaChartWithCorrelationAsync.
+    Reasoning: Visual evidence clearly demonstrates cause-effect relationship.
+    Action: Format chart data precisely as: "timestamp|errorRate|requestCount|correlation|isHighlight|highlightLabel|additionalInfo;"
+    eg: 2025-05-10T09:15:00|0.2|150|0.1|false||normal traffic;
+        2025-05-10T09:20:00|0.3|148|0.1|false||normal traffic;
+        2025-05-10T09:23:14|15.0|160|0.92|true|Deployment to revision v1|timestamp=2025-05-10T09:23:14 path=/api/v1/users status=500 error="Connection refused: database primary instance unreachable after deployment";
+        2025-05-10T09:25:00|18.2|155|0.95|false||error rate increasing;
+        2025-05-10T09:30:00|17.5|162|0.94|false||continued high error rate;
+        2025-05-10T14:17:32|0.2|158|0.87|true|Rollback to revision v2|timestamp=2025-05-10T14:17:32Z path=/api/v1/users status=200 duration=3892ms;
+        2025-05-10T14:20:00|0.3|160|0.1|false||recovered to normal error rate;
 
 Root Cause Identification
 -   Observation: Logs show NullReferenceException in PaymentProcessor.ValidatePayment() for GiftCard payments.
