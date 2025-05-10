@@ -82,7 +82,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
                         yield break;
                     }
 
-                    var deploymentNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, replicaSetOwnerRef.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesDeploymentType);
+                    var deploymentNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, serviceNode.Location, replicaSetOwnerRef.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesDeploymentType);
                     await _graphDbClient.AddOrUpdateNodeAsync(deploymentNode);
                     var edge = new ArmResourceEdge(serviceNode.GetNodeId(), deploymentNode.GetNodeId(), Constants.Relationships.Connected);
                     edge.AddNetworkIngressEdgeProperties();
@@ -98,7 +98,7 @@ public class KubernetesServiceCrawler : IResourceCrawler
                 }
                 break;
             case "statefulset":
-                var statefulSetNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, pod.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType);
+                var statefulSetNode = new KubernetesNamespacedResourceNode(pod, serviceNode.ClusterResourceId, serviceNode.Namespace, serviceNode.SubscriptionId, serviceNode.ResourceGroupName, serviceNode.Location, pod.OwnerReferences().FirstOrDefault()?.Name, Constants.KubernetesCoreGroup, Constants.KubernetesV1Version, Constants.KubernetesStatefulSetType);
                 await _graphDbClient.AddOrUpdateNodeAsync(statefulSetNode);
                 var edge2 = new ArmResourceEdge(serviceNode.GetNodeId(), statefulSetNode.GetNodeId(), Constants.Relationships.Connected);
                 edge2.AddNetworkIngressEdgeProperties();

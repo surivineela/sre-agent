@@ -747,7 +747,7 @@ g.V().has('id', '{deploymentResourceId}')
         public async Task<Dictionary<string, object>> GetResourceBasicProperties(string resourceId)
         {
             var query = $@"
-                g.V({CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)})
+                g.V('{CrawlerExtensions.GetSanitizedCosmosDBId(resourceId)}')
                 .project('subscriptionId', 'resourceGroupName', 'resourceType', 'resourceName', 'location')
                 .by(coalesce(values('subscriptionId'), constant('unknown')))
                 .by(coalesce(values('resourceGroupName'), constant('unknown')))
@@ -931,7 +931,7 @@ g.V().has('id', '{deploymentResourceId}')
                 // Add skip and take only if take > 0
                 if (take > 0)
                 {
-                    query += $".skip({skip}).limit({take})";
+                    query += $".limit({take})";
                     _logger.LogInternalInformation("Will take {take} resources of type '{ResourceType}'", take, resourceType);
                 }
 
@@ -1091,6 +1091,7 @@ g.V().has('id', '{deploymentResourceId}')
                             namespaceValue,
                             item["subscriptionId"]?.ToString() ?? string.Empty,
                             item["resourceGroupName"]?.ToString() ?? string.Empty,
+                             item["location"]?.ToString() ?? string.Empty,
                             item["resourceName"]?.ToString() ?? string.Empty,
                             item["group"]?.ToString() ?? string.Empty,
                             item["apiVersion"]?.ToString() ?? string.Empty,

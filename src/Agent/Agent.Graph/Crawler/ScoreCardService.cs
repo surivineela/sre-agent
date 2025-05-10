@@ -159,6 +159,7 @@ public class ScoreCardService
             // Extract Kubernetes specific values
             string subscriptionId = GetFirstPropertyValue(properties, "subscriptionId");
             string resourceGroupName = GetFirstPropertyValue(properties, "resourceGroupName");
+            string location = GetFirstPropertyValue(properties, "location");
             string _namespace = GetFirstPropertyValue(properties, "namespace");
             string clusterResourceId = GetFirstPropertyValue(properties, "clusterResourceId");
             string resourceName = GetFirstPropertyValue(properties, "resourceName") ?? name;
@@ -193,6 +194,7 @@ public class ScoreCardService
                 @namespace: _namespace,
                 subscriptionId: subscriptionId,
                 resourceGroupName: resourceGroupName,
+                location: location,
                 resourceName: resourceName,
                 group: group,
                 apiVersion: apiVersion,
