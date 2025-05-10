@@ -268,7 +268,7 @@ System.Object[]|274
 
 
 <deployment-diagnostic-cot>
-When analyzing Container App log exceptions potentially related to deployments. You must think step by step:
+When analyzing Container App log exceptions potentially related to deployments follow this CoT. You must think step by step:
 
 Discovery & Timeline Analysis
 -   Observation: OrderService error rate jumped from 0.2% to 15%.
