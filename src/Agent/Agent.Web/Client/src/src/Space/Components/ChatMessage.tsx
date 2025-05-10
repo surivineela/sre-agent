@@ -14,6 +14,7 @@ import ReactMarkdown from 'react-markdown';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
+import InvestigationSummaryPanel from '../../Common/Components/InvestigationSummaryPanel';
 import { ApprovalDecision } from '../../Common/Contracts/Azure/SreAgent';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
@@ -234,19 +235,35 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         // Check if the entire message is just a incident-alert block
         const incidentAlertRegex = /```incident-alert\s+([\s\S]*?)```/;
 
-        // Check if the entire message is just a investigation-summary block
-        const investigationSummaryRegex = /```investigation-summary\s+([\s\S]*?)```/;
+        // Check for investigation summary formats
+        const investigationSummaryRegex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
+        const investigationSummariesRegex = /<investigation-summaries>([\s\S]*?)<\/investigation-summaries>/;
 
-        // Special case 1: if the whole message is an incident alert, render it directly
+        // Special case: if the whole message is an incident alert, render it directly
         if (typeof message.text === 'string') {
             const incidentMatch = message.text.match(incidentAlertRegex);
             if (incidentMatch && incidentMatch[1]) {
                 return <IncidentAlert messageText={message.text} />;
             }
 
-            // Special case 2: if the whole message is an investigation summary, render it directly
-            const investigationMatch = message.text.match(investigationSummaryRegex);
-            if (investigationMatch) {
+            // Special case: Check for investigation-summaries format (multiple summaries in one container)
+            const summariesMatch = message.text.match(investigationSummariesRegex);
+            if (summariesMatch && summariesMatch[1]) {
+                try {
+                    const summariesData = JSON.parse(summariesMatch[1].trim());
+                    // Always render the panel even if there are no summaries yet
+                    if (summariesData) {
+                        // Pass the entire message text directly to the panel component
+                        return <InvestigationSummaryPanel messageText={message.text} />;
+                    }
+                } catch (error) {
+                    console.error('Failed to parse investigation summaries:', error);
+                }
+            }
+
+            // Special case: Check for a single investigation-summary block
+            const singleMatch = message.text.match(investigationSummaryRegex);
+            if (singleMatch) {
                 return <InvestigationSummary messageText={message.text} />;
             }
         }

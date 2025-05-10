@@ -232,7 +232,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
                 if (startMessageDoc != null)
                 {
-                    var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(isDailyReport : startMessageDoc.IsDailyReport), lastMessageDocDomainModel);
+                    var thread = threadDoc.ToDomainModel(startMessageDoc.ToDomainModel(isDailyReport: startMessageDoc.IsDailyReport), lastMessageDocDomainModel);
 
                     if (!string.IsNullOrEmpty(threadDoc.IncidentId))
                     {
@@ -597,6 +597,55 @@ public class CosmosDbThreadRepository : IThreadRepository
         }
 
         return message;
+    }
+
+    public async Task<Message> UpdateMessageAsync(Guid threadId, Message message)
+    {
+        if (message.Id == Guid.Empty)
+        {
+            _logger.LogInternalError("Cannot update message: Message ID is empty");
+            throw new ArgumentException("Message ID cannot be empty for update operation", nameof(message));
+        }
+
+        string threadIdStr = threadId.ToString();
+        string messageIdStr = message.Id.ToString();
+
+        try
+        {
+            // Check if the message exists
+            MessageDocument existingMessage = await GetDocumentAsync<MessageDocument>(messageIdStr, threadIdStr);
+            if (existingMessage == null)
+            {
+                _logger.LogInternalWarning("Cannot update message: Message {MessageId} not found in thread {ThreadId}",
+                    messageIdStr, threadIdStr);
+                return null;
+            }
+
+            // Create the updated message document
+            MessageDocument messageDoc = MessageDocument.FromDomainModel(message, threadIdStr);
+
+            // Replace the existing document with the updated one
+            var container = _client.GetContainer<MessageDocument>(_databaseName);
+            await container.ReplaceItemAsync(
+                messageDoc,
+                messageIdStr,
+                new PartitionKey(threadIdStr)
+            );
+
+            _logger.LogInternalInformation("Successfully updated message {MessageId} in thread {ThreadId}", messageIdStr, threadIdStr);
+            return message;
+        }
+        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
+        {
+            _logger.LogInternalWarning("Cannot update message: Message {MessageId} not found in thread {ThreadId}",
+                messageIdStr, threadIdStr);
+            return null;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error updating message {MessageId} in thread {ThreadId}", messageIdStr, threadIdStr);
+            throw;
+        }
     }
 
     public async Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId)
@@ -1643,7 +1692,7 @@ public class CosmosDbThreadRepository : IThreadRepository
             var approvals = new List<Approval>();
             using (var iterator = query.ToFeedIterator())
             {
-                while(iterator.HasMoreResults)
+                while (iterator.HasMoreResults)
                 {
                     var results = await iterator.ReadNextAsync();
                     approvals.AddRange(results.Select(d => d.ToDomainModel()));

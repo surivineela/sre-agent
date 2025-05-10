@@ -1,6 +1,5 @@
 import { Button, Card, Spinner, Text, tokens } from '@fluentui/react-components';
 import { CheckmarkCircle16Filled, ChevronDown20Regular, ChevronRight20Regular, DocumentSearch24Regular } from '@fluentui/react-icons';
-import { Collapse } from '@fluentui/react-motion-components-preview';
 import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 
@@ -14,7 +13,7 @@ const InvestigationSummary = ({ messageText }: InvestigationSummaryProps) => {
 
     const parseContent = () => {
         try {
-            const regex = /```investigation-summary\s+([\s\S]*?)```/;
+            const regex = /<investigation-summary>([\s\S]*?)<\/investigation-summary>/;
             const match = messageText.match(regex);
 
             if (!match || !match[1]) {
@@ -99,6 +98,7 @@ const InvestigationSummary = ({ messageText }: InvestigationSummaryProps) => {
                 borderRadius: '8px',
                 padding: '0',
                 boxShadow: tokens.shadow4,
+                overflow: 'hidden',
             }}
         >
             <div
@@ -110,6 +110,7 @@ const InvestigationSummary = ({ messageText }: InvestigationSummaryProps) => {
                     borderBottom: isCollapsed ? 'none' : `1px solid ${tokens.colorNeutralStroke1}`,
                     cursor: 'pointer',
                     backgroundColor: tokens.colorNeutralBackground2,
+                    minHeight: '40px',
                 }}
                 onClick={() => setIsCollapsed(!isCollapsed)}
             >
@@ -118,23 +119,21 @@ const InvestigationSummary = ({ messageText }: InvestigationSummaryProps) => {
                     <Text weight="semibold" size={400}>
                         {title}
                     </Text>
-                    {isProcessing ? (
-                        <Spinner size="tiny" style={{ marginLeft: '4px' }} />
-                    ) : (
-                        <CheckmarkCircle16Filled style={{ color: statusColor, marginLeft: '4px' }} />
-                    )}
                 </div>
-                <div>{isCollapsed ? <ChevronRight20Regular /> : <ChevronDown20Regular />}</div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    {isProcessing ? <Spinner size="tiny" /> : <CheckmarkCircle16Filled style={{ color: statusColor }} />}
+                    {isCollapsed ? <ChevronRight20Regular /> : <ChevronDown20Regular />}
+                </div>
             </div>
 
-            <Collapse visible={!isCollapsed}>
+            {!isCollapsed && (
                 <div style={{ padding: '16px', backgroundColor: tokens.colorNeutralBackground1 }}>
                     <ReactMarkdown>{summary}</ReactMarkdown>
                     <Button onClick={() => setIsCollapsed(true)} appearance="subtle" style={{ marginTop: '8px' }}>
                         Collapse
                     </Button>
                 </div>
-            </Collapse>
+            )}
         </Card>
     );
 };

@@ -22,6 +22,7 @@ public interface IThreadRepository
     Task<Message> GetMessageAsync(Guid threadId, Guid messageId);
     Task<IEnumerable<Message>> GetMessagesAsync(Guid threadId, ODataQueryOptions? queryOptions = null);
     Task<Message> AddMessageAsync(Guid threadId, Message message);
+    Task<Message> UpdateMessageAsync(Guid threadId, Message message);
     Task<bool> DeleteMessageAsync(Guid threadId, Guid messageId);
 
     Task<ThreadContext> GetThreadContextAsync(Guid threadId);

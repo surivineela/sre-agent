@@ -13,7 +13,6 @@ using Agent.Plugins;
 using Azure.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using Author = Agent.Core.Models.Api.v1.Author;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using Thread = Agent.Core.Models.Api.v1.Thread;
 
@@ -67,7 +66,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             var agentContext = agentContexts.First();
 
             string alertDetails = GetAlertInfoAsPrompt(alert);
-            
+
             // Custom prompt for analyzing activity logs
             string activityLogInstructions = @"Review the following activity logs for this resource and analyze:
                                             - Look for configuration changes or operations that occurred before the alert
@@ -82,36 +81,24 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             string llmSummary = await SummarizeWithLLM(promptWithPlaceholders);
 
-            string title = "Analyzing resource's activity logs for recent configuration changes and operations";
-
-            string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage(title, llmSummary);
-
-            // Update the thread with the summary
-            await _repository.AddMessageAsync(
-                alertThread.Id,
-                new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    investigationSummary
-                ));
+            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                        Guid.NewGuid(),
+                        agentContext.Id,
+                        ReasoningMessageRoleEnum.System,
+                        JsonSerializer.Serialize(new
+                        {
+                            description = "Summary of analysis of resource's activity logs for recent configuration changes and operations",
+                            llmSummary,
+                        }
+                    )));
 
             return llmSummary;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error analyzing activity logs: {ex.Message}");
-
-            // Notify in the thread that an error occurred
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                $"❌ Encountered an error while analyzing activity logs. Continuing with the investigation using other data sources."
-            ));
+            return "Encountered an error while analyzing activity logs. Continuing with the investigation using other data sources.";
         }
-
-        return string.Empty;
     }
 
     public async Task<string> AnalyzeConnectedComponents(AlertItem alert, Thread alertThread)
@@ -124,7 +111,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             if (agentContexts == null || !agentContexts.Any())
             {
                 _logger.LogInternalWarning("No agent context found for thread");
-                return "";
+                return "Error: No agent context found for thread. Continuing investigation using other data sources.";
             }
 
             var connectedComponents = await _graphDBPlugin.GetApplicationComponentsSummary(resourceId);
@@ -183,45 +170,35 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
 
             string alertDetails = GetAlertInfoAsPrompt(alert);
-            
-            
+
+
             string healthPromptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetails)
                 .Replace("{{ContentAnalysisInstructions}}", healthAnalysisInstructions)
                 .Replace("{{ContentToAnalyze}}", healthSummary.ToString());
-            
+
             var llmHealthSummary = await SummarizeWithLLM(healthPromptWithPlaceholders);
 
             var agentContext = agentContexts.First();
 
-            string title = "Identifying and analyzing connected components in the knowledge graph that might be impacting this resource";
-
-            string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage(title, llmHealthSummary);
-
-            // Add a message to the thread indicating the agent is analyzing connected components
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                investigationSummary
-            ));
+            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                        Guid.NewGuid(),
+                        agentContext.Id,
+                        ReasoningMessageRoleEnum.System,
+                        JsonSerializer.Serialize(new
+                        {
+                            description = "Summary of analysis of connected components in the knowledge graph that might be impacting this resource.",
+                            llmHealthSummary,
+                        }
+                    )));
 
             return llmHealthSummary;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error setting up connected components analysis: {ex.Message}");
-
-            // Notify in the thread that an error occurred
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                $"❌ Encountered an error while setting up connected components analysis. Continuing with the investigation using other data sources."
-            ));
+            return "Encountered an error while setting up connected components analysis. Continuing with the investigation using other data sources";
         }
-
-        return "";
     }
 
     public async Task<string> GetApplicationHealthAsync(AlertItem alert, Thread alertThread)
@@ -240,70 +217,58 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             {
                 // add to the agent context for reference in future reasoning
                 var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
-                if (agentContexts != null && agentContexts.Any())
+                if (agentContexts == null || !agentContexts.Any())
                 {
-                    var agentContext = agentContexts.First();
-
-                    string serializedHealthInfo = JsonSerializer.Serialize(new
-                    {
-                        title = $"Resource Health Analysis for {targetResource}",
-                        resourceId = targetResource,
-                        healthInfo = appHealthInfo,
-                        timestamp = DateTime.UtcNow
-                    });
-
+                    _logger.LogInternalWarning("No agent context found for thread");
+                    return "Error: No agent context found for thread. Continuing investigation using other data sources.";
                 }
 
                 string alertDetailsForAppHealth = GetAlertInfoAsPrompt(alert);
-                
+
                 string appHealthAnalysisInstructions = @"Analyze the following application health information:
                     - Focus on metrics that show significant deviation from baseline
                     - Identify performance bottlenecks or resource constraints
                     - Correlate health patterns with the alert condition
                     - Consider how the application's health might impact user experience or business functions";
-                
+
                 string appHealthPromptWithPlaceholders = ChainPrompt
                     .Replace("{{AlertDetails}}", alertDetailsForAppHealth)
                     .Replace("{{ContentAnalysisInstructions}}", appHealthAnalysisInstructions)
                     .Replace("{{ContentToAnalyze}}", appHealthInfo);
-                
+
                 var llmSummary = await SummarizeWithLLM(appHealthPromptWithPlaceholders);
 
-                string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage("Analyzing health metrics and forming initial hypothesis", llmSummary);
+                var agentContext = agentContexts.First();
 
-                await _repository.AddMessageAsync(alertThread.Id, new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    investigationSummary
-                ));
+                await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                       Guid.NewGuid(),
+                       agentContext.Id,
+                       ReasoningMessageRoleEnum.System,
+                       JsonSerializer.Serialize(new
+                       {
+                           description = "Summary of analysis of application health for this alert.",
+                           llmSummary,
+                       }
+                   )));
 
                 return llmSummary;
-            }
-            else
-            {
-                // No health info available
-                await _repository.AddMessageAsync(alertThread.Id, new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    "⚠️ No health scorecard data is available for this resource. Continuing with investigation using other data sources."
-                ));
             }
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error during alert investigation flow: {ex.Message}");
+            return $"Error during alert investigation flow: {ex.Message}";
         }
 
-        return "No app health summary available. Use other data points to continue the investigation!";
+        return "No health scorecard data is available for this resource. Continuing with investigation using other data sources.";
     }
 
     public async Task<string> AnalyzeLogQueries(AlertItem alert, Thread alertThread)
     {
+        string defaultMessage = "Unable to analyze log queries! Continuing with other investigation methods.";
         try
         {
-            string title = "Examining Log Analytics queries and correlating results with alert patterns";
+            //string title = "Examining Log Analytics queries and correlating results with alert patterns";
 
             var essentials = alert.Properties.Essentials;
             var alertRule = essentials.AlertRule;
@@ -314,7 +279,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             if (string.IsNullOrEmpty(subscriptionId))
             {
                 _logger.LogInternalWarning("Subscription id cannot be null or empty!");
-                return "";
+                return defaultMessage;
             }
 
             // Get agent context
@@ -322,7 +287,7 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             if (agentContexts == null || !agentContexts.Any())
             {
                 _logger.LogInternalWarning("No agent context found for thread");
-                return "";
+                return defaultMessage;
             }
             var agentContext = agentContexts.First();
 
@@ -399,12 +364,6 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             if (relevantQueries.Count == 0)
             {
-                await _repository.AddMessageAsync(alertThread.Id, new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                    ChatMessageService.SerializeInvestigationSummaryMessage(title, "No relevant saved queries were found for this alert. Continuing with other investigation methods.")
-                ));
                 return "No relevant saved queries were found for this alert. Continuing with other investigation methods.";
             }
 
@@ -452,20 +411,14 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
             if (queryResults.Count == 0)
             {
-                await _repository.AddMessageAsync(alertThread.Id, new Message(
-                    Guid.NewGuid(),
-                    DateTime.UtcNow,
-                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                     ChatMessageService.SerializeInvestigationSummaryMessage(title, "I found potentially relevant queries but was unable to execute them successfully. Continuing with other investigation methods.")
-                ));
-                return "I found potentially relevant queries but was unable to execute them successfully. Continuing with other investigation methods.";
+                return "Found potentially relevant queries but was unable to execute them successfully. Continuing with other investigation methods.";
             }
 
             // Create the analysis prompt
             string queryResultsJson = JsonSerializer.Serialize(queryResults);
 
             string alertDetailsForLogQueries = GetAlertInfoAsPrompt(alert);
-            
+
             // Custom instructions for log query analysis
             string logQueryAnalysisInstructions = @"Analyze these query results in relation to the alert. Focus on:
 1. Patterns or anomalies that might explain the alert
@@ -484,31 +437,24 @@ Be concise and focus on the most relevant findings. Avoid generic root causes.";
             _logger.LogDebug($"Sending prompt to LLM to analyze query results");
             var analysisResult = await SummarizeWithLLM(queryPromptWithPlaceholders);
 
-            string investigationSummary = ChatMessageService.SerializeInvestigationSummaryMessage(title, analysisResult);
-
-            // Add a summary message to the thread
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                investigationSummary
-            ));
+            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+                        Guid.NewGuid(),
+                        agentContext.Id,
+                        ReasoningMessageRoleEnum.System,
+                        JsonSerializer.Serialize(new
+                        {
+                            description = "Summary of analysis of User's saved Log Queries in Azure Monitor.",
+                            analysisResult,
+                        }
+                    )));
 
             return analysisResult;
         }
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error analyzing query packs: {ex.Message}");
-
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                $"❌ Encountered an error while analyzing saved queries. Continuing with the investigation using other data sources."
-            ));
+            return "Encountered an error while analyzing saved queries. Continuing with the investigation using other data sources.";
         }
-
-        return "";
     }
 
     public async Task<string> GetMetricsForResource(AlertItem alert, Thread alertThread)
@@ -547,13 +493,6 @@ Be concise and focus on the most relevant findings. Avoid generic root causes.";
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, $"Error setting up metrics investigation for resource {resourceId}: {ex.Message}");
-
-            await _repository.AddMessageAsync(alertThread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                $"❌ Encountered an error while setting up metrics analysis. Continuing with the investigation using other data sources."
-            ));
         }
 
         return "No metric summary available. Use other data points to continue the investigation!";
@@ -604,7 +543,7 @@ Be concise and focus on the most relevant findings. Avoid generic root causes.";
         try
         {
             var message = new ChatMessage(ChatRole.System, prompt);
-            
+
             var options = new ChatOptions
             {
                 Temperature = (float)0.1,

@@ -134,6 +134,8 @@ public class AzMonitorAlertScanner
                         ReasoningMessageRoleEnum.System,
                         JsonSerializer.Serialize(new
                         {
+                            alertDetails = GetAlertInfoAsPrompt(alert),
+                            description = "Here are the findings of initial investigation with potential root causes.",
                             investigationSummary,
                         }
                     )));
@@ -168,21 +170,36 @@ public class AzMonitorAlertScanner
 
         try
         {
+            string initMessage = ChatMessageService.InitializeInvestigationSummariesMessage("Starting investigation and forming hypothesis", new List<(string, string, bool)>());
+            var initMessageGuid = Guid.NewGuid();
+
+            // Add the initial investigation summary panel with just the title
+            await _repository.AddMessageAsync(alertThread.Id, new Message(
+                initMessageGuid,
+                DateTime.UtcNow,
+                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                initMessage
+            ));
+
             // Get general app health summary (scorecard)
             var healthSummary = await _azMonitorInvestigationService.GetApplicationHealthAsync(alert, alertThread);
-
-            // Get relevant metrics for the resource
-            // TODO: Enable this once Metrics plugin is merged
-            //var metricsSummary = await _azMonitorInvestigationService.GetMetricsForResource(alert, alertThread);
+            var healthSummaryTitle = "Analyzing resource health summary and metrics";
+            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, healthSummaryTitle, healthSummary);
 
             // Analyze activity logs for the impacted resource
             var activityLogSummary = await _azMonitorInvestigationService.AnalyzeActivityLogsForResource(alert, alertThread);
+            var activityLogsTitle = "Analyzing activity logs for resource changes and administrative actions";
+            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, activityLogsTitle, activityLogSummary);
 
             // Analyze connected components
             var kgSummary = await _azMonitorInvestigationService.AnalyzeConnectedComponents(alert, alertThread);
+            var connectedComponentsTitle = "Analyzing connected components and dependencies";
+            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, connectedComponentsTitle, kgSummary);
 
             // Analyze saved queries from Azure Log Analytics workspace / App Insights
             var logQuerySummary = await _azMonitorInvestigationService.AnalyzeLogQueries(alert, alertThread);
+            var logQueriesTitle = "Examining Log Analytics queries and correlating results with alert patterns";
+            await AppendInvestigationSummaryToMessage(alertThread.Id, initMessageGuid, logQueriesTitle, logQuerySummary);
 
             var alertDetails = GetAlertInfoAsPrompt(alert);
 
@@ -241,7 +258,8 @@ DATA ABOUT ALERT AND LOGS, METRICS, TOPOLOGY etc
 ### LOG QUERY ANALYSIS
 {logQuerySummary}
 
-Keep your response concise, factual, and focused on the most likely causes. Format your response as:
+
+Format your response as:
 
 ## Summary of Findings
 - Key finding 1
@@ -252,16 +270,21 @@ Keep your response concise, factual, and focused on the most likely causes. Form
 [Description and supporting evidence]
 
 ### Hypothesis 2 (Confidence: 65%)
-[Description and supporting evidence]";
+[Description and supporting evidence]
 
-            // NOTE: ignore for now.
-            // TODO: Enable this when metrics plugin is added.
-            //investigationSummary.AppendLine("# Resource Metrics Summary");
-            //investigationSummary.AppendLine(metricsSummary);
-            //investigationSummary.AppendLine();
+** CRITICAL ** Keep your response concise, factual, and focused on the most likely causes.
+";
 
 
             var finalSummary = await SummarizeWithLLM(summarizePrompt);
+
+            // Add the final summary as a separate message
+            await _repository.AddMessageAsync(alertThread.Id, new Message(
+                Guid.NewGuid(),
+                DateTime.UtcNow,
+                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                ChatMessageService.SerializeInvestigationSummaryMessage("Root Cause Analysis and Investigation Summary", finalSummary, false)
+            ));
 
             return finalSummary;
         }
@@ -456,7 +479,7 @@ Keep your response concise, factual, and focused on the most likely causes. Form
             portalUrl
         };
 
-        var serializedAlertData = System.Text.Json.JsonSerializer.Serialize(alertData);
+        var serializedAlertData = JsonSerializer.Serialize(alertData);
         var alertDataBlock = $"```incident-alert\n{serializedAlertData}\n```\n";
 
         (var thread, var agentContext) = await _inboundCommunicationService.CreateAgentThread(
@@ -467,17 +490,26 @@ Keep your response concise, factual, and focused on the most likely causes. Form
             incidentId: alertId
         );
 
-        // acknowledge incident
-        await _azMonitorAlertService.AcknowledgeAlert(alertId);
+        try
+        {
+            // acknowledge incident
+            await _azMonitorAlertService.AcknowledgeAlert(alertId);
 
-        var agentMessage = $"**Acknowledging the alert**. Starting initial investigation to determine what's happening.";
+            var agentMessage = $"Alert acknowledged ✅\n\nInitiating investigation to assess the situation and identify potential causes 🛠️";
 
-        await _repository.AddMessageAsync(thread.Id, new Message(
-                Guid.NewGuid(),
-                DateTime.UtcNow,
-                new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
-                agentMessage
-            ));
+            await _repository.AddMessageAsync(thread.Id, new Message(
+                    Guid.NewGuid(),
+                    DateTime.UtcNow,
+                    new Author(Role.SREAgent, "sre-agent", "Azure SRE Agent"),
+                    agentMessage
+                ));
+
+            return (thread, agentContext);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError($"Creating Incident thread failed with ex: {ex.Message}");
+        }
 
         return (thread, agentContext);
     }
@@ -544,6 +576,35 @@ Keep your response concise, factual, and focused on the most likely causes. Form
         {
             _logger.LogInternalError(ex, "Error summarizing content with llm.");
             return $"Error summarizing with LLM: {ex.Message}";
+        }
+    }
+
+    // Helper method to append an investigation summary to an existing message
+    private async Task AppendInvestigationSummaryToMessage(Guid threadId, Guid messageId, string summaryTitle, string summaryContent)
+    {
+        try
+        {
+            // Get the existing message
+            var existingMessage = await _repository.GetMessageAsync(threadId, messageId);
+            if (existingMessage == null)
+            {
+                _logger.LogInternalWarning("Unable to update message {MessageId} - message not found in thread {ThreadId}", messageId, threadId);
+                return;
+            }
+
+            // Append the investigation summary to the message text
+            string updatedText = ChatMessageService.AppendInvestigationSummary(existingMessage.Text, summaryTitle, summaryContent);
+
+            // Create a new message with the updated text but keeping all other properties the same
+            Message updatedMessage = existingMessage with { Text = updatedText };
+
+            // Update the message in the repository
+            await _repository.UpdateMessageAsync(threadId, updatedMessage);
+            _logger.LogInternalInformation("Successfully appended investigation summary '{Title}' to message {MessageId}", summaryTitle, messageId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error appending investigation summary to message {MessageId}", messageId);
         }
     }
 }

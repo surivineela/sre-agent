@@ -705,6 +705,11 @@ namespace Agent.Data.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public Task<Message> UpdateMessageAsync(Guid threadId, Message message)
+        {
+            throw new NotImplementedException();
+        }
         #endregion
     }
 }
