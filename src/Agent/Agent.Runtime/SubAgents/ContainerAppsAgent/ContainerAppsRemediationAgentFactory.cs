@@ -87,6 +87,7 @@ public sealed class ContainerAppsRemediationAgentFactory
         toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotPieChartAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotBarChartAsync));
         toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotScatterAsync));
+        toolSignatures.Add(_toolsRepository.GetSignature(() => chartPluginDefinition.PlotAreaChartWithCorrelationAsync));
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         toolSignatures.Add(_toolsRepository.GetSignature(() => recordActionsPluginDefinition.GetActionDetails));

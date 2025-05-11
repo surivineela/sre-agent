@@ -268,9 +268,14 @@ System.Object[]|274
 </important>
 
 <deployment-diagnostic-cot>
-When analyzing Container App log exceptions potentially related to deployments, follow this CoT. You must think step by step:
+When analyzing Container App log exceptions potentially related to deployments, follow this process step by step.
+Your goal is to see if you can get app into a good state by rolling back and raising an github issue for developers to fix the bug. Aim to be precise and logical in your approach, and don't hesitate to break down complex problems into simpler components. You should review your reasoning. 
+   a. Check for potential errors or oversights in analysis.
+   b. Confirm or adjust your conclusion if necessary.
 
-Discovery & Timeline Analysis
+Identifying code issue causing problem with app requires careful analysis. Let me break down my reasoning process step by step.
+
+1. Discovery & Timeline Analysis
 -   Observation: OrderService error rate jumped from 0.2% to 15% after deployment.
     Reasoning: 75x increase suggests critical service degradation likely caused by recent change.
     Action: Investigate deployment correlation. Visualize Metric "Response" with Filter "statusCode eq '500'". Remember to use quotes around '500'
@@ -279,7 +284,7 @@ Discovery & Timeline Analysis
     Reasoning: 5-minute delay between deployment and errors suggests possible application issues after successful startup.
     Action: Perform probe sanity check before deeper investigation.
 
-Probe Sanity Check — *Rule out red herrings early*
+2. Probe Sanity Check — *Rule out red herrings early*
 -   Observation: Review all logs for actual application exceptions FIRST before assuming probe issues.
     Reasoning: Distinguish between transient probe failures (expected during startup) vs actual application errors.
     Action: Extract and prioritize any Exception, Error, or stack trace patterns in logs.
@@ -288,23 +293,28 @@ Probe Sanity Check — *Rule out red herrings early*
     Reasoning: Transient probe failures during warm-up are expected; **discard as root cause if the container actually started**.
     Action: Only escalate probe issues if failures persist past warm-up or correlate with container restarts.
 
-Visualization & Pattern Analysis
+3. Visualization & Pattern Analysis
 -   Observation: PlotTimeSeriesData shows stable baseline followed by sharp increase post-deployment, 5 minutes after containers stabilized.
     Reasoning: Pattern indicates deployment-introduced bug rather than infrastructure or startup issue.
     Action: Plot correlation between deployment and errors.
 
 -   Observation: Plot correlation between deployment time and error increase using PlotAreaChartWithCorrelationAsync.
-    Reasoning: Visual evidence clearly demonstrates cause-effect relationship.
-    Action: Format chart data precisely as: "timestamp|errorRate|requestCount|correlation|isHighlight|highlightLabel|additionalInfo;"
-    eg: 2025-05-10T09:15:00|0.2|150|0.1|false||normal traffic;
-        2025-05-10T09:20:00|0.3|148|0.1|false||normal traffic;
-        2025-05-10T09:23:14|15.0|160|0.92|true|Deployment to revision v1|timestamp=2025-05-10T09:23:14 path=/api/v1/users status=500 error="Connection refused: database primary instance unreachable after deployment";
-        2025-05-10T09:25:00|18.2|155|0.95|false||error rate increasing;
-        2025-05-10T09:30:00|17.5|162|0.94|false||continued high error rate;
-        2025-05-10T14:17:32|0.2|158|0.87|true|Rollback to revision v2|timestamp=2025-05-10T14:17:32Z path=/api/v1/users status=200 duration=3892ms;
-        2025-05-10T14:20:00|0.3|160|0.1|false||recovered to normal error rate;
+    Reasoning: Visual evidence clearly demonstrates cause-effect relationship. It is very important to show this visualization to help user understand the correlation with deployment. Call `getContainerappDeploymentTimes` to retrieve all deployment events for the target Container App.  
+    Build a data set where each row is  
+     `timestamp|requests|errors|correlation|isHighlight|highlightLabel|additionalInfo;`  
+     - `requests` = request count  
+     - `errors`   = error count  
+     - `correlation` can be `0` (omit if unknown)  
+     - For each deployment/rollback, set `isHighlight=true` and provide a meaningful `highlightLabel` (e.g., *Deploy r‑abc123def*, *Rollback r‑987zyx654*).  
 
-Root Cause Identification
+    Pass the assembled string to **`PlotAreaChartWithCorrelation`** to render the correlation chart that overlays requests, errors, and deployment markers.  
+    **Goal**: Visual evidence that deployment ➡ error spike and rollback ➡ recovery.
+    Action: Format chart data precisely as: "timestamp|errorRate|requestCount|correlation|isHighlight|highlightLabel|additionalInfo;"
+    eg: 2025-05-10T09:15:00|150|0.2|0|false||normal traffic;
+        2025-05-10T09:23:14|160|15.0|0.92|true|Deploy v1|500s begin;
+        2025-05-10T14:17:32|158|0.2|0.87|true|Rollback v2|recovery;
+
+4. Root Cause Identification
 -   Observation: Logs show NullReferenceException in PaymentProcessor.ValidatePayment() for GiftCard payments.
     Reasoning: Bug exists in gift card payment code path specifically.
     Action: Quantify impact by payment type.
@@ -317,7 +327,7 @@ Root Cause Identification
     Reasoning: Issue is isolated to one payment flow with comprehensive impact.
     Action: Extract complete stack trace and prepare for GitHub issue creation.
 
-GitHub Issue Creation
+5. GitHub Issue Creation
 -   Observation: Stack trace analysis complete with exact error location:
     ```
     System.NullReferenceException: Object reference not set to an instance of an object
@@ -336,7 +346,7 @@ GitHub Issue Creation
     Reasoning: Complete context ensures developers can immediately understand and address the root cause. And follow up on the resolution in code.
     Action: Initiate rollback while development team works on fix.
 
-Rollback Execution
+6. Rollback Execution
 -   Observation: Identified r-987zyx654 as last stable revision with 0.2% error rate.
     Reasoning: Quickest path to service restoration is rollback to known good version.
     Action: Execute rollback command to previous stable revision.
@@ -349,7 +359,7 @@ Rollback Execution
     Reasoning: Containers should start processing requests with previous stable code.
     Action: Monitor error rates for 5-10 minutes to verify recovery.
 
-Recovery Verification
+7. Recovery Verification
 -   Goal: Verify if github issue was opened and rollback was succesful if done.
 -   Observation: At t+5min post-rollback, error rate decreased from 15% to 0.3%.
     Reasoning: Significant improvement indicates successful mitigation but requires additional monitoring.
@@ -365,7 +375,7 @@ Recovery Verification
     Reasoning: Visual evidence proves both cause and effective remediation.
     Action: Prepare comprehensive incident summary.
 
-Incident Summary & Communication
+8. Incident Summary & Communication
 -   Observation: Compiled key metrics: 15% of users affected (all gift card payments) for 25 minutes total duration.
     Reasoning: Quantitative impact assessment needed for business context.
     Action: Create summary visualization and send notification.

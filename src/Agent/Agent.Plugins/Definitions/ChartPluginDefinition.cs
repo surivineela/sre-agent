@@ -95,31 +95,31 @@ description: A short message to summarize the image.")]
             return await _chartPlugin.PlotScatterAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
 
-        [KernelFunction("plot_area_chart_correlation")]
-        [Description(@"Generates an area chart with correlation data between two metrics.
+        [KernelFunction("plot_area_chart_requests_errors")]
+        [Description(@"Generates an area chart showing requests versus errors with deployment highlights.
 Parameters:
 chartTitle: The title displayed at the top of the chart.
-xAxisLabel: Label for the X-axis.
-y1AxisLabel: Label for the first Y-axis metric.
-y2AxisLabel: Label for the second Y-axis metric.
+xAxisLabel: Label for the X-axis (time periods).
+y1AxisLabel: Label for the requests Y-axis.
+y2AxisLabel: Label for the errors Y-axis.
 dataPoints: Semicolon-separated items in format 'category|value1|value2|correlation|isHighlight|highlightLabel|additionalInfo',
-e.g.: 'Jan|120|15|-0.75|true|Product Launch|New release;Feb|145|12|-0.62|false||'
+e.g.: 'Jun 1|12000|150|0|true|v2.3 Deploy|Major feature release;Jun 2|13500|180|0|false||'
 where:
-  - category is the x-axis label
-  - value1 is the first metric value
-  - value2 is the second metric value
-  - correlation is the correlation coefficient (-1 to 1)
-  - isHighlight flags significant data points (true/false)
-  - highlightLabel is a label for highlights (optional)
+  - category is the time period (x-axis label)
+  - value1 is the request count
+  - value2 is the error count
+  - correlation is unused (can be set to 0)
+  - isHighlight flags deployment points (true/false) 
+  - highlightLabel contains the deployment name when highlighted
   - additionalInfo shows in tooltips (optional)
-description: A short message to summarize the chart.")]
-        public async Task<string> PlotAreaChartWithCorrelationAsync(
-    [Description("Chart title")] string chartTitle,
-    [Description("X-axis label")] string xAxisLabel,
-    [Description("First Y-axis label")] string y1AxisLabel,
-    [Description("Second Y-axis label")] string y2AxisLabel,
-    [Description("Semicolon-separated data points")] string dataPoints,
-    [Description("Optional text to describe the chart")] string description)
+description: A short message to summarize the chart. Use this chart for correlation.")]
+    public async Task<string> PlotAreaChartWithCorrelationAsync(
+        [Description("Chart title")] string chartTitle,
+        [Description("X-axis label")] string xAxisLabel,
+        [Description("First Y-axis label")] string y1AxisLabel,
+        [Description("Second Y-axis label")] string y2AxisLabel,
+        [Description("Semicolon-separated data points")] string dataPoints,
+        [Description("Optional text to describe the chart")] string description)
         {
             return await _chartPlugin.PlotAreaChartWithCorrelationAsync(chartTitle, xAxisLabel, y1AxisLabel, y2AxisLabel, dataPoints, description);
         }
