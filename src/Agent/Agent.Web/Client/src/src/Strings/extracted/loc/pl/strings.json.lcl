@@ -54,15 +54,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";/9bvfN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Required roles]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";/WrP/v" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container Apps Operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Operator aplikacji Container Apps]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -93,6 +90,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";14xQ4i" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Monitor added]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dodano usługę Azure Monitor]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";19YPdI" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Step 1: Open Cloud Shell]]></Val>
@@ -105,6 +111,9 @@
       <Item ItemId=";1ZgrhW" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rola]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -129,6 +138,9 @@
       <Item ItemId=";2/2yg+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dodaj]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -162,6 +174,9 @@
       <Item ItemId=";3nhWFW" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reader]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Czytelnik]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -249,6 +264,9 @@
       <Item ItemId=";5dWZzT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Assign roles and permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Przypisz role i uprawnienia]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -306,15 +324,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6YuyUQ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Automate incident response with AI-powered monitoring and resolution..]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zautomatyzuj reagowanie na incydenty za pomocą monitorowania i rozwiązywania problemów obsługiwanego przez sztuczną inteligencję.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6dWeUs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources.]]></Val>
@@ -327,12 +336,18 @@
       <Item ItemId=";6m5Ba0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data Collection Rule]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Reguła zbierania danych]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";6tlKgy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You can choose a maximum of 20 resource groups that the agent will manage.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Możesz wybrać maksymalnie 20 grup zasobów, którymi będzie zarządzać agent.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -381,6 +396,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";8kVGbB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect from PagerDuty?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odłączyć od PagerDuty?]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";8quEg9" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[results]]></Val>
@@ -402,6 +426,9 @@
       <Item ItemId=";9+Ddtu" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Next]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dalej]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -419,15 +446,6 @@
           <Val><![CDATA[Completed]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Ukończono]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
-      <Item ItemId=";9Gaw/4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Zintegruj się z usługą PagerDuty, aby umożliwić automatyczne wykrywanie zdarzeń, klasyfikację i reagowanie. Agent SRE platformy Azure analizuje wzorce alertów, sugeruje kroki korygowania i automatycznie rozwiązuje typowe problemy bez interwencji człowieka.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -468,6 +486,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";A/xTHO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Role assignments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Przypisania ról]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";A3Wps1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[If you approve, this operation will be executed on your behalf using your credentials.]]></Val>
@@ -486,15 +513,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ADENR6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Połącz się z usługą Azure Monitor, aby umożliwić automatyczne wykrywanie zdarzeń i reagowanie na nie. Agent SRE będzie automatycznie monitorować alerty z zasobów platformy Azure bez konieczności dodatkowej konfiguracji.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";AXAtAX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API key is not valid]]></Val>
@@ -507,6 +525,18 @@
       <Item ItemId=";AfbqHj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring Reader Role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Monitorowanie roli czytelnika]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";AuFOi8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[REST API access key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Klucz dostępu interfejsu API REST]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -515,6 +545,15 @@
           <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Zawartość wygenerowana przez sztuczną inteligencję może być niepoprawna, więc przejrzyj uważnie przed użyciem. Nie dołączaj do czatu informacji osobistych ani poufnych.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";CQF3U+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Edytuj klucz]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -558,6 +597,9 @@
       <Item ItemId=";E60v6W" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Niektóre z wybranych grup zasobów nie mają wymaganych uprawnień roleAssignments/write oraz Microsoft.ManagedIdentity/userAssignedIdentities/write.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -591,6 +633,9 @@
       <Item ItemId=";EwRIOm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Użytkownik]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -711,11 +756,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HafgWq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Integrate an incident management platform with the SRE Agent to automate routine incident tasks, manage alerts, and get data-driven insights.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Zintegruj platformę zarządzania zdarzeniami z agentem SRE, aby zautomatyzować rutynowe zadania związane ze zdarzeniami, zarządzać alertami i uzyskiwać szczegółowe informacje oparte na danych.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HbTFJf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pending approvals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Oczekujące zatwierdzenia]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HsGdXO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect from Azure Monitor?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Odłączyć od usługi Azure Monitor?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -732,6 +795,9 @@
       <Item ItemId=";IF3r+X" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Managed Grafana]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Managed Grafana]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -798,15 +864,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";K8gj8f" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You do not have the required roleAssignments/write permissions to set up a Grafana dashboard.]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";LPprqA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Przejrzyj grupy zasobów]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -894,6 +957,9 @@
       <Item ItemId=";ONVN5F" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Assigned to]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Przypisane do]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -990,6 +1056,9 @@
       <Item ItemId=";R1YfDi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Managed Grafana to w pełni zarządzana usługa do analizy i monitorowania. Aby dodać usługę i pulpit nawigacyjny platformy Grafana, należy utworzyć zasób usługi Azure Managed Grafana. Niezbędne uprawnienia zostaną automatycznie przypisane, aby pulpit nawigacyjny mógł wyświetlać dane monitorowania.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1077,6 +1146,18 @@
       <Item ItemId=";Sr4IbA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring Reader]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Czytelnik monitorowania]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Sw/LL9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently disconnect from PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spowoduje to trwałe odłączenie od PagerDuty. Agent nie będzie już mógł zarządzać biletami. Czy na pewno chcesz odłączyć?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1110,6 +1191,9 @@
       <Item ItemId=";TMZ2Rq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana Admin]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Administrator platformy Grafana]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1143,6 +1227,9 @@
       <Item ItemId=";UV4Dx5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Website Contributor/Operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Współautor/operator witryny internetowej]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1178,6 +1265,15 @@
           <Val><![CDATA[Create agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Utwórz agenta]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UvQLwV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Musisz nawiązać połączenie za pomocą klucza dostępu. Przejdź do witryny pagerduty.com, a informacje będą znajdować się w sekcji Klucze dostępu interfejsu API.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1221,6 +1317,9 @@
       <Item ItemId=";WY8nWe" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana dashboard created successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Pomyślnie utworzono pulpit nawigacyjny narzędzia Grafana]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1254,6 +1353,9 @@
       <Item ItemId=";XEso9C" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Linking Grafana dashboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Łączenie pulpitu nawigacyjnego platformy Grafana]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1269,12 +1371,27 @@
       <Item ItemId=";XvrDTb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring metrics publisher]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wydawca metryk monitorowania]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Y1qw19" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Spowoduje to trwałe rozłączenie z usługą Azure Monitor. Agent nie będzie już zintegrowany z alertami usługi Azure Monitor. Czy na pewno chcesz odłączyć?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";Z1VHv1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring Data Reader Role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rola czytelnika danych monitorowania]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1362,6 +1479,9 @@
       <Item ItemId=";bW7B87" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nowy]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1413,6 +1533,9 @@
       <Item ItemId=";cyR7Kh" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Back]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wstecz]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1452,15 +1575,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";fSinmO" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[PagerDuty API Key]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Klucz interfejsu API PagerDuty]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ftfFhS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select resource groups]]></Val>
@@ -1491,6 +1605,9 @@
       <Item ItemId=";gj6Qc6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Monitor Workspace]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Obszar roboczy usługi Azure Monitor]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1544,6 +1661,15 @@
           <Val><![CDATA[Deny]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Odmów]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";i0mHNo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[PagerDuty added]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Dodano PagerDuty]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1686,12 +1812,18 @@
       <Item ItemId=";oUbzA/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Writer/Operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Moduł zapisujący/operator]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";ob9EPi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Permissions to assign roles]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Uprawnienia do przypisywania ról]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1716,6 +1848,9 @@
       <Item ItemId=";piCpTn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Po utworzeniu pulpitu nawigacyjnego w Grafana i nawiązaniu połączenia, może minąć trochę czasu, zanim zasoby całkowicie wypełnią pulpit nawigacyjny.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1742,6 +1877,15 @@
           <Val><![CDATA[Failed to add {number} managed resource group(s) to your SRE Agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[Nie można dodać {number} zarządzanych grup zasobów do agenta SRE]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";qj1uhz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Rozłącz]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1794,6 +1938,9 @@
       <Item ItemId=";sI+CCC" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Log Analytics Reader]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Czytelnik usługi Log Analytics]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1860,6 +2007,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vkNGfn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Nie masz wymaganego uprawnienia Microsoft.Authorization/roleAssignments/write do skonfigurowania pulpitu nawigacyjnego narzędzia Grafana.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";w+XRP2" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All Regions]]></Val>
@@ -1872,6 +2028,9 @@
       <Item ItemId=";w3tjx3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wybrane zasoby mają uprawnienia do tych ról. Jeśli dodasz nowe zasoby później, agent SRE może zażądać dodatkowych uprawnień w razie potrzeby.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1986,6 +2145,9 @@
       <Item ItemId=";zcyAwy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Wybierz grupy zasobów]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>

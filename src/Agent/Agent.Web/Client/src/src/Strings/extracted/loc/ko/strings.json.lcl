@@ -54,15 +54,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";/9bvfN" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Required roles]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";/WrP/v" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Container Apps Operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Container Apps 운영자]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -89,6 +86,15 @@
           <Val><![CDATA[Managed resource group(s) added successfully]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[관리되는 리소스 그룹이 추가되었습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";14xQ4i" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Azure Monitor added]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Monitor 추가됨]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -132,6 +138,9 @@
       <Item ItemId=";2/2yg+" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Add]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[추가]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -165,6 +174,9 @@
       <Item ItemId=";3nhWFW" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Reader]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[뷰어]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -252,6 +264,9 @@
       <Item ItemId=";5dWZzT" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Assign roles and permissions]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[역할 및 권한 할당]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -309,15 +324,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";6YuyUQ" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Automate incident response with AI-powered monitoring and resolution..]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[AI 기반 모니터링 및 해결을 통해 인시던트 응답을 자동화합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";6dWeUs" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select the subscription to manage deployed resources and costs. Use resources groups like folders to organize and manage all your resources.]]></Val>
@@ -330,12 +336,18 @@
       <Item ItemId=";6m5Ba0" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Data Collection Rule]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 수집 규칙]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";6tlKgy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[You can choose a maximum of 20 resource groups that the agent will manage.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[에이전트에서 관리할 최대 20개의 리소스 그룹을 선택할 수 있습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -380,6 +392,15 @@
           <Val><![CDATA[Building knowledge graph]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[지식 그래프 작성 중]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";8kVGbB" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect from PagerDuty?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[PagerDuty에서 연결을 끊으시겠습니까?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -429,15 +450,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";9Gaw/4" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Integrate with PagerDuty to enable automated incident detection, triage, and response. The Azure SRE Agent analyzes alert patterns, suggest remediation steps, and automatically resolve common issues without human intervention.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[PagerDuty와 통합하여 자동화된 인시던트 탐지, 심사 및 응답을 활성화합니다. Azure SRE Agent는 경고 패턴을 분석하고, 수정 단계를 제안하며, 사람의 개입 없이 일반적인 문제를 자동으로 해결합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";9RgE6Y" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Failed to add {number} managed resource group(s) with error(s): {error}]]></Val>
@@ -474,6 +486,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";A/xTHO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Role assignments]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[역할 할당]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";A3Wps1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[If you approve, this operation will be executed on your behalf using your credentials.]]></Val>
@@ -492,15 +513,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";ADENR6" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[Connect with Azure Monitor to enable automated incident detection and response. The SRE Agent will automatically monitor alerts from your Azure resources without requiring additional configuration.]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[Azure Monitor와 연결하여 자동화된 인시던트 탐지와 응답을 활성화하세요. SRE 에이전트는 추가 구성 없이 Azure 리소스의 경고를 자동으로 모니터링합니다.]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";AXAtAX" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[API key is not valid]]></Val>
@@ -513,6 +525,18 @@
       <Item ItemId=";AfbqHj" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring Reader Role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[독자 역할 모니터링]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";AuFOi8" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[REST API access key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[REST API 액세스 키]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -521,6 +545,15 @@
           <Val><![CDATA[AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[AI 생성 콘텐츠는 잘못된 부분이 있을 수 있으므로 사용하기 전에 신중하게 검토하세요. 채팅에 개인 또는 기밀 정보를 포함하지 마세요.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";CQF3U+" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Edit key]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[키 편집]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -564,6 +597,9 @@
       <Item ItemId=";E60v6W" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Some of the selected resource groups do not have the required roleAssignments/write and Microsoft.ManagedIdentity/userAssignedIdentities/write permissions.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 리소스 그룹 중 일부에 필요한 roleAssignments/write 및 Microsoft.ManagedIdentity/userAssignedIdentities/write 권한이 없습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -597,6 +633,9 @@
       <Item ItemId=";EwRIOm" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[User]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[사용자]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -717,11 +756,29 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";HafgWq" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Integrate an incident management platform with the SRE Agent to automate routine incident tasks, manage alerts, and get data-driven insights.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[인시던트 관리 플랫폼을 SRE 에이전트와 통합하여 일상적인 인시던트 작업을 자동화하고, 경고를 관리하고, 데이터 기반 인사이트를 얻을 수 있습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";HbTFJf" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Pending approvals]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[보류 중인 승인]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";HsGdXO" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect from Azure Monitor?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure에서 연결을 끊으시겠습니까?]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -738,6 +795,9 @@
       <Item ItemId=";IF3r+X" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Managed Grafana]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Managed Grafana]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -804,15 +864,12 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";K8gj8f" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[You do not have the required roleAssignments/write permissions to set up a Grafana dashboard.]]></Val>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";LPprqA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Review resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[리소스 그룹 검토]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -900,6 +957,9 @@
       <Item ItemId=";ONVN5F" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Assigned to]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[할당 대상]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -996,6 +1056,9 @@
       <Item ItemId=";R1YfDi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Managed Grafana is a fully managed service for analytics and monitoring. To add the service and a Grafana dashboard, you need to create an Azure Managed Grafana resource. The necessary permissions will be automatically assigned so that the dashboard can display monitoring data.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Managed Grafana는 분석 및 모니터링을 위한 완전 관리형 서비스입니다. 서비스와 Grafana 대시보드를 추가하려면 Azure Managed Grafana 리소스를 생성해야 합니다. 대시보드에서 모니터링 데이터를 표시할 수 있도록 필요한 권한이 자동으로 할당됩니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1083,6 +1146,18 @@
       <Item ItemId=";Sr4IbA" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring Reader]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[모니터링 읽기 권한자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Sw/LL9" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently disconnect from PagerDuty. The agent will no longer be able to manage tickets. Are you sure you want to disconnect?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이렇게 하면 PagerDuty에서 영구적으로 연결이 끊어집니다. 에이전트가 더 이상 티켓을 관리할 수 없습니다. 연결을 끊으시겠습니까?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1116,6 +1191,9 @@
       <Item ItemId=";TMZ2Rq" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana Admin]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grafana 관리자]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1149,6 +1227,9 @@
       <Item ItemId=";UV4Dx5" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Website Contributor/Operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[웹 사이트 기여자/운영자]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1184,6 +1265,15 @@
           <Val><![CDATA[Create agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[에이전트 만들기]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";UvQLwV" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[액세스 키를 통해 연결해야 합니다. pagerduty.com으로 이동하면 API 액세스 키 섹션에서 정보를 확인할 수 있습니다.]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1227,6 +1317,9 @@
       <Item ItemId=";WY8nWe" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Grafana dashboard created successfully]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grafana 대시보드를 만들었습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1260,6 +1353,9 @@
       <Item ItemId=";XEso9C" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Linking Grafana dashboard]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grafana 대시보드 연결 중]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1275,12 +1371,27 @@
       <Item ItemId=";XvrDTb" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring metrics publisher]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[모니터링 메트릭 게시자]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";Y1qw19" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[This will permanently disconnect to Azure Monitor. The agent will no longer be integrated with Azure Monitor alerts. Are you sure you want to disconnect?]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[이렇게 하면 Azure Monitor와의 연결이 영구적으로 끊어집니다. 에이전트는 더 이상 Azure Monitor 경고와 통합되지 않습니다. 연결을 끊으시겠습니까?]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";Z1VHv1" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Monitoring Data Reader Role]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[데이터 독자 역할 모니터링]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1368,6 +1479,9 @@
       <Item ItemId=";bW7B87" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[New]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[새 항목]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1461,15 +1575,6 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
-      <Item ItemId=";fSinmO" ItemType="0" PsrId="306" Leaf="true">
-        <Str Cat="Text">
-          <Val><![CDATA[PagerDuty API Key]]></Val>
-          <Tgt Cat="Text" Stat="Loc" Orig="New">
-            <Val><![CDATA[PagerDuty API 키]]></Val>
-          </Tgt>
-        </Str>
-        <Disp Icon="Str" />
-      </Item>
       <Item ItemId=";ftfFhS" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Select resource groups]]></Val>
@@ -1500,6 +1605,9 @@
       <Item ItemId=";gj6Qc6" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Azure Monitor Workspace]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Azure Monitor 작업 영역]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1553,6 +1661,15 @@
           <Val><![CDATA[Deny]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[거부]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";i0mHNo" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[PagerDuty added]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[PagerDuty 추가됨]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1695,12 +1812,18 @@
       <Item ItemId=";oUbzA/" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Writer/Operator]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[작성자/운영자]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
       <Item ItemId=";ob9EPi" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Permissions to assign roles]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[역할을 할당할 수 있는 권한]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1725,6 +1848,9 @@
       <Item ItemId=";piCpTn" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Once a Grafana dashboard is provisioned and linked, it may take some time for resources to fully populate the dashboard.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grafana 대시보드가 프로비전되고 연결되면 리소스가 대시보드를 완전히 채우는 데 시간이 걸릴 수 있습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1751,6 +1877,15 @@
           <Val><![CDATA[Failed to add {number} managed resource group(s) to your SRE Agent]]></Val>
           <Tgt Cat="Text" Stat="Loc" Orig="New">
             <Val><![CDATA[SRE 에이전트에 {number}개의 관리되는 리소스 그룹을 추가하지 못했습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
+      <Item ItemId=";qj1uhz" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[Disconnect]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[연결 끊기]]></Val>
           </Tgt>
         </Str>
         <Disp Icon="Str" />
@@ -1803,6 +1938,9 @@
       <Item ItemId=";sI+CCC" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Log Analytics Reader]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Log Analytics 읽기 권한자]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1869,6 +2007,15 @@
         </Str>
         <Disp Icon="Str" />
       </Item>
+      <Item ItemId=";vkNGfn" ItemType="0" PsrId="306" Leaf="true">
+        <Str Cat="Text">
+          <Val><![CDATA[You do not have the required Microsoft.Authorization/roleAssignments/write permission to set up a Grafana dashboard.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[Grafana 대시보드를 설정하는 데 필요한 Microsoft.Authorization/roleAssignments/write 권한이 없습니다.]]></Val>
+          </Tgt>
+        </Str>
+        <Disp Icon="Str" />
+      </Item>
       <Item ItemId=";w+XRP2" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[All Regions]]></Val>
@@ -1881,6 +2028,9 @@
       <Item ItemId=";w3tjx3" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed.]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[선택한 리소스에는 이러한 역할에 대한 권한이 있습니다. 나중에 새 리소스를 추가하면 SRE 에이전트가 필요할 경우 추가 권한을 요청할 수 있습니다.]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
@@ -1995,6 +2145,9 @@
       <Item ItemId=";zcyAwy" ItemType="0" PsrId="306" Leaf="true">
         <Str Cat="Text">
           <Val><![CDATA[Choose resource groups]]></Val>
+          <Tgt Cat="Text" Stat="Loc" Orig="New">
+            <Val><![CDATA[리소스 그룹 선택]]></Val>
+          </Tgt>
         </Str>
         <Disp Icon="Str" />
       </Item>
