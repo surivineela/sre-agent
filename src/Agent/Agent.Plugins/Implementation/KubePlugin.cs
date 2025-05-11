@@ -231,11 +231,19 @@ namespace Agent.Plugins
                 default:
                     return "Unsupported kind. Only Deployment and StatefulSet are supported.";
             }
-            tasks.Add(GetCpuMetricsForWorkloadAsync(resourceId, _namespace, kind, name)
+
+            // Get the start and end times for the last 30 minutes metrics
+            var endTime = DateTime.UtcNow;
+            var startTime = endTime.AddMinutes(-30);
+
+            tasks.Add(GetKubeResourceMetricsRangeAsync(resourceId, _namespace, kind, name, "cpu", startTime.ToString("o"), endTime.ToString("o"))
             .ContinueWith(task => results["CpuMetrics"] = task.Result));
 
-            tasks.Add(GetMemoryMetricsForWorkloadAsync(resourceId, _namespace, kind, name)
+            tasks.Add(GetKubeResourceMetricsRangeAsync(resourceId, _namespace, kind, name, "memory", startTime.ToString("o"), endTime.ToString("o"))
                 .ContinueWith(task => results["MemoryMetrics"] = task.Result));
+
+            tasks.Add(GetKubeResourceMetricsRangeAsync(resourceId, _namespace, kind, name, "availability", startTime.ToString("o"), endTime.ToString("o"))
+                .ContinueWith(task => results["AvailabilityMetrics"] = task.Result));
 
             // Get pods and their diagnostics information in parallel
             var podListTask = GetKubePodsAsync(resourceId, _namespace, kind, name);
@@ -273,6 +281,8 @@ namespace Agent.Plugins
             diagnosis.AppendLine(results["CpuMetrics"]);
             diagnosis.AppendLine("Memory Metrics:");
             diagnosis.AppendLine(results["MemoryMetrics"]);
+            diagnosis.AppendLine("Availability Metrics:");
+            diagnosis.AppendLine(results["AvailabilityMetrics"]);
 
             // Add pod diagnostics
             foreach (var pod in podResults.Keys)
