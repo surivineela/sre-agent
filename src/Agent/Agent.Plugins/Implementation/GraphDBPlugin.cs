@@ -1047,12 +1047,12 @@ g.V().has('id', '{deploymentResourceId}')
                         string resourceName = item["resourceName"]?.ToString() ?? string.Empty;
                         string subscriptionId = item["subscriptionId"]?.ToString() ?? string.Empty;
                         string resourceGroupName = item["resourceGroupName"]?.ToString() ?? string.Empty;
-                        string resourceType = item["resourceType"]?.ToString() ?? string.Empty;
+                        string kind = item["kind"]?.ToString() ?? string.Empty;
                         string namespaceValue = item["namespace"]?.ToString() ?? string.Empty;
                         string clusterResourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
 
                         // Create a composite key from these properties
-                        return (resourceName, subscriptionId, resourceGroupName, resourceType, namespaceValue, clusterResourceId);
+                        return $"{resourceName}|{subscriptionId}|{resourceGroupName}|{kind}|{namespaceValue}|{clusterResourceId}";
                     })
                     .ToDictionary(
                         group => group.Key,

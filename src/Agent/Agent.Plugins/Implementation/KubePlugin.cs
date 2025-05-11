@@ -689,8 +689,8 @@ namespace Agent.Plugins
                 return $"Error listing custom resources: {ex.Message}";
             }
         }
-       
-       
+
+
         private static readonly TimeSpan[] SupportedBuckets = new[]
         {
             TimeSpan.FromMinutes(1),
@@ -706,13 +706,13 @@ namespace Agent.Plugins
         public static TimeSpan CalculateGranularity(DateTime startTime, DateTime endTime)
         {
             var duration = endTime - startTime;
-            
+
             // Calculate minimum granularity to keep results under 1440 points
             var minGranularity = TimeSpan.FromTicks(duration.Ticks / 1440);
 
             // Pick the first supported bucket >= minGranularity
             var matchingBucket = SupportedBuckets.FirstOrDefault(bucket => bucket >= minGranularity);
-            
+
             // If no bucket is large enough, use the largest bucket (1 day)
             return matchingBucket != default ? matchingBucket : SupportedBuckets.Last();
         }
@@ -987,7 +987,7 @@ namespace Agent.Plugins
                             return "Job not found";
                         }
                         return YamlHelper.Serialize(job);
-                        
+
                 }
 
                 _client = await GetOrCreateClientAsync(resourceId);
@@ -1229,7 +1229,7 @@ namespace Agent.Plugins
                     {
                         return $"No {metricType} metrics found for workloadType {workloadType} and workloadName {workloadName}.'. Check if the values specified are correct and if metrics are being collected.";
                     }
-                    
+
                     var dataPoints = new List<string>();
 
                     foreach (var resultItem in matrixData.Result)
@@ -1466,6 +1466,7 @@ namespace Agent.Plugins
                     podFilter = $"^{workloadName}$";
                     break;
             }
+
             switch (metricType.ToLowerInvariant())
             {
                 case "memory":
@@ -1510,15 +1511,6 @@ $@"avg(
                     };
                 case "availability":
                     return new[] {
-$@"
-100 * sum (
-        rate(rpc_server_requests_per_rpc_count{{rpc_grpc_status_code=""0"", rpc_service=~""{workloadName}""}}[2m])
-    ) by (rpc_service) 
-    / 
-    sum (
-        rate(rpc_server_requests_per_rpc_count{{rpc_service=~""{workloadName}""}}[2m])
-    ) by (rpc_service)
-",
 $@"100 * (
     sum (
         min by (pod) (kube_pod_container_status_ready{{pod=~""{podFilter}"",namespace=""{_namespace}""}})
@@ -1787,7 +1779,7 @@ $@"100 * (
                             return new List<string>().AsReadOnly();
                         }
                         break;
-                                        case "statefulset":
+                    case "statefulset":
                         V1StatefulSet sts;
                         try
                         {
