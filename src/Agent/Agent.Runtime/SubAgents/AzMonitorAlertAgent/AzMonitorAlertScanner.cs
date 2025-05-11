@@ -144,7 +144,7 @@ public class AzMonitorAlertScanner
                 JsonSerializer.Serialize(new
                 {
                     alertDetails = GetAlertInfoAsPrompt(alert),
-                    description = "Here are the findings of initial investigation with potential root causes.",
+                    description = "Initial investigation findings with evidence-based hypotheses. These should be validated by further diagnostic testing and correlation with system behavior.",
                     investigationSummary,
                 })
             ));
@@ -200,7 +200,7 @@ public class AzMonitorAlertScanner
                    ThreadId: thread.Id,
                    AgentContextId: agentContext.Id,
                    MessageId: thread.StartMessage.Id,
-                   Message: $"Now I will pass on this context to a specialized agent to continue investigation and remediation for the alert. Context : {investigationSummary}",
+                   Message: $"I've completed an initial investigation of this alert with the following hypotheses and findings: {investigationSummary}\n\nPlease validate these hypotheses by checking the supporting evidence. If the hypotheses seem incomplete or insufficient, conduct additional targeted investigation focusing on metrics, logs, and recent changes. Your goal is to either confirm one of these hypotheses with high confidence or discover the actual root cause if it differs from what I've identified.",
                    UserId: "incident-system",
                    DisplayName: "Azure Monitor Investigation Summary",
                    Timestamp: DateTime.UtcNow
@@ -252,12 +252,12 @@ public class AzMonitorAlertScanner
 
             var alertDetails = GetAlertInfoAsPrompt(alert);
 
-            string summarizePrompt = @$"
+            string summarizePrompt = @"
 TASK:
 
 You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert. 
-The following context contains the results of an automated investigation into an Azure Monitor alert.This includes details about the alert itself, the health of the affected application, relevant metrics,
-recent activity logs, analysis of connected components, and results from relevant log queries.
+The following context contains the results of an automated investigation into an Azure Monitor alert.This includes details about the alert itself,
+the health of the affected application, relevant metrics, recent activity logs, analysis of connected components to this application, and results from relevant log queries saved in user's log analytics workspace.
 
 Analyze recent exceptions, metrics, activity logs, and application topology given below to identify potential root causes for the alert specified. Consider code bugs, deployment changes, resource constraints, and topology gaps. Provide a clear hypothesis with supporting evidence and recommended next steps. Think Step by Step
 Examples:
@@ -277,12 +277,13 @@ GOAL
 
 Based on the following investigation summaries, provide:
 
-1. A concise summary of key findings across all areas (max 2-3 bullet points)
+1. A concise summary of key findings across all areas (max 2 bullet points)
 2. 1-2 hypotheses about the root cause, each with:
    - Clear description of the potential cause (one liner is good enough)
    - Supporting evidence from the summaries
    - Confidence score (0-100%)
-3. Rank hypotheses by confidence score (highest first)
+
+** CRITICAL **  DO NOT give generic suggestions. Check the entire output for any duplicate information and condense it.
 
 Now build hypothesis on this, you are unsure about any points/there is missing data you can ignore it. Only provide the most reliable, concise, actionable hypothesis which can be derived from the data below. If there is no possible root cause you can reply with 'Could not derive a hypothesis on this issue'
 ** CRITICAL ** If any summaries are missing data or logs are missing for an application, or graph database is missing the resource, DO NOT include that information in the summary and hypothesis. Your job is to not tell user about the best practices at this moment. You just need to figure out relevant root cause for the alert based on the information your were able to get.
@@ -307,22 +308,27 @@ DATA ABOUT ALERT AND LOGS, METRICS, TOPOLOGY etc
 ### LOG QUERY ANALYSIS
 {logQuerySummary}
 
+REQUIREMENTS:
+1. Extract ONLY specific metrics, timestamps, and error patterns that explain this alert
+2. Focus on quantifiable evidence (numeric deviations, timing correlations)
+3. Do NOT include generic observations without specific values
+4. Do NOT mention missing data or standard operational patterns
+5. Keep your entire response under 300 words
 
-Format your response as:
+FORMAT YOUR RESPONSE AS:
 
 ## Summary of Findings
-- Key finding 1
-- Key finding 2...
+- [Specific finding with exact metric/timestamp/error] 
+- [Specific finding with exact metric/timestamp/error]
 
 ## Hypotheses
-### Hypothesis 1 (Confidence: 85%)
-[Description and supporting evidence]
+### Hypothesis 1 (Confidence: XX%)
+One sentence describing specific cause with exact evidence values supporting it
 
-### Hypothesis 2 (Confidence: 65%)
-[Description and supporting evidence]
+### Hypothesis 2 (Confidence: XX%) [Optional]
+One sentence describing specific cause with exact evidence values supporting it
 
-** CRITICAL ** Keep your response concise, factual, and focused on the most likely causes.
-";
+Remember: Quality findings with specific values are better than quantity. Exclude any hypothesis without concrete supporting evidence.";
 
 
             var finalSummary = await SummarizeWithLLM(summarizePrompt);

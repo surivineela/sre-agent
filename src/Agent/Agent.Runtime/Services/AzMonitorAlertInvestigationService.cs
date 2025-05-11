@@ -68,11 +68,12 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             string alertDetails = GetAlertInfoAsPrompt(alert);
 
             // Custom prompt for analyzing activity logs
-            string activityLogInstructions = @"Review the following activity logs for this resource and analyze:
-                                            - Look for configuration changes or operations that occurred before the alert
-                                            - Note patterns of administrative actions that might affect resource behavior
-                                            - Identify deployments or updates that could have introduced issues
-                                            - Consider correlations between activity timing and the alert condition";
+            string activityLogInstructions = @"Review these activity logs and identify:
+                                            - Configuration changes directly preceding the alert
+                                            - Administrative actions with timestamps that correlate with the issue
+                                            - Deployments or updates that could have introduced issues
+                                            - ONLY mention activities that likely caused the alert
+                                            - Ignore routine operations unrelated to the issue";
 
             string promptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetails)
@@ -147,26 +148,17 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
                 }
             }
 
-            string healthAnalysisInstructions = @"
-                You are analyzing health data for an Azure resource and its connected components in response to an alert. 
+            string healthAnalysisInstructions = @"Analyze health data for this Azure resource and its connected components:
 
-                Analyze and create a comprehensive summary of your findings, being sure to include:
-                1. Overall assessment of the primary resource's health state
-                2. Potential issues identified in any component, focusing on:
-                   - Unusual or critical values in availability, CPU, memory usage, or latency
-                   - Components that are inactive but should be active
-                   - Performance degradation patterns across multiple components
-                3. Correlation between the observed metrics and the current alert
-                4. Possible root causes based on the health data patterns
+1. Identify specific metric deviations in the primary resource that match the alert condition
+2. Flag any connected components showing errors/degradation (CPU, memory, availability)
+3. Note any correlation between component health and alert timing
+4. Specify numeric values for important metrics where available
 
-                Important notes:
-                - Some components may not have health data available - this is normal and should not be treated as an anomaly
-                - Focus on significant deviations from normal metrics
-                - Prioritize findings based on severity and relevance to the alert
-                - Consider relationships between components when identifying potential cascading failures
-
-                Your assessment should be concise, actionable, and focus on insights that would help resolve the alert condition. Form a concise hypothesis about the issue that
-                will help with the further investigation";
+Important:
+- Missing health data for some components is normal
+- Focus ONLY on significant deviations from normal metrics
+- Quantify the deviation where possible (e.g., '95% CPU vs normal 60%')";
 
 
             string alertDetails = GetAlertInfoAsPrompt(alert);
@@ -225,11 +217,13 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
 
                 string alertDetailsForAppHealth = GetAlertInfoAsPrompt(alert);
 
-                string appHealthAnalysisInstructions = @"Analyze the following application health information:
-                    - Focus on metrics that show significant deviation from baseline
-                    - Identify performance bottlenecks or resource constraints
-                    - Correlate health patterns with the alert condition
-                    - Consider how the application's health might impact user experience or business functions";
+                string appHealthAnalysisInstructions = @"Analyze this health information focusing ONLY on:
+                    - Specific metrics showing deviation from baseline with exact values
+                    - Critical performance bottlenecks with quantifiable impact
+                    - Direct correlation between health patterns and the alert condition
+                    - Resource constraints with numerical thresholds exceeded
+
+                    Avoid general observations. Include specific times, durations, and metric values.";
 
                 string appHealthPromptWithPlaceholders = ChainPrompt
                     .Replace("{{AlertDetails}}", alertDetailsForAppHealth)
@@ -420,14 +414,15 @@ public class AzMonitorAlertInvestigationService : IAzMonitorAlertInvestigationSe
             string alertDetailsForLogQueries = GetAlertInfoAsPrompt(alert);
 
             // Custom instructions for log query analysis
-            string logQueryAnalysisInstructions = @"Analyze these query results in relation to the alert. Focus on:
-1. Patterns or anomalies that might explain the alert
-2. Correlation between the alert timing and any spikes in errors or performance issues
-3. Evidence that confirms or contradicts the alert's significance
-4. Potential root causes based on the query data
+            string logQueryAnalysisInstructions = @"Analyze these query results in relation to the alert:
+1. Identify log entries that directly explain the alert (errors, exceptions)
+2. Report specific metric values/thresholds that were exceeded
+3. Note exact timestamps of relevant events relative to the alert
+4. Quantify the scale of any issue (e.g., error rate, latency increase)
 
-Look for specific metrics or log entries that stand out. Include query names when referencing results.
-Be concise and focus on the most relevant findings. Avoid generic root causes.";
+Include query names when referencing results.
+DO NOT suggest generic root causes without specific evidence.
+ONLY mention findings directly relevant to this alert condition.";
 
             string queryPromptWithPlaceholders = ChainPrompt
                 .Replace("{{AlertDetails}}", alertDetailsForLogQueries)
@@ -575,24 +570,19 @@ Be concise and focus on the most relevant findings. Avoid generic root causes.";
 {{ContentToAnalyze}}
 ---
 
-Your task is to produce a Markdown-formatted investigation report that includes:
+Produce a concise investigation report with:
 
 ## Observations
-   - In 1-2 sentences, capture the most critical insight.
-   - Bullet the key patterns, anomalies, or data points that matter.
+- One critical insight (max 1-2 sentences)
+- 2-3 key data points that matter most
 
 ## Hypotheses  
-   For each hypothesis (2-3 max):  
-   - **Hypothesis:** A one-sentence statement.  
-   - **Rationale:** Brief explanation.  
-   - **Confidence:** High / Medium / Low.
+For each hypothesis (max 2):
+- **Hypothesis:** One-sentence statement with **Confidence:** High/Medium/Low
 
- DO NOT just give generic suggestions.
-
-** CRITICAL ** Use self-reasoning loops and contextual information to rank the relevance of findings before summarizing the final output.
-** CRITICAL ** If you encounter errors while calling any tool, print a concise message explaining the error.
-** CRITICAL ** Keep the text concise. Users don't like seeing too much text. Maybe use some emojis to make it colorful.
-";
+DO NOT use generic suggestions. BE SPECIFIC to this alert and its context.
+Avoid duplicate information. Use emojis sparingly for readability.
+CRITICAL: Keep the entire response under 200 words.";
 
     #endregion
 }
