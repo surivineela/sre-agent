@@ -5,8 +5,7 @@ import { useIntl } from 'react-intl';
 import { Message, Thread, ThreadContext, ThreadOrchestrationReasoningState } from '../../Common/Contracts/Azure/SreAgent';
 import { Guid } from '../../Common/Helpers/Guid';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
-import { AntUxStringComparison, equals } from '../../Common/Helpers/Strings';
-import { SreAgentResources } from '../../Strings/SREAgentResources';
+import { SreAgentResources, ThreadContextStateResources } from '../../Strings/SREAgentResources';
 import { AgentContext } from '../Activities/Activities.ReactView';
 import { noGapBetweenNewMessagesAndExistingMessages, processMessages } from '../Activities/Utility';
 import { MessageLoadingCounts, MessagePollingCounts, MessagePollingInterval } from '../Contracts/Activities';
@@ -133,6 +132,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
     const [temporaryUserMessage, setTemporaryUserMessage] = useState<Message | null>(null);
     const [agentTypingMessage, setAgentTypingMessage] = useState<Message | null>(null);
+    const [threadOrchestrationReasoningState, setThreadOrchestrationReasoningState] = useState<string>();
 
     const [showNewMessageButton, setShowNewMessageButton] = useState(false);
     const [canShowNewMessageButton, setCanShowNewMessageButton] = useState(false);
@@ -154,6 +154,23 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         () => !isLoadingInitialChatHistory && !currentThreadId && messages.length === 0 && !temporaryUserMessage,
         [isLoadingInitialChatHistory, currentThreadId, messages, temporaryUserMessage]
     );
+
+    const getThreadOrchestrationReasoningStateDisplayString = (state?: ThreadOrchestrationReasoningState) => {
+        switch (state?.toLowerCase()) {
+            case ThreadOrchestrationReasoningState.OrchestrationInitialized.toLowerCase():
+                return intl.formatMessage(ThreadContextStateResources.initializing);
+            case ThreadOrchestrationReasoningState.Waiting.toLowerCase():
+                return intl.formatMessage(ThreadContextStateResources.waiting);
+            case ThreadOrchestrationReasoningState.PlanningNextAction.toLowerCase():
+                return intl.formatMessage(ThreadContextStateResources.determiningNextSteps);
+            case ThreadOrchestrationReasoningState.RunningFunctionCall.toLowerCase():
+                return intl.formatMessage(ThreadContextStateResources.generatingAResponse);
+            case ThreadOrchestrationReasoningState.Error.toLowerCase():
+                return intl.formatMessage(ThreadContextStateResources.somethingWentWrong);
+            default:
+                return undefined;
+        }
+    };
 
     const isMounted = useRef(true);
     const isPreviousNewMessagesPollingCompleted = useRef(true);
@@ -207,21 +224,17 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         latestMessageRef.current = newMessages[0];
     };
 
-    const pollReasoningStateUntilComplete = async (threadId: string, signal: AbortSignal, latestMessage?: Message) => {
+    const waitUntilNewMessageIsAvailable = async (threadId: string, signal: AbortSignal, latestMessage?: Message) => {
         const [threadContext, messages] = await Promise.all([getThreadContext(threadId, signal), getMessages(threadId, 0, 2, signal)]);
 
         const reasoningState = threadContext?.orchestrationState?.reasoningState;
         const isAnswerAvailable = messages.length >= 2 && !messages.some(message => message.id === latestMessage?.id);
-        if (
-            !reasoningState ||
-            equals(reasoningState, ThreadOrchestrationReasoningState.Error, AntUxStringComparison.IgnoreCase) ||
-            equals(reasoningState, ThreadOrchestrationReasoningState.OrchestrationCompleted, AntUxStringComparison.IgnoreCase) ||
-            isAnswerAvailable
-        ) {
+        if (isAnswerAvailable) {
             return;
         } else {
+            setThreadOrchestrationReasoningState(getThreadOrchestrationReasoningStateDisplayString(reasoningState));
             await new Promise(resolve => setTimeout(resolve, 1000));
-            await pollReasoningStateUntilComplete(threadId, signal, latestMessage);
+            await waitUntilNewMessageIsAvailable(threadId, signal, latestMessage);
         }
     };
 
@@ -235,6 +248,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
             setWaitingForSendMessageResponse(true);
             setTemporaryUserMessage(composeTemporaryUserMessage(userId, displayName, message));
+            setThreadOrchestrationReasoningState(undefined);
             setAgentTypingMessage(composeAgentTypingMessage());
 
             let newThread: Thread | undefined = undefined;
@@ -253,7 +267,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
                 const threadId = currentThreadId || newThread?.id;
 
                 if (threadId) {
-                    await pollReasoningStateUntilComplete(threadId, signal, latestMessageRef.current);
+                    await waitUntilNewMessageIsAvailable(threadId, signal, latestMessageRef.current);
                     // poll answers by getting all messages from the most recent one to the lastest message reference
                     answers = await pollResponses(MessagePollingCounts.default, threadId, latestMessageRef.current, signal);
                 }
@@ -264,6 +278,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
             if (isMounted.current) {
                 setTemporaryUserMessage(null);
                 setAgentTypingMessage(null);
+                setThreadOrchestrationReasoningState(undefined);
                 handleNewMessages(answers);
                 setWaitingForSendMessageResponse(false);
 
@@ -441,6 +456,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         isLoadingInitialChatHistory,
         temporaryUserMessage,
         agentTypingMessage,
+        threadOrchestrationReasoningState,
         sendMessage: sendMessageHandler,
         disableInput,
         isNewAndCleanThread,

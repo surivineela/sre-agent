@@ -16,6 +16,7 @@ export const ChatBox = ({ addThread, threadId, threadSource }: IChatBoxProps & {
         messages,
         temporaryUserMessage,
         agentTypingMessage,
+        threadOrchestrationReasoningState,
         isLoadingInitialChatHistory,
         sendMessage,
         disableInput,
@@ -61,6 +62,7 @@ export const ChatBox = ({ addThread, threadId, threadSource }: IChatBoxProps & {
                                 isTyping
                                 threadId={currentThreadId || ''}
                                 cancelResponse={cancelResponse}
+                                threadOrchestrationReasoningState={threadOrchestrationReasoningState}
                             />
                         )}
                     </CopilotChat>

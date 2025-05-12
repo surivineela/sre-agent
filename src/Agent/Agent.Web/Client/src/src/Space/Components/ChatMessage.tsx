@@ -4,7 +4,7 @@ import {
     CopilotMessageV2Props as CopilotMessageProps,
     UserMessageV2 as UserMessage,
 } from '@fluentui-copilot/react-copilot-chat';
-import { Button, Image, Text, tokens } from '@fluentui/react-components';
+import { Body1Strong, Button, Image, Text, tokens } from '@fluentui/react-components';
 import { SquareDismissRegular } from '@fluentui/react-icons';
 import axios from 'axios';
 import mermaid from 'mermaid';
@@ -202,7 +202,7 @@ const renderMarkdownWithImagesAndMermaid = (text: string) => {
     return parts;
 };
 
-const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessageProps) => {
+const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrchestrationReasoningState }: IChatMessageProps) => {
     const chatStyles = useChatBoxStyles();
     const intl = useIntl();
 
@@ -667,6 +667,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                         style={{ font: 'Segoe UI', lineHeight: '20px', wordBreak: 'unset', maxWidth: '90%' }}
                         className={ChatBoxStyles.agentMessage}
                     >
+                        {isTyping && threadOrchestrationReasoningState && <Body1Strong>{threadOrchestrationReasoningState}</Body1Strong>}
                         {!isTyping && (
                             <Text block={true} size={200} color={tokens.colorNeutralForeground3}>
                                 {getSafeDateTime(message.timeStamp).toLocaleString()}

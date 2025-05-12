@@ -101,6 +101,12 @@
       "value": "Save incident management configuration"
     }
   ],
+  "35vd1u": [
+    {
+      "type": 0,
+      "value": "Waiting..."
+    }
+  ],
   "3a5wL8": [
     {
       "type": 0,
@@ -579,6 +585,12 @@
     {
       "type": 0,
       "value": "Client"
+    }
+  ],
+  "JqiqNj": [
+    {
+      "type": 0,
+      "value": "Something went wrong"
     }
   ],
   "K3r6DQ": [
@@ -1389,6 +1401,12 @@
       "value": "Status"
     }
   ],
+  "u0RCrx": [
+    {
+      "type": 0,
+      "value": "Response completed"
+    }
+  ],
   "u64mw7": [
     {
       "type": 0,
@@ -1405,6 +1423,12 @@
     {
       "type": 0,
       "value": "Failed"
+    }
+  ],
+  "vjy7Cr": [
+    {
+      "type": 0,
+      "value": "Determining next steps..."
     }
   ],
   "vkNGfn": [
@@ -1425,6 +1449,12 @@
       "value": "The resources you picked have permissions for these roles. If you add new resources later, the SRE Agent might request any additional permissions if needed."
     }
   ],
+  "wInZgf": [
+    {
+      "type": 0,
+      "value": "Generating a response..."
+    }
+  ],
   "wL7VAE": [
     {
       "type": 0,
@@ -1441,6 +1471,12 @@
     {
       "type": 0,
       "value": "Step 3: Generate an API key"
+    }
+  ],
+  "xQRfI5": [
+    {
+      "type": 0,
+      "value": "Initializing..."
     }
   ],
   "xUgb9H": [
