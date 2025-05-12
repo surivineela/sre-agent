@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using Agent.Core.Interfaces;
 using Agent.Core.Models.Api.v1;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Graph.Crawler.ARM;
 using Agent.Logging;
 using Microsoft.AspNetCore.Mvc;
@@ -66,26 +67,16 @@ public class GithubController(
                 return NotFound($"the resource {request.ResourceId} is not found.");
             }
 
-            string displayName = request.RepoUrl.Split('/').Last();
-            string sourceCodeNodeId = request.RepoUrl.ToLower().Replace("/", "_").Replace(":", "_");
-            string checkSourceCodeNodeQuery = $"g.V('{sourceCodeNodeId}').hasLabel('microsoft.source/repository')";
-            var sourceCodeNodeResults = await _graphDbClient.Query(checkSourceCodeNodeQuery);
+            var sourceCodeNode = new SourceCodeRepoNode(request.RepoUrl);
+            var sourceCodeNodeResults = await _graphDbClient.Query($"g.V('{sourceCodeNode.GetNodeId()}').hasLabel('{sourceCodeNode.GetNodeLabel()}')");
 
             if (!sourceCodeNodeResults.Any())
             {
-                var properties = new Dictionary<string, object>
-                    {
-                        { "resourceId", request.RepoUrl },
-                        { "subscriptionId", "githubrepo-sub" },
-                        { "resourceGroupName", "githubrepo-rg" },
-                        { "resourceName", displayName },
-                        { "updateTs", DateTime.UtcNow.Ticks }
-                    };
-
-                await _graphDbClient.AddOrUpdateNodeAsync("microsoft.source/repository", sourceCodeNodeId, "microsoft.source/repository", properties);
+                await _graphDbClient.AddOrUpdateNodeAsync(sourceCodeNode);
             }
 
-            await _graphDbClient.AddOrUpdateEdgeAsync(containerAppNodeId, sourceCodeNodeId, Constants.Relationships.ServesCode);
+            var edge = new NonCrawledEdge(containerAppNodeId, sourceCodeNode.GetNodeId(), Constants.Relationships.ServesCode);
+            await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             return Ok("Source code linked successfully.");
         }
         catch (Exception ex)

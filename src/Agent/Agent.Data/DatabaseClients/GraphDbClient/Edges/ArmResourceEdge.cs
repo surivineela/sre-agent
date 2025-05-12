@@ -100,4 +100,12 @@ namespace Agent.Data.DatabaseClients.GraphDbClient
             return Relationship;
         }
     }
+
+    public class NonCrawledEdge : ArmResourceEdge
+    {
+        public NonCrawledEdge(string sourceNodeId, string targetNodeId, string relationship) : base(sourceNodeId, targetNodeId, relationship)
+        {
+            AdditionalProperties.Add("nonCrawled", true);
+        }
+    }
 }
