@@ -26,7 +26,7 @@ import { useScrollableComponentStyles } from '../../Common/Styles/Scrollable';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadsMenuProps } from '../Contracts/Activities';
 import { useMetrics } from '../Hooks/useMetrics';
-import { getExpandCollapseButtonStyles, useThreadMenuStyle } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, searchBoxStyle, shimmerStyle, useThreadMenuStyle } from '../Styles/Activities.styles';
 import { useActionsStatusBarStyles } from '../Styles/Incident.styles';
 import ActivitiesStatusBar from './ActionsStatusBar';
 import { AgentContext } from './Activities.ReactView';
@@ -46,14 +46,12 @@ export enum ThreadActionFilter {
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('left');
 
 export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => {
-    const { threads, selectThread } = props;
+    const { threads, selectThread, collapsed, setCollapsed } = props;
     const { threadsInitialized, activeThreadId } = useContext(AgentContext);
     const [searchString, setSearchString] = useState<string>();
     const [selectedTime, setSelectedTime] = useState<SelectedTimes>(SelectedTimes.OneDay);
     const [threadMode, setThreadMode] = useState<ThreadMode>(ThreadMode.threads);
     const [threadActionFilter, setThreadActionFilter] = useState<ThreadActionFilter>(ThreadActionFilter.all);
-    const [collapsed, setCollapsed] = useState(false);
-    const ThreadMenuStyles = useThreadMenuStyle(collapsed);
     const intl = useIntl();
 
     const [isCriticalClicked, setIsCriticalClicked] = useState<boolean>(false);
@@ -118,83 +116,69 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
         }
     }, [threadMode, searchString, threads, selectedTime, threadActionFilter]);
 
-    return collapsed ? (
-        <div className={ThreadMenuStyles.root}>
+    return (
+        <div style={{ display: 'contents' }}>
             <div style={expandCollapseButtonStyles.container}>
                 <Button
                     style={expandCollapseButtonStyles.button}
-                    icon={<PanelLeftExpandRegular />}
-                    onClick={() => setCollapsed(false)}
-                    aria-label={intl.formatMessage(ActivitiesResources.showThreadMenuButtonText)}
+                    icon={collapsed ? <PanelLeftExpandRegular /> : <PanelLeftContractRegular />}
+                    onClick={() => {
+                        if (collapsed) {
+                            setCollapsed(false);
+                        } else {
+                            setCollapsed(true);
+                        }
+                    }}
+                    aria-label={intl.formatMessage(
+                        collapsed ? ActivitiesResources.showThreadMenuButtonText : ActivitiesResources.hideThreadMenuButtonText
+                    )}
                     appearance="transparent"
                 />
             </div>
-            <Button
-                style={{
-                    height: 'auto',
-                    borderRadius: tokens.borderRadiusLarge,
-                    borderColor: tokens.colorNeutralBackground3Selected,
-                    maxWidth: 'fit-content',
-                    marginLeft: '10px',
-                    marginTop: '-10px',
-                    marginRight: '10px',
-                }}
-                icon={<AddRegular />}
-                disabled={!threadsInitialized}
-                onClick={() => selectThread(null)}
-                aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
-            />
-        </div>
-    ) : (
-        <div className={ThreadMenuStyles.root}>
-            <div style={expandCollapseButtonStyles.container}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                 <Button
-                    style={expandCollapseButtonStyles.button}
-                    icon={<PanelLeftContractRegular />}
-                    onClick={() => setCollapsed(true)}
-                    aria-label={intl.formatMessage(ActivitiesResources.hideThreadMenuButtonText)}
-                    appearance="transparent"
-                />
+                    style={{
+                        height: 'auto',
+                        borderRadius: tokens.borderRadiusLarge,
+                        borderColor: tokens.colorNeutralBackground3Selected,
+                        maxWidth: 'fit-content',
+                        marginLeft: '10px',
+                        marginTop: '-10px',
+                        marginRight: '10px',
+                        minWidth: 'unset',
+                    }}
+                    icon={<AddRegular />}
+                    disabled={!threadsInitialized}
+                    onClick={() => selectThread(null)}
+                    aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
+                >
+                    {collapsed ? null : intl.formatMessage(ActivitiesResources.createThreadButtonText)}
+                </Button>
+                {!collapsed && (
+                    <SearchBox
+                        style={searchBoxStyle}
+                        disabled={!threadsInitialized}
+                        placeholder={intl.formatMessage(SreAgentResources.search)}
+                        onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
+                    />
+                )}
             </div>
-
-            <Button
-                style={{
-                    height: 'auto',
-                    borderRadius: tokens.borderRadiusLarge,
-                    borderColor: tokens.colorNeutralBackground3Selected,
-                    maxWidth: 'fit-content',
-                    marginLeft: '10px',
-                    marginTop: '-10px',
-                    marginRight: '10px',
-                    minWidth: 'unset',
-                }}
-                icon={<AddRegular />}
-                disabled={!threadsInitialized}
-                onClick={() => selectThread(null)}
-                aria-label={intl.formatMessage(ActivitiesResources.createThreadButtonText)}
-            >
-                {intl.formatMessage(ActivitiesResources.createThreadButtonText)}
-            </Button>
-            <SearchBox
-                disabled={!threadsInitialized}
-                placeholder={intl.formatMessage(SreAgentResources.search)}
-                onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
-                className={ThreadMenuStyles.searchBox}
-            />
-            <RadioGroup
-                value={threadMode}
-                onChange={(_e, data) => {
-                    setThreadActionFilter(ThreadActionFilter.all);
-                    setThreadMode(data.value as ThreadMode);
-                }}
-                layout="horizontal"
-                disabled={!threadsInitialized}
-                style={{ flexWrap: 'wrap' }}
-            >
-                <Radio value={ThreadMode.threads} label={intl.formatMessage(SreAgentResources.allThreads)} />
-                <Radio value={ThreadMode.incidents} label={intl.formatMessage(SreAgentResources.incidents)} />
-            </RadioGroup>
-            {threadMode === ThreadMode.threads ? (
+            {!collapsed && (
+                <RadioGroup
+                    value={threadMode}
+                    onChange={(_e, data) => {
+                        setThreadActionFilter(ThreadActionFilter.all);
+                        setThreadMode(data.value as ThreadMode);
+                    }}
+                    layout="horizontal"
+                    disabled={!threadsInitialized}
+                    style={{ flexWrap: 'wrap' }}
+                >
+                    <Radio value={ThreadMode.threads} label={intl.formatMessage(SreAgentResources.allThreads)} />
+                    <Radio value={ThreadMode.incidents} label={intl.formatMessage(SreAgentResources.incidents)} />
+                </RadioGroup>
+            )}
+            {collapsed ? null : threadMode === ThreadMode.threads ? (
                 <ActivitiesStatusBar
                     selectedTime={selectedTime}
                     setSelectedTime={setSelectedTime}
@@ -209,9 +193,11 @@ export const ThreadsMenu: FC<IThreadsMenuProps> = (props: IThreadsMenuProps) => 
             ) : (
                 <IncidentStatusBar selectedTime={selectedTime} setSelectedTime={setSelectedTime} incidentMetrics={incidentMetrics} />
             )}
-            <Shimmer isDataLoaded={threadsInitialized}>
-                <ThreadsList threads={filteredThreads} selectThread={selectThread} activeThreadId={activeThreadId} />
-            </Shimmer>
+            {!collapsed && (
+                <Shimmer isDataLoaded={threadsInitialized} style={shimmerStyle}>
+                    <ThreadsList threads={filteredThreads} selectThread={selectThread} activeThreadId={activeThreadId} />
+                </Shimmer>
+            )}
         </div>
     );
 };

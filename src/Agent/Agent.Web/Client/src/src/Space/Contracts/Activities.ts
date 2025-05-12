@@ -13,6 +13,8 @@ export interface AgentContextProps {
 export interface IThreadsMenuProps {
     threads: Thread[];
     selectThread: (thread: Thread | null) => void;
+    collapsed?: boolean;
+    setCollapsed: (collapsed: boolean) => void;
 }
 
 export interface IThreadContentProps {
@@ -24,7 +26,8 @@ export interface IThreadContentProps {
 }
 
 export interface IThreadActivitiesProps {
-    collapse: () => void;
+    collapsed?: boolean;
+    setCollapsed: (collapsed: boolean) => void;
     thread?: Thread | null;
 }
 

@@ -9,7 +9,7 @@ import { getSafeDateTime } from '../../Common/Helpers/Date';
 import { ActionsResources, ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IThreadActivitiesProps } from '../Contracts/Activities';
 import { useActions } from '../Hooks/useActions';
-import { getExpandCollapseButtonStyles, useThreadActionsStyles } from '../Styles/Activities.styles';
+import { getExpandCollapseButtonStyles, searchBoxStyle, shimmerStyle, useThreadActionsStyles } from '../Styles/Activities.styles';
 import { AgentContext } from './Activities.ReactView';
 
 export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
@@ -27,7 +27,7 @@ export const ThreadActions: FC<IThreadActivitiesProps> = (props: IThreadActiviti
 const expandCollapseButtonStyles = getExpandCollapseButtonStyles('right');
 
 const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActivitiesProps) => {
-    const { thread, collapse } = props;
+    const { thread, collapsed, setCollapsed } = props;
     const { threadsInitialized } = useContext(AgentContext);
     const { actions, isLoading } = useActions(thread?.id);
     const intl = useIntl();
@@ -44,13 +44,13 @@ const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActiviti
         }
     }, [searchString, actions]);
 
-    return (
+    return collapsed ? null : (
         <div className={actionsStyles.content}>
             <div style={expandCollapseButtonStyles.container}>
                 <Button
                     style={expandCollapseButtonStyles.button}
                     icon={<PanelRightContractRegular />}
-                    onClick={collapse}
+                    onClick={() => setCollapsed(true)}
                     aria-label={intl.formatMessage(ActivitiesResources.hideThreadActionsButtonText)}
                     appearance="transparent"
                 />
@@ -59,12 +59,12 @@ const ThreadActionsContent: FC<IThreadActivitiesProps> = (props: IThreadActiviti
                 {intl.formatMessage(ActionsResources.actions)}
             </Text>
             <SearchBox
+                style={searchBoxStyle}
                 disabled={!threadsInitialized}
                 placeholder={intl.formatMessage(SreAgentResources.search)}
                 onChange={debounce((_event: SearchBoxChangeEvent, data: InputOnChangeData) => setSearchString(data.value ?? ''))}
-                className={actionsStyles.searchBox}
             />
-            <Shimmer isDataLoaded={threadsInitialized && !isLoading}>
+            <Shimmer isDataLoaded={threadsInitialized && !isLoading} style={shimmerStyle}>
                 <ActionCardList actions={filteredActions} />
             </Shimmer>
         </div>

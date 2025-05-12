@@ -50,7 +50,6 @@ export const ThreadContentStyles = mergeStyleSets({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: '10px',
-        marginRight: 10,
         height: '50px',
     },
     title: {
@@ -189,18 +188,13 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         gap: '10px',
         backgroundColor: tokens.colorNeutralBackground3,
         paddingLeft: '10px',
-        maxWidth: '320px',
-        minWidth: '70px',
     };
 
     const threadList: IStyle = {
+        position: 'absolute',
         height: 'calc(100vh - 278px)',
-        maxWidth: '320px',
-    };
-
-    const searchBox: IStyle = {
-        margin: '0px 10px',
-        borderRadius: tokens.borderRadiusLarge,
+        left: '0px',
+        right: '0px',
     };
 
     const threadItem: IStyle = {
@@ -222,7 +216,6 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
     return mergeStyleSets({
         root,
         threadList,
-        searchBox,
         threadItem,
         activeThreadItem,
     });
@@ -246,33 +239,21 @@ export const useCommandButtonStyles = (): IButtonStyles => {
 
 export const useThreadActionsStyles = makeStyles({
     root: {
-        maxWidth: '300px',
+        display: 'contents',
     },
     content: {
-        flex: '0 0 20%',
-        display: 'flex',
-        flexDirection: 'column',
-        justifyContent: 'flex-start',
-        alignItems: 'stretch',
-        gap: '10px',
-        backgroundColor: tokens.colorNeutralBackground3,
+        display: 'contents',
         paddingLeft: '5px',
         paddingRight: '10px',
     },
     actionsList: {
-        maxWidth: '500px',
         height: 'calc(100vh - 220px)',
         overflowX: 'hidden',
         overflowY: 'auto',
     },
-    searchBox: {
-        margin: '0px 10px',
-        borderRadius: tokens.borderRadiusLarge,
-        minWidth: '265px',
-    },
     title: {
         lineHeight: '22px',
-        marginLeft: '5px',
+        marginLeft: '10px',
         paddingBottom: '-10px',
         fontWeight: 600,
     },
@@ -317,3 +298,15 @@ export const useThreadActionsStyles = makeStyles({
         gap: '4px',
     },
 });
+
+export const searchBoxStyle: CSSProperties = {
+    margin: '0px 10px',
+    borderRadius: tokens.borderRadiusLarge,
+    maxWidth: '100%',
+};
+
+export const shimmerStyle: CSSProperties = {
+    maxWidth: '100%',
+    paddingLeft: '10px',
+    paddingRight: '10px',
+};
