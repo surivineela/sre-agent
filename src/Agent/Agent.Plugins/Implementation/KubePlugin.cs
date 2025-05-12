@@ -26,6 +26,8 @@ using Agent.Logging;
 using Azure.ResourceManager.Network;
 using Azure.ResourceManager.ContainerService;
 
+using Agent.Data.DatabaseClients.GraphDbClient;
+
 namespace Agent.Plugins
 {
     public partial class KubePlugin : IKubePlugin
@@ -37,9 +39,9 @@ namespace Agent.Plugins
         private readonly IAuthenticationService _authService;
         private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
-        private readonly string? _prometheusQueryEndpoint;
         private readonly DashboardSettings _dashboardSettings;
         private readonly IAzureMetricsClient _azureMetricsClient;
+        private readonly IGraphDatabaseClient? _graphDbClient;
 
         private ThreadContext Context { get; set; }
         private readonly ConcurrentDictionary<string, IKubernetes> _clientCache = new();
@@ -56,6 +58,7 @@ namespace Agent.Plugins
             DashboardSettings dashboardSettings,
             IKubernetesClientFactory kubernetesClientFactory,
             IArmClientFactory armClientFactory,
+            IGraphDatabaseClient graphDbClient,
             ILogger<KubePlugin>? logger)
         {
             _logger = logger;
@@ -66,8 +69,7 @@ namespace Agent.Plugins
             _azureMetricsClient = azureMetricsClient;
             _kubernetesClientFactory = kubernetesClientFactory;
             _armClient = armClientFactory.GetArmClient();
-
-            _prometheusQueryEndpoint = _dashboardSettings.PrometheusUrl;
+            _graphDbClient = graphDbClient;
         }
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
@@ -718,6 +720,14 @@ namespace Agent.Plugins
         }
         public async Task<string> GetKubeResourceMetricsRangeAsync(string AKSClusterResourceId, string _namespace, string kind, string name, string metricsType, string startTime, string endTime)
         {
+
+            var prometheusQueryEndpoint =  await GetPrometheusEndpoint(AKSClusterResourceId);
+            // If we still don't have an endpoint, cannot proceed
+            if (string.IsNullOrEmpty(prometheusQueryEndpoint))
+            {
+                return  $"No Prometheus query endpoint available for AKS cluster {AKSClusterResourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
+            }
+            
             // Build the PromQL queries based on the specified metric type
             string[] queries = BuildPromQueries(metricsType, _namespace, kind, name, "");
             DateTime startDate = ParseDateTime(startTime);
@@ -736,10 +746,10 @@ namespace Agent.Plugins
 
                 _logger?.LogInternalInformation(
                     "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
-                    _prometheusQueryEndpoint, query);
+                    prometheusQueryEndpoint, query);
 
                 // Query the Prometheus endpoint using the injected service
-                var response = await _prometheusQueryService.QueryRangeAsync(_prometheusQueryEndpoint, query, startDate, endDate, step);
+                var response = await _prometheusQueryService.QueryRangeAsync(prometheusQueryEndpoint, query, startDate, endDate, step);
 
                 // Check if response has metric data
                 if (response is SuccessMatrixResponse successMatrix && successMatrix.Data != null && successMatrix.Data.Result != null && successMatrix.Data.Result.Any())
@@ -817,6 +827,58 @@ namespace Agent.Plugins
 
             // Default to 15 seconds if parsing fails
             return TimeSpan.FromSeconds(15);
+        }
+        
+        /// <summary>
+        /// Fetch the Azure Monitor Workspace's Prometheus query endpoint that is connected to the specified AKS cluster
+        /// </summary>
+        /// <param name="aksClusterResourceId">The AKS cluster resource ID</param>
+        /// <returns>The Prometheus query endpoint URL if found, null otherwise</returns>
+        private async Task<string?> GetPrometheusQueryEndpointFromGraphDb(string aksClusterResourceId)
+        {
+            try
+            {
+                _logger?.LogInternalInformation("Looking for Azure Monitor Workspace connected to AKS cluster {ResourceId}", aksClusterResourceId);
+                
+                if (_graphDbClient == null)
+                {
+                    _logger?.LogInternalWarning("Graph database client is not available");
+                    return null;
+                }
+
+                // Query to find Azure Monitor Workspace nodes that have an edge from the AKS cluster with relationship type "MonitoredBy"
+                var query = $@"g.V().has('resourceId', '{aksClusterResourceId.ToLowerInvariant()}')
+                             .out('MONITORED_BY')
+                             .hasLabel(""microsoft.monitor/accounts"")
+                             .has('prometheusQueryEndpoint')
+                             .values('prometheusQueryEndpoint')
+                             .limit(1)";                
+                var result = await _graphDbClient.Query<string>(query);
+
+                // Process the result from the Gremlin query
+                if (result != null)
+                {
+                    // Iterate through the result set to find the endpoint
+                    foreach (var item in result)
+                    {
+                        if (item != null)
+                        {
+                            string prometheusEndpoint = item.ToString();
+                            _logger?.LogInternalInformation("Found Prometheus query endpoint {PrometheusEndpoint} for AKS cluster {ResourceId}", 
+                                prometheusEndpoint, aksClusterResourceId);
+                            return prometheusEndpoint;
+                        }
+                    }
+                }
+
+                _logger?.LogInternalInformation("No Prometheus query endpoint found for AKS cluster {ResourceId}", aksClusterResourceId);
+                return null;
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInternalError(ex, "Error retrieving Prometheus query endpoint from graph database: {ErrorMessage}", ex.Message);
+                return null;
+            }
         }
 
         public async Task<string> GetKubeResourceEventsAsync(string resourceId, string _namespace, string apiGroup, string kind, string name)
@@ -1026,10 +1088,8 @@ namespace Agent.Plugins
         public async Task<string> GetMemoryMetricsForWorkloadAsync(string AKSClusterResourceId, string _namespace, string workloadType, string workloadName, string timeRange = "5m")
         {
             return await GetAzureMonitorPrometheusMetricsAsync(AKSClusterResourceId, _namespace, workloadType, workloadName, "memory", timeRange);
-        }
-
-        /// <summary>
-        /// Fetches metrics from Azure Monitor Prometheus endpoint specified by the user.
+        }        /// <summary>
+        /// Fetches metrics from Azure Monitor Prometheus endpoint from graph database or settings.
         /// </summary>
         private async Task<string> GetAzureMonitorPrometheusMetricsAsync(
             string resourceId,
@@ -1039,9 +1099,13 @@ namespace Agent.Plugins
             string metricType,
             string timeRange)
         {
-            if (string.IsNullOrEmpty(_prometheusQueryEndpoint))
+            // Try to update the Prometheus endpoint from graph database if we don't have one
+
+            var prometheusQueryEndpoint =  await GetPrometheusEndpoint(resourceId);
+            // If we still don't have an endpoint, cannot proceed
+            if (string.IsNullOrEmpty(prometheusQueryEndpoint))
             {
-                return "Azure Monitor Prometheus query endpoint is not configured in the agent settings.";
+                return  $"No Prometheus query endpoint available for AKS cluster {resourceId}. Metrics cannot be retrieved. Please confirm if AKS has enabled Azure Monitor and agent has access to it.";
             }
 
             try
@@ -1065,10 +1129,10 @@ namespace Agent.Plugins
 
                 _logger?.LogInternalInformation(
                     "Executing PromQL against Azure Monitor Prometheus endpoint '{Endpoint}': {Query}",
-                    _prometheusQueryEndpoint, query);
+                    prometheusQueryEndpoint, query);
 
                 // Query the Prometheus endpoint using the injected service
-                var response = await _prometheusQueryService.QueryInstantAsync(_prometheusQueryEndpoint, query);
+                var response = await _prometheusQueryService.QueryInstantAsync(prometheusQueryEndpoint, query);
 
                 return FormatPrometheusResponse(response, metricType, workloadType, workloadName);
             }
@@ -2125,6 +2189,33 @@ $@"100 * (
             {
                 _logger?.LogInternalError(ex, "Error listing revisions for {Kind} '{Name}' in namespace {Namespace}", kind, name, _namespace);
                 return $"Error listing revisions: {ex.Message}";
+            }
+        }
+
+        /// <summary>
+        /// Updates the prometheusQueryEndpoint for a given AKS cluster resource ID if it's not already set
+        /// </summary>
+        /// <param name="aksClusterResourceId">AKS cluster resource ID</param>
+        /// <returns>True if the endpoint was found and updated, false otherwise</returns>
+        private async Task<string> GetPrometheusEndpoint(string aksClusterResourceId)
+        {
+            if (_graphDbClient == null)
+            {
+                _logger?.LogInternalWarning("Graph database client is not available to update Prometheus query endpoint");
+                return "";
+            }
+
+            try
+            {
+                // Get the Prometheus endpoint from the graph database
+                string? prometheusEndpoint = await GetPrometheusQueryEndpointFromGraphDb(aksClusterResourceId);
+                return prometheusEndpoint;
+                
+            }
+            catch (Exception ex)
+            {
+                _logger?.LogInternalError(ex, "Error updating Prometheus query endpoint from graph database: {ErrorMessage}", ex.Message);
+                return "";
             }
         }
     }

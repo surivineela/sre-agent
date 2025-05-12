@@ -27,6 +27,7 @@ public class Constants
     public const string StorageType = "Microsoft.Storage/storageAccounts";
     public const string EventHubType = "microsoft.eventhub/namespaces";
     public const string ServiceBusType = "microsoft.servicebus/namespaces";
+    public const string AzureMonitorWorkspaceType = "Microsoft.Monitor/accounts";
 
     // New constants for App Service Web/Function Apps and App Service Plans.
     public const string AppServiceType = "Microsoft.Web/sites";
@@ -76,6 +77,7 @@ public class Constants
         public const string RevisionOf = "REVISION_OF";
         public const string OwnedBy = "OWNED_BY";
         public const string RelatedToIncident = "RELATED_TO_INCIDENT";
+        public const string MonitoredBy = "MONITORED_BY";
     }
 
     // indicates this node is a part of specific topology
