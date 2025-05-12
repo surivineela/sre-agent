@@ -54,5 +54,9 @@
   {
     "PluginName": "ColdStartPlugin",
     "ServiceIdentifier": "FirstPartyAgent.Plugins.ColdStartPlugin"
+  },
+  {
+    "PluginName": "AzureDevOpsPlugin",
+    "ServiceIdentifier": "FirstPartyAgent.Core.Plugins.AzureDevOpsPlugin"
   }
 ]

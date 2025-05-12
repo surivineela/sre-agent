@@ -21,17 +21,17 @@ using FirstPartyAgent.Core.Services.TokenService;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
-using Microsoft.Identity.Client.Platforms.Features.DesktopOs.Kerberos;
 using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Extensions
 {
     public static class FirstPartyAgentsConfigurationExtensions
     {
-        public static void RegisterServiceDependencies(this IServiceCollection services)
+        public static void RegisterServiceDependencies(this IServiceCollection services, IHostEnvironment environment)
         {
             services.RegisterFirstPartyAppSettings();
             services.AddSingleton<ISessionMessageService, SessionMessageService>();
@@ -54,6 +54,18 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<TeamsPlugin>();
             services.AddSingleton<TeamsChartPlugin>();
             services.AddSingleton<IAlertProcessingService, AlertProcessingService>();
+
+            services.AddSingleton<IAzureDevOpsClient>(sp =>
+            {
+                var azureDevOpsSettings = sp.GetRequiredService<AzureDevOpsSettings>();
+                if (!azureDevOpsSettings.Enabled)
+                {
+                    return new NullableAzureDevOpsRestClient();
+                }
+                return new AzureDevOpsRestClient(environment, azureDevOpsSettings);
+            });
+
+            services.AddSingleton<AzureDevOpsPlugin>();
 
             services.AddSingleton<RedisGenevaActionsPlugin>();
             services.AddSingleton<ColdStartPlugin>();
@@ -184,6 +196,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Teams);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.Storage);
             services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.DevOps);
+            services.AddSingleton(sp => sp.GetRequiredService<IOptions<FirstPartyAgentExternalSettings>>().Value.AzureDevOps);
 
             return services;
         }

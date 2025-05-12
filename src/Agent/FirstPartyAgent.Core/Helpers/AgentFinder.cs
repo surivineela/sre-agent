@@ -17,7 +17,7 @@ namespace FirstPartyAgent.Core.Helpers
     {
         private static Dictionary<string, List<string>> AgentPluginsConfig = new Dictionary<string, List<string>>()
         {
-            { "None", new List<string>(){ "KustoPlugin", "TimePlugin", "HttpRequestPlugin" } },
+            { "None", new List<string>(){ "KustoPlugin", "TimePlugin", "HttpRequestPlugin", "AzureDevOpsPlugin" } },
             { "Sev2", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "WebAppPlugin", "AzureAlertingPlugin", "TimePlugin", "HttpRequestPlugin" } },
             { "ICMAgent", new List<string>(){ "KustoPlugin", "IcmPlugin", "GenevaActionsPlugin", "ICMChartPlugin", "AzureAlertingPlugin" } },
             { "MFP", new List<string>(){ "IcmPlugin", "GenevaActionsPlugin", "KustoPlugin", "TeamsPlugin" } },

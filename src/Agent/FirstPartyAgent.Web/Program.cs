@@ -23,7 +23,7 @@ config.SetBasePath(builder.Environment.ContentRootPath)
             .AddJsonFile("appsettings.development.json", optional: true, reloadOnChange: true) //load local settings
             .AddEnvironmentVariables();
 
-builder.Services.RegisterServiceDependencies();
+builder.Services.RegisterServiceDependencies(builder.Environment);
 
 // remove this plugin because its dependencies are not registered.
 builder.Services.RemoveAll<IKustoPluginChat>();
