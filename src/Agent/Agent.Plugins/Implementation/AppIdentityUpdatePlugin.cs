@@ -2,9 +2,7 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core;
 using Agent.Core.Interfaces;
-using Agent.Core.Models;
 using Agent.Logging;
 using Azure;
 using Azure.Core;
@@ -29,7 +27,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> MigrateSqlToManagedIdentityAsync(string resourceId)
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var armResourceId = new ResourceIdentifier(resourceId);
 
             try
@@ -64,7 +62,7 @@ namespace Agent.Plugins.Implementation
 
         public async Task<string> MigrateSqlToManagedIdentityAsync(string resourceId, string sqlServer, string database)
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var armResourceId = new ResourceIdentifier(resourceId);
 
             try
@@ -114,7 +112,7 @@ namespace Agent.Plugins.Implementation
                 resourceId = resourceId.Substring(0, resourceId.Length - (".database.windows.net").Length);
             }
 
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var serverResourceId = new ResourceIdentifier(resourceId);
 
             try

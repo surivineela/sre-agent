@@ -27,21 +27,6 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         _configurationCache = new Dictionary<string, CachedK8SConfiguration>();
     }
 
-    public async Task<IKubernetes?> CreateKubernetesClientFromResourceIdForCrawlerAsync(string resourceId)
-    {
-        var id = new ResourceIdentifier(resourceId);
-        var subscription = id.SubscriptionId;
-        var resourceGroup = id.ResourceGroupName;
-        var clusterName = id.Name;
-
-        if (string.IsNullOrEmpty(subscription) || string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(clusterName))
-        {
-            return null;
-        }
-
-        return await GetK8SClient(subscription, resourceGroup, clusterName, true);
-    }
-
     public async Task<IKubernetes?> CreateKubernetesClientFromResourceIdAsync(string resourceId)
     {
         var id = new ResourceIdentifier(resourceId);
@@ -54,57 +39,31 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             return null;
         }
 
-        return await GetK8SClient(subscription, resourceGroup, clusterName, false);
-
-    }
-
-    private async Task<IKubernetes?> GetK8SClient(string subscription, string resourceGroup, string clusterName, bool isCrawler)
-    {
-        if (isCrawler)
+        if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}") ||
+            _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"].IsExpired())
         {
-            if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}") ||
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"].IsExpired())
+            (var config, var expiresOn) = await GetK8SConfiguration(subscription, resourceGroup, clusterName);
+            if (config == null)
             {
-                var cred = _authService.GetCrawlerCredential();
-                var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                if (config == null)
-                {
-                    return null;
-                }
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
+                return null;
             }
-        }
-        else
-        {
-            var cred = await _authService.GetKubernetesOperationCredential();
-            if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}"))
-            {
-                var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                if (config == null)
-                {
-                    return null;
-                }
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
-            }
-            else
-            {
-                var cached = _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"];
-                // always the refresh token
-                var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
-                cached.Configuration.Users.First().UserCredentials.Token = token.Token;
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = cached;
-            }
+            _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
         }
 
-        var k8sConfig = _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"].Configuration;
-        var kubeConfig = KubernetesClientConfiguration.BuildConfigFromConfigObject(k8sConfig);
+        var k8sConfig = _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"];
 
+        if (k8sConfig.Configuration == null)
+        {
+            return null;
+        }
+
+        var kubeConfig = KubernetesClientConfiguration.BuildConfigFromConfigObject(k8sConfig.Configuration);
         return new Kubernetes(kubeConfig);
     }
 
-    private async Task<(K8SConfiguration?, DateTimeOffset?)> GetK8SConfigurationFromArm(string subscription, string resourceGroup, string clusterName, TokenCredential cred)
+    private async Task<(K8SConfiguration?, DateTimeOffset?)> GetK8SConfiguration(string subscription, string resourceGroup, string clusterName)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var rg = armClient.GetResourceGroupResource(ResourceGroupResource.CreateResourceIdentifier(subscription, resourceGroup));
         var resp = await rg.GetContainerServiceManagedClusterAsync(clusterName);
 
@@ -129,6 +88,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             }
 
             var kubeConfig = KubernetesClientConfiguration.LoadKubeConfig(new MemoryStream(mcCred.Value));
+            var cred = _authService.GetCrawlerCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
 
             var user = kubeConfig.Users.FirstOrDefault();
@@ -142,27 +102,24 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
             return (kubeConfig, token.ExpiresOn);
         }
+        else
+        {
+            var credResp = await cluster.GetClusterAdminCredentialsAsync();
+            if (credResp == null)
+            {
+                return (null, null);
+            }
 
-        return (null, null);
-        // do not use admin credential
-        //else
-        //{
-        //    var credResp = await cluster.GetClusterAdminCredentialsAsync();
-        //    if (credResp == null)
-        //    {
-        //        return (null, null);
-        //    }
+            var mcCred = credResp.Value.Kubeconfigs.FirstOrDefault();
+            if (mcCred == null)
+            {
+                return (null, null);
+            }
 
-        //    var mcCred = credResp.Value.Kubeconfigs.FirstOrDefault();
-        //    if (mcCred == null)
-        //    {
-        //        return (null, null);
-        //    }
+            var kubeConfig = KubernetesClientConfiguration.LoadKubeConfig(new MemoryStream(mcCred.Value));
 
-        //    var kubeConfig = KubernetesClientConfiguration.LoadKubeConfig(new MemoryStream(mcCred.Value));
-
-        //    return (kubeConfig, null);
-        //}
+            return (kubeConfig, null);
+        }
     }
 
     public class CachedK8SConfiguration

@@ -20,7 +20,7 @@ public class AzureMonitorMetricsHelper
 
     public async Task<List<MetricDefinition>> ListMetricsAsync(string resourceId)
     {
-        var client = new MetricsQueryClient(await _authService.GetArmOperationCredential());
+        var client = new MetricsQueryClient(_authService.GetArmOperationCredential());
         var metrics = new List<MetricDefinition>();
 
         var nsChecked = new HashSet<string>();
@@ -48,7 +48,7 @@ public class AzureMonitorMetricsHelper
         TimeSpan granularity,
         string dimensionFilter = null)
     {
-        var client = new MetricsQueryClient(await _authService.GetArmOperationCredential());
+        var client = new MetricsQueryClient(_authService.GetArmOperationCredential());
 
         var options = new MetricsQueryOptions
         {

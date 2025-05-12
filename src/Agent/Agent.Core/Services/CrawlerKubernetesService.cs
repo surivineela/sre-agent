@@ -17,7 +17,7 @@ public class CrawlerKubernetesService : KubernetesService
 
     public override Task<IKubernetes?> GetKubernetesClient(string resourceId)
     {
-        var client = _kubernetesClientFactory.CreateKubernetesClientFromResourceIdForCrawlerAsync(resourceId);
+        var client = _kubernetesClientFactory.CreateKubernetesClientFromResourceIdAsync(resourceId);
         if (client == null)
         {
             throw new InvalidOperationException($"Unable to get Kubernetes client for resource {resourceId}.");

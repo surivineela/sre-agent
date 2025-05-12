@@ -11,19 +11,17 @@ using Azure.ResourceManager;
 using Microsoft.Extensions.Logging;
 using Azure.Monitor.Query;
 using Agent.Logging;
-using Agent.Core.Helpers;
-using Microsoft.AspNetCore.Connections.Features;
 
 namespace Agent.Core.Services;
 public class LogQueryService : ILogQueryService
 {
     private readonly ILogger<LogQueryService> _logger;
+    private readonly ArmClient _armClient;
     private readonly IAuthenticationService _authService;
-    private readonly IHttpClientFactory _httpClientFactory;
 
-    public LogQueryService(IHttpClientFactory httpClientFactory, IAuthenticationService authService, ILogger<LogQueryService> logger)
+    public LogQueryService(IArmClientFactory armClientFactory, IAuthenticationService authService, ILogger<LogQueryService> logger)
     {
-        _httpClientFactory = httpClientFactory;
+        _armClient = armClientFactory.GetArmClient();
         _authService = authService;
         _logger = logger;
     }
@@ -34,10 +32,12 @@ public class LogQueryService : ILogQueryService
 
         try
         {
+            string accessToken = await GetAccessTokenAsync();
+            
             // Get all query packs for the subscription
             string queryPacksUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.OperationalInsights/queryPacks?api-version=2025-02-01";
             
-            var queryPacks = await GetQueryPacksAsync(queryPacksUrl);
+            var queryPacks = await GetQueryPacksAsync(queryPacksUrl, accessToken);
             _logger.LogInternalInformation($"Found {queryPacks.Count} query packs in subscription {subscriptionId}");
             
             // For each query pack, get its queries
@@ -50,7 +50,7 @@ public class LogQueryService : ILogQueryService
                 
                 // Get queries for this query pack
                 string queriesUrl = $"https://management.azure.com{queryPackId}/queries?api-version=2025-02-01";
-                var queries = await GetQueriesForQueryPackAsync(queriesUrl);
+                var queries = await GetQueriesForQueryPackAsync(queriesUrl, accessToken);
                 
                 _logger.LogInternalInformation($"Found {queries.Count} queries in query pack {queryPackName}");
                 
@@ -83,7 +83,8 @@ public class LogQueryService : ILogQueryService
         {
             _logger.LogInternalInformation($"Finding workspaces in subscription {subscriptionId} to execute query");
 
-            List<string> workspaceIds = await GetWorkspaceIdsInSubscriptionAsync(subscriptionId);
+            string armToken = await GetAccessTokenAsync();
+            List<string> workspaceIds = await GetWorkspaceIdsInSubscriptionAsync(subscriptionId, armToken);
             
             if (!workspaceIds.Any())
             {
@@ -125,15 +126,26 @@ public class LogQueryService : ILogQueryService
         return $"Failed to execute query on all workspaces.";
     }
 
-    private async Task<List<QueryPackInfo>> GetQueryPacksAsync(string url)
+    private async Task<string> GetAccessTokenAsync()
+    {
+        var credential = _authService.GetArmOperationCredential();
+        var token = await credential.GetTokenAsync(
+            new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+            CancellationToken.None);
+        
+        return token.Token;
+    }
+
+    private async Task<List<QueryPackInfo>> GetQueryPacksAsync(string url, string accessToken)
     {
         var queryPacks = new List<QueryPackInfo>();
         
-        using (var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation))
+        using (var httpClient = new HttpClient())
         {
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 
                 var response = await httpClient.SendAsync(request);
                 
@@ -166,6 +178,7 @@ public class LogQueryService : ILogQueryService
                     while (!string.IsNullOrEmpty(nextLink))
                     {
                         request = new HttpRequestMessage(HttpMethod.Get, nextLink);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                         
                         response = await httpClient.SendAsync(request);
                         response.EnsureSuccessStatusCode();
@@ -201,15 +214,16 @@ public class LogQueryService : ILogQueryService
         return queryPacks;
     }
 
-    private async Task<List<QueryInfo>> GetQueriesForQueryPackAsync(string url)
+    private async Task<List<QueryInfo>> GetQueriesForQueryPackAsync(string url, string accessToken)
     {
         var queries = new List<QueryInfo>();
         
-        using (var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation))
+        using (var httpClient = new HttpClient())
         {
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                 
                 var response = await httpClient.SendAsync(request);
                 
@@ -242,6 +256,7 @@ public class LogQueryService : ILogQueryService
                     while (!string.IsNullOrEmpty(nextLink))
                     {
                         request = new HttpRequestMessage(HttpMethod.Get, nextLink);
+                        request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
                         
                         response = await httpClient.SendAsync(request);
                         response.EnsureSuccessStatusCode();
@@ -277,17 +292,18 @@ public class LogQueryService : ILogQueryService
         return queries;
     }
 
-    private async Task<List<string>> GetWorkspaceIdsInSubscriptionAsync(string subscriptionId)
+    private async Task<List<string>> GetWorkspaceIdsInSubscriptionAsync(string subscriptionId, string accessToken)
     {
         List<string> workspaceIds = new();
         string url = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/Microsoft.OperationalInsights/workspaces?api-version=2021-06-01";
         
-        using (var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation))
+        using (var httpClient = new HttpClient())
         {
             try
             {
                 var request = new HttpRequestMessage(HttpMethod.Get, url);
-
+                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", accessToken);
+                
                 var response = await httpClient.SendAsync(request);
                 response.EnsureSuccessStatusCode();
                 

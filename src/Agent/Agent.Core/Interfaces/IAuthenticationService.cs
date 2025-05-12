@@ -32,7 +32,19 @@ public interface IAuthenticationService
     /// Get the credential to operate on ARM resources
     /// </summary>
     /// <returns></returns>
-    public Task<TokenCredential> GetArmOperationCredential();
+    public TokenCredential GetArmReadOperationCredential();
+
+    /// <summary>
+    /// Get the credential to operate on ARM resources
+    /// </summary>
+    /// <returns></returns>
+    public TokenCredential GetArmOperationCredential();
+
+    /// <summary>
+    /// Get the credential to operate on ARM resources with OBO token
+    /// </summary>
+    /// <returns></returns>
+    public Task<TokenCredential?> GetArmWriteOperationCredential(ApprovalContext approvalContext);
 
     /// <summary>
     /// Get the credential to access the azure monitor workspace
@@ -64,6 +76,4 @@ public interface IAuthenticationService
     /// </summary>
     /// <returns></returns>
     public TokenCredential GetLogAnalyticsCredential();
-
-    public Task<TokenCredential> GetKubernetesOperationCredential();
 }

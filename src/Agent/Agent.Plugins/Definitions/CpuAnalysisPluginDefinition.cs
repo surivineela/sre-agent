@@ -19,7 +19,6 @@ namespace Agent.Plugins
 
         [KernelFunction("scale_up_app_service_plan_by_sku")]
         [Description("Scale up the app service plan by sku")]
-        [RequiresApproval]
         public async Task<string> ScaleUpAppServicePlanBySku(
         [Description("resourceId of the app")] string resourceId)
         {
@@ -36,6 +35,7 @@ namespace Agent.Plugins
 
         [KernelFunction("collect_profile_for_app")]
         [Description("Collect a profile or trace for an App Service to assess CPU activity.")]
+        [RequiresApproval]
         public async Task<string> CollectProfileForApp([Description("resourceId of the app")] string resourceId,
                                                        [Description("Duration of profile in seconds")] int durationOfProfileInSeconds = 20)
         {
@@ -44,7 +44,6 @@ namespace Agent.Plugins
 
         [KernelFunction("autoscale_app_service")]
         [Description("Create AutoScale Settings for App to Autoscale App")]
-        [RequiresApproval]
         public async Task<string> AutoScaleApp(
             [Description("resourceId of the app")] string subscriptionId,
             string resourceGroupName,

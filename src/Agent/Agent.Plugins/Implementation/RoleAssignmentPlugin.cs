@@ -71,7 +71,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 return "ERROR: Invalid principal ID format. Principal id must be a valid GUID, separated by hyphens";
             }
 
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
             var roleAssignments = new List<object>();
 
@@ -128,7 +128,15 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 return "ERROR: Invalid principal type. Principal type must be either 'User' or 'ServicePrincipal'.";
             }
 
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            // var armClient = _armClientFactory.GetArmClient();
+            var approvalContext = new ApprovalContext(ToolStatic.AsyncLocalThreadId.Value, ToolStatic.AsyncLocalApprovalId.Value ?? throw new ArgumentNullException("Approval ID is null"));
+            var cred = await _authService.GetArmWriteOperationCredential(approvalContext);
+            if (cred == null)
+            {
+                throw new InvalidOperationException("The action is not approved");
+            }
+            var armClient = _armClientFactory.GetArmClient(cred);
+
             var roleDefinitionId = await GetRoleDefinitionIdFromNameAsync(roleName, resourceId);
 
             if (string.IsNullOrEmpty(roleDefinitionId))
@@ -176,6 +184,9 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 roleAssignmentId,
                 roleAssignmentData);
 
+            if (cred is IDisposable disposable)
+                disposable.Dispose();
+
             return $"Successfully assigned role '{roleName}' to principal {principalId} on resource {resourceId}.";
         }
         catch (Exception ex)
@@ -201,7 +212,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 return "ERROR: Invalid resource ID format.";
             }
 
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var roleDefinitionId = await GetRoleDefinitionIdFromNameAsync(roleName, resourceId);
 
             if (string.IsNullOrEmpty(roleDefinitionId))
@@ -274,7 +285,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
                 return "ERROR: Invalid principal ID. Principal id must be a valid GUID, separated by hyphens";
             }
             
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var roleDefinitionId = await GetRoleDefinitionIdFromNameAsync(roleName, resourceId);
 
             if (string.IsNullOrEmpty(roleDefinitionId))
@@ -330,7 +341,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
 
         try
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var resourceIdentifier = new ResourceIdentifier(resourceId);
             //var subscription = armClient.GetSubscriptionResource(resourceIdentifier.Parent.Parent);
             //var roleDefinitionsCollection = subscription.GetRoleDefinitions();
@@ -375,7 +386,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
             {
                 return "ERROR: Role name cannot be empty.";
             }
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var resourceIdentifier = new ResourceIdentifier(resourceId);
 
             //var subscription = armClient.GetSubscriptionResource(resourceIdentifier.Parent.Parent);
@@ -406,7 +417,7 @@ public class RoleAssignmentPlugin : IRoleAssignmentPlugin
     /// </summary>
     private async Task<string> GetRoleNameFromDefinitionIdAsync(string roleDefinitionId, string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var roleDefResourceId = new ResourceIdentifier(roleDefinitionId);
         try
         {

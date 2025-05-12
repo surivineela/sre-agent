@@ -9,7 +9,6 @@ using Agent.Core.Models.Charts;
 using Azure.Core;
 using Agent.Logging;
 using Microsoft.Extensions.Logging;
-using Agent.Core;
 
 namespace Agent.Graph.Crawler.Metrics;
 public class AzureMetricsClient : IAzureMetricsClient
@@ -86,7 +85,7 @@ public class AzureMetricsClient : IAzureMetricsClient
                 Content = new StringContent(jsonBody, System.Text.Encoding.UTF8, "application/json")
             };
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             HttpResponseMessage response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)

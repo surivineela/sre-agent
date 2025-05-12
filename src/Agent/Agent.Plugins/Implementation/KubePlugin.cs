@@ -35,11 +35,13 @@ namespace Agent.Plugins
         private readonly ILogger? _logger;
         private IKubernetes _client;
         private IChatClient _chatClient;
+        private readonly ArmClient _armClient;
+        private readonly IAuthenticationService _authService;
         private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
+        private readonly DashboardSettings _dashboardSettings;
         private readonly IAzureMetricsClient _azureMetricsClient;
         private readonly IGraphDatabaseClient? _graphDbClient;
-        private readonly IArmClientFactory _armClientFactory;
 
         private ThreadContext Context { get; set; }
         private readonly ConcurrentDictionary<string, IKubernetes> _clientCache = new();
@@ -49,21 +51,25 @@ namespace Agent.Plugins
         private const string LegacyAKSNodePoolLabel = "agentpool";
 
         public KubePlugin(
+            IAuthenticationService authenticationService,
             IChatClient chatClient,
             IPrometheusQueryService prometheusQueryService,
             IAzureMetricsClient azureMetricsClient,
+            DashboardSettings dashboardSettings,
             IKubernetesClientFactory kubernetesClientFactory,
             IArmClientFactory armClientFactory,
             IGraphDatabaseClient graphDbClient,
             ILogger<KubePlugin>? logger)
         {
             _logger = logger;
+            _authService = authenticationService;
             _chatClient = chatClient;
             _prometheusQueryService = prometheusQueryService;
+            _dashboardSettings = dashboardSettings;
             _azureMetricsClient = azureMetricsClient;
             _kubernetesClientFactory = kubernetesClientFactory;
+            _armClient = armClientFactory.GetArmClient();
             _graphDbClient = graphDbClient;
-            _armClientFactory = armClientFactory;
         }
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
@@ -1974,8 +1980,7 @@ $@"100 * (
             try
             {
                 // 1. Get the AKS Managed Cluster Resource
-                var armClient = await _armClientFactory.GetArmOperationClient();
-                var aksClusterResource = armClient.GetContainerServiceManagedClusterResource(new ResourceIdentifier(aksResourceId));
+                var aksClusterResource = _armClient.GetContainerServiceManagedClusterResource(new ResourceIdentifier(aksResourceId));
                 var aksClusterResponse = await aksClusterResource.GetAsync();
 
                 if (!aksClusterResponse.HasValue || aksClusterResponse.Value.Data == null)
@@ -2021,7 +2026,7 @@ $@"100 * (
                     try
                     {
                         // 5. Get the Subnet Resource
-                        var subnetResource = armClient.GetSubnetResource(new ResourceIdentifier(subnetId));
+                        var subnetResource = _armClient.GetSubnetResource(new ResourceIdentifier(subnetId));
                         var subnetResponse = await subnetResource.GetAsync();
 
                         if (!subnetResponse.HasValue || subnetResponse.Value.Data == null)
@@ -2042,7 +2047,7 @@ $@"100 * (
                                 _logger?.LogInformation($"Found NSG '{nsgId}' associated with subnet '{subnetId}'. Fetching rules...");
 
                                 // 8. Get the NSG Resource and its rules
-                                var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
+                                var nsgResource = _armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
                                 var nsgResponse = await nsgResource.GetAsync();
 
                                 if (!nsgResponse.HasValue || nsgResponse.Value.Data == null)

@@ -21,14 +21,12 @@ public class AuthenticationService : IAuthenticationService
     private readonly Lazy<IThreadRepository> _threadRepository;
 
     public AuthenticationService(
-        ILogger<AuthenticationService> logger,
         CrawlerSettings crawlerSettings,
         FederationSettings federationSettings,
         DashboardSettings dashboardSettings,
         IHostEnvironment hostEnvironment,
         IServiceProvider serviceProvider)
     {
-        _logger = logger;
         _crawlerSettings = crawlerSettings;
         _federationSettings = federationSettings;
         _hostEnvironment = hostEnvironment;
@@ -38,7 +36,16 @@ public class AuthenticationService : IAuthenticationService
         _threadRepository = new Lazy<IThreadRepository>(() => serviceProvider.GetRequiredService<IThreadRepository>());
     }
 
-    #region Credential to access AME managed resources
+    public TokenCredential GetCrawlerCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
+    }
+
     public TokenCredential GetDocumentDbCredential()
     {
         if (_hostEnvironment.IsDevelopment())
@@ -59,126 +66,26 @@ public class AuthenticationService : IAuthenticationService
         return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
     }
 
-    public TokenCredential GetAzureOpenAICredential()
+    public TokenCredential GetArmReadOperationCredential()
     {
         if (_hostEnvironment.IsDevelopment())
         {
             return GetDefaultAzureCredential();
         }
 
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
-    }
-
-    #endregion
-
-
-    #region Credential to access customer resources
-    public TokenCredential GetCrawlerCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
-        // do not use obo for crawler
+        // will change to OBO in the future
         return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
-    public async  Task<TokenCredential> GetArmOperationCredential()
+    public TokenCredential GetArmOperationCredential()
     {
         if (_hostEnvironment.IsDevelopment())
         {
             return GetDefaultAzureCredential();
         }
 
-        // TODO: change to Action identity
-        return await ApprovalAwareCredentialHelper(() => GetManagedIdentityCredential(_crawlerSettings.Identity));
-    }
-
-    public async Task<TokenCredential> GetKubernetesOperationCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
-        // TODO: change to Action identity
-        return await ApprovalAwareCredentialHelper(() => GetManagedIdentityCredential(_crawlerSettings.Identity));
-    }
-
-    public TokenCredential GetAzureMonitorWorkspaceCredential()
-    {
-        return GetDashboardCredential();
-    }
-
-    public TokenCredential GetAppInsightsCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
-    }
-
-    public TokenCredential GetLogAnalyticsCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
-    }
-
-    public async Task<string> GetGrafanaAccessToken()
-    {
-        if (!string.IsNullOrEmpty(_dashboardSettings.GrafanaApiKey))
-        {
-            return _dashboardSettings.GrafanaApiKey;
-        }
-
-        var cred = GetDashboardCredential();
-        // https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-api-calls?tabs=post#get-an-access-token
-        var token = await cred.GetTokenAsync(new TokenRequestContext(["ce34e7e5-485f-4d76-964f-b3d2b16d1e4f/.default"]), CancellationToken.None);
-        return token.Token;
-    }
-
-    private TokenCredential GetDashboardCredential()
-    {
-        if (_hostEnvironment.IsDevelopment())
-        {
-            return GetDefaultAzureCredential();
-        }
-
-        return GetManagedIdentityCredential(_dashboardSettings.Identity);
-    }
-
-    #endregion
-
-    // helper method that prefers to use obo if approval is available in the context
-    private async Task<TokenCredential> ApprovalAwareCredentialHelper(Func<TokenCredential> nonOboCredFunc)
-    {
-        var approval = ToolStatic.AsyncLocalApprovalContext.Value;
-
-        // no approval in context or the tool explicitly says not to use OBO token
-        if (approval == null || !approval.UseOboToken)
-        {
-            return nonOboCredFunc();
-        }
-
-        if (approval.ApprovalId == null)
-        {
-            throw new InvalidOperationException("Approval is required but not present");
-        }
-
-        var approvalDoc = await _threadRepository.Value.GetApprovalAsync(approval.ThreadId, approval.ApprovalId.Value);
-        if (approvalDoc == null || string.IsNullOrEmpty(approvalDoc.OboToken))
-        {
-            throw new InvalidOperationException("Approval is required but not present");
-        }
-
-        return GetOboTokenCredential(approvalDoc.OboToken);
+        // will change to OBO in the future
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
     private ManagedIdentityCredential GetManagedIdentityCredential(string? identity)
@@ -216,6 +123,79 @@ public class AuthenticationService : IAuthenticationService
     private DefaultAzureCredential GetDefaultAzureCredential()
     {
         return new DefaultAzureCredential();
+    }
+
+    public TokenCredential GetAzureMonitorWorkspaceCredential()
+    {
+        return GetDashboardCredential();
+    }
+
+    private TokenCredential GetDashboardCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetManagedIdentityCredential(_dashboardSettings.Identity);
+    }
+
+    public async Task<string> GetGrafanaAccessToken()
+    {
+        if (!string.IsNullOrEmpty(_dashboardSettings.GrafanaApiKey))
+        {
+            return _dashboardSettings.GrafanaApiKey;
+        }
+
+        var cred = GetDashboardCredential();
+        // https://learn.microsoft.com/en-us/azure/managed-grafana/how-to-api-calls?tabs=post#get-an-access-token
+        var token = await cred.GetTokenAsync(new TokenRequestContext(["ce34e7e5-485f-4d76-964f-b3d2b16d1e4f/.default"]), CancellationToken.None);
+        return token.Token;
+    }
+
+    public TokenCredential GetAzureOpenAICredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
+    public TokenCredential GetAppInsightsCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
+    public TokenCredential GetLogAnalyticsCredential()
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+    }
+
+    public async Task<TokenCredential?> GetArmWriteOperationCredential(ApprovalContext approvalContext)
+    {
+        if (_hostEnvironment.IsDevelopment())
+        {
+            return GetDefaultAzureCredential();
+        }
+
+        var approval = await _threadRepository.Value.GetApprovalAsync(approvalContext.ThreadId, approvalContext.ApprovalId);
+        if (approval == null || string.IsNullOrEmpty(approval.OboToken))
+        {
+            return null;
+        }
+
+        return GetOboTokenCredential(approval.OboToken);
     }
 
     private TokenCredential GetOboTokenCredential(string token)

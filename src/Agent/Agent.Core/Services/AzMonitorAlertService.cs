@@ -5,7 +5,6 @@
 using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Logging;
 using Azure.Core;
@@ -17,17 +16,16 @@ public class AzMonitorAlertService : IAzMonitorAlertService
 {
     private readonly ILogger<AzMonitorAlertService> _logger;
     private readonly IAuthenticationService _authService;
-    private readonly IHttpClientFactory _httpClientFactory;
+    private readonly HttpClient _httpClient;
 
     public AzMonitorAlertService(
         IArmClientFactory armClientFactory,
         IAuthenticationService authService,
-        ILogger<AzMonitorAlertService> logger,
-        IHttpClientFactory httpClientFactory)
+        ILogger<AzMonitorAlertService> logger)
     {
         _authService = authService;
         _logger = logger;
-        _httpClientFactory = httpClientFactory;
+        _httpClient = new HttpClient();
     }
 
     public async Task<IEnumerable<AlertItem>> PollNewAlertsBySubscriptionId(string subscriptionId, int scanWindowInMins = 1)
@@ -37,7 +35,11 @@ public class AzMonitorAlertService : IAzMonitorAlertService
         try
         {
             _logger.LogInternalInformation($"Getting token for Azure ARM operations for subscription {subscriptionId}");
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            // Get the access token for ARM operations
+            var credential = _authService.GetArmReadOperationCredential();
+            var token = await credential.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+                CancellationToken.None);
 
             var cutoffTime = DateTimeOffset.Now.AddMinutes(-scanWindowInMins);
 
@@ -52,8 +54,9 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             _logger.LogInternalInformation($"Calling Alert Management API with URL: {apiUrl}");
 
             var request = new HttpRequestMessage(HttpMethod.Get, apiUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
 
-            var response = await httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {
@@ -117,7 +120,10 @@ public class AzMonitorAlertService : IAzMonitorAlertService
     {
         try
         {
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var credential = _authService.GetArmReadOperationCredential();
+            var token = await credential.GetTokenAsync(
+                new TokenRequestContext(new[] { "https://management.azure.com/.default" }),
+                CancellationToken.None);
 
             // only support with api-version=2019-05-03-preview
             // https://learn.microsoft.com/en-us/rest/api/monitor/alertsmanagement/alerts/change-state?view=rest-monitor-alertsmanagement-2023-07-12-preview&viewFallbackFrom=rest-monitor-alertsmanagement-2019-05-05-preview&tabs=HTTP
@@ -132,9 +138,10 @@ public class AzMonitorAlertService : IAzMonitorAlertService
             var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
 
             var request = new HttpRequestMessage(HttpMethod.Post, apiUrl);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
             request.Content = content;
 
-            var response = await httpClient.SendAsync(request);
+            var response = await _httpClient.SendAsync(request);
 
             if (response.IsSuccessStatusCode)
             {

@@ -9,8 +9,6 @@ namespace Agent.Core
         public const string SystemManagedIdentityName = "system";
 
         public const string LeaderLeaseName = "LeaderLease";
-
-        public const string HttpClientForArmOperation = "ArmOperation";
     }
 }
 

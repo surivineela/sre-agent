@@ -21,8 +21,6 @@ using System.Data;
 using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
-using Agent.Core;
-using Agent.Core.Services;
 
 
 namespace Agent.Plugins.Implementation

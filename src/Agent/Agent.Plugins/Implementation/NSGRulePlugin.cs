@@ -5,8 +5,6 @@ using Azure.Core;
 using Azure.ResourceManager.Network;
 using Microsoft.Extensions.Logging;
 using Agent.Logging;
-using Agent.Core.Models;
-using Agent.Core;
 
 namespace Agent.Plugins.Implementation;
 public class NSGRulePlugin : INSGRulePlugin
@@ -35,7 +33,7 @@ public class NSGRulePlugin : INSGRulePlugin
 
         try
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
 
             // Get the NSG resource
             var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
@@ -87,7 +85,7 @@ public class NSGRulePlugin : INSGRulePlugin
 
         try
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
 
             // Get the NSG resource
             var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));
@@ -141,7 +139,7 @@ public class NSGRulePlugin : INSGRulePlugin
 
         try
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
 
             // Get the NSG resource
             var nsgResource = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgResourceId));

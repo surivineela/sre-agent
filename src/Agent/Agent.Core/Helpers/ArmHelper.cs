@@ -13,7 +13,6 @@ using Agent.Core.Configuration;
 using Agent.Core.Helpers.ArmModels;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
-using Agent.Core.Models.Api.v1;
 using Agent.Core.Models.Charts;
 using Azure;
 using Azure.Core;
@@ -67,7 +66,7 @@ public class ArmHelper
     {
         List<AzureSubscription> allSubs = [];
 
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         await foreach (SubscriptionResource subscription in armClient.GetSubscriptions().GetAllAsync())
         {
             allSubs.Add(new AzureSubscription(subscription.Data.SubscriptionId, subscription.Data.DisplayName, null));
@@ -85,7 +84,7 @@ public class ArmHelper
         string armUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/resources?api-version=2021-04-01";
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, armUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
@@ -189,7 +188,7 @@ public class ArmHelper
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             var response = await httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -220,7 +219,7 @@ public class ArmHelper
             var basicAuthCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/basicPublishingCredentialsPolicies?api-version=2021-02-01");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, basicAuthCheckUrl);
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             var response = await httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
@@ -281,7 +280,7 @@ public class ArmHelper
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             tasks.Add(httpClient.SendAsync(request));
         }
 
@@ -307,7 +306,7 @@ public class ArmHelper
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             tasks.Add(httpClient.SendAsync(request));
         }
 
@@ -336,7 +335,7 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUri);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         // Send the GET request
         HttpResponseMessage response = await httpClient.SendAsync(request);
         // Read the response content
@@ -383,7 +382,7 @@ public class ArmHelper
         // Prepare the HTTP request
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         // Send the request
         HttpResponseMessage response = await httpClient.SendAsync(request);
         string jsonResponse = await response.Content.ReadAsStringAsync();
@@ -409,7 +408,7 @@ public class ArmHelper
         // Prepare the HTTP request
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         // Send the request
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
@@ -491,7 +490,7 @@ public class ArmHelper
             Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
         };
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
@@ -521,7 +520,7 @@ public class ArmHelper
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
             request.Content = content;
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             var response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -538,15 +537,15 @@ public class ArmHelper
         }
     }
 
-    public async Task<HttpResponseMessage> RestartWebAppAsync(string appResourceId)
+    public async Task<bool> RestartWebAppAsync(string appResourceId)
     {
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/restart?api-version=2024-04-01");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
-        return response;
+        return response.IsSuccessStatusCode;
     }
 
     public async Task<bool> RestartContainerAppAsync(string appResourceId, string revisionName)
@@ -554,7 +553,7 @@ public class ArmHelper
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{appResourceId}/revisions/{revisionName}/restart?api-version=2025-01-01");
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
         return response.IsSuccessStatusCode;
     }
@@ -605,7 +604,7 @@ public class ArmHelper
     {
         try
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             var resource = await armClient.GetGenericResource(new ResourceIdentifier(resourceId)).GetAsync();
             return resource != null;
         }
@@ -616,7 +615,7 @@ public class ArmHelper
         }
     }
 
-    public async Task<(bool, string)> UpdateMinimumTlsVersion(TlsStatus tlsStatus, string desiredTlsVersion)
+    public async Task<(bool, string)> UpdateMinimumTlsVersion(ApprovalContext approval, TlsStatus tlsStatus, string desiredTlsVersion)
     {
         if (tlsStatus == null || string.IsNullOrWhiteSpace(tlsStatus.ResourceId))
             throw new ArgumentException("Resource ID is required");
@@ -640,7 +639,16 @@ public class ArmHelper
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Put, tlsUpdateUrl);
         request.Content = content;
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient();
+        var cred = await _authService.GetArmWriteOperationCredential(approval);
+        if (cred == null)
+        {
+            throw new InvalidOperationException("The action is not approved");
+        }
+
+        var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+        httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
         var response = await httpClient.SendAsync(request);
 
         if (response.IsSuccessStatusCode)
@@ -656,34 +664,35 @@ public class ArmHelper
 
     public async Task<StorageAccountResource> GetStorageAccountAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var storageAccount = armClient.GetStorageAccountResource(new ResourceIdentifier(resourceId));
         return await storageAccount.GetAsync();
     }
 
     public async Task<CosmosDBAccountResource> GetCosmosDbAccountAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var cosmosDBAccountResource = armClient.GetCosmosDBAccountResource(new ResourceIdentifier(resourceId));
         return await cosmosDBAccountResource.GetAsync();
     }
 
     public async Task<EventHubsNamespaceResource> GetEventHubAccountAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var eventHubsNamespaceResource = armClient.GetEventHubsNamespaceResource(new ResourceIdentifier(resourceId));
         return await eventHubsNamespaceResource.GetAsync();
     }
 
     public async Task<ServiceBusNamespaceResource> GetServiceBusAccountAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var serviceBusNamespaceResource = armClient.GetServiceBusNamespaceResource(new ResourceIdentifier(resourceId));
         return await serviceBusNamespaceResource.GetAsync();
     }
 
-    public async Task<SqlServerResource> GetSqlServerAsync(string resourceId) { 
-        var armClient = await _armClientFactory.GetArmOperationClient();
+    public async Task<SqlServerResource> GetSqlServerAsync(string resourceId)
+    {
+        var armClient = _armClientFactory.GetArmClient();
         var sqlServerResource = armClient.GetSqlServerResource(new ResourceIdentifier(resourceId));
         return await sqlServerResource.GetAsync();
     }
@@ -723,7 +732,7 @@ public class ArmHelper
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
         request.Headers.UserAgent.ParseAdd("SREAgent");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -771,8 +780,19 @@ public class ArmHelper
             $"{resourceId}/detectors/{detectorId}?startTime={Uri.EscapeDataString(formattedStartTime)}&endTime={Uri.EscapeDataString(formattedEndTime)}&api-version=2015-08-01");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
+        try
+        {
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            request.Headers.UserAgent.ParseAdd("SREAgent");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve authentication token.", ex);
+        }
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -910,7 +930,19 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        try
+        {
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            request.Headers.UserAgent.ParseAdd("SREAgent");
+        }
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to retrieve authentication token.", ex);
+        }
+
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         HttpResponseMessage response = await httpClient.SendAsync(request);
 
         // Always return the content, even for error status codes
@@ -924,7 +956,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
 
         var requestBody = new
@@ -953,7 +985,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
 
         var requestBody = new
@@ -981,7 +1013,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
 
         var requestBody = new
@@ -1009,7 +1041,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         string armUrl = $"https://management.azure.com{resourceId}/config/web?api-version=2024-04-01";
 
         var requestBody = new
@@ -1133,7 +1165,7 @@ public class ArmHelper
 
     public async Task<VirtualMachineResource> GetVirtualMachineResourceAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
         if (virtualMachineResource == null)
         {
@@ -1145,7 +1177,7 @@ public class ArmHelper
 
     public async Task<string> GetArmResourceAsJsonAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var resource = armClient.GetGenericResource(new ResourceIdentifier(resourceId));
         var resourceDataResponse = await resource.GetAsync();
         var resourceData = resourceDataResponse.Value;
@@ -1183,9 +1215,15 @@ public class ArmHelper
         return JsonSerializer.Serialize(armRes, new JsonSerializerOptions { WriteIndented = true });
     }
 
-    public async Task<bool> PowerOnVirtualMachineAsync(string resourceId)
+    public async Task<bool> PowerOnVirtualMachineAsync(ApprovalContext approval, string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var cred = await _authService.GetArmWriteOperationCredential(approval);
+        if (cred == null)
+        {
+            throw new InvalidOperationException("The action is not approved");
+        }
+
+        var armClient = _armClientFactory.GetArmClient(cred);
         var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
         if (virtualMachineResource == null)
         {
@@ -1193,12 +1231,15 @@ public class ArmHelper
         }
         var startOperation = await virtualMachineResource.PowerOnAsync(WaitUntil.Completed);
 
+        if (cred is IDisposable disposable)
+            disposable.Dispose();
+
         return startOperation.HasCompleted;
     }
 
     public async Task<IReadOnlyDictionary<string, string>> GetVirtualMachineBootDiagnosticsAsync(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var armClient = _armClientFactory.GetArmClient();
         var virtualMachineResource = armClient.GetVirtualMachineResource(new ResourceIdentifier(resourceId));
         if (virtualMachineResource == null)
         {
@@ -1236,7 +1277,11 @@ public class ArmHelper
     public async Task<string> GetAppSettings(string resourceId)
     {
         var requestUrl = $"https://management.azure.com{resourceId}/config/appSettings/list?api-version=2022-03-01";
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var cred = _authService.GetArmReadOperationCredential();
+        var token = await cred.GetTokenAsync(new TokenRequestContext(["https://management.azure.com/.default"]), CancellationToken.None);
+
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
@@ -1252,7 +1297,11 @@ public class ArmHelper
         try
         {
             var requestUrl = $"https://management.azure.com/subscriptions/{subscriptionId}/providers/microsoft.insights/components?api-version=2018-05-01-preview";
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            var cred = _authService.GetArmReadOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
 
@@ -1293,8 +1342,11 @@ public class ArmHelper
         try
         {
             var requestUrl = $"https://management.azure.com{resourceId}/providers/microsoft.insights/diagnosticSettings?api-version=2021-05-01-preview";
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            var cred = _authService.GetArmReadOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
 
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {token.Token}");
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
             HttpResponseMessage responseMessage = await httpClient.SendAsync(request);
 
@@ -1360,7 +1412,7 @@ public class ArmHelper
         try
         {
             var httpClient = _httpClientFactory.CreateClient();
-            var cred = await _authService.GetArmOperationCredential();
+            var cred = _authService.GetArmReadOperationCredential();
             var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://api.applicationinsights.io/.default" }), CancellationToken.None);
 
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
@@ -1390,7 +1442,8 @@ public class ArmHelper
     {
         try
         {
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var credential = _authService.GetArmReadOperationCredential();
+            var armClient = new ArmClient(credential);
             ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
             WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
             var appData = webApp.Data;
@@ -1421,14 +1474,24 @@ public class ArmHelper
             // Serialize the request body to JSON
             string jsonBody = JsonSerializer.Serialize(requestBody);
 
+
+            var cred = _authService.GetArmReadOperationCredential();
+
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+
             // Create the HTTP request
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl)
             {
                 Content = new StringContent(jsonBody, Encoding.UTF8, "application/json")
             };
 
+
+            // Attach the token to the request
+            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+
             // Create and send the HTTP request
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             HttpResponseMessage response = await httpClient.SendAsync(request);
 
             // Check the response status code
@@ -1468,7 +1531,7 @@ public class ArmHelper
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             HttpResponseMessage response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -1545,7 +1608,7 @@ public class ArmHelper
 
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             HttpResponseMessage response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
@@ -1595,7 +1658,7 @@ public class ArmHelper
 
     public async Task<string> CheckConnectivityToAzureWebJobsStorage(string resourceId)
     {
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
@@ -1628,7 +1691,7 @@ public class ArmHelper
 
     public async Task<string> CheckTcpConnectivityAsync(string resourceId, string host, int port)
     {
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
@@ -1658,7 +1721,7 @@ public class ArmHelper
     {
         var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{revisionId}/replicas?api-version=2024-03-01");
         var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         var response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -1679,7 +1742,7 @@ public class ArmHelper
 
     public async Task<string> CheckDnsResolution(string resourceId, string desinationUrl)
     {
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
@@ -1706,7 +1769,7 @@ public class ArmHelper
     {
         var appSettingKv = new Dictionary<string, string>();
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
@@ -1731,7 +1794,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId) || appSettings == null || appSettings.Count == 0)
             throw new ArgumentException("Resource ID and app settings are required");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
         // Fetch existing app settings
@@ -1771,7 +1834,7 @@ public class ArmHelper
         if (string.IsNullOrWhiteSpace(resourceId))
             throw new ArgumentException("Resource ID is required");
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         string requestUrl = $"https://management.azure.com{resourceId}/listKeys?api-version=2023-05-01";
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
@@ -1832,7 +1895,8 @@ public class ArmHelper
 
     public async Task<int> GetNumberOfWorkers(string resourceId)
     {
-        var armClient = await _armClientFactory.GetArmOperationClient();
+        var credential = _authService.GetArmReadOperationCredential();
+        var armClient = new ArmClient(credential);
         ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
         WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
         var numWorkers = webApp.Data.SiteConfig.NumberOfWorkers ?? 1;
@@ -1845,7 +1909,7 @@ public class ArmHelper
         {
             // Get ResourceIdentifier from the provided resourceId
             ResourceIdentifier resourceIdentifier = new ResourceIdentifier(resourceId);
-            var armClient = await _armClientFactory.GetArmOperationClient();
+            var armClient = _armClientFactory.GetArmClient();
             WebSiteResource webApp = await armClient.GetWebSiteResource(resourceIdentifier).GetAsync();
             return webApp;
         }
@@ -1889,7 +1953,7 @@ public class ArmHelper
     public async Task<int> GetDefaultProcessIdForWebAppAsync(string resourceId, string os, string hostName)
     {
         string url = $"https://{hostName}/api/processes";
-        using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        using HttpClient httpClient = await GetAuthenticatedHttpClient();
 
         if (os == "Linux")
         {
@@ -1987,7 +2051,7 @@ public class ArmHelper
             if (string.IsNullOrWhiteSpace(command))
                 throw new ArgumentException("Command cannot be null or empty.", nameof(command));
 
-            using HttpClient httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            using HttpClient httpClient = await GetAuthenticatedHttpClient();
             var url = $"https://{hostName}/api/command";
             var commandDetails = "{\"command\": \"" + command + "\", \"dir\": \"" + workingDirectory + "\"}";
             var commandPayload = new StringContent(commandDetails, Encoding.UTF8, "application/json");
@@ -2018,15 +2082,20 @@ public class ArmHelper
     {
         try
         {
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
             // Add the token to the HttpClient's Authorization header
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
 
             var uriBuilder = new UriBuilder($"https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroup}/providers/Microsoft.App/containerApps/{appName}/getAuthToken");
             var query = HttpUtility.ParseQueryString(uriBuilder.Query);
             query.Add("api-version", "2024-02-02-preview");
             uriBuilder.Query = query.ToString();
 
-            var response = await httpClient.PostAsync(uriBuilder.Uri, null);
+            var client = new HttpClient(); // _httpClientFactory.CreateClient();
+            client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", token.Token);
+            var response = await client.PostAsync(uriBuilder.Uri, null);
             response.EnsureSuccessStatusCode();
             var resp = await response.Content.ReadFromJsonAsync<GetAuthTokenResponse>();
             if (resp == null || resp.Properties == null || string.IsNullOrEmpty(resp.Properties.Token))
@@ -2043,6 +2112,28 @@ public class ArmHelper
     }
 
     #region Private Methods
+
+    internal async Task<HttpClient> GetAuthenticatedHttpClient()
+    {
+        try
+        {
+            // Retrieve authentication token using DefaultAzureCredential
+            var cred = _authService.GetArmOperationCredential();
+            var token = await cred.GetTokenAsync(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None);
+
+            // Add the token to the HttpClient's Authorization header
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+            httpClient.Timeout = TimeSpan.FromMinutes(10);
+            httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token.Token);
+            httpClient.DefaultRequestHeaders.Add("User-Agent", "SRE Agent");
+            return httpClient;
+        }
+
+        catch (Exception ex)
+        {
+            throw new InvalidOperationException("Failed to obtain a Bearer token.", ex);
+        }
+    }
 
     private async Task<List<T>> GetResourceSettings<T>(
     List<string> resourceIds,
@@ -2076,7 +2167,7 @@ public class ArmHelper
         var tlsCheckUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/config/web?api-version=2022-03-01");
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Get, tlsCheckUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();
 
@@ -2153,7 +2244,7 @@ public class ArmHelper
 
         var request = new HttpRequestMessage(HttpMethod.Get, requestUrl);
 
-        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
         var response = await httpClient.SendAsync(request);
 
         if (!response.IsSuccessStatusCode)
@@ -2177,7 +2268,7 @@ public class ArmHelper
         {
             HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
 
-            var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
+            var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
             var response = await httpClient.SendAsync(request);
 
             if (!response.IsSuccessStatusCode)
