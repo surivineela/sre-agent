@@ -1571,7 +1571,7 @@ g.V().has('id', '{deploymentResourceId}')
                 var subscriptionId = resourceIdentifier.SubscriptionId;
                 var resourceGroupName = resourceIdentifier.ResourceGroupName;
 
-                var credential = _authService.GetArmReadOperationCredential();
+                var credential = await _authService.GetArmOperationCredential();
                 var defaultToken = credential.GetToken(new TokenRequestContext(new[] { "https://management.azure.com/.default" }), CancellationToken.None).Token;
                 var defaultTokenCredentials = new Microsoft.Rest.TokenCredentials(defaultToken);
                 var azureCredentials = new Microsoft.Azure.Management.ResourceManager.Fluent.Authentication.AzureCredentials(defaultTokenCredentials, defaultTokenCredentials, null, AzureEnvironment.AzureGlobalCloud);

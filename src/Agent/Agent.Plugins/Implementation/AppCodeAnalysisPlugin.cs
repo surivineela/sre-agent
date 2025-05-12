@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using Agent.Core;
 using Agent.Core.Attributes;
 using Agent.Core.Helpers;
+using Agent.Core.Models;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Plugins.Definitions;
 using Microsoft.Azure.Management.ResourceManager.Fluent.Core;

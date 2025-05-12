@@ -8,6 +8,19 @@ namespace Agent.Core.Interfaces
 {
     public interface IKubernetesClientFactory
     {
+        
+        /// <summary>
+        /// Creates kube client for crawling purpose
+        /// </summary>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
+        public Task<IKubernetes?> CreateKubernetesClientFromResourceIdForCrawlerAsync(string resourceId);
+
+        /// <summary>
+        /// Creates kube client for action purpose
+        /// </summary>
+        /// <param name="resourceId"></param>
+        /// <returns></returns>
         public Task<IKubernetes?> CreateKubernetesClientFromResourceIdAsync(string resourceId);
     }
 }

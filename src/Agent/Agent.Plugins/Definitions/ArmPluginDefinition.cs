@@ -46,6 +46,7 @@ namespace Agent.Plugins
             return await _armPlugin.SetMinimumTlsVersion(appResourceId, minimumTlsVersion);
         }
 
+        [RequiresApproval]
         [Description("Restart an AppService app")]
         public async Task<string> RestartWebApp(
             [Description("The resource ID of the AppService app.")]

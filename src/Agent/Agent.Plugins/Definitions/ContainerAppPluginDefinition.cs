@@ -307,6 +307,7 @@ namespace Agent.Plugins.Definitions
         }
 
         // commented out as it is not working as expected
+        // [RequiresApproval]
         // [Description("Rollback the container app to the last active revision.")]
         // public async Task<string> RollbackToLastRevision(
         //     [Description("The resource ID of the Container App instance.")] string resourceId)

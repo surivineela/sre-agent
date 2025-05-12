@@ -131,7 +131,7 @@ public class AzureSupportCenterHelper
 
         request.Content = new StringContent(JsonSerializer.Serialize(requestPayload), Encoding.UTF8, "application/json");
 
-        var httpClient = _httpClientFactory.CreateClient(nameof(ArmHelper));
+        var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
 
         var response = await httpClient.SendAsync(request);
         response.EnsureSuccessStatusCode();

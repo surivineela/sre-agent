@@ -1,6 +1,8 @@
 // ------------------------------------------------------------
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
+using Agent.Core.Models;
+
 namespace Agent.Core;
 
 /// <summary>
@@ -16,8 +18,8 @@ public static class ToolStatic
     public static readonly AsyncLocal<Guid> AsyncLocalThreadId = new ();
 
     /// <summary>
-    /// Holds the approval ID for the current Durable task. Set by GenericExecuteActionActivity
+    /// Holds the approval context for the current Durable task. Set by GenericExecuteActionActivity
     /// AsyncLocal because we want to keep the conversation thread ID for the current async context.
     /// </summary>
-    public static readonly AsyncLocal<Guid?> AsyncLocalApprovalId = new ();
+    public static readonly AsyncLocal<ApprovalContext> AsyncLocalApprovalContext = new ();
 }

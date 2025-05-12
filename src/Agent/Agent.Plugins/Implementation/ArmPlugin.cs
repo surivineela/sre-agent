@@ -40,8 +40,7 @@ namespace Agent.Plugins.Implementation
                     return msg;
                 }
 
-                var approvalContext = new ApprovalContext(ToolStatic.AsyncLocalThreadId.Value, ToolStatic.AsyncLocalApprovalId.Value ?? throw new ArgumentNullException("Approval ID is null"));
-                var response = await _armHelper.UpdateMinimumTlsVersion(approvalContext, status, minimumTlsVersion);
+                var response = await _armHelper.UpdateMinimumTlsVersion(status, minimumTlsVersion);
                 success = response.Item1;
                 reason = response.Item2;
             }
@@ -67,10 +66,11 @@ namespace Agent.Plugins.Implementation
         }
 
 
-        public async Task<bool> RestartWebApp(
-            string appResourceId)
+        public async Task<bool> RestartWebApp(string appResourceId)
         {
-            return await _armHelper.RestartWebAppAsync(appResourceId);
+            var response = await _armHelper.RestartWebAppAsync(appResourceId);
+
+            return response.IsSuccessStatusCode;
         }
 
         public async Task<bool> CheckIfResourceExists(string appResourceId)
@@ -94,8 +94,7 @@ namespace Agent.Plugins.Implementation
             string message = "Virtual machine powered on successfully";
             try
             {
-                var approvalContext = new ApprovalContext(ToolStatic.AsyncLocalThreadId.Value, ToolStatic.AsyncLocalApprovalId.Value ?? throw new ArgumentNullException("Approval ID is null"));
-                vmPowerOnResult = await _armHelper.PowerOnVirtualMachineAsync(approvalContext, resourceId);
+                vmPowerOnResult = await _armHelper.PowerOnVirtualMachineAsync(resourceId);
                 if (!vmPowerOnResult)
                 {
                     message = "Failed to power on the virtual machine";
