@@ -17,25 +17,10 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
     {
         private readonly IContainerAppCorednsPlugin _plugin = Plugin;
 
-        [KernelFunction(KernelFunctionNames.ACA.CheckIfCustomDNSConfigured)]
-        [Description(
-            @"Check if there are any custom DNS servers configured for the container app environment or not")]
-        public Task<string> CheckIfCustomDNSConfigured(
-            string region,
-            DateTime fromDate,
-            DateTime toDate,
-            string managedClusterName)
-        {
-            return _plugin.CheckIfCustomDNSConfigured(
-                region.NormalizeLocation(),
-                fromDate,
-                toDate,
-                managedClusterName);
-        }
 
         [KernelFunction(KernelFunctionNames.ACA.GetCustomDNSServers)]
         [Description(
-            @"Get list of custom DNS servers configured for the container app environment at start and end of time window")]
+            @"Get list of custom DNS servers configured for the container app environment at start and end of time window. It also checks if custom DNS servers are configured or not")]
         public Task<string> GetCustomDNSServers(
             string region,
             DateTime fromDate,

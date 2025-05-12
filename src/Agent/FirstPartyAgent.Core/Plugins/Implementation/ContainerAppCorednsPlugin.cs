@@ -17,16 +17,6 @@ public class ContainerAppCorednsPlugin : IContainerAppCorednsPlugin
         _kustoPlugin = kustoPlugin;
     }
 
-    public Task<string> CheckIfCustomDNSConfigured(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
-    {
-        return _kustoPlugin.ExecuteLocalFunctionAsync("CheckIfCustomDNSConfigured", region,
-         new Dictionary<string, string> {
-                { "fromDate", fromDate.ToString() },
-                { "toDate", toDate.ToString() },
-                { "managedClusterName", managedClusterName }
-         });
-    }
-
     public Task<string> GetCustomDNSServers(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
     {
         return _kustoPlugin.ExecuteLocalFunctionAsync("GetCustomDNSServersOverTime", region,

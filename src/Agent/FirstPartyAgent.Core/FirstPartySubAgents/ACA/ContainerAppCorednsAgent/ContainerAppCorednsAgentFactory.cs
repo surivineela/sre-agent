@@ -36,7 +36,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
             var toolSignatures = new List<string>();
 
             var remediationPluginDefinition = new ContainerAppCorednsPluginDefinition(corednsPlugin);
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfCustomDNSConfigured));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCustomDNSServers));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetUpstreamCustomDNSServerHealthStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetCoreDNSConfigReloadFailuresCount));
