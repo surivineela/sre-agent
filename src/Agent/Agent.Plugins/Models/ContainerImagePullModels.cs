@@ -496,11 +496,6 @@ namespace Agent.Plugins.Models
         public string TargetRevisionName { get; set; }
         
         /// <summary>
-        /// Image reference that was applied in the rollback, if successful
-        /// </summary>
-        public string TargetImageReference { get; set; }
-        
-        /// <summary>
         /// Additional details about the rollback operation
         /// </summary>
         public Dictionary<string, string> Details { get; set; } = new Dictionary<string, string>();
@@ -508,13 +503,12 @@ namespace Agent.Plugins.Models
         /// <summary>
         /// Creates a successful rollback result
         /// </summary>
-        public static RollbackResult Success(string revisionName, string imageReference, Dictionary<string, string> details = null)
+        public static RollbackResult Success(string revisionName, Dictionary<string, string> details = null)
         {
             return new RollbackResult
             {
                 IsSuccess = true,
                 TargetRevisionName = revisionName,
-                TargetImageReference = imageReference,
                 Details = details ?? new Dictionary<string, string>()
             };
         }

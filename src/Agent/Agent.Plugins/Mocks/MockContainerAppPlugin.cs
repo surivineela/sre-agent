@@ -265,7 +265,7 @@ namespace Agent.Plugins.Mocks
                 { "MockRevision", "mock-revision-1" }
             };
 
-            return Task.FromResult(RollbackResult.Success("mock-revision-1", previousImage, details));
+            return Task.FromResult(RollbackResult.Success("mock-revision-1", details));
         }
 
         public Task<ImageUpdateResult> UpdateContainerImage(string resourceId, string newImageReference)

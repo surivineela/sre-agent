@@ -26,7 +26,6 @@ using Azure.ResourceManager.AppContainers.Models;
 using Azure.ResourceManager.Network;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
-using OpenAI.Chat;
 using static Agent.Core.Extensions.TaskExtensions;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 using JsonSerializer = System.Text.Json.JsonSerializer;
@@ -1111,7 +1110,7 @@ namespace Agent.Plugins.Implementation
                             {
                                 healthReason = $"{readyReplicas} of {replicas.Count} replicas were running";
                             }
-                        }  
+                        }
                     }
 
                     revisionHealthInfo.Add((revision, isActive, isHealthy, healthReason));
@@ -1148,56 +1147,14 @@ namespace Agent.Plugins.Implementation
                 var healthInfo = revisionHealthInfo.First(r => r.Revision.Id == targetRevision.Id);
                 details["TargetRevisionHealth"] = healthInfo.HealthReason;
 
-                // Find the image reference in the target revision
-                string? targetImageReference = null;
-                if (targetRevision.Data.Template?.Containers != null && targetRevision.Data.Template.Containers.Count > 0)
-                {
-                    targetImageReference = targetRevision.Data.Template.Containers[0].Image;
-                }
+                // Activate the target revision
+                _logger.LogInternalInformation($"Activating revision {targetRevision.Data.Name} for Container App {resourceId}");
+                await _armClient.GetContainerAppRevisionResource(targetRevision.Id).ActivateRevisionAsync();
 
-                if (string.IsNullOrEmpty(targetImageReference))
-                {
-                    return RollbackResult.Failure(
-                        $"No image reference found in target revision {targetRevision.Data.Name}",
-                        details);
-                }
-
-                details["TargetImage"] = targetImageReference;
-
-                _logger.LogInternalInformation($"Found healthy previous revision {targetRevision.Data.Name} with image {targetImageReference}");
-
-                // Create a data object for the update
-                ContainerAppData updateData = new ContainerAppData(containerApp.Value.Data.Location)
-                {
-                    Template = containerApp.Value.Data.Template
-                };
-
-                // Update image in the template containers
-                if (updateData.Template?.Containers != null && updateData.Template.Containers.Count > 0)
-                {
-                    updateData.Template.Containers[0].Image = targetImageReference;
-                }
-                else
-                {
-                    return RollbackResult.Failure(
-                        $"No containers found in the template for Container App {resourceId}",
-                        details);
-                }
-
-                // Update the Container App with the new template
-                _logger.LogInternalInformation($"Rolling back Container App {resourceId} to image from revision {targetRevision.Data.Name}: {targetImageReference}");
-                var updateOperation = await containerAppResource.UpdateAsync(
-                   WaitUntil.Completed,
-                   updateData,
-                   CancellationToken.None
-                );
-                var updatedApp = updateOperation.Value;
-
-                _logger.LogInternalInformation($"Successfully rolled back Container App {resourceId} to image: {targetImageReference}");
+                _logger.LogInternalInformation($"Successfully rolled back Container App {resourceId} from revision {currentRevisionName} to revision {targetRevision.Data.Name}");
 
                 return RollbackResult.Success(
                     targetRevision.Data.Name,
-                    targetImageReference,
                     details);
             }
             catch (Exception ex)
