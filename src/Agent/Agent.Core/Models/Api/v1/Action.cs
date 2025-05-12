@@ -23,7 +23,6 @@ public enum ActionSeverity
 
 public record Action(
     Guid Id,
-    Guid CorrelationId,
     string Title,
     string ToolName,
     DateTime TimeStamp, // created timestamp

@@ -28,39 +28,6 @@ namespace Agent.Plugins.Mocks
         }
 
         /// <summary>
-        /// Records a new action
-        /// </summary>
-        public Task<Action> RecordAction(Guid threadId, Guid correlationId, string title, string toolName = "", ActionStatus status = ActionStatus.Pending, ActionSeverity severity = ActionSeverity.Warning)
-        {
-            _logger?.LogInternalInformation("[MOCK] Recording action for thread {ThreadId}: {Title} with status {Status}",
-                threadId, title, status);
-
-            var guidBytes = new byte[16];
-            _random.NextBytes(guidBytes);
-
-            // Create action with new ID
-            var action = new Action(
-                Id: new Guid(guidBytes),
-                CorrelationId: correlationId,
-                Title: title,
-                ToolName: toolName,
-                TimeStamp: _timeProvider.GetUtcNow().DateTime,
-                Status: status,
-                Severity: severity
-            );
-
-            // Store in memory
-            if (!_actionsByThread.ContainsKey(threadId))
-            {
-                _actionsByThread[threadId] = new Dictionary<Guid, Action>();
-            }
-
-            _actionsByThread[threadId][action.Id] = action;
-
-            return Task.FromResult(action);
-        }
-
-        /// <summary>
         /// Updates an existing action's status
         /// </summary>
         public Task<Action> UpdateActionStatus(Guid threadId, Guid actionId, ActionStatus status)

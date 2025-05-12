@@ -427,26 +427,7 @@ namespace Agent.Data.Repositories
             return Task.FromResult(actions.AsEnumerable());
         }
 
-        public Task<IEnumerable<Action>> GetActionsByCorrelationIdAsync(Guid threadId, Guid correlationId)
-        {
-            var actions = _actions
-                .Where(kvp => kvp.Key.ThreadId == threadId && kvp.Value.CorrelationId == correlationId)
-                .Select(kvp => kvp.Value)
-                .OrderByDescending(a => a.TimeStamp);
-            return Task.FromResult(actions.AsEnumerable());
-        }
-
-        public Task<Action> GetLastActionByCorrelationIdAsync(Guid threadId, Guid correlationId)
-        {
-            var action = _actions
-                .Where(kvp => kvp.Key.ThreadId == threadId && kvp.Value.CorrelationId == correlationId)
-                .Select(kvp => kvp.Value)
-                .OrderByDescending(a => a.TimeStamp)
-                .FirstOrDefault();
-            return Task.FromResult(action);
-        }
-
-        public Task<Action> AddActionAsync(Guid threadId, Action action)
+        public Task<Action> AddOrUpdateActionAsync(Guid threadId, Action action)
         {
             // Ensure ID is set
             if (action.Id == Guid.Empty)

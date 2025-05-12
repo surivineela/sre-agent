@@ -801,7 +801,7 @@ public class CosmosDbThreadRepository : IThreadRepository
         return actions;
     }
 
-    public async Task<Action> AddActionAsync(Guid threadId, Action action)
+    public async Task<Action> AddOrUpdateActionAsync(Guid threadId, Action action)
     {
         // Ensure ID is set
         if (action.Id == Guid.Empty)
@@ -811,7 +811,7 @@ public class CosmosDbThreadRepository : IThreadRepository
 
         // Create the action document
         ActionDocument actionDoc = ActionDocument.FromDomainModel(action, threadIdStr);
-        await _client.GetContainer<ActionDocument>(_databaseName).CreateItemAsync(actionDoc, new PartitionKey(actionDoc.PartitionKey));
+        await _client.GetContainer<ActionDocument>(_databaseName).UpsertItemAsync(actionDoc, new PartitionKey(actionDoc.PartitionKey));
 
         return action;
     }
@@ -847,75 +847,6 @@ public class CosmosDbThreadRepository : IThreadRepository
         catch (Exception ex)
         {
             _logger.LogInternalError(ex, "Error retrieving action {ActionId} for thread {ThreadId}", actionId, threadId);
-            throw;
-        }
-    }
-
-    public async Task<IEnumerable<Action>> GetActionsByCorrelationIdAsync(Guid threadId, Guid correlationId)
-    {
-        string threadIdStr = threadId.ToString();
-        string correlationIdStr = correlationId.ToString();
-
-        try
-        {
-            var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
-                .Where(d => d.DocumentType == "Action" && d.ThreadId == threadIdStr && d.CorrelationId == correlationIdStr);
-
-            var actions = new List<Action>();
-            using var iterator = query.ToFeedIterator();
-
-            while (iterator.HasMoreResults)
-            {
-                foreach (var actionDoc in await iterator.ReadNextAsync())
-                {
-                    actions.Add(actionDoc.ToDomainModel());
-                }
-            }
-
-            return actions;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error retrieving actions with correlationId {CorrelationId} for thread {ThreadId}", correlationId, threadId);
-            throw;
-        }
-    }
-
-    public async Task<Action> GetLastActionByCorrelationIdAsync(Guid threadId, Guid correlationId)
-    {
-        string threadIdStr = threadId.ToString();
-        string correlationIdStr = correlationId.ToString();
-
-        try
-        {
-            var query = _client.GetContainer<ActionDocument>(_databaseName).GetItemLinqQueryable<ActionDocument>()
-                .Where(d => d.DocumentType == "Action" && d.ThreadId == threadIdStr && d.CorrelationId == correlationIdStr)
-                .OrderByDescending(d => d.TimeStamp)
-                .Take(1);
-
-            using (var iterator = query.ToFeedIterator())
-            {
-                if (!iterator.HasMoreResults)
-                {
-                    return null;
-                }
-
-                var results = await iterator.ReadNextAsync();
-                if (results.Count == 0)
-                {
-                    return null;
-                }
-
-                return results.First().ToDomainModel();
-            }
-        }
-        catch (CosmosException ex) when (ex.StatusCode == HttpStatusCode.NotFound)
-        {
-            return null;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogInternalError(ex, "Error retrieving action with correlation id {ActionCorrelationId} for thread {ThreadId}", correlationId, threadId);
             throw;
         }
     }

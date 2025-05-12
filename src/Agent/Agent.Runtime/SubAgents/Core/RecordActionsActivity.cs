@@ -16,7 +16,7 @@ using Action = Agent.Core.Models.Api.v1.Action;
 namespace Agent.Runtime.SubAgents.Core
 {
     public record RecordActionInput(
-        Guid CorrelationId,
+        Guid ActionId,
         Guid ThreadId,
         List<ChatMessage> ChatMessages,
         FunctionCallContent? FunctionCall,
@@ -57,7 +57,7 @@ namespace Agent.Runtime.SubAgents.Core
                 return null;
             }
 
-            Guid correlationId;
+            Guid actionId;
             string title;
             ActionStatus status = input.Status;
             if (ApprovalHelper.ToolRequiresApproval(matchingTool) && status == ActionStatus.Pending)
@@ -65,38 +65,34 @@ namespace Agent.Runtime.SubAgents.Core
                 status = ActionStatus.PendingApproval;
             }
 
-            if (input.CorrelationId != Guid.Empty)
+            if (input.ActionId != Guid.Empty)
             {
-                correlationId = input.CorrelationId;
+                actionId = input.ActionId;
 
-                var lastAction = await _threadRepository.GetLastActionByCorrelationIdAsync(input.ThreadId, correlationId);
-                if (lastAction == null)
+                var existingAction = await _threadRepository.GetActionAsync(input.ThreadId, actionId);
+                if (existingAction == null)
                 {
-                    _logger.LogInternalWarning("[{ThreadId}] Invalid correlation id {CorrelationId}. No existing action is found. Skipping record action.", input.ThreadId, correlationId, input.ThreadId);
+                    _logger.LogInternalWarning("[{ThreadId}] Invalid action id {ActionId}. No existing action is found. Skipping record action.", input.ThreadId, actionId);
                     return null;
                 }
 
-                if (status == lastAction.Status)
+                if (status == existingAction.Status)
                 {
-                    _logger.LogInternalInformation("[{ThreadId}] Action status for correlation id {CorrelationId} does not change. Skipping record action.", input.ThreadId, correlationId, input.ThreadId);
-                    return lastAction;
+                    _logger.LogInternalInformation("[{ThreadId}] Action status for action id {ActionId} does not change. Skipping record action.", input.ThreadId, actionId);
+                    return existingAction;
                 }
 
-                title = lastAction.Title;
+                title = existingAction.Title;
             }
             else
             {
-                correlationId = Guid.NewGuid();
+                actionId = Guid.NewGuid();
                 // use model to generate a descriptive title
                 var chatOptions = new ChatOptions
                 {
                     Tools = [matchingTool.ToolFunction],
                     ToolMode = ChatToolMode.None,
                     Temperature = 0.3f,
-                    AdditionalProperties = new AdditionalPropertiesDictionary
-                    {
-                        ["AllowParallelToolCalls"] = true
-                    },
                 };
 
                 //// if last message is a tool call, remove it to avoid bad request
@@ -115,11 +111,10 @@ namespace Agent.Runtime.SubAgents.Core
                 title = response.Text;
             }
 
-            _logger.LogInternalInformation("[{ThreadId}] Recording action (correlation id {ActionCorrelationId}) for function call {FunctionCallName}. Title: {Title}. Status {ActionStatus}.", input.ThreadId, correlationId, targetFunction, title, status);
+            _logger.LogInternalInformation("[{ThreadId}] Recording action {ActionId} for function call {FunctionCallName}. Title: {Title}. Status {ActionStatus}.", input.ThreadId, actionId, targetFunction, title, status);
 
             var action = new Action(
-                Id: Guid.NewGuid(),
-                CorrelationId: correlationId,
+                Id: actionId,
                 Title: title,
                 ToolName: targetFunction,
                 TimeStamp: DateTime.UtcNow,
@@ -127,7 +122,7 @@ namespace Agent.Runtime.SubAgents.Core
                 Severity: ActionSeverity.Critical
             );
 
-            await _threadRepository.AddActionAsync(input.ThreadId, action);
+            await _threadRepository.AddOrUpdateActionAsync(input.ThreadId, action);
 
             return action;
         }

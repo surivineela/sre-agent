@@ -26,7 +26,7 @@ public class OrchestrationAgent
     public HashSet<string> PendingApprovals { get; set; } = new();
     public List<Task<ChatMessage>> Pending202Activities { get; set; } = new();
     public Guid ThreadId { get; set; }
-    public Guid CurrentActionCorrelationId { get; set; }
+    public Guid CurrentActionId { get; set; }
 
     ThreadContext? ThreadContext { get; set; }
 
@@ -105,7 +105,7 @@ public class OrchestrationAgent
             FunctionCall = functionCall,
             ThreadId = threadId,
             OrchestrationId = _taskOrchestrationContext.InstanceId,
-            ActionCorrelationId = CurrentActionCorrelationId,
+            ActionId = CurrentActionId,
         };
 
         await RecordStateChange(ReasoningState.RunningFunctionCall, $"Checking approval for function call: {functionCall.Name}");
@@ -189,7 +189,7 @@ public class OrchestrationAgent
     {
         var action = await _taskOrchestrationContext.CallRecordActionActivityAsync(
             new RecordActionInput(
-                CorrelationId: this.CurrentActionCorrelationId,
+                ActionId: this.CurrentActionId,
                 ThreadId: this.ThreadId,
                 ChatMessages: this.ChatHistory,
                 FunctionCall: functionCall,
@@ -202,11 +202,12 @@ public class OrchestrationAgent
         {
             if (action.Status == ActionStatus.Completed || action.Status == ActionStatus.Failed)
             {
-                this.CurrentActionCorrelationId = Guid.Empty;
+                this.CurrentActionId = Guid.Empty;
+                this.ChatHistory.Add(new ChatMessage(ChatRole.Assistant, $"Action has been taken at {DateTime.UtcNow:O}. Action Id: {action.Id}"));
             }
             else
             {
-                this.CurrentActionCorrelationId = action.CorrelationId;
+                this.CurrentActionId = action.Id;
             }   
         }
     }

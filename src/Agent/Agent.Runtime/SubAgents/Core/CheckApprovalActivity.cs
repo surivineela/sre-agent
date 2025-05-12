@@ -85,9 +85,9 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
             {
                 var description = ApprovalHelper.GetToolDefaultApprovalMessage(matchingTool);
                 // Try get latest action with the function call name
-                if (input.ActionCorrelationId != Guid.Empty)
+                if (input.ActionId != Guid.Empty)
                 {
-                    var action = await _threadRepository.GetLastActionByCorrelationIdAsync(Guid.Parse(input.ThreadId), input.ActionCorrelationId);
+                    var action = await _threadRepository.GetActionAsync(Guid.Parse(input.ThreadId), input.ActionId);
                     if (action != null)
                     {
                         description = action.Title;
