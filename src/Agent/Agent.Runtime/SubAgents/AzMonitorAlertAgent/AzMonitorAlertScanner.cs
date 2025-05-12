@@ -15,6 +15,7 @@ using Agent.Data.DatabaseClients.GraphDbClient.Nodes;
 using Agent.Data.DataModels;
 using Agent.Logging;
 using Agent.Plugins;
+using Agent.Runtime.MetaAgent.Interfaces;
 using Agent.Runtime.Services;
 using Agent.Runtime.SubAgents.ContainerAppsRemediation;
 using Azure.Core;
@@ -41,6 +42,7 @@ public class AzMonitorAlertScanner
     private readonly IAzMonitorAlertInvestigationService _azMonitorInvestigationService;
     private readonly ContainerAppsRemediationAgentFactory _containerAppsRemediationAgentFactory;
     private readonly DurableTaskClient _durableTaskClient;
+    private readonly IAgentsFactory _agentsFactory;
 
 
     public AzMonitorAlertScanner(
@@ -55,6 +57,7 @@ public class AzMonitorAlertScanner
         IAzMonitorAlertInvestigationService alertInvestigationService,
         ContainerAppsRemediationAgentFactory containerAppsRemediationAgentFactory,
         DurableTaskClient durableTaskClient,
+        IAgentsFactory agentsFactory,
         IChatClient chatClient, ILogger<AzMonitorAlertScanner> logger)
     {
         _graphDBPlugin = graphDbPlugin;
@@ -72,6 +75,7 @@ public class AzMonitorAlertScanner
 
         _containerAppsRemediationAgentFactory = containerAppsRemediationAgentFactory;
         _durableTaskClient = durableTaskClient;
+        _agentsFactory = agentsFactory;
     }
 
     /// <summary>
@@ -137,17 +141,18 @@ public class AzMonitorAlertScanner
             // Start investigating workflow
             var investigationSummary = await StartInvestigationFlow(alert, thread);
 
-            await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
-                Guid.NewGuid(),
-                agentContext.Id,
-                ReasoningMessageRoleEnum.System,
-                JsonSerializer.Serialize(new
-                {
-                    alertDetails = GetAlertInfoAsPrompt(alert),
-                    description = "Initial investigation findings with evidence-based hypotheses. These should be validated by further diagnostic testing and correlation with system behavior.",
-                    investigationSummary,
-                })
-            ));
+            // Disable reasoning message for now
+            //await _repository.CreateReasoningMessageAsync(new ReasoningMessage(
+            //    Guid.NewGuid(),
+            //    agentContext.Id,
+            //    ReasoningMessageRoleEnum.System,
+            //    JsonSerializer.Serialize(new
+            //    {
+            //        alertDetails = GetAlertInfoAsPrompt(alert),
+            //        description = "Initial investigation findings with evidence-based hypotheses. These should be validated by further diagnostic testing and correlation with system behavior.",
+            //        investigationSummary,
+            //    })
+            //));
 
             await _repository.AddMessageAsync(thread.Id, new Message(
                 Guid.NewGuid(),
@@ -158,12 +163,14 @@ public class AzMonitorAlertScanner
 
             var resourceType = alert.Properties?.Essentials?.TargetResourceType;
 
+            var alertInfo = GetAlertInfoAsPrompt(alert);
+
             // Trigger Container app orchestration. Temp workaround to force container app orchestration
             // TODO: Refactor to handle different resource types
             if (resourceType != null && resourceType.Contains("containerapps"))
             {
                 // Start the container app orchestration
-                var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(investigationSummary, agentContext.ThreadId);
+                var instanceId = await _containerAppsRemediationAgentFactory.StartOrchestration(alertInfo, agentContext.ThreadId);
 
                 _logger.LogInternalInformation("Started container app remediation agent with instance ID: {InstanceId}", instanceId);
 
@@ -252,7 +259,7 @@ public class AzMonitorAlertScanner
 
             var alertDetails = GetAlertInfoAsPrompt(alert);
 
-            string summarizePrompt = @"
+            string summarizePrompt = @$"
 TASK:
 
 You are an AI assistant helping a Site Reliability Engineer analyze an Azure Monitor alert. 
@@ -308,7 +315,40 @@ DATA ABOUT ALERT AND LOGS, METRICS, TOPOLOGY etc
 ### LOG QUERY ANALYSIS
 {logQuerySummary}
 
-REQUIREMENTS:
+---
+Based on the initial investigation summary, think about the issue and how you will investigate it step by step. Decompose the problem into simple steps.
+Keep proper tracking of the status of current subtask and next task
+You will be allowed many iterations of tool execution to guide your hypothesis exploration.
+Core Principles:
+1. Safety first - Use only non-mutating commands (get, describe, logs, metrics queries).
+2. Hypothesis-driven - Generate multiple plausible root-cause hypotheses before running commands.
+3. Incremental evidence - Gather data that can confirm or falsify a hypothesis; avoid shotgun queries.
+4. Iterative refinement - After each observation, update the hypothesis set (keep / reject / add).
+5. Stop when solved - Conclude once one hypothesis is strongly supported and alternatives are reasonably ruled out, or when you must escalate.
+6. Transparency - Show your full chain of thought (Thought:), the exact action (Action:), and the raw result (Observation:) every loop cycle.
+Investigation Workflow Template:
+            Step 0 - Planning
+            - Thought: I list 2-3 primary hypotheses that could explain <symptom>.
+            Step 1..N
+                Loop — For each surviving hypothesis do:
+                Choose the smallest action that can falsify / confirm it.
+                - Thought: Hypothesis A predicts X. I'll check metric Y or config Z to confirm.
+                - Tool Calls
+                - Observation: …
+                Then update:
+                - Thought: Observation supports/rejects Hypothesis A because…
+                - Remaining hypotheses: [ … ]
+            Step N+1 - Termination
+            When confident:
+            - Thought: Evidence strongly supports Hypothesis B and rules out others.
+            - Final answer - Use “Summary:” heading, covering:
+                1. Leading hypothesis & supporting facts
+                2. Ruled-out hypotheses & why
+                3. Impacted components
+                4. Next mitigation steps (if any)
+
+
+Additional things to consider after running your reasoning loop:
 1. Extract ONLY specific metrics, timestamps, and error patterns that explain this alert
 2. Focus on quantifiable evidence (numeric deviations, timing correlations)
 3. Do NOT include generic observations without specific values
@@ -330,8 +370,9 @@ One sentence describing specific cause with exact evidence values supporting it
 
 Remember: Quality findings with specific values are better than quantity. Exclude any hypothesis without concrete supporting evidence.";
 
+            var agentContexts = await _repository.GetAgentContextsForThreadAsync(alertThread.Id);
 
-            var finalSummary = await SummarizeWithLLM(summarizePrompt);
+            var finalSummary = await SummarizeWithLLM(summarizePrompt, alertThread.Id, agentContexts.First());
 
             return finalSummary;
         }
@@ -601,7 +642,7 @@ Remember: Quality findings with specific values are better than quantity. Exclud
     }
 
     // TODO: Duplicate method. Move to a common helper class.
-    private async Task<string> SummarizeWithLLM(string prompt)
+    private async Task<string> SummarizeWithLLM(string prompt, Guid threadGuid, AgentContext agentContext)
     {
         try
         {
@@ -609,7 +650,9 @@ Remember: Quality findings with specific values are better than quantity. Exclud
 
             var options = new ChatOptions
             {
+                Tools = _agentsFactory.GetSubAgentsAITools(threadGuid, agentContext),
                 Temperature = (float)0.1,
+                ToolMode = ChatToolMode.Auto,
                 AdditionalProperties = new AdditionalPropertiesDictionary
                 {
                     ["response_format"] = "text"
