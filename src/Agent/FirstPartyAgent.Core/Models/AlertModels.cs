@@ -59,9 +59,9 @@ namespace FirstPartyAgent.Core.Models
 
     public class ICMConfigKustoQueryModel : KustoQueryModel
     {
-        public string Cloud { get; set; }
-        public string Cluster { get; set; }
-        public string Database { get; set; }
+        public string Cloud { get; set; } = string.Empty;
+        public string Cluster { get; set; } = string.Empty;
+        public string Database { get; set; } = string.Empty;
     }
 
     public class KustoQueryModel
