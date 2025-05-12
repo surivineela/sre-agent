@@ -1,0 +1,17 @@
+# Use the official .NET 9 runtime image to run the app
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
+WORKDIR /app
+COPY . .
+
+# Set environment variables (optional)
+ENV ASPNETCORE_URLS=http://+:8080
+ENV DOTNET_RUNNING_IN_CONTAINER=true
+
+ENV IS_FIRST_PARTY=true
+ENV AGENT_NAME=RCAAgent
+
+# Expose the port the app runs on
+EXPOSE 8080
+
+# Run the application
+ENTRYPOINT ["dotnet", "Agent.Web.dll", "--session"]

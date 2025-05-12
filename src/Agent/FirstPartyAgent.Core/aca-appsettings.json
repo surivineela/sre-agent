@@ -11,7 +11,7 @@
       },
       "External": {
         "ICMWorkflows": {
-          "Enabled": true,
+          "Enabled": false,
           "WorkflowsEndpoint": "https://resource-provider.genevaautomation.ms/icm/services",
           "CertificateSubjectName": "",
           "UseFunctionApp": false,

@@ -6,6 +6,13 @@ using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.Extensions.AI;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
+
+public enum FirstPartyMetaAgentNames
+{
+    Unknown,
+    RCAAgent,
+}
+
 public class FirstPartyAgentsFactory : IAgentsFactory
 {
     private readonly IServiceProvider _serviceProvider;
@@ -28,9 +35,9 @@ public class FirstPartyAgentsFactory : IAgentsFactory
 
     public string GetMetaAgentSystemPrompt()
     {
-        var agentName = GetAgentName();
+        var metaAgent = GetMetaAgent();
         string? systemPrompt = null;
-        if (string.Equals(agentName, "RCAAgent", StringComparison.InvariantCultureIgnoreCase))
+        if (metaAgent == FirstPartyMetaAgentNames.RCAAgent)
         {            
             var path = Path.Combine(AppContext.BaseDirectory, nameof(FirstPartyAgent.Core.FirstPartyAgents), "ACA", "RCAAgentSystemPrompt.txt");
             systemPrompt = File.ReadAllText(path);
@@ -42,9 +49,14 @@ public class FirstPartyAgentsFactory : IAgentsFactory
         return systemPrompt;
     }
 
-    private string GetAgentName()
+    private FirstPartyMetaAgentNames GetMetaAgent()
     {
-        return Environment.GetEnvironmentVariable("AGENT_NAME") ?? string.Empty;
+        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? string.Empty;
+        if (agentName?.StartsWith(FirstPartyMetaAgentNames.RCAAgent.ToString(), StringComparison.InvariantCultureIgnoreCase) == true)
+        {
+            return FirstPartyMetaAgentNames.RCAAgent;
+        }
+        return FirstPartyMetaAgentNames.Unknown;
     }
 
     public List<Type> GetRequiredSubAgentPluginDefinitionTypes()
