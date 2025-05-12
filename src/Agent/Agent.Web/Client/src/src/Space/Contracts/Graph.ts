@@ -37,6 +37,8 @@ export type Resource = {
     resourceId: string; // the string has underscore
     appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
     subItems?: Resource[];
+    relationToParent?: string;
+    isRelationReversed?: boolean;
 };
 
 export type ScoreCardObject = {

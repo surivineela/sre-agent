@@ -232,6 +232,32 @@ public class GraphService : IGraphService
         return azureResourceApps;
     }
 
+    private async Task<ResultSet<dynamic>> GetRelatedResourcesWithRelationAsync(string resourceId)
+    {
+        string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
+                     .union(
+                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES').project('edge', 'direction', 'node')
+                          .by(label())
+                          .by(constant('outgoing'))
+                          .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
+                              .by(id())
+                              .by(coalesce(values('resourceName'), constant('')))
+                              .by(label())
+                              .by(valueMap())),
+                        inE('LINKED', 'CONNECTED', 'HOSTED_ON').project('edge', 'direction', 'node')
+                          .by(label())
+                          .by(constant('incoming'))
+                          .by(outV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
+                              .by(id())
+                              .by(coalesce(values('resourceName'), constant('')))
+                              .by(label())
+                              .by(valueMap()))
+                     ).dedup('node')";
+
+        var resultSet = await _graphDatabaseClient.Query(query);
+        return resultSet;
+    }
+
     private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId, int hops)
     {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
@@ -341,7 +367,7 @@ public class GraphService : IGraphService
 
         processedNodes.Add(resourceId);
 
-        var resultSet = await GetRelatedResourcesAsync(resourceId, 1);
+        var resultSet = await GetRelatedResourcesWithRelationAsync(resourceId);
 
         if (resultSet == null || !resultSet.Any())
         {
@@ -352,7 +378,8 @@ public class GraphService : IGraphService
 
         foreach (var resource in resultSet)
         {
-            string relatedResourceId = resource["id"];
+            var node = resource["node"];
+            string relatedResourceId = node["id"];
 
             if (processedNodes.Contains(relatedResourceId))
             {
@@ -360,22 +387,24 @@ public class GraphService : IGraphService
             }
 
             // Apply the node filter function
-            if (!nodeFilter(resource))
+            if (!nodeFilter(node))
             {
                 continue;
             }
 
             var childItems = await ProcessResourceHierarchyAsync(relatedResourceId, processedNodes, remainingLevels - 1, nodeFilter);
 
-            var properties = resource["properties"] as IDictionary<string, object>;
+            var properties = node["properties"] as IDictionary<string, object>;
 
             var item = new AppGroupItem
             {
-                Name = resource["name"],
-                Type = resource["type"],
+                Name = node["name"],
+                Type = node["type"],
                 ResourceId = relatedResourceId,
                 AppHealthInfo = properties != null && properties.ContainsKey("appHealthInfo") ? properties["appHealthInfo"] as AppHealthInfo : null,
-                SubItems = childItems.Count > 0 ? childItems : null
+                SubItems = childItems.Count > 0 ? childItems : null,
+                RelationToParent = resource["edge"],
+                IsRelationReversed = resource["direction"] == "incoming"
             };
 
             appGroupItems.Add(item);

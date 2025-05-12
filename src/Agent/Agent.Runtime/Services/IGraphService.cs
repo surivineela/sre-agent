@@ -14,6 +14,8 @@ public class AppGroupItem
     public required string ResourceId { get; set; }
     public AppHealthInfo? AppHealthInfo { get; set; } // this is a JSON string of the properties
     public List<AppGroupItem>? SubItems { get; set; } // this is children of the resource
+    public string? RelationToParent { get; set; } // this is the edge label to the parent resource
+    public bool? IsRelationReversed { get; set; } = false; // this is true if the relation is reversed
 }
 
 public interface IGraphService

@@ -74,7 +74,16 @@ export const createNode = (resource: Resource): Node<GraphNode> => {
     return node;
 };
 
-export const createGraphEdge = (sourceId: string, targetId: string): Edge<GraphEdge> => {
+export const createGraphEdge = (
+    sourceId: string,
+    targetId: string,
+    relation?: string,
+    isDirectionReversed: boolean = false
+): Edge<GraphEdge> => {
+    if (isDirectionReversed) {
+        [sourceId, targetId] = [targetId, sourceId];
+    }
+
     const edgeId = getEdgeId(sourceId, targetId);
 
     const edge: Edge<GraphEdge> = {
@@ -82,6 +91,7 @@ export const createGraphEdge = (sourceId: string, targetId: string): Edge<GraphE
         type: CUSTOM_EDGE_TYPE,
         source: sourceId,
         target: targetId,
+        label: relation,
         data: { label: 'edge' },
     };
 
@@ -101,7 +111,7 @@ export const getNewNodesAndEdges = (
     const populateResourceNodesAndEdges = (parentNode: Node<GraphNode>, resources: Resource[]) => {
         for (const resource of resources) {
             const node = createNode(resource);
-            const edge = createGraphEdge(parentNode.id, node.id);
+            const edge = createGraphEdge(parentNode.id, node.id, resource.relationToParent, resource.isRelationReversed);
 
             nodes.push(node);
             edges.push(edge);
