@@ -454,7 +454,7 @@ public abstract class OrchestrationAgentStep
         {
             return new OrchestrationAgentVisualizeAKSMicroserviceTopologyStep { FunctionCall = functionCall };
         }
-        else if (functionCall.Name == nameof(ChartPluginDefinition.PlotBarChartAsync) ||
+        else if ((functionCall.Name == nameof(ChartPluginDefinition.PlotBarChartAsync) || functionCall.Name.Contains("BarChart")) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotPieChartAsync) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotScatterAsync) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesData) ||

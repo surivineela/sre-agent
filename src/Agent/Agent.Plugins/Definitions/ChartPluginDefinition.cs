@@ -57,7 +57,7 @@ description: A short message to summarize the image.")]
             return await _chartPlugin.PlotPieChartAsync(chartTitle, dataPoints, description);
         }
 
-        [KernelFunction("plot_bar_chart")]
+        [KernelFunction("plot_bar_chart_async")]
         [Description(@"Generates a bar chart from the provided data and returns (or posts) it.
 Parameters:
 chartTitle: The title displayed at the top of the bar chart.

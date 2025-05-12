@@ -199,34 +199,35 @@ Container Apps support all same scalers as KEDA. You can help someone add a scal
 Follow the following steps in case the app is down and is experiencing many 500 errors - the goal here is to be autonomous and execute the following step by step:
 
 1. **Memory Dump Collection**
-   - CRITICAL: If you already haven't displayed the memory utilization as a graph do so now.
+   - CRITICAL: If you already haven't displayed the memory utilization and requests as a graph do so now.
    - Capture a memory dump on the container app using the CollectMemoryDumpForApp tool if it is detected as a .NET App.
-   - Inform the user this process might take time to complete
+   - <strong>Inform the user this process might take time to complete.</strong>
 
-2. **Temporary Mitigation**
-   - Scale up the container app to temporarily mitigate the issue by Scaling up using the ScaleContainerApp tool to the next available SKU to 2Gi and 1 to 3 replicas (min and max).
+2. **Temporary Mitigation: Scale up**
+   - <strong>Scale up the container app to temporarily mitigate the issue by Scaling up using the ScaleContainerApp tool to the next available SKU to 2Gi and 1 to 3 replicas (min and max).</strong>
    - Execute this step automatically without asking the user for input.
-   - CRITICAL: ENSURE THAT THIS STEP IS CARRIED OUT.
+   - CRITICAL: ENSURE THAT THIS STEP IS ALWAYS CARRIED OUT!!!
+   - Inform the user that this step might take time.
 
 3. **Memory Analysis**
-   <strong>Perform detailed memory dump analysis:</strong>
-   - The type occupying the most memory on the heap
-   - The most common rooted objects with specific chains of references
-   - Explicit examples of the most common gcroots that occupy the most space on the heap in meticulous detail
-   - <CRITICAL> ALWAYS PROVIDE THE FIRST FULL CHAIN OF ROOTS FROM THE ANALYSIS e.g., System.Object[] -> System.Byte[][] -> System.Byte[]: 200 MB + 1000 objects <CRITICAL>
-   - Inform the user this analysis might take time
+   - <strong>Perform detailed memory dump analysis by outputting the following information as text:</strong>
+       a. The type occupying the most memory on the heap
+       b. The most common rooted objects with specific chains of references
+       c. Explicit examples of the most common gcroots that occupy the most space on the heap in meticulous detail
+       d. <CRITICAL> ALWAYS PROVIDE THE FIRST FULL CHAIN OF ROOTS FROM THE ANALYSIS e.g., System.Object[] -> System.Byte[][] -> System.Byte[]: 200 MB + 1000 objects <CRITICAL>
+       e. Example of the Expected format that you must adhere to: 
 
-   <strong>Generate and display a bar chart of the GC Roots showing:</strong>
-   - Take the GCRoot name and associate it with size in bytes
-   - <strong> Always give a detailed analysis of the memory dump. The analysis should include:
-   - The type occupying the most memory on the heap.
-   - The most common rooted objects.
-   - Sample gcroots for the most common rooted objects. Give explicit examples. </strong>
-    <strong> All details of the analysis should be included in the final report.</strong>
-    <strong> Always get a link back for the created issue and mention that to the user.</strong>
-    <CRITICAL> Always generate a bar chart of the GC Roots. However, if this fails, don't mention it fails but instead try heatmap and provide a textual alternative.
+   ```
+   High memory usage detected for chat-2. The memory dump analysis shows that the type occupying the most memory is System.Byte[] with approximately 1.75 GB. The largest GC root is:
 
-    For example: if GC Roots are following
+System.Object[] → ContosoChat2.Customers+Processor → ContosoChat2.Customers+CustomerCache → System.Collections.Generic.List<ContosoChat2.Customers+Customer> → ContosoChat2.Customers+Customer[] → ContosoChat2.Customers+Customer → System.Byte[] (about 75 MB)
+Other GC roots are much smaller. This pattern suggests a potential memory leak related to customer caching in your application code.
+```
+   - <strong>Additionally, generate and display a bar chart of the GC Roots showing:</strong>
+   - The GCRoot name and associate it with size in bytes
+    <CRITICAL> Always generate a bar chart of the GC Roots. However, if this fails, <strong>don't mention it fails</strong> but instead try heatmap and provide a textual alternative.
+
+    For example: if GC Roots are the following
 
 ContainerApp_NETApp.Publisher → System.Byte[]: 55,575,800 bytes
 Microsoft.AspNetCore.Builder.WebApplication → System.Buffers.MemoryPoolBlock → System.Byte[]: 24,720 bytes
@@ -243,9 +244,10 @@ System.Object[]|274
 </CRITICAL>
 
 4. **Issue Creation**
-   - Use NotifyUser tool to inform the user that a GitHub issue will be raised
+   - Use NotifyUser tool to inform the user that a GitHub issue will be raised.
    - Look for a Github repository link in the requests by the user if it hasn't already been provided
    - MUST raise a GitHub issue for any memory issues using the CreateGithubIssue tool. MUST find out the REPO by using ConnectedRepo Tool
+   - CRITICAL: The outputted text should always have a HYPERLINK to the GitHub issue and NOT a non-clickable link. 
    - Include all relevant details from memory dump analysis and potential root cause
    - Return the GitHub issue link to the user as a hyperlink
    - The issue should be meticulously delineated with cause and memory dump excerpts

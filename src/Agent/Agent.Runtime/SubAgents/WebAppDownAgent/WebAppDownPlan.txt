@@ -11,7 +11,7 @@ After providing the initial plan, the user will prompt you to move to execution 
     If the average availability is greater than 99.9%, the app is healthy. The plan can be completed here unless the user wants to move forward.
    Otherwise, proceed to investigate the cause of the app's slowness or downtime. This is done by running the following tools one by one in separate steps.
    <strong>ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence</strong>
-      After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Further memory analysis should only be done if ShouldTriggerMemoryDump return true - this tool checks to see if it's a ripe condition to decide to collect a memory dump and analyze it. 
+      After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Further memory analysis should only be done if ShouldTriggerMemoryDump return true - this tool checks to see if it's a ripe condition to decide to collect a memory dump and analyze it. The memory dump collection and analysis is a long operation -<CRITICAL>MENTION THAT THIS MIGHT TAKE A WHILE TO THE USER.</CRITICAL> 
    After the execution of each tool, Use the NotifyUser tool to update the user ONLY if there were any UNSUCCESSFUL ISSUES. DO NOT SHOW ANY SUCCESSFUL INSIGHTS. Call the ShouldTriggerMemoryDump tool with GetMemoryMetrics to decide if there was a memory spike at all to proceed with a more in-depth memory analysis delineated below. 
    <strong> When providing updates to the user, ONLY SHOW the ISSUES/PROBLEMS/UNSUCCESSFUL/CRITICAL insights, warnings, and errors. The rest of the insights that are successful can all be summarized in one sentence.</strong>
 3. Return the CPU, memory, and thread metrics. Use the GetWebAppCpuMetrics, GetMemoryMetrics, and GetThreadMetrics tools. Notify the user of the metric results after each tool. In addition, plot the metrics as charts using the chart plugin functions (PlotTimeSeriesData or PlotBarChartAsync). 
@@ -75,9 +75,14 @@ After providing the initial plan, the user will prompt you to move to execution 
 ** MITIGATION: High Memory Issues **
 1. Capture a memory dump on the app service using the CollectMemoryDumpForApp tool. Tell the user that this might take time to complete.
 2. Use ScaleUpAppServicePlanBySku to scale up the app service plan to temporarily mitigate the issue - don't ask the user for input.
-3. Analyze the memory dump using the GetMemoryAnalysis tool. The output of this tool should be meticulously presented to the user - THIS SHOULD BE DETAILED highlighting the most common rooted objects with specific chains of the references. Please be as explicit as possible in terms of the most common gcroots that occupy the most space on the heap. ALWAYS GIVE GC ROOT REFERENCES. Inform the user that this might take time, as well. Whenever gcroots are mentioned, always CRITICAL show a bar chart of the gcroot and size.
-4. Use the NotifyUser tool to notify the user that I will raise a github issue for any memory issues that may have caused the application to be unhealthy along with excerpts from the memory dump.
-   Raise a Github issue that captures the details of the problem (cause and memory dump excerpts) by using the CreateGithubIssue tool to always create an issue. The issue should include all the relevant details regarding the memory dump analysis and the potential root cause of the issue with meticulously delineated issue.  Return the Github issue link to the user. CRITICAL: Return the github issue to the user and the github issue should be hyperlinked.
+3. Analyze the memory dump using the GetMemoryAnalysis tool. <CRITICAL> If this operation fails such as if the error is something along the lines of "{"OutputValidator":null,"Output":"","Error":"Unhandled exception. System.IO.FileNotFoundException: Could not open dump file 'C://home//tmpwxcg4x.tmp.dmp'.\r\nFile name: 'C://home//tmpwxcg4x.tmp.dmp'\r\n   at Microsoft.Diagnostics.Runtime.DataTarget.LoadDump(String, CacheOptions )\r\n   at Microsoft.Diagnostics.Runtime.DataTarget.LoadDump(String)\r\n   at DotnetAnalyzer.AnalyzeMemoryCommand.AnalyzeMemory(String)\r\n   at DotnetAnalyzer.Program.Main(String[])\r\n","ExitCode":-532462766}" or any error - RETRY THE MEMORY DUMP COLLECTION from Step 1. JUST ONCE AND PROCEED WITH THE ANALYSIS AGAIN -- DONT SCALE UP IF YOU ALREADY HAVE</CRITICAL>. The output of this tool should be meticulously presented to the user - THIS SHOULD BE DETAILED highlighting the most common rooted objects with specific chains of the references. Please be as explicit as possible in terms of the most common gcroots that occupy the most space on the heap. ALWAYS GIVE GC ROOT REFERENCES. Inform the user that this might take time, as well. Whenever gcroots are mentioned, always CRITICAL show a bar chart of the gcroot and size. For example, the expected output could be something along the lines of:
+   ```
+   High memory usage detected for chat-2. The memory dump analysis shows that the type occupying the most memory is System.Byte[] with approximately 1.75 GB. The largest GC root is:
+
+System.Object[] → ContosoChat2.Customers+Processor → ContosoChat2.Customers+CustomerCache → System.Collections.Generic.List<ContosoChat2.Customers+Customer> → ContosoChat2.Customers+Customer[] → ContosoChat2.Customers+Customer → System.Byte[] (about 75 MB)
+Other GC roots are much smaller. This pattern suggests a potential memory leak related to customer caching in your application code.
+```
+4. Use the NotifyUser tool to notify the user that I will raise a github issue for any memory issues that may have caused the application to be unhealthy along with excerpts from the memory dump. Raise a Github issue that captures the details of the problem (cause and memory dump excerpts) by using the CreateGithubIssue tool to always create an issue. The issue should include all the relevant details regarding the memory dump analysis and the potential root cause of the issue with meticulously delineated issue.  Return the Github issue link to the user. CRITICAL: Return the github issue to the user and the github issue should be HYPERLINKED.
 5. Use the NotifyUser tool to let the user know that I'll continue to monitor the app and will provide an update for the availability and memory usage in 10 minutes.
    Use the Wait Tool to wait 10 minutes. 
 6. Use the NotifyUser tool to notify the user of the average availability and memory of the app over the last 5 minutes and make sure the availability percentage and memory usage are BOLDED.
@@ -102,13 +107,13 @@ Tools that will be available as part of plan execution:
 - NotifyUser
 - AskUserForInput
 - PlotTimeSeriesData
+- PlotBarChartAsync
 - GetCallStackForApp : When showing a call stack trace containing issues, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything
 - GetDeploymentActivity : ALWAYS show the UNSUCCESSFUL swaps or deployments in a nicely formatted TABLE (tabular data format)
 - GetSummaryOfExceptions : ALWAYS SHOW THE FULL EXCEPTIONS AND FULL STACK TRACE. DO NOT TRUNCATE ANYTHING. 
 - GetStackTraceOfLastException :  When showing a stack trace with issues, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything
 - GetStackTraceOfMostCommonException :  When showing a stack trace with issues, ALWAYS show the FULL call stack for the user. Do not TRUNCATE anything
 - GetAppConsoleLogs
-- PlotBarChart
 - CreateGithubIssue
 - PerformDeploymentSwapForApp
 - GetMemoryAnalysis

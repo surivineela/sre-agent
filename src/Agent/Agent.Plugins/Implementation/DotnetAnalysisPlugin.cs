@@ -334,27 +334,27 @@ public sealed class DotnetAnalysisPlugin : IDotnetAnalysisPlugin
         {
             if (kuduManager.Is32Bit)
             {
-                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//");
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win32/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://home//");
             }
 
             else
             {
-                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://local//");
+                await kuduManager.ExecuteCommandAsync("curl -X GET https://dotnetanalysis.blob.core.windows.net/win64/DotnetAnalyzer.exe -o DotnetAnalyzer.exe", "C://home//");
             }
 
             // Run the dotnet analyzer on the dump file with the appropriate commands. 
-            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://local//{dumpPath}", "C://local//");
+            string result = await kuduManager.ExecuteCommandAsync($"DotnetAnalyzer.exe analyze-memory C://home//{dumpPath}", "C://home//");
 
             // Delete dump after analysis to save space.
-            //try
-            //{
-            //    string _ = await kuduManager.ExecuteCommandAsync($"del C://local//temp//{dumpPath}", "C://local//temp");
-            //}
+            try
+            {
+                string _ = await kuduManager.ExecuteCommandAsync($"del C://home//{dumpPath}", "C://home");
+            }
 
-            //catch (Exception)
-            //{
-            //    Console.WriteLine($"[DotnetAnalysisPlugin] Failed to delete dump: {dumpPath}");
-            //}
+            catch (Exception)
+            {
+                Console.WriteLine($"[DotnetAnalysisPlugin] Failed to delete dump: {dumpPath}");
+            }
 
             return result;
         }
