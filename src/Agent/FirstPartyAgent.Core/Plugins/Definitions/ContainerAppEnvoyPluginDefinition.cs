@@ -70,7 +70,8 @@ Projects:
   - Path: Request access path.
   - Protocol: Internet protocol.
   - Status: HTTP response status(e.g., 200, 503).
-  - ResponseCodeDetails: Response code details.
+  - ResponseCodeDetails: Response code details. (e.g. via_upstream, downstream_remote_disconnect)
+  - UpstreamHost: The upstream host's IP address and port in the format <ip-address>:<port> (e.g., 100.100.202.85:8080)..
 ")]
         public Task<string> GetEnvoyAccessLogs([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName)
         {
@@ -110,17 +111,17 @@ Projects:
             return _plugin.GetEnvoyPodStatus(region, fromDate, toDate, managedClusterName);
         }
 
-        [KernelFunction(KernelFunctionNames.ACA.GetEnvoyControllerPodStatus)]
-        [Description(@"Retrieve Envoy Controller Pod Status
+        [KernelFunction(KernelFunctionNames.ACA.GetCustomerAppPodStatus)]
+        [Description(@"Retrieve Customer Application Pod Status
 Projects:
-- StartTime: Start time of the current envoy controller pod status.
-- EndTime: End time of the current envoy controller pod status.
-- PodName: Name of the envoy controller pod.
-- PodStatus: Status of the envoy controller pod.
+- StartTime: Start time of the customer application pod status.
+- EndTime: End time of the customer application pod status.
+- PodName: Name of the customer application pod.
+- PodStatus: Status of the customer application pod.
 ")]
-        public Task<string> GetEnvoyControllerPodStatus([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName)
+        public Task<string> GetCustomerAppPodStatus([Description("Azure region.")] string region, [Description("Start time of the query.")] DateTime fromDate, [Description("End time of the query.")] DateTime toDate, [Description("Managed Cluster Name of the container app.")] string managedClusterName, [Description("Name of the container app.")] string containerAppName)
         {
-            return _plugin.GetEnvoyControllerPodStatus(region, fromDate, toDate, managedClusterName);
+            return _plugin.GetCustomerAppPodStatus(region, fromDate, toDate, managedClusterName, containerAppName);
         }
 
         [KernelFunction(KernelFunctionNames.ACA.GetContainerAppStatus)]

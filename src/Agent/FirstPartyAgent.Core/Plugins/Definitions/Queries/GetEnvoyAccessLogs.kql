@@ -5,6 +5,6 @@ EnvoyFrontEndLogsTable
 | where TIMESTAMP between (startTime .. endTime)
 | where EnvironmentName == managedClusterName
 //| project StartTime, Authority, Method, Path, Protocol, Status, ResponseFlags, ResponseCodeDetails, GrpcStatus, GrpcStatusNumber, RequestDuration, UpstreamHost, UpstreamCluster, UpstreamRequestAttemptCount, BytesRecieved, BytesSent, RevisionName, UserAgent, Role
-| summarize FirstSeen=min(StartTime),LastSeen=max(StartTime),max(RequestDuration),count() by Authority, Method, Path, Protocol, Status, ResponseCodeDetails
-| project FirstSeen,LastSeen,max_RequestDuration,Count=count_,Authority, Method, Path, Protocol, Status, ResponseCodeDetails
+| summarize FirstSeen=min(StartTime),LastSeen=max(StartTime),max(RequestDuration),count() by Authority, Method, Path, Protocol, Status, ResponseCodeDetails,UpstreamHost
+| project FirstSeen,LastSeen,max_RequestDuration,Count=count_,Authority, Method, Path, Protocol, Status, ResponseCodeDetails, UpstreamHost
 | order by FirstSeen asc 

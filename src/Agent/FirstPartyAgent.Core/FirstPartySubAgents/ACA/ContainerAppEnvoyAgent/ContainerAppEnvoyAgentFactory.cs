@@ -47,7 +47,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppAdminEvents));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetContainerAppStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyPodStatus));
-            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetEnvoyControllerPodStatus));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => envoyPluginDefinition.GetCustomerAppPodStatus));
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));

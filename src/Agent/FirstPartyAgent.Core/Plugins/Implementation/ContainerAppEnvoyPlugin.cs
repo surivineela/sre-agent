@@ -81,7 +81,7 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
         });
     }
 
-    public Task<string> GetEnvoyControllerPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName)
+    public Task<string> GetCustomerAppPodStatus(string region, DateTime fromDate, DateTime toDate, string managedClusterName, string containerAppName)
     {
         return _kustoPlugin.ExecuteLocalFunctionAsync("GetPodHealthStatus", region,
         new Dictionary<string, string>
@@ -89,8 +89,8 @@ public class ContainerAppEnvoyPlugin : IContainerAppEnvoyPlugin
             { "fromDate", fromDate.ToString() },
             { "toDate", toDate.ToString() },
             { "managedClusterName", managedClusterName },
-            { "podNamePrefix", "k8se-envoy-controller" },
-            { "podNamespace", "k8se-system" }
+            { "podNamePrefix", containerAppName },
+            { "podNamespace", "k8se-apps" }
         });
     }
 
