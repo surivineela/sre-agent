@@ -56,6 +56,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             //Plugins requires by quota agent.
             //TODO: going to make it read from env variable
             typeof(ContainerAppsPluginDefinition),
+            typeof(ContainerAppQuotaPluginDefinition),
             typeof(ContainerAppRevisionPluginDefinition),
             typeof(KustoPluginDefinition),
             typeof(ContainerAppEnvoyPluginDefinition),

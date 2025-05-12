@@ -22,33 +22,47 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
     // [MENDATORY]
     public class ContainerAppsQuotaAgentFactory 
     {
-        private readonly IIcmPlugin icmPlugin;
-        private readonly IContainerAppsPlugin containerAppsPlugin;
-        private readonly AgentToolsRegistry _toolsRegistry;
+        private readonly IToolsRepository _toolsRegistry;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadOrchestrationManager _mappingManager;
-
+        private readonly IReadOnlyList<string> _toolSignatures;
         public const string OrchestrationInstanceIdPrefix = nameof(ContainerAppsQuotaAgent);
 
         public ContainerAppsQuotaAgentFactory(
-            ITimePlugin timePlugin,
             IIcmPlugin icmPlugin,
             IContainerAppsPlugin containerAppsPlugin,
+            IContainerAppQuotaPlugin containerAppQuotaPlugin,
             IToolsRepository toolsRepository,
             IThreadOrchestrationManager mappingManager,
             DurableTaskClient durableTaskClient
             )
             
         {
-            this.icmPlugin = icmPlugin;
-            this.containerAppsPlugin = containerAppsPlugin;
-            _toolsRegistry = new AgentToolsRegistry();
+            _toolsRegistry = toolsRepository;
+            var toolSignatures = new List<string>();
 
-            //_toolsRegistry.RegisterTool<MetricsPluginDefinition>(x => x.GetSuccessfulRequestVolumeAsync);
-            //_toolsRegistry.RegisterTool<ArmPluginDefinition>(x => x.SetMinimumTlsVersion);
-            _toolsRegistry.RegisterPlugin<RecordActionsPluginDefinition>();
-            _toolsRegistry.RegisterPlugin<ControlFlowPluginDefinition>();
-            _toolsRegistry.RegisterPlugin<ContainerAppsPluginDefinition>();
+            var icmPluginDefinition = new IcmPluginDefinition(icmPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.GetIncidentInfo));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.AddDiscussionEntry));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => icmPluginDefinition.ResolveIncident));
+
+            var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(containerAppsPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionDetail));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionUsage));
+
+            var containerAppQuotaPluginDefinition = new ContainerAppQuotaPluginDefinition(containerAppQuotaPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.ValidateQuotaRequest));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppQuotaPluginDefinition.SetSubscriptionQuota));
+            
+            var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.MarkPlanComplete));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.NotifyUser));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.AskUserForInput));
+
+            _toolSignatures = toolSignatures;
+            _durableTaskClient = durableTaskClient;
+            _mappingManager = mappingManager;
         }
 
         public async Task<string> StartOrchestration(
@@ -62,7 +76,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
             await _durableTaskClient.ScheduleNewContainerAppsQuotaAgentInstanceAsync(
                 new ContainerAppsQuotaAgentInput(
                     Input: input,
-                    ToolSignatures: _toolsRegistry.ToolSignatures,
+                    ToolSignatures: _toolSignatures,
                     ThreadId: threadId),
                 new StartOrchestrationOptions(InstanceId: instanceId));
 

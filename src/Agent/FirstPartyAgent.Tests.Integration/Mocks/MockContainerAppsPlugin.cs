@@ -3,12 +3,13 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Models;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Tests.End2End.Helpers;
 using Newtonsoft.Json;
 using System.ComponentModel;
-using static FirstPartyAgent.Plugins.ContainerAppsPlugin;
+using static FirstPartyAgent.Core.Plugins.Implementation.ContainerAppQuotaPlugin;
 
 namespace FirstPartyAgent.Tests.Integration.Mocks
 {
@@ -71,7 +72,7 @@ namespace FirstPartyAgent.Tests.Integration.Mocks
                     Reason = string.Format(MessageTemplates.SubscriptionInformationMissing, "offer type")
                 });
             }
-            var validationResult = ContainerAppsPlugin.ValidateQuotaRule(targetQuotaLimit, quotaType, region.ToLowerInvariant(), offerType);
+            var validationResult = ContainerAppQuotaPlugin.ValidateQuotaRule(targetQuotaLimit, quotaType, region.ToLowerInvariant(), offerType);
             var approvalResult = validationResult.approvalState.ToString();
 
             string result = JsonConvert.SerializeObject(new

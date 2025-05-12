@@ -9,6 +9,7 @@ using FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent;
+using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent;
 using FirstPartyAgent.Core.Plugins.Definitions;
@@ -93,6 +94,11 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<HelloWorldAgentPlugin>();
         services.AddSingleton<HelloWorldPluginDefinition>();
         services.AddSingleton<HelloWorldAgentFactory>();
+
+        services.AddSingleton<IContainerAppQuotaPlugin, ContainerAppQuotaPlugin>();
+        services.AddSingleton<ContainerAppsQuotaAgentPlugin>();
+        services.AddSingleton<ContainerAppQuotaPluginDefinition>();
+        services.AddSingleton<ContainerAppsQuotaAgentFactory>();
 
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<ContainerAppRevisionAgentPlugin>();

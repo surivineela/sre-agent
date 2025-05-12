@@ -1,4 +1,5 @@
 using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json;
 using Agent.Core.Extensions;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
@@ -9,10 +10,11 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
 {
-    public record ContainerAppsQuotaAgentActivityInput : BaseContainerAppIssueActivityInput
+    public record ContainerAppsQuotaAgentActivityInput 
     {
-        [Description("The name of the container app.")]
-        public string ContainerAppName { get; init; } = string.Empty;
+        [Required]
+        [Description("The Incidentid (IcM ID) associated with the issue. Example: '622811149'")]
+        public string IncidentId { get; init; } = string.Empty;
     }
 
     [DurableTask]
@@ -28,10 +30,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
         }
         public override async Task<List<ChatMessage>> RunAsync(TaskActivityContext context, ContainerAppsQuotaAgentActivityInput input)
         {
-
-
             _logger.LogInformation($"ContainerAppsQuotaAgentActivity started with input: {JsonSerializer.Serialize(input)}");
-
 
             var systemPrompt = await GetPromptTextAsync(input);
 
@@ -39,10 +38,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
                 new ChatMessage(ChatRole.System, systemPrompt),
                 new ChatMessage(ChatRole.System, @$"
                     Input information
-                    - Container App Name: {input.ContainerAppName}
-                    - Region: {input.Region}
-                    - From: {input.FromDate:O}
-                    - To: {input.ToDate:O}
+                    - IcM ID: {input.IncidentId}
                     ")
                     ];
 

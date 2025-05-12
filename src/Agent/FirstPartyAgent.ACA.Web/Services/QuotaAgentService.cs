@@ -29,6 +29,7 @@ public class QuotaAgentService : IQuotaAgentService
     private readonly Kernel _kernel;
     private readonly IIcmPlugin _icmPlugin;
     private readonly IContainerAppsPlugin _cappPlugin;
+    private readonly IContainerAppQuotaPlugin _cappQuotaPlugin;
     private readonly ITaskStorageService _taskStorageService;
 
     // single chat session
@@ -41,6 +42,7 @@ public class QuotaAgentService : IQuotaAgentService
         Kernel kernel,
         IIcmPlugin icmPlugin,
         IContainerAppsPlugin cappPlugin,
+        IContainerAppQuotaPlugin cappQuotaPlugin,
         ITaskStorageService taskStorageService)
     {
         _logger = logger;
@@ -52,6 +54,7 @@ public class QuotaAgentService : IQuotaAgentService
 
         _icmPlugin = icmPlugin;
         _cappPlugin = cappPlugin;
+        _cappQuotaPlugin = cappQuotaPlugin;
         _taskStorageService = taskStorageService;
 
         _history = new ChatHistory();
@@ -252,7 +255,7 @@ public class QuotaAgentService : IQuotaAgentService
         {
             try
             {
-                var result = await _cappPlugin.SetSubscriptionQuota(state.SubscriptionId, state.Region, state.QuotaType, state.ApprovedQuotaLimit?.ToString());
+                var result = await _cappQuotaPlugin.SetSubscriptionQuota(state.SubscriptionId, state.Region, state.QuotaType, state.ApprovedQuotaLimit?.ToString());
 
                 resolveIncident = true;
                 _logger.LogInformation("Quota request approved and geneva action executed.");
