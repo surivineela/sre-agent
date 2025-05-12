@@ -11,6 +11,11 @@ export type ResourceExtended = {
     type: string;
     dashboardUrl: string;
     appHealthInfo?: string[]; // Convert the json string to ScoreCardObject
+    sourceCodeLinkageStatus?: {
+        status: 'Linked' | 'RequiresAuth';
+        repositoryUrl: string;
+        loginCallbackUrl: string | null;
+    };
     properties: {
         dashboardUrl: string[];
         resourceType: string[];

@@ -6,10 +6,10 @@ using System.Text.Json;
 using Agent.Core.Configuration;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
-using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Interfaces;
 using Agent.Graph.Schema;
 using Agent.Logging;
+using Agent.Plugins;
 using Gremlin.Net.Driver;
 using Microsoft.Extensions.Logging;
 using ArmConstants = Agent.Graph.Crawler.ARM.Constants;
@@ -25,6 +25,8 @@ public class GraphService : IGraphService
     private readonly DashboardSettings _dashboardSettings;
     private readonly IAuthenticationService _authenticationService;
     private readonly ICrawlerService _crawlerService;
+    private readonly IThreadRepository _threadRepository;
+    private readonly IGithubIssuePlugin _githubIssuePlugin;
 
     private readonly Dictionary<string, string> _dashboardsToProcessByResourceType = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
@@ -39,7 +41,7 @@ public class GraphService : IGraphService
     // Define the allowed Kubernetes resource types
     private readonly string[] allowedTypes = { "namespaces", "deployments", "statefulsets" };
 
-    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService)
+    public GraphService(IGraphDatabaseClient graphDatabaseClient, DashboardSettings dashboardSettings, ILogger<GraphService> logger, IHttpClientFactory httpClientFactory, IAuthenticationService authenticationService, ICrawlerService crawlerService, IThreadRepository threadRepository, IGithubIssuePlugin githubIssuePlugin)
     {
         _graphDatabaseClient = graphDatabaseClient;
         _logger = logger;
@@ -49,6 +51,8 @@ public class GraphService : IGraphService
         _httpClientFactory = httpClientFactory;
         _authenticationService = authenticationService;
         _crawlerService = crawlerService;
+        _threadRepository = threadRepository;
+        _githubIssuePlugin = githubIssuePlugin;
     }
 
     private async Task<HttpClient> GetHttpClient()
@@ -469,60 +473,95 @@ public class GraphService : IGraphService
                                      GetFirstValueAsString(properties, "resourceName") ?? "";
                 string resourceGroupName = GetFirstValueAsString(properties, "resourceGroupName") ?? "";
                 string subscription = GetFirstValueAsString(properties, "subscriptionId") ?? "";
-                if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out string dashboardType))
+
+                // Check for repository connection
+                string repoQuery = $@"g.V().has('id', '{resourceId}')
+                                .outE('{ArmConstants.Relationships.ServesCode}').inV()
+                                .values('resourceId')";
+                var repoResults = await _graphDatabaseClient.Query<string>(repoQuery);
+                string repoUrl = repoResults?.FirstOrDefault()?.ToString() ?? "";
+
+                // Get GitHub access token status
+                var githubAccessToken = await _threadRepository.GetGitHubAccessTokenAsync();
+                var githubAccessTokenConfigured = githubAccessToken != null && 
+                    !string.IsNullOrEmpty(githubAccessToken.AccessToken) && 
+                    (githubAccessToken.ExpiresOn is null || githubAccessToken.ExpiresOn > DateTime.UtcNow);
+
+                // Add GitHub login URL if needed
+                if (!string.IsNullOrEmpty(repoUrl))
                 {
-                    string baseUrl = $"{_grafanaUrl}/d/{dashboardType}";
-                    var queryParams = new Dictionary<string, string>
+                    var loginUrl = _githubIssuePlugin.GenerateLoginLink();
+                    var sourceCodeLinkageStatus = githubAccessTokenConfigured 
+                        ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null }
+                        : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
+                    
+                    ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
+                }
+
+                // Add dashboard URL if configured
+                if (!string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaUrl) &&
+                    !string.IsNullOrWhiteSpace(_dashboardSettings.GrafanaApiKey))
                 {
-                    { "var-ds", "azure-monitor-oob" },
-                    { "var-ns", resourceType },
-                    { "var-sub", subscription },
-                    { "var-rg", resourceGroupName.ToLowerInvariant() },
-                    { "var-resource", resourceName.ToLowerInvariant() }
-                };
-
-                    // Add dashboard-specific parameters
-                    switch (dashboardType)
+                    if (_dashboardsToProcessByResourceType.TryGetValue(resourceType, out string dashboardType))
                     {
-                        case "azure-container-apps-container-app-view":
-                            queryParams["var-containerapp"] = resourceName.ToLowerInvariant();
-                            break;
-                        case "azure-redis":
-                        case "azure-app-service-monitoring":
-                            queryParams["var-name"] = resourceName.ToLowerInvariant();
-                            break;
-                    }
-
-                    // Try to get actual dashboard URL from Grafana API
-                    string dashboardUrl = baseUrl;
-                    try
-                    {
-                        using var httpClient = await GetHttpClient();
-                        var dashboardResponse = await httpClient.GetAsync($"{_grafanaUrl}/api/search?type=dash-db");
-                        dashboardResponse.EnsureSuccessStatusCode();
-                        var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
-                        var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
-
-                        foreach (var dashboard in dashboards.EnumerateArray())
+                        string baseUrl = $"{_dashboardSettings.GrafanaUrl}/d/{dashboardType}";
+                        var queryParams = new Dictionary<string, string>
                         {
-                            if (dashboard.TryGetProperty("url", out var urlElement) &&
-                                urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
-                            {
-                                dashboardUrl = $"{_grafanaUrl}{urlElement.GetString()}";
+                            { "var-ds", "azure-monitor-oob" },
+                            { "var-ns", resourceType },
+                            { "var-sub", subscription },
+                            { "var-rg", resourceGroupName.ToLowerInvariant() },
+                            { "var-resource", resourceName.ToLowerInvariant() }
+                        };
+
+                        // Add dashboard-specific parameters
+                        switch (dashboardType)
+                        {
+                            case "azure-container-apps-container-app-view":
+                                queryParams["var-containerapp"] = resourceName.ToLowerInvariant();
                                 break;
+                            case "azure-redis":
+                            case "azure-app-service-monitoring":
+                                queryParams["var-name"] = resourceName.ToLowerInvariant();
+                                break;
+                        }
+
+                        // Try to get actual dashboard URL from Grafana API
+                        string dashboardUrl = baseUrl;
+                        try
+                        {
+                            using var httpClient = await GetHttpClient();
+                            var dashboardResponse = await httpClient.GetAsync($"{_dashboardSettings.GrafanaUrl}/api/search?type=dash-db");
+                            dashboardResponse.EnsureSuccessStatusCode();
+                            var dashboardsContent = await dashboardResponse.Content.ReadAsStringAsync();
+                            var dashboards = JsonSerializer.Deserialize<JsonElement>(dashboardsContent);
+
+                            foreach (var dashboard in dashboards.EnumerateArray())
+                            {
+                                if (dashboard.TryGetProperty("url", out var urlElement) &&
+                                    urlElement.GetString().Contains(dashboardType, StringComparison.OrdinalIgnoreCase))
+                                {
+                                    dashboardUrl = $"{_dashboardSettings.GrafanaUrl}{urlElement.GetString()}";
+                                    break;
+                                }
                             }
                         }
+                        catch (Exception ex)
+                        {
+                            _logger.LogInternalWarning(ex, "Failed to get dashboard URL from API, using base URL");
+                        }
+
+                        // Add query parameters to URL
+                        dashboardUrl = AddQueryParameters(dashboardUrl, queryParams);
+
+                        // Add the dashboard URL to the result
+                        ((IDictionary<string, object>)item)["dashboardUrl"] = dashboardUrl;
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        _logger.LogInternalWarning(ex, "Failed to get dashboard URL from API, using base URL");
+                        // Dashboard settings not fully configured
+                        ((IDictionary<string, object>)item)["dashboardUrl"] = null;
                     }
-
-                    // Add query parameters to URL
-                    dashboardUrl = AddQueryParameters(dashboardUrl, queryParams);
-
-                    // Add the dashboard URL to the result
-                    ((IDictionary<string, object>)item)["dashboardUrl"] = dashboardUrl;
                 }
                 else
                 {

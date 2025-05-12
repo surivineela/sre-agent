@@ -974,8 +974,8 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
 
                 // Custom tooltip component for area chart
                 const CustomTooltip = ({ active, payload }: any) => {
-                    if (active && payload && payload.length) {
-                        const dataPoint = payload[0].payload;
+                    if (active && payload && payload.length > 0 && payload[0].payload) {
+                        const dataPoint = payload[0].payload as AreaDataPoint;
                         const isHighlight = dataPoint.isHighlight;
 
                         // Calculate total and percentages
@@ -1090,10 +1090,10 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
 
                 // Calculate positions for highlight markers
                 const getPositionX = (index: number) => {
-                    const containerWidth = 100; // Percentage width
-                    const margin = 10; // Percentage margin
+                    const containerWidth = 100;
+                    const margin = 10;
                     const availableWidth = containerWidth - 2 * margin;
-                    const step = availableWidth / (typedData.length - 1 || 1);
+                    const step = typedData.length <= 1 ? 0 : availableWidth / (typedData.length - 1);
                     return margin + index * step + '%';
                 };
 
@@ -1142,7 +1142,11 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     </XAxis>
                                     <YAxis stroke="#666" tick={axisTickConfig}>
                                         <Label
-                                            value={`${yAxisLabel}${y2AxisLabel ? ` / ${y2AxisLabel}` : ''}`}
+                                            value={
+                                                yAxisLabel && y2AxisLabel
+                                                    ? `${yAxisLabel} / ${y2AxisLabel}`
+                                                    : yAxisLabel || y2AxisLabel || ''
+                                            }
                                             angle={-90}
                                             position="insideLeft"
                                             fill="#666"

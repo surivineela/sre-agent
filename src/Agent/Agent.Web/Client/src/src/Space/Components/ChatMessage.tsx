@@ -11,6 +11,7 @@ import mermaid from 'mermaid';
 import { memo, useCallback, useMemo, useState } from 'react';
 import { FormattedMessage, useIntl } from 'react-intl';
 import ReactMarkdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import DailyReport from '../../Common/Components/DailyReport';
 import IncidentAlert from '../../Common/Components/IncidentAlert';
 import InvestigationSummary from '../../Common/Components/InvestigationSummary';
@@ -34,6 +35,75 @@ mermaid.initialize({
     flowchart: { useMaxWidth: false },
     securityLevel: 'loose',
 });
+
+// Add table styling for markdown tables
+const tableStyles = `
+  table {
+    border-spacing: 0;
+    border-collapse: collapse;
+    display: block;
+    padding: 1px;
+    margin-top: 0;
+    margin-bottom: 16px;
+    width: max-content;
+    max-width: 100%;
+    overflow: auto;
+    border-radius: 8px;
+  }
+
+  tr {
+    background-color: var(--color-canvas-default, #ffffff);
+    border-top: 1px solid var(--color-border-muted, #d0d7de);
+  }
+
+  tr:nth-child(2n) {
+    background-color: var(--color-canvas-subtle, #f6f8fa);
+  }
+
+  td,
+  th {
+    padding: 6px 13px;
+    border: 1px solid var(--color-border-default, #d0d7de);
+  }
+
+  th {
+    font-weight: 600;
+  }
+
+  /* Round corners for first and last cells in first and last rows */
+  tr:first-child th:first-child {
+    border-top-left-radius: 8px;
+  }
+  tr:first-child th:last-child {
+    border-top-right-radius: 8px;
+  }
+  tr:last-child td:first-child {
+    border-bottom-left-radius: 8px;
+  }
+  tr:last-child td:last-child {
+    border-bottom-right-radius: 8px;
+  }
+
+  table img {
+    background-color: transparent;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    tr {
+      background-color: var(--color-canvas-default, #0d1117);
+      border-top: 1px solid var(--color-border-muted, #21262d);
+    }
+
+    tr:nth-child(2n) {
+      background-color: var(--color-canvas-subtle, #161b22);
+    }
+
+    td,
+    th {
+      border: 1px solid var(--color-border-default, #30363d);
+    }
+  }
+`;
 
 // Helper function to parse and render markdown with images and mermaid diagrams
 const renderMarkdownWithImagesAndMermaid = (text: string) => {
@@ -139,6 +209,8 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
     const [showFeedbackDialog, setShowFeedbackDialog] = useState(false);
     const [selectedFeedback, setSelectedFeedback] = useState<'positive' | 'negative'>();
     const [approvalStatus, setApprovalStatus] = useState<ApprovalDecision | null>(message.approval ? message.approval.status : null);
+    const [isApprovalLoading, setIsApprovalLoading] = useState(false);
+    const [loadingButton, setLoadingButton] = useState<'approve' | 'deny' | null>(null);
 
     const { userIdAndDisplayName } = useAuthenticatedUserInfo();
 
@@ -203,9 +275,11 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         // Plain text markdown
         if (typeof part === 'string') {
             return (
-                <ReactMarkdown key={index} components={{ a: aLinkRenderer }}>
-                    {part}
-                </ReactMarkdown>
+                <div key={index} className="markdown-content">
+                    <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]}>
+                        {part}
+                    </ReactMarkdown>
+                </div>
             );
         }
 
@@ -282,7 +356,13 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
 
         // Normal markdown content
         if (!Array.isArray(messageContent)) {
-            return <ReactMarkdown components={{ a: aLinkRenderer }}>{messageContent}</ReactMarkdown>;
+            return (
+                <div className="markdown-content">
+                    <ReactMarkdown components={{ a: aLinkRenderer }} remarkPlugins={[remarkGfm]}>
+                        {messageContent}
+                    </ReactMarkdown>
+                </div>
+            );
         }
 
         // Mixed content with special blocks
@@ -315,6 +395,8 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                     return; // Exit early if already decided
                 }
 
+                setIsApprovalLoading(true);
+                setLoadingButton(approved ? 'approve' : 'deny');
                 const approvalData = await sendApprovalDecision(
                     threadId,
                     message.approval.id,
@@ -365,6 +447,9 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
             } else {
                 alert('Failed to process approval decision. Please try again.');
             }
+        } finally {
+            setIsApprovalLoading(false);
+            setLoadingButton(null);
         }
     };
 
@@ -398,11 +483,28 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                 border: 'none',
                                 padding: '8px 16px',
                                 borderRadius: '4px',
-                                cursor: 'pointer',
+                                cursor: isApprovalLoading ? 'not-allowed' : 'pointer',
                                 fontWeight: 'bold',
+                                opacity: isApprovalLoading ? 0.7 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
                             }}
                             onClick={() => handleApprovalDecision(true)}
+                            disabled={isApprovalLoading}
                         >
+                            {loadingButton === 'approve' && (
+                                <div
+                                    style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        border: '2px solid #ffffff',
+                                        borderTop: '2px solid transparent',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite',
+                                    }}
+                                />
+                            )}
                             <FormattedMessage {...SreAgentResources.approve} />
                         </button>
                         <button
@@ -412,14 +514,39 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
                                 border: '1px solid #ccc',
                                 padding: '8px 16px',
                                 borderRadius: '4px',
-                                cursor: 'pointer',
+                                cursor: isApprovalLoading ? 'not-allowed' : 'pointer',
                                 fontWeight: 'bold',
+                                opacity: isApprovalLoading ? 0.7 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '8px',
                             }}
                             onClick={() => handleApprovalDecision(false)}
+                            disabled={isApprovalLoading}
                         >
+                            {loadingButton === 'deny' && (
+                                <div
+                                    style={{
+                                        width: '16px',
+                                        height: '16px',
+                                        border: '2px solid #333333',
+                                        borderTop: '2px solid transparent',
+                                        borderRadius: '50%',
+                                        animation: 'spin 1s linear infinite',
+                                    }}
+                                />
+                            )}
                             <FormattedMessage {...SreAgentResources.deny} />
                         </button>
                     </div>
+                    <style>
+                        {`
+                            @keyframes spin {
+                                0% { transform: rotate(0deg); }
+                                100% { transform: rotate(360deg); }
+                            }
+                        `}
+                    </style>
                     <p
                         style={{
                             fontSize: '11px',
@@ -533,6 +660,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse }: IChatMessa
         case 'SREAgent':
             return (
                 <div>
+                    <style>{tableStyles}</style>
                     <CopilotMessage
                         {...agentMessageProps}
                         key={message.id}

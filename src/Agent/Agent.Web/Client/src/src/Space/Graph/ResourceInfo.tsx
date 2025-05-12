@@ -21,14 +21,17 @@ import {
     Toaster,
     tokens,
 } from '@fluentui/react-components';
-import { memo, ReactNode, useContext, useEffect, useMemo, useState } from 'react';
+import { memo, ReactNode, useContext, useEffect, useState } from 'react';
+import { FaGithub } from 'react-icons/fa';
 import { useLocation, useNavigate } from 'react-router';
 import { getSafeDateTime } from '../../Common/Helpers/Date';
-import { Guid } from '../../Common/Helpers/Guid';
+import { getAgentHeaders } from '../../Common/Helpers/headers';
 import { GraphContext, GraphNode, ResourceExtended } from '../Contracts/Graph';
 import { createThread, getPropertyValue, useResourceInfo } from '../Hooks/useResourceInfo';
 import HealthStatus from './HealthStatus';
 import { getAppHealthInfo } from './Utility';
+
+const githubRepoRegex = /^https:\/\/github\.com\/[\w-]+\/[\w-]+\.git$/;
 
 const isNullOrUndefined = (input?: unknown): boolean => {
     return input === undefined || input === null;
@@ -95,28 +98,85 @@ const useStyles = makeStyles({
         alignItems: 'center',
         gap: '5px',
     },
+    githubButton: {
+        display: 'flex',
+        alignItems: 'center',
+        gap: tokens.spacingHorizontalS,
+    },
+    githubIcon: {
+        marginRight: '4px',
+    },
 });
 
 const ResourceInfo = () => {
     const { selectedNode } = useContext(GraphContext);
 
-    const componentKey = useMemo(() => Guid.newGuid(), [selectedNode]);
-
     const { root } = useStyles();
 
+    const handleGitHubLogin = async () => {
+        if (!selectedNode?.id) return;
+
+        try {
+            const response = await fetch(`../api/v1/github/auth?resourceId=${selectedNode.id}`, {
+                headers: getAgentHeaders(),
+            });
+            if (!response.ok) throw new Error('Failed to get GitHub auth URL');
+
+            const data = await response.json();
+            if (data.loginCallbackUrl) {
+                window.open(data.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+            }
+        } catch (err) {
+            console.error('Failed to initiate GitHub login:', err);
+        }
+    };
+
     return (
-        <div key={componentKey} className={root}>
-            <ResourceInfoContent selectedNode={selectedNode} />
+        <div className={root}>
+            <ResourceInfoContent selectedNode={selectedNode} onGitHubLogin={handleGitHubLogin} />
         </div>
     );
 };
 
-const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => {
+const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGitHubLogin: () => void }) => {
     const { isLoading, isUpdating, initialRemarks, resource, onSubmit, toasterId } = useResourceInfo(selectedNode);
+    const styles = useStyles();
+    const [isLinkDialogOpen, setIsLinkDialogOpen] = useState(false);
+    const [repoUrl, setRepoUrl] = useState('');
+    const [isLinking, setIsLinking] = useState(false);
+    const [repoUrlError, setRepoUrlError] = useState('');
+
+    const handleLinkRepository = async () => {
+        if (!selectedNode?.id || !repoUrl) return;
+
+        setIsLinking(true);
+        try {
+            const response = await fetch('../api/v1/github/link', {
+                method: 'POST',
+                headers: {
+                    ...getAgentHeaders(),
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    resourceId: selectedNode.id,
+                    repoUrl: repoUrl,
+                }),
+            });
+
+            if (!response.ok) throw new Error('Failed to link repository');
+
+            // Refresh the resource info
+            window.location.reload();
+        } catch (err) {
+            console.error('Failed to link repository:', err);
+        } finally {
+            setIsLinking(false);
+            setIsLinkDialogOpen(false);
+        }
+    };
 
     const properties = resource?.properties;
-
-    const { infoContent, title, spinner, content, dashboard } = useStyles();
+    const { infoContent, title, spinner, content, dashboard } = styles;
 
     return selectedNode ? (
         <div className={infoContent}>
@@ -144,6 +204,95 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode }) => 
                                         </Link>
                                     </div>
                                 ) : null}
+                            </SummaryField>
+                            <SummaryField label={'Repository Connection'}>
+                                {resource?.sourceCodeLinkageStatus ? (
+                                    resource.sourceCodeLinkageStatus.status === 'Linked' ? (
+                                        <div className={styles.githubButton}>
+                                            <FaGithub className={styles.githubIcon} />
+                                            <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
+                                                {resource.sourceCodeLinkageStatus.repositoryUrl}
+                                            </Link>
+                                        </div>
+                                    ) : (
+                                        <div>
+                                            {resource.sourceCodeLinkageStatus.repositoryUrl && (
+                                                <div className={styles.githubButton} style={{ marginBottom: '8px' }}>
+                                                    <FaGithub className={styles.githubIcon} />
+                                                    <Link href={resource.sourceCodeLinkageStatus.repositoryUrl} target="_blank">
+                                                        {resource.sourceCodeLinkageStatus.repositoryUrl}
+                                                    </Link>
+                                                </div>
+                                            )}
+                                            <Button
+                                                appearance="primary"
+                                                size="small"
+                                                icon={<FaGithub className={styles.githubIcon} />}
+                                                onClick={() => {
+                                                    const status = resource?.sourceCodeLinkageStatus;
+                                                    if (status?.loginCallbackUrl) {
+                                                        window.open(status.loginCallbackUrl, 'githubAuth', 'width=600,height=700');
+                                                    }
+                                                }}
+                                            >
+                                                Authorize Repository Access
+                                            </Button>
+                                        </div>
+                                    )
+                                ) : (
+                                    <>
+                                        <Button
+                                            appearance="primary"
+                                            size="small"
+                                            icon={<FaGithub className={styles.githubIcon} />}
+                                            onClick={() => setIsLinkDialogOpen(true)}
+                                        >
+                                            Connect Repository
+                                        </Button>
+                                        <Dialog open={isLinkDialogOpen} onOpenChange={(_, data) => setIsLinkDialogOpen(data.open)}>
+                                            <DialogSurface>
+                                                <DialogBody>
+                                                    <DialogTitle>Link Repository to Resource</DialogTitle>
+                                                    <DialogContent>
+                                                        <Field
+                                                            label="Repository URL"
+                                                            validationState={repoUrlError ? 'error' : undefined}
+                                                            validationMessage={repoUrlError}
+                                                        >
+                                                            <Textarea
+                                                                placeholder="https://github.com/owner/repo-name.git"
+                                                                value={repoUrl}
+                                                                onChange={(_, data) => {
+                                                                    setRepoUrl(data.value);
+                                                                    if (!githubRepoRegex.test(data.value)) {
+                                                                        setRepoUrlError(
+                                                                            'Repository URL must be like: https://github.com/owner/repo-name.git'
+                                                                        );
+                                                                    } else {
+                                                                        setRepoUrlError('');
+                                                                    }
+                                                                }}
+                                                                style={{ direction: 'ltr' }}
+                                                            />
+                                                        </Field>
+                                                    </DialogContent>
+                                                    <DialogActions>
+                                                        <Button
+                                                            appearance="primary"
+                                                            disabled={!repoUrl || !!repoUrlError || isLinking}
+                                                            onClick={handleLinkRepository}
+                                                        >
+                                                            {isLinking ? 'Connecting...' : 'Connect Repository'}
+                                                        </Button>
+                                                        <Button appearance="secondary" onClick={() => setIsLinkDialogOpen(false)}>
+                                                            Cancel
+                                                        </Button>
+                                                    </DialogActions>
+                                                </DialogBody>
+                                            </DialogSurface>
+                                        </Dialog>
+                                    </>
+                                )}
                             </SummaryField>
                             <SummaryField label={'Annotation'}>
                                 {initialRemarks ? <div>{initialRemarks}</div> : null}
@@ -326,7 +475,6 @@ const SummaryField = memo(({ label, value, children }: { label: string; value?: 
         (value || children) && (
             <div className={sectionField}>
                 <Field
-                    key={Guid.newGuid()}
                     label={
                         <Label className={sectionFieldText}>
                             <Caption1>{label}</Caption1>
