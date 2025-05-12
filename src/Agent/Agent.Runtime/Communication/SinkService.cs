@@ -57,7 +57,7 @@ public class SinkService
             Author: new Author(Role.User, message.UserId, message.DisplayName),
             Text: message.Message,
             IsImageContent: false,
-            Posted: new Posted(false)
+            Posted: message.Posted ?? new Posted(false)
         );
         try
         {

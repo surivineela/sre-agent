@@ -127,8 +127,9 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                         Message: messageText,
                         UserId: userId,
                         DisplayName: senderName,
+                        Posted: new Posted(true), // user post from teams, so no need to send to teams again
                         Timestamp: DateTime.UtcNow);
-
+                        
         _logger.LogInternalInformation($"[Teams Conversation: {conversationId}][Thread: {threadId}]\nSending message to agent: {messageText}");
 
         if (messageText.ToLowerInvariant() == "hello")
@@ -287,7 +288,8 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 Id: startMessageId,
                 TimeStamp: DateTime.UtcNow,
                 Author: new Author(Role.User, userId, senderName),
-                Text: "-"
+                Text: messageText,
+                Posted: new Posted(true)  // user post from teams, so no need to send to teams again
             );
         var thread = await _threadRepository.CreateThreadAsync(new Thread(
             Id: newThreadId,
@@ -297,6 +299,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             CreatedTimestamp: DateTime.UtcNow,
             ModifiedTimestamp: DateTime.UtcNow
             ));
+        message = await _threadRepository.AddMessageAsync(thread.Id, message);
 
         var agentContext = await _threadRepository.CreateAgentContextAsync(new AgentContext(
             Id: Guid.NewGuid(),
@@ -318,7 +321,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
             Id: Guid.NewGuid(),
             AgentContextId: agentContext.Id,
             Role: ReasoningMessageRoleEnum.User,
-            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.System, message.Text))
+            SerializedChatMessage: JsonSerializer.Serialize(new ChatMessage(ChatRole.User, message.Text))
         ));
 
         var agentChatHistory = await _threadRepository.CreateAgentChatHistoryAsync(new AgentChatHistory(
@@ -547,7 +550,7 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 // Now checking the Posted.Teams property directly instead of using PostedMessages collection
                 DateTime tenMinutesAgo = DateTime.UtcNow.AddMinutes(-10);
                 var newMessages = messages
-                    .Where(m => m.Author.Role == Role.SREAgent &&
+                    .Where(m => (m.Author.Role == Role.SREAgent || m.Author.Role == Role.User) &&
                            m.Posted != null && !m.Posted.Teams &&
                            m.TimeStamp >= tenMinutesAgo)
                     .OrderBy(m => m.TimeStamp)
@@ -607,10 +610,14 @@ public class TeamsBot : TeamsActivityHandler, IBotPollingMessage
                 try
                 {
                     // Create message activity
-                    var activity = MessageFactory.Text(message.Text);
+                    var text = message.Text;
+                    if (message.Author.Role == Role.User) {
+                        text = $"From User {message.Author.DisplayName}:\n{text}";
+                    }
+                    var activity = MessageFactory.Text(text);
                     if (message.IsImageContent)
                     {
-                        activity.Text = null; // Clear text if it's an image
+                        activity.Text = null; // Clear text if it's an image, we suspect user will not send image
                         // Extract base64 image content from markdown format like below
                         // $"![DailyReport Dashboard](data:image/png;base64,{screenshot})\r\n"
                         string base64Content = null;

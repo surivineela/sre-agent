@@ -11,7 +11,8 @@ public record ThreadMessage(
     string Message,
     string UserId,
     string DisplayName,
-    DateTime Timestamp);
+    DateTime Timestamp,
+    Posted? Posted = null);
 
 public record InboundServiceResponse(
     Guid ThreadId,

@@ -162,7 +162,7 @@ public class CosmosDbThreadTeamsMappingRepository : IThreadTeamsMappingRepositor
                 @"SELECT DISTINCT c.threadId 
                   FROM c 
                   WHERE c.documentType = 'Message' 
-                    AND c.author.role = 1
+                    AND c.author.role in (0, 1)
                     AND c.timeStamp >= @cutoffTime
                     AND IS_DEFINED(c.posted) AND c.posted.teams = false")
                 .WithParameter("@cutoffTime", cutoffTime);
