@@ -1305,7 +1305,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 AvgMemoryUsage = healthInfos.Average(h => h.AvgMemoryUsage),
 
                 // Sum transactions over the period
-                Transactions = healthInfos.Sum(h => h.Transactions),
+                Transactions = healthInfos.Sum(h => h.Transactions ?? 0),
 
                 // Include the 24-hour historical data
                 HistoricalData = history

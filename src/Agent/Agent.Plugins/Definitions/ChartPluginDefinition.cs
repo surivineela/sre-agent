@@ -95,33 +95,30 @@ description: A short message to summarize the image.")]
             return await _chartPlugin.PlotScatterAsync(chartTitle, xAxisLabel, yAxisLabel, dataPoints, description);
         }
 
-        [KernelFunction("plot_area_chart_requests_errors")]
         [Description(@"Generates an interactive area chart that overlays total requests and 5xx errors and marks deployments / rollbacks.
-
-Parameters
-• chartTitle       – text shown at top of chart
-• xAxisLabel       – X-axis label (time)
-• y1AxisLabel      – Y1 label (requests)
-• y2AxisLabel      – Y2 label (errors)
-• dataPoints       – semicolon-separated rows in the form
-  '<timestamp>|<requests>|<errors>|<correlation>|<isHighlight>|<highlightLabel>|<additionalInfo>'
-  – timestamp  ISO-8601 UTC
-  – correlation numeric; use 0 if you have no coefficient
-  – isHighlight true/false to draw a marker
-  – highlightLabel text on marker
-  – additionalInfo tooltip text (optional)
-• description      – short caption below the chart
-
-Example:
-'2025-05-11T16:04:00Z|118|0|0|false||baseline;
- 2025-05-11T16:10:00Z|120|18|0|true|Deploy r-abc123def|first spike;'")]
+Parameters:
+chartTitle: text shown at top of chart
+xAxisLabel: X-axis label (timestamp in ISO-8601 UTC format)
+y1AxisLabel: Y1 label (requests)
+y2AxisLabel: Y2 label (errors)
+dataPoints: semicolon-separated rows in the form
+  'x|y1|y2|<correlation>|<isHighlight>|<highlightLabel>|<additionalInfo>'
+  where 
+    correlation: numeric use 0 if you have no coefficient
+    isHighlight: true/false to draw a marker
+    highlightLabel: text on marker if isHighlight is true
+    additionalInfo: tooltip text (optional)
+  Example:
+    '2025-05-11T16:04:00Z|118|0|0|false||baseline;2025-05-11T16:10:00Z|120|18|0|true|Deploy r-abc123def|first spike;'")]
         public async Task<string> PlotAreaChartWithCorrelationAsync(
-            string chartTitle,
-            string xAxisLabel,
-            string y1AxisLabel,
-            string y2AxisLabel,
-            string dataPoints,
-            string description)
+            [Description("Chart title")] string chartTitle,
+            [Description("X-axis label (time)")] string xAxisLabel,
+            [Description("Y1-axis label (total requests)")] string y1AxisLabel,
+            [Description("Y2-axis label (failed requests, e.g. 5xx requests)")] string y2AxisLabel,
+            [Description("Semicolon-seperated data point in format 'x|y1|y2|<correlation>|<isHighlight>|<highlightLabel>|<additionalInfo>'\n" + 
+                "correlation: numeric, use 0 if you have no coefficient; isHighlight: true/false to draw a marker; highlightLabel: text on marker if isHighlight is true; additionalInfo: optional tooltip text.\n" +
+                "For example: 2025-05-11T16:04:00Z|118|0|0|false||baseline;2025-05-11T16:10:00Z|120|18|0|true|Deploy r-abc123def|first spike")] string dataPoints,
+            [Description("Short caption below the chart")] string description)
         {
             return await _chartPlugin.PlotAreaChartWithCorrelationAsync(
                 chartTitle, xAxisLabel, y1AxisLabel, y2AxisLabel, dataPoints, description);

@@ -300,17 +300,17 @@ Identifying code issue causing problem with app requires careful analysis. Let m
     Reasoning: Pattern indicates deployment-introduced bug rather than infrastructure or startup issue.
     Action: Plot correlation between deployment and errors.
 
--   Observation: Plot correlation between deployment time and error increase using the tool PlotAreaChartWithCorrelationAsync.
+-   Observation: Plot correlation between deployment time and error increase using the tool PlotAreaChartWithCorrelation.
     Reasoning: Visual evidence clearly demonstrates cause-effect relationship. It is very important to show this visualization to help user understand the correlation with deployment. Call `getContainerappDeploymentTimes` to retrieve all deployment events for the target Container App.  
     **🟣 Plot the correlation**
 
-    3.1. Query **Requests** twice  
-    • total   → `statusCode eq '*'`  
-    • errors  → `statusCode eq '500'`
+    3.1. Query **Requests** twice using GetMetricTimeSeriesElementsForAzureResource with following dimensionFilter
+    • `statusCodeCategory eq '*'`, which gets total_requests.
+    • `statusCodeCategory eq '5xx'`, which gets error_requests.
 
-    3.2. Call `getContainerappDeploymentTimes` to fetch deploy / rollback timestamps.
+    3.2. Call `GetDeploymentTimes` to fetch deploy / rollback timestamps.
     3.3. Build `dataPoints` like:
-        <timestamp>|<requests>|<errors>|0|<isHighlight>|<highlightLabel>|<additionalInfo>;
+        <timestamp>|<total_requests>|<error_requests>|0|<isHighlight>|<highlightLabel>|<additionalInfo>;
         *Example*
 
         2025-05-11T16:04:00Z|118|0|0|false||baseline;
@@ -320,7 +320,7 @@ Identifying code issue causing problem with app requires careful analysis. Let m
         • Keep `correlation` **numeric** (`0` if not calculated).
 
     3.4. Pass the assembled string to  
-    `PlotAreaChartWithCorrelationAsync(chartTitle, "Time (UTC)", "Requests", "5xx errors", dataPoints, "Deployment ↔ 5xx correlation")`
+    `PlotAreaChartWithCorrelation(chartTitle, "Time (UTC)", "Requests", "5xx errors", dataPoints, "Deployment ↔ 5xx correlation")`
 
     **Goal**: Clear Visual evidence that deployment ➡ error spike and rollback ➡ recovery.
 

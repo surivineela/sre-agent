@@ -457,7 +457,8 @@ public abstract class OrchestrationAgentStep
         else if (functionCall.Name == nameof(ChartPluginDefinition.PlotBarChartAsync) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotPieChartAsync) ||
                  functionCall.Name == nameof(ChartPluginDefinition.PlotScatterAsync) ||
-                 functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesData))
+                 functionCall.Name == nameof(ChartPluginDefinition.PlotTimeSeriesData) ||
+                 functionCall.Name == nameof(ChartPluginDefinition.PlotAreaChartWithCorrelationAsync))
         {
             return new OrchestrationAgentChartStep { FunctionCall = functionCall };
         }

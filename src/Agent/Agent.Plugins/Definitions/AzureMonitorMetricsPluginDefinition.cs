@@ -31,8 +31,8 @@ namespace Agent.Plugins
             [Description("The metric name to query (e.g., CpuUsage, Requests, etc.). Must match the name returned from ListAvailableMetrics.")] string metricName,
             [Description("The start time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', '20 hours ago', '3 days ago'. Prefer relative format for recent values (e.g: '24 hours ago', '2 days ago'). Validation start date should be within last 90 days")] string startTime,
             [Description("The end time for the metric query range (Absolute in UTC or relative). Examples: '2024-03-05 10:50:00', 'now', 'an hour ago'. Prefer relative format for recent value (e.g: 'now', '1 hour ago'). Validation limit end date from last 90 days")] string endTime,
-            [Description("Optional dimension filter in OData syntax. Use 'dimension eq \"value\"' format for exact match or 'dimension eq \"*\"' to split by dimension. Multiple conditions can be combined with 'and'. Examples: 'statusCode eq \"200\"', 'revisionName eq \"*\"', " +
-            "'statusCode eq \"200\" and revisionName eq \"rev-1\"'. Available dimensions can be found in the LocalizedDimensions property of the MetricDefinition.")] string dimensionFilter = null)
+            [Description("Optional dimension filter in OData syntax. Use 'dimension eq \'value\'' format for exact match or 'dimension eq \'*\'' to split by dimension. Multiple conditions can be combined with 'and'. Examples: statusCode eq \'200\', revisionName eq \'*\', " +
+            "statusCode eq \'200\' and revisionName eq \'rev-1\'. Available dimensions can be found in the LocalizedDimensions property of the MetricDefinition.")] string dimensionFilter = null)
         {
             // Note: startTime and endTime are inputs from the LLM. I don't think it has a concept of moving time.
             // For example: it insists that 'now' (May '25) is some random day middle of July '24.

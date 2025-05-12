@@ -45,7 +45,8 @@ public class ChartToolCallActivity : TaskActivity<ChartToolCallInput, ExecuteAct
             AIFunctionFactory.Create(chartDefinition.PlotScatterAsync),
             AIFunctionFactory.Create(chartDefinition.PlotTimeSeriesData),
             AIFunctionFactory.Create(chartDefinition.PlotPieChartAsync),
-            AIFunctionFactory.Create(chartDefinition.PlotBarChartAsync)
+            AIFunctionFactory.Create(chartDefinition.PlotBarChartAsync),
+            AIFunctionFactory.Create(chartDefinition.PlotAreaChartWithCorrelationAsync),
         ];
         
         var matchingTool = aiFunctions.Single(x => x.Name == input.FunctionCallContent.Name);

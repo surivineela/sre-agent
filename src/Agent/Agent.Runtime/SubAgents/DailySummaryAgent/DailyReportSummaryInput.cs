@@ -145,7 +145,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         public double Availability { get; set; }
         public double AvgCpuUsage { get; set; }
         public double AvgMemoryUsage { get; set; }
-        public long Transactions { get; set; }
+        public double? Transactions { get; set; }
         public List<HistoricalDataPoint> HistoricalData { get; set; } = new List<HistoricalDataPoint>();
     }
 
