@@ -1050,9 +1050,9 @@ namespace Agent.Plugins.Implementation
                 // Get all revisions for this Container App
                 var revisions = await containerAppResource.GetContainerAppRevisions().ToListAsync();
 
-                // Sort revisions by created time in descending order (newest first)
+                // Sort revisions by last active time in descending order (newest first)
                 revisions = revisions
-                    .OrderByDescending(r => r.Data.CreatedOn)
+                    .OrderByDescending(r => r.Data.LastActiveOn)
                     .ToList();
 
                 details["TotalRevisions"] = revisions.Count.ToString();
@@ -1066,7 +1066,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Get current active revision name
-                string currentRevisionName = containerApp.Value.Data.LatestRevisionName;
+                var currentRevisionName = revisions.FirstOrDefault(r => r.Data.IsActive == true)?.Data.Name;
                 details["CurrentRevision"] = currentRevisionName ?? "Unknown";
 
                 // Find a healthy revision to roll back to
