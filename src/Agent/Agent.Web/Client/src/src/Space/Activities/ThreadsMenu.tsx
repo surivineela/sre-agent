@@ -8,13 +8,7 @@ import {
     SearchBoxChangeEvent,
     tokens,
 } from '@fluentui/react-components';
-import {
-    AddRegular,
-    DismissCircle16Filled,
-    PanelLeftContractRegular,
-    PanelLeftExpandRegular,
-    Warning16Filled,
-} from '@fluentui/react-icons';
+import { AddRegular, PanelLeftContractRegular, PanelLeftExpandRegular } from '@fluentui/react-icons';
 import { Shimmer } from '@fluentui/react/lib/Shimmer';
 import { mergeStyles } from '@fluentui/react/lib/Styling';
 import { Text } from '@fluentui/react/lib/Text';
@@ -233,14 +227,6 @@ const ThreadItem = memo(
         const styles = useActionsStatusBarStyles();
         const intl = useIntl();
 
-        const getIncidentIcon = (thread: Thread) => {
-            if (thread.status?.actionsStatus?.hasCriticalActions) {
-                return <DismissCircle16Filled className={styles.error} style={{ width: 16, height: 16 }} />;
-            } else if (thread.status?.actionsStatus?.hasWarningActions) {
-                return <Warning16Filled className={styles.warning} style={{ width: 16, height: 16 }} />;
-            }
-        };
-
         const getIncidentStatus = (thread: Thread) => {
             if (thread.status?.incidentStatus?.status) {
                 switch (thread.status?.incidentStatus?.status) {
@@ -277,7 +263,6 @@ const ThreadItem = memo(
                     <Text as="div" variant="medium" nowrap block>
                         {thread.title}
                     </Text>
-                    {<div className={styles.icon}>{getIncidentIcon(thread)}</div>}
                 </div>
                 {thread.source === ThreadSource.incident ? (
                     <div className={styles.subtitleContainer}>

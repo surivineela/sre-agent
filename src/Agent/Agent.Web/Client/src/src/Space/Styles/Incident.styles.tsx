@@ -48,7 +48,6 @@ export const useActionsStatusBarStyles = makeStyles({
         display: 'flex',
         alignItems: 'center',
         gap: '6px',
-        borderBottom: `1px solid ${tokens.colorNeutralStroke2}`,
     },
     completedActionIcon: {
         color: tokens.colorNeutralForeground2,
