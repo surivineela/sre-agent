@@ -5,6 +5,7 @@ using Agent.Core.Models.Api.v1;
 using Agent.Data.DataModels;
 using Agent.Plugins;
 using Agent.Plugins.Definitions;
+using Agent.Plugins.Mocks;
 using Agent.Runtime.Communication;
 using Agent.Runtime.MetaAgent;
 using Agent.Runtime.MetaAgent.Interfaces;
@@ -542,8 +543,7 @@ public class MetaAgentEvals
         var exampleResponse = $"""
              A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: AKS-Orchestration-0236eab7-7166-43b5-9424-48ee43ef04f6-2025-04-30-12-13-45, thread id is: 0236eab7-7166-43b5-9424-48ee43ef04f6.
             """;
-
-        var userMsg = "My AKS app checkout is not responding, please help! cluster name is `prod-shopping-c1`, subscription id is `ea2aa16c-c257-4359-aaea-ff2b0f3b3d10`, resource group name is `rg`";
+        var userMsg = "Create a simple deployment nginx with image nginx:latest in namespace default in my AKS cluster, the AKS cluster resource id is `/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/prod-shopping-c1`";
         var threadMsgs = new List<Message>
         {
             new Message(Guid.Parse(testRunGuid), DateTime.UtcNow, new Author(Role.User, testRunGuid, "testUser"), userMsg),
@@ -573,17 +573,71 @@ public class MetaAgentEvals
             sinkService);
 
         var mockGraphDbPlugin = new Mock<IGraphDBPlugin>();
+        mockGraphDbPlugin.Setup(x => x.ListResourcesByTypeAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), 0, -1)).
+            ReturnsAsync([]);
+        mockGraphDbPlugin.Setup(x => x.SearchResourceByNameAsync(It.IsAny<string>())).
+            ReturnsAsync(
+                new List<object>
+                {
+                    new Data.DatabaseClients.GraphDbClient.ArmResourceNode
+                    {
+                        SubscriptionId = "ea2aa16c-c257-4359-aaea-ff2b0f3b3d10",
+                        ResourceGroupName = "rg",
+                        ResourceName = "prod-shopping-c1",
+                        Location = "westus2",
+                        ResourceType = "microsoft.containerservice/managedClusters",
+                        ResourceId = "/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/microsoft.containerservice/managedClusters/prod-shopping-c1",
+                    },
+                    new Data.DatabaseClients.GraphDbClient.KubernetesNamespacedResourceNode(
+                        null,                                         // k8sObject
+                        "/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/prod-shopping-c1", // clusterResourceId
+                        "default",                                    // namespace
+                        "ea2aa16c-c257-4359-aaea-ff2b0f3b3d10",       // subscriptionId
+                        "rg",                                         // resourceGroupName
+                        "westus2",                                   // location
+                        "checkout",                                   // name
+                        "apps",                                       //group
+                        "v1",                                         // apiVersion
+                        "Deployment",                                 // kind
+                        new Dictionary<string, string>(),             // labels
+                        new Dictionary<string, string>()              // annotations
+                    )
+                }
+            );
+
+        mockGraphDbPlugin.Setup(x => x.SearchResourceAsync(It.IsAny<string>(), It.IsAny<string>())).
+            ReturnsAsync(
+                new List<Data.DatabaseClients.GraphDbClient.ArmResourceNode>
+                {
+                    new Data.DatabaseClients.GraphDbClient.ArmResourceNode
+                    {
+                        SubscriptionId = "ea2aa16c-c257-4359-aaea-ff2b0f3b3d10",
+                        ResourceGroupName = "rg",
+                        ResourceName = "prod-shopping-c1",
+                        Location = "westus2",
+                        ResourceType = "microsoft.containerservice/managedClusters",
+                        ResourceId = "/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/prod-shopping-c1",
+                    }
+                }
+            );
+
+        mockGraphDbPlugin.Setup(x => x.GetResourceIdForResourceName(It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync("/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/prod-shopping-c1");
+
+        var modeKubePlugin = new Mock<IKubePlugin>();
+        modeKubePlugin.Setup(x => x.GetAKSClusterResourceIdAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .ReturnsAsync("/subscriptions/ea2aa16c-c257-4359-aaea-ff2b0f3b3d10/resourceGroups/rg/providers/Microsoft.ContainerService/managedClusters/prod-shopping-c1");
+
         var mockKubernetesAgentPlugin = new Mock<IMetaAgentKubernetesAgentPlugin>();
         mockKubernetesAgentPlugin.Setup(x => x.StartKubernetesAgent
             (It.IsAny<string>())).ReturnsAsync("A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: AKS-Orchestration-0236eab7-7166-43b5-9424-48ee43ef04f6-2025-04-30-12-13-45, thread id is: 0236eab7-7166-43b5-9424-48ee43ef04f6. Will provide followup updates once the workflow is completed.");
-        mockKubernetesAgentPlugin.Verify(x => x.StartKubernetesAgent(It.IsAny<string>()), Times.Once);
         mockKubernetesAgentPlugin.Setup(x => x.ListKubernetesAgentWorkflow())
             .ReturnsAsync(new List<WorkflowMetadata<string>>
             {
                 new WorkflowMetadata<string>("mock-id", "mock-input")
             });
 
-        var factory = GetMockedThirdPartAgentsFactory(kubernetesAgentPlugin: mockKubernetesAgentPlugin.Object);
+        var factory = GetMockedThirdPartAgentsFactory(kubernetesAgentPlugin: mockKubernetesAgentPlugin.Object, graphDBPlugin: mockGraphDbPlugin.Object, kubePlugin: modeKubePlugin.Object);
         var agent = GetMockedMetaAgent(_chatClient!, factory, threadService: threadService, threadRepository: mockThreadRepository.Object);
 
         var userChatMsg = new List<ChatMessage>
@@ -592,12 +646,17 @@ public class MetaAgentEvals
         };
         var result = await agent.ProcessUserMessageAsync(agentContext: agentContext, agentChatHistory: agentChatHistory);
 
+
         Console.WriteLine($"Agent responds: {result}");
 
         var agentMsg = new ChatMessage(ChatRole.Assistant, result);
         var response = new ChatResponse(agentMsg);
 
         await response.EvaluateAsync(TestContext, _chatConfiguration, userChatMsg, groundedContext, exampleResponse, _llmDeploymentName);
+
+        mockKubernetesAgentPlugin.Verify(x => x.StartKubernetesAgent(It.IsAny<string>()), Times.Once);
+        Console.WriteLine("mockKubernetesAgentPlugin: StartKubernetesAgent called");
+
     }
 
     [TestMethod]

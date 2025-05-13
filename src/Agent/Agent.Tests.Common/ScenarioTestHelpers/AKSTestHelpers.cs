@@ -29,7 +29,11 @@ public static class AKSTestHelpers
                 .AddSingleton<ReliabilityPluginDefinition>()
                 .AddSingleton(sp => new Mock<IReliabilityPlugin>().Object)
                 .AddSingleton<IncidentPluginDefinition>()
-                .AddSingleton(sp => new Mock<IIncidentPlugin>().Object);
+                .AddSingleton(sp => new Mock<IIncidentPlugin>().Object)
+                .AddSingleton(sp => new Mock<INSGRulePlugin>().Object)
+                .AddSingleton<NSGRulePluginDefinition>()
+                .AddSingleton(sp => new Mock<IGithubIssuePlugin>().Object)
+                .AddSingleton<GitHubIssuePluginDefinition>();
 
     }
 }

@@ -16,7 +16,7 @@ using Agent.Core.Interfaces;
 namespace Agent.Evals;
 
 [TestClass]
-public sealed class AKSAgentEvals
+public partial class AKSAgentEvals
 {
     public TestContext TestContext { get; set; }
 
@@ -96,9 +96,10 @@ public sealed class AKSAgentEvals
         _mockKubePluginWrapper.Setup(x => x.GetKubePodLogsAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<int>()))
            .Returns((string id, string ns, string pod, string c, int l) => _mockKubePlugin.GetKubePodLogsAsync(id, ns, pod, c, l));
         _mockKubePluginWrapper.Setup(x => x.GetCpuMetricsForWorkloadAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
-            .Returns((string id, string ns, string type, string name, string range) => _mockKubePlugin.GetCpuMetricsForWorkloadAsync(id, ns, type, name, range));
-        _mockKubePluginWrapper.Setup(x => x.GetMemoryMetricsForWorkloadAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string id, string ns, string type, string name, string range) => _mockKubePlugin.GetCpuMetricsForWorkloadAsync(id, ns, type, name, range));        _mockKubePluginWrapper.Setup(x => x.GetMemoryMetricsForWorkloadAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
             .Returns((string id, string ns, string type, string name, string range) => _mockKubePlugin.GetMemoryMetricsForWorkloadAsync(id, ns, type, name, range));
+        _mockKubePluginWrapper.Setup(x => x.ListWorkloadRevisions(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
+            .Returns((string id, string ns, string type, string name) => _mockKubePlugin.ListWorkloadRevisions(id, ns, type, name));
         _mockKubePluginWrapper.Setup(x => x.DiagnoseAKSAppAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>()))
           .Returns((string id, string ns, string k, string n) => _mockKubePlugin.DiagnoseAKSAppAsync(id, ns, k, n));
         // *** Crucial Setup for ScaleStatefulSetAsync ***
