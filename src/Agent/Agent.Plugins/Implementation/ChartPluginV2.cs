@@ -344,13 +344,26 @@ namespace Agent.Plugins
                 .Distinct()
                 .ToList();
 
+            // Determine if all data points are within the same day
+            string timeFormat = "yyyy-MM-dd HH:mm:ss"; // Default format
+            if (groupedByTimestamp.Count > 0)
+            {
+                var earliestDate = groupedByTimestamp.First().Key.Date;
+                var latestDate = groupedByTimestamp.Last().Key.Date;
+                
+                if (earliestDate == latestDate)
+                {
+                    timeFormat = "HH:mm:ss"; // Use shorter time-only format if all points are on the same day
+                }
+            }
+
             // Create frontend-friendly data format
             var result = new List<object>();
             foreach (var group in groupedByTimestamp)
             {
                 var dataPoint = new Dictionary<string, object>
                 {
-                    { "name", group.Key.ToString("yyyy-MM-dd HH:mm:ss") }
+                    { "name", group.Key.ToString(timeFormat) }
                 };
 
                 // Add value for each series
