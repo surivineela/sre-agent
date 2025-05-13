@@ -141,10 +141,10 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
     public class AppHealthInfo
     {
         public DateTime LastDataCaptureTimeStampInUTC { get; set; }
-        public ScorecardHealthState Health { get; set; }
-        public double Availability { get; set; }
-        public double AvgCpuUsage { get; set; }
-        public double AvgMemoryUsage { get; set; }
+        public ScorecardHealthState Health { get; set; } = ScorecardHealthState.Unknown;
+        public double? Availability { get; set; }
+        public double? AvgCpuUsage { get; set; }
+        public double? AvgMemoryUsage { get; set; }
         public double? Transactions { get; set; }
         public List<HistoricalDataPoint> HistoricalData { get; set; } = new List<HistoricalDataPoint>();
     }
@@ -152,9 +152,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
     public class HistoricalDataPoint
     {
         public DateTime Timestamp { get; set; }
-        public double Availability { get; set; }
-        public double CpuUsage { get; set; }
-        public double MemoryUsage { get; set; }
+        public double? Availability { get; set; }
+        public double? CpuUsage { get; set; }
+        public double? MemoryUsage { get; set; }
     }
 }
 

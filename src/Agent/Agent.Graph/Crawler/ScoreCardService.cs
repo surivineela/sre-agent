@@ -4,6 +4,7 @@
 
 using System.Collections;
 using Agent.Data.DatabaseClients.GraphDbClient;
+using Agent.Data.Repositories;
 using Agent.Graph.Crawler.ARM;
 using Agent.Graph.Crawler.Metrics;
 using Agent.Logging;
@@ -15,15 +16,18 @@ public class ScoreCardService
     private readonly ILogger<ScoreCardService> _logger;
     private readonly IGraphDatabaseClient _graphDatabaseClient;
     private readonly IEnumerable<IResourceMetricsCollector> _metricsCollector;
+    private readonly IAppHealthHistoryRepository _appHealthHistoryRepository;
 
     public ScoreCardService(
         ILogger<ScoreCardService> logger,
         IGraphDatabaseClient graphDatabaseClient,
-        IEnumerable<IResourceMetricsCollector> resourceMetricsCollectors)
+        IEnumerable<IResourceMetricsCollector> resourceMetricsCollectors,
+        IAppHealthHistoryRepository appHealthHistoryRepository)
     {
         _logger = logger;
         _graphDatabaseClient = graphDatabaseClient;
         _metricsCollector = resourceMetricsCollectors;
+        _appHealthHistoryRepository = appHealthHistoryRepository;
     }
 
     public async Task UpdateAllScoreCardsAsync(CancellationToken cancellationToken)
@@ -33,6 +37,19 @@ public class ScoreCardService
 
         var queryResults = await _graphDatabaseClient.Query(nodesToUpdateQuery);
         int updatedCount = 0;
+
+        // First, prune old health history data points (older than 24 hours)
+        // this is 24 hours bc we use this health history for the daily report, we can extend this in the future
+        try
+        {
+            var olderThan = DateTime.UtcNow.AddDays(-1);
+            var (documentsUpdated, pointsRemoved) = await _appHealthHistoryRepository.PruneAppHealthHistoryAsync(olderThan);
+            _logger.LogInternalInformation($"Pruned {pointsRemoved} old app health history data points from {documentsUpdated} documents");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogInternalError(ex, "Error pruning old app health history data points");
+        }
 
         foreach (var result in queryResults)
         {
@@ -248,6 +265,27 @@ public class ScoreCardService
             var appHealthInfo = await collector.CollectMetricsAsync(node);
             node.AppHealthInfo = appHealthInfo;
             await _graphDatabaseClient.AddOrUpdateNodeAsync(node);
+            
+            // Save app health information to CosmosDB history
+            if (appHealthInfo != null)
+            {
+                try
+                {
+                    await _appHealthHistoryRepository.UpdateAppHealthHistoryAsync(
+                        node.ResourceId,
+                        node.ResourceName,
+                        node.ResourceType,
+                        appHealthInfo);
+                    
+                    _logger.LogInternalInformation($"Updated app health history for {node.ResourceName} ({node.ResourceType})");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Failed to update app health history for resource {node.ResourceId} ({node.ResourceName})");
+                    // We continue with the scorecard update even if saving history fails
+                }
+            }
+            
             return true;
         }
         catch (Exception ex)
@@ -260,7 +298,6 @@ public class ScoreCardService
 
     private async Task<bool> UpdateScoreCardForAKSNode(KubernetesNamespacedResourceNode node)
     {
-
         var collector = _metricsCollector.OfType<AKSMetricsCollector>().FirstOrDefault();
 
         if (collector == null)
@@ -274,6 +311,27 @@ public class ScoreCardService
             var appHealthInfo = await collector.CollectMetricsAsync(node);
             node.AppHealthInfo = appHealthInfo;
             await _graphDatabaseClient.AddOrUpdateNodeAsync(node);
+            
+            // Save app health information to CosmosDB history
+            if (appHealthInfo != null)
+            {
+                try
+                {
+                    await _appHealthHistoryRepository.UpdateAppHealthHistoryAsync(
+                        node.GetNodeId(),
+                        node.ResourceName,
+                        node.Kind,
+                        appHealthInfo);
+                    
+                    _logger.LogInternalInformation($"Updated app health history for {node.ResourceName} ({node.Kind})");
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogInternalError(ex, $"Failed to update app health history for resource {node.GetNodeId()} ({node.ResourceName})");
+                    // We continue with the scorecard update even if saving history fails
+                }
+            }
+            
             return true;
         }
         catch (Exception ex)

@@ -116,6 +116,17 @@ public static class AgentDataConfiguration
             return new CosmosDbIncidentRepository(cosmosClient, cosmosDatabaseName, logger);
         });
 
+        // Register the AppHealthHistory repository
+        serviceCollection.AddSingleton<IAppHealthHistoryRepository>(serviceProvider =>
+        {
+            var cosmosDbSettings = serviceProvider.GetRequiredService<CosmosDBSettings>();
+            var cosmosDatabaseName = cosmosDbSettings.Docs.Database;
+
+            var cosmosClient = serviceProvider.GetRequiredService<CosmosClient>();
+            var logger = serviceProvider.GetRequiredService<ILogger<CosmosDbAppHealthHistoryRepository>>();
+            return new CosmosDbAppHealthHistoryRepository(cosmosClient, cosmosDatabaseName, logger);
+        });
+
         return serviceCollection;
     }
 

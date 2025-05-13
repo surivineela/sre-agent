@@ -30,6 +30,7 @@ using Thread = Agent.Core.Models.Api.v1.Thread;
 using System.Collections.Concurrent;
 using System.Linq;
 using Microsoft.Extensions.Configuration;
+using Agent.Data.DataModels;
 
 namespace Agent.Runtime.SubAgents.DailyReportSummary
 {
@@ -61,6 +62,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         private readonly IIncidentRepository _incidentRepository;
         private readonly IGithubIssuePlugin _githubIssuePlugin;
         private readonly IConfiguration _configuration;
+        private readonly IAppHealthHistoryRepository _appHealthHistoryRepository;
 
         private readonly string DashboardScreenshotsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "DashboardScreenshots");
 
@@ -74,15 +76,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             { "microsoft.web/sites", "azure-app-service" },
             // Pending: webapp, sql
         };
-
-        private static readonly ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>> _appHealthHistory
-            = new ConcurrentDictionary<string, List<AppHealthInfoWithTimestamp>>();
-
-        private class AppHealthInfoWithTimestamp
-        {
-            public AppHealthInfo HealthInfo { get; set; }
-            public DateTime Timestamp { get; set; }
-        }
 
         public DailyReportScanner(
             DurableTaskClient durableTaskClient,
@@ -101,6 +94,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             IIncidentRepository incidentRepository,
             IGithubIssuePlugin githubIssuePlugin,
             IConfiguration configuration,
+            IAppHealthHistoryRepository appHealthHistoryRepository,
             string mainDashboardFile = "Main-Dashboard.json",
             string puppeteerScreenshotApiUrl = "https://test-capp.ambitiouspond-10f27fe1.canadaeast.azurecontainerapps.io")
         {
@@ -142,6 +136,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             _incidentRepository = incidentRepository;
             _githubIssuePlugin = githubIssuePlugin;
             _configuration = configuration;
+            _appHealthHistoryRepository = appHealthHistoryRepository;
         }
 
         public async Task<Thread?> ScanAndGenerateReport(CancellationToken cancellationToken)
@@ -174,18 +169,12 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             var now = DateTime.UtcNow;
             var todayReportTime = new DateTime(now.Year, now.Month, now.Day, 7, 0, 0, DateTimeKind.Utc); // 7 AM UTC
 
-            // Skip if it's not time yet for the daily report
-            // we will only send the daily reports at 7 utc
-            // the daily report timer interval is 1 hour, so this will evaluate to false if the current hour is 7
+            //Skip if it's not time yet for the daily report
+            // the daily report timer interval is 1 hour, so this will evaluate to false if the current hour is not 7
             if (now.Hour != todayReportTime.Hour)
             {
                 _logger.LogDebug("Not time for daily report yet. Current hour: {CurrentHour}, Target hour: {TargetHour}",
                     now.Hour, todayReportTime.Hour);
-
-                //even if not returning the daily report add app health info to aggregate it later
-                await addAppHealthInfo();
-                _logger.LogDebug("Added current app health info to app health dictionary. Current hour: {CurrentHour}, Target hour: {TargetHour}",
-                now.Hour, todayReportTime.Hour);
 
                 return null;
             }
@@ -1198,19 +1187,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
         private async Task<List<AppGroupResourceSummary>> GetAppGroupsHealthSummaryAsync()
         {
-            // Clean up old entries (older than 24 hours)
-            DateTime cutoffTime = DateTime.UtcNow.AddDays(-1);
-            foreach (var key in _appHealthHistory.Keys)
-            {
-                _appHealthHistory.TryGetValue(key, out var history);
-                if (history != null)
-                {
-                    // Remove old entries
-                    var filteredHistory = history.Where(h => h.Timestamp >= cutoffTime).ToList();
-                    _appHealthHistory[key] = filteredHistory;
-                }
-            }
-
             var result = new List<AppGroupResourceSummary>();
             var subscriptions = await _graphDBPlugin.ListSubscriptionsAsync();
 
@@ -1224,9 +1200,9 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                     foreach (var appGroup in appGroups)
                     {
                         var properties = appGroup["properties"] as IDictionary<string, object>;
-                        string appGroupId = appGroup["id"]?.ToString();
+                        string appId = appGroup["id"]?.ToString();
 
-                        if (properties != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
+                        if (properties != null && appId != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
                         {
                             var options = new JsonSerializerOptions
                             {
@@ -1245,28 +1221,47 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
 
                                 if (latestHealthInfo != null)
                                 {
-                                    // Add current data point to history
-                                    if (!_appHealthHistory.TryGetValue(appGroupId, out var history))
+                                    // Get health history from CosmosDB
+                                    try 
                                     {
-                                        history = new List<AppHealthInfoWithTimestamp>();
-                                        _appHealthHistory[appGroupId] = history;
+                                        // Get the historical data document
+                                        var historyDocument = await _appHealthHistoryRepository.GetAppHealthHistoryAsync(appId.Replace("_", "/"));
+                                        
+                                        if (historyDocument != null)
+                                        {
+                                            // Create aggregated view based on stored history
+                                            var aggregatedHealthInfo = AggregateHealthInfoFromHistory(historyDocument);
+                                            
+                                            summary.Add(new AppGroupResourceInfo
+                                            {
+                                                Name = appGroup["name"]?.ToString() ?? string.Empty,
+                                                Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                                AppHealthInfo = aggregatedHealthInfo ?? latestHealthInfo
+                                            });
+                                        }
+                                        else
+                                        {
+                                            // No history document found, use latest health info only
+                                            summary.Add(new AppGroupResourceInfo
+                                            {
+                                                Name = appGroup["name"]?.ToString() ?? string.Empty,
+                                                Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                                AppHealthInfo = latestHealthInfo
+                                            });
+                                        }
                                     }
-
-                                    history.Add(new AppHealthInfoWithTimestamp
+                                    catch (Exception ex)
                                     {
-                                        HealthInfo = latestHealthInfo,
-                                        Timestamp = DateTime.UtcNow
-                                    });
-
-                                    // Create aggregated view based on stored history
-                                    var aggregatedHealthInfo = AggregateHealthInfoFromHistory(appGroupId);
-
-                                    summary.Add(new AppGroupResourceInfo
-                                    {
-                                        Name = appGroup["name"]?.ToString() ?? string.Empty,
-                                        Type = appGroup["type"]?.ToString() ?? string.Empty,
-                                        AppHealthInfo = aggregatedHealthInfo
-                                    });
+                                        _logger.LogInternalError(ex, "Failed to retrieve app health history for {AppId}, using latest health info only", appId);
+                                        
+                                        // Fall back to using the latest health info only
+                                        summary.Add(new AppGroupResourceInfo
+                                        {
+                                            Name = appGroup["name"]?.ToString() ?? string.Empty,
+                                            Type = appGroup["type"]?.ToString() ?? string.Empty,
+                                            AppHealthInfo = latestHealthInfo
+                                        });
+                                    }
                                 }
                             }
                         }
@@ -1284,38 +1279,50 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             return result;
         }
 
-        private AppHealthInfo AggregateHealthInfoFromHistory(string appGroupId)
+        private AppHealthInfo AggregateHealthInfoFromHistory(AppHealthHistoryDocument historyDocument)
         {
-            if (!_appHealthHistory.TryGetValue(appGroupId, out var history) || !history.Any())
+            if (historyDocument == null || historyDocument.HistoryData == null || !historyDocument.HistoryData.Any())
             {
                 return null;
             }
 
-            var healthInfos = history.Select(h => h.HealthInfo).ToList();
+            var healthInfos = historyDocument.HistoryData
+                .Select(dp => new 
+                { 
+                    HealthState = dp.Health,
+                    Availability = dp.Availability,
+                    CpuUsage = dp.AvgCpuUsage,
+                    MemoryUsage = dp.AvgMemoryUsage,
+                    Transactions = dp.Transactions,
+                    Timestamp = dp.LastDataCaptureTimeStampInUTC
+                }).ToList();
+
+            // Get the timestamp from the most recent data point
+            var latestTimestamp = healthInfos.Max(h => h.Timestamp);
 
             return new AppHealthInfo
             {
-                LastDataCaptureTimeStampInUTC = DateTime.UtcNow,
+                LastDataCaptureTimeStampInUTC = latestTimestamp,
 
                 // Determine overall health based on worst state in past 24 hours
-                Health = DetermineAggregateHealth(healthInfos.Select(h => h.Health)),
+                Health = DetermineAggregateHealth(healthInfos.Select(h => h.HealthState)),
                 // Average metrics for last 24 hours
                 Availability = healthInfos.Average(h => h.Availability),
-                AvgCpuUsage = healthInfos.Average(h => h.AvgCpuUsage),
-                AvgMemoryUsage = healthInfos.Average(h => h.AvgMemoryUsage),
+                AvgCpuUsage = healthInfos.Average(h => h.CpuUsage),
+                AvgMemoryUsage = healthInfos.Average(h => h.MemoryUsage),
 
                 // Sum transactions over the period
                 Transactions = healthInfos.Sum(h => h.Transactions ?? 0),
 
                 // Include the 24-hour historical data
-                HistoricalData = history
+                HistoricalData = healthInfos
                     .OrderBy(h => h.Timestamp)
                     .Select(h => new HistoricalDataPoint
                     {
                         Timestamp = h.Timestamp,
-                        Availability = h.HealthInfo.Availability,
-                        CpuUsage = h.HealthInfo.AvgCpuUsage,
-                        MemoryUsage = h.HealthInfo.AvgMemoryUsage
+                        Availability = h.Availability,
+                        CpuUsage = h.CpuUsage,
+                        MemoryUsage = h.MemoryUsage
                     })
                     .ToList()
             };
@@ -1623,7 +1630,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
                 flags = "Microsoft_Azure_PaasServerless_sre_local=true";
             }
 
-            flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=canary&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D#view/Microsoft_Azure_PaasServerless/AgentFrameBlade/id/%2F";
+            flags += "&feature.customPortal=false&feature.canmodifystamps=true&feature.fastmanifest=false&nocdn=force&websitesextension_loglevel=verbose&Microsoft_Azure_PaasServerless=beta&microsoft_azure_paasserverless_assettypeoptions=%7B%22SreAgentCustomMenu%22%3A%7B%22options%22%3A%22%22%7D%7D#view/Microsoft_Azure_PaasServerless/AgentFrameBlade/id/%2F";
             return $"{agentHost}?Microsoft_Azure_PaasServerless_srelink=/views/activities/threads/{threadId}&{flags}";
         }
 
@@ -1643,85 +1650,6 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
             public string PluginId { get; set; } = string.Empty;
             [JsonPropertyName("value")]
             public string Value { get; set; } = string.Empty;
-        }
-
-        private async Task addAppHealthInfo()
-        {
-            try
-            {
-                // Clean up old entries (older than 24 hours)
-                DateTime cutoffTime = DateTime.UtcNow.AddDays(-1);
-                foreach (var key in _appHealthHistory.Keys)
-                {
-                    _appHealthHistory.TryGetValue(key, out var history);
-                    if (history != null)
-                    {
-                        // Remove old entries
-                        var filteredHistory = history.Where(h => h.Timestamp >= cutoffTime).ToList();
-                        _appHealthHistory[key] = filteredHistory;
-                    }
-                }
-
-                var subscriptions = await _graphDBPlugin.ListSubscriptionsAsync();
-
-                foreach (var sub in subscriptions)
-                {
-                    var appGroups = await _graphDbService.GetAppGroupsBySubscriptionAsync(sub["id"]);
-
-                    if (appGroups != null)
-                    {
-                        foreach (var appGroup in appGroups)
-                        {
-                            var properties = appGroup["properties"] as IDictionary<string, object>;
-                            string appGroupId = appGroup["id"]?.ToString();
-
-                            if (properties != null && properties.TryGetValue("appHealthInfo", out var appHealthInfoObj) && appHealthInfoObj != null)
-                            {
-                                var options = new JsonSerializerOptions
-                                {
-                                    IncludeFields = true,
-                                };
-
-                                var jsonStringList = ((IEnumerable<object>)appHealthInfoObj)
-                                    .OfType<string>()
-                                    .Where(s => !string.IsNullOrEmpty(s))
-                                    .ToList();
-
-                                if (jsonStringList.Any())
-                                {
-                                    // Get latest health data point
-                                    var latestHealthInfo = JsonSerializer.Deserialize<AppHealthInfo>(jsonStringList[0], options);
-
-                                    if (latestHealthInfo != null)
-                                    {
-                                        // Add current data point to history
-                                        if (!_appHealthHistory.TryGetValue(appGroupId, out var history))
-                                        {
-                                            history = new List<AppHealthInfoWithTimestamp>();
-                                            _appHealthHistory[appGroupId] = history;
-                                        }
-
-                                        history.Add(new AppHealthInfoWithTimestamp
-                                        {
-                                            HealthInfo = latestHealthInfo,
-                                            Timestamp = DateTime.UtcNow
-                                        });
-
-                                        _logger.LogDebug("Added health data for app group {AppGroupId}", appGroupId);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
-                _logger.LogInternalInformation("Successfully collected and stored app health information for {Count} app groups",
-                    _appHealthHistory.Count);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInternalError(ex, "Error collecting app health information: {Message}", ex.Message);
-            }
         }
 
         private ReportOverview GenerateOverview(CVESummary cveSummary, IncidentSummary incidentsSummary, List<AppGroupResourceSummary> appGroupsHealthSummary)
