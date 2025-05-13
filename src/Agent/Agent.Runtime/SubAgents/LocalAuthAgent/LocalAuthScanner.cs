@@ -44,12 +44,14 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
 
     protected override async Task<ICollection<SimpleResourceSubAgentResourceInformation>> GetResourcesInViolationAsync()
     {
-        
+
         var storageStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.StorageType.ToLower(), _armHelper.GetStorageSettings);
         var cosmosStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.CosmosDbType.ToLower(), _armHelper.GetCosmosDbSettings);
         var sqlStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.AzureSQLType.ToLower(), _armHelper.GetAzureSqlServerSettings);
         var eventHubStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.EventHubType.ToLower(), _armHelper.GetEventHubSettings);
         var serviceBusStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.ServiceBusType.ToLower(), _armHelper.GetServiceBusSettings);
+        var appServiceStatusesTask = GetResourceTypeInViolationAsync(ArmConstants.AppServiceType.ToLower(), _armHelper.GetAppServiceSettings);
+
 
         await Task.WhenAll(storageStatusesTask, cosmosStatusesTask, sqlStatusesTask,
             eventHubStatusesTask, serviceBusStatusesTask);
@@ -74,12 +76,16 @@ public class LocalAuthScanner : SimpleResourceSubAgentScannerBase<LocalAuthAgent
             serviceBusStatusesTask.Result
                 .Where(x => x.IsLocalAuthDisabled == false)
                 .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
+                ,
+            appServiceStatusesTask.Result
+                .Where(x => x.SCMBasicAuthEnabled == true || x.FTPBasicAuthEnabled == true) 
+                .Select(x => new SimpleResourceSubAgentResourceInformation(x.ResourceId, x.Name, x.Location))
         };
 
         return allStatuses.SelectMany(x => x).ToList();
     }
 
-    private async Task<T> GetResourceTypeInViolationAsync<T>(string resourceType, Func<List<string>,Task<T>> resourceSettingsGetter)
+    private async Task<T> GetResourceTypeInViolationAsync<T>(string resourceType, Func<List<string>, Task<T>> resourceSettingsGetter)
     {
         string query = $"g.V().has('resourceType', '{resourceType}').values('resourceId')";
         var queryResults = await _graphDatabaseClient.Query(query);

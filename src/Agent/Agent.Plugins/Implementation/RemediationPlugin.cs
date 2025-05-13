@@ -385,6 +385,32 @@ namespace Agent.Plugins.Implementation
                 });
         }
 
+        public async Task<RemediationResult> AzureAppServiceSetFtpAuthenticationSupport(string resourceId, FeatureState featureState)
+        {
+            return await RemediateArmResource(
+                resourceId,
+                "App Service",
+                fetchResourceFunc: _armHelper.GetAppServiceAsync,
+                remediationActionFunc: async (resource) =>
+                {
+                    _logger?.LogInternalInformation($"Setting FTP authentication support for App Service");
+                    await _armHelper.SetWebSiteFtpAuthenticationSupport(resourceId, featureState);
+                });
+        }
+
+        public async Task<RemediationResult> AzureAppServiceSetScmAuthenticationSupport(string resourceId, FeatureState featureState)
+        {
+            return await RemediateArmResource(
+                resourceId,
+                "App Service",
+                fetchResourceFunc: _armHelper.GetAppServiceAsync,
+                remediationActionFunc: async (resource) =>
+                {
+                    _logger?.LogInternalInformation($"Setting SCM authentication support for App Service");
+                    await _armHelper.SetWebSiteScmAuthenticationSupport(resourceId, featureState);
+                });
+        }   
+
         private static string GetSkuFamily(string sku)
         {
             if (string.IsNullOrEmpty(sku)) return string.Empty;

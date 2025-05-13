@@ -565,31 +565,36 @@ public class ArmHelper
         return await GetResourceSettings(resourceIds, FetchTlsStatusAsync);
     }
 
-    public async Task<List<Models.StorageAccountStatus>> GetStorageSettings(List<string> resourceIds)
+    public async Task<List<StorageAccountLocalAuthSettings>> GetStorageSettings(List<string> resourceIds)
     {
         return await GetResourceSettings(resourceIds, FetchStorageAccountStatusAsync);
     }
 
-    public async Task<List<CosmosDbStatus>> GetCosmosDbSettings(List<string> resourceIds)
+    public async Task<List<CosmosDbLocalAuthStatus>> GetCosmosDbSettings(List<string> resourceIds)
     {
         return await GetResourceSettings(resourceIds, FetchCosmosDbStatusAsync);
     }
 
-    public async Task<List<EventHubStatus>> GetEventHubSettings(List<string> resourceIds)
+    public async Task<List<EventHubLocalAuthStatus>> GetEventHubSettings(List<string> resourceIds)
     {
         return await GetResourceSettings(resourceIds, FetchEventHubStatusAsync);
     }
 
-    public async Task<List<ServiceBusStatus>> GetServiceBusSettings(List<string> resourceIds)
+    public async Task<List<ServiceBusLocalAuthStatus>> GetServiceBusSettings(List<string> resourceIds)
     {
         return await GetResourceSettings(resourceIds, FetchServiceBusStatusAsync);
     }
 
-    public async Task<List<SqlServerSettings>> GetAzureSqlServerSettings(List<string> resourceIds)
+    public async Task<List<SqlServerLocalAuthStatus>> GetAzureSqlServerSettings(List<string> resourceIds)
     {
         return await GetResourceSettings(resourceIds, FetchSqlServerStatusAsync);
     }
 
+    public async Task<List<AppServiceLocalAuthStatus>> GetAppServiceSettings(List<string> resourceIds)
+    {
+        return await GetResourceSettings(resourceIds, FetchAppServiceStatusAsync);
+    }
+    
     /// <summary>
     /// Checks if a given string is a valid resource identifier.
     /// </summary>
@@ -686,6 +691,13 @@ public class ArmHelper
         var armClient = await _armClientFactory.GetArmOperationClient();
         var sqlServerResource = armClient.GetSqlServerResource(new ResourceIdentifier(resourceId));
         return await sqlServerResource.GetAsync();
+    }
+
+    public async Task<WebSiteResource> GetAppServiceAsync(string resourceId)
+    {
+        var armClient = await _armClientFactory.GetArmOperationClient();
+        var webSiteResource = armClient.GetWebSiteResource(new ResourceIdentifier(resourceId));
+        return await webSiteResource.GetAsync();
     }
 
     public async Task SetStorageAccountSharedKeySupportAsync(string resourceId, FeatureState featureState)
@@ -1032,10 +1044,10 @@ public class ArmHelper
         return response.IsSuccessStatusCode;
     }
 
-    public async Task<Models.StorageAccountStatus> FetchStorageAccountStatusAsync(string resourceId)
+    public async Task<Models.StorageAccountLocalAuthSettings> FetchStorageAccountStatusAsync(string resourceId)
     {
         var storageAccount = await GetStorageAccountAsync(resourceId);
-        return new Models.StorageAccountStatus(
+        return new Models.StorageAccountLocalAuthSettings(
             ResourceId: resourceId,
             Name: storageAccount.Data.Name,
             Location: storageAccount.Data.Location,
@@ -1044,10 +1056,10 @@ public class ArmHelper
             );
     }
 
-    public async Task<CosmosDbStatus> FetchCosmosDbStatusAsync(string resourceId)
+    public async Task<CosmosDbLocalAuthStatus> FetchCosmosDbStatusAsync(string resourceId)
     {
         var cosmosDBAccountResource = await GetCosmosDbAccountAsync(resourceId);
-        return new CosmosDbStatus(
+        return new CosmosDbLocalAuthStatus(
             ResourceId: resourceId,
             Name: cosmosDBAccountResource.Data.Name,
             Location: cosmosDBAccountResource.Data.Location,
@@ -1055,10 +1067,10 @@ public class ArmHelper
             );
     }
 
-    public async Task<EventHubStatus> FetchEventHubStatusAsync(string resourceId)
+    public async Task<EventHubLocalAuthStatus> FetchEventHubStatusAsync(string resourceId)
     {
         var eventHubsNamespaceResource = await GetEventHubAccountAsync(resourceId);
-        return new EventHubStatus(
+        return new EventHubLocalAuthStatus(
             ResourceId: resourceId,
             Name: eventHubsNamespaceResource.Data.Name,
             Location: eventHubsNamespaceResource.Data.Location,
@@ -1066,10 +1078,10 @@ public class ArmHelper
             );
     }
 
-    public async Task<ServiceBusStatus> FetchServiceBusStatusAsync(string resourceId)
+    public async Task<ServiceBusLocalAuthStatus> FetchServiceBusStatusAsync(string resourceId)
     {
         var serviceBusNamespaceResource = await GetServiceBusAccountAsync(resourceId);
-        return new ServiceBusStatus(
+        return new ServiceBusLocalAuthStatus(
             ResourceId: resourceId,
             Name: serviceBusNamespaceResource.Data.Name,
             Location: serviceBusNamespaceResource.Data.Location,
@@ -1077,17 +1089,48 @@ public class ArmHelper
             );
     }
 
-    public async Task<SqlServerSettings> FetchSqlServerStatusAsync(string resourceId)
+    public async Task<SqlServerLocalAuthStatus> FetchSqlServerStatusAsync(string resourceId)
     {
         var sqlServerResource = await GetSqlServerAsync(resourceId);
 
-        return new SqlServerSettings(
+        return new SqlServerLocalAuthStatus(
             ResourceId: resourceId,
             Name: sqlServerResource.Data.Name,
             Location: sqlServerResource.Data.Location,
             IsAzureADOnlyAuthenticationEnabled: sqlServerResource.Data.Administrators?.IsAzureADOnlyAuthenticationEnabled ?? false,
             IsEntraAdminSet: sqlServerResource.Data.Administrators?.AdministratorType == SqlAdministratorType.ActiveDirectory
             );
+    }
+
+    public async Task<AppServiceLocalAuthStatus> FetchAppServiceStatusAsync(string resourceId)
+    {
+        var webSiteResource = await GetAppServiceAsync(resourceId);
+        var scmPublishingCredentialsPolicy =  await webSiteResource.GetScmSiteBasicPublishingCredentialsPolicy().GetAsync();
+        var ftpPublishingCredentialsPolicy = await webSiteResource.GetWebSiteFtpPublishingCredentialsPolicy().GetAsync();
+
+        return new AppServiceLocalAuthStatus(
+            ResourceId: resourceId,
+            Name: webSiteResource.Data.Name,
+            Location: webSiteResource.Data.Location,
+            FTPBasicAuthEnabled: ftpPublishingCredentialsPolicy.Value.Data.Allow ?? true,
+            SCMBasicAuthEnabled: scmPublishingCredentialsPolicy.Value.Data.Allow ?? true
+            );
+    }
+
+    public async Task SetWebSiteFtpAuthenticationSupport(string resourceId, FeatureState featureState)
+    {
+        var webSiteResource = await GetAppServiceAsync(resourceId);
+        var ftpPublishingCredentialsPolicy = await webSiteResource.GetWebSiteFtpPublishingCredentialsPolicy().GetAsync();
+        ftpPublishingCredentialsPolicy.Value.Data.Allow = (featureState == FeatureState.Enabled);
+        await ftpPublishingCredentialsPolicy.Value.CreateOrUpdateAsync(WaitUntil.Completed, ftpPublishingCredentialsPolicy.Value.Data);
+    }
+
+    public async Task SetWebSiteScmAuthenticationSupport(string resourceId, FeatureState featureState)
+    {
+        var webSiteResource = await GetAppServiceAsync(resourceId);
+        var scmPublishingCredentialsPolicy = await webSiteResource.GetScmSiteBasicPublishingCredentialsPolicy().GetAsync();
+        scmPublishingCredentialsPolicy.Value.Data.Allow = (featureState == FeatureState.Enabled);
+        await scmPublishingCredentialsPolicy.Value.CreateOrUpdateAsync(WaitUntil.Completed, scmPublishingCredentialsPolicy.Value.Data);
     }
 
     public async Task SetCosmosDbLocalAuthSupport(string resourceId, FeatureState featureState)

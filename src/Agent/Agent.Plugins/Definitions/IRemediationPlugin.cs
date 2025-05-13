@@ -29,6 +29,10 @@ namespace Agent.Plugins.Definitions
 
         Task<RemediationResult> AzureSqlServerSetLocalAuthSupport(string resourceId, FeatureState featureState);
 
+        Task<RemediationResult> AzureAppServiceSetFtpAuthenticationSupport(string resourceId, FeatureState featureState);
+
+        Task<RemediationResult> AzureAppServiceSetScmAuthenticationSupport(string resourceId, FeatureState featureState);
+
         Task<RemediationResult> CalculateScalingCost(
             string resourceId,
             string direction,

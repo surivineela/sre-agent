@@ -1,6 +1,6 @@
 namespace Agent.Core.Models;
 
-public sealed record CosmosDbStatus(
+public sealed record CosmosDbLocalAuthStatus(
     string ResourceId,
     string Name,
     string Location,

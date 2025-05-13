@@ -132,6 +132,30 @@ namespace Agent.Plugins.Mocks
                     FinishedTime: _timeProvider.GetUtcNow().DateTime
             ));
         }
+
+        public Task<RemediationResult> AzureAppServiceSetFtpAuthenticationSupport(string resourceId, FeatureState featureState)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "AzureAppServiceSetFtpAuthenticationSupport",
+                    Details: $"FTP Authentication in {resourceId} have been set to {featureState}.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
+
+        public Task<RemediationResult> AzureAppServiceSetScmAuthenticationSupport(string resourceId, FeatureState featureState)
+        {
+            return Task.FromResult(
+                new RemediationResult(
+                    Success: true,
+                    Action: "AzureAppServiceSetScmAuthenticationSupport",
+                    Details: $"SCM Authentication in {resourceId} have been set to {featureState}.",
+                    OperationId: Guid.NewGuid().ToString(),
+                    FinishedTime: _timeProvider.GetUtcNow().DateTime
+            ));
+        }
     }
 }
 

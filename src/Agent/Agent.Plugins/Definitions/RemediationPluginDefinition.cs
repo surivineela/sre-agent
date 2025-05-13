@@ -113,6 +113,23 @@ namespace Agent.Plugins.Definitions
             return await _remediationPlugin.AzureSqlServerSetLocalAuthSupport(resourceId, featureState);
         }
 
+        [KernelFunction("azure_app_service_set_ftp_authentication_support")]
+        [RequiresApproval]
+        [Description($"Sets the authentication on azure {ArmConstants.AppServiceType}, disabling or enabling FTP authentication support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
+        public async Task<RemediationResult> AzureAppServiceSetFtpAuthenticationSupport(string resourceId, FeatureState featureState)
+        {
+            return await _remediationPlugin.AzureAppServiceSetFtpAuthenticationSupport(resourceId, featureState);
+        }
+
+        [KernelFunction("azure_app_service_set_scm_authentication_support")]
+        [RequiresApproval]
+[Description($"Sets the authentication on azure {ArmConstants.AppServiceType}, disabling or enabling SCM authentication support. If disabled, this forces callers to use authentication methods such as managed identities or service principals.")]
+        public async Task<RemediationResult> AzureAppServiceSetScmAuthenticationSupport(string resourceId, FeatureState featureState)
+        {
+            return await _remediationPlugin.AzureAppServiceSetScmAuthenticationSupport(resourceId, featureState);
+        }
+
+
         [KernelFunction("possible_next_sku")]
         [Description("Given a current sku suggest a possible next sku")]
         public async Task<RemediationResult> SuggestNextSku(

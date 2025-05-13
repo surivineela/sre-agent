@@ -35,9 +35,10 @@ public class LocalAuthAgentFactory : SimpleResourceSubAgentFactoryBase<LocalAuth
         yield return () => remediationPluginDefinition.AzureSqlServerSetLocalAuthSupport;
         yield return () => remediationPluginDefinition.CosmosDbSetKeyBasedAuthenticationSupport;
         yield return () => remediationPluginDefinition.EventHubSetLocalAuthSupport;
-        yield return () => remediationPluginDefinition.ServiceBusSetLocalAuthSupport;
         yield return () => remediationPluginDefinition.StorageAccountSetSharedKeySupport;
         yield return () => remediationPluginDefinition.StorageAccountSetContainerPublicAccess;
+        yield return () => remediationPluginDefinition.AzureAppServiceSetFtpAuthenticationSupport;
+        yield return () => remediationPluginDefinition.AzureAppServiceSetScmAuthenticationSupport;
 
         var recordActionsPluginDefinition = new RecordActionsPluginDefinition(recordActionsPlugin);
         yield return () => recordActionsPluginDefinition.GetActionDetails;

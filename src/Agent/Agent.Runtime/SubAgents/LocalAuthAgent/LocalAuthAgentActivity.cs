@@ -73,6 +73,8 @@ public class LocalAuthAgentActivity : SimpleResourceSubAgentActivityBase<LocalAu
         nameof(IRemediationPlugin.StorageAccountSetSharedKeySupport),
         nameof(IRemediationPlugin.EventHubSetLocalAuthSupport),
         nameof(IRemediationPlugin.CosmosDbSetKeyBasedAuthenticationSupport),
+        nameof(IRemediationPlugin.AzureAppServiceSetFtpAuthenticationSupport),
+        nameof(IRemediationPlugin.AzureAppServiceSetScmAuthenticationSupport),
         nameof(ControlFlowPluginDefinition.Wait)];
 
 }

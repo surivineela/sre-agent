@@ -1,6 +1,6 @@
 namespace Agent.Core.Models;
 
-public sealed record EventHubStatus(
+public sealed record ServiceBusLocalAuthStatus(
     string ResourceId,
     string Name,
     string Location,

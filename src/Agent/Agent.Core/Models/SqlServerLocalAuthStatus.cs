@@ -1,6 +1,6 @@
 namespace Agent.Core.Models;
 
-public sealed record SqlServerSettings(
+public sealed record SqlServerLocalAuthStatus(
     string ResourceId,
     string Name,
     string Location,
