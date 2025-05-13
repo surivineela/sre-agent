@@ -2,13 +2,17 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
+using Azure.ResourceManager.Compute.Models;
+using FirstPartyAgent.Core.Models;
 using FirstPartyAgent.Core.Services;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
 using Octokit;
+using ScottPlot.PlotStyles;
 using StackExchange.Redis;
 using System.ComponentModel;
+using System.Reactive;
 using static Kusto.Cloud.Platform.Instrumentation.DatabasesNamesMapping;
 
 namespace FirstPartyAgent.Plugins
@@ -17,42 +21,56 @@ namespace FirstPartyAgent.Plugins
     {
         private readonly ILogger<ColdStartPlugin> _logger;
         private readonly Kernel _kernel;
-        private IKustoPlugin _kustoPlugin;
+        private readonly IKustoPlugin _kustoPlugin;
+        private readonly AlertHandlerService _alertHandlerService;
 
-        public ColdStartPlugin(ILogger<ColdStartPlugin> logger, Kernel kernel, IKustoPlugin kustoPlugin)
+        public ColdStartPlugin(ILogger<ColdStartPlugin> logger, Kernel kernel, IKustoPlugin kustoPlugin, AlertHandlerService alertHandlerService)
         {
             _logger = logger;
             _kernel = kernel;
             _kustoPlugin = kustoPlugin;
+            _alertHandlerService = alertHandlerService;
+        }
+
+        public sealed class KustoQueryResponse
+        {
+            public string KustoQuery { get; set; }
+            public string KustoResult { get; set; }
         }
 
         [KernelFunction("find_request_general_info")]
         [Description("find general info about the http request.")]
-        public async Task<string> FindRequestGeneralInfo(
+        public async Task<List<KustoQueryResponse>> FindRequestGeneralInfo(
+            string siteName,
+            string url,
             string activityId,
             string utcDateTime)
         {
+            var responses = new List<KustoQueryResponse>();
             try
             {
-                _logger.LogInformation($"Initializing FindColdStartRegion for ActivityId: {activityId}, UTC DateTime: {utcDateTime}.");
+                _logger.LogInformation($"Initializing FindColdStartRegion for SiteName {siteName}, Url {url}, ActivityId: {activityId}, UTC DateTime: {utcDateTime}.");
                 var clusterName = "wawscus";
                 var databaseName = "wawsprod";
                 DateTime? nowOverride = null;
 
-                var kustoQuery = GetRequestGeneralInfoQuery(activityId, utcDateTime);
+                var kustoQuery = GetRequestGeneralInfoQuery(siteName, url, activityId, utcDateTime);
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult.Result;
+
+                responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing the cold start process for ActivityId: {activityId}.");
-                return $"An error occurred: {ex.Message}";
+                responses.Add(new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" });
             }
+
+            return responses;
         }
 
         [KernelFunction("find_coldtart_request_breakdown")]
         [Description("find breakdown of the http cold start request.")]
-        public async Task<string> GetColdStartRequestDetails(
+        public async Task<KustoQueryResponse> GetColdStartRequestDetails(
             string clusterName,
             string consumptionType,
             string activityId,
@@ -73,24 +91,28 @@ namespace FirstPartyAgent.Plugins
                 {
                     kustoQuery = GetColdStartRequestDetailsForFlexConsumption(activityId, utcDateTime);
                 }
+                else if (consumptionType.Contains("Linux Consumption", StringComparison.OrdinalIgnoreCase))
+                {
+                    kustoQuery = GetColdStartRequestDetailsForLinuxConsumption(activityId, utcDateTime);
+                }
                 else
                 {
-                    return "Unsupported consumption type.";
+                    return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = "Unsupported consumption type." };
                 }
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult.Result;
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing the cold start process for ActivityId: {activityId}.");
-                return $"An error occurred: {ex.Message}";
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
             }
         }
 
         [KernelFunction("find_coldtart_request_breakdown_legion")]
         [Description("find breakdown of the http cold start request from legion.")]
-        public async Task<string> GetColdStartRequestDetailsFromLegion(
+        public async Task<KustoQueryResponse> GetColdStartRequestDetailsFromLegion(
         string legionClusterName,
         string podName,
         string utcDateTime)
@@ -104,18 +126,18 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartRequestDetailsForFlexConsumptionFromLegion(podName, utcDateTime);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(legionClusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult.Result;
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing the cold start process for PodName: {podName}.");
-                return $"An error occurred: {ex.Message}";
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
             }
         }
 
         [KernelFunction("coldtart_for_sla_sites")]
         [Description("Show cold start trends for SLA sites.")]
-        public async Task<string> GetColdStartDetailsForSlaSites(
+        public async Task<KustoQueryResponse> GetColdStartDetailsForSlaSites(
         int days = 120,
         string platform = "Legion",
         string stack = "")
@@ -130,18 +152,18 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartQueryForSlaSites(days, platform, stack);
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult.Result;
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing the cold start process for SLA sites.");
-                return $"An error occurred: {ex.Message}";
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
             }
         }
 
         [KernelFunction("coldstart_profile_data")]
         [Description("Show Profile data for prod cold start SLA sites.")]
-        public async Task<string> GetColdStartProfileData()
+        public async Task<KustoQueryResponse> GetColdStartProfileData()
         {
             try
             {
@@ -153,18 +175,18 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartProfileDataQuery();
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult.Result;
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing the cold start process for SLA sites.");
-                return $"An error occurred: {ex.Message}";
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
             }
         }
 
         [KernelFunction("coldstart_profile_data_details")]
         [Description("Show detailed Profile data for prod cold start SLA sites.")]
-        public async Task<string> GetColdStartProfileDataDetails()
+        public async Task<KustoQueryResponse> GetColdStartProfileDataDetails()
         {
             try
             {
@@ -176,12 +198,101 @@ namespace FirstPartyAgent.Plugins
                 var kustoQuery = GetColdStartProfileDataQueryDetails();
 
                 var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, nowOverride, _kernel);
-                return kustoResult.Result;
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"An error occurred while initializing the cold start process for SLA sites.");
-                return $"An error occurred: {ex.Message}";
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
+            }
+        }
+
+        [KernelFunction("run_coldstart_status")]
+        [Description("Runs the cold start mission report alert for pthe past 1 day.")]
+        public async Task<List<KustoQueryResponse>> RunColdStartStatus()
+        {
+            var responses = new List<KustoQueryResponse>();
+            var alertId = "83083541-dadd-4174-9abc-ded155969264"; // Cold Start mission report Status Alert Id
+            try
+            {
+                var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
+
+                if (alertDetails == null)
+                {
+                    _logger.LogError($"Alert details not found for AlertId: {alertId}.");
+                    responses.Add(new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = "Alert details not found." });
+                    return responses;
+                }
+
+                var kustoQuery = alertDetails.PrimaryKustoQuery.KustoQuery;
+                var clusterName = "wawscus";
+                var databaseName = "wawsprod";
+                DateTime? nowOverride = null;
+
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, _kernel);
+                responses.Add(new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result });
+
+                foreach(var secondaryKustoQuery in alertDetails.SecondaryKustoQueries)
+                {
+                    if (secondaryKustoQuery.Title.Contains("SLA Flex Consumption", StringComparison.OrdinalIgnoreCase) ||
+                        secondaryKustoQuery.Title.Contains("Consumption P99 and P99.9 per OS", StringComparison.OrdinalIgnoreCase) ||
+                        secondaryKustoQuery.Title.Contains("Flex P99 breakdown", StringComparison.OrdinalIgnoreCase))
+                    {
+                        var secondaryKustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, secondaryKustoQuery.KustoQuery, NowOverride: nowOverride, _kernel);
+                        responses.Add(new KustoQueryResponse { KustoQuery = secondaryKustoQuery.KustoQuery, KustoResult = secondaryKustoResult.Result });
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while running the alert kusto query for AlertId: {alertId}.");
+                responses.Add(new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" });
+            }
+
+            return responses;
+        }
+
+        [KernelFunction("run_coldstart_alert_kusto_query")]
+        [Description("Runs the kusto query for the cold start alert and returns the result.")]
+        public async Task<KustoQueryResponse> RunAlertKustoQuery(
+    string alertId)
+        {
+            try
+            {
+                var alertDetails = await _alertHandlerService.GetAzureAlertingDetailsById(alertId);
+
+                if (alertDetails == null)
+                {
+                    _logger.LogError($"Alert details not found for AlertId: {alertId}.");
+                    return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = "Alert details not found." };
+                }
+
+                if (alertDetails.KustoClusters == null)
+                {
+                    _logger.LogWarning($"No Kusto clusters found for AlertId: {alertId}.");
+                    alertDetails.KustoClusters = new List<KustoCluster>();
+                    alertDetails.KustoClusters.Add(new KustoCluster
+                    {
+                        Cloud = "wawscus",
+                        ServiceName = "wawsprod",
+                        Cluster = "wawscus",
+                        Database = "wawsprod"
+                    });
+                }
+
+                var primaryCluster = alertDetails.KustoClusters.FirstOrDefault();
+                var kustoQuery = alertDetails.PrimaryKustoQuery.KustoQuery;
+                var clusterName = primaryCluster.Cluster;
+                var databaseName = primaryCluster.Database;
+                DateTime? nowOverride = null;
+
+                var kustoResult = await _kustoPlugin.ExecuteClusterKustoQuery(clusterName, databaseName, kustoQuery, NowOverride: nowOverride, _kernel);
+                return new KustoQueryResponse { KustoQuery = kustoQuery, KustoResult = kustoResult.Result };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, $"An error occurred while running the alert kusto query for AlertId: {alertId}.");
+                return new KustoQueryResponse { KustoQuery = string.Empty, KustoResult = $"An error occurred: {ex.Message}" };
             }
         }
 
@@ -203,21 +314,26 @@ namespace FirstPartyAgent.Plugins
             return query;
         }
 
-        private static string GetRequestGeneralInfoQuery(string activityId, string utcDateTime)
+        private static string GetRequestGeneralInfoQuery(string siteName, string url, string activityId, string utcDateTime)
         {
             var query = $@"
                 let approxDateTime = datetime({utcDateTime});
                 let activityId = '{activityId}';
+                let siteName = '{siteName}';
+                let url = '{url}';
                 All(""AntaresIISLogFrontEndTable"")
                 | where TIMESTAMP between (approxDateTime - 1h .. approxDateTime + 1h)
-                | where ActivityId contains activityId
+                | where (isnotempty(activityId) and ActivityId contains activityId)
+                        or (isnotempty(siteName) and S_sitename contains siteName and (isempty(url) or Cs_uri_stem contains url))
                 | extend ConsumptionType = case(
                     EventPrimaryStampName in (GetWindowsVmssStamps()), ""Windows Consumption"",
                     EventPrimaryStampName in (AllFlexConsumptionAntaresStamps()), ""Flex Consumption"",
-                    EventPrimaryStampName in (GetLinuxStamps()), ""Linux Consupmtion CV1"",
+                    EventPrimaryStampName in (GetLinuxStamps()), ""Linux Consumption"",
                     ""Unknown""
                 )
-                | project KustoCluster, ConsumptionType, TIMESTAMP, S_sitename, Time_taken, UrlRewriteTime, ArrTime, DSCallTime, Sc_status, Cs_method, Cs_uri_stem, EventPrimaryStampName";
+                | project KustoCluster, ConsumptionType, TIMESTAMP, S_sitename, ActivityId, Time_taken, UrlRewriteTime, ArrTime, DSCallTime, Sc_status, Cs_method, Cs_uri_stem, EventPrimaryStampName
+                | order by Time_taken desc
+                | take 10";
             return query;
         }
 
@@ -234,6 +350,35 @@ namespace FirstPartyAgent.Plugins
                 | extend IsExactMatch = iff(PlaceholderMatchScore == 2147483647, 1, 0)
                 | project TIMESTAMP, RoleInstance, PlaceholderProcessName, TotalTimeTakenForProvisioning, PlaceholderUsed, IsExactMatch, PlaceholderMatchScore, FcaZipUsed, FcaZipUseFailed, FcaZipWaitMs, ColdStartPerfData";
             return query;
+        }
+
+        private static string GetColdStartRequestDetailsForLinuxConsumption(string activityId, string utcDateTime)
+        {
+            var query = $@"
+                let approxDateTime = datetime({utcDateTime});
+                let activityId = '{activityId}';
+                AzureContainers
+                | where TIMESTAMP between(approxDateTime -1h..approxDateTime + 1h)
+                | where ActivityId contains activityId
+                | where isnotempty(Address)
+                            | extend SiteName = tolower(SiteName)
+                | extend ContainerName = tolower(ContainerName)
+                | project TIMESTAMP, SiteName, Verb, ContainerName, LatencyInMilliseconds, Address
+                | summarize ACIAssignLatency = sum(LatencyInMilliseconds) by SiteName, ContainerName
+                | join(
+                    FunctionsMetrics
+                    | where TIMESTAMP between(approxDateTime - 1h..approxDateTime + 1h)
+                    | where Role == ""Microsoft.ContainerInstance""
+                    | where EventName in (""linux.container.specialization.zip.download"", ""linux.container.specialization.zip.extract"")
+                            | extend AppName = tolower(AppName)
+                            | extend RoleInstance = replace_string(tolower(RoleInstance), ""app-"", """")
+                    )
+                    on $left.ContainerName == $right.RoleInstance, $left.SiteName == $right.AppName
+                | summarize
+                    AssignTime = take_any(ACIAssignLatency),
+                    DownalodTime = maxif(Maximum, EventName == ""linux.container.specialization.zip.download""),
+                    ExtractionTime = maxif(Maximum, EventName == ""linux.container.specialization.zip.extract"")";
+                return query;
         }
 
         private static string GetColdStartRequestDetailsForFlexConsumption(string activityId, string utcDateTime)
@@ -260,7 +405,7 @@ namespace FirstPartyAgent.Plugins
                     | project FirstAcquiredActivityId = ActivityId, AllocateTimeInMs = LatencyInMilliseconds, PodName, EventPrimaryStampName
                 ) on FirstAcquiredActivityId
                 | join cluster(""wawscus"").database(""wawsprod"").FlexConsumptionClusterStampMapping() on $left.EventPrimaryStampName == $right.AntaresStamp
-                | parse LegionKustoCluster with LegionCluster ""kusto.windows.net""
+                | parse LegionKustoCluster with LegionCluster "".kusto.windows.net""
                 | project  AllocateTimeInMs, SpecializationTimeInMs, ImageName, PodName, AllocationLabel, EventPrimaryStampName, LegionCluster";
             return query;
         }
@@ -338,6 +483,5 @@ namespace FirstPartyAgent.Plugins
             ";
             return query;
         }
-
     }
 }
