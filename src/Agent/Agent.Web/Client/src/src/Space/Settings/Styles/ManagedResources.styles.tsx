@@ -1,11 +1,11 @@
-import { makeStyles } from '@fluentui/react-components';
+import { makeStyles, tokens } from '@fluentui/react-components';
 import { IDetailsListStyles } from '@fluentui/react/lib/DetailsList';
 
 export const useManagedResourcesStyles = makeStyles({
-    pillsContainer: { display: 'flex', flexDirection: 'row', gap: '5px', marginTop: '10px' },
+    pillsContainer: { display: 'flex', flexDirection: 'row', gap: '5px' },
     buttonStyle: { width: 'fit-content' },
-    buttonsContainer: { display: 'flex', flexDirection: 'row', gap: '10px', marginBottom: '10px', marginTop: '10px' },
-    commandBarContainer: { display: 'flex', flexDirection: 'column', gap: '10' },
+    buttonsContainer: { display: 'flex', flexDirection: 'row', gap: '10px' },
+    container: { display: 'flex', flexDirection: 'column', gap: '13px' },
     pickerItem: {
         flex: 1,
         maxWidth: '33.33%',
@@ -105,6 +105,23 @@ export const useManagedResourcesStyles = makeStyles({
         justifyContent: 'flex-start',
         alignItems: 'center',
         gap: '4px',
+    },
+    dangerButton: {
+        backgroundColor: tokens.colorStatusDangerBackground3,
+        color: tokens.colorNeutralBackground1,
+    },
+    header: { 
+        fontSize: '18px',
+        fontWeight: 600,
+    },
+    searchBox: { 
+        width: '330px',
+        fontSize: '13px',
+        zIndex: 1,
+    },
+    detailsList: {
+        paddingTop: '0px',
+        marginTop: '-16px'
     },
 });
 

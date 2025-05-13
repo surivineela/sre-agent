@@ -17,6 +17,7 @@ export enum PermissionIds {
     owner = '8e3af657-a8ff-443c-a75c-2fe8c4bcb635',
     contributor = 'b24988ac-6180-42a0-ab88-20f7382dd24c',
     reader = 'acdd72a7-3385-48ef-bd42-f606fba81ae7',
+    monitoringContributor = '749f88d5-cbae-40b8-bcfc-e573ddc772fa',
 }
 
 export enum PermissionPrincipalType {
@@ -106,7 +107,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 key: 'name',
                 name: `${intl.formatMessage(ManagedResourcesStringResources.resourceGroupName)}`,
                 minWidth: 300,
-                maxWidth: 300,
+                maxWidth: 500,
                 isResizable: true,
                 onRender: (item: ResourceGroup) => (
                     <div className={styles.statusRow}>
@@ -119,7 +120,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 key: 'subscription',
                 name: `${intl.formatMessage(ManagedResourcesStringResources.subscription)}`,
                 minWidth: 200,
-                maxWidth: 200,
+                maxWidth: 500,
                 isResizable: true,
                 onRender: (item: ResourceGroup) => {
                     const subscriptionId = getSubscriptionId(item.id);
@@ -129,9 +130,9 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             },
             {
                 key: 'location',
-                name: `${intl.formatMessage(ManagedResourcesStringResources.location)}`,
+                name: `${intl.formatMessage(ManagedResourcesStringResources.region)}`,
                 minWidth: 200,
-                maxWidth: 200,
+                maxWidth: 500,
                 isResizable: true,
                 onRender: (item: ResourceGroup) => {
                     const itemLocation = getUserFriendlyLocation(item.location);
@@ -154,8 +155,8 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
             setIsUpdating(true);
             setHideResourceGroupPicker(false);
             const notification = portalContext.startNotification(
-                intl.formatMessage(ManagedResourcesStringResources.addNotificationTitle, { number: numberOfRgs }),
-                intl.formatMessage(ManagedResourcesStringResources.addNotificationDescription)
+                numberOfRgs > 1 ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralTitle, { number: numberOfRgs }) : intl.formatMessage(ManagedResourcesStringResources.addNotificationTitle, { number: numberOfRgs }),
+                numberOfRgs > 1 ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralDescription) :intl.formatMessage(ManagedResourcesStringResources.addNotificationDescription)
             );
 
             const updatedManagedResourceGroupIds = [
@@ -176,7 +177,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
 
             const agentPromise = SreAgentClient.patchAgent(resourceId, newAgentInfo);
 
-            const resourceGroupPromises = selectedResourceGroups.map(rg => {
+            const resourceGroupContributorPromises = selectedResourceGroups.map(rg => {
                 return IdentityClient.putRoleAssignmentWithScope({
                     name: Guid.newGuid(),
                     properties: {
@@ -188,7 +189,19 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 });
             });
 
-            const updateManagedRgPromises = await Promise.all([agentPromise, ...resourceGroupPromises]);
+            const resourceGroupMontioringContributorPromises = selectedResourceGroups.map(rg => {
+                return IdentityClient.putRoleAssignmentWithScope({
+                    name: Guid.newGuid(),
+                    properties: {
+                        scope: rg.id,
+                        principalId: identity.data?.properties?.principalId ?? '',
+                        roleDefinitionId: `${rg.id}/providers/Microsoft.Authorization/roleDefinitions/${PermissionIds.monitoringContributor}`,
+                        principalType: PermissionPrincipalType.servicePrincipal,
+                    },
+                });
+            });
+
+            const updateManagedRgPromises = await Promise.all([agentPromise, ...resourceGroupContributorPromises, ...resourceGroupMontioringContributorPromises]);
 
             const isSuccessful = updateManagedRgPromises.every((promise: any) => !promise.metadata.error);
 
@@ -196,7 +209,7 @@ export function useManagedResources(resourceId: string, portalContext: AzPortalP
                 portalContext.stopNotification(
                     notification,
                     true,
-                    intl.formatMessage(ManagedResourcesStringResources.addNotificationSuccess)
+                    numberOfRgs > 1 ? intl.formatMessage(ManagedResourcesStringResources.addNotificationPluralSuccess) : intl.formatMessage(ManagedResourcesStringResources.addNotificationSuccess)
                 );
                 refresh();
             } else {

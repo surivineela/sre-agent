@@ -201,6 +201,22 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
         return <>{getUserFriendlyLocation(item.location)}</>;
     }, []);
 
+    const filteredResourceGroups = useMemo(() => {
+        let groups = resourceGroupsWithSelection ?? [];
+        groups = groups.filter(item => item && Object.keys(item).length > 0);
+        if (existingResourceGroupIds.length > 0) {
+            groups = groups.filter(rg => !existingResourceGroupIds.includes(rg.id));
+        }
+        if (filter) {
+            const lowerFilter = filter.toLocaleLowerCase();
+            groups = groups.filter(rg => rg.name.toLocaleLowerCase().includes(lowerFilter));
+        }
+        if (selectedLocationKeys.length > 0) {
+            groups = groups.filter(rg => selectedLocationKeys.includes(rg.location));
+        }
+        return groups;
+    }, [selectedLocationKeys, resourceGroupsWithSelection, filter, existingResourceGroupIds]);
+
     const toggleItemSelection = useCallback(
         (id: string) => {
             const toggledItems = resourceGroupsWithSelection?.map(item => (item.id === id ? { ...item, selected: !item.selected } : item));
@@ -217,15 +233,15 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
     );
 
     const allSelected = useMemo(() => {
-        return (resourceGroupsWithSelection?.length ?? 0) > 0 && resourceGroupsWithSelection?.every(item => item.selected);
-    }, [resourceGroupsWithSelection]);
+        return (filteredResourceGroups?.length ?? 0) > 0 && filteredResourceGroups?.every(item => item.selected);
+    }, [filteredResourceGroups]);
 
     const toggleSelectAll = useCallback(
         (checked: boolean) => {
-            const allSelected = resourceGroupsWithSelection?.map(item => ({ ...item, selected: checked }));
+            const allSelected = filteredResourceGroups?.map(item => ({ ...item, selected: checked }));
             setResourceGroupsWithSelection(allSelected);
         },
-        [resourceGroupsWithSelection]
+        [filteredResourceGroups]
     );
 
     const onRenderCheckboxHeader = useCallback(() => {
@@ -277,22 +293,6 @@ const ResourceGroupPicker: FC<ResourceGroupPickerProps> = (props: ResourceGroupP
             },
         ];
     }, [onRenderName, onRenderLocation, onRenderCheckbox, onRenderCheckboxHeader, onRenderSubscription, intl]);
-
-    const filteredResourceGroups = useMemo(() => {
-        let groups = resourceGroupsWithSelection ?? [];
-        groups = groups.filter(item => item && Object.keys(item).length > 0);
-        if (existingResourceGroupIds.length > 0) {
-            groups = groups.filter(rg => !existingResourceGroupIds.includes(rg.id));
-        }
-        if (filter) {
-            const lowerFilter = filter.toLocaleLowerCase();
-            groups = groups.filter(rg => rg.name.toLocaleLowerCase().includes(lowerFilter));
-        }
-        if (selectedLocationKeys.length > 0) {
-            groups = groups.filter(rg => selectedLocationKeys.includes(rg.location));
-        }
-        return groups;
-    }, [selectedLocationKeys, resourceGroupsWithSelection, filter, existingResourceGroupIds]);
 
     const selectedResourceGroups = useMemo(() => {
         return resourceGroupsWithSelection?.filter(item => item.selected) ?? [];
