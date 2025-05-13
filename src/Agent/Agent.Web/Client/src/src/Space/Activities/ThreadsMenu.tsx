@@ -259,23 +259,26 @@ const ThreadItem = memo(
                 role="treeitem"
                 className={mergeStyles(ThreadMenuStyles.threadItem, isActive ? ThreadMenuStyles.activeThreadItem : undefined)}
             >
-                <div className={styles.threadTitleWithAction}>
-                    <Text as="div" variant="medium" nowrap block>
-                        {thread.title}
-                    </Text>
-                </div>
-                {thread.source === ThreadSource.incident ? (
-                    <div className={styles.subtitleContainer}>
-                        <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
-                        <Text className={styles.subtitle} as="div" variant="small" nowrap block>
-                            {thread.lastMessage?.text}
+                {isActive && (<div className={ThreadMenuStyles.borderIndicator}/>)}
+                <div className={ThreadMenuStyles.content}>
+                    <div className={styles.threadTitleWithAction}>
+                        <Text as="div" variant="medium" nowrap block>
+                            {thread.title}
                         </Text>
                     </div>
-                ) : (
-                    <Text as="div" variant="small" nowrap block>
-                        {thread.lastMessage?.text}
-                    </Text>
-                )}
+                    {thread.source === ThreadSource.incident ? (
+                        <div className={styles.subtitleContainer}>
+                            <span className={styles.statusPill}>{getIncidentStatus(thread)}</span>
+                            <Text className={styles.subtitle} as="div" variant="small" nowrap block>
+                                {thread.lastMessage?.text}
+                            </Text>
+                        </div>
+                    ) : (
+                        <Text as="div" variant="small" nowrap block>
+                            {thread.lastMessage?.text}
+                        </Text>
+                    )}
+                </div>
             </div>
         );
     }

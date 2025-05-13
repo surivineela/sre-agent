@@ -205,13 +205,26 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
     };
 
     const activeThreadItem: IStyle = {
-        borderLeftStyle: 'solid',
-        borderLeftWidth: '2px',
-        borderLeftHeight: '4px',
-        borderLeftColor: tokens.colorNeutralForeground2BrandSelected,
-        boxSizing: 'border-box',
-        backgroundColor: tokens.colorNeutralBackground3Selected,
-        borderRadius: tokens.borderRadiusLarge,
+        backgroundColor: tokens.colorNeutralBackground1Selected,
+        display: 'flex',
+        flexDirection: 'row',
+        alignItems: "center",
+        gap: '6px',
+        borderRadius: '3px',
+    };
+
+    const borderIndicator = {
+        marginLeft: '-10px',
+        height: '32px',
+        width: '4px',
+        backgroundColor: tokens.colorBrandForeground1,
+        borderRadius: '6px',
+        flexShrink: 0,
+    };
+    const content = {
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
     };
 
     return mergeStyleSets({
@@ -219,6 +232,8 @@ export const useThreadMenuStyle = (collapsed?: boolean) => {
         threadList,
         threadItem,
         activeThreadItem,
+        borderIndicator,
+        content,
     });
 };
 
