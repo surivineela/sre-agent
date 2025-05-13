@@ -47,7 +47,7 @@ You are part of a multi-agent system for Azure SRE Agent, designed to make agent
 - ALWAYS invoke tools EVEN though there are SAME invocations in the context if user asks similar questions. This is to ensure you are using the most recent and accurate data.
 - ALWAYS use precise context information from user input or function call results as parameters for new function calls, especially for `subscription ID`, `resource group`, `resource name` and `resource id`.
 - Only begin diagnosis or mitigation responses after the corresponding `start<agent_name>agent` function has been called successfully.
-- When answering user 'underlying workflow has started', always print the corresponding orchestration instance id based on the real `start<agent_name>agent` function call result.
+- When answering user 'underlying agent has started', always print the corresponding orchestration instance id based on the real `start<agent_name>agent` function call result.
 - When providing conclusions, summarize the factual evidence that supports your findings at the end of your response.
 - Include specific metrics, timestamps, and resource identifiers when referencing data to maintain complete accuracy.
 - Generate or render chart visuals when possible from metric records, and include them in the response.
@@ -176,7 +176,7 @@ Example 2: ""How is my resource foo doing for last 2 weeks?""
    - `startManagedIdentityMigrationAgent` for managed identity migrations.
    - `startContainerAppsRemediationAgent` for Azure Container Apps questions like logs, metrics, configuration, scale and any container app issues. Prefer this agent over generic agents when dealing with tasks specific to Container Apps.
    - `startSourceCodeAgent` for linking repository URLs to Container Apps.
-   - `StartKubernetesAgentWorkflow` for starting AKS agent to resolve any AKS (Azure Kubernetes Service) related requests including basic Q&A, issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
+   - `StartKubernetesAgent` for starting AKS agent to resolve any AKS (Azure Kubernetes Service) related requests including basic Q&A, issue diagnostics and remediation, monitoring for metrics and logs, acting on workload or doing operation.
    - `startVMRdpInvestigatorAgent` for investigating RDP related issues with Azure Virtual machines. Do not summarize your plan or ask for list of tools when delegating to this agent.
    - `StartWebAppDownAgent' for investigating Azure Web App Services' downtime and mitigating and resolving the issue
    - Other registered agents as applicable.
@@ -202,7 +202,7 @@ For every Azure SRE request, follow this pattern:
 
 ## Special Notes
 <strong>** FOR ANY WEB/FUNCTION APP SERVICE RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO WEB APP DOWN AGENT BY USING `StartWebAppDownAgent` RATHER THAN APP SERVICE REMEDIATION AGENT **</strong>
-<strong>** FOR AKS RELATED REQUESTS, PRIORITIZE DELEGATING TO AKS AGENT BY USING `StartKubernetesAgentWorkflow`.**</strong>
+<strong>** FOR AKS RELATED REQUESTS, PRIORITIZE DELEGATING TO AKS AGENT BY USING `StartKubernetesAgent`.**</strong>
 <strong>**FOR ANY CONTAINER APPS RELATED REQUESTS (E.G. SLA, DOWNTIME, SLOWNESS, UNHEALTHY APP), PRIORITIZE DELEGATING TO CONTAINER APPS REMEDIATION AGENT BY USING `startContainerAppsRemediationAgent`**</strong>
 <strong> ALWAYS show the APP NAME in your responses. Always show the app name in BOLD formatting. Do not always refer to the app by its RESOURCE ID. Most of the time refer to the app by its app name. </strong>
 <strong>** For GetMetricTimeSeriesElementsForAzureResource use today's date as the default date. If the user specifies a different date, use that date instead.**</strong>
@@ -354,6 +354,8 @@ $@"## Facts
         _chartPlugin.ThreadId = threadGuid;
         _functionAppExecutionFailuresAgentPlugin.ThreadId = threadGuid;
         _functionAppDiagnosticsPlugin.ThreadId = threadGuid;
+        _githubIssuePlugin.ThreadId = threadGuid;
+
 
         var chartPluginDefinition = new ChartPluginDefinition(_chartPlugin);
 
@@ -387,7 +389,7 @@ $@"## Facts
             //AIFunctionFactory.Create(_appServiceRemediationPlugin.StartAppServiceRemediationAgent),
             //AIFunctionFactory.Create(_containerAppsRemediationPlugin.ListContainerAppsRemediationWorkflows),
             //AIFunctionFactory.Create(_containerAppsRemediationPlugin.StartContainerAppsRemediationAgent),
-            AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgentWorkflow),
+            AIFunctionFactory.Create(_kubernetesAgentPlugin.StartKubernetesAgent),
             AIFunctionFactory.Create(_kubernetesAgentPlugin.ListKubernetesAgentWorkflow),
             AIFunctionFactory.Create(aksPluginDefinition.GetAKSClusterResourceIdAsync),
             AIFunctionFactory.Create(aksPluginDefinition.GetKubeNamespacesAsync),

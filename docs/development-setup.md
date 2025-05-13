@@ -61,6 +61,20 @@ We use an internal NuGet source for packages. To set up:
 
 ### Linux/WSL/MacOS
 
+You can set up npm authentication using our script:
+
+1. Generate a [Personal Access Token](https://dev.azure.com/msazure/_details/security/tokens) with scopes: Packaging read, write & manage; Drop read & write. (Select Access Scope to be "All accessible organizations")
+
+2. Run the setup script:
+   ```bash
+   ./scripts/setup-npm-auth.sh <your-PAT>
+   ```
+
+3. The script will encode your PAT and configure your `~/.npmrc` file automatically.
+
+4. Remember to refresh the token every 7 days by running the script with a new PAT.
+
+#### Manual Setup (Alternative)
 1. Copy the code below to your User npm profile (.npmrc) file, located at `~/.npmrc`:
     ```bash
     //msazure.pkgs.visualstudio.com/One/_packaging/microsoft-logic-apps/npm/registry/:username=msazure

@@ -24,6 +24,6 @@ namespace Agent.Runtime.MetaAgent
         /// <param name="input">The input data for the agent</param>
         /// <param name="context">The thread context</param>
         /// <returns>Result of starting the agent</returns>
-        Task<string> StartKubernetesAgentWorkflow(string input);
+        Task<string> StartKubernetesAgent(string input);
     }
 }

@@ -574,9 +574,9 @@ public class MetaAgentEvals
 
         var mockGraphDbPlugin = new Mock<IGraphDBPlugin>();
         var mockKubernetesAgentPlugin = new Mock<IMetaAgentKubernetesAgentPlugin>();
-        mockKubernetesAgentPlugin.Setup(x => x.StartKubernetesAgentWorkflow
+        mockKubernetesAgentPlugin.Setup(x => x.StartKubernetesAgent
             (It.IsAny<string>())).ReturnsAsync("A workflow has been started to answer Kubernetes related questions or remediate Kubernetes workloads, the workflow instance id is: AKS-Orchestration-0236eab7-7166-43b5-9424-48ee43ef04f6-2025-04-30-12-13-45, thread id is: 0236eab7-7166-43b5-9424-48ee43ef04f6. Will provide followup updates once the workflow is completed.");
-        mockKubernetesAgentPlugin.Verify(x => x.StartKubernetesAgentWorkflow(It.IsAny<string>()), Times.Once);
+        mockKubernetesAgentPlugin.Verify(x => x.StartKubernetesAgent(It.IsAny<string>()), Times.Once);
         mockKubernetesAgentPlugin.Setup(x => x.ListKubernetesAgentWorkflow())
             .ReturnsAsync(new List<WorkflowMetadata<string>>
             {

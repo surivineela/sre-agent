@@ -52,9 +52,9 @@ public class KubernetesAgentPlugin : IMetaAgentKubernetesAgentPlugin
         return list;
     }
 
-    [KernelFunction("StartKubernetesAgentWorkflow")]
-    [Description("Start the workflow to handle any requests related to AKS (Azure Kubernetes Service), e.g. check status of AKS cluster or workloads deployed on it, diagnose AKS workload issues, etc.")]
-    public async Task<string> StartKubernetesAgentWorkflow(
+    [KernelFunction("StartKubernetesAgent")]
+    [Description("Start the Kubernetes agent to handle any requests related to AKS (Azure Kubernetes Service), e.g. check status of AKS cluster or workloads deployed on it, diagnose AKS workload issues, etc.")]
+    public async Task<string> StartKubernetesAgent(
         [Description("Detailed summarization of the request that wanted to be delegated to the Azure Kubernetes Service SRE Agent to handle, all context information are required especially for subscription ID, resource group and AKS cluster name.")] string input)
     {
         if (ThreadId == null)
