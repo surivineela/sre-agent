@@ -93,6 +93,7 @@ export const ChatBoxStyles = mergeStyleSets({
         fontSize: '16px',
         backgroundColor: tokens.colorNeutralForegroundInverted,
         borderRadius: tokens.borderRadiusXLarge,
+        boxShadow: tokens.shadow4,
         selectors: {
             // Allegedly styles on the below get copied to anything that portals within it (Dialogs, etc)
             '&[data-portal-node="true"]': {
