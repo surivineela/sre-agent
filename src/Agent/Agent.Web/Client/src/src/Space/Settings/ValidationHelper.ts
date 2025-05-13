@@ -1,11 +1,10 @@
 import axios from 'axios';
-import { FormikErrors } from 'formik';
-import { Guid } from '../../Common/Helpers/Guid';
-import { IncidentManagementFormValues, IncidentManagementPlatform } from '../Contracts/IncidentManagement';
 
-const validatePagerDutyApiKey = (apiKey?: string): Promise<boolean> => {
+export type PagerDutyApiKeyValidationResult = 'validKey' | 'missingKey' | 'invalidKey' | 'unknownError';
+
+export const validatePagerDutyApiKey = (apiKey?: string): Promise<PagerDutyApiKeyValidationResult> => {
     if (!apiKey) {
-        return Promise.resolve(false);
+        return Promise.resolve('missingKey');
     }
     const url = 'https://api.pagerduty.com/incidents?limit=1';
     const headers = {
@@ -14,37 +13,12 @@ const validatePagerDutyApiKey = (apiKey?: string): Promise<boolean> => {
     return axios
         .get(url, { headers })
         .then(response => {
-            return response.status === 200;
+            return response.status === 200 ? 'validKey' : response.status === 401 ? 'invalidKey' : 'unknownError';
         })
-        .catch(() => {
-            return false;
-        });
-};
-
-let validationGuid: string | undefined;
-let latestValidationResult: FormikErrors<IncidentManagementFormValues> = {};
-
-export const validateIncidentManagement = (
-    formValues: IncidentManagementFormValues
-): Promise<FormikErrors<IncidentManagementFormValues>> => {
-    if (formValues.platform !== IncidentManagementPlatform.PagerDuty) {
-        validationGuid = undefined;
-        latestValidationResult = {};
-        return Promise.resolve(latestValidationResult);
-    } else if (!formValues.connectionKey) {
-        validationGuid = undefined;
-        latestValidationResult = { connectionKey: 'API Key is required' };
-        return Promise.resolve(latestValidationResult);
-    } else {
-        const guid = Guid.newGuid();
-        validationGuid = guid;
-        return validatePagerDutyApiKey(formValues.connectionKey).then(valid => {
-            if (validationGuid !== guid) {
-                return latestValidationResult;
+        .catch(error => {
+            if (error?.status === 401) {
+                return 'invalidKey';
             }
-
-            latestValidationResult = valid ? {} : { connectionKey: 'API key is not valid' };
-            return latestValidationResult;
+            return 'unknownError';
         });
-    }
 };

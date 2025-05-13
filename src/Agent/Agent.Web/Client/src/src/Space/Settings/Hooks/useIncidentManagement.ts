@@ -1,13 +1,20 @@
-import { useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { FormikErrors } from 'formik';
+import { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
 import { getErrorMessage } from '../../../Common/Clients/ArmClient';
 import SreAgentClient from '../../../Common/Clients/SreAgentClient';
 import { ArmObj } from '../../../Common/Contracts/Azure/ArmObj';
 import { Agent, IncidentManagementConfiguration, IncidentManagementType } from '../../../Common/Contracts/Azure/SreAgent';
+import { Guid } from '../../../Common/Helpers/Guid';
 import { ArmResourceDescriptor } from '../../../Common/Helpers/ResourceDescriptors';
-import { IncidentManagementNotificationResources, IncidentManagementSaveErrorResources } from '../../../Strings/SREAgentResources';
+import {
+    IncidentManagementNotificationResources,
+    IncidentManagementSaveErrorResources,
+    IncidentManagementValidationResources,
+} from '../../../Strings/SREAgentResources';
 import { IncidentManagementFormValues, IncidentManagementPlatform } from '../../Contracts/IncidentManagement';
+import { PagerDutyApiKeyValidationResult, validatePagerDutyApiKey } from '../ValidationHelper';
 import { useSreAgent } from './useSreAgent';
 
 const getIncidentManagementPlatform = (agent?: ArmObj<Agent>): IncidentManagementPlatform => {
@@ -64,9 +71,56 @@ export function useIncidentManagement(resourceId: string) {
 
     const [initialValues, setInitialValues] = useState<IncidentManagementFormValues>(getInitialValues(agent));
 
+    const validationGuid = useRef<string>();
+    const latestValidationResult = useRef<FormikErrors<IncidentManagementFormValues>>({});
+
     useEffect(() => {
         setInitialValues(getInitialValues(agent));
     }, [agent]);
+
+    const getValidationErrorMessage = useCallback(
+        (validationResult: PagerDutyApiKeyValidationResult) => {
+            switch (validationResult) {
+                case 'validKey':
+                    return undefined;
+                case 'missingKey':
+                    return intl.formatMessage(IncidentManagementValidationResources.apiKeyRequired);
+                case 'invalidKey':
+                    return intl.formatMessage(IncidentManagementValidationResources.apiKeyInvalid);
+                case 'unknownError':
+                    return intl.formatMessage(IncidentManagementValidationResources.apiKeyFailedToValidate);
+                default:
+                    return undefined;
+            }
+        },
+        [intl.formatMessage]
+    );
+
+    const validate = useCallback(
+        (formValues: IncidentManagementFormValues): Promise<FormikErrors<IncidentManagementFormValues>> => {
+            if (formValues.platform !== IncidentManagementPlatform.PagerDuty) {
+                validationGuid.current = undefined;
+                latestValidationResult.current = {};
+                return Promise.resolve(latestValidationResult.current);
+            } else if (!formValues.connectionKey) {
+                validationGuid.current = undefined;
+                latestValidationResult.current = { connectionKey: getValidationErrorMessage('missingKey') };
+                return Promise.resolve(latestValidationResult.current);
+            } else {
+                const guid = Guid.newGuid();
+                validationGuid.current = guid;
+                return validatePagerDutyApiKey(formValues.connectionKey).then(validationResult => {
+                    if (validationGuid.current !== guid) {
+                        return latestValidationResult.current;
+                    }
+
+                    latestValidationResult.current = { connectionKey: getValidationErrorMessage(validationResult) };
+                    return latestValidationResult.current;
+                });
+            }
+        },
+        [getValidationErrorMessage]
+    );
 
     const save = useCallback(
         (formValues: IncidentManagementFormValues) => {
@@ -160,6 +214,7 @@ export function useIncidentManagement(resourceId: string) {
         saveFailure,
         platform,
         initialValues,
+        validate,
         save,
         disconnect,
     };
