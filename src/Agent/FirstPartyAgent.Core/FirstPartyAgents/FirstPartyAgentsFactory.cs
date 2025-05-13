@@ -72,6 +72,8 @@ public class FirstPartyAgentsFactory : IAgentsFactory
             typeof(ContainerAppRevisionPluginDefinition),
             typeof(ManagedClusterPluginDefinition),
             typeof(ManagedEnvironmentPluginDefinition),
+            typeof(HealthProbePluginDefinition),
+            typeof(NodeAvailabilityPluginDefinition),
             typeof(KustoPluginDefinition),
             typeof(ContainerAppEnvoyPluginDefinition),
             typeof(ContainerAppCorednsPluginDefinition),

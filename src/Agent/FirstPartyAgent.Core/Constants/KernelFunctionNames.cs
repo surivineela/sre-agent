@@ -13,6 +13,8 @@ namespace FirstPartyAgent.Constants
             public const string GetManagedEnvironmentInformation = "get_managed_environment_info";
             public const string GetASIPageForManagedCluster = "get_managed_cluster_asi_page";
             public const string GetASIPageForManagedEnvironment = "get_managed_environment_asi_page";
+            public const string GetHealthProbeFailures = "get_health_probe_failures";
+            public const string GetNodeAvailabilityFailures = "get_node_availability_failures";
             public const string GetSubscriptionDetail = "get_subscription_detail";
             public const string GetSubscriptionUsage = "get_subscription_usage";
             public const string SetSubscriptionQuota = "set_subscription_quota";

@@ -31,6 +31,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
         IRecordActionsPlugin recordActionsPlugin,
         IManagedEnvironmentPlugin managedEnvironmentPlugin,
         IManagedClusterPlugin managedClusterPlugin,
+        IHealthProbePlugin healthProbePlugin,
+        INodeAvailabilityPlugin nodeAvailabilityPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -47,6 +49,11 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment));
 
+            var healthProbePluginDefinition = new HealthProbePluginDefinition(healthProbePlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => healthProbePluginDefinition.GetHealthProbeFailures));
+
+            var nodeAvailabilityPluginDefinition = new NodeAvailabilityPluginDefinition(nodeAvailabilityPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => nodeAvailabilityPluginDefinition.GetNodeAvailabilityFailures));
 
             var remediationPluginDefinition = new ContainerAppRevisionPluginDefinition(revisionPlugin);
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.ListRevisions));

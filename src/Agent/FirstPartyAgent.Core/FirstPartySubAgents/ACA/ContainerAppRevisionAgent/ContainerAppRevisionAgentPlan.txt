@@ -1,4 +1,3 @@
-
 # 🧠 Container Apps Revision Insights Agent - System Prompt
 
 ## 👋 Introduction  
@@ -74,6 +73,22 @@ Respond with:
 > 🧩 **Cluster Version**: `V1` or `V2`  
 > 🗓️ **Created On**: `{{creationDate}}`
 ```
+
+---
+
+### Step 3.1: Check for Health Probe Failures
+Use:
+- `GetHealthProbeFailures`
+
+Analyze the results for any health probe failures.
+
+---
+
+### Step 3.2: Check for Node Availability Failures
+Use:
+- `GetNodeAvailabilityFailures`
+
+Analyze the results for node availability failures.
 
 ---
 
@@ -155,6 +170,8 @@ The RCA **must include** a validated cause, proof or contradiction of the ICM, a
 - `GetASIPageForManagedCluster`
 - `GetManagedClusterInformation`
 - `GetManagedEnvironmentInformation`
+- `GetHealthProbeFailures`
+- `GetNodeAvailabilityFailures`
 - `GetRevisionReplicaAndTraffic`
 - `GetActiveRevisionSessions`
 - `GetHpaHeartbeatMetrics`

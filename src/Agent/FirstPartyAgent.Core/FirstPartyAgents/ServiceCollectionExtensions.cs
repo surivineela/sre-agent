@@ -101,12 +101,15 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
         services.AddSingleton<IManagedClusterPlugin, ManagedClusterPlugin>();
         services.AddSingleton<IManagedEnvironmentPlugin, ManagedEnvironmentPlugin>();
+        services.AddSingleton<IHealthProbePlugin, HealthProbePlugin>();
+        services.AddSingleton<INodeAvailabilityPlugin, NodeAvailabilityPlugin>();
         services.AddSingleton<ContainerAppRevisionAgentPlugin>();
         services.AddSingleton<ContainerAppRevisionPluginDefinition>();
         services.AddSingleton<ManagedEnvironmentPluginDefinition>();
         services.AddSingleton<ManagedClusterPluginDefinition>();
+        services.AddSingleton<HealthProbePluginDefinition>();
+        services.AddSingleton<NodeAvailabilityPluginDefinition>();
         services.AddSingleton<ContainerAppRevisionAgentFactory>();
-
 
         services.AddSingleton<IContainerAppEnvoyPlugin, ContainerAppEnvoyPlugin>();
         services.AddSingleton<ContainerAppEnvoyAgentPlugin>();
