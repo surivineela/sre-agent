@@ -26,6 +26,7 @@
         "@fluentui-copilot/react-copilot": "^0.24.3",
         "@fluentui/azure-themes": "^8.6.128",
         "@fluentui/react": "^8.122.14",
+        "@fluentui/react-charting": "^5.23.81",
         "@fluentui/react-components": "^9.61.6",
         "@fluentui/react-icons": "^2.0.292",
         "@fluentui/react-search": "^9.1.4",

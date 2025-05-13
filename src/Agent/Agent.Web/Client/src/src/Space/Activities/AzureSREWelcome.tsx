@@ -966,15 +966,15 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                         <div className={styles.statsGrid}>
                             <div className={styles.statCard}>
                                 <Text className={styles.statValue}>{resourceCounts.total}</Text>
-                                <Text className={styles.statLabel}>Total Resources</Text>
+                                <Text className={styles.statLabel}> Total Resources</Text>
                             </div>
                             <div className={styles.statCard}>
                                 <Text className={styles.statValue}>{resourceCounts.webApps}</Text>
-                                <Text className={styles.statLabel}>Web Apps</Text>
+                                <Text className={styles.statLabel}> Web Apps</Text>
                             </div>
                             <div className={styles.statCard}>
                                 <Text className={styles.statValue}>{resourceCounts.databaseResources}</Text>
-                                <Text className={styles.statLabel}>Database Resources</Text>
+                                <Text className={styles.statLabel}> Database Resources</Text>
                             </div>
                         </div>
                     </div>
