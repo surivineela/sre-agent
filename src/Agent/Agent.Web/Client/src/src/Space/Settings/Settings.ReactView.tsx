@@ -1,6 +1,5 @@
-import { INavLinkGroup, initializeIcons, Nav, ThemeContext } from '@fluentui/react';
-import type { Theme } from '@fluentui/theme';
-import { FC, useContext, useEffect, useMemo, useState } from 'react';
+import { INavLinkGroup, initializeIcons, Nav } from '@fluentui/react';
+import { FC, useEffect, useMemo, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { useLocation, useNavigate, useParams } from 'react-router';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
@@ -21,7 +20,6 @@ enum SettingsKeys {
 
 const Settings: FC = () => {
     const styles = useSettingsStyles();
-    const theme = useContext(ThemeContext);
     const intl = useIntl();
     const { menuItem } = useParams();
     const location = useLocation();
@@ -77,7 +75,7 @@ const Settings: FC = () => {
 
     return (
         iconsInitialized && (
-            <div style={styles.getNavContainerStyles(theme as Theme)}>
+            <div style={styles.navContainerStyles}>
                 <Nav
                     groups={navLinkGroups}
                     styles={navStyles}

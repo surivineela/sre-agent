@@ -1,6 +1,5 @@
 import { FontWeights } from '@fluentui/react';
 import { makeStyles, tokens } from '@fluentui/react-components';
-import type { Theme } from '@fluentui/theme';
 import { CSSProperties } from 'react';
 
 const noMcpServersContainer: CSSProperties = {
@@ -60,14 +59,12 @@ const accessControlSettingsContainer: CSSProperties = { display: 'flex', flexDir
 
 const accessControlSettingsButton: CSSProperties = { width: 'fit-content' };
 
-const getNavContainerStyles = (theme: Theme): CSSProperties => {
-    return {
-        display: 'flex',
-        height: '100vh',
-        paddingTop: '0.5rem',
-        borderTop: '1px solid rgba(204, 204, 204, 0.8)',
-        backgroundColor: theme.semanticColors.bodyBackground,
-    };
+const navContainerStyles: CSSProperties = {
+    display: 'flex',
+    height: '100vh',
+    paddingTop: '0.5rem',
+    borderTop: '1px solid rgba(204, 204, 204, 0.8)',
+    backgroundColor: tokens.colorNeutralBackground3,
 };
 
 const navPivotContainer: CSSProperties = {
@@ -75,6 +72,7 @@ const navPivotContainer: CSSProperties = {
     padding: '2rem',
     backgroundColor: tokens.colorNeutralBackground1,
     borderTopLeftRadius: tokens.borderRadiusXLarge,
+    boxShadow: tokens.shadow4,
     marginLeft: 30,
 };
 
@@ -110,6 +108,7 @@ export const useSettingsStyles = () => {
         generalSettingsHeader,
         accessControlSettingsContainer,
         accessControlSettingsButton,
+        navContainerStyles,
         navPivotContainer,
         incidentManagementDescriptionStyle,
         pagerDutyWrapperStyle,
@@ -121,7 +120,6 @@ export const useSettingsStyles = () => {
         connectedImageStyle,
         buttonsWrapperStyle,
         deleteButtonStyle,
-        getNavContainerStyles,
     };
 };
 
@@ -149,8 +147,20 @@ export const navStyles = {
         width: 300,
         marginLeft: 30,
     },
+    compositeLink: {
+        backgroundColor: 'transparent',
+        selectors: {
+            '&.is-selected': {
+                backgroundColor: tokens.colorNeutralBackground3Selected,
+            },
+            '&:hover': {
+                backgroundColor: tokens.colorNeutralBackground3Hover,
+            },
+        },
+    },
     link: {
         paddingLeft: 5,
+        backgroundColor: 'transparent !important',
         selectors: {
             '&:after': {
                 borderLeftWidth: 3,

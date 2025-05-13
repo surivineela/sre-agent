@@ -83,6 +83,8 @@ export const ChatBoxStyles = mergeStyleSets({
         height: 'calc(100vh - 25px)',
         borderRadius: tokens.borderRadiusXLarge,
         minWidth: '300px',
+        marginRight: '4px',
+        boxShadow: tokens.shadow4,
     },
     chatBoxInner: {
         display: 'flex',
