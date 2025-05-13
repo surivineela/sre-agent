@@ -371,6 +371,9 @@ export interface LogicalApplication {
         health?: ResourceHealth;
     };
     sourceCodeLinkageStatus: SourceCodeLinkageStatus;
+    additionalInfo: {
+        namespace?: string;
+    };
 }
 
 export interface IntegrationStatus {
@@ -647,12 +650,12 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
         }
     };
 
-    const handleOpenLinkDialog = (resourceId: string) => {
+    const handleOpenLinkDialog = (resourceId: string, name: string, subType: string) => {
         setRepoUrl('');
         setRepoUrlError(null);
         setLinkDialogOpen(true);
         // store the resourceId in state via selectedAppIndex
-        const idx = logicalApps.findIndex(a => a.resourceId === resourceId);
+        const idx = logicalApps.findIndex(a => a.resourceId === resourceId && a.name === name && a.subType === subType);
         if (idx !== -1) setSelectedAppIndex(idx);
     };
 
@@ -687,6 +690,9 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
         }
 
         const resourceId = selectedApp.resourceId;
+        const subType = selectedApp.subType;
+        const namespace = selectedApp.additionalInfo.namespace;
+        const resourceName = selectedApp.name;
 
         setIsLinking(true);
         try {
@@ -696,7 +702,13 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                     'Content-Type': 'application/json',
                     ...getAgentHeaders(),
                 },
-                body: JSON.stringify({ ResourceId: resourceId, RepoUrl: repoUrl }),
+                body: JSON.stringify({
+                    ResourceId: resourceId,
+                    RepoUrl: repoUrl,
+                    SubType: subType,
+                    Namespace: namespace,
+                    ResourceName: resourceName,
+                }),
             });
             if (!response.ok) {
                 const errorData = await response.json().catch(() => ({}));
@@ -706,7 +718,12 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
             // optimistic UI update with proper null checks
             setLogicalApps(prev =>
                 prev.map(app => {
-                    if (app.resourceId === resourceId) {
+                    if (
+                        app.resourceId === resourceId &&
+                        app.name === resourceName &&
+                        app.subType === subType &&
+                        app.additionalInfo.namespace === namespace
+                    ) {
                         return {
                             ...app,
                             sourceCodeLinkageStatus: {
@@ -1090,7 +1107,7 @@ const AzureSREWelcome = ({ threadId }: AzureSREWelcomeProps) => {
                                                     appearance="primary"
                                                     size="medium"
                                                     icon={<Link16Regular />}
-                                                    onClick={() => handleOpenLinkDialog(app.resourceId)}
+                                                    onClick={() => handleOpenLinkDialog(app.resourceId, app.name || '', app.subType)}
                                                 >
                                                     Link Repository
                                                 </Button>

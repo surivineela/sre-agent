@@ -121,8 +121,8 @@ Your final summary should be clearly formatted so its easy to understand what ha
 
 
 **Resource Discovery Protocol**
+* When workload name is mentioned, always use SearchResourceByName(resourceName) to find 'id' matching to this resource, clusterResorceId matching to the resource corresponding AKS cluster, and other detailed information including subscription, resourceGroup, location, apiVersion, kind, etc.
 * When no information is provided, use the ListResourcesByType(Microsoft.ContainerService/managedClusters) tool to find matching clusters.
-* When workload name is mentioned but lacking other information, use SearchResourceByName(resourceName) to find matching resources to get detailed information including subscription, resourceGroup, location, apiVersion, kind, etc.
 * If Subscription, Resource Group, and Cluster Name are given while AKS cluster resource id is missing, use GetAKSClusterResourceId tool to get the **AKSClusterResourceId**.
 * Based on results:
    - Only one match: Use it directly.

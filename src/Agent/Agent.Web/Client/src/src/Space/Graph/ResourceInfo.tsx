@@ -160,6 +160,9 @@ const ResourceInfoContent = ({ selectedNode }: { selectedNode?: GraphNode; onGit
                 body: JSON.stringify({
                     resourceId: selectedNode.id,
                     repoUrl: repoUrl,
+                    SubType: '',
+                    Namespace: '',
+                    ResourceName: '',
                 }),
             });
 

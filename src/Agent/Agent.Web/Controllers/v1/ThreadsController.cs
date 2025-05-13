@@ -36,7 +36,7 @@ namespace Agent.Web.Controllers.v1
     [Route("api/v1/[controller]")]
     public class ThreadsController(
         IAgentInboundCommunicationService agentInboundCommunicationService,
-        IAgentsFactory agentsFactory,        
+        IAgentsFactory agentsFactory,
         IThreadRepository repository,
         IChatClient chatClient,
         DurableTaskClient durableTaskClient,
@@ -360,7 +360,7 @@ namespace Agent.Web.Controllers.v1
             var githubAccessTokenConfigured = githubAccessToken != null && !string.IsNullOrEmpty(githubAccessToken.AccessToken) && (githubAccessToken.ExpiresOn is null || githubAccessToken.ExpiresOn > DateTime.UtcNow);
 
             var loginUrl = githubIssuePlugin.GenerateLoginLink();
-            
+
             var logicalApplications = appGroupsWithRepo.Select(appGroup =>
             {
                 var sourceCodeLinkageStatus = (githubAccessTokenConfigured, appGroup.RepoUrl) switch
@@ -370,7 +370,7 @@ namespace Agent.Web.Controllers.v1
                     _ => new SourceCodeLinkageStatus(SourceCodeLinkageStatusEnum.NotLinked, null, null, null)
                 };
 
-                return new LogicalApplication(appGroup.Name, appGroup.ResourceId, sourceCodeLinkageStatus, appGroup.Type);
+                return new LogicalApplication(appGroup.Name, appGroup.ResourceId, sourceCodeLinkageStatus, appGroup.Type, new AdditionalInfo(Namespace: appGroup.Namespace));
             }).ToList();
 
             var welcomeMessage = new WelcomeMessage(

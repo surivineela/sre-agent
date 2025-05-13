@@ -45,11 +45,17 @@ public record SourceCodeLinkageStatus(
     [property: JsonPropertyName("linkedTimestamp")] DateTime? LinkedTimestamp, // present if status is Linked
     [property: JsonPropertyName("loginCallbackUrl")] string? LoginCallbackUrl // present if status is RequiresAuth
 );
+
+public record AdditionalInfo(
+    [property: JsonPropertyName("namespace")] string? Namespace // represent AKS namespace
+);
+
 public record LogicalApplication(
     [property: JsonPropertyName("name")] string Name,
     [property: JsonPropertyName("resourceId")] string ResourceId,
     [property: JsonPropertyName("sourceCodeLinkageStatus")] SourceCodeLinkageStatus SourceCodeLinkageStatus,
-    [property: JsonPropertyName("subType")] string SubType
+    [property: JsonPropertyName("subType")] string SubType,
+    [property: JsonPropertyName("additionalInfo")] AdditionalInfo AdditionalInfo
 );
 
 public record WelcomeMessage(

@@ -98,7 +98,7 @@ public class GraphService : IGraphService
     {
         _logger.LogInternalInformation("Querying app groups with repositories from graph database");
         string query = $@"g.V().has('resourceType', within('{ArmConstants.ContainerAppType.ToLower()}', '{ArmConstants.AppServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceType.ToLower()}', '{ArmConstants.AzureKubernetesServiceDeploymentType.ToLower()}', '{ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower()}'))
-                         .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp', 'clusterResourceId')
+                         .project('resourceId', 'name', 'type', 'repo', 'linkedTimestamp', 'clusterResourceId', 'namespace')
                          .by(coalesce(values('resourceId'), constant('')))
                          .by(coalesce(values('resourceName'), constant('')))
                          .by(label())
@@ -114,7 +114,8 @@ public class GraphService : IGraphService
                                     constant(0)
                                 )
                          )
-                         .by(coalesce(values('clusterResourceId'), constant('')))";
+                         .by(coalesce(values('clusterResourceId'), constant('')))
+                         .by(coalesce(values('namespace'), constant('')))";
 
         var azureResourceApps = await _graphDatabaseClient.Query<Dictionary<string, object>>(query);
         _logger.LogInternalInformation("Found {count} app groups with repositories", azureResourceApps.Count);
@@ -125,6 +126,7 @@ public class GraphService : IGraphService
             string type = item["type"]?.ToString() ?? string.Empty;
             string repoUrl = item["repo"]?.ToString() ?? string.Empty;
             long linkedTimestamp = Convert.ToInt64(item["linkedTimestamp"] ?? 0);
+            string aksNamespace = item["namespace"]?.ToString() ?? string.Empty;
 
             if (type == ArmConstants.AzureKubernetesServiceDeploymentType.ToLower() || type == ArmConstants.AzureKubernetesServiceStatefulSetType.ToLower())
             {
@@ -132,7 +134,7 @@ public class GraphService : IGraphService
                 resourceId = item["clusterResourceId"]?.ToString() ?? string.Empty;
             }
 
-            return new IGraphService.AppGroupWithRepo(resourceId, name, type, repoUrl, linkedTimestamp == 0 ? null : new DateTime(linkedTimestamp, DateTimeKind.Utc));
+            return new IGraphService.AppGroupWithRepo(resourceId, name, type, repoUrl, linkedTimestamp == 0 ? null : new DateTime(linkedTimestamp, DateTimeKind.Utc), aksNamespace);
         }).ToList();
     }
 
@@ -512,18 +514,18 @@ public class GraphService : IGraphService
 
                 // Get GitHub access token status
                 var githubAccessToken = await _threadRepository.GetGitHubAccessTokenAsync();
-                var githubAccessTokenConfigured = githubAccessToken != null && 
-                    !string.IsNullOrEmpty(githubAccessToken.AccessToken) && 
+                var githubAccessTokenConfigured = githubAccessToken != null &&
+                    !string.IsNullOrEmpty(githubAccessToken.AccessToken) &&
                     (githubAccessToken.ExpiresOn is null || githubAccessToken.ExpiresOn > DateTime.UtcNow);
 
                 // Add GitHub login URL if needed
                 if (!string.IsNullOrEmpty(repoUrl))
                 {
                     var loginUrl = _githubIssuePlugin.GenerateLoginLink();
-                    var sourceCodeLinkageStatus = githubAccessTokenConfigured 
+                    var sourceCodeLinkageStatus = githubAccessTokenConfigured
                         ? new { Status = "Linked", RepositoryUrl = repoUrl, LoginCallbackUrl = (string)null }
                         : new { Status = "RequiresAuth", RepositoryUrl = repoUrl, LoginCallbackUrl = loginUrl };
-                    
+
                     ((IDictionary<string, object>)item)["sourceCodeLinkageStatus"] = sourceCodeLinkageStatus;
                 }
 

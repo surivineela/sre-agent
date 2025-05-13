@@ -17,7 +17,7 @@ public class GithubController(
     IGraphDatabaseClient _graphDbClient) : ControllerBase
 {
     [HttpPost("auth/complete")]
-    public async Task<IActionResult> CompleteGitHubAuth([FromForm]string accessToken)
+    public async Task<IActionResult> CompleteGitHubAuth([FromForm] string accessToken)
     {
         await _threadRepository.CreateOrUpdateGitHubAccessTokenAsync(new GitHubAccessToken(accessToken, ExpiresOn: null));
 
@@ -58,14 +58,32 @@ public class GithubController(
     {
         try
         {
-            var containerAppNodeId = request.ResourceId.ToLower().Replace("/", "_");
-            string vertexFilter = $"hasId('{containerAppNodeId}')";
+            var appNodeId = request.ResourceId.ToLower().Replace("/", "_");
+            string vertexFilter = $"hasId('{appNodeId}')";
             string query = $@"g.V().{vertexFilter}";
-            var containerAppNodeResults = await _graphDbClient.Query(query);
-            if (!containerAppNodeResults.Any())
+
+            // if app has a namespace and subType starts with "k8s", this is a k8s resource
+            if (!string.IsNullOrEmpty(request.Namespace) && !string.IsNullOrEmpty(request.ResourceName) && !string.IsNullOrEmpty(request.SubType) && request.SubType.StartsWith("k8s", StringComparison.OrdinalIgnoreCase))
             {
-                return NotFound($"the resource {request.ResourceId} is not found.");
+                // for AKS resources, resourceId is the AKS cluster resource id, not the specific object resource id in graph
+                query = $@"g.V().has('resourceName','{request.ResourceName}').has('namespace','{request.Namespace}').has('resourceType','{request.SubType}').has('clusterResourceId','{request.ResourceId}').values('id')";
+                var appResult = await _graphDbClient.Query(query);
+                var appidList = appResult.ToList();
+                if (appidList.Count == 0)
+                {
+                    return NotFound($"the resource {request.ResourceId} {request.ResourceName} is not found.");
+                }
+                appNodeId = appidList[0].ToString();
             }
+            else
+            {
+                var appNodeResults = await _graphDbClient.Query(query);
+                if (!appNodeResults.Any())
+                {
+                    return NotFound($"the resource {request.ResourceId} {request.ResourceName} is not found.");
+                }
+            }
+
 
             var sourceCodeNode = new SourceCodeRepoNode(request.RepoUrl);
             var sourceCodeNodeResults = await _graphDbClient.Query($"g.V('{sourceCodeNode.GetNodeId()}').hasLabel('{sourceCodeNode.GetNodeLabel()}')");
@@ -75,7 +93,7 @@ public class GithubController(
                 await _graphDbClient.AddOrUpdateNodeAsync(sourceCodeNode);
             }
 
-            var edge = new NonCrawledEdge(containerAppNodeId, sourceCodeNode.GetNodeId(), Constants.Relationships.ServesCode);
+            var edge = new NonCrawledEdge(appNodeId, sourceCodeNode.GetNodeId(), Constants.Relationships.ServesCode);
             await _graphDbClient.AddOrUpdateEdgeAsync(edge);
             return Ok("Source code linked successfully.");
         }
@@ -93,5 +111,9 @@ public class GithubController(
         // This regex pattern should be same as the one used in the GitHubHelper.ParseGitHubUrl
         [RegularExpression(@"https://github\.com[/:](?<owner>[\w.-]+)/(?<repo>[\w.-]+)\.(?:git)?", ErrorMessage = "Repository URL must be of the form https://github.com/owner/repo-name.git")]
         public required string RepoUrl { get; set; }
+
+        public string? Namespace { get; set; } // Optional, can be null
+        public string? ResourceName { get; set; } // Optional, can be null
+        public string? SubType { get; set; } // Optional, can be null
     }
 }

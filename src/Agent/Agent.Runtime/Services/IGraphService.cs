@@ -47,7 +47,7 @@ public interface IGraphService
     Task<ResultSet<dynamic>> GetAppGroupsBySubscriptionAsync(string subscriptionId, string? resourceType = null);
 
     // RepoUrl is empty if no source code repo is linked to the app group
-    public record AppGroupWithRepo(string ResourceId, string Name, string Type, string RepoUrl, DateTime? LinkedTimestamp);
+    public record AppGroupWithRepo(string ResourceId, string Name, string Type, string RepoUrl, DateTime? LinkedTimestamp, string? Namespace);
     /// <summary>
     /// Get all app groups in the graph database with their associated code repositories if exists.
     /// </summary>
