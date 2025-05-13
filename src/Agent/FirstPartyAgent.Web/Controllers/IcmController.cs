@@ -15,12 +15,12 @@ public class IcmController : Controller
     private readonly IConfiguration _configuration;
     private readonly IIcmAgentConfigService _icmConfigService;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly ICMWorkflowClient _icmWorkflowClient;
+    private readonly IICMWorkflowClient _icmWorkflowClient;
     private readonly IAlertProcessingService _alertProcessingService;
     private readonly ISessionMessageService _sessionMessageService;
     private readonly TsgFetcherService _tsgFetcherService;
     public IcmController(ILogger<ApiController> logger, IConfiguration configuration, IIcmAgentConfigService icmConfigService,
-        IHttpClientFactory httpClientFactory, ICMWorkflowClient icmWorkflowClient
+        IHttpClientFactory httpClientFactory, IICMWorkflowClient icmWorkflowClient
         , IAlertProcessingService alertProcessingService, ISessionMessageService sessionMessageService
         )
     {

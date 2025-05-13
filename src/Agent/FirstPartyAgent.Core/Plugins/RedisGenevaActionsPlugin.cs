@@ -13,11 +13,11 @@ namespace FirstPartyAgent.Core.Plugins
 {
     public class RedisGenevaActionsPlugin
     {
-        private readonly ICMWorkflowClient _icmWorkflowClient;
+        private readonly IICMWorkflowClient _icmWorkflowClient;
         private readonly ILogger<RedisGenevaActionsPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
 
-        public RedisGenevaActionsPlugin(ICMWorkflowClient icmWorkflowClient, ILogger<RedisGenevaActionsPlugin> logger, ITeamsClient teamsClient)
+        public RedisGenevaActionsPlugin(IICMWorkflowClient icmWorkflowClient, ILogger<RedisGenevaActionsPlugin> logger, ITeamsClient teamsClient)
         {
             _logger = logger;
             _icmWorkflowClient = icmWorkflowClient;

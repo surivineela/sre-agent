@@ -1,6 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 
+REM === Accept ACR name as argument ===
+if "%~1"=="" (
+    echo ERROR: ACR name not provided.
+    exit /b 1
+)
+set REGISTRY_NAME=%~1
+set IMAGE_NAME=%REGISTRY_NAME%.azurecr.io/fpagentweb:latest
+
 REM Get the directory where this script is located
 set SCRIPT_DIR=%~dp0
 REM Remove trailing backslash
@@ -17,7 +25,7 @@ set PROJECT_NAME=FirstPartyAgent.Web
 set PROJECT_PATH=%PROJECTS_PATH%\%PROJECT_NAME%
 set CSPROJ_FILE=%PROJECT_PATH%\%PROJECT_NAME%.csproj
 set PUBLISH_DIR=%PROJECTS_PATH%\publish
-set IMAGE_NAME=custompublicacr.azurecr.io/fpagentweb:latest
+set CONTAINER_NAME=fpagentwebcontainer
 
 echo SCRIPT_DIR=%SCRIPT_DIR%
 echo PROJECTS_PATH=%PROJECTS_PATH%
@@ -43,20 +51,21 @@ copy "%SCRIPT_DIR%\Dockerfile" "%PUBLISH_DIR%"
 REM Step 5: Build Docker image
 docker build -t %IMAGE_NAME% "%PUBLISH_DIR%"
 
-REM Remove any running container with the same name
-docker kill fpagentwebcontainer
+REM Login to ACR
+az acr login --name %REGISTRY_NAME%
+if errorlevel 1 (
+    echo Failed to login to ACR.
+    exit /b 1
+)
 
-REM Remove any containers with the same name
-docker rm fpagentwebcontainer
+REM Confirm image exists
+docker images | findstr %REGISTRY_NAME%
 
-REM Step 6: Run Docker container on port 8080
-docker run -d -p 8080:8080 --name fpagentwebcontainer %IMAGE_NAME%
-
+REM Push the image
 echo.
-echo App running at http://localhost:8080
-
-REM
-az acr login --name custompublicacr
-
-REM
-docker push custompublicacr.azurecr.io/fpagentweb:latest
+echo Pushing the image to ACR...
+docker push %IMAGE_NAME%
+if errorlevel 1 (
+    echo Docker push failed.
+    exit /b 1
+)

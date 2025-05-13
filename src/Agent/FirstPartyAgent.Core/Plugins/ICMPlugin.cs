@@ -19,14 +19,14 @@ namespace FirstPartyAgent.Core.Plugins
     public class ICMPlugin
     {
         private readonly IICMAPIClient _icmApiClient;
-        private readonly ICMWorkflowClient _icmWorkflowClient;
+        private readonly IICMWorkflowClient _icmWorkflowClient;
         private readonly ILogger<ICMPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
         private readonly ISessionMessageService _sessionMessageService;
         private const string HumanInterventionTag = "SREAgent_HumanIntervention";
         private const string AgentProcessedTag = "SREAgent_Processed";
 
-        public ICMPlugin(IICMAPIClient icmAPIClient, ICMWorkflowClient icmWorkflowClient, ILogger<ICMPlugin> logger, ITeamsClient teamsClient, ISessionMessageService sessionMessageService)
+        public ICMPlugin(IICMAPIClient icmAPIClient, IICMWorkflowClient icmWorkflowClient, ILogger<ICMPlugin> logger, ITeamsClient teamsClient, ISessionMessageService sessionMessageService)
         {
             _logger = logger;
             _icmApiClient = icmAPIClient;

@@ -16,11 +16,11 @@ namespace FirstPartyAgent.Core.Plugins
 {
     public class ICMChartPlugin
     {
-        private readonly ICMWorkflowClient _icmWorkflowClient;
+        private readonly IICMWorkflowClient _icmWorkflowClient;
         private readonly ILogger<ICMChartPlugin> _logger;
         private readonly ITeamsClient _teamsClient;
 
-        public ICMChartPlugin(ICMWorkflowClient icmWorkflowClient, ILogger<ICMChartPlugin> logger, ITeamsClient teamsClient)
+        public ICMChartPlugin(IICMWorkflowClient icmWorkflowClient, ILogger<ICMChartPlugin> logger, ITeamsClient teamsClient)
         {
             _logger = logger;
             _icmWorkflowClient = icmWorkflowClient;

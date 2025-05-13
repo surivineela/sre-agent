@@ -25,7 +25,7 @@ namespace FirstPartyAgent.FunctionApp
         private readonly ISessionMessageService _sessionMessageService;
         private readonly IStorageService _storageService;
         private readonly ICosmosDBService _cosmosDBService;
-        private readonly ICMWorkflowClient _icmWorkflowClient;
+        private readonly IICMWorkflowClient _icmWorkflowClient;
         private const string hotsiteAgentAlertDetailsCosmosDbContainer = "IcmAlertDetails";
         private readonly AlertHandlerService _alertHandlerService;
 
@@ -36,7 +36,7 @@ namespace FirstPartyAgent.FunctionApp
             IAlertProcessingService alertProcessingService,
             ISessionMessageService sessionMessageService,
             ICosmosDBService cosmosDBService,
-            ICMWorkflowClient icmWorkflowClient,
+            IICMWorkflowClient icmWorkflowClient,
             AlertHandlerService alertHandlerService)
         {
             _logger = logger;

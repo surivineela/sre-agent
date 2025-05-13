@@ -40,7 +40,16 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<ObserverClientService>();
             services.AddSingleton<BaseIcmWorkflowClient>();
             services.AddSingleton<AlertHandlerService>();
-            services.AddSingleton<ICMWorkflowClient>();
+            services.AddSingleton<IICMWorkflowClient>(sp =>
+            {
+                var icmWorkflowSettings = sp.GetRequiredService<ICMWorkflowSettings>();
+                if (icmWorkflowSettings.Enabled)
+                {
+                    var logger = sp.GetRequiredService<ILogger<ICMWorkflowClient>>();
+                    return new ICMWorkflowClient(environment, logger, icmWorkflowSettings);
+                }
+                return new NullableICMWorkflowClient();
+            });
             services.AddSingleton<ICMPlugin>();
             services.AddSingleton<GenevaActionsPlugin>();
             services.AddSingleton<HttpRequestPlugin>();

@@ -16,7 +16,7 @@ using Newtonsoft.Json.Linq;
 
 namespace FirstPartyAgent.Core.Services
 {    
-    public class ICMWorkflowClient
+    public class ICMWorkflowClient: IICMWorkflowClient
     {
         private readonly bool IsDevelopment;
         private static HttpClient _httpClient;
@@ -24,7 +24,8 @@ namespace FirstPartyAgent.Core.Services
         private readonly ICMWorkflowSettings _icmWorkflowSettings;
         private const string ActionPath = "triggers/manual/execute";
         private readonly int TimeoutInSeconds = 600;
-        public bool ProcessImages = true;
+        private bool _processImages = true;
+        public bool ProcessImages => _processImages;
 
         public ICMWorkflowClient(IHostEnvironment environment, ILogger<ICMWorkflowClient> logger, ICMWorkflowSettings icmWorkflowSettings)
         {
@@ -33,7 +34,7 @@ namespace FirstPartyAgent.Core.Services
                 return;
             }
             _icmWorkflowSettings = icmWorkflowSettings;
-            ProcessImages = _icmWorkflowSettings.ProcessImages;
+            _processImages = _icmWorkflowSettings.ProcessImages;
             IsDevelopment = environment.IsDevelopment();
             _logger = logger;
 
@@ -728,6 +729,110 @@ Incidents
         {
             _httpClient?.Dispose();
         }
+    }
+    public class NullableICMWorkflowClient : IICMWorkflowClient
+    {
+        public void Dispose() { }
+
+        public Task<Incident> GetIncidentAsync(string incidentId) => Task.FromResult<Incident>(null);
+
+        public Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId) => Task.FromResult<SubscriptionDetail>(null);
+
+        public Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId) => Task.FromResult<AcaSubscriptionUsage>(null);
+
+        public Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null) =>
+            Task.FromResult(new List<DiscussionEntry>());
+
+        public Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> AddTagToIncident(string incidentId, string tag) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
+            int lookbackPeriodInDays,
+            int resultLimit,
+            List<string> columnNames,
+            List<string> operators,
+            List<string> values) =>
+            Task.FromResult(new List<IncidentAdvancedSearchResultItem>());
+
+        public Task<List<SearchItem>> SearchIncidentsAsync(string searchString, int lookbackPeriodInDays, int resultLimit) =>
+            Task.FromResult(new List<SearchItem>());
+
+        public Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string humanInterventionServiceName = null, string humanInterventionTeamName = null) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> MarkSubFirstPartyAsync(string subscriptionId) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> GetSubDetailsFromGenevaAsync(string subscriptionId) => Task.FromResult<string>(null);
+
+        public Task<string> RebootWorker(string location, string stampName, string role, string roleInstance) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<string> GetRedisDeploymentDetailsFromGenevaAsync(string cacheName) => Task.FromResult<string>(null);
+
+        public Task<string> GetRedisDeploymentHistoryFromGenevaAsync(string cacheName) => Task.FromResult<string>(null);
+
+        public Task<string> RestartWebApp(string subscriptionId, string webappName, string webspaceName) =>
+            Task.FromResult("ICM Plugin is disabled");
+
+        public Task<List<CustomField>> GetCustomFieldsAsync(string incidentId) =>
+            Task.FromResult(new List<CustomField>());
+
+        public Task<string> GetAppLensDiagnosticsAsync(string incidentId) => Task.FromResult<string>(null);
+        public bool ProcessImages => false;
+    }
+    public interface IICMWorkflowClient : IDisposable
+    {
+        Task<Incident> GetIncidentAsync(string incidentId);
+        Task<string> AddAttachmentToIncident(string incidentId, string fileName, string base64Content);
+        Task<SubscriptionDetail> GetSubscriptionDetail(string subscriptionId);
+        Task<AcaSubscriptionUsage> GetSubscriptionUsage(string subscriptionId);
+        Task<string> SetSubscriptionQuota(string subscriptionId, string region, string quotaType, string quotaLimit);
+        Task<List<DiscussionEntry>> GetIncidentDiscussionEntriesAsync(string incidentId, DateTimeOffset? queryFrom = null);
+        Task<string> TransferIncidentAsync(string incidentId, string discussionEntry, string tenantName, string owningTeam);
+        Task<string> AddTagToIncident(string incidentId, string tag);
+        Task<string> MitigateIncidentAsync(string incidentId, string discussionEntry);
+        Task<List<IncidentAdvancedSearchResultItem>> SearchIncidentsWithParametersAsync(
+            int lookbackPeriodInDays,
+            int resultLimit,
+            List<string> columnNames,
+            List<string> operators,
+            List<string> values);
+        Task<List<SearchItem>> SearchIncidentsAsync(string searchString, int lookbackPeriodInDays, int resultLimit);
+        Task<string> DowngradeSeverityAsync(string incidentId, string discussionEntry);
+        Task<string> TransferIncidentToHumanInterventionAsync(string incidentId, string discussionEntry, string humanInterventionServiceName = null, string humanInterventionTeamName = null);
+        Task<string> ResolveIncidentAsync(string incidentId, string discussionEntry);
+        Task<string> PostDiscussionEntryAsync(string incidentId, string discussionEntry);
+        Task<string> MarkSubFirstPartyAsync(string subscriptionId);
+        Task<string> GetSubDetailsFromGenevaAsync(string subscriptionId);
+        Task<string> RebootWorker(string location, string stampName, string role, string roleInstance);
+        Task<string> GetRedisDeploymentDetailsFromGenevaAsync(string cacheName);
+        Task<string> GetRedisDeploymentHistoryFromGenevaAsync(string cacheName);
+        Task<string> RestartWebApp(string subscriptionId, string webappName, string webspaceName);
+        Task<List<CustomField>> GetCustomFieldsAsync(string incidentId);
+        Task<string> GetAppLensDiagnosticsAsync(string incidentId);
+        bool ProcessImages { get; }
     }
 }
 
