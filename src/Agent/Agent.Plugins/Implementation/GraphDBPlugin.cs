@@ -1522,7 +1522,7 @@ g.V().has('id', '{deploymentResourceId}')
 
                 var resourceID = new ResourceIdentifier(sanitizedResourceId);
 
-                string query = $"g.V().has('resourceId', '{sanitizedResourceId}').project('properties').by(valueMap().by(unfold()))";
+                string query = $"g.V().has('resourceId', '{sanitizedResourceId}').project('properties').by(valueMap()).by(unfold())";
 
                 var result = await GraphDbClient.Query<dynamic>(query);
 
