@@ -42,6 +42,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
                     - Managed Cluster Name: {input.ManagedClusterName}
                     - Region: {input.Region}
                     - From: {input.FromDate:O}
+                    - Managed Environment Name: {input.ManagedEnvironmentName}
                     - To: {input.ToDate:O}
                     - IcM ID: {input.IcmId}
                     - Issue Description: {input.IssueDescription}

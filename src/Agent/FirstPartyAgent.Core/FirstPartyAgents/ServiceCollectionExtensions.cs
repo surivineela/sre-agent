@@ -99,8 +99,12 @@ public static class ServiceCollectionExtensions
         services.AddSingleton<ContainerAppsQuotaAgentFactory>();
 
         services.AddSingleton<IContainerAppRevisionPlugin, ContainerAppRevisionPlugin>();
+        services.AddSingleton<IManagedClusterPlugin, ManagedClusterPlugin>();
+        services.AddSingleton<IManagedEnvironmentPlugin, ManagedEnvironmentPlugin>();
         services.AddSingleton<ContainerAppRevisionAgentPlugin>();
         services.AddSingleton<ContainerAppRevisionPluginDefinition>();
+        services.AddSingleton<ManagedEnvironmentPluginDefinition>();
+        services.AddSingleton<ManagedClusterPluginDefinition>();
         services.AddSingleton<ContainerAppRevisionAgentFactory>();
 
 

@@ -45,6 +45,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
                     Input information
                     - Container App Name: {input.ContainerAppName}
                     - Resource Group Name: {input.ResourceGroupName}
+                    - Managed Environment Name: {input.ManagedEnvironmentName}
                     - Subscription Id: {input.SubscriptionId}
                     - Region: {input.Region}
                     - From: {input.FromDate:O}

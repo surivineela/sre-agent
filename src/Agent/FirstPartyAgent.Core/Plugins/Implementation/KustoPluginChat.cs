@@ -5,7 +5,9 @@
 using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
+using Agent.Data.DatabaseClients.GraphDbClient;
 using IdentityModel.Client;
+using Microsoft.Azure.Management.ResourceManager.Fluent.Core;
 using Microsoft.Extensions.AI;
 using Microsoft.SemanticKernel;
 
@@ -27,6 +29,7 @@ namespace FirstPartyAgent.Plugins
 
         public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, SamplingOptions? samplingOptions = null)
         {
+            region = region.NormalizeLocation();
             SamplingParameterHelper.AddSamplingParameters(args, samplingOptions);
             var fileName = Path.Combine(AppContext.BaseDirectory, "Plugins", "Definitions", "Queries", $"{functionName}.kql");
             KustoQueryResult queryResult;
@@ -63,6 +66,7 @@ namespace FirstPartyAgent.Plugins
 
         Task<KustoQueryResult> IKustoPlugin.ExecuteKustoQuery(string region, string query)
         {
+            region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteKustoQuery(region, query);
         }
 
@@ -73,11 +77,13 @@ namespace FirstPartyAgent.Plugins
 
         Task<KustoQueryResult> IKustoPlugin.ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args)
         {
+            region = region.NormalizeLocation();
             return _kustoPlugin.ExecuteFunctionAsync(functionName, region, args);
         }
 
         Task<List<KustoFunction>> IKustoPlugin.ListFunctionsAsync(string region)
         {
+            region = region.NormalizeLocation();
             return _kustoPlugin.ListFunctionsAsync(region);
         }
 

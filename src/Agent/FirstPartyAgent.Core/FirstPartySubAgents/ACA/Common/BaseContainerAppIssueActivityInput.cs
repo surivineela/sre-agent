@@ -8,6 +8,11 @@ public record BaseContainerAppIssueActivityInput
     [Description("Resource Group name")]
     public string ResourceGroupName { get; init; }
 
+
+    [Description("Managed Environment Name")]
+    public string ManagedEnvironmentName { get; init; }
+
+
     [Description("The start of the time range to analyze.")]
     public DateTime FromDate { get; init; }
 

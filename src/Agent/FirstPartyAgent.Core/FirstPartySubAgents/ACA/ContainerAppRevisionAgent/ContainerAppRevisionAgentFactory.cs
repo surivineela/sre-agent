@@ -29,6 +29,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
         ITimePlugin timePlugin,
         IContainerAppRevisionPlugin revisionPlugin,
         IRecordActionsPlugin recordActionsPlugin,
+        IManagedEnvironmentPlugin managedEnvironmentPlugin,
+        IManagedClusterPlugin managedClusterPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -37,7 +39,13 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
             _toolsRegistry = toolsRepository;
             var toolSignatures = new List<string>();
 
-    
+            var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetManagedClusterInformation));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
+
+            var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(managedEnvironmentPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment));
 
 
             var remediationPluginDefinition = new ContainerAppRevisionPluginDefinition(revisionPlugin);

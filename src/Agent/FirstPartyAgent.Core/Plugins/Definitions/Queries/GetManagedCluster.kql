@@ -1,0 +1,81 @@
+let startTime = datetime("##fromDate##");
+let endTime = datetime("##toDate##");
+
+let containerAppName = "##containerAppName##";
+let resourceGroupName = "##resourceGroupName##";
+let subscriptionId = "##subscriptionId##";
+
+let globalFrom = startTime;
+let globalTo = endTime;
+
+// Resolve managedClusterName from container app inputs
+let managedClusterName = toscalar(ContainerAppDBState
+    | where PreciseTimeStamp between (globalFrom .. globalTo)
+    | where containerAppName == containerAppName and resourceGroup == resourceGroupName and subscription == subscriptionId
+    | top 1 by PreciseTimeStamp desc
+    | project managedClusterName
+);
+
+
+ManagedEnvironmentDBState
+| where PreciseTimeStamp between (globalFrom .. globalTo)
+| where managedClusterName == managedClusterName
+| join kind=leftouter (GetRegions) on $left.Tenant == $right.Name
+| extend jitEndpoint = iif(Cloud contains "china", "jitaccess.security.core.chinacloudapi.cn", "jitaccess.security.core.windows.net")
+| extend JITLink = strcat("https://", jitEndpoint, "/WorkFlowTempAccess.aspx?WorkItemSource=Other&WorkItemId=None&Justification=Incident+mitigation+-+link+from+ACA+ASI+Dashboard&ResourceType=Subscription&SubscriptionId=", managedSubscription, "&AccessLevel=Azure+Kubernetes+Service+RBAC+Cluster+Admin")
+| extend ClusterCmd = strcat(
+    "Set-AzContext -Subscription ", managedSubscription, ";",
+    "Import-AzAksCredential -Name ", managedClusterName, " -ResourceGroupName ", managedClusterName, "-rg -force; k9s")
+| extend JitShellClusterCommand = strcat(
+    "New-JITRequest -Env https://jitaccess.security.core.windows.net/ -WorkItemSource None  -WorkItemId 1 ",
+    "-Justification 'ASI' -ResourceType Subscriptions ",
+    "-AccessLevel 'Azure Kubernetes Service RBAC Cluster Admin' -ApiVersion 2015-09-07.1.0 ",
+    "-SubscriptionIds ", managedSubscription)
+| extend JitShellOwnerCommand = strcat(
+    "New-JITRequest -Env https://jitaccess.security.core.windows.net/ -WorkItemSource None -WorkItemId 1 ",
+    "-Justification 'ASI' -ResourceType Subscriptions ",
+    "-AccessLevel 'Reader' -ApiVersion 2015-09-07.1.0 ",
+    "-SubscriptionIds ", managedSubscription)
+| extend envType = case(hasWorkloadProfiles == true or isLegionEnabled == true, "V2", "V1")
+| extend customVnet = case(hasCustomerVnet == true and envType == "v1", true, subnetResourceId != "", true, false)
+| extend RegionalConsumptionV2 = iif(envType == "V2", strcat("Regional Consumption V2 at ", managedClusterLocation), "")
+| order by PreciseTimeStamp desc
+| project 
+    PreciseTimeStamp,
+    managedClusterName,
+    managedClusterLocation,
+    managedSubscription,
+    managedClusterCreatedTime,
+    tier,
+    powerState,
+    provisioningState = managedClusterProvisioningState,
+    managedClusterProvisioningError = "<TO BE ADDED>",
+    chartVersion,
+    chartVersionUpgradeTime,
+    chartVersionUpgradeError = chartVersionUpgradeErrors,
+    kubernetesVersion,
+    kubernetesVersionUpgradeTime,
+    upgradeBatch,
+    environmentSubscription = subscription,
+    environmentResourceGroup = resourceGroup,
+    environmentLocation = Tenant,
+    environmentName,
+    environmentCreatedTime = environmentClusterCreatedTime,
+    hasWorkloadProfiles,
+    JITLink = iff(Tenant contains "Test", "N/A - Test Environment", JITLink),
+    ClusterCmd,
+    envType,
+    RegionalConsumptionV2,
+    customVnet,
+    customHelmValues,
+    KustoUrl = iff(Tenant contains "Test", "cappstest.westus", KustoUrl),
+    loadBalancerResourceId = loadBalancerId,
+    subnetResourceId,
+    isInternal,
+    logsDestination,
+    Tenant,
+    zoneRedundantEnabled,
+    JitShellClusterCommand,
+    JitShellOwnerCommand,
+    apiServerFqdn
+| take 1

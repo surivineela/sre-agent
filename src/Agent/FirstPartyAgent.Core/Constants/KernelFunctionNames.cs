@@ -9,6 +9,10 @@ namespace FirstPartyAgent.Constants
         public static class ACA
         {
             public const string GetInitialInvestigationSummaryReport = "get_initial_investigation_summary_report";
+            public const string GetManagedClusterInformation = "get_managed_cluster_info";
+            public const string GetManagedEnvironmentInformation = "get_managed_environment_info";
+            public const string GetASIPageForManagedCluster = "get_managed_cluster_asi_page";
+            public const string GetASIPageForManagedEnvironment = "get_managed_environment_asi_page";
             public const string GetSubscriptionDetail = "get_subscription_detail";
             public const string GetSubscriptionUsage = "get_subscription_usage";
             public const string SetSubscriptionQuota = "set_subscription_quota";

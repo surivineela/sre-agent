@@ -46,6 +46,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
                     - Container App Name: {input.ContainerAppName}
                     - Revision Name: {input.RevisionName}
                     - Resource Group Name: {input.ResourceGroupName}
+                    - Managed Environment Name: {input.ManagedEnvironmentName}
                     - Subscription: {input.SubscriptionId}
                     - Region: {input.Region}
                     - From: {input.FromDate:O}
