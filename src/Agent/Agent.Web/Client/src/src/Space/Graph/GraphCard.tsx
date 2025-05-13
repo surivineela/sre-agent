@@ -27,6 +27,7 @@ const ICON_LOOKUP: Record<string, string> = {
     webapp: 'WebApp.svg',
     functionapp: 'WebApp.svg',
     site: 'WebApp.svg',
+    serverfarms: 'AppServicePlan.svg',
 
     // Databases & caches
     cosmos: 'CosmosDB.svg',
@@ -61,6 +62,7 @@ const FRIENDLY_NAMES: Record<string, string> = {
     webapp: 'Web App',
     functionapp: 'Function App',
     site: 'Web App',
+    serverfarms: 'App Service Plan',
 
     // Databases & caches
     cosmos: 'Cosmos DB',
