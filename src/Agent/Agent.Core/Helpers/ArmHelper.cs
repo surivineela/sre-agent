@@ -1636,6 +1636,11 @@ public class ArmHelper
 
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/tcpPingCheck?api-version=2022-03-01");
 
+        if (host.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            host = host.Substring("https://".Length);
+        }
+
         string payload = $@"{{
             ""properties"": {{
                 ""Host"": ""{host}"",
@@ -1677,19 +1682,24 @@ public class ArmHelper
         return await GetRevisionReplicas(revisionId);
     }
 
-    public async Task<string> CheckDnsResolution(string resourceId, string desinationUrl)
+    public async Task<string> CheckDnsResolution(string resourceId, string destinationUrl)
     {
         var httpClient = _httpClientFactory.CreateClient(Constants.HttpClientForArmOperation);
 
         httpClient.BaseAddress = new Uri("https://management.azure.com");
 
+        if (destinationUrl.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+        {
+            destinationUrl = destinationUrl.Substring("https://".Length);
+        }
+
         HttpRequestMessage request = new HttpRequestMessage(HttpMethod.Post, resourceId + "/dnsCheck?api-version=2022-03-01");
 
-        string payload = $@"{{
-            ""properties"": {{
-                ""dnsName"": ""{desinationUrl}""
-            }}
-        }}";
+        string payload = $@"{{  
+           ""properties"": {{  
+               ""dnsName"": ""{destinationUrl}""  
+           }}  
+       }}";
         request.Content = new StringContent(payload, Encoding.UTF8, "application/json");
 
         var res = await httpClient.SendAsync(request);
