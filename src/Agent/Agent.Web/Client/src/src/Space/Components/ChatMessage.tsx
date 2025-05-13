@@ -698,7 +698,7 @@ const ChatMessage = ({ message, isTyping, threadId, cancelResponse, threadOrches
                             icon={<SquareDismissRegular />}
                             onClick={() => cancelResponse?.()}
                             appearance="transparent"
-                            style={{ width: '90%' }}
+                            style={{ width: '90%', marginTop: '12px' }}
                         >
                             <FormattedMessage {...SreAgentResources.cancel} />
                         </Button>
