@@ -125,6 +125,7 @@ export const SreAgentResources = defineMessages({
     stop: { defaultMessage: 'Stop', id: 'q/uwLT' },
     sreAgentSpace: { defaultMessage: 'SRE Agent Space', id: 'iv1ryQ' },
     subscription: { defaultMessage: 'Subscription', id: 'R/6nsx' },
+    appGroup: { defaultMessage: 'App Group', id: 'V6juiN' },
     subscriptionId: { defaultMessage: 'Subscription ID', id: 'FUQvS0' },
     totalThreads: { defaultMessage: 'Total threads', id: 'zN87hN' },
     tasks: { defaultMessage: 'Tasks', id: 'yhU1et' },
@@ -145,7 +146,7 @@ export const SreAgentResources = defineMessages({
 export const SreAgentTabResources = defineMessages({
     activities: { defaultMessage: 'Activities', id: 'UmEsZF' },
     settings: { defaultMessage: 'Settings', id: 'D3idYv' },
-    managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },
+    resourceMapping: { defaultMessage: 'Resource mapping', id: 'TdeXH0' },
     logs: { defaultMessage: 'Logs', id: 'SNuQo7' },
 });
 
@@ -473,5 +474,13 @@ export const FeedbackResources = defineMessages({
     feedbackPrivacyStatement: {
         defaultMessage: 'Data usage, customer rights, and privacy statement if needed. We got it covered.',
         id: 'OV0MpG',
+    },
+});
+
+export const GraphResources = defineMessages({
+    resourceSelectorDescription: {
+        defaultMessage:
+            "This logical map shows how your application's resources are connected. The agent analyzes those resources and organizes them into app group based on the primary resources.",
+        id: '/0qSPz',
     },
 });

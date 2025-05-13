@@ -29,6 +29,12 @@
       "value": "Resource group"
     }
   ],
+  "/0qSPz": [
+    {
+      "type": 0,
+      "value": "This logical map shows how your application's resources are connected. The agent analyzes those resources and organizes them into app group based on the primary resources."
+    }
+  ],
   "/WrP/v": [
     {
       "type": 0,
@@ -857,6 +863,12 @@
       "value": " managed resource group(s)"
     }
   ],
+  "TdeXH0": [
+    {
+      "type": 0,
+      "value": "Resource mapping"
+    }
+  ],
   "TkWiD5": [
     {
       "type": 0,
@@ -903,6 +915,12 @@
     {
       "type": 0,
       "value": "You'll need to connect through an access key. Go to pagerduty.com and the information will be within the API Access Keys section."
+    }
+  ],
+  "V6juiN": [
+    {
+      "type": 0,
+      "value": "App Group"
     }
   ],
   "VzzYJk": [

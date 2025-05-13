@@ -66,14 +66,18 @@ export const useResourceSelectorStyles = makeStyles({
     root: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '20px',
+        gap: '16px',
         alignItems: 'flex-start',
         maxWidth: '300px',
         minWidth: '100px',
-        height: '100%',
+        height: 'calc(100% - 40px)',
+        overflowY: 'auto',
         flex: '1 1 auto',
         backgroundColor: tokens.colorNeutralBackground3,
-        padding: '35px 20px',
+        padding: '20px',
+    },
+    field: {
+        width: '100%',
     },
     option: {
         display: 'flex',

@@ -11,7 +11,9 @@ import {
 } from '@fluentui/react-components';
 import axios from 'axios';
 import { memo, useEffect, useState } from 'react';
+import { FormattedMessage } from 'react-intl';
 import { getAgentHeaders } from '../../Common/Helpers/headers';
+import { GraphResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { ResourceExtended, Subscription } from '../Contracts/Graph';
 import { useResourceSelectorStyles } from '../Styles/Graph.styles';
 
@@ -51,7 +53,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
     const [isSubscriptionLoading, setIsSubscriptionLoading] = useState<boolean>(false);
     const [isAppGroupLoading, setIsAppGroupLoading] = useState<boolean>(false);
 
-    const { root, option, optionText, optionSubtext } = useResourceSelectorStyles();
+    const { root, field, option, optionText, optionSubtext } = useResourceSelectorStyles();
 
     const onSelectSubscription = async (_: SelectionEvents, data: OptionOnSelectData) => {
         const id = data.optionValue;
@@ -127,7 +129,10 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
 
     return (
         <div className={root}>
-            <Field label="Subscription">
+            <Text>
+                <FormattedMessage {...GraphResources.resourceSelectorDescription} />
+            </Text>
+            <Field label={<FormattedMessage {...SreAgentResources.subscription} />} className={field}>
                 {isSubscriptionLoading ? (
                     <Shimmer />
                 ) : (
@@ -146,7 +151,7 @@ const ResourceSelector = ({ onAppGroupUpdate }: IResourceSelectorProps) => {
                     </Dropdown>
                 )}
             </Field>
-            <Field label="App Group">
+            <Field label={<FormattedMessage {...SreAgentResources.appGroup} />} className={field}>
                 {isAppGroupLoading ? (
                     <Shimmer />
                 ) : (

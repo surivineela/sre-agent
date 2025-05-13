@@ -115,7 +115,7 @@ const TabsListWrapper: FC = () => {
                 {intl.formatMessage(SreAgentTabResources.activities)}
             </Tab>
             <Tab id="Knowledge" value={TabValues.Graph}>
-                {intl.formatMessage(SreAgentTabResources.managedResources)}
+                {intl.formatMessage(SreAgentTabResources.resourceMapping)}
             </Tab>
             {!inStandaloneMode && (
                 <>
