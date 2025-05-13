@@ -451,7 +451,7 @@ public class MetaAgentEvals
             Would you like help diagnosing or troubleshooting "capps-azfunc-bgtasks-968c7"? If so, please confirm this is the correct function app, and let me know what issue you are facing.
             """;
 
-        var userMsg = "What's wrong with my function app capps-axfunc-bgtasks-968c7";
+        var userMsg = "What's wrong with my function app capps-azfunc-bgtasks-968c7";
         var threadMsgs = new List<Message>
         {
             new Message(Guid.Parse(testRunGuid), DateTime.UtcNow, new Author(Role.User, testRunGuid, "testUser"), userMsg),
