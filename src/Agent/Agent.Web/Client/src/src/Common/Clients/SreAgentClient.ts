@@ -35,4 +35,13 @@ export default class SreAgentClient {
             apiVersion,
         });
     };
+
+    public static deleteAgent = (resourceId: string, apiVersion = ApiVersions.microsoftAppApiVersion20250501Preview) => {
+        return MakeArmCall<ArmObj<Agent>>({
+            resourceId,
+            commandName: 'deleteAgent',
+            apiVersion,
+            method: 'DELETE',
+        });
+    };
 }

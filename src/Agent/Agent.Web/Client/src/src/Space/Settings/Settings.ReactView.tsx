@@ -6,7 +6,7 @@ import { useLocation, useNavigate, useParams } from 'react-router';
 import GrafanaDashboard from '../../GrafanaDashboard/GrafanaDashboard.ReactView';
 import { SettingsTabResources } from '../../Strings/SREAgentResources';
 import AccessControl from './AccessControl.ReactView';
-import AgentDetails from './AgentDetails.ReactView';
+import Basics from './Basics.ReactView';
 import IncidentManagement from './IncidentManagement.ReactView';
 import ManagedResources from './ManagedResources.ReactView';
 import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
@@ -14,7 +14,7 @@ import { navStyles, useSettingsStyles } from './Styles/Settings.styles';
 enum SettingsKeys {
     IncidentManagement = 'incidentManagement',
     AccessControl = 'accessControl',
-    AgentDetails = 'agentDetails',
+    Basics = 'basics',
     GrafanaInsights = 'grafanaInsights',
     managedResources = 'managedResourcesGroups',
 }
@@ -31,7 +31,7 @@ const Settings: FC = () => {
     const selectedKey = useMemo(() => {
         return (
             Object.values(SettingsKeys).find(settingsKey => settingsKey.toLocaleLowerCase() === menuItem?.toLocaleLowerCase()) ||
-            SettingsKeys.AgentDetails
+            SettingsKeys.Basics
         );
     }, [menuItem]);
 
@@ -40,9 +40,9 @@ const Settings: FC = () => {
             {
                 links: [
                     {
-                        name: intl.formatMessage(SettingsTabResources.agentDetails),
+                        name: intl.formatMessage(SettingsTabResources.basics),
                         url: '',
-                        key: SettingsKeys.AgentDetails,
+                        key: SettingsKeys.Basics,
                     },
                     {
                         name: intl.formatMessage(SettingsTabResources.managedResources),
@@ -89,7 +89,7 @@ const Settings: FC = () => {
                     }}
                 />
                 <div style={styles.navPivotContainer}>
-                    {selectedKey === SettingsKeys.AgentDetails && <AgentDetails />}
+                    {selectedKey === SettingsKeys.Basics && <Basics />}
                     {selectedKey === SettingsKeys.managedResources && <ManagedResources />}
                     {selectedKey === SettingsKeys.IncidentManagement && <IncidentManagement />}
                     {selectedKey === SettingsKeys.GrafanaInsights && <GrafanaDashboard />}

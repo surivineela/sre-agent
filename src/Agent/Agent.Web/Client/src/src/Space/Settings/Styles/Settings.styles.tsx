@@ -92,6 +92,8 @@ const connectedImageStyle: CSSProperties = { display: 'block', height: 15, margi
 
 const buttonsWrapperStyle: CSSProperties = { marginTop: 30 };
 
+const deleteButtonStyle: CSSProperties = { marginTop: '20px' };
+
 export const useSettingsStyles = () => {
     return {
         noMcpServersContainer,
@@ -118,6 +120,7 @@ export const useSettingsStyles = () => {
         connectedWrapperStyle,
         connectedImageStyle,
         buttonsWrapperStyle,
+        deleteButtonStyle,
         getNavContainerStyles,
     };
 };

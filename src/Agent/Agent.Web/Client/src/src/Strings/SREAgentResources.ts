@@ -1,6 +1,15 @@
 import { defineMessages } from 'react-intl';
 
 export const SreAgentResources = defineMessages({
+    deleteAgentTitle: { defaultMessage: 'Delete SRE Agent', id: 'ThSX0k' },
+    deleteAgentDescription: {
+        defaultMessage: 'Are you sure you want to delete this SRE Agent? This action cannot be undone.',
+        id: 'O8zbbB',
+    },
+    deleteAgentNotificationTitle: { defaultMessage: 'Deleting SRE Agent', id: '6OBtew' },
+    deleteAgentNotificationDescription: { defaultMessage: 'Deleting SRE Agent {name} in progress', id: 'L0KVkI' },
+    deleteAgentNotificationSuccess: { defaultMessage: 'SRE Agent {name} deleted successfully', id: '1O47t6' },
+    deleteAgentNotificationError: { defaultMessage: 'Failed to delete SRE Agent {name}', id: 'JCjxSH' },
     sreAgent: { defaultMessage: 'SRE Agent', id: '+WRusC' },
     add: { defaultMessage: 'Add', id: '2/2yg+' },
     new: { defaultMessage: 'New', id: 'bW7B87' },
@@ -124,7 +133,7 @@ export const SreAgentResources = defineMessages({
     logicAppName: { defaultMessage: 'Logic App name', id: 'f0Y4Zr' },
     yes: { defaultMessage: 'Yes', id: 'a5msuh' },
     no: { defaultMessage: 'No', id: 'oUWADl' },
-    managedIdentity: { defaultMessage: 'Managed Identity', id: 'UZMdQH' },
+    managedIdentity: { defaultMessage: 'Managed identity', id: 'Ys9AIu' },
     chatAiContentAndPrivacyMessageStatement: {
         defaultMessage:
             'AI-generated content might be incorrect, so review carefully before use. Do not include personal or confidential information in the chat.',
@@ -386,7 +395,7 @@ export const AzMonitorResources = defineMessages({
 export const SettingsTabResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
     accessControl: { defaultMessage: 'Access control', id: 'rpG/Bn' },
-    agentDetails: { defaultMessage: 'Agent details', id: 'Wf6bDe' },
+    basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaInsights: { defaultMessage: 'Grafana insights', id: 'Nf40QB' },
     managedResources: { defaultMessage: 'Managed resources', id: 'pCPZnU' },
 });
@@ -430,35 +439,6 @@ export const GrafanaDashboardResources = defineMessages({
         defaultMessage: 'Failed to create the Grafana dashboard with the error: {errorMessage}',
         id: 'ACfSSZ',
     },
-    grafanaRoleAssignmentTitle: { defaultMessage: 'Provisioning Grafana role assignment', id: 'IS+F5v' },
-    grafanaRoleAssignmentInProgress: {
-        defaultMessage: 'Provisioning of your Grafana role assignment is in progress.',
-        id: 'Fh8hZp',
-    },
-    grafanaRoleAssignmentSuccess: { defaultMessage: 'Grafana role assignment creation succeeded', id: 'qw8pxr' },
-    grafanaRoleAssignmentFailed: {
-        defaultMessage: 'Failed to create the Grafana role assignment with the error: {errorMessage}',
-        id: 'O0WH/+',
-    },
-    postCreationInstructions: {
-        defaultMessage: `After the Grafana dashboard is finished provisioning, you'll need to generate an API key for you agent to communicate with it. Follow these steps:`,
-        id: 'NEY2T1',
-    },
-    stepOneTitle: { defaultMessage: 'Step 1: Open Cloud Shell', id: '19YPdI' },
-    stepOneInstructions: {
-        defaultMessage: '- Click on the "Cloud Shell" button in the top right corner of the Azure portal.',
-        id: '59YCbl',
-    },
-    stepTwoTitle: { defaultMessage: 'Step 2: Generate API key', id: 'XIjgrI' },
-    stepTwoInstructions: { defaultMessage: '- Run "az account set --subscription \'{0}\'"', id: '9bulHK' },
-    stepThreeTitle: { defaultMessage: 'Step 3: Generate an API key', id: 'xL9nak' },
-    stepThreeInstructions: {
-        defaultMessage:
-            "- Run: \"az grafana api-key create --key '{0}' --name '{1}' --resource-group '{2}' --role admin --time-to-live 365d\" (Note: If the CLI asks you to install an extension to support Grafana commands, type \"Y\" and hit enter)",
-        id: '41eAX2',
-    },
-    stepFourTitle: { defaultMessage: 'Step 4: Copy the API key and paste it here', id: '+7umUn' },
-    apiKey: { defaultMessage: 'API Key', id: '4dZi3Y' },
     linkGrafanaDashboardTitle: { defaultMessage: 'Linking Grafana dashboard', id: 'XEso9C' },
     linkGrafanaDashboardInProgress: { defaultMessage: 'Linking Grafana dashboard to SRE Agent in progress', id: '40YXE1' },
     linkGrafanaDashboardSuccess: { defaultMessage: 'Grafana dashboard linked successfully', id: 'FDJdmL' },
