@@ -99,7 +99,10 @@ You can set up npm authentication using our script:
 
 
 The deployment script deploys the DTS service. You can grab the connection string from the portal and update your `appsettings.Development.json`.
-Note: If you get the connection string from the deployed resource in the portal, it will be missing the `TaskHub` parameter, which you'll need to add manually (also in the portal).
+
+Note: 
+1. If you get the connection string from the deployed resource in the portal, it will be missing the `TaskHub` parameter, which you'll need to add manually (also in the portal).
+2. Make sure there is a Durable Task Data Contributor role assignment; otherwise, you should add it first.
 
 ```
   "AppSettings": {
@@ -135,6 +138,6 @@ Please configure Dashboard Settings properly:
 ```
 Azure Monitor Workspace Query endpoint and Metrics ingestion endpoint can be found on Azure Monitor Workspace's overview page.
 
-[Next: Running the Application](running-the-app.md) 
+[Next: Running the Application](running-the-app.md) or [Continue Setup for 1p Agent](1p-agent-development.md)
 
 [FAQs: Check frequently faced issues in development setup](development-setup-faqs.md)
