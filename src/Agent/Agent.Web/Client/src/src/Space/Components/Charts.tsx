@@ -13,6 +13,7 @@ import {
     LineChart,
     Pie,
     PieChart,
+    ReferenceDot,
     ResponsiveContainer,
     Scatter,
     ScatterChart,
@@ -28,6 +29,7 @@ interface ChartData {
     xAxisLabel?: string;
     yAxisLabel?: string;
     y2AxisLabel?: string;
+    y1AxisLabel?: string;
     yAxisMin?: number | 'auto';
     yAxisMax?: number | 'auto';
     xField?: string;
@@ -250,7 +252,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
     };
 
     const renderChart = (isZoomedView = false) => {
-        const { type, title, data, xAxisLabel, yAxisLabel, y2AxisLabel, yAxisMin, yAxisMax } = chartData;
+        const { type, title, data, xAxisLabel, yAxisLabel, yAxisMin, yAxisMax } = chartData;
         const ref = isZoomedView ? zoomedChartRef : chartRef;
 
         const tooltipStyle = {
@@ -972,6 +974,15 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
             case 'areaCorrelation': {
                 const typedData = data as AreaDataPoint[];
 
+                // Use y1AxisLabel/y2AxisLabel if present, fallback to yAxisLabel/y2AxisLabel
+                const y1Label = (chartData as any).y1AxisLabel || chartData.yAxisLabel || 'Value 1';
+                const y2Label = (chartData as any).y2AxisLabel || 'Value 2';
+
+                // Custom colors for a modern look
+                const value1Color = '#2563eb';
+                const value2Color = '#a21caf';
+                const highlightColor = '#2c3e50';
+
                 // Custom tooltip component for area chart
                 const CustomTooltip = ({ active, payload }: any) => {
                     if (active && payload && payload.length > 0 && payload[0].payload) {
@@ -1019,7 +1030,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         marginBottom: '0.25rem',
                                     }}
                                 >
-                                    <span>{y2AxisLabel || yAxisLabel}:</span>
+                                    <span>{y1Label}:</span>
                                     <span>
                                         {dataPoint.value1.toFixed(2)} ({percent1}%)
                                     </span>
@@ -1033,7 +1044,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         marginBottom: '0.25rem',
                                     }}
                                 >
-                                    <span>{y2AxisLabel || 'Value 2'}:</span>
+                                    <span>{y2Label}:</span>
                                     <span>
                                         {dataPoint.value2.toFixed(2)} ({percent2}%)
                                     </span>
@@ -1088,15 +1099,6 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                     return null;
                 };
 
-                // Calculate positions for highlight markers
-                const getPositionX = (index: number) => {
-                    const containerWidth = 100;
-                    const margin = 10;
-                    const availableWidth = containerWidth - 2 * margin;
-                    const step = typedData.length <= 1 ? 0 : availableWidth / (typedData.length - 1);
-                    return margin + index * step + '%';
-                };
-
                 return (
                     <div
                         ref={ref}
@@ -1119,8 +1121,8 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             x2="0"
                                             y2="1"
                                         >
-                                            <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#3b82f6" stopOpacity={0.2} />
+                                            <stop offset="5%" stopColor={value1Color} stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor={value1Color} stopOpacity={0.2} />
                                         </linearGradient>
                                         <linearGradient
                                             id={`colorValue2-${isZoomedView ? 'zoomed' : 'normal'}`}
@@ -1129,8 +1131,8 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                             x2="0"
                                             y2="1"
                                         >
-                                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8} />
-                                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0.2} />
+                                            <stop offset="5%" stopColor={value2Color} stopOpacity={0.8} />
+                                            <stop offset="95%" stopColor={value2Color} stopOpacity={0.2} />
                                         </linearGradient>
                                         <filter id="shadow" height="200%">
                                             <feDropShadow dx="0" dy="3" stdDeviation="3" floodOpacity="0.3" />
@@ -1142,11 +1144,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     </XAxis>
                                     <YAxis stroke="#666" tick={axisTickConfig}>
                                         <Label
-                                            value={
-                                                yAxisLabel && y2AxisLabel
-                                                    ? `${yAxisLabel} / ${y2AxisLabel}`
-                                                    : yAxisLabel || y2AxisLabel || ''
-                                            }
+                                            value={y1Label && y2Label ? `${y1Label} / ${y2Label}` : y1Label || y2Label || ''}
                                             angle={-90}
                                             position="insideLeft"
                                             fill="#666"
@@ -1170,63 +1168,41 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                     <Area
                                         type="monotone"
                                         dataKey="value1"
-                                        stroke="#3b82f6"
+                                        stroke={value1Color}
                                         strokeWidth={3}
                                         fillOpacity={1}
                                         fill={`url(#colorValue1-${isZoomedView ? 'zoomed' : 'normal'})`}
-                                        name={yAxisLabel || 'Value 1'}
+                                        name={y1Label}
                                         animationDuration={1500}
                                     />
                                     <Area
                                         type="monotone"
                                         dataKey="value2"
-                                        stroke="#8b5cf6"
+                                        stroke={value2Color}
                                         strokeWidth={3}
                                         fillOpacity={1}
                                         fill={`url(#colorValue2-${isZoomedView ? 'zoomed' : 'normal'})`}
-                                        name={y2AxisLabel || 'Value 2'}
+                                        name={y2Label}
                                         animationDuration={1500}
                                     />
+
+                                    {/* Highlight markers using ReferenceDot */}
+                                    {typedData.map(
+                                        (entry, index) =>
+                                            entry.isHighlight && (
+                                                <ReferenceDot
+                                                    key={`highlight-dot-${index}`}
+                                                    x={entry.category}
+                                                    y={Math.max(entry.value1, entry.value2)}
+                                                    r={10}
+                                                    fill={highlightColor}
+                                                    stroke="#fff"
+                                                    strokeWidth={2}
+                                                />
+                                            )
+                                    )}
                                 </AreaChart>
                             </ResponsiveContainer>
-                        </div>
-
-                        {/* Highlight indicators */}
-                        <div style={{ position: 'relative', height: '2rem', marginTop: '0.5rem' }}>
-                            {typedData.map(
-                                (entry, index) =>
-                                    entry.isHighlight && (
-                                        <div
-                                            key={`highlight-${index}`}
-                                            style={{
-                                                position: 'absolute',
-                                                left: getPositionX(index),
-                                                transform: 'translateX(-50%)',
-                                            }}
-                                        >
-                                            <div
-                                                style={{
-                                                    width: '1rem',
-                                                    height: '1rem',
-                                                    borderRadius: '9999px',
-                                                    backgroundColor: '#f97316',
-                                                    margin: '0 auto',
-                                                }}
-                                            ></div>
-                                            <div
-                                                style={{
-                                                    fontSize: '0.75rem',
-                                                    fontWeight: 'bold',
-                                                    color: '#ea580c',
-                                                    marginTop: '0.25rem',
-                                                    textAlign: 'center',
-                                                }}
-                                            >
-                                                {entry.highlightLabel || '!'}
-                                            </div>
-                                        </div>
-                                    )
-                            )}
                         </div>
 
                         {/* Analysis section */}
@@ -1269,9 +1245,8 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                         }}
                                     >
                                         <p style={{ color: '#4B5563', marginBottom: '0.5rem' }}>
-                                            This chart shows the relationship between {yAxisLabel || 'Value 1'} and{' '}
-                                            {y2AxisLabel || 'Value 2'} over time. The correlation values indicate how strongly these two
-                                            metrics influence each other.
+                                            This chart shows the relationship between {y1Label} and {y2Label} over time. The correlation
+                                            values indicate how strongly these two metrics influence each other.
                                         </p>
                                         <p style={{ color: '#4B5563' }}>
                                             Highlighted points indicate significant events or anomalies in the data that warrant attention.
@@ -1303,11 +1278,11 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                                     width: '1rem',
                                                     height: '1rem',
                                                     borderRadius: '0.25rem',
-                                                    backgroundColor: '#3b82f6',
+                                                    backgroundColor: value1Color,
                                                     marginRight: '0.5rem',
                                                 }}
                                             ></div>
-                                            <span style={{ fontSize: '0.875rem', color: '#4B5563' }}>{yAxisLabel || 'Value 1'}</span>
+                                            <span style={{ fontSize: '0.875rem', color: '#4B5563' }}>{y1Label}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.25rem' }}>
                                             <div
@@ -1315,11 +1290,11 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                                     width: '1rem',
                                                     height: '1rem',
                                                     borderRadius: '0.25rem',
-                                                    backgroundColor: '#8b5cf6',
+                                                    backgroundColor: value2Color,
                                                     marginRight: '0.5rem',
                                                 }}
                                             ></div>
-                                            <span style={{ fontSize: '0.875rem', color: '#4B5563' }}>{y2AxisLabel || 'Value 2'}</span>
+                                            <span style={{ fontSize: '0.875rem', color: '#4B5563' }}>{y2Label}</span>
                                         </div>
                                         <div style={{ display: 'flex', alignItems: 'center', marginTop: '0.75rem' }}>
                                             <div
@@ -1327,7 +1302,7 @@ const AgentChart: React.FC<AgentChartProps> = ({ messageText }) => {
                                                     width: '1rem',
                                                     height: '1rem',
                                                     borderRadius: '9999px',
-                                                    backgroundColor: '#f97316',
+                                                    backgroundColor: highlightColor,
                                                     marginRight: '0.5rem',
                                                 }}
                                             ></div>
