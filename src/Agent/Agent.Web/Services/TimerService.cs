@@ -84,6 +84,7 @@ public class TimerService : IHostedService, IDisposable
     private Timer? _crawlerTimer = null;
     private bool _crawlerTimerIsRunning = false;
     private bool _crawlerFinishedOnce = false;
+    private volatile bool _dashboardImportedOnce = false;
 
     private Timer? _tlsTimer = null;
     private bool _tlsTimerIsRunning = false;
@@ -444,6 +445,14 @@ public class TimerService : IHostedService, IDisposable
     {
         _dailyReportTimer = new Timer(async _ =>
         {
+            if (!_dashboardImportedOnce)
+            {
+                _logger.LogInternalInformation("DailyReportTimer: Dashboard not imported yet, try to import it first.");
+                var dashboardUrl = await _dailyReportScanner.TryToImportDashboards();
+                _dashboardImportedOnce = true;
+                _logger.LogInternalInformation("DailyReportTimer: Dashboard imported: {dashboardUrl}", dashboardUrl);
+            }
+
             if (!_crawlerFinishedOnce || !_cveCrawlerFinishedOnce)
             {
                 _logger.LogInternalInformation("DailyReportTimer: Resource crawler or CVE still in progress, wait for one round of scan to complete..");

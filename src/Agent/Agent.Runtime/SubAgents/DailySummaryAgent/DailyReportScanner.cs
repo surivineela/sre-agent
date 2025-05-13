@@ -274,7 +274,7 @@ namespace Agent.Runtime.SubAgents.DailyReportSummary
         }
 
         // Returns main dashboard url
-        private async Task<string> TryToImportDashboards()
+        public async Task<string> TryToImportDashboards()
         {
             try
             {
