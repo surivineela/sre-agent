@@ -27,8 +27,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Core", "Fir
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Tests.Integration", "FirstPartyAgent.Tests.Integration\FirstPartyAgent.Tests.Integration.csproj", "{08D18B91-DDE5-4499-98C3-2C76AD10572D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.ACA.Web", "FirstPartyAgent.ACA.Web\FirstPartyAgent.ACA.Web.csproj", "{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.Web", "FirstPartyAgent.Web\FirstPartyAgent.Web.csproj", "{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FirstPartyAgent.FunctionApp", "FirstPartyAgent.FunctionApp\FirstPartyAgent.FunctionApp.csproj", "{EC51A09C-8021-404C-8EBB-DB497F289F12}"
@@ -210,18 +208,6 @@ Global
 		{08D18B91-DDE5-4499-98C3-2C76AD10572D}.Release|x64.Build.0 = Release|Any CPU
 		{08D18B91-DDE5-4499-98C3-2C76AD10572D}.Release|x86.ActiveCfg = Release|Any CPU
 		{08D18B91-DDE5-4499-98C3-2C76AD10572D}.Release|x86.Build.0 = Release|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|x64.Build.0 = Debug|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|x86.ActiveCfg = Debug|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Debug|x86.Build.0 = Debug|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|Any CPU.Build.0 = Release|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|x64.ActiveCfg = Release|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|x64.Build.0 = Release|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|x86.ActiveCfg = Release|Any CPU
-		{CABB0E7B-8AD3-4387-A340-FB2A805FCB16}.Release|x86.Build.0 = Release|Any CPU
 		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0529587D-4EE5-3DBA-7CAD-43D6BE8B8103}.Debug|x64.ActiveCfg = Debug|Any CPU
