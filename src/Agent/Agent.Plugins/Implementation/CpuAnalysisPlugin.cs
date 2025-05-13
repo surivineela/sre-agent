@@ -15,6 +15,8 @@ using System.Net.Http.Headers;
 using YamlDotNet.Core.Tokens;
 using System.Text;
 using IdentityModel.Client;
+using Agent.Core.Models;
+using Agent.Core;
 
 namespace Agent.Plugins;
 
@@ -36,6 +38,7 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         var appServicePlanId = await _armHelper.GetAppServicePlanNameAsync(resourceId);
         var currentSku = await _armHelper.GetCurrentSkuAsync(appServicePlanId);
         var nextSku = ArmHelper.GetNextSku(currentSku);
+
         var success = await _armHelper.ScaleUpAppServicePlanByNameAsync(resourceId, nextSku);
         if (success)
         {
@@ -88,7 +91,6 @@ public class CpuAnalysisPlugin : ICpuAnalysisPlugin
         string scaleValue = "1",
         string cooldown = "PT5M")
     {
-
         var response = await _armHelper.CreateAutoScaleSetting(
              subscriptionId,
              resourceGroupName,

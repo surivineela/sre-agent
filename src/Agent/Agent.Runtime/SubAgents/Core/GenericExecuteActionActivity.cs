@@ -11,6 +11,8 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Agent.Core;
+using Agent.Core.Models;
+using Microsoft.Diagnostics.Tracing.Parsers.MicrosoftWindowsTCPIP;
 
 namespace Agent.Runtime.SubAgents.Core;
 
@@ -41,7 +43,9 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
         {
             // set the TLS ThreadId
             ToolStatic.AsyncLocalThreadId.Value = input.ThreadId;
-            ToolStatic.AsyncLocalApprovalId.Value = input.ApprovalId;
+            var approvalContext = ConstructApprovalContextForTool(matchingTool, input);
+            ToolStatic.AsyncLocalApprovalContext.Value = approvalContext;
+            _logger.LogInternalInformation($"[GenericExecuteActionActivity] The approval context for tool {matchingTool.ToolFunction.Name} is: ThreadId = {approvalContext.ThreadId}, ApprovalId = {approvalContext.ApprovalId}, UseOboToken = {approvalContext.UseOboToken}");
 
             // Invoke the function
             var invokeResult = await matchingTool.ToolFunction.InvokeAsync(input.FunctionCallContent.Arguments);
@@ -74,6 +78,16 @@ public class GenericExecuteActionActivity : TaskActivity<ExecuteActionInput, Exe
                 Succeeded: false,
                 Is202Submit: false);
         }
+    }
+
+    private ApprovalContext ConstructApprovalContextForTool(IToolFunction toolFunction, ExecuteActionInput input)
+    {
+        var attribute = toolFunction.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
+
+        return new ApprovalContext(
+            ThreadId: input.ThreadId,
+            ApprovalId: input.ApprovalId,
+            UseOboToken: attribute?.UseOboToken ?? false);
     }
 }
 

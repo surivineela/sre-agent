@@ -10,10 +10,12 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using System.Web;
+using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.JsonConverters;
 using Agent.Core.Models;
+using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
@@ -38,11 +40,11 @@ namespace Agent.Plugins.Implementation
         private readonly IGraphDatabaseClient _databaseClient;
         private readonly IGraphDBPlugin _graphDbPlugin;
         private readonly ILogger<ContainerAppPlugin> _logger;
-        private readonly ArmClient _armClient;
         private readonly IAuthenticationService _authService;
-        private readonly HttpClient _httpClient;
         private readonly ILogAnalyticsService _logAnalyticsService;
         private readonly IChatClient _chatClient;
+        private readonly IArmClientFactory _armClientFactory;
+        private readonly IHttpClientFactory _httpClientFactory;
 
         // ContainerAppData from Azure SDK can't be serialized directly to JSON because it contains
         // IPAddress and IPEndPoint properties, which throw ISocketException when serialized.
@@ -67,15 +69,15 @@ namespace Agent.Plugins.Implementation
             ILogAnalyticsService logAnalyticsService,
             IChatClient chatClient)
         {
-            _armClient = armClientFactory.GetArmClient();
             _databaseClient = graphDbClient;
             _graphDbPlugin = graphDBPlugin;
             _armHelper = armHelper;
             _logger = logger;
             _authService = authService;
-            _httpClient = httpClientFactory.CreateClient(nameof(ContainerAppPlugin));
             _logAnalyticsService = logAnalyticsService;
             _chatClient = chatClient;
+            _armClientFactory = armClientFactory;
+            _httpClientFactory = httpClientFactory;
         }
 
         public async Task<string> GetContainerAppInfoAsync(string resourceId)
@@ -85,7 +87,8 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
 
                 var containerApp = await containerAppResource.GetAsync();
                 return JsonSerializer.Serialize(containerApp.Value.Data, _containerAppSerializationOptions);
@@ -132,7 +135,8 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
 
                 var containerApp = await containerAppResource.GetAsync();
 
@@ -298,7 +302,8 @@ namespace Agent.Plugins.Implementation
             try
             {
                 // Get the Container App to find its environment
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 if (containerApp.Value.Data.ManagedEnvironmentId == null)
@@ -308,7 +313,7 @@ namespace Agent.Plugins.Implementation
                 }
 
                 // Get the Container App Environment
-                var environment = _armClient.GetContainerAppManagedEnvironmentResource(containerApp.Value.Data.ManagedEnvironmentId);
+                var environment = armClient.GetContainerAppManagedEnvironmentResource(containerApp.Value.Data.ManagedEnvironmentId);
                 var environmentData = await environment.GetAsync();
 
                 // Check if environment has VNet configuration with infrastructure subnet
@@ -321,14 +326,14 @@ namespace Agent.Plugins.Implementation
 
                 // Get the infrastructure subnet
                 string infrastructureSubnetId = environmentData.Value.Data.VnetConfiguration.InfrastructureSubnetId;
-                var subnet = _armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
+                var subnet = armClient.GetSubnetResource(new ResourceIdentifier(infrastructureSubnetId));
                 var subnetData = await subnet.GetAsync();
 
                 // Check if subnet has NSG
                 if (subnetData.Value.Data.NetworkSecurityGroup != null)
                 {
                     string nsgId = subnetData.Value.Data.NetworkSecurityGroup.Id;
-                    var nsg = _armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
+                    var nsg = armClient.GetNetworkSecurityGroupResource(new ResourceIdentifier(nsgId));
                     var nsgData = await nsg.GetAsync();
 
                     // Add this NSG's rules to the result dictionary
@@ -369,8 +374,7 @@ namespace Agent.Plugins.Implementation
                     return false;
                 }
 
-                var credential = _authService.GetArmOperationCredential();
-                var armClient = new ArmClient(credential);
+                var armClient = await _armClientFactory.GetArmOperationClient();
 
                 // Get the Container App
                 var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
@@ -467,7 +471,8 @@ namespace Agent.Plugins.Implementation
         {
             try
             {
-                var containerApp = await _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId)).GetAsync();
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerApp = await armClient.GetContainerAppResource(new ResourceIdentifier(resourceId)).GetAsync();
                 if (!containerApp.HasValue)
                 {
                     _logger.LogInternalWarning("Container App with ID '{resourceId}' not found.", resourceId);
@@ -555,7 +560,9 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 if (containerApp.Value.Data.Configuration?.Ingress == null)
@@ -773,7 +780,8 @@ namespace Agent.Plugins.Implementation
             try
             {
                 // Step 1: Check if the container app resource exists and is provisioned
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 if (!containerApp.HasValue)
@@ -945,7 +953,8 @@ namespace Agent.Plugins.Implementation
                 _logger.LogInternalInformation($"Updating Container App {resourceId} with new image: {newImageReference}");
 
                 // Get the Container App resource
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 if (!containerApp.HasValue)
@@ -1033,7 +1042,9 @@ namespace Agent.Plugins.Implementation
                 var details = new Dictionary<string, string>();
 
                 // Get the Container App resource
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 // Get all revisions for this Container App
@@ -1083,7 +1094,7 @@ namespace Agent.Plugins.Implementation
                         var replicas = await _armHelper.GetRevisionReplicas(revision.Id.ToString());
 
                         // Check if the revision is configured to have a minimum of 0 replicas (scale to zero)
-                        var revisionDetails = await _armClient.GetContainerAppRevisionResource(revision.Id).GetAsync();
+                        var revisionDetails = await armClient.GetContainerAppRevisionResource(revision.Id).GetAsync();
                         bool canScaleToZero = revisionDetails.Value.Data.Template?.Scale?.MinReplicas == 0;
 
                         if (containerApp.Value?.Data?.Configuration?.ActiveRevisionsMode != ContainerAppActiveRevisionsMode.Single)
@@ -1149,7 +1160,7 @@ namespace Agent.Plugins.Implementation
 
                 // Activate the target revision
                 _logger.LogInternalInformation($"Activating revision {targetRevision.Data.Name} for Container App {resourceId}");
-                await _armClient.GetContainerAppRevisionResource(targetRevision.Id).ActivateRevisionAsync();
+                await armClient.GetContainerAppRevisionResource(targetRevision.Id).ActivateRevisionAsync();
 
                 _logger.LogInternalInformation($"Successfully rolled back Container App {resourceId} from revision {currentRevisionName} to revision {targetRevision.Data.Name}");
 
@@ -1211,7 +1222,8 @@ namespace Agent.Plugins.Implementation
                 request.Headers.Add("Authorization", $"Bearer {token}");
                 request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
 
-                var response = await _httpClient.SendAsync(request);
+                var httpClient = _httpClientFactory.CreateClient();
+                var response = await httpClient.SendAsync(request);
 
                 if (response.StatusCode == HttpStatusCode.TooManyRequests)
                 {
@@ -1303,7 +1315,8 @@ namespace Agent.Plugins.Implementation
                 var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
                 request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
 
-                var response = await _httpClient.SendAsync(request);
+                var httpClient = _httpClientFactory.CreateClient();
+                var response = await httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
                 {
@@ -1345,7 +1358,8 @@ namespace Agent.Plugins.Implementation
                 var request = new HttpRequestMessage(HttpMethod.Head, manifestUrl);
                 request.Headers.Add("Accept", "application/vnd.docker.distribution.manifest.v2+json");
 
-                var response = await _httpClient.SendAsync(request);
+                var httpClient = _httpClientFactory.CreateClient();
+                var response = await httpClient.SendAsync(request);
 
                 if (response.IsSuccessStatusCode || response.StatusCode == HttpStatusCode.Unauthorized)
                 {
@@ -1379,7 +1393,8 @@ namespace Agent.Plugins.Implementation
                     return false;
                 }
 
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
 
                 bool hasRegistryCredentials = false;
@@ -1395,7 +1410,8 @@ namespace Agent.Plugins.Implementation
                     var manifestUrl = $"https://{registryHostname}/v2/";
                     var request = new HttpRequestMessage(HttpMethod.Get, manifestUrl);
 
-                    var response = await _httpClient.SendAsync(request);
+                    var httpClient = _httpClientFactory.CreateClient();
+                    var response = await httpClient.SendAsync(request);
 
                     // 200 OK means the registry is accessible and doesn't require auth for basic API access
                     // 401 Unauthorized is also acceptable as it confirms the registry exists but needs auth
@@ -1431,7 +1447,8 @@ namespace Agent.Plugins.Implementation
             var authUrl = "https://auth.docker.io/token";
             var authRequest = new HttpRequestMessage(HttpMethod.Get, $"{authUrl}?service=registry.docker.io&scope=repository:{repo}:pull");
 
-            var authResponse = await _httpClient.SendAsync(authRequest);
+            var httpClient = _httpClientFactory.CreateClient();
+            var authResponse = await httpClient.SendAsync(authRequest);
 
             if (authResponse.IsSuccessStatusCode)
             {
@@ -1579,7 +1596,8 @@ namespace Agent.Plugins.Implementation
             var request = new HttpRequestMessage(HttpMethod.Get, logStreamEndpoint);
             request.Headers.Add("Authorization", $"Bearer {streamToken.Token}");
 
-            var response = await _httpClient.SendAsync(request);
+            var httpClient = _httpClientFactory.CreateClient();
+            var response = await httpClient.SendAsync(request);
             if (response.IsSuccessStatusCode)
             {
                 if (streamType == StreamEndpointType.EventStream)
@@ -1657,7 +1675,8 @@ namespace Agent.Plugins.Implementation
 
         private async Task<string> GetContainerAppWorkspaceIdAsync(ContainerAppResource containerApp)
         {
-            var environment = await _armClient.GetContainerAppManagedEnvironmentResource(containerApp.Data.EnvironmentId).GetAsync();
+            var armClient = await _armClientFactory.GetArmOperationClient();
+            var environment = await armClient.GetContainerAppManagedEnvironmentResource(containerApp.Data.EnvironmentId).GetAsync();
             if (!environment.HasValue)
             {
                 return string.Empty;
@@ -1819,7 +1838,8 @@ namespace Agent.Plugins.Implementation
 
                 try
                 {
-                    var httpResponse = await _httpClient.SendAsync(request);
+                    var httpClient = _httpClientFactory.CreateClient();
+                    var httpResponse = await httpClient.SendAsync(request);
                     if (httpResponse.IsSuccessStatusCode || httpResponse.StatusCode == HttpStatusCode.Unauthorized)
                     {
                         _logger.LogInternalInformation($"Successfully connected to registry {hostname} via HTTPS");
@@ -1842,7 +1862,8 @@ namespace Agent.Plugins.Implementation
 
         private async Task<string> GetContainerAppImageReference(ResourceIdentifier resourceId)
         {
-            var containerAppResource = _armClient.GetContainerAppResource(resourceId);
+            var armClient = await _armClientFactory.GetArmOperationClient();
+            var containerAppResource = armClient.GetContainerAppResource(resourceId);
             var containerApp = await containerAppResource.GetAsync();
             string latestRevisionName = containerApp.Value.Data.LatestRevisionName;
 
@@ -1852,7 +1873,7 @@ namespace Agent.Plugins.Implementation
                 string revisionResourceId = $"{resourceId}/revisions/{latestRevisionName}";
                 try
                 {
-                    var revisionResource = _armClient.GetContainerAppRevisionResource(new ResourceIdentifier(revisionResourceId));
+                    var revisionResource = armClient.GetContainerAppRevisionResource(new ResourceIdentifier(revisionResourceId));
                     var revision = await revisionResource.GetAsync();
 
                     // Get the container image from the revision
@@ -1961,7 +1982,8 @@ namespace Agent.Plugins.Implementation
                 // Get Container App Details.
                 ResourceIdentifier resourceIdentifer = new ResourceIdentifier(resourceId);
                 string subscriptionId = resourceIdentifer.SubscriptionId;
-                var containerAppResource = _armClient.GetContainerAppResource(resourceIdentifer);
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(resourceIdentifer);
                 var containerApp = await containerAppResource.GetAsync();
                 var activeRevisions = containerAppResource.GetContainerAppRevisions();
                 var firstActiveRevision = activeRevisions.FirstOrDefault(r => r.Data.IsActive == true);
@@ -2170,7 +2192,8 @@ namespace Agent.Plugins.Implementation
 
             try
             {
-                var containerAppResource = _armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
+                var armClient = await _armClientFactory.GetArmOperationClient();
+                var containerAppResource = armClient.GetContainerAppResource(new ResourceIdentifier(resourceId));
                 var containerApp = await containerAppResource.GetAsync();
                 var data = containerApp.Value.Data;
 

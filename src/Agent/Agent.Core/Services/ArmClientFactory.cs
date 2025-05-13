@@ -3,6 +3,7 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
+using Agent.Core.Models;
 using Azure.Core;
 using Azure.ResourceManager;
 
@@ -12,24 +13,19 @@ public class ArmClientFactory : IArmClientFactory
 {
     private readonly IAuthenticationService _authService;
 
-    private Lazy<ArmClient> _armClient;
     private Lazy<ArmClient> _crawlerClient;
 
     public ArmClientFactory(IAuthenticationService authService)
     {
         _authService = authService;
 
-        _armClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetArmReadOperationCredential()));
         _crawlerClient = new Lazy<ArmClient>(() => ConstructArmClient(_authService.GetCrawlerCredential()));
     }
 
-    public ArmClient GetArmClient()
+    public async Task<ArmClient> GetArmOperationClient()
     {
-        return _armClient.Value;
-    }
+        var cred = await _authService.GetArmOperationCredential();
 
-    public ArmClient GetArmClient(TokenCredential cred)
-    {
         return ConstructArmClient(cred);
     }
 

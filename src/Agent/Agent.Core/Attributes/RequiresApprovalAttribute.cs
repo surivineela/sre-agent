@@ -8,10 +8,19 @@ namespace Agent.Core.Attributes;
 public class RequiresApprovalAttribute : Attribute
 {
     public string? DisplayMessage { get; set; }
+    // Temp workaround
+    // Only set to false if the plugin requires token scopes other than "https://management.core.windows.net/.default" because OBO token today hardcodes scope
+    // When set to false, the action identity / crawler identity (if action identity is not set) will be used
+    public bool UseOboToken { get; set; }
+    // The scope to acquire the obo token for.
+    // Not implemented yet
+    public string Scope { get; set; }
 
-    public RequiresApprovalAttribute(string? displayMessage = null)
+    public RequiresApprovalAttribute(string? displayMessage = null, bool useOboToken = true, string scope = "https://management.core.windows.net/.default")
     {
         DisplayMessage = displayMessage;
+        UseOboToken = useOboToken;
+        Scope = scope;
     }
 }
 

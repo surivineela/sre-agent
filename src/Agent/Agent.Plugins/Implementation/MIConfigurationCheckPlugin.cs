@@ -28,7 +28,7 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInternalInformation($"[check_sql_connection_type] Invoked with resourceId: {resourceId}");
 
-            var armClient = _armClientFactory.GetArmClient();
+            var armClient = await _armClientFactory.GetArmOperationClient();
 
             var armResourceId = new ResourceIdentifier(resourceId);
             var groupid = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);
@@ -82,7 +82,7 @@ namespace Agent.Plugins.Implementation
         {
             _logger.LogInternalInformation($"[check_sql_resource_id] Invoked with resourceId: {resourceId}");
 
-            var armClient = _armClientFactory.GetArmClient();
+            var armClient = await _armClientFactory.GetArmOperationClient();
 
             var armResourceId = new ResourceIdentifier(resourceId);
             var groupid = ResourceGroupResource.CreateResourceIdentifier(armResourceId.SubscriptionId, armResourceId.ResourceGroupName);

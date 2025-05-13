@@ -8,6 +8,7 @@ using Agent.Core;
 using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Logging;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Models;
@@ -124,14 +125,7 @@ namespace Agent.Plugins.Implementation
             {
                 _logger?.LogInternalInformation($"[restart_webapp] Invoked with resourceId: {resourceId}");
 
-                var httpClient = new HttpClient();
-                var token = await GetAccessTokenAsync();
-                var requestUrl = new Uri(new Uri("https://management.azure.com"), $"{resourceId}/restart?api-version=2021-02-01");
-
-                var request = new HttpRequestMessage(HttpMethod.Post, requestUrl);
-                request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", token);
-
-                var response = await httpClient.SendAsync(request);
+                var response = await _armHelper.RestartWebAppAsync(resourceId);
 
                 return new RemediationResult(
                     Success: response.IsSuccessStatusCode,
@@ -287,7 +281,7 @@ namespace Agent.Plugins.Implementation
             return await RemediateArmResource(
                 resourceId,
                 "Storage Account",
-                fetchResourceFunc: _armHelper.GetStorageAccountAsync,
+                fetchResourceFunc: (id) => _armHelper.GetStorageAccountAsync(id),
                 remediationActionFunc: async (resource) =>
                 {
                     bool desiredState = featureState == FeatureState.Enabled;
@@ -319,7 +313,7 @@ namespace Agent.Plugins.Implementation
             return await RemediateArmResource(
                 resourceId,
                 "Storage Account",
-                fetchResourceFunc: _armHelper.GetStorageAccountAsync,
+                fetchResourceFunc: (id) => _armHelper.GetStorageAccountAsync(id),
                 remediationActionFunc: async (resource) =>
                 {
                     bool desiredState = featureState == FeatureState.Enabled;
@@ -336,7 +330,7 @@ namespace Agent.Plugins.Implementation
             return await RemediateArmResource(
                 resourceId,
                 "CosmosDb",
-                fetchResourceFunc: _armHelper.GetCosmosDbAccountAsync,
+                fetchResourceFunc: (id) => _armHelper.GetCosmosDbAccountAsync(id),
                 remediationActionFunc: async (resource) =>
                 {
                     _logger?.LogInternalInformation($"Setting local auth support for CosmosDb");
@@ -349,7 +343,7 @@ namespace Agent.Plugins.Implementation
             return await RemediateArmResource(
                 resourceId,
                 "EventHub",
-                fetchResourceFunc: _armHelper.GetEventHubAccountAsync,
+                fetchResourceFunc: (id) => _armHelper.GetEventHubAccountAsync(id),
                 remediationActionFunc: async (resource) =>
                 {
                     _logger?.LogInternalInformation($"Setting local auth support for Event Hub");
@@ -362,7 +356,7 @@ namespace Agent.Plugins.Implementation
             return await RemediateArmResource(
                 resourceId,
                 "ServiceBus",
-                fetchResourceFunc: _armHelper.GetServiceBusAccountAsync,
+                fetchResourceFunc: (id) => _armHelper.GetServiceBusAccountAsync(id),
                 remediationActionFunc: async (resource) =>
                 {
                     _logger?.LogInternalInformation($"Setting local auth support for Service Bus");
@@ -375,7 +369,7 @@ namespace Agent.Plugins.Implementation
             return await RemediateArmResource(
                 resourceId,
                 "SqlServer",
-                fetchResourceFunc: _armHelper.GetSqlServerAsync,
+                fetchResourceFunc: (id) => _armHelper.GetSqlServerAsync(id),
                 remediationActionFunc: async (resource) =>
                 {
                     _logger?.LogInternalInformation($"Setting local auth support for Sql Server");
@@ -414,14 +408,6 @@ namespace Agent.Plugins.Implementation
                 return "Premiumv3";
 
             return string.Empty;
-        }
-
-        private async Task<string> GetAccessTokenAsync()
-        {
-            var credential = _authService.GetCrawlerCredential();
-            var tokenRequestContext = new TokenRequestContext(["https://management.azure.com/.default"]);
-            var token = await credential.GetTokenAsync(tokenRequestContext, default);
-            return token.Token;
         }
 
         /// <summary>

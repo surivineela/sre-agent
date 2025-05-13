@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 namespace Agent.Core.Models;
 public record ApprovalContext(
     Guid ThreadId,
-    Guid ApprovalId)
+    Guid? ApprovalId,
+    bool UseOboToken)
 {
 }
