@@ -44,21 +44,40 @@ export const getLatestThread = (threads?: Thread[]) => {
  * @returns
  */
 export const processMessages = (prevMessages: Message[], currentMessages: Message[], reverse: boolean) => {
-    const messagesToAdd: Message[] = [];
+    // Instead of using a Map, we'll use findIndex directly
     const uniqueThreadIds = new Set<string>();
+    const messagesToAdd: Message[] = [];
+    const updatedPrevMessages = [...prevMessages];
+    let isPrevMessagesUpdated = false;
+
     for (let i = 0; i < currentMessages.length; i++) {
-        if (!prevMessages.some((message: Message) => message.id === currentMessages[i].id) && !uniqueThreadIds.has(currentMessages[i].id)) {
-            messagesToAdd.unshift(currentMessages[i]);
-            uniqueThreadIds.add(currentMessages[i].id);
+        const currentMsg = currentMessages[i];
+        // Skip if we've already processed this ID
+        if (uniqueThreadIds.has(currentMsg.id)) {
+            continue;
+        }
+
+        uniqueThreadIds.add(currentMsg.id);
+        const existingMsgIndex = prevMessages.findIndex(msg => msg.id === currentMsg.id);
+
+        if (existingMsgIndex === -1) {
+            // New message
+            messagesToAdd.unshift(currentMsg);
+        } else if (currentMsg.text !== prevMessages[existingMsgIndex].text) {
+            // Update existing message
+            updatedPrevMessages[existingMsgIndex] = currentMsg;
+            isPrevMessagesUpdated = true;
         }
     }
 
     if (messagesToAdd.length === 0) {
         // Do not return copied old messages as it will introduce unnecessary re-renders
-        return prevMessages;
+        return isPrevMessagesUpdated ? updatedPrevMessages : prevMessages;
     }
 
-    return reverse ? [...messagesToAdd, ...prevMessages] : [...prevMessages, ...messagesToAdd];
+    return reverse
+        ? [...messagesToAdd, ...(isPrevMessagesUpdated ? updatedPrevMessages : prevMessages)]
+        : [...(isPrevMessagesUpdated ? updatedPrevMessages : prevMessages), ...messagesToAdd];
 };
 
 export const noGapBetweenNewMessagesAndExistingMessages = (messages: Message[], currentLatestMessage?: Message) => {
