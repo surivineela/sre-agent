@@ -19,7 +19,6 @@ using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
 {
-    // [MENDATORY]
     public class ContainerAppsQuotaAgentFactory 
     {
         private readonly IToolsRepository _toolsRegistry;

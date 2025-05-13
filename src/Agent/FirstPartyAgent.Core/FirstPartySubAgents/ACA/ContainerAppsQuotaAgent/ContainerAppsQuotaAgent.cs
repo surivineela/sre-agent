@@ -7,7 +7,6 @@ using Microsoft.DurableTask;
 using Microsoft.Extensions.AI;
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
 {
-    // [MENDATORY]
     public record ContainerAppsQuotaAgentInput(
             ContainerAppsQuotaAgentActivityInput Input,
             IReadOnlyList<string> ToolSignatures,
@@ -17,7 +16,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppsQuotaAgent
         
     }
 
-    // [MENDATORY]
     [DurableTask]
     public class ContainerAppsQuotaAgent : GenericAgentOrchestrator<ContainerAppsQuotaAgentInput, string>
     {

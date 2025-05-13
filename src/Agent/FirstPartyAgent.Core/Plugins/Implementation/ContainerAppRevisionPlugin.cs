@@ -8,7 +8,6 @@ using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
-// [MENDATORY]
 public class ContainerAppRevisionPlugin : IContainerAppRevisionPlugin
 {
     private readonly IKustoPluginChat _kustoPlugin;

@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 namespace FirstPartyAgent.Core.Plugins.Interfaces;
 
-// [MENDATORY]
 public interface IContainerAppIcMPlugin : IIcmPlugin
 {
     Task<string> GetInitialInvestigationReportAsync(string incidentId);

@@ -8,8 +8,7 @@ using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
-// [MENDATORY]
-public class HelloWorldPlugin : lHelloWorldPlugin
+public class HelloWorldPlugin : IHelloWorldPlugin
 {
     private readonly ILogger<HelloWorldPlugin> _logger;
     private readonly IHelloWorldService _helloWorldService;

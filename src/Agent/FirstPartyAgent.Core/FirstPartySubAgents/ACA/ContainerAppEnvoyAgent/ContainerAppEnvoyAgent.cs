@@ -7,7 +7,6 @@ using Microsoft.DurableTask;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
 {
-    // [MENDATORY]
     public record ContainerAppEnvoyAgentInput(
         ContainerAppEnvoyAgentActivityInput Input,
         IReadOnlyList<string> ToolSignatures,
@@ -17,7 +16,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
         
     }
 
-    // [MENDATORY]
     [DurableTask]
     public class ContainerAppEnvoyAgent : GenericAgentOrchestrator<ContainerAppEnvoyAgentInput, string>
     {

@@ -15,7 +15,6 @@ using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 {
-    // [MENDATORY]
     public sealed class ContainerAppRevisionAgentFactory
     {
         private readonly IToolsRepository _toolsRegistry;

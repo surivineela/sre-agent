@@ -9,7 +9,6 @@ using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
 {
-    // [MENDATORY]
     public record ContainerAppEnvoyAgentActivityInput : BaseContainerAppIssueActivityInput 
     {
         [Description("The name of the container app.")]
@@ -20,7 +19,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
         public string SubscriptionId { get; init; } = string.Empty;
     }
 
-    // [MENDATORY]
     [DurableTask]
     public class ContainerAppEnvoyAgentActivity : TaskActivity<ContainerAppEnvoyAgentActivityInput, List<ChatMessage>>
     {

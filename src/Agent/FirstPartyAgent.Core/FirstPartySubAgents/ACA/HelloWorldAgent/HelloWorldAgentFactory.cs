@@ -18,18 +18,17 @@ using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
 {
-    // [MENDATORY]
     public class HelloWorldAgentFactory
     {
         
-        private readonly lHelloWorldPlugin _helloWorldPlugin;
+        private readonly IHelloWorldPlugin _helloWorldPlugin;
         private readonly IKustoPlugin _kustoPlugin;
         private readonly AgentToolsRegistry _toolsRegistry;
         private readonly DurableTaskClient _durableTaskClient;
         private readonly IThreadOrchestrationManager _mappingManager;
         public const string OrchestrationInstanceIdPrefix = nameof(HelloWorldAgentInput);
         public HelloWorldAgentFactory(
-            lHelloWorldPlugin helloWorldPlugin,
+            IHelloWorldPlugin helloWorldPlugin,
             IThreadOrchestrationManager mappingManager,
             IToolsRepository toolsRepository,
             DurableTaskClient durableTaskClient

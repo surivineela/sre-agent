@@ -20,7 +20,6 @@ using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppEnvoyAgent
 {
-    // [MENDATORY]
     public class ContainerAppEnvoyAgentFactory 
     {
         private readonly IToolsRepository _toolsRegistry;

@@ -3,8 +3,7 @@
 // ------------------------------------------------------------
 namespace FirstPartyAgent.Core.Plugins.Interfaces;
 
-// [MENDATORY]
-public interface lHelloWorldPlugin
+public interface IHelloWorldPlugin
 {
     Task<string> GetHelloWorldMessageAsync();
 }

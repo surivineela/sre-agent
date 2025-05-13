@@ -7,14 +7,13 @@ using FirstPartyAgent.Core.Plugins.Interfaces;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {
-    // [MENDATORY]
     // These are tools exposed to any-sub agent that uses this plugin but mostly it will be used by 'HelloWorldAgent'
     // Note!!: If this plugin is used by other agent, then we are mixing the concerns and we need to refactor this plugin
     public class HelloWorldPluginDefinition
     {
-        private readonly lHelloWorldPlugin _plugin;
+        private readonly IHelloWorldPlugin _plugin;
 
-        public HelloWorldPluginDefinition(lHelloWorldPlugin Plugin)
+        public HelloWorldPluginDefinition(IHelloWorldPlugin Plugin)
         {
             _plugin = Plugin;
         }

@@ -8,7 +8,6 @@ using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
-// [MENDATORY]
 public class ManagedClusterPlugin : IManagedClusterPlugin
 {
     private readonly IKustoPluginChat _kustoPlugin;

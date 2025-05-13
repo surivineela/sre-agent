@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 namespace FirstPartyAgent.Core.Plugins.Interfaces;
 
-// [MENDATORY]
 public interface IContainerAppCorednsPlugin
 {
     Task<string> GetCustomDNSServers(string region, DateTime fromDate, DateTime toDate, string managedClusterName);

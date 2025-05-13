@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
 {
-    // [MENDATORY]
     // ICM Agent Input doesn't inherit from BaseContainerAppIssueActivityInput because it only needs IcmId. 
     public record ContainerAppIcmAgentActivityInput {
 
@@ -16,7 +15,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
         public string? IcmId { get; init; } = string.Empty;
     }
 
-    // [MENDATORY]
     [DurableTask]
     public class ContainerAppIcmAgentActivity : TaskActivity<ContainerAppIcmAgentActivityInput, List<ChatMessage>>
     {

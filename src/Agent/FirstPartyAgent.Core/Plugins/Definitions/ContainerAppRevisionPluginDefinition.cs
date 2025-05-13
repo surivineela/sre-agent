@@ -11,7 +11,6 @@ using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.Plugins.Definitions
 {
-    // [MENDATORY]
     // These are tools exposed to any-sub agent that uses this plugin but mostly it will be used by 'RevisionAgent'
     // Note!!: If this plugin is used by other agent, then we are mixing the concerns and we need to refactor this plugin
     public class ContainerAppRevisionPluginDefinition

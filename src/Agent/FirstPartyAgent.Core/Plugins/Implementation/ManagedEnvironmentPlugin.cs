@@ -9,7 +9,6 @@ using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
-// [MENDATORY]
 public class ManagedEnvironmentPlugin : IManagedEnvironmentPlugin
 {
     private readonly IKustoPluginChat _kustoPlugin;

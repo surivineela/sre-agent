@@ -8,13 +8,11 @@ using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
 {
-    // [MENDATORY]
     public record ContainerAppCorednsAgentActivityInput : BaseContainerAppIssueActivityInput  {
         [Description("[Required] The name of the managed Kubernetes cluster or azure container apps environment associated with the container app. Example: 'victoriouspond-6e0afa3a'")]
         public string ManagedClusterName { get; init; } = string.Empty;
     }
 
-    // [MENDATORY]
     [DurableTask]
     public class ContainerAppCorednsAgentActivity : TaskActivity<ContainerAppCorednsAgentActivityInput, List<ChatMessage>>
     {

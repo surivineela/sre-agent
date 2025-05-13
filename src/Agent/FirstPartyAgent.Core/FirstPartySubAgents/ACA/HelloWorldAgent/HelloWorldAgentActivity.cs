@@ -7,14 +7,12 @@ using Microsoft.Extensions.Logging;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.HelloWorldAgent
 {
-    // [MENDATORY]
     public record HelloWorldAgentActivityInput : BaseContainerAppIssueActivityInput {
         [Description("Resource id")]
         public string? ResourceId { get; init; }
     }
     
 
-    // [MENDATORY]
     [DurableTask]
     public class HelloWorldAgentActivity : TaskActivity<HelloWorldAgentActivityInput, List<ChatMessage>>
     {

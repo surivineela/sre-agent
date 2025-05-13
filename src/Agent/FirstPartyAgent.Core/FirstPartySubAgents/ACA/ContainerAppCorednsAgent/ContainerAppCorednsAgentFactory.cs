@@ -14,7 +14,6 @@ using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
 {
-    // [MENDATORY]
     public sealed class ContainerAppCorednsAgentFactory
     {
         private readonly IToolsRepository _toolsRegistry;

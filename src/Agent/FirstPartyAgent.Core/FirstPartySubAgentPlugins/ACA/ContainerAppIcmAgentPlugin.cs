@@ -12,7 +12,6 @@ using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 
-// [MENDATORY]
 [WorkflowClass]
 public class ContainerAppIcmAgentPlugin
 {

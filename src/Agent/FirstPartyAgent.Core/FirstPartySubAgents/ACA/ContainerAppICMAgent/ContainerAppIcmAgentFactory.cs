@@ -15,7 +15,6 @@ using Microsoft.DurableTask.Client;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
 {
-    // [MENDATORY]
     public sealed class ContainerAppIcmAgentFactory
     {
         private readonly IToolsRepository _toolsRegistry;

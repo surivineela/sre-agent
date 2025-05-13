@@ -7,7 +7,6 @@ using FirstPartyAgent.Plugins;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 
-// [MENDATORY]
 public class HealthProbePlugin : IHealthProbePlugin
 {
     private readonly IKustoPluginChat _kustoPlugin;

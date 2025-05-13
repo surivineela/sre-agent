@@ -88,7 +88,7 @@ public static class ServiceCollectionExtensions
     private static void RegisterFirstPartyPluginDependencies(this IServiceCollection services)
     {
         // TODO: automatically inject these DI in next iteration
-        services.AddSingleton<lHelloWorldPlugin, HelloWorldPlugin>();
+        services.AddSingleton<IHelloWorldPlugin, HelloWorldPlugin>();
         services.AddSingleton<HelloWorldAgentPlugin>();
         services.AddSingleton<HelloWorldPluginDefinition>();
         services.AddSingleton<HelloWorldAgentFactory>();

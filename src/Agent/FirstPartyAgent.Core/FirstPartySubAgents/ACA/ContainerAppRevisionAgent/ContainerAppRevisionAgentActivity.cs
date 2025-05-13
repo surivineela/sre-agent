@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using ChatMessage = Microsoft.Extensions.AI.ChatMessage;
 namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
 {
-    // [MENDATORY]
     public record ContainerAppRevisionAgentActivityInput : BaseContainerAppIssueActivityInput
     {
         [Description("The name of the container app.")]
@@ -18,7 +17,6 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.RevisionAgent
         public string RevisionName { get; init; } = string.Empty;
     }
 
-    // [MENDATORY]
     [DurableTask]
     public class ContainerAppRevisionAgentActivity : TaskActivity<ContainerAppRevisionAgentActivityInput, List<ChatMessage>>
     {
