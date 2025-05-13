@@ -2077,7 +2077,7 @@ namespace Agent.Plugins.Implementation
             _logger.LogInternalInformation($"[GetContainerMemoryAnalysisForDotnet] Getting memory analysis for {resourceId}");
             try
             {
-                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-dump-analyze.sh -o dotnet-dump-analyze.sh; chmod +x ./dotnet-dump-analyze.sh; sh ./dotnet-dump-analyze.sh";
+                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-dump-analyze.sh -o /tmp/dotnet-dump-analyze.sh; chmod +x /tmp/dotnet-dump-analyze.sh; sh /tmp/dotnet-dump-analyze.sh";
                 return await InvokeExecCommand(resourceId, commands);
             }
             catch (Exception ex)
@@ -2092,7 +2092,7 @@ namespace Agent.Plugins.Implementation
             _logger.LogInternalInformation($"[IsDotnetBased] Checking if .NET Based {resourceId}");
             try
             {
-                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-detect.sh -o dotnet-detect.sh; chmod +x ./dotnet-detect.sh; sh ./dotnet-detect.sh";
+                string commands = " apt-get update; apt-get install -y curl; curl https://dotnetanalysis.blob.core.windows.net/acascripts/dotnet-detect.sh -o /tmp/dotnet-detect.sh; chmod +x /tmp/dotnet-detect.sh; sh /tmp/dotnet-detect.sh";
                 var result = await InvokeExecCommand(resourceId, commands);
                 return result.Any();
             }
