@@ -51,7 +51,7 @@ public class FirstPartyAgentsFactory : IAgentsFactory
 
     private FirstPartyMetaAgentNames GetMetaAgent()
     {
-        var agentName = Environment.GetEnvironmentVariable("AGENT_NAME") ?? string.Empty;
+        var agentName = Environment.GetEnvironmentVariable("AGENT_TYPE_NAME") ?? string.Empty;
         if (agentName?.StartsWith(FirstPartyMetaAgentNames.RCAAgent.ToString(), StringComparison.InvariantCultureIgnoreCase) == true)
         {
             return FirstPartyMetaAgentNames.RCAAgent;

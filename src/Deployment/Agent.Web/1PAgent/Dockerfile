@@ -7,8 +7,6 @@ COPY . .
 ENV ASPNETCORE_URLS=http://+:8080
 ENV DOTNET_RUNNING_IN_CONTAINER=true
 
-ENV IS_FIRST_PARTY=true
-ENV AGENT_NAME=RCAAgent
 
 # Expose the port the app runs on
 EXPOSE 8080
