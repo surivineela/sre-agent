@@ -118,7 +118,8 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+        // TODO: change to Action identity
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
     public TokenCredential GetLogAnalyticsCredential()
@@ -128,7 +129,8 @@ public class AuthenticationService : IAuthenticationService
             return GetDefaultAzureCredential();
         }
 
-        return GetWorkloadIdentityCredential(_federationSettings.ClientId, _federationSettings.TenantId, _federationSettings.AuthorityHost);
+        // TODO: change to Action identity
+        return GetManagedIdentityCredential(_crawlerSettings.Identity);
     }
 
     public async Task<string> GetGrafanaAccessToken()
@@ -160,7 +162,6 @@ public class AuthenticationService : IAuthenticationService
     private async Task<TokenCredential> ApprovalAwareCredentialHelper(Func<TokenCredential> nonOboCredFunc)
     {
         var approval = ToolStatic.AsyncLocalApprovalContext.Value;
-        _logger.LogInternalInformation($"[{ToolStatic.AsyncLocalThreadId.Value}] {nameof(ApprovalAwareCredentialHelper)} Approval context: {approval}");
 
         // no approval in context or the tool explicitly says not to use OBO token
         if (approval == null || !approval.UseOboToken)
@@ -178,6 +179,8 @@ public class AuthenticationService : IAuthenticationService
         {
             throw new InvalidOperationException("Approval document not found or oboToken is empty");
         }
+
+        _logger.LogInternalInformation($"[{approval.ThreadId}] Obo credential will be used. Approval id: {approval.ApprovalId}");
 
         return GetOboTokenCredential(approvalDoc.OboToken);
     }
