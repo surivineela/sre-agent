@@ -1,12 +1,12 @@
 import { Button, Text, tokens } from '@fluentui/react-components';
-import { SendRegular } from '@fluentui/react-icons';
+import { SendFilled } from '@fluentui/react-icons';
 import { IStyle, mergeStyles } from '@fluentui/react/lib/Styling';
 import { TextField } from '@fluentui/react/lib/TextField';
 import { memo, useCallback, useState } from 'react';
 import { useIntl } from 'react-intl';
 import { ActivitiesResources, SreAgentResources } from '../../Strings/SREAgentResources';
 import { IChatBoxFooterProps } from '../Contracts/Activities';
-import { useChatInputStyles, useChatInputTextStyles } from '../Styles/Activities.styles';
+import { chatInputTextStyles, sendButtonStyles, useChatInputStyles } from '../Styles/Activities.styles';
 import KnowledgeGraphBuildStatus from './KnowledgeGraphBuildStatus';
 import NewMessageButton from './NewMessageButton';
 
@@ -16,7 +16,6 @@ const ChatBoxFooter = ({ sendMessage, disableInput, isNewMessageButtonVisible, o
     const [input, setInput] = useState<string>();
 
     const { root, footer, chatStatement } = useChatInputStyles();
-    const { textFieldContainer, textField } = useChatInputTextStyles();
 
     const chatInputHandleSendClick = useCallback(() => {
         const messageToSend = input?.trim() ?? '';
@@ -30,7 +29,7 @@ const ChatBoxFooter = ({ sendMessage, disableInput, isNewMessageButtonVisible, o
     return (
         <div className={root}>
             <KnowledgeGraphBuildStatus />
-            <div className={mergeStyles(textFieldContainer as IStyle)}>
+            <div className={mergeStyles(chatInputTextStyles.textFieldContainer as IStyle)}>
                 <NewMessageButton isVisible={isNewMessageButtonVisible} onClick={onClickNewMessageButton} />
                 <TextField
                     placeholder={intl.formatMessage(ActivitiesResources.chatInputPlaceholder)}
@@ -41,7 +40,8 @@ const ChatBoxFooter = ({ sendMessage, disableInput, isNewMessageButtonVisible, o
                     type="text"
                     autoFocus={true}
                     autoComplete="off"
-                    styles={textField}
+                    styles={chatInputTextStyles.textField}
+                    rows={1}
                     value={input}
                     onChange={(_, value?: string) => setInput(value)}
                     onKeyDown={event => {
@@ -57,11 +57,12 @@ const ChatBoxFooter = ({ sendMessage, disableInput, isNewMessageButtonVisible, o
                 />
                 <div className={footer}>
                     <Button
-                        icon={<SendRegular style={{ color: disableInput ? undefined : tokens.colorBrandForeground1 }} />}
+                        icon={<SendFilled style={{ color: disableInput ? undefined : tokens.colorBrandForeground1 }} />}
                         disabled={disableInput}
                         onClick={chatInputHandleSendClick}
-                        shape="circular"
+                        shape="square"
                         appearance="subtle"
+                        style={sendButtonStyles}
                     />
                 </div>
             </div>

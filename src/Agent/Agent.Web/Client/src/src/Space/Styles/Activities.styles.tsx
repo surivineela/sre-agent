@@ -1,6 +1,6 @@
 import { makeStyles, tokens } from '@fluentui/react-components';
 import { IButtonStyles } from '@fluentui/react/lib/Button';
-import { getTheme, IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
+import { IStyle, mergeStyleSets } from '@fluentui/react/lib/Styling';
 import { useTheme } from '@fluentui/react/lib/Theme';
 import { CSSProperties } from 'react';
 
@@ -152,33 +152,40 @@ export const useChatInputStyles = makeStyles({
     },
 });
 
-export const useChatInputTextStyles = () => {
-    const colors = getTheme().semanticColors;
-
-    return {
-        textFieldContainer: {
-            borderColor: colors.buttonBackgroundCheckedHovered,
-            borderStyle: 'solid',
-            borderRadius: 3,
-            borderWidth: '2px',
-            maxWidth: textFieldMaxWidth,
-            margin: 'auto',
-            marginBottom: '8px',
-            position: 'relative',
+export const chatInputTextStyles = {
+    textFieldContainer: {
+        borderColor: tokens.colorNeutralStroke1,
+        borderStyle: 'solid',
+        borderRadius: 6,
+        borderWidth: '1px',
+        maxWidth: textFieldMaxWidth,
+        margin: 'auto',
+        marginBottom: '8px',
+        padding: '12px 8px 6px 8px',
+        position: 'relative',
+    },
+    textField: {
+        fieldGroup: {
+            minHeight: 'auto',
         },
-        textField: {
-            field: {
-                maxHeight: '60px',
-                minHeight: '25px',
-                overflowX: 'hidden',
-                overflowY: 'auto',
-                '::placeholder, :-ms-input-placeholder, ::-ms-input-placeholder': {
-                    color: colors.inputPlaceholderText,
-                    opacity: 1, // Firefox adds a lower opacity to the placeholder, so we use opacity: 1 to fix this.,
-                },
+        field: {
+            maxHeight: '60px',
+            overflowX: 'hidden',
+            overflowY: 'auto',
+            padding: 0,
+            marginBottom: '8px',
+            '::placeholder, :-ms-input-placeholder, ::-ms-input-placeholder': {
+                color: `${tokens.colorNeutralForeground4} !important`,
+                opacity: '1 !important', // Firefox adds a lower opacity to the placeholder, so we use opacity: 1 to fix this.,
+                fontStyle: 'normal !important',
             },
         },
-    };
+    },
+};
+
+export const sendButtonStyles = {
+    borderRadius: '4px',
+    padding: '6px',
 };
 
 export const useThreadMenuStyle = (collapsed?: boolean) => {
