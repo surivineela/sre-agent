@@ -135,7 +135,6 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
     const [threadOrchestrationReasoningState, setThreadOrchestrationReasoningState] = useState<string>();
 
     const [showNewMessageButton, setShowNewMessageButton] = useState(false);
-    const [canShowNewMessageButton, setCanShowNewMessageButton] = useState(false);
 
     const [enableIntersectObserver, setEnableIntersectObserver] = useState<boolean>(false);
 
@@ -219,8 +218,27 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         };
     }, [intl]);
 
-    const handleNewMessages = (newMessages: Message[]) => {
-        setMessages(prev => processMessages(prev, newMessages, false));
+    const handleNewMessages = (newMessages: Message[], shouldAutoScrollOrShowNewMessagesButton: boolean) => {
+        setMessages(prev => {
+            const updatedMessages = processMessages(prev, newMessages, false);
+
+            const wasAtBottom = isChatAtBottom();
+            const hasNewMessages =
+                updatedMessages.length > 0 && updatedMessages[updatedMessages.length - 1].id !== prev[prev.length - 1]?.id;
+
+            if (shouldAutoScrollOrShowNewMessagesButton && hasNewMessages) {
+                setTimeout(() => {
+                    if (wasAtBottom) {
+                        scrollToBottom(true);
+                    } else {
+                        setShowNewMessageButton(true);
+                    }
+                }, 100);
+            }
+
+            return updatedMessages;
+        });
+
         latestMessageRef.current = newMessages[0];
     };
 
@@ -279,7 +297,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
                 setTemporaryUserMessage(null);
                 setAgentTypingMessage(null);
                 setThreadOrchestrationReasoningState(undefined);
-                handleNewMessages(answers);
+                handleNewMessages(answers, true);
                 setWaitingForSendMessageResponse(false);
 
                 if (newThread) {
@@ -305,7 +323,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
                 const latestMessages = await pollResponses(MessagePollingCounts.default, currentThreadId, latestMessageRef.current);
                 if (isSubscribed && latestMessages && latestMessages.length > 0) {
-                    handleNewMessages(latestMessages);
+                    handleNewMessages(latestMessages, true);
                 }
 
                 isPreviousNewMessagesPollingCompleted.current = true;
@@ -331,7 +349,7 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
 
                 if (isSubscribed) {
                     setIsLoadingInitialChatHistory(false);
-                    handleNewMessages(messages);
+                    handleNewMessages(messages, false);
 
                     // The threshold depends on the number of the messages this query is intended to return.
                     // if the top parameter for calling getMessages, the threshold should be changed accordingly
@@ -421,21 +439,13 @@ export const useChatBox = (addThread: (thread: Thread) => void, threadId?: strin
         if (!isLoadingInitialChatHistory) {
             scrollToBottom(false);
 
-            // Allow loading old chat history and showing new message button after
+            // Allow loading old chat history after
             // the initial history loading is completed and the chat is at the bottom position
             setTimeout(() => {
                 setEnableIntersectObserver(true);
-                setCanShowNewMessageButton(true);
             }, 100);
         }
     }, [isLoadingInitialChatHistory]);
-
-    const lastMessageId = useMemo(() => messages[messages.length - 1]?.id, [messages]);
-    useEffect(() => {
-        if (canShowNewMessageButton && !isChatAtBottom()) {
-            setShowNewMessageButton(true);
-        }
-    }, [lastMessageId, canShowNewMessageButton]);
 
     useEffect(() => {
         if (temporaryUserMessage && agentTypingMessage) {
