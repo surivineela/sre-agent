@@ -33,7 +33,6 @@ namespace Agent.Plugins
     public partial class KubePlugin : IKubePlugin
     {
         private readonly ILogger? _logger;
-        private IKubernetes _client;
         private IChatClient _chatClient;
         private readonly IKubernetesClientFactory _kubernetesClientFactory;
         private readonly IPrometheusQueryService _prometheusQueryService;
@@ -42,9 +41,6 @@ namespace Agent.Plugins
         private readonly IArmClientFactory _armClientFactory;
 
         private ThreadContext Context { get; set; }
-        private readonly ConcurrentDictionary<string, IKubernetes> _clientCache = new();
-        private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(60);
-        private readonly ConcurrentDictionary<string, DateTimeOffset> _cacheTimestamps = new();
         private const string AKSNodePoolLabel = "kubernetes.azure.com/agentpool";
         private const string LegacyAKSNodePoolLabel = "agentpool";
 
@@ -68,30 +64,9 @@ namespace Agent.Plugins
 
         public async Task<IKubernetes> GetOrCreateClientAsync(string? resourceId = null)
         {
-            // If no resourceId is provided, use the default client
             if (string.IsNullOrEmpty(resourceId))
             {
-                if (_client == null)
-                {
-                    throw new InvalidOperationException(
-                        "No default Kubernetes client available. Please provide an AKS resource ID.");
-                }
-                return _client;
-            }
-
-            // Check if we have a cached client for this resourceId
-            if (_clientCache.TryGetValue(resourceId, out var cachedClient))
-            {
-                // Check if the cache has expired
-                if (_cacheTimestamps.TryGetValue(resourceId, out var timestamp) &&
-                    DateTimeOffset.UtcNow - timestamp < _cacheExpiration)
-                {
-                    _logger?.LogDebug("Using cached Kubernetes client for resourceId: {ResourceId}", resourceId);
-                    return cachedClient;
-                }
-                // Cache expired, remove it
-                _clientCache.TryRemove(resourceId, out _);
-                _cacheTimestamps.TryRemove(resourceId, out _);
+                throw new ArgumentException("AKS resource ID is required.");
             }
 
             var client = await _kubernetesClientFactory.CreateKubernetesClientFromResourceIdAsync(resourceId);
@@ -99,9 +74,6 @@ namespace Agent.Plugins
             {
                 throw new InvalidOperationException($"Failed to create Kubernetes client for resourceId: {resourceId}");
             }
-            // Cache the client
-            _clientCache[resourceId] = client;
-            _cacheTimestamps[resourceId] = DateTimeOffset.UtcNow;
 
             return client;
         }
@@ -114,8 +86,8 @@ namespace Agent.Plugins
         // get all namespaces in the cluster 
         public async Task<string> GetKubeNamespacesAsync(string resourceId)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
-            var namespaces = await _client.CoreV1.ListNamespaceAsync();
+            var client = await GetOrCreateClientAsync(resourceId);
+            var namespaces = await client.CoreV1.ListNamespaceAsync();
             var namespaceNames = namespaces.Items.Select(ns => ns.Metadata.Name);
 
             return string.Join(", ", namespaceNames);
@@ -124,8 +96,8 @@ namespace Agent.Plugins
         // get all deployments in a namespace
         public async Task<string> GetKubeDeploymentsAsync(string resourceId, string _namespace)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
-            var deployments = await _client.AppsV1.ListNamespacedDeploymentAsync(_namespace);
+            var client = await GetOrCreateClientAsync(resourceId);
+            var deployments = await client.AppsV1.ListNamespacedDeploymentAsync(_namespace);
             var deploymentNames = deployments.Items.Select(deployment => deployment.Metadata.Name);
 
             return string.Join(", ", deploymentNames);
@@ -134,7 +106,7 @@ namespace Agent.Plugins
         // get all resource objects in a namespace with specific kind
         public async Task<string> ListKubeResourcesAsync(string resourceId, string _namespace, string kind)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             if (string.IsNullOrEmpty(kind))
             {
                 return "Kind cannot be null or empty.";
@@ -147,47 +119,47 @@ namespace Agent.Plugins
                     return await GetKubeDeploymentsAsync(resourceId, _namespace);
                 case "service":
                 case "services":
-                    var services = await _client.CoreV1.ListNamespacedServiceAsync(_namespace);
+                    var services = await client.CoreV1.ListNamespacedServiceAsync(_namespace);
                     nameList = services.Items.Select(service => service.Metadata.Name);
                     break;
                 case "daemonset":
                 case "daemonsets":
-                    var ds = await _client.AppsV1.ListNamespacedDaemonSetAsync(_namespace);
+                    var ds = await client.AppsV1.ListNamespacedDaemonSetAsync(_namespace);
                     nameList = ds.Items.Select(ds => ds.Metadata.Name);
                     break;
                 case "statefulset":
                 case "statefulsets":
-                    var statefulSetList = await _client.AppsV1.ListNamespacedStatefulSetAsync(_namespace);
+                    var statefulSetList = await client.AppsV1.ListNamespacedStatefulSetAsync(_namespace);
                     nameList = statefulSetList.Items.Select(sts => sts.Metadata.Name);
                     break;
                 case "pod":
                 case "pods":
-                    var pods = await _client.CoreV1.ListNamespacedPodAsync(_namespace);
+                    var pods = await client.CoreV1.ListNamespacedPodAsync(_namespace);
                     nameList = pods.Items.Select(pod => pod.Metadata.Name);
                     break;
                 case "job":
                 case "jobs":
-                    var jobs = await _client.BatchV1.ListNamespacedJobAsync(_namespace);
+                    var jobs = await client.BatchV1.ListNamespacedJobAsync(_namespace);
                     nameList = jobs.Items.Select(job => job.Metadata.Name);
                     break;
                 case "configmap":
                 case "configmaps":
-                    var configMaps = await _client.CoreV1.ListNamespacedConfigMapAsync(_namespace);
+                    var configMaps = await client.CoreV1.ListNamespacedConfigMapAsync(_namespace);
                     nameList = configMaps.Items.Select(cm => cm.Metadata.Name);
                     break;
                 case "secret":
                 case "secrets":
-                    var secrets = await _client.CoreV1.ListNamespacedSecretAsync(_namespace);
+                    var secrets = await client.CoreV1.ListNamespacedSecretAsync(_namespace);
                     nameList = secrets.Items.Select(secret => secret.Metadata.Name);
                     break;
                 case "ingress":
                 case "ingresses":
-                    var ingresses = await _client.NetworkingV1.ListNamespacedIngressAsync(_namespace);
+                    var ingresses = await client.NetworkingV1.ListNamespacedIngressAsync(_namespace);
                     nameList = ingresses.Items.Select(ingress => ingress.Metadata.Name);
                     break;
                 case "replicaset":
                 case "replicasets":
-                    var replicaSets = await _client.AppsV1.ListNamespacedReplicaSetAsync(_namespace);
+                    var replicaSets = await client.AppsV1.ListNamespacedReplicaSetAsync(_namespace);
                     nameList = replicaSets.Items.Select(rs => rs.Metadata.Name);
                     break;
                 default:
@@ -296,25 +268,25 @@ namespace Agent.Plugins
 
         public async Task<string> GetKubePodsAsync(string resourceId, string _namespace, string kind, string name)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             IDictionary<string, string> labels = new Dictionary<string, string>();
             switch (kind.ToLowerInvariant())
             {
                 case "deployment":
                     // get deployment in namespace
-                    var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
+                    var deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
                     // extract pod spec labels in the deployment
                     labels = deploy.Spec.Template.Metadata.Labels;
                     break;
                 case "statefulset":
                     // Fallback to redis deployment if specified
-                    var sts = await _client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
+                    var sts = await client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
                     labels = sts.Spec.Template.Metadata.Labels;
                     break;
                 default:
                     return "Unsupported kind. Only Deployment and StatefulSet are supported.";
             }
-            var pods = await _client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: $"{string.Join(",", labels.Select(label => $"{label.Key}={label.Value}"))}");
+            var pods = await client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: $"{string.Join(",", labels.Select(label => $"{label.Key}={label.Value}"))}");
             var podNames = pods.Items.Select(pod => pod.Metadata.Name);
             return string.Join(", ", podNames);
         }
@@ -322,9 +294,9 @@ namespace Agent.Plugins
         // get spec and status of a deployment in a namespace
         public async Task<string> GetKubeDeploymentSpecStatusAsync(string resourceId, string _namespace, string deployment)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get deployment in namespace
-            var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
+            var deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
             if (deploy == null)
             {
                 return "Deployment not found";
@@ -337,9 +309,9 @@ namespace Agent.Plugins
         // get spec and status of a replicaset in a namespace
         public async Task<string> GetKubeReplicasetSpecStatusAsync(string resourceId, string _namespace, string replicaset)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get replicaset in namespace
-            var rs = await _client.AppsV1.ReadNamespacedReplicaSetAsync(replicaset, _namespace);
+            var rs = await client.AppsV1.ReadNamespacedReplicaSetAsync(replicaset, _namespace);
             if (rs == null)
             {
                 return "ReplicaSet not found";
@@ -353,9 +325,9 @@ namespace Agent.Plugins
         // get spec and status of a Statefulset in a namespace
         public async Task<string> GetKubeStatefulsetSpecStatusAsync(string resourceId, string _namespace, string deployment)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get deployment in namespace
-            var deploy = await _client.AppsV1.ReadNamespacedStatefulSetAsync(deployment, _namespace);
+            var deploy = await client.AppsV1.ReadNamespacedStatefulSetAsync(deployment, _namespace);
             if (deploy == null)
             {
                 return "StatefulSet not found";
@@ -368,9 +340,9 @@ namespace Agent.Plugins
         // get spec and status of a DaemonSet in a namespace
         public async Task<string> GetKubeDaemonsetSpecStatusAsync(string resourceId, string _namespace, string daemonset)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get daemonset in namespace
-            var ds = await _client.AppsV1.ReadNamespacedDaemonSetAsync(daemonset, _namespace);
+            var ds = await client.AppsV1.ReadNamespacedDaemonSetAsync(daemonset, _namespace);
             if (ds == null)
             {
                 return "DaemonSet not found";
@@ -383,9 +355,9 @@ namespace Agent.Plugins
         // get spec and status of a Pod in a namespace
         public async Task<string> GetKubePodSpecStatusAsync(string resourceId, string _namespace, string pod)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get pod in namespace
-            var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
+            var podObj = await client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
             if (podObj == null)
             {
                 return "Pod not found";
@@ -398,16 +370,16 @@ namespace Agent.Plugins
         // show events of a deployment in a namespace
         public async Task<string> GetKubeDeploymentEventsAsync(string resourceId, string _namespace, string deployment)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get deployment in namespace
-            var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
+            var deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
             if (deploy == null)
             {
                 return "Deployment not found";
             }
 
             // get events of this deployment
-            var events = await _client.CoreV1.ListNamespacedEventAsync(_namespace, fieldSelector: $"involvedObject.name={deployment},involvedObject.uid={deploy.Metadata.Uid}");
+            var events = await client.CoreV1.ListNamespacedEventAsync(_namespace, fieldSelector: $"involvedObject.name={deployment},involvedObject.uid={deploy.Metadata.Uid}");
             var eventDescriptions = events.Items.Select(e => e.Message);
             return string.Join(", ", eventDescriptions);
         }
@@ -415,16 +387,16 @@ namespace Agent.Plugins
         // show events of a statefulset in a namespace
         public async Task<string> GetKubeStatefulSetEventsAsync(string resourceId, string _namespace, string deployment)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get deployment in namespace
-            var deploy = await _client.AppsV1.ReadNamespacedStatefulSetAsync(deployment, _namespace);
+            var deploy = await client.AppsV1.ReadNamespacedStatefulSetAsync(deployment, _namespace);
             if (deploy == null)
             {
                 return "Deployment not found";
             }
 
             // get events of this deployment
-            var events = await _client.CoreV1.ListNamespacedEventAsync(_namespace, fieldSelector: $"involvedObject.name={deployment},involvedObject.uid={deploy.Metadata.Uid}");
+            var events = await client.CoreV1.ListNamespacedEventAsync(_namespace, fieldSelector: $"involvedObject.name={deployment},involvedObject.uid={deploy.Metadata.Uid}");
             var eventDescriptions = events.Items.Select(e => e.Message);
             return string.Join(", ", eventDescriptions);
         }
@@ -432,9 +404,9 @@ namespace Agent.Plugins
         // rollout restart a deployment in a namespace
         public async Task<string> RolloutRestartDeploymentAsync(string resourceId, string _namespace, string deployment)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get deployment in namespace
-            var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
+            var deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
             if (deploy == null)
             {
                 return "Deployment not found";
@@ -442,7 +414,7 @@ namespace Agent.Plugins
 
             // patch the deployment to trigger a rollout restart
             var patch = new V1Patch("{\"spec\":{\"template\":{\"metadata\":{\"annotations\":{\"sreAgent/restartedAt\":\"" + DateTime.UtcNow.ToString("yyyy-MM-ddTHH:mm:ssZ", CultureInfo.InvariantCulture) + "\"}}}}}", V1Patch.PatchType.MergePatch);
-            await _client.AppsV1.PatchNamespacedDeploymentAsync(patch, deployment, _namespace);
+            await client.AppsV1.PatchNamespacedDeploymentAsync(patch, deployment, _namespace);
             return "Deployment restarted";
         }
 
@@ -456,10 +428,10 @@ namespace Agent.Plugins
                     return "Replica count must be a non-negative integer";
                 }
 
-                _client = await GetOrCreateClientAsync(resourceId);
+                var client = await GetOrCreateClientAsync(resourceId);
 
                 // Get deployment in namespace to verify it exists
-                var deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
+                var deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(deployment, _namespace);
                 if (deploy == null)
                 {
                     return "Deployment not found";
@@ -479,7 +451,7 @@ namespace Agent.Plugins
                     V1Patch.PatchType.MergePatch);
 
                 // Apply the patch to the deployment
-                var patchResult = await _client.AppsV1.PatchNamespacedDeploymentAsync(
+                var patchResult = await client.AppsV1.PatchNamespacedDeploymentAsync(
                     patch,
                     deployment,
                     _namespace);
@@ -512,10 +484,10 @@ namespace Agent.Plugins
                     return "Replica count must be a non-negative integer";
                 }
 
-                _client = await GetOrCreateClientAsync(resourceId);
+                var client = await GetOrCreateClientAsync(resourceId);
 
                 // Get deployment in namespace to verify it exists
-                var deploy = await _client.AppsV1.ReadNamespacedStatefulSetAsync(deployment, _namespace);
+                var deploy = await client.AppsV1.ReadNamespacedStatefulSetAsync(deployment, _namespace);
                 if (deploy == null)
                 {
                     return "Deployment not found";
@@ -535,7 +507,7 @@ namespace Agent.Plugins
                     V1Patch.PatchType.MergePatch);
 
                 // Apply the patch to the deployment
-                var patchResult = await _client.AppsV1.PatchNamespacedStatefulSetAsync(
+                var patchResult = await client.AppsV1.PatchNamespacedStatefulSetAsync(
                     patch,
                     deployment,
                     _namespace);
@@ -564,9 +536,9 @@ namespace Agent.Plugins
         public async Task<string> GetKubePodLogsAsync(string resourceId, string _namespace, string pod, string containerName = "", int lines = 100)
         {
 
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             // get pod in namespace
-            var podObj = await _client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
+            var podObj = await client.CoreV1.ReadNamespacedPodAsync(pod, _namespace);
             if (podObj == null)
             {
                 return "Pod not found";
@@ -578,7 +550,7 @@ namespace Agent.Plugins
             }
 
             // get logs of this pod with HTTP messages
-            var response = await _client.CoreV1.ReadNamespacedPodLogWithHttpMessagesAsync(
+            var response = await client.CoreV1.ReadNamespacedPodLogWithHttpMessagesAsync(
                 pod,
                 _namespace,
                 container: containerName,  // Here's the container name needs to be specified
@@ -624,8 +596,8 @@ namespace Agent.Plugins
         // list all CRD in cluster
         public async Task<string> ListCRDsAsync(string resourceId)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
-            var crds = await _client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+            var client = await GetOrCreateClientAsync(resourceId);
+            var crds = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
             var crdInfo = crds.Items.Select(crd =>
             $"{crd.Metadata.Name} (Group: {crd.Spec.Group}, Kind: {crd.Spec.Names.Kind})"
             );
@@ -637,9 +609,9 @@ namespace Agent.Plugins
         {
             try
             {
-                _client = await GetOrCreateClientAsync(resourceId);
+                var client = await GetOrCreateClientAsync(resourceId);
                 // Get the plural name and version from CRDs
-                var crds = await _client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+                var crds = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
                 var crd = crds.Items.FirstOrDefault(c => c.Spec.Group == apiGroup &&
                     c.Spec.Names.Kind.Equals(kind, StringComparison.OrdinalIgnoreCase));
 
@@ -653,7 +625,7 @@ namespace Agent.Plugins
                     ?? crd.Spec.Versions.First().Name;
 
                 // Get the custom resources
-                var response = await _client.CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync(
+                var response = await client.CustomObjects.ListNamespacedCustomObjectWithHttpMessagesAsync(
                     apiGroup, version, _namespace, plural);
 
                 // Parse the response using System.Text.Json
@@ -879,29 +851,29 @@ namespace Agent.Plugins
         {
             try
             {
-                _client = await GetOrCreateClientAsync(resourceId);
+                var client = await GetOrCreateClientAsync(resourceId);
                 string uid;
 
                 switch (kind.ToLowerInvariant())
                 {
                     case "deployment":
-                        var deployment = await _client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
+                        var deployment = await client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
                         uid = deployment.Metadata.Uid;
                         break;
                     case "statefulset":
-                        var statefulset = await _client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
+                        var statefulset = await client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
                         uid = statefulset.Metadata.Uid;
                         break;
                     case "daemonset":
-                        var daemonset = await _client.AppsV1.ReadNamespacedDaemonSetAsync(name, _namespace);
+                        var daemonset = await client.AppsV1.ReadNamespacedDaemonSetAsync(name, _namespace);
                         uid = daemonset.Metadata.Uid;
                         break;
                     case "service":
-                        var service = await _client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
+                        var service = await client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
                         uid = service.Metadata.Uid;
                         break;
                     case "pod":
-                        var pod = await _client.CoreV1.ReadNamespacedPodAsync(name, _namespace);
+                        var pod = await client.CoreV1.ReadNamespacedPodAsync(name, _namespace);
                         uid = pod.Metadata.Uid;
                         break;
                     default:
@@ -909,7 +881,7 @@ namespace Agent.Plugins
                         try
                         {
                             // Get the plural name and version from CRDs
-                            var crds = await _client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+                            var crds = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
                             var crd = crds.Items.FirstOrDefault(c => c.Spec.Group == apiGroup &&
                                 c.Spec.Names.Kind.Equals(kind, StringComparison.OrdinalIgnoreCase));
 
@@ -923,7 +895,7 @@ namespace Agent.Plugins
                                 ?? crd.Spec.Versions.First().Name;
 
                             // Get the custom resource
-                            var response = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
+                            var response = await client.CustomObjects.GetNamespacedCustomObjectAsync(
                                 apiGroup, version, _namespace, plural, name);
 
                             // Extract UID from JSON response
@@ -948,7 +920,7 @@ namespace Agent.Plugins
                 }
 
                 // Get events for this resource
-                var events = await _client.CoreV1.ListNamespacedEventAsync(_namespace,
+                var events = await client.CoreV1.ListNamespacedEventAsync(_namespace,
                     fieldSelector: $"involvedObject.name={name},involvedObject.uid={uid}");
 
                 if (events.Items.Count == 0)
@@ -973,6 +945,7 @@ namespace Agent.Plugins
         {
             try
             {
+                var client = await GetOrCreateClientAsync(resourceId);
                 switch (kind.ToLowerInvariant())
                 {
                     case "deployment":
@@ -986,16 +959,14 @@ namespace Agent.Plugins
                     case "pod":
                         return await GetKubePodSpecStatusAsync(resourceId, _namespace, name);
                     case "service":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var service = await _client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
+                        var service = await client.CoreV1.ReadNamespacedServiceAsync(name, _namespace);
                         if (service == null)
                         {
                             return "Service not found";
                         }
                         return YamlHelper.Serialize(service);
                     case "configmap":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var configMap = await _client.CoreV1.ReadNamespacedConfigMapAsync(name, _namespace);
+                        var configMap = await client.CoreV1.ReadNamespacedConfigMapAsync(name, _namespace);
                         if (configMap == null)
                         {
                             return "ConfigMap not found";
@@ -1003,8 +974,7 @@ namespace Agent.Plugins
                         return YamlHelper.Serialize(configMap);
                     case "persistentvolume":
                     case "pv":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var pv = await _client.CoreV1.ReadPersistentVolumeAsync(name);
+                        var pv = await client.CoreV1.ReadPersistentVolumeAsync(name);
                         if (pv == null)
                         {
                             return "PV not found";
@@ -1012,32 +982,28 @@ namespace Agent.Plugins
                         return YamlHelper.Serialize(pv);
                     case "persistentvolumeclaim":
                     case "pvc":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var pvc = await _client.CoreV1.ReadNamespacedPersistentVolumeClaimAsync(name, _namespace);
+                        var pvc = await client.CoreV1.ReadNamespacedPersistentVolumeClaimAsync(name, _namespace);
                         if (pvc == null)
                         {
                             return "PVC not found";
                         }
                         return YamlHelper.Serialize(pvc);
                     case "ingress":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var ingress = await _client.NetworkingV1.ReadNamespacedIngressAsync(name, _namespace);
+                        var ingress = await client.NetworkingV1.ReadNamespacedIngressAsync(name, _namespace);
                         if (ingress == null)
                         {
                             return "Ingress not found";
                         }
                         return YamlHelper.Serialize(ingress);
                     case "cronjob":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var cronJob = await _client.BatchV1.ReadNamespacedCronJobAsync(name, _namespace);
+                        var cronJob = await client.BatchV1.ReadNamespacedCronJobAsync(name, _namespace);
                         if (cronJob == null)
                         {
                             return "CronJob not found";
                         }
                         return YamlHelper.Serialize(cronJob);
                     case "job":
-                        _client = await GetOrCreateClientAsync(resourceId);
-                        var job = await _client.BatchV1.ReadNamespacedJobAsync(name, _namespace);
+                        var job = await client.BatchV1.ReadNamespacedJobAsync(name, _namespace);
                         if (job == null)
                         {
                             return "Job not found";
@@ -1046,9 +1012,8 @@ namespace Agent.Plugins
 
                 }
 
-                _client = await GetOrCreateClientAsync(resourceId);
                 // Get the plural name and version from CRDs
-                var crds = await _client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
+                var crds = await client.ApiextensionsV1.ListCustomResourceDefinitionAsync();
                 var crd = crds.Items.FirstOrDefault(c => c.Spec.Group == apiGroup &&
                     c.Spec.Names.Kind.Equals(kind, StringComparison.OrdinalIgnoreCase));
 
@@ -1062,7 +1027,7 @@ namespace Agent.Plugins
                     ?? crd.Spec.Versions.First().Name;
 
                 // Get the custom resource
-                var response = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
+                var response = await client.CustomObjects.GetNamespacedCustomObjectAsync(
                     apiGroup, version, _namespace, plural, name);
 
                 return YamlHelper.Serialize(response);
@@ -1808,7 +1773,7 @@ $@"100 * (
             try
             {
                 // 1. Get Kubernetes Client
-                _client = await GetOrCreateClientAsync(resourceId);
+                var client = await GetOrCreateClientAsync(resourceId);
 
                 // 2. Get the Deployment/StatefulSet to find its label selector
                 V1ObjectMeta metadata = null;
@@ -1821,7 +1786,7 @@ $@"100 * (
                         V1Deployment deploy;
                         try
                         {
-                            deploy = await _client.AppsV1.ReadNamespacedDeploymentAsync(workloadName, _namespace);
+                            deploy = await client.AppsV1.ReadNamespacedDeploymentAsync(workloadName, _namespace);
                             metadata = deploy?.Metadata;
                             selector = deploy?.Spec?.Selector;
                             _logger?.LogInformation("Successfully retrieved Deployment '{DeploymentName}'", workloadName);
@@ -1841,7 +1806,7 @@ $@"100 * (
                         V1StatefulSet sts;
                         try
                         {
-                            sts = await _client.AppsV1.ReadNamespacedStatefulSetAsync(workloadName, _namespace);
+                            sts = await client.AppsV1.ReadNamespacedStatefulSetAsync(workloadName, _namespace);
                             metadata = sts?.Metadata;
                             selector = sts?.Spec?.Selector;
                             _logger?.LogInformation("Successfully retrieved StatefulSet '{StatefulSetName}'", workloadName);
@@ -1876,7 +1841,7 @@ $@"100 * (
                 V1PodList podList;
                 try
                 {
-                    podList = await _client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: labelSelectorString);
+                    podList = await client.CoreV1.ListNamespacedPodAsync(_namespace, labelSelector: labelSelectorString);
                 }
                 catch (Exception ex)
                 {
@@ -1909,7 +1874,7 @@ $@"100 * (
                     try
                     {
                         // 7. Get the Node object
-                        var node = await _client.CoreV1.ReadNodeAsync(nodeName);
+                        var node = await client.CoreV1.ReadNodeAsync(nodeName);
 
                         // 8. Extract the node pool label
                         string? nodePoolName = null;
@@ -2094,7 +2059,7 @@ $@"100 * (
 
         public async Task<string> ListWorkloadRevisions(string resourceId, string _namespace, string kind, string name)
         {
-            _client = await GetOrCreateClientAsync(resourceId);
+            var client = await GetOrCreateClientAsync(resourceId);
             var sb = new StringBuilder();
 
             try
@@ -2103,13 +2068,13 @@ $@"100 * (
                 {
                     case "deployment":
                         // For deployments, we need to get all ReplicaSets and filter those owned by our deployment
-                        var deployment = await _client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
+                        var deployment = await client.AppsV1.ReadNamespacedDeploymentAsync(name, _namespace);
                         if (deployment == null)
                         {
                             return $"Deployment '{name}' not found in namespace '{_namespace}'";
                         }
 
-                        var replicaSets = await _client.AppsV1.ListNamespacedReplicaSetAsync(
+                        var replicaSets = await client.AppsV1.ListNamespacedReplicaSetAsync(
                             _namespace,
                             labelSelector: string.Join(",", deployment.Spec.Selector.MatchLabels.Select(l => $"{l.Key}={l.Value}")));
 
@@ -2140,13 +2105,13 @@ $@"100 * (
 
                     case "statefulset":
                         // For StatefulSets, we use ControllerRevision objects
-                        var statefulSet = await _client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
+                        var statefulSet = await client.AppsV1.ReadNamespacedStatefulSetAsync(name, _namespace);
                         if (statefulSet == null)
                         {
                             return $"StatefulSet '{name}' not found in namespace '{_namespace}'";
                         }
 
-                        var controllerRevisions = await _client.AppsV1.ListNamespacedControllerRevisionAsync(
+                        var controllerRevisions = await client.AppsV1.ListNamespacedControllerRevisionAsync(
                             _namespace,
                             labelSelector: string.Join(",", statefulSet.Spec.Selector.MatchLabels.Select(l => $"{l.Key}={l.Value}")));
 

@@ -66,35 +66,41 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
     private async Task<IKubernetes?> GetK8SClient(string subscription, string resourceGroup, string clusterName, bool isCrawler)
     {
+        _logger.LogInternalInformation($"Getting k8s client for {subscription}/{resourceGroup}/{clusterName}. IsCrawler = {isCrawler}");
+        var key = $"{subscription}/{resourceGroup}/{clusterName}{(isCrawler ? "/crawler" : "")}";
         if (isCrawler)
         {
-            if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}") ||
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"].IsExpired())
+            if (!_configurationCache.ContainsKey(key) ||
+                _configurationCache[key].IsExpired())
             {
                 var cred = _authService.GetCrawlerCredential();
                 var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
+                _configurationCache[key] = new CachedK8SConfiguration(config, expiresOn);
             }
         }
         else
         {
             var cred = await _authService.GetKubernetesOperationCredential();
-            if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}"))
+            if (!_configurationCache.ContainsKey(key))
             {
                 var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
+                _configurationCache[key] = new CachedK8SConfiguration(config, expiresOn);
             }
             else
             {
-                var cached = _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"];
-                // always the refresh token
-                var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
-                cached.Configuration.Users.First().UserCredentials.Token = token.Token;
-                _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = cached;
+                var cached = _configurationCache[key];
+                // do not override token if admin credential is used (only the case AAD is not enabled on cluster)
+                if (cached.ExpiresOn != null)
+                {
+                    // always the refresh token as the cred might change according to different context
+                    var token = await cred.GetTokenAsync(new TokenRequestContext(["6dae42f8-4368-4678-94ff-3960e28e3630/.default"]), CancellationToken.None);
+                    cached.Configuration.Users.First().UserCredentials.Token = token.Token;
+                    _configurationCache[key] = cached;
+                }
             }
         }
 
-        var k8sConfig = _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"].Configuration;
+        var k8sConfig = _configurationCache[key].Configuration;
         var kubeConfig = KubernetesClientConfiguration.BuildConfigFromConfigObject(k8sConfig);
 
         return new Kubernetes(kubeConfig);
@@ -116,6 +122,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         var cluster = resp.Value;
         if (cluster.Data.AadProfile != null)
         {
+            _logger.LogInternalInformation($"User credential will be used for {subscription}/{resourceGroup}/{clusterName}");
             var credResp = await cluster.GetClusterUserCredentialsAsync();
             if (credResp == null)
             {
@@ -148,6 +155,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
         }
         else
         {
+            _logger.LogInternalInformation($"Admin credential will be used for {subscription}/{resourceGroup}/{clusterName}");
             var credResp = await cluster.GetClusterAdminCredentialsAsync();
             if (credResp == null)
             {

@@ -77,11 +77,12 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
             _logger.LogInternalInformation("Checking approval for threadId: {ThreadId}, function: {FunctionName}, title: {Title}, instanceId {instanceId}, arguments {arguments}", input.ThreadId, targetFunction, approvalTitle, context.InstanceId, input.FunctionCall.Arguments);
 
             var approval = await _threadRepository.GetApprovalAsync(Guid.Parse(input.ThreadId), approvalTitle);
+            var attribute = matchingTool.ToolFunction.UnderlyingMethod?.GetCustomAttribute<RequiresApprovalAttribute>();
 
             if (approval == null ||
                 // oboToken expires
                 // TODO: get rid of hostEnvironment check. Make it something like actionMode: OBO/Agent check
-                (!_hostEnvironment.IsDevelopment() && approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken)))
+                (!_hostEnvironment.IsDevelopment() && approval.Status == ApprovalDecision.Approved && string.IsNullOrEmpty(approval.OboToken) && attribute != null && attribute.UseOboToken))
             {
                 var description = ApprovalHelper.GetToolDefaultApprovalMessage(matchingTool);
                 // Try get latest action with the function call name

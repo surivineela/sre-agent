@@ -40,7 +40,7 @@ namespace Agent.Plugins
                 }
 
                 // Get the Kubernetes client
-                _client = await GetOrCreateClientAsync(resourceId);
+                var client = await GetOrCreateClientAsync(resourceId);
 
                 // Parse YAML with a single deserializer that preserves numeric types
                 var yamlDeserializer = new DeserializerBuilder()
@@ -137,7 +137,7 @@ namespace Agent.Plugins
                 try
                 {
                     // Check if resource exists
-                    var existingResource = await _client.CustomObjects.GetNamespacedCustomObjectAsync(
+                    var existingResource = await client.CustomObjects.GetNamespacedCustomObjectAsync(
                         group: GetApiGroup(apiVersion),
                         version: GetApiVersion(apiVersion),
                         namespaceParameter: namespaceName,
@@ -160,7 +160,7 @@ namespace Agent.Plugins
                     {
                         case "deployment":
                             var deploymentPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await _client.AppsV1.PatchNamespacedDeploymentAsync(
+                            await client.AppsV1.PatchNamespacedDeploymentAsync(
                                 body: deploymentPatch,
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
@@ -168,7 +168,7 @@ namespace Agent.Plugins
 
                         case "service":
                             var servicePatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await _client.CoreV1.PatchNamespacedServiceAsync(
+                            await client.CoreV1.PatchNamespacedServiceAsync(
                                 body: servicePatch,
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
@@ -176,7 +176,7 @@ namespace Agent.Plugins
 
                         case "ingress":
                             var ingressPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await _client.NetworkingV1.PatchNamespacedIngressAsync(
+                            await client.NetworkingV1.PatchNamespacedIngressAsync(
                                 body: ingressPatch,
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
@@ -184,7 +184,7 @@ namespace Agent.Plugins
 
                         case "configmap":
                             var configMapPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await _client.CoreV1.PatchNamespacedConfigMapAsync(
+                            await client.CoreV1.PatchNamespacedConfigMapAsync(
                                 body: configMapPatch,
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
@@ -192,7 +192,7 @@ namespace Agent.Plugins
 
                         case "statefulset":
                             var statefulSetPatch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await _client.AppsV1.PatchNamespacedStatefulSetAsync(
+                            await client.AppsV1.PatchNamespacedStatefulSetAsync(
                                 body: statefulSetPatch,
                                 name: resourceName,
                                 namespaceParameter: namespaceName);
@@ -201,7 +201,7 @@ namespace Agent.Plugins
                         default:
                             // Use generic method for other resource types
                             var patch = new V1Patch(jsonBody, V1Patch.PatchType.StrategicMergePatch);
-                            await _client.CustomObjects.PatchNamespacedCustomObjectAsync(
+                            await client.CustomObjects.PatchNamespacedCustomObjectAsync(
                                 body: patch,
                                 group: GetApiGroup(apiVersion),
                                 version: GetApiVersion(apiVersion),
@@ -221,7 +221,7 @@ namespace Agent.Plugins
                         case "deployment":
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
                             var deployment = JsonConvert.DeserializeObject<V1Deployment>(jsonBody);
-                            await _client.AppsV1.CreateNamespacedDeploymentAsync(
+                            await client.AppsV1.CreateNamespacedDeploymentAsync(
                                 body: deployment,
                                 namespaceParameter: namespaceName);
                             break;
@@ -230,7 +230,7 @@ namespace Agent.Plugins
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var service = JsonConvert.DeserializeObject<V1Service>(jsonBody);
-                            await _client.CoreV1.CreateNamespacedServiceAsync(
+                            await client.CoreV1.CreateNamespacedServiceAsync(
                                 body: service,
                                 namespaceParameter: namespaceName);
                             break;
@@ -239,7 +239,7 @@ namespace Agent.Plugins
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var ingress = JsonConvert.DeserializeObject<V1Ingress>(jsonBody);
-                            await _client.NetworkingV1.CreateNamespacedIngressAsync(
+                            await client.NetworkingV1.CreateNamespacedIngressAsync(
                                 body: ingress,
                                 namespaceParameter: namespaceName);
                             break;
@@ -248,7 +248,7 @@ namespace Agent.Plugins
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var configMap = JsonConvert.DeserializeObject<V1ConfigMap>(jsonBody);
-                            await _client.CoreV1.CreateNamespacedConfigMapAsync(
+                            await client.CoreV1.CreateNamespacedConfigMapAsync(
                                 body: configMap,
                                 namespaceParameter: namespaceName);
                             break;
@@ -257,7 +257,7 @@ namespace Agent.Plugins
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             var statefulSet = JsonConvert.DeserializeObject<V1StatefulSet>(jsonBody);
-                            await _client.AppsV1.CreateNamespacedStatefulSetAsync(
+                            await client.AppsV1.CreateNamespacedStatefulSetAsync(
                                 body: statefulSet,
                                 namespaceParameter: namespaceName);
                             break;
@@ -266,7 +266,7 @@ namespace Agent.Plugins
                             _logger?.LogInternalInformation($"Creating new resource {kind}/{resourceName} in namespace {namespaceName}");
 
                             // Use generic method for other resource types
-                            await _client.CustomObjects.CreateNamespacedCustomObjectAsync(
+                            await client.CustomObjects.CreateNamespacedCustomObjectAsync(
                                 body: yamlObject,
                                 group: GetApiGroup(apiVersion),
                                 version: GetApiVersion(apiVersion),
