@@ -23,8 +23,8 @@ public class OrchestrationAgent
     public TimeSpan WaitTimeRemaining { get; set; }
     public bool Done { get; set; } = false;
     public bool ResponseFromUserIsPending { get; set; } = false;
-    public HashSet<string> PendingApprovals { get; set; } = new();
-    public List<Task<ChatMessage>> Pending202Activities { get; set; } = new();
+    public Dictionary<Guid, PendingApprovalData> PendingApprovals { get; set; } = [];
+    public List<Task<ChatMessage>> Pending202Activities { get; set; } = [];
     public Guid ThreadId { get; set; }
     public Guid CurrentActionId { get; set; }
 
@@ -111,50 +111,23 @@ public class OrchestrationAgent
         await RecordStateChange(ReasoningState.RunningFunctionCall, $"Checking approval for function call: {functionCall.Name}");
 
         var approvalResult = await _taskOrchestrationContext.CallCheckApprovalActivityAsync(checkApprovalActivityInput);
+
         if (approvalResult.ApprovalStatus == ToolApprovalStatus.NotRequired)
         {
-            this.ChatHistory.AddRange(reasoningResult.ChatMessages);
+            ChatHistory.AddRange(reasoningResult.ChatMessages);
         }
         else
         {
+            // tool call chat history will be added once the approval request is approved or denied
+
             log.LogInternalInformation("[{ThreadId}] Approval status is: {ApprovalStatus}", threadId, approvalResult.ApprovalStatus);
-            if (approvalResult.ApprovalStatus == ToolApprovalStatus.Pending)
+            if (approvalResult.ApprovalStatus == ToolApprovalStatus.Pending && approvalResult.ApprovalId != null)
             {
-                if (approvalResult.ApprovalId != null)
-                {
-                    PendingApprovals.Add(approvalResult.ApprovalId!.ToString());
-                }
-
-                functionCall = null;
+                // add pending approval for tracking
+                PendingApprovals.Add(approvalResult.ApprovalId.Value, new(approvalResult.ApprovalId.Value, reasoningResult.ChatMessages, functionCall));
             }
-            else if (approvalResult.ApprovalStatus == ToolApprovalStatus.Approved)
-            {
-                log.LogInternalInformation("[{ThreadId}] function call to {FunctionCall} is approved. Proceeding with the function call.", threadId, functionCall.Name);
-                await RecordActionIfNeeded(functionCall, ActionStatus.Approved);
-                if (approvalResult.ApprovalId != null)
-                {
-                    PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
-                }
 
-                this.ChatHistory.AddRange(reasoningResult.ChatMessages);
-            }
-            else
-            {
-                log.LogInternalInformation("[{ThreadId}] function call to {FunctionCall} is rejected", threadId, functionCall.Name);
-                await RecordActionIfNeeded(functionCall, ActionStatus.Rejected);
-                if (approvalResult.ApprovalId != null)
-                {
-                    PendingApprovals.Remove(approvalResult.ApprovalId!.ToString());
-                }
-
-                this.ChatHistory.Add(new ChatMessage(ChatRole.Assistant, [functionCall]));
-
-                var callResult = new FunctionResultContent(
-                        functionCall.CallId,
-                   $"User rejected the action {functionCall.Name}");
-                this.ChatHistory.Add(new ChatMessage(ChatRole.Tool, [callResult]));
-                functionCall = null;
-            }
+            functionCall = null;
         }
 
         if (functionCall == null)
@@ -208,7 +181,7 @@ public class OrchestrationAgent
             else
             {
                 this.CurrentActionId = action.Id;
-            }   
+            }
         }
     }
 
@@ -373,17 +346,34 @@ public class OrchestrationAgent
         {
             // TODO: error handling
             var approvalEvent = await _approvalTask;
-            if (!string.IsNullOrEmpty(approvalEvent.OperationId))
+            PendingApprovalData? approvalData = null;
+
+            if (!string.IsNullOrEmpty(approvalEvent.OperationId) && Guid.TryParse(approvalEvent.OperationId, out var approvalId))
             {
-                PendingApprovals.Remove(approvalEvent.OperationId);
+                PendingApprovals.Remove(approvalId, out approvalData);
             }
 
-            if (approvalEvent.IsApproved)
+            if (approvalEvent.Status == ApprovalDecision.Approved)
             {
                 var approvalString = $"Approval by **{approvalEvent.DecisionMaker}** received at {approvalEvent.ApprovedTime}";
                 log.LogInternalInformation(approvalString);
 
                 ChatHistory.Add(new ChatMessage(ChatRole.System, approvalString));
+
+                if (approvalData != null)
+                {
+                    // execute the approved tool
+
+                    ChatHistory.AddRange(approvalData.OriginalMessages);
+
+                    await RecordActionIfNeeded(approvalData.FunctionCall, ActionStatus.Approved);
+
+                    await RecordStateChange(ReasoningState.RunningFunctionCall, $"Running function call: {approvalData.FunctionCall.Name}");
+
+                    var step = OrchestrationAgentStep.CreateStep(approvalData.FunctionCall, approvalData.ApprovalId);
+
+                    await step.ExecuteAsync(_taskOrchestrationContext, this);
+                }
             }
             else
             {
@@ -391,6 +381,19 @@ public class OrchestrationAgent
                 log.LogInternalInformation(rejectionString);
 
                 ChatHistory.Add(new ChatMessage(ChatRole.System, rejectionString));
+
+                if (approvalData != null)
+                {
+                    ChatHistory.AddRange(approvalData.OriginalMessages);
+
+                    await RecordActionIfNeeded(approvalData.FunctionCall, ActionStatus.Rejected);
+
+                    var callResult = new FunctionResultContent(
+                            approvalData.FunctionCall.CallId,
+                       $"User rejected the action {approvalData.FunctionCall.Name}");
+
+                    ChatHistory.Add(new ChatMessage(ChatRole.Tool, [callResult]));
+                }
             }
 
             _approvalTask = _taskOrchestrationContext.WaitForExternalEvent<ApprovalStatus>("ApprovalEvent");

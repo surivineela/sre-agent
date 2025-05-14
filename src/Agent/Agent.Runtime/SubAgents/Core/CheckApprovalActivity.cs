@@ -3,9 +3,6 @@
 // ------------------------------------------------------------
 
 using System.Reflection;
-using System.Security.Cryptography;
-using System.Text;
-using System.Text.Json;
 using Agent.Core.Attributes;
 using Agent.Core.Interfaces;
 using Agent.Core.Models;
@@ -68,6 +65,8 @@ public class CheckApprovalActivity : TaskActivity<CheckApprovalActivityInput, Ch
                 };
             }
 
+            // TODO: should the approval be unique to the specific function call (not just the args being passed)?
+            // we can use input.FunctionCall.CallId to ensure it's scoped only to this particular call
             var approvalTitle = ApprovalHelper.GenerateUniqueApprovalTitle(
                 input.ThreadId,
                 context.InstanceId,

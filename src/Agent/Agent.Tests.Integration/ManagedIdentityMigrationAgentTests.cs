@@ -3,8 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins;
-using Agent.Plugins.Definitions;
 using Agent.Plugins.Mocks;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.SubAgents.Core;
@@ -22,7 +22,6 @@ using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Time.Testing;
 using Xunit.Abstractions;
-using Agent.Core.Models.Api.v1;
 
 namespace Agent.Tests.Integration
 {
@@ -188,7 +187,7 @@ namespace Agent.Tests.Integration
                 if (orchestrationStatus.StartsWith("Pending approval:"))
                 {
                     var approvalId = orchestrationStatus.Split(":")[1];
-                    var approvalStatus = new ApprovalStatus(approvalId, _timeProvider.GetUtcNow().DateTime, _timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null);
+                    var approvalStatus = new ApprovalStatus(approvalId, _timeProvider.GetUtcNow().DateTime, ApprovalDecision.Approved, _timeProvider.GetUtcNow().DateTime, "unit test", ProcessedTime: null);
                     await _durableTaskClient.RaiseEventAsync(approvalId, "ApprovalEvent", approvalStatus);
                     break;
                 }

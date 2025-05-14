@@ -3,9 +3,8 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Logging;
-using Agent.Plugins.Definitions;
-using Agent.Plugins.Mocks;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 using Microsoft.Extensions.AI;
@@ -16,7 +15,7 @@ namespace Agent.Runtime
 {
 
     public record ApprovalInput(string ParentInstanceId, string OperationName, string ThreadId, string ApprovalId, string Description);
-    
+
     [DurableTask]
     public class ApprovalOrchestration : TaskOrchestrator<ApprovalInput, ApprovalStatus>
     {
@@ -34,18 +33,18 @@ namespace Agent.Runtime
                 Task approvalTimeoutTask = context.CreateTimer(TimeSpan.FromDays(1), cts.Token);
                 Task<ApprovalStatus> approvalTask = context.WaitForExternalEvent<ApprovalStatus>("ApprovalEvent", cts.Token);
 
-                if(approvalTask == await Task.WhenAny(approvalTask, approvalTimeoutTask))
+                if (approvalTask == await Task.WhenAny(approvalTask, approvalTimeoutTask))
                 {
                     var approvalEvent = await approvalTask;
                     cts.Cancel();
-                    
+
                     await context.CallActivityAsync(new TaskName(nameof(HandleApprovalActivity)), Tuple.Create(input, approvalEvent));
                     return approvalEvent;
                 }
                 else
                 {
                     var timeoutAt = context.CurrentUtcDateTime;
-                    var approvalEvent = new ApprovalStatus(context.InstanceId, startTime, ApprovedTime: null, DecisionMaker: null, ProcessedTime: timeoutAt);
+                    var approvalEvent = new ApprovalStatus(context.InstanceId, startTime, ApprovalDecision.Rejected, ApprovedTime: null, DecisionMaker: null, ProcessedTime: timeoutAt);
 
                     await context.CallActivityAsync(new TaskName(nameof(HandleApprovalTimeoutActivity)), Tuple.Create(input, approvalEvent));
                     return approvalEvent;
@@ -55,7 +54,7 @@ namespace Agent.Runtime
     }
 
     [DurableTask]
-    public class HandleApprovalActivity : TaskActivity<Tuple<ApprovalInput,ApprovalStatus>, string>
+    public class HandleApprovalActivity : TaskActivity<Tuple<ApprovalInput, ApprovalStatus>, string>
     {
         private readonly ILogger<HandleApprovalActivity> _logger;
         private readonly DurableTaskClient _durableTaskClient;
@@ -106,7 +105,7 @@ namespace Agent.Runtime
         public override async Task<string> RunAsync(TaskActivityContext context, Tuple<ApprovalInput, ApprovalStatus> input)
         {
             var (approvalInput, approvalEvent) = input;
-            
+
             string timeoutMessage = $"Approval was not received within the timeout period. Operation timed out at {approvalEvent.ProcessedTime}";
             _logger.LogInternalInformation(timeoutMessage);
             var outputMessage = new ChatMessage(ChatRole.System, timeoutMessage);

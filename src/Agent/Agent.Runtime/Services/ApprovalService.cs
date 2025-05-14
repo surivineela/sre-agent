@@ -130,6 +130,7 @@ namespace Agent.Runtime.Services
                 var approvalStatus = new ApprovalStatus(
                     approvalId,
                     StartTime: DateTime.UtcNow,
+                    Status: status,
                     ApprovedTime: DateTime.UtcNow,
                     DecisionMaker: user,
                     ProcessedTime: null,

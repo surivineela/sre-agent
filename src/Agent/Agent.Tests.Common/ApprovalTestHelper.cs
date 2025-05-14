@@ -49,6 +49,7 @@ public class ApprovalTestHelper
                     var approvalStatus = new ApprovalStatus(
                         updated.Id.ToString(),
                         StartTime: timeProvider.GetUtcNow().DateTime,
+                        Status: ApprovalDecision.Approved,
                         ApprovedTime: timeProvider.GetUtcNow().DateTime,
                         DecisionMaker: updated.DecisionUser?.DisplayName,
                         ProcessedTime: null,
@@ -103,6 +104,7 @@ public class ApprovalTestHelper
                     var approvalStatus = new ApprovalStatus(
                         updated.Id.ToString(),
                         StartTime: timeProvider.GetUtcNow().DateTime,
+                        Status: ApprovalDecision.Approved,
                         ApprovedTime: timeProvider.GetUtcNow().DateTime,
                         DecisionMaker: updated.DecisionUser?.DisplayName,
                         ProcessedTime: null,

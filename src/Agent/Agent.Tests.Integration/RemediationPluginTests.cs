@@ -4,6 +4,7 @@
 
 using Agent.Core;
 using Agent.Core.Models;
+using Agent.Core.Models.Api.v1;
 using Agent.Plugins.Definitions;
 using Agent.Plugins.Implementation;
 using Agent.Runtime;
@@ -112,10 +113,11 @@ namespace Agent.Tests.Integration
         private void SetApprovalStatus(string operation, string resourceId)
         {
             var operationId = Guid.NewGuid().ToString();
-            GlobalStatic.ApprovalStatus[new ApprovalDescriptor(resourceId, operation)] = 
+            GlobalStatic.ApprovalStatus[new ApprovalDescriptor(resourceId, operation)] =
                 new ApprovalStatus(
                     OperationId: operationId,
                     StartTime: DateTime.UtcNow,
+                    Status: ApprovalDecision.Approved,
                     ApprovedTime: DateTime.UtcNow,
                     DecisionMaker: "test-approver",
                     ProcessedTime: DateTime.UtcNow.AddHours(1),
@@ -136,4 +138,4 @@ namespace Agent.Tests.Integration
             }
         }
     }
-} 
+}
