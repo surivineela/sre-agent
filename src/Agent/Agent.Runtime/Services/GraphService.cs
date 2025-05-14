@@ -234,11 +234,11 @@ public class GraphService : IGraphService
         return azureResourceApps;
     }
 
-    private async Task<ResultSet<dynamic>> GetRelatedResourcesWithRelationAsync(string resourceId)
+    private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId)
     {
         string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
                      .union(
-                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES').project('edge', 'direction', 'node')
+                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE').project('edge', 'direction', 'node')
                           .by(label())
                           .by(constant('outgoing'))
                           .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
@@ -256,47 +256,20 @@ public class GraphService : IGraphService
                               .by(valueMap()))
                      ).dedup('node')";
 
-        var resultSet = await _graphDatabaseClient.Query(query);
-        return resultSet;
-    }
-
-    private async Task<ResultSet<dynamic>> GetRelatedResourcesAsync(string resourceId, int hops)
-    {
-        string query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
-                    .union(
-                        repeat(
-                            union(
-                                outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE').inV(),
-                                inE('LINKED', 'CONNECTED', 'HOSTED_ON').outV()
-                            )
-                            .not(has('resourceType', within('resourcegroups', 'subscription')))
-                            .simplePath()
-                        )
-                        .times({hops})
-                        .emit()
-                    )
-                    .dedup()
-                    .project('id', 'name', 'type', 'properties')
-                    .by(id())
-                    .by(coalesce(values('resourceName'), constant('')))
-                    .by(label())
-                    .by(valueMap())";
-
         // If it's a Kubernetes resource, we should use a simplified query that only includes
         // direct outgoing relationships to reduce complexity and improve performance
         if (resourceId.Contains("microsoft.containerservice_managedclusters"))
         {
             query = $@"g.V().has('id', '{resourceId.ToLower().Replace("/", "_")}')
-                    .union(
-                        outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES').inV()
-                        .not(has('resourceType', within('resourcegroups', 'subscription')))
-                    )
-                    .dedup()
-                    .project('id', 'name', 'type', 'properties')
-                    .by(id())
-                    .by(coalesce(values('resourceName'), constant('')))
-                    .by(label())
-                    .by(valueMap())";
+                    .outE('LINKED', 'CONNECTED', 'CONTAINS', 'HOSTED_ON', 'SQL_CONNECTED', 'REDIS_CONNECTED', 'USES_REDIS', 'SERVES_CODE', 'REFERENCES').project('edge', 'direction', 'node')
+                        .by(label())
+                        .by(constant('outgoing'))
+                        .by(inV().not(has('resourceType', within('resourcegroups', 'subscription'))).project('id', 'name', 'type', 'properties')
+                            .by(id())
+                            .by(coalesce(values('resourceName'), constant('')))
+                            .by(label())
+                            .by(valueMap()))
+                    .dedup('node')";
         }
 
         var resultSet = await _graphDatabaseClient.Query(query);
@@ -369,7 +342,7 @@ public class GraphService : IGraphService
 
         processedNodes.Add(resourceId);
 
-        var resultSet = await GetRelatedResourcesWithRelationAsync(resourceId);
+        var resultSet = await GetRelatedResourcesAsync(resourceId);
 
         if (resultSet == null || !resultSet.Any())
         {
