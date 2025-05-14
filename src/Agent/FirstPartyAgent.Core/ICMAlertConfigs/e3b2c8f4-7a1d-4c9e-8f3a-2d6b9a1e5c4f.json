@@ -52,6 +52,7 @@
   ],
   "IncidentProcessingGuide": [
     "Run this instructions only if the incident is related to DevBox connectivity issues, like if customer can not connect or access their dev box. If it's not a connectivity issue DO NOT PROCEED with the instructions.",
+    "Tag the Incident with 'SREAgent_Devbox_Connectivity'",
     "DO NOT ADD DISCUSSION ENTRIES UNTILL PROMPTED",
     "Run these steps in order, do not wait for prompt and just display results, show all the steps performed and analysis done:",
     "    - Step 0: Get All DevBox details, and display the results",
