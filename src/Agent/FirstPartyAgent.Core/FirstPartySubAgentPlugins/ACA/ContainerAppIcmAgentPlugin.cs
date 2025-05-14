@@ -12,7 +12,6 @@ using Microsoft.SemanticKernel;
 
 namespace FirstPartyAgent.Core.FirstPartySubAgentPlugins.ACA;
 
-[WorkflowClass]
 public class ContainerAppIcmAgentPlugin
 {
     private readonly DurableTaskClient _durableTaskClient;
@@ -33,7 +32,6 @@ public class ContainerAppIcmAgentPlugin
 
 
     [KernelFunction("list_containerapp_icm_workflows")]
-    [WorkflowFunction]
     [Description("List the information of started workflows for Interacting with IcM")]
     public async Task<IReadOnlyList<WorkflowMetadata<ContainerAppIcmAgentActivityInput>>> ListContainerAppIcmAgentWorkflows()
     {
@@ -52,7 +50,6 @@ public class ContainerAppIcmAgentPlugin
         return list;
     }
 
-    [WorkflowFunction]
     [KernelFunction("start_containerapp_icm_workflow")]
     [Description("Start the workflow to interacting with IcM")]
     public async Task<string> StartContainerAppIcmAgentWorkflowAsync(

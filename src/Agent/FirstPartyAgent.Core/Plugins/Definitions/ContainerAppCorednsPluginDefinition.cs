@@ -19,7 +19,8 @@ namespace FirstPartyAgent.Core.Plugins.Definitions
 
         [KernelFunction(KernelFunctionNames.ACA.GetCustomDNSServers)]
         [Description(
-            @"Get list of custom DNS servers configured for the container app environment at start and end of time window. It also checks if custom DNS servers are configured or not")]
+            @"Get list of custom DNS servers configured for the container app environment at start and end of time window. It also checks if custom DNS servers are configured or not.
+            If no data is returned then ask to validate inputs again as it should never be the case.")]
         public Task<string> GetCustomDNSServers(
             string region,
             DateTime fromDate,

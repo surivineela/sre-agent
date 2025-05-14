@@ -79,12 +79,17 @@ namespace FirstPartyAgent.Plugins
         {
             try
             {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
 
                 var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
                 using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+
+                stopwatch.Stop();
+
                 var ret = new KustoQueryResult(reader, query);
-                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount);
+                ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds);
+
                 return ret;
             }
             catch (Exception ex)
@@ -121,9 +126,11 @@ namespace FirstPartyAgent.Plugins
                     ClusterUri = $"https://{cluster}.kusto.windows.net",
                     Database = database,
                 };
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 var reader = await _kustoClientService.PerformQueryAsync(config, fullQuery);
                 var ret = new KustoQueryResult(reader, fullQuery);
-                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, database);
+                stopwatch.Stop();
+                ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, database:database);
                 return ret;
             }
             catch (Exception ex)
@@ -177,9 +184,11 @@ namespace FirstPartyAgent.Plugins
 
             try
             {
+                var stopwatch = System.Diagnostics.Stopwatch.StartNew();
                 using var reader = await _kustoClientService.PerformQueryAsync(query, region);
                 var ret = new KustoQueryResult(reader, query);
-                ret.Message = CreateChatMessage(query, region, ret.RowCount, functionName: functionName);
+                stopwatch.Stop();
+                ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName);
                 return ret;
             }
             catch (Exception ex)
@@ -199,7 +208,7 @@ namespace FirstPartyAgent.Plugins
             return $"\"{value}\"";
         }
 
-        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, string? database = null, string? functionName = null)
+        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null)
         {
             if (string.IsNullOrWhiteSpace(query))
             {
@@ -239,21 +248,22 @@ namespace FirstPartyAgent.Plugins
 
             adxUri = $"https://dataexplorer.azure.com/clusters/{adxUri}/{database}?query={EncodeQuery(query)}";
 
+            var executionTime = $"{queryExecutionTimeInMilliSeconds / 1000.0} secs";
             string displayText;
             if (!string.IsNullOrWhiteSpace(functionName))
             {
                 // For function execution
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n```kql\n{query}\n```\n\nRows: {count}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted function `{functionName}` against {regionOrClusterUri}{(!string.IsNullOrWhiteSpace(database)? $"/{database}" : string.Empty)}:\n```kql\n{query}\n```\n\nRows: {count} Execution time: {executionTime}";
             }
             else if (!string.IsNullOrWhiteSpace(database))
             {
                 // For cluster and database-specific queries
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query on cluster '{regionOrClusterUri}' in database '{database}':\n```kql\n{query}\n```\n\nRows: {count}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query on cluster '{regionOrClusterUri}' in database '{database}':\n```kql\n{query}\n```\n\nRows: {count} Execution time: {executionTime}";
             }
             else
             {
                 // For regional queries
-                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query in region {regionOrClusterUri}:\n```kql\n{query}\n```\n\nRows:{count}";
+                displayText = $"[Execute in ADX]({adxUri})\n\nExecuted query in region {regionOrClusterUri}:\n```kql\n{query}\n```\n\nRows:{count} Execution time: {executionTime}";
             }
 
             return new ChatMessage(ChatRole.Tool, new List<AIContent>

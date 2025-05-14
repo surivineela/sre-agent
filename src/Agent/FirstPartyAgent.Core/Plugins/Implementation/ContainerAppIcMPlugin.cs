@@ -10,37 +10,69 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
 using FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent;
-using Agent.Runtime.SubAgents;
-using Agent.Plugins;
-using FirstPartyAgent.Plugins.Definitions;
 using System.Text.RegularExpressions;
 using FirstPartyAgent.Models;
+using Agent.Core.Interfaces;
+using Agent.Core;
+using Agent.Core.Models.Api.v1;
 
 namespace FirstPartyAgent.Core.Plugins.Implementation;
 public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
 {
     private readonly ILogger<ContainerAppIcMPlugin> _logger;
-    private readonly IToolsRepository _toolsRepository;
-    private readonly ITimePlugin _timePlugin;
-    private readonly IContainerAppsPlugin _containerAppsPlugin;
 
     public ContainerAppIcMPlugin(
             IConfiguration config,
             ICMWorkflowClient icmAutomationClient,
             IChatClient chatClient,
-            ILogger<ContainerAppIcMPlugin> logger,
-            IToolsRepository toolsRepository,
-            ITimePlugin timePlugin,
-            IContainerAppsPlugin containerAppsPlugin) : base(config, icmAutomationClient, chatClient, logger)
+            ILogger<ContainerAppIcMPlugin> logger)
+        : base(config, icmAutomationClient, chatClient, logger)
     {
         _logger = logger;
-        _toolsRepository = toolsRepository;
-        _timePlugin = timePlugin;
-        _containerAppsPlugin = containerAppsPlugin;
+    }
+
+    public (DateTime StartDate, DateTime EndDate) GetIssueInvestigationTimeRange(DateTime? issueFirstOccurence, DateTime? issueLastOccurene, DateTime? reportedIssueObservedOnTime)
+    {
+        if(issueFirstOccurence == null && issueLastOccurene == null && reportedIssueObservedOnTime == null)
+        {
+            throw new ArgumentException("At least one of the issueFirstOccurence, issueLastOccurene or reportedIssueObservedOnTime should be provided.");
+        }
+
+        var now = DateTime.UtcNow;
+
+        // If no endDate, set to now
+        DateTime endDate = issueLastOccurene
+            ?? (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(2) : now);
+
+        // If no startDate, set to now-10d
+        DateTime startDate = issueFirstOccurence
+            ?? (reportedIssueObservedOnTime.HasValue ? reportedIssueObservedOnTime.Value.AddDays(-2) : now.AddDays(-10));
+
+        // Ensure the start date is not after the end date
+        if (startDate > endDate)
+        {
+            startDate = endDate.AddDays(-10);
+        }
+
+        // If the range is greater than 1 month, adjust startDate to be 1 month before endDate
+        if ((endDate - startDate).TotalDays > 30)
+        {
+            startDate = endDate.AddMonths(-1);
+        }
+
+        // If end date is older than 4 months, throw error
+        if ((now - endDate).TotalDays > 120)
+        {
+            throw new ArgumentException("Issue end date is older than 4 months. Please specify correct dates as we can't investigate it.");
+        }
+
+        _logger.LogDebug($"Calculated investigation time range: StartDate={startDate}, EndDate={endDate}");
+        return (startDate, endDate);
     }
 
     public async Task<string> GetInitialInvestigationReportAsync(string incidentId)
     {
+        var stopwatch1 = System.Diagnostics.Stopwatch.StartNew();
         var incident = await GetIncidentInfo(incidentId);
         if (incident == null)
         {
@@ -53,6 +85,8 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         {
             discussions = [.. discussions.OrderByDescending(d => d.Date)]; // latest first
         }
+        stopwatch1.Stop();
+        _logger.LogInformation($"Fetched ICM incident details for ICM ID {incidentId} total time took in fetching: {(int)stopwatch1.ElapsedMilliseconds}");
 
         // Create a JSON string from the incident and discussions
         var json = new
@@ -80,25 +114,14 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
             throw;
         }
 
-        var messages = new List<Microsoft.Extensions.AI.ChatMessage>();
-        messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, summarizationPrompt));
-        messages.Add(new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, incidentWithComments));
-
-        
-        var timePluginDefinition = new TimePluginDefinition(_timePlugin);
-        var containerAppsPluginDefinition = new ContainerAppsPluginDefinition(_containerAppsPlugin);
-
-        var toolSignatures = new List<string>
+        var messages = new List<Microsoft.Extensions.AI.ChatMessage>
         {
-            _toolsRepository.GetSignature(() => timePluginDefinition.GetCurrentUtcTime),
-            _toolsRepository.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionDetail),
-            _toolsRepository.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionUsage),
+            new Microsoft.Extensions.AI.ChatMessage(ChatRole.System, summarizationPrompt),
+            new Microsoft.Extensions.AI.ChatMessage(ChatRole.User, incidentWithComments)
         };
+
         var options = new ChatOptions
         {
-            // Calling tools here is not working (ideally this can be light weight sub-agent after V2 implementation)
-            // Tools = _toolsRepository.ResolveTools(toolSignatures),
-            // ToolMode = ChatToolMode.Auto,
             Temperature = (float)0.2,
             AdditionalProperties = new AdditionalPropertiesDictionary
             {
@@ -106,21 +129,27 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
             }
         };
 
+
+        var stopwatch2 = System.Diagnostics.Stopwatch.StartNew();
         var response = await ChatClient.GetResponseAsync(messages, options);
         string summary = response.Text;
+        stopwatch2.Stop();
 
-        _logger.LogInformation($"Created ICM summary for ICM ID {incidentId}");
+        _logger.LogInformation($"Created ICM summary for ICM ID {incidentId} total time took in summarization: {(int)stopwatch2.ElapsedMilliseconds}");
         return summary;
     }
 
     public override async Task<Incident?> GetIncidentInfo(string incidentId)
     {
+        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
         Incident? incident = await _icmAutomationClient.GetIncidentAsync(incidentId);
         if (incident != null)
         {
             incident.DiscussionEntry = RemoveImageTags(incident.DiscussionEntry);
             incident.Summary = RemoveImageTags(incident.Summary);
         }
+        stopwatch.Stop();
+        _logger.LogInformation($"Fetched raw ICM incident details for ICM ID {incidentId} total time took in fetching: {(int)stopwatch.ElapsedMilliseconds}");
         return incident;
     }
 
@@ -145,5 +174,17 @@ public class ContainerAppIcMPlugin : IcmPlugin, IContainerAppIcMPlugin
         // Regex to match <img ...> tags (case-insensitive)
         string pattern = @"<img[^>]*>";
         return Regex.Replace(html, pattern, string.Empty, RegexOptions.IgnoreCase);
+    }
+
+    public async Task WasAgentHelpfulInDebuggingIssueAsync(string incidentId, bool? wasHelpful, bool? isResolutionCorrect)
+    {
+        if (wasHelpful != null)
+        {
+            await AddTag(incidentId, wasHelpful == true ? "AgentHelpful:true" : "AgentHelpful:false");
+        }
+        if (isResolutionCorrect != null)
+        {
+            await AddTag(incidentId, isResolutionCorrect == true ? "AgentResolutionCorrect:true" : "AgentResolutionCorrect:false");
+        }
     }
 }

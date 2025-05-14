@@ -28,6 +28,14 @@ fi
 
 # Build and publish the .NET application
 echo "🔨 Building and publishing the .NET solution..."
+# Clean up the out folder if it exists
+if [ -d "out" ]; then
+    echo "🧹 Cleaning up the existing 'out' folder..."
+    rm -rf out
+    echo "✅ 'out' folder deleted!"
+fi
+
+# Build and publish the .NET application
 dotnet build "..\..\..\Agent\Agent.Web\Agent.Web.csproj" -c Release --interactive
 dotnet publish "..\..\..\Agent\Agent.Web\Agent.Web.csproj" -o out/publish --interactive
 echo "✅ Build and publish completed!"
@@ -157,5 +165,5 @@ az deployment group create \
                  includeFirstPartyConfiguration="$includeFirstPartyConfiguration"
 set +x
 
-echo "🎉 Deployment completed successfully with imageName: ${imageName}! 🚀🚀🚀"
+echo "🎉 Deployment completed successfully with imageName: ${imageName} 🚀🚀🚀"
 exit 0

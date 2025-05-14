@@ -11,9 +11,10 @@
       },
       "External": {
         "ICMWorkflows": {
-          "Enabled": false,
+          "Enabled": true,
           "WorkflowsEndpoint": "https://resource-provider.genevaautomation.ms/icm/services",
-          "CertificateSubjectName": "",
+          "CertificateKeyVaultUri": "https://capps-int-test-keyvault.vault.azure.net/",
+          "CertificateKeyVaultSecretName": "IcmWorkflowCert",
           "UseFunctionApp": false,
           "FunctionAppEndpoint": "",
           "FunctionAppKey": null,

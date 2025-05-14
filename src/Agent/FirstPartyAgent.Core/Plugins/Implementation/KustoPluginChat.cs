@@ -87,9 +87,9 @@ namespace FirstPartyAgent.Plugins
             return _kustoPlugin.ListFunctionsAsync(region);
         }
 
-        ChatMessage IKustoPlugin.CreateChatMessage(string query, string regionOrClusterUri, int count, string? database, string? functionName)
+        ChatMessage IKustoPlugin.CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database, string? functionName)
         {
-            return _kustoPlugin.CreateChatMessage(query, regionOrClusterUri, count, database, functionName);
+            return _kustoPlugin.CreateChatMessage(query, regionOrClusterUri, count, queryExecutionTimeInMilliSeconds, database, functionName);
         }
     }
 }

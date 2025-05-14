@@ -7,6 +7,8 @@ using Agent.Core;
 using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
+using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
 using FirstPartyAgent.Plugins;
 using FirstPartyAgent.Plugins.Definitions;
@@ -29,6 +31,8 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
         IContainerAppIcMPlugin containerAppIcMPlugin,
         IContainerAppsPlugin containerAppsPlugin,
         IChartPlugin chartPlugin,
+        IManagedClusterPlugin managedClusterPlugin,
+        IManagedEnvironmentPlugin managedEnvironmentPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
         DurableTaskClient durableTaskClient)
@@ -43,8 +47,17 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppIcmAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionDetail));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppsPluginDefinition.GetSubscriptionUsage));
 
+            var managedClusterPluginDefinition = new ManagedClusterPluginDefinition(managedClusterPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetManagedClusterInformation));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedClusterPluginDefinition.GetASIPageForManagedCluster));
+
+            var managedEnvironmentPluginDefinition = new ManagedEnvironmentPluginDefinition(managedEnvironmentPlugin);
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetManagedEnvironmentInfo));
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => managedEnvironmentPluginDefinition.GetASIPageForManagedEnvironment));
+
             var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
             // READ operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetIssueInvestigationTimeRange));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync));
 
             // keep it disabled to minimize the model context

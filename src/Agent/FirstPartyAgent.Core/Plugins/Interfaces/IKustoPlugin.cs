@@ -13,6 +13,6 @@ namespace FirstPartyAgent.Plugins
         public Task<KustoQueryResult> ExecuteClusterKustoQuery(string cluster, string database, string fullQuery, DateTime? NowOverride, Kernel kernel);
         public Task<KustoQueryResult> ExecuteFunctionAsync(string functionName, string region, Dictionary<string, string>? args = null);
         public Task<List<KustoFunction>> ListFunctionsAsync(string region);
-        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, string? database = null, string? functionName = null);
+        public ChatMessage CreateChatMessage(string query, string regionOrClusterUri, int count, int queryExecutionTimeInMilliSeconds, string? database = null, string? functionName = null);
     }
 }

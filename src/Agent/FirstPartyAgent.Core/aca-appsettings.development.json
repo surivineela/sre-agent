@@ -2,6 +2,9 @@
   "AppSettings": {
     "Core": {
       "External": {
+        "ICMWorkflows": {
+          "Enabled": true
+        },
         "Kusto": {
           "Auth": {
             "AuthenticationType": "User",

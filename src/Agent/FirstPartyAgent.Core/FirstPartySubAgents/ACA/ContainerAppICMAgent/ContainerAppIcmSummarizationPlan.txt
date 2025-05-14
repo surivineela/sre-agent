@@ -19,35 +19,23 @@ You must follow these steps to complete the task:
 
 - **How to proceed:**
 Obtain the following details:
-
-    - **fromDate**: `<Start time of the issue in UTC format>`
-    - **toDate**: `<Resolution time of the issue in UTC format>`
-
-    > *Note*: If only a single issue observed date is specified, denote it as `issueObservedDate` in the mentioned date format. Then, calculate:
-
-    - `fromDate (calculated)` = Minimum of (issueObservedDate - 10 days, current date - 10 days)
-    - `toDate (calculated)` = Maximum of (issueObservedDate + 10 days, current date)
-    - `issueObservedDate` = `<issueObservedDate in UTC format>`
-
-#### 📌 Key Guidelines
-    - Ensure that `fromDate` or `fromDate (calculated)` is provided.
-    - Ensure that `toDate` or `toDate (calculated)` is provided.
-    - Ensure the time range between fromDate and toDate is not more than 30 days.
-    - Ensure the issue time is not older than 4 months from the current time and clearly highlight if it is older than 4 months.
-    - Use `GetCurrentUtcTime` tool to get the current time in UTC format.
+    - **fromDate**: `<Start time of the issue in UTC format>` Skip if not provided
+    - **toDate**: `<Resolution time of the issue in UTC format>` Skip if not provided
+    - **issueObservedDate**: `<Issue observed on time of the issue in UTC format>` Skip if not provided
 
 ### 🔹 Step 3: Fetch the Container App Resource(s)
 - **Purpose:**
     - Retrieve the details of the container app resources for each subscription ID.
 
 - **How to proceed:**
-    For each subscription ID, provide the following details:
+    For each subscription ID, provide the following details or use context if available otherwise skip:
 
     ### Subscription ID - <Subscription ID>
 
     - **Subscription ID**: `<Subscription ID>`
     - **Resource Group Name**: `<Extracted from /resourceGroups/<ResourceGroupName> pattern>`
     - **Managed Environment Name**: `<Fully Qualified Azure ARM Resource ID of Managed Environment pattern: /subscriptions/<SubscriptionID/resourceGroups/<ResourceGroupName>/providers/Microsoft.App/managedEnvironments/<ManagedEnvironmentName>>`
+    - **Managed Cluster name**: Extract managedClusterName from pattern <containerAppName>.<managedClusterName>.<region>.azurecontainerapps.io
     - **Container App Name**: `<Fully Qualified Azure ARM Resource ID of Container App> pattern: /subscriptions/<SubscriptionID>/resourceGroups/<ResourceGroupName>/providers/Microsoft.App/containerApps/<ContainerAppName>`
     - **Container App Job Name**: `<Fully Qualified Azure ARM Resource ID of Container App Job> pattern: /subscriptions/<SubscriptionID>/resourceGroups/<ResourceGroupName>/providers/Microsoft.App/jobs/<ContainerAppJobName>`
     - **Container App Session Pool Name**: `<Fully Qualified Azure ARM Resource ID of Container App Session Pool> pattern: /subscriptions/<SubscriptionID>/resourceGroups/<ResourceGroupName>/providers/Microsoft.App/sessionPools/<ContainerAppSessionPoolName>`
@@ -94,7 +82,7 @@ Here is the Markdown Response Template in a more compact format:
 
 ### AI Generated Initial Investigation Report
 ### ICM Details
-- [IcM IncidentId](https://portal.microsofticm.com/imp/v5/incidents/details/<IncidentId>/summary)
+- [<IncidentId>](https://portal.microsofticm.com/imp/v5/incidents/details/<IncidentId>/summary)
 - **Original Title**: `<Title from ICM JSON>`
 - **Created At**: `<UTC formatted creation time>`
 ---
@@ -108,17 +96,12 @@ Here is the Markdown Response Template in a more compact format:
 ### Container App Resource(s)
 #### Subscription ID - <Subscription ID>
 - List of all container app resource(s) found in the subscription(s)
-#### ASI Pages
-Optionally also provide quick links to the ASI pages for each resource with timeline. Note: Use URL-safe encoded string for date like `2025-04-06T19%3A32%3A47.000Z`
-- https://asi.azure.ms/services/ACA%20Azure%20Container%20Apps/pages/Customer%20Subscription?subscription={subscriptionId}&globalFrom={fromDate}&globalTo={toDate}
-- [Managed Environment Name]:(https://asi.azure.ms/services/ACA%20Azure%20Container%20Apps/pages/Container%20App%20Environment?environmentLocation={region}&environmentName={environmentName}&environmentResourceGroup={environmentResourceGroupName}&environmentSubscription={subscriptionId}&globalFrom={fromDate}&globalTo={toDate})
-- [Managed Cluster Name]:(https://asi.azure.ms/services/ACA%20Azure%20Container%20Apps/pages/Managed%20Cluster?managedClusterName={managedClusterName}&globalFrom={fromDate}&globalTo={toDate})
-📌 Key Guidelines: Don't show missing or not provided details.
+
 ---
 ### Time window to debug the Issue
-- `fromDate` or `fromDate (calculated)`: `<Start time of the issue in UTC format>`
-- `toDate` or `toDate (calculated)`: `<Resolution time of the issue in UTC format>`
-- Optionally `issueObservedDate`: `<Issue observed date in UTC format>`
+- `fromDate`: `<Start time of the issue in UTC format>` if issue start date provided
+- `toDate`: `<Resolution time of the issue in UTC format>`if issue last observed date provided
+- `issueObservedDate`: `<Issue observed date in UTC format>` if specific date is provided when issue is observed
 ---
 ### Problem
 - **Issue Description**: `<Summarized problem description extracted from 'title', 'summary', 'discussions' properties>`

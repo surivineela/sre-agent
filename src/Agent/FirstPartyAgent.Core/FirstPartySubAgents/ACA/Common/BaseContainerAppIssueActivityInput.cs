@@ -4,14 +4,12 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.Common;
 public record BaseContainerAppIssueActivityInput
 {
     [Description("Subscription id")]
-    public string SubscriptionId { get; init; }
+    public string SubscriptionId { get; init; } = string.Empty;
     [Description("Resource Group name")]
-    public string ResourceGroupName { get; init; }
-
+    public string ResourceGroupName { get; init; } = string.Empty;
 
     [Description("Managed Environment Name")]
-    public string ManagedEnvironmentName { get; init; }
-
+    public string? ManagedEnvironmentName { get; init; }
 
     [Description("The start of the time range to analyze.")]
     public DateTime FromDate { get; init; }
@@ -20,7 +18,7 @@ public record BaseContainerAppIssueActivityInput
     public DateTime ToDate { get; init; }
 
     [Description("The Azure region where the container app is deployed. Example: 'francecentral'")]
-    public string? Region { get; init; } = string.Empty;
+    public string Region { get; init; } = string.Empty;
 
 
     [Description("The Incident ID (IcM ID) associated with the issue. Example: '622811149'")]

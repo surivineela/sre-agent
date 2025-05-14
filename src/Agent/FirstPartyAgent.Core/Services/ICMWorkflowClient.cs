@@ -92,6 +92,7 @@ namespace FirstPartyAgent.Core.Services
                 {
                     var handler = new HttpClientHandler();
                     var certificate = CertLoader.LoadCertFromKeyVault(_icmWorkflowSettings.CertificateKeyVaultUri, _icmWorkflowSettings.CertificateKeyVaultSecretName, null, _logger);
+                    handler.ClientCertificates.Add(certificate);
                     _logger.LogInformation("Successfully loaded Cert from keyvault for ICMWorkflowClient.");
                     _httpClient = new HttpClient(handler)
                     {

@@ -2,6 +2,7 @@ using Agent.Plugins;
 using Agent.Runtime.SubAgents;
 using Agent.Runtime.MetaAgent.Interfaces;
 using System.Reflection;
+using FirstPartyAgent.Plugins.Definitions;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 public class FirstPartyToolsRepository : ToolsRepository
@@ -19,6 +20,7 @@ public class FirstPartyToolsRepository : ToolsRepository
         RegisterPlugin<ControlFlowPluginDefinition>();
         RegisterPlugin<TimePluginDefinition>();
         RegisterPlugin<ChartPluginDefinition>();
+        RegisterPlugin<ContainerAppIcMPluginDefinition>();
         var firstPartySubAgentPlugins = _agentsFactory.GetRequiredSubAgentPluginDefinitionTypes();
         foreach (var pluginType in firstPartySubAgentPlugins)
         {

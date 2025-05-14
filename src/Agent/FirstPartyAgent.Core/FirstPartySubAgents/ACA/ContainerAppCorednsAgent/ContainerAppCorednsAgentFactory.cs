@@ -8,7 +8,9 @@ using Agent.Plugins;
 using Agent.Runtime.Communication;
 using Agent.Runtime.SubAgents;
 using FirstPartyAgent.Core.Plugins.Definitions;
+using FirstPartyAgent.Core.Plugins.Implementation;
 using FirstPartyAgent.Core.Plugins.Interfaces;
+using FirstPartyAgent.Plugins.Definitions;
 using Microsoft.DurableTask;
 using Microsoft.DurableTask.Client;
 
@@ -26,6 +28,7 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
         IMetricsPlugin metricsPlugin,
         ITimePlugin timePlugin,
         IContainerAppCorednsPlugin corednsPlugin,
+        IContainerAppIcMPlugin containerAppIcMPlugin,
         IChartPlugin chartPlugin,
         IToolsRepository toolsRepository,
         IThreadOrchestrationManager mappingManager,
@@ -48,6 +51,13 @@ namespace FirstPartyAgent.Core.FirstPartySubAgents.ACA.ContainerAppCorednsAgent
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetSwiftBootstrapAgentPodHealthStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.GetDNSConfigUpdateStatus));
             toolSignatures.Add(_toolsRegistry.GetSignature(() => remediationPluginDefinition.CheckIfDNSServerFailedToResolveDot));
+
+            var containerAppIcMPluginDefinition = new ContainerAppIcMPluginDefinition(containerAppIcMPlugin);
+            // READ operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.GetInitialInvestigationReportAsync));
+            // WRITE operations
+            toolSignatures.Add(_toolsRegistry.GetSignature(() => containerAppIcMPluginDefinition.WasAgentHelpfulInDebuggingIssueAsync));
+
 
             var controlFlowPluginDefinition = new ControlFlowPluginDefinition();
             toolSignatures.Add(_toolsRegistry.GetSignature(() => controlFlowPluginDefinition.Wait));

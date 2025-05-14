@@ -134,10 +134,10 @@
     <None Update="FirstPartySubAgents\ACA\ContainerAppCorednsAgent\ContainerAppCorednsAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppICMAgent\ContainerAppIcmAgentPlan.txt">
+    <None Update="FirstPartySubAgents\ACA\ContainerAppIcmAgent\ContainerAppIcmAgentPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="FirstPartySubAgents\ACA\ContainerAppICMAgent\ContainerAppIcmSummarizationPlan.txt">
+    <None Update="FirstPartySubAgents\ACA\ContainerAppIcmAgent\ContainerAppIcmSummarizationPlan.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
