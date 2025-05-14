@@ -26,15 +26,19 @@ namespace FirstPartyAgent.Plugins
             if (reader.FieldCount == 0) return;
 
             var sb = new StringBuilder();
+
+            bool firstRow = true;
             while (reader.Read())
             {
-                for (int i = 0; i < reader.FieldCount; i++)
+                if (!firstRow)
                 {
-                    sb.Append(reader[i]?.ToString() ?? string.Empty);
-                    sb.Append("\t");
+                    sb.AppendLine();
                 }
+
+                firstRow = false;
+
+                sb.Append(string.Join('\t', EnumerateFields(reader)));
                 RowCount++;
-                sb.AppendLine();
             }
 
             Result = sb.ToString();
@@ -47,6 +51,14 @@ namespace FirstPartyAgent.Plugins
             Query = query;
             Result = result;
             Message = message;
+        }
+
+        private IEnumerable<string> EnumerateFields(IDataReader reader)
+        {
+            for (int i = 0; i < reader.FieldCount; i++)
+            {
+                yield return reader[i]?.ToString() ?? string.Empty;
+            }
         }
     }
 }

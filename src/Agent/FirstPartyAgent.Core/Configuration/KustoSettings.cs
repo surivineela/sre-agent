@@ -2,18 +2,22 @@
 //  Copyright (c) Microsoft Corporation.  All rights reserved.
 // ------------------------------------------------------------
 
-using Agent.Core.Models;
 using System.ComponentModel.DataAnnotations;
+using Agent.Core.Models;
 
-namespace Agent.Core.Configuration
+namespace FirstPartyAgent.Core.Configuration
 {
     public class KustoSettings
     {
         public KustoAuthSettings Auth { get; set; } = new();
-        public KustoClusterSettings Clusters { get; set; } = new();
+        public IReadOnlyCollection<KustoRegionalGroupSettings> RegionalClusterGroups { get; set; } = [];
     }
 
-    public class KustoClusterSettings : List<KustoCluster> { }
+    public class KustoRegionalGroupSettings
+    {
+        public string Name { get; set; } = string.Empty;
+        public IReadOnlyCollection<KustoCluster> Regions { get; set; } = [];
+    }
 
     public class KustoAuthSettings
     {

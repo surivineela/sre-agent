@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Configuration;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Core.Services;
 using Agent.Data.DatabaseClients.GraphDbClient;
@@ -12,6 +11,7 @@ using Agent.Plugins;
 using Agent.Plugins.Models;
 using Agent.Runtime.Communication;
 using Azure.Identity;
+using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Configuration;
 using FirstPartyAgent.Core.Helpers;
 using FirstPartyAgent.Core.Plugins;
@@ -57,7 +57,7 @@ namespace FirstPartyAgent.Core.Extensions
             services.AddSingleton<KustoServiceClientFactory>();
             services.AddSingleton<IKustoPlugin, KustoPlugin>();
             services.AddSingleton<KustoPluginSimple>();
-            services.AddSingleton<KustoClientService>();
+            services.AddSingleton<KustoClient>();
 
             services.AddSingleton<ITeamsClient, TeamsClient>();
             services.AddSingleton<TeamsPlugin>();

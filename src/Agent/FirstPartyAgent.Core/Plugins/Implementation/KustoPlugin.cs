@@ -4,18 +4,17 @@
 
 using System.ComponentModel;
 using System.Data;
+using System.IO.Compression;
+using System.Text;
 using System.Text.RegularExpressions;
-using Agent.Core.Helpers;
+using System.Web;
 using Agent.Core.Models;
+using FirstPartyAgent.Core.Clients;
 using FirstPartyAgent.Core.Extensions;
 using FirstPartyAgent.Core.Services;
+using Microsoft.Extensions.AI;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
-using Microsoft.Extensions.AI;
-using System.Text;
-using System.IO.Compression;
-using System.Web;
-using Newtonsoft.Json;
 
 namespace FirstPartyAgent.Plugins
 {
@@ -57,17 +56,21 @@ namespace FirstPartyAgent.Plugins
     public partial class KustoPlugin : IKustoPlugin
     {
         private readonly ILogger<KustoPlugin> _logger;
-        private readonly KustoClientService _kustoClientService;
+        private readonly KustoRegionalGroupClient _kustoRegionalGroupClient;
+        private readonly KustoClient _kustoClient;
         private readonly ITeamsClient _teamsClient;
 
         [GeneratedRegex("[^a-zA-Z\\d]")]
         private static partial Regex RegionNormalizationRegex();
 
-        public KustoPlugin(ILogger<KustoPlugin> logger, KustoClientService kustoClientService, ITeamsClient teamsClient)
+        public KustoPlugin(ILogger<KustoPlugin> logger, KustoRegionalGroupClientProvider kustoClientService, KustoClient kustoClient, ITeamsClient teamsClient)
         {
             _teamsClient = teamsClient;
             _logger = logger;
-            _kustoClientService = kustoClientService;
+            _kustoClient = kustoClient;
+
+            // TODO: this assumes the plugin is only used for Container Apps
+            _kustoRegionalGroupClient = kustoClientService.GetContainerAppsKustoClient();
         }
 
         [KernelFunction("execute_kusto_query")]
@@ -83,10 +86,9 @@ namespace FirstPartyAgent.Plugins
                 _logger.LogInformation($"execute_kusto_query called with {region} / {query}");
 
                 var normalizedRegion = RegionNormalizationRegex().Replace(region, string.Empty).ToLowerInvariant();
-                using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+                using var reader = await _kustoRegionalGroupClient.PerformQueryAsync(query, region);
 
                 stopwatch.Stop();
-
                 var ret = new KustoQueryResult(reader, query);
                 ret.Message = CreateChatMessage(query, normalizedRegion, ret.RowCount, (int)stopwatch.ElapsedMilliseconds);
 
@@ -121,13 +123,8 @@ namespace FirstPartyAgent.Plugins
             await kernel.LogInformation(logMessage, _logger, _teamsClient);
             try
             {
-                var config = new KustoCluster
-                {
-                    ClusterUri = $"https://{cluster}.kusto.windows.net",
-                    Database = database,
-                };
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                var reader = await _kustoClientService.PerformQueryAsync(config, fullQuery);
+                var reader = await _kustoClient.PerformQueryAsync($"https://{cluster}.kusto.windows.net", database, fullQuery);
                 var ret = new KustoQueryResult(reader, fullQuery);
                 stopwatch.Stop();
                 ret.Message = CreateChatMessage(fullQuery, cluster, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, database:database);
@@ -153,7 +150,7 @@ namespace FirstPartyAgent.Plugins
             var query = ".show functions | project Name, Folder, DocString, Parameters";
             var result = new List<KustoFunction>();
 
-            using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+            using var reader = await _kustoRegionalGroupClient.PerformQueryAsync(query, region);
             while (reader.Read())
             {
                 result.Add(new KustoFunction
@@ -185,7 +182,7 @@ namespace FirstPartyAgent.Plugins
             try
             {
                 var stopwatch = System.Diagnostics.Stopwatch.StartNew();
-                using var reader = await _kustoClientService.PerformQueryAsync(query, region);
+                using var reader = await _kustoRegionalGroupClient.PerformQueryAsync(query, region);
                 var ret = new KustoQueryResult(reader, query);
                 stopwatch.Stop();
                 ret.Message = CreateChatMessage(query, region, ret.RowCount, (int)stopwatch.ElapsedMilliseconds, functionName: functionName);
@@ -226,7 +223,7 @@ namespace FirstPartyAgent.Plugins
             {
                 // Supplied parameter is a region, lookup cluster URI for the region
                 var region = regionOrClusterUri;
-                KustoCluster? cluster = _kustoClientService.GetCluster(region);
+                KustoCluster? cluster = _kustoRegionalGroupClient.GetCluster(region);
                 if (cluster != null)
                 {
                     adxUri = cluster.ClusterUri;

@@ -1,11 +1,4 @@
-using System;
-using System.Collections.Generic;
 using System.ComponentModel;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Agent.Core.Helpers;
-using FirstPartyAgent.Core.Services;
 using FirstPartyAgent.Plugins;
 using Microsoft.Extensions.Logging;
 using Microsoft.SemanticKernel;
@@ -14,7 +7,6 @@ namespace FirstPartyAgent.Core.Plugins;
 public class KustoPluginSimple
 {
     private readonly ILogger<KustoPluginSimple> _logger;
-    private readonly KustoClientService _kustoClientService;
     private readonly IKustoPlugin _kustoPlugin;
 
     public KustoPluginSimple(ILogger<KustoPluginSimple> logger, IKustoPlugin kustoPlugin)

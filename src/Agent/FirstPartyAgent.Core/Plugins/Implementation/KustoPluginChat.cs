@@ -3,7 +3,6 @@
 // ------------------------------------------------------------
 
 using Agent.Core;
-using Agent.Core.Helpers;
 using Agent.Core.Interfaces;
 using Agent.Data.DatabaseClients.GraphDbClient;
 using IdentityModel.Client;
@@ -17,14 +16,12 @@ namespace FirstPartyAgent.Plugins
     {
         private readonly IKustoPlugin _kustoPlugin;
         private readonly IAgentOutboundCommunicationService _agentOutboundCommunicationService;
-        private readonly KustoClientService _kustoClientService;
         private const int TokenLimit = 2000;
 
-        public KustoPluginChat(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService, KustoClientService kustoClientService)
+        public KustoPluginChat(IKustoPlugin kustoPlugin, IAgentOutboundCommunicationService agentOutboundCommunicationService)
         {
             _kustoPlugin = kustoPlugin;
             _agentOutboundCommunicationService = agentOutboundCommunicationService;
-            _kustoClientService = kustoClientService;
         }
 
         public async Task<string> ExecuteLocalFunctionAsync(string functionName, string region, Dictionary<string, string> args, SamplingOptions? samplingOptions = null)

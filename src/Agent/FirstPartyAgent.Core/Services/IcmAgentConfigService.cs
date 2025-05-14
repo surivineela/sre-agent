@@ -2,8 +2,8 @@
 using FirstPartyAgent.Core.Models;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Azure.Cosmos;
-using Agent.Core.Helpers;
 using Kusto.Cloud.Platform.Data;
+using FirstPartyAgent.Core.Clients;
 
 namespace FirstPartyAgent.Core.Services;
 public class IcmAgentConfigService : IIcmAgentConfigService
@@ -11,7 +11,7 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private readonly ICosmosDBService _cosmosDbService;
     private readonly IWebHostEnvironment _env;
     private readonly IHttpClientFactory _httpClientFactory;
-    private readonly KustoClientService _kustoClientService;
+    private readonly KustoClient _kustoClient;
 
     private const string _databaseName = "HotsiteAgent";
     private const string _alertConfigContainerName = "IcmAlertConfigs";
@@ -21,12 +21,12 @@ public class IcmAgentConfigService : IIcmAgentConfigService
     private const string _agentDeploymentsContainerName = "AgentDeployments";
     private const string _agentFactoryConfigsContainerName = "AgentFactoryConfigs";
 
-    public IcmAgentConfigService(IWebHostEnvironment env, IHttpClientFactory httpClientFactory, ICosmosDBService cosmosDbService, KustoClientService kustoClientService)
+    public IcmAgentConfigService(IWebHostEnvironment env, IHttpClientFactory httpClientFactory, ICosmosDBService cosmosDbService, KustoClient kustoClientService)
     {
         _env = env;
         _httpClientFactory = httpClientFactory;
         _cosmosDbService = cosmosDbService;
-        _kustoClientService = kustoClientService;
+        _kustoClient = kustoClientService;
     }
 
     public bool IsEnabled() => _cosmosDbService.IsEnabled;
@@ -337,11 +337,7 @@ Incidents
                 { "titleParam", title }
             };
 
-            using var reader = await _kustoClientService.PerformQueryWithParametersAsync(query, parameters, new Agent.Core.Models.KustoCluster() {
-                ClusterUri = "https://IcMDataWarehouse.kusto.windows.net",
-                Database = "IcMDataWarehouse",
-                Region = "primary"
-            });
+            using var reader = await _kustoClient.PerformQueryWithParametersAsync("https://IcMDataWarehouse.kusto.windows.net", "IcMDataWarehouse", query, parameters);
 
             // Process the results
             var incidents = new List<IcmIncidentBasicInfo>();

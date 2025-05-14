@@ -21,6 +21,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using System.Text.Json;
+using FirstPartyAgent.Core.Clients;
 
 namespace FirstPartyAgent.Core.FirstPartyAgents;
 
@@ -58,7 +59,8 @@ public static class ServiceCollectionExtensions
         builder.Services.AddSingleton<IKustoPlugin, KustoPlugin>();
         builder.Services.AddSingleton<IKustoPluginChat, KustoPluginChat>();
         builder.Services.AddSingleton<ITeamsClient, TeamsClient>();
-        builder.Services.AddSingleton<KustoClientService>();
+        builder.Services.AddSingleton<KustoClient>();
+        builder.Services.AddSingleton<KustoRegionalGroupClientProvider>();
         builder.Services.AddSingleton<TeamsClientSettings>();
 
         builder.Services.AddOptionsWithValidateOnStart<ICMWorkflowSettings>()
