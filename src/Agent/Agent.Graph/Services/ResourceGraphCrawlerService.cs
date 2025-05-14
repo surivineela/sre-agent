@@ -262,6 +262,10 @@ public class ResourceGraphCrawlerService : ICrawlerService
                             _logger.LogDebug($"Cleaning up stale edges from {node.GetNodeId()} (older than {startTS})");
                             await CrawlerExtensions.RemoveStaleEdgeForNode(_graphDbClient, node, startTS);
                         }
+                        catch (Exception ex)
+                        {
+                            _logger.LogDebug(ex, $"Error crawling {node.GetNodeId()}");
+                        }
                         finally
                         {
                             Interlocked.Decrement(ref _crawlingCount);

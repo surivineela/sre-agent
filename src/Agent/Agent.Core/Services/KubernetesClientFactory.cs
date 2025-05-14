@@ -3,24 +3,30 @@
 // ------------------------------------------------------------
 
 using Agent.Core.Interfaces;
+using Agent.Logging;
 using Azure.Core;
 using Azure.ResourceManager.ContainerService;
 using Azure.ResourceManager.Resources;
 using k8s;
 using k8s.KubeConfigModels;
-using YamlDotNet.Core.Tokens;
+using Microsoft.Extensions.Logging;
 
 namespace Agent.Core.Services;
 
 public class KubernetesClientFactory : IKubernetesClientFactory
 {
+    private readonly ILogger<KubernetesClientFactory> _logger;
     private readonly IArmClientFactory _armClientFactory;
     private readonly IAuthenticationService _authService;
 
     private readonly Dictionary<string, CachedK8SConfiguration> _configurationCache;
 
-    public KubernetesClientFactory(IArmClientFactory armClientFactory, IAuthenticationService authService)
+    public KubernetesClientFactory(
+        ILogger<KubernetesClientFactory> logger,
+        IArmClientFactory armClientFactory,
+        IAuthenticationService authService)
     {
+        _logger = logger;
         _armClientFactory = armClientFactory;
         _authService = authService;
 
@@ -36,7 +42,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
         if (string.IsNullOrEmpty(subscription) || string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(clusterName))
         {
-            return null;
+            throw new ArgumentException($"Invalid resource Id: {resourceId}");
         }
 
         return await GetK8SClient(subscription, resourceGroup, clusterName, true);
@@ -51,7 +57,7 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
         if (string.IsNullOrEmpty(subscription) || string.IsNullOrEmpty(resourceGroup) || string.IsNullOrEmpty(clusterName))
         {
-            return null;
+            throw new ArgumentException($"Invalid resource Id: {resourceId}");
         }
 
         return await GetK8SClient(subscription, resourceGroup, clusterName, false);
@@ -67,10 +73,6 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             {
                 var cred = _authService.GetCrawlerCredential();
                 var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                if (config == null)
-                {
-                    return null;
-                }
                 _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
             }
         }
@@ -80,10 +82,6 @@ public class KubernetesClientFactory : IKubernetesClientFactory
             if (!_configurationCache.ContainsKey($"{subscription}/{resourceGroup}/{clusterName}"))
             {
                 var (config, expiresOn) = await GetK8SConfigurationFromArm(subscription, resourceGroup, clusterName, cred);
-                if (config == null)
-                {
-                    return null;
-                }
                 _configurationCache[$"{subscription}/{resourceGroup}/{clusterName}"] = new CachedK8SConfiguration(config, expiresOn);
             }
             else
@@ -110,22 +108,28 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
         if (resp == null || !resp.Value.HasData)
         {
-            return (null, null);
+            var msg = $"Failed to get cluster resource from ARM for {subscription}/{resourceGroup}/{clusterName}";
+            _logger.LogInternalError(msg);
+            throw new InvalidOperationException(msg);
         }
 
         var cluster = resp.Value;
-        if (cluster.Data.AadProfile != null && (cluster.Data.AadProfile.IsAzureRbacEnabled ?? false))
+        if (cluster.Data.AadProfile != null)
         {
             var credResp = await cluster.GetClusterUserCredentialsAsync();
             if (credResp == null)
             {
-                return (null, null);
+                var msg = $"Failed to list user credential for {subscription}/{resourceGroup}/{clusterName}";
+                _logger.LogInternalError(msg);
+                throw new InvalidOperationException(msg);
             }
 
             var mcCred = credResp.Value.Kubeconfigs.FirstOrDefault();
             if (mcCred == null)
             {
-                return (null, null);
+                var msg = $"Empty kube config for {subscription}/{resourceGroup}/{clusterName}";
+                _logger.LogInternalError(msg);
+                throw new InvalidOperationException(msg);
             }
 
             var kubeConfig = KubernetesClientConfiguration.LoadKubeConfig(new MemoryStream(mcCred.Value));
@@ -142,27 +146,28 @@ public class KubernetesClientFactory : IKubernetesClientFactory
 
             return (kubeConfig, token.ExpiresOn);
         }
+        else
+        {
+            var credResp = await cluster.GetClusterAdminCredentialsAsync();
+            if (credResp == null)
+            {
+                var msg = $"Failed to list admin credential for {subscription}/{resourceGroup}/{clusterName}";
+                _logger.LogInternalError(msg);
+                throw new InvalidOperationException(msg);
+            }
 
-        return (null, null);
-        // do not use admin credential
-        //else
-        //{
-        //    var credResp = await cluster.GetClusterAdminCredentialsAsync();
-        //    if (credResp == null)
-        //    {
-        //        return (null, null);
-        //    }
+            var mcCred = credResp.Value.Kubeconfigs.FirstOrDefault();
+            if (mcCred == null)
+            {
+                var msg = $"Empty kube config for {subscription}/{resourceGroup}/{clusterName}";
+                _logger.LogInternalError(msg);
+                throw new InvalidOperationException(msg);
+            }
 
-        //    var mcCred = credResp.Value.Kubeconfigs.FirstOrDefault();
-        //    if (mcCred == null)
-        //    {
-        //        return (null, null);
-        //    }
+            var kubeConfig = KubernetesClientConfiguration.LoadKubeConfig(new MemoryStream(mcCred.Value));
 
-        //    var kubeConfig = KubernetesClientConfiguration.LoadKubeConfig(new MemoryStream(mcCred.Value));
-
-        //    return (kubeConfig, null);
-        //}
+            return (kubeConfig, null);
+        }
     }
 
     public class CachedK8SConfiguration
