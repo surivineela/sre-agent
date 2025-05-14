@@ -145,7 +145,9 @@ export const commandBarStyles = {
 export const navStyles = {
     root: {
         width: 300,
-        marginLeft: 30,
+        marginLeft: 20,
+        marginRight: 20,
+        marginTop: 20,
     },
     compositeLink: {
         backgroundColor: 'transparent',
@@ -157,6 +159,8 @@ export const navStyles = {
                 backgroundColor: tokens.colorNeutralBackground3Hover,
             },
         },
+        height: 32,
+        borderRadius: 4,
     },
     link: {
         paddingLeft: 5,
@@ -165,8 +169,12 @@ export const navStyles = {
             '&:after': {
                 borderLeftWidth: 3,
                 inset: '5px 0',
+                height: 20,
+                width: 4,
+                borderRadius: 2,
             },
         },
+        height: 32,
     },
 };
 
