@@ -402,7 +402,7 @@ export const AzMonitorResources = defineMessages({
 
 export const SettingsTabResources = defineMessages({
     incidentManagement: { defaultMessage: 'Incident management', id: 'T7WpWs' },
-    accessControl: { defaultMessage: 'Access control', id: 'rpG/Bn' },
+    accessControl: { defaultMessage: 'Access control (IAM)', id: '7w4v59' },
     basics: { defaultMessage: 'Basics', id: 'itC9lG' },
     grafanaInsights: { defaultMessage: 'Grafana insights', id: 'Nf40QB' },
     managedResources: { defaultMessage: 'Managed resource groups', id: 'yilQrD' },

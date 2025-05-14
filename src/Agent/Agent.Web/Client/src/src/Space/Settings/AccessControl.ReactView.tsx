@@ -1,4 +1,5 @@
-import { DefaultButton } from '@fluentui/react/lib/Button';
+import { Button } from '@fluentui/react-components';
+import { Open16Regular } from '@fluentui/react-icons';
 import { FC, useContext } from 'react';
 import { useIntl } from 'react-intl';
 import { AzPortalContext } from '../../Common/AzPortalProxy/Providers/AzPortalProxyContext';
@@ -18,8 +19,8 @@ const AccessControl: FC = () => {
             <div style={styles.generalSettingsHeader}>{intl.formatMessage(SettingsTabResources.accessControl)}</div>
             <div style={styles.accessControlSettingsContainer}>
                 {intl.formatMessage(AccessControlResources.accessControlDescription)}
-                <DefaultButton
-                    text={intl.formatMessage(AccessControlResources.openAccessControl)}
+                <Button
+                    icon={<Open16Regular />}
                     style={styles.accessControlSettingsButton}
                     onClick={() =>
                         az.openBlade({
@@ -30,7 +31,9 @@ const AccessControl: FC = () => {
                             },
                         })
                     }
-                />
+                >
+                    {intl.formatMessage(AccessControlResources.openAccessControl)}
+                </Button>
             </div>
         </>
     );
